@@ -1,0 +1,79 @@
+{
+  "case_id": "case-demo-001",
+  "subject_id": "research-subject-001",
+  "requested_by": "researcher-local",
+  "context": {
+    "genome_build": "GRCh38",
+    "disease_class": "diffuse_glioma",
+    "age_group": "adult",
+    "cell_state": "malignant_oligodendrocyte_like",
+    "territory": "tumor_core",
+    "treatment_phase": "pre_treatment",
+    "assay_support": ["open_chromatin", "contact_map"],
+    "source_version": "context-fixture-0.1"
+  },
+  "variants": [
+    {
+      "variant_id": "var-demo-001",
+      "kind": "snv",
+      "chromosome": "chr7",
+      "start": 55249071,
+      "end": 55249071,
+      "reference": "A",
+      "alternate": "G",
+      "genome_build": "GRCh38",
+      "origin": "somatic",
+      "clonality": "subclonal",
+      "sample_id": "research-subject-001",
+      "annotations": {"call_quality": 0.98}
+    }
+  ],
+  "candidate_elements": [
+    {
+      "element_id": "enhancer-demo-001",
+      "chromosome": "chr7",
+      "start": 55248920,
+      "end": 55249320,
+      "element_type": "enhancer",
+      "source_id": "fixture-atlas-001",
+      "target_genes": ["GENE_DEMO_A", "GENE_DEMO_B"],
+      "state_ids": ["state-proliferative"],
+      "features": {
+        "motif_delta": 0.82,
+        "sequence_model": 0.71,
+        "accessibility": 0.88,
+        "histone_activity": 0.76,
+        "methylation": 0.54,
+        "contact_strength": 0.73,
+        "boundary_support": 0.62,
+        "qtl_support": 0.48,
+        "state_prior": 0.81,
+        "cohort_recurrence": 0.21
+      },
+      "annotations": {
+        "link_method": "contact_activity_fixture",
+        "mechanism": "allele-conditioned enhancer activity in a specified malignant cell state",
+        "alternative_explanations": ["context mismatch", "linked regulatory element"],
+        "proximity_scale": 250000
+      },
+      "context": {
+        "genome_build": "GRCh38",
+        "disease_class": "diffuse_glioma",
+        "age_group": "adult",
+        "cell_state": "malignant_oligodendrocyte_like",
+        "territory": "tumor_core",
+        "treatment_phase": "pre_treatment",
+        "source_version": "fixture-atlas-001"
+      }
+    }
+  ],
+  "input_versions": {
+    "reference": "GRCh38",
+    "context": "context-fixture-0.1",
+    "atlas": "fixture-atlas-001"
+  },
+  "metadata": {
+    "purpose": "local integration fixture",
+    "data_class": "synthetic"
+  }
+}

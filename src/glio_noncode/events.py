@@ -1,0 +1,71 @@
+"""Hash-chained event log for reproducibility and replay."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from .serialization import content_hash, jsonable, utc_now
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeEvent:
+    """A signed-by-hash event with no destructive updates."""
+
+    event_id: str
+    run_id: str
+    event_type: str
+    payload: dict[str, Any]
+    created_at: str = field(default_factory=lambda: utc_now().isoformat())
+    previous_hash: str | None = None
+    event_hash: str = ""
+
+    def seal(self) -> "RuntimeEvent":
+        body = {
+            "event_id": self.event_id,
+            "run_id": self.run_id,
+            "event_type": self.event_type,
+            "payload": self.payload,
+            "created_at": self.created_at,
+            "previous_hash": self.previous_hash,
+        }
+        return RuntimeEvent(**body, event_hash=content_hash(body))
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+class EventLog:
+    """Ordered event collection with chain verification."""
+
+    def __init__(self, run_id: str) -> None:
+        self.run_id = run_id
+        self._events: list[RuntimeEvent] = []
+
+    @property
+    def head(self) -> str:
+        return self._events[-1].event_hash if self._events else "genesis"
+
+    def append(self, event_type: str, payload: dict[str, Any], *, event_id: str) -> RuntimeEvent:
+        event = RuntimeEvent(
+            event_id=event_id,
+            run_id=self.run_id,
+            event_type=event_type,
+            payload=payload,
+            previous_hash=self._events[-1].event_hash if self._events else None,
+        ).seal()
+        self._events.append(event)
+        return event
+
+    def all(self) -> tuple[RuntimeEvent, ...]:
+        return tuple(self._events)
+
+    def verify(self) -> bool:
+        previous: str | None = None
+        for event in self._events:
+            if event.previous_hash != previous:
+                return False
+            if event.seal().event_hash != event.event_hash:
+                return False
+            previous = event.event_hash
+        return True

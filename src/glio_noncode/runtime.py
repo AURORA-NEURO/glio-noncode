@@ -1,0 +1,186 @@
+"""Orchestration for case evaluation, review, replay, and local persistence."""
+
+from __future__ import annotations
+
+from dataclasses import replace
+from pathlib import Path
+from typing import Any, Mapping
+
+from .errors import PolicyViolation, ValidationError
+from .events import EventLog
+from .experiments import ExperimentPlanner
+from .hypotheses import HypothesisBuilder
+from .models import (
+    CaseManifest,
+    Dossier,
+    ResearchStatus,
+    ReviewDecision,
+    ReviewState,
+)
+from .policy import ResearchPolicy
+from .serialization import content_hash, jsonable, utc_now
+from .storage import RunStore
+
+
+class CaseRuntime:
+    """Coordinate typed inputs, deterministic builders, policy, and storage."""
+
+    def __init__(self, data_root: str | Path = ".glio") -> None:
+        self.store = RunStore(data_root)
+        self.builder = HypothesisBuilder()
+        self.planner = ExperimentPlanner()
+        self.policy = ResearchPolicy()
+        self._logs: dict[str, EventLog] = {}
+
+    def evaluate(self, manifest: CaseManifest) -> Dossier:
+        """Evaluate a manifest and persist its immutable output."""
+
+        self.policy.enforce_texts((manifest.case_id, manifest.requested_by))
+        run_id = self._run_id(manifest)
+        log = EventLog(run_id)
+        self._logs[run_id] = log
+        input_address = self.store.store.put(manifest.to_dict())
+        log.append("case_received", {"input_address": input_address, "case_id": manifest.case_id}, event_id=f"evt-{run_id}-received")
+        built = self.builder.build(manifest, run_id)
+        log.append(
+            "hypotheses_built",
+            {"hypothesis_count": len(built.hypotheses), "claim_count": len(built.claims), "warnings": list(built.warnings)},
+            event_id=f"evt-{run_id}-built",
+        )
+        experiments = self.planner.plan_many(built.hypotheses)
+        log.append(
+            "validation_routes_planned",
+            {"experiment_count": len(experiments)},
+            event_id=f"evt-{run_id}-planned",
+        )
+        dossier = self._make_dossier(
+            manifest=manifest,
+            run_id=run_id,
+            input_address=input_address,
+            hypotheses=built.hypotheses,
+            claims=built.claims,
+            experiments=experiments,
+            review=None,
+            status=ResearchStatus.REVIEW_REQUIRED,
+            event_head=log.head,
+            warnings=built.warnings,
+        )
+        decision = self.policy.validate_dossier(dossier)
+        if not decision.allowed:
+            raise PolicyViolation("; ".join(decision.violations))
+        log.append("dossier_created", {"dossier_id": dossier.dossier_id}, event_id=f"evt-{run_id}-dossier")
+        dossier = self._readdress(replace(dossier, event_head=log.head))
+        self._persist(manifest, log, dossier, input_address)
+        return dossier
+
+    def review(self, dossier: Dossier, review: ReviewDecision) -> Dossier:
+        """Attach a review decision and create a new immutable dossier snapshot."""
+
+        if dossier.case_id != review.case_id:
+            raise ValidationError("review case_id does not match dossier")
+        known_hypotheses = {hypothesis.hypothesis_id for hypothesis in dossier.hypotheses}
+        unknown_hypotheses = set(review.reviewed_hypothesis_ids) - known_hypotheses
+        if unknown_hypotheses:
+            raise ValidationError(f"review names unknown hypotheses: {sorted(unknown_hypotheses)}")
+        known_claims = {claim.evidence_id for claim in dossier.evidence}
+        unknown_claims = set(review.checked_claim_ids) - known_claims
+        if unknown_claims:
+            raise ValidationError(f"review names unknown claims: {sorted(unknown_claims)}")
+        log = self._logs.get(dossier.run_id)
+        if log is None:
+            log = EventLog(dossier.run_id)
+            log.append("replayed_from_dossier", {"dossier_id": dossier.dossier_id}, event_id=f"evt-{dossier.run_id}-replayed")
+            self._logs[dossier.run_id] = log
+        log.append("review_recorded", review.to_dict(), event_id=review.review_id)
+        status = ResearchStatus.RELEASED_RESEARCH if review.state == ReviewState.ACCEPTED else ResearchStatus.REVIEWED
+        updated = self._make_dossier(
+            manifest=None,
+            run_id=dossier.run_id,
+            input_address=dossier.input_address,
+            hypotheses=dossier.hypotheses,
+            claims=dossier.evidence,
+            experiments=dossier.experiments,
+            review=review,
+            status=status,
+            event_head=log.head,
+            warnings=dossier.warnings,
+            case_id=dossier.case_id,
+            created_at=dossier.created_at,
+        )
+        decision = self.policy.validate_dossier(updated)
+        if not decision.allowed:
+            raise PolicyViolation("; ".join(decision.violations))
+        updated = self._readdress(updated)
+        self._persist(None, log, updated, dossier.input_address)
+        return updated
+
+    def get_run(self, run_id: str) -> dict[str, Any]:
+        """Read the run index without rehydrating mutable objects."""
+
+        return self.store.get_run(run_id)
+
+    def get_dossier(self, dossier_address: str) -> dict[str, Any]:
+        """Read an immutable dossier by its content address."""
+
+        return self.store.store.get(dossier_address)
+
+    @staticmethod
+    def _run_id(manifest: CaseManifest) -> str:
+        digest = content_hash({"input": manifest.content_address, "requested_by": manifest.requested_by}).split(":", 1)[1]
+        return f"run-{digest[:24]}"
+
+    @staticmethod
+    def _dossier_address(dossier: Dossier) -> str:
+        payload = {key: value for key, value in dossier.to_dict().items() if key != "content_address"}
+        return content_hash(payload)
+
+    def _make_dossier(
+        self,
+        *,
+        manifest: CaseManifest | None,
+        run_id: str,
+        input_address: str,
+        hypotheses,
+        claims,
+        experiments,
+        review,
+        status: ResearchStatus,
+        event_head: str,
+        warnings,
+        case_id: str | None = None,
+        created_at: str | None = None,
+    ) -> Dossier:
+        draft = Dossier(
+            dossier_id=f"dos-{run_id}",
+            case_id=case_id or manifest.case_id,
+            run_id=run_id,
+            created_at=created_at or utc_now().isoformat(),
+            input_address=input_address,
+            hypotheses=tuple(hypotheses),
+            evidence=tuple(claims),
+            experiments=tuple(experiments),
+            review=review,
+            research_use_only=True,
+            policy_version=self.policy.version,
+            event_head=event_head,
+            content_address="pending",
+            status=status,
+            warnings=tuple(warnings),
+        )
+        return self._readdress(draft)
+
+    def _readdress(self, dossier: Dossier) -> Dossier:
+        pending = replace(dossier, content_address="pending")
+        return replace(pending, content_address=self._dossier_address(pending))
+
+    def _persist(self, manifest, log: EventLog, dossier: Dossier, input_address: str) -> None:
+        if manifest is not None:
+            input_address = self.store.store.put(manifest.to_dict())
+        event_address = self.store.store.put({"run_id": log.run_id, "events": [event.to_dict() for event in log.all()]})
+        dossier_address = self.store.store.put_at(dossier.content_address, dossier.to_dict())
+        self.store.save_run(
+            log.run_id,
+            input_address=input_address,
+            event_address=event_address,
+            dossier_address=dossier_address,
+        )
