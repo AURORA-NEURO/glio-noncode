@@ -101,6 +101,7 @@ class IntakeBatch:
     input_format: IntakeFormat
     variants: tuple[VariantIdentity, ...]
     records: tuple[RawVariantRecord, ...]
+    deferred_records: tuple[RawVariantRecord, ...]
     issues: tuple[IntakeIssue, ...]
     receipt: IntakeReceipt
 
@@ -154,6 +155,7 @@ class _BatchBuilder:
         self.input_format = input_format
         self.variants: list[VariantIdentity] = []
         self.records: list[RawVariantRecord] = []
+        self.deferred_records: list[RawVariantRecord] = []
         self.issues: list[IntakeIssue] = []
         self._seen_keys: set[str] = set()
         self.record_count = 0
@@ -190,6 +192,9 @@ class _BatchBuilder:
         self.records.append(record)
         self.variants.append(variant)
 
+    def defer(self, record: RawVariantRecord) -> None:
+        self.deferred_records.append(record)
+
     def finish(self, text: str, header_lines: Iterable[str]) -> IntakeBatch:
         warning_count = sum(issue.severity == IntakeSeverity.WARNING for issue in self.issues)
         error_count = sum(issue.severity == IntakeSeverity.ERROR for issue in self.issues)
@@ -224,6 +229,7 @@ class _BatchBuilder:
             input_format=self.input_format,
             variants=tuple(self.variants),
             records=tuple(self.records),
+            deferred_records=tuple(self.deferred_records),
             issues=tuple(self.issues),
             receipt=receipt,
         )
@@ -581,6 +587,7 @@ class VariantIntake:
     ) -> None:
         alternate = record.alternate.strip()
         if alternate.startswith("<") or any(marker in alternate for marker in "[]"):
+            builder.defer(record)
             builder.issue(
                 "unsupported_symbolic_allele",
                 IntakeSeverity.WARNING,

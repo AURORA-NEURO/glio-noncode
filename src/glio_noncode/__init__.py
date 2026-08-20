@@ -16,6 +16,7 @@ from .models import (
     VariantIdentity,
 )
 from .runtime import CaseRuntime
+from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
 
 __all__ = [
     "CaseManifest",
@@ -25,6 +26,8 @@ __all__ = [
     "EvidenceClaim",
     "Hypothesis",
     "ReferenceContext",
+    "ReconstructionResult",
+    "StructuralReconstructor",
     "VariantIdentity",
     "VariantIndex",
     "VariantIntake",
