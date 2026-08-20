@@ -6,6 +6,7 @@ first and research-use only.
 """
 
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
+from .control_plane_app import ControlPlaneApplication
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .intake import VariantIndex, VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
@@ -30,6 +31,7 @@ __all__ = [
     "AtlasQuery",
     "CaseRuntime",
     "ControlPlaneExecutor",
+    "ControlPlaneApplication",
     "Dossier",
     "EvidenceClaim",
     "Hypothesis",

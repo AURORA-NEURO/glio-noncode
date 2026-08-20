@@ -10,6 +10,7 @@ from typing import Any
 
 from .api import create_server
 from .control_plane import default_control_plane_registry
+from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
 from .intake import IntakeFormat, VariantIntake
@@ -71,6 +72,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("sources", help="print the live public source catalog")
     subparsers.add_parser("registry", help="print the bounded control-plane registry")
+    subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
     subparsers.add_parser("references", help="print the reference assembly registry")
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
@@ -95,6 +97,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "registry":
             _write_json(default_control_plane_registry().manifest(), None)
+            return 0
+        if args.command == "bindings":
+            _write_json(ControlPlaneApplication().manifest(), None)
             return 0
         if args.command == "references":
             _write_json(default_reference_registry().manifest(), None)

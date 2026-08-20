@@ -10,6 +10,7 @@ The public registry is available with:
 
 ```text
 python -m glio_noncode registry
+python -m glio_noncode bindings
 ```
 
 ## Planes and roles
@@ -90,3 +91,11 @@ deterministic where possible and must preserve source receipts, reference
 versions, model digests, and explicit failure states. A model may help with
 bounded planning, extraction, review, or explanation, but it may not invent
 variants, measurements, statistical results, posterior values, or citations.
+
+`ControlPlaneApplication` binds the core executable slice to registered
+publication tools: mission planning (`A01`), VCF/TSV/JSON intake (`A07`),
+identity normalization (`A08`), power planning (`A41`), human-review
+abstention (`A45`), and drift monitoring (`A47`). Other registered roles remain
+available for dependency planning and return explicit handler-unavailable
+errors until their domain module is installed; they do not silently report
+success.
