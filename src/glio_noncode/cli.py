@@ -12,6 +12,7 @@ from .api import create_server
 from .control_plane import default_control_plane_registry
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
+from .intake import IntakeFormat, VariantIntake
 from .models import CaseManifest
 from .runtime import CaseRuntime
 from .schema import schema_document
@@ -69,6 +70,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("sources", help="print the live public source catalog")
     subparsers.add_parser("registry", help="print the bounded control-plane registry")
+
+    intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
+    intake.add_argument("input", type=str)
+    intake.add_argument("--source-id", default=None)
+    intake.add_argument("--format", choices=[item.value for item in IntakeFormat], default=None)
+    intake.add_argument("--genome-build", default="GRCh38")
+    intake.add_argument("--sample-id", default=None)
+    intake.add_argument("--include-no-call", action="store_true")
+    intake.add_argument("--output", default=None)
     return parser
 
 
@@ -83,6 +93,19 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "registry":
             _write_json(default_control_plane_registry().manifest(), None)
+            return 0
+        if args.command == "intake":
+            input_path = Path(args.input)
+            source_id = args.source_id or input_path.stem
+            batch = VariantIntake(default_build=args.genome_build).parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=source_id,
+                input_format=args.format,
+                genome_build=args.genome_build,
+                sample_id=args.sample_id,
+                include_no_call=args.include_no_call,
+            )
+            _write_json(batch.to_dict(), args.output)
             return 0
         if args.command == "evaluate":
             manifest = CaseManifest.from_dict(_read_json(args.manifest))

@@ -6,6 +6,7 @@ first and research-use only.
 """
 
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
+from .intake import VariantIndex, VariantIntake
 from .models import (
     CaseManifest,
     Dossier,
@@ -25,6 +26,8 @@ __all__ = [
     "Hypothesis",
     "ReferenceContext",
     "VariantIdentity",
+    "VariantIndex",
+    "VariantIntake",
     "default_control_plane_registry",
 ]
 

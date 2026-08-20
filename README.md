@@ -21,6 +21,7 @@ python -m pip install -e .
 glio-noncode evaluate examples/case-small.json --output dossier.json
 glio-noncode schema
 glio-noncode sources
+glio-noncode registry
 ```
 
 The same runtime can be served locally:
@@ -39,6 +40,17 @@ glio-noncode evaluate examples/case-small.json --live-reference --window-bp 2000
 ```
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
+
+To canonicalize an external variant file before constructing a case manifest:
+
+```powershell
+glio-noncode intake variants.vcf --source-id cohort-vcf --genome-build GRCh38 --output intake.json
+```
+
+The intake boundary accepts VCF, TSV, and JSON, expands multiallelic records,
+preserves source hashes and sample/INFO fields, skips no-call and reference-only
+genotypes by default, and defers symbolic or breakend alleles to structural
+reconstruction. The bounded role/tool registry is available with `registry`.
 
 ## Design boundaries
 

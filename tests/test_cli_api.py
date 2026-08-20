@@ -21,6 +21,31 @@ class CliApiTests(unittest.TestCase):
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertIn("$defs", payload)
 
+    def test_intake_command_writes_canonical_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "variants.tsv"
+            output = Path(directory) / "intake.json"
+            source.write_text(
+                "chrom\tpos\tref\talt\nchr7\t10\tA\tT\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "intake",
+                        str(source),
+                        "--source-id",
+                        "test-tsv",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["receipt"]["accepted_count"], 1)
+            self.assertEqual(payload["variants"][0]["variant_id"], "test-tsv:2")
+
     def test_health_and_evaluate_endpoints(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             server = create_server("127.0.0.1", 0, directory)
@@ -34,7 +59,12 @@ class CliApiTests(unittest.TestCase):
                 self.assertEqual(health.status, 200)
                 self.assertEqual(json.loads(health.read())["status"], "ok")
                 manifest = (ROOT / "examples" / "case-small.json").read_bytes()
-                connection.request("POST", "/v1/evaluate", body=manifest, headers={"Content-Type": "application/json"})
+                connection.request(
+                    "POST",
+                    "/v1/evaluate",
+                    body=manifest,
+                    headers={"Content-Type": "application/json"},
+                )
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
                 dossier = json.loads(response.read())
