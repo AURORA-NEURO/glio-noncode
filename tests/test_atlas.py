@@ -99,6 +99,8 @@ class AtlasTests(unittest.TestCase):
             },
         )
         self.assertEqual(atlas.abstained_count, 0)
+        self.assertIsNotNone(atlas.sequence_analysis)
+        self.assertIsNotNone(atlas.uncertainty)
         claims = atlas.to_evidence_claims(variant=self.variant, context=self.context)
         self.assertEqual(len(claims), len(atlas.observations))
         self.assertTrue(all(claim.score is None for claim in claims))

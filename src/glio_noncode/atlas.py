@@ -14,7 +14,14 @@ from .data_sources import (
 )
 from .errors import SourceError, ValidationError
 from .models import EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext, VariantIdentity
+from .sequence_inference import MotifDefinition, SequenceAnalysisResult, SequenceInference
 from .serialization import content_hash, jsonable
+from .uncertainty import (
+    DomainProfile,
+    OutOfDomainDetector,
+    UncertaintyPropagator,
+    UncertaintyReport,
+)
 
 
 class ReferenceBundleProvider(Protocol):
@@ -98,6 +105,8 @@ class AtlasBundle:
     receipts: tuple[FetchReceipt, ...]
     warnings: tuple[str, ...]
     content_address: str
+    sequence_analysis: SequenceAnalysisResult | None = None
+    uncertainty: UncertaintyReport | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -122,7 +131,7 @@ class AtlasBundle:
         for observation in self.observations:
             claims.append(
                 EvidenceClaim(
-                    evidence_id=f"{self.content_address}:{observation.observation_id}",
+                    evidence_id=f"atlas:{variant.variant_id}:{observation.observation_id}",
                     edge_id=edge,
                     source_id=observation.source_id,
                     channel=observation.feature_type,
@@ -151,9 +160,17 @@ class PublicAtlasRetriever:
         self,
         reference_retriever: ReferenceBundleProvider | None = None,
         encode_client: EncodeProvider | None = None,
+        sequence_inference: SequenceInference | None = None,
+        motifs: tuple[MotifDefinition, ...] = (),
+        uncertainty_propagator: UncertaintyPropagator | None = None,
+        domain_profile: DomainProfile | None = None,
     ) -> None:
         self.reference_retriever = reference_retriever or PublicReferenceRetriever()
         self.encode_client = encode_client
+        self.sequence_inference = sequence_inference or SequenceInference()
+        self.motifs = motifs
+        self.uncertainty_propagator = uncertainty_propagator or UncertaintyPropagator()
+        self.domain_profile = domain_profile
 
     def retrieve(
         self,
@@ -173,8 +190,16 @@ class PublicAtlasRetriever:
         observations: list[AtlasObservation] = []
         receipts: list[FetchReceipt] = list(bundle.receipts)
         warnings: list[str] = list(bundle.warnings)
+        sequence_analysis: SequenceAnalysisResult | None = None
         observations.extend(self._sequence_observation(bundle, context))
         observations.extend(self._feature_observations(bundle, context))
+        if bundle.sequence is not None:
+            sequence_analysis = self.sequence_inference.analyze(
+                variant,
+                bundle.sequence,
+                motifs=self.motifs,
+            )
+            observations.append(self._sequence_analysis_observation(sequence_analysis, context))
         if selected_query.include_encode_catalog:
             if self.encode_client is None:
                 observations.append(
@@ -227,13 +252,35 @@ class PublicAtlasRetriever:
                             ),
                         )
                     )
-        payload = {
+        base_payload = {
             "variant_id": variant.variant_id,
             "context_key": context.key,
             "observations": observations,
             "receipts": receipts,
             "warnings": warnings,
+            "sequence_analysis": sequence_analysis,
         }
+        base_address = content_hash(base_payload)
+        provisional = AtlasBundle(
+            variant_id=variant.variant_id,
+            context_key=context.key,
+            observations=tuple(observations),
+            receipts=tuple(receipts),
+            warnings=tuple(dict.fromkeys(warnings)),
+            content_address=base_address,
+            sequence_analysis=sequence_analysis,
+        )
+        uncertainty = None
+        if self.uncertainty_propagator is not None:
+            ood = None
+            if self.domain_profile is not None:
+                features = self._domain_features(sequence_analysis)
+                ood = OutOfDomainDetector().assess(features, self.domain_profile)
+            uncertainty = self.uncertainty_propagator.summarize(
+                provisional.to_evidence_claims(variant=variant, context=context),
+                ood=ood,
+            )
+        payload = base_payload | {"uncertainty": uncertainty}
         return AtlasBundle(
             variant_id=variant.variant_id,
             context_key=context.key,
@@ -241,6 +288,46 @@ class PublicAtlasRetriever:
             receipts=tuple(receipts),
             warnings=tuple(dict.fromkeys(warnings)),
             content_address=content_hash(payload),
+            sequence_analysis=sequence_analysis,
+            uncertainty=uncertainty,
+        )
+
+    @staticmethod
+    def _domain_features(analysis: SequenceAnalysisResult | None) -> dict[str, float]:
+        if analysis is None:
+            return {}
+        features: dict[str, float] = {"motif_delta_count": float(analysis.motif_delta_count)}
+        if analysis.gc_fraction_reference is not None:
+            features["gc_fraction_reference"] = analysis.gc_fraction_reference
+        if analysis.gc_fraction_alternate is not None:
+            features["gc_fraction_alternate"] = analysis.gc_fraction_alternate
+        return features
+
+    @staticmethod
+    def _sequence_analysis_observation(
+        analysis: SequenceAnalysisResult,
+        context: ReferenceContext,
+    ) -> AtlasObservation:
+        state = (
+            EvidenceState.SUPPORTED
+            if analysis.state.value == "supported"
+            else EvidenceState.ABSTAINED
+        )
+        return AtlasObservation(
+            observation_id=f"sequence-analysis:{analysis.content_address}",
+            source_id=analysis.source_id,
+            feature_type="motif_delta",
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            summary=(
+                f"Deterministic sequence comparison found {len(analysis.created_hits)} created "
+                f"and {len(analysis.disrupted_hits)} disrupted motif hits."
+            ),
+            payload=analysis.to_dict(),
+            context_key=context.key,
+            context_score=1.0 if state == EvidenceState.SUPPORTED else 0.0,
+            receipt=None,
+            limitations=analysis.limitations,
         )
 
     @staticmethod
