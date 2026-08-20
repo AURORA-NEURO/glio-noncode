@@ -19,6 +19,7 @@ from .models import (
 from .reference_registry import ReferenceProjector, default_reference_registry
 from .runtime import CaseRuntime
 from .sequence_inference import MotifDefinition, SequenceInference
+from .uncertainty import OutOfDomainDetector, UncertaintyPropagator
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
 
 __all__ = [
@@ -37,6 +38,8 @@ __all__ = [
     "PublicAtlasRetriever",
     "StructuralReconstructor",
     "SequenceInference",
+    "OutOfDomainDetector",
+    "UncertaintyPropagator",
     "default_reference_registry",
     "VariantIdentity",
     "VariantIndex",
