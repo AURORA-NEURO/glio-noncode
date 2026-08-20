@@ -6,6 +6,7 @@ first and research-use only.
 """
 
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
+from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .intake import VariantIndex, VariantIntake
 from .models import (
     CaseManifest,
@@ -21,6 +22,8 @@ from .structural_reconstruction import ReconstructionResult, StructuralReconstru
 
 __all__ = [
     "CaseManifest",
+    "AtlasBundle",
+    "AtlasQuery",
     "CaseRuntime",
     "ControlPlaneExecutor",
     "Dossier",
@@ -29,6 +32,7 @@ __all__ = [
     "ReferenceContext",
     "ReconstructionResult",
     "ReferenceProjector",
+    "PublicAtlasRetriever",
     "StructuralReconstructor",
     "default_reference_registry",
     "VariantIdentity",

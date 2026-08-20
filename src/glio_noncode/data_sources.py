@@ -106,7 +106,10 @@ class RetryPolicy:
     def __post_init__(self) -> None:
         if self.attempts < 1:
             raise ValidationError("retry attempts must be positive")
-        if self.initial_backoff_seconds < 0 or self.maximum_backoff_seconds < self.initial_backoff_seconds:
+        if (
+            self.initial_backoff_seconds < 0
+            or self.maximum_backoff_seconds < self.initial_backoff_seconds
+        ):
             raise ValidationError("retry backoff values are invalid")
 
     def backoff(self, retry_number: int) -> float:
@@ -131,7 +134,9 @@ class TransportResponse:
 class HttpTransport(Protocol):
     """Minimal transport seam used by live code and deterministic tests."""
 
-    def request(self, method: str, url: str, headers: Mapping[str, str], timeout_seconds: float) -> TransportResponse: ...
+    def request(
+        self, method: str, url: str, headers: Mapping[str, str], timeout_seconds: float
+    ) -> TransportResponse: ...
 
 
 class UrllibTransport:
@@ -142,7 +147,9 @@ class UrllibTransport:
             raise ValidationError("max_response_bytes is too small")
         self.max_response_bytes = max_response_bytes
 
-    def request(self, method: str, url: str, headers: Mapping[str, str], timeout_seconds: float) -> TransportResponse:
+    def request(
+        self, method: str, url: str, headers: Mapping[str, str], timeout_seconds: float
+    ) -> TransportResponse:
         started = time.monotonic()
         request = urllib.request.Request(url, method=method, headers=dict(headers))
         try:
@@ -437,7 +444,9 @@ class SourceClient:
             spec.source_id: RateLimiter(spec.rate_limit_per_minute) for spec in self.catalog.list()
         }
 
-    def build_url(self, source: SourceSpec, path: str, params: Mapping[str, Any] | None = None) -> str:
+    def build_url(
+        self, source: SourceSpec, path: str, params: Mapping[str, Any] | None = None
+    ) -> str:
         if not path.startswith("/"):
             path = "/" + path
         url = source.base_url.rstrip("/") + path
@@ -455,7 +464,9 @@ class SourceClient:
         allow_not_found: bool = False,
         cache: bool = True,
     ) -> SourcePayload:
-        return self._fetch(source_id, path, params, expect_json=True, allow_not_found=allow_not_found, cache=cache)
+        return self._fetch(
+            source_id, path, params, expect_json=True, allow_not_found=allow_not_found, cache=cache
+        )
 
     def fetch_text(
         self,
@@ -466,7 +477,9 @@ class SourceClient:
         allow_not_found: bool = False,
         cache: bool = True,
     ) -> SourcePayload:
-        return self._fetch(source_id, path, params, expect_json=False, allow_not_found=allow_not_found, cache=cache)
+        return self._fetch(
+            source_id, path, params, expect_json=False, allow_not_found=allow_not_found, cache=cache
+        )
 
     def _fetch(
         self,
@@ -483,7 +496,12 @@ class SourceClient:
             raise SourceError(f"source is disabled: {source_id}")
         url = self.build_url(source, path, params)
         request_hash = content_hash(
-            {"source_id": source.source_id, "source_version": source.version, "url": url, "expect_json": expect_json}
+            {
+                "source_id": source.source_id,
+                "source_version": source.version,
+                "url": url,
+                "expect_json": expect_json,
+            }
         )
         cached = self.cache.get(request_hash) if cache else None
         if cached is not None:
@@ -516,16 +534,22 @@ class SourceClient:
                 last_response = response
                 if 200 <= response.status < 300:
                     if len(response.body) > source.max_response_bytes:
-                        raise SourceError(f"source response exceeded {source.max_response_bytes} bytes")
+                        raise SourceError(
+                            f"source response exceeded {source.max_response_bytes} bytes"
+                        )
                     response_hash = f"sha256:{hashlib.sha256(response.body).hexdigest()}"
-                    entry = self.cache.put(
-                        request_hash=request_hash,
-                        source=source,
-                        url=response.url,
-                        body=response.body,
-                        content_type=response.content_type,
-                        ttl_seconds=self.cache_ttl_seconds,
-                    ) if cache else None
+                    entry = (
+                        self.cache.put(
+                            request_hash=request_hash,
+                            source=source,
+                            url=response.url,
+                            body=response.body,
+                            content_type=response.content_type,
+                            ttl_seconds=self.cache_ttl_seconds,
+                        )
+                        if cache
+                        else None
+                    )
                     receipt = FetchReceipt(
                         source_id=source.source_id,
                         source_version=source.version,
@@ -574,13 +598,21 @@ class SourceClient:
                 last_error = SourceError(str(error))
                 if attempt < self.retry_policy.attempts:
                     time.sleep(self.retry_policy.backoff(attempt - 1))
-        failure_status = FetchStatus.RATE_LIMITED if isinstance(last_error, SourceRateLimitError) else FetchStatus.FAILED
+        failure_status = (
+            FetchStatus.RATE_LIMITED
+            if isinstance(last_error, SourceRateLimitError)
+            else FetchStatus.FAILED
+        )
         failure_receipt = FetchReceipt(
             source_id=source.source_id,
             source_version=source.version,
             url=last_response.url if last_response is not None else url,
             request_hash=request_hash,
-            response_hash=(f"sha256:{hashlib.sha256(last_response.body).hexdigest()}" if last_response is not None else None),
+            response_hash=(
+                f"sha256:{hashlib.sha256(last_response.body).hexdigest()}"
+                if last_response is not None
+                else None
+            ),
             status=failure_status,
             http_status=last_response.status if last_response is not None else None,
             attempts=self.retry_policy.attempts,
@@ -604,7 +636,9 @@ class SourceClient:
         ) from last_error
 
     @staticmethod
-    def _decode(body: bytes, receipt: FetchReceipt, content_type: str, expect_json: bool) -> SourcePayload:
+    def _decode(
+        body: bytes, receipt: FetchReceipt, content_type: str, expect_json: bool
+    ) -> SourcePayload:
         if expect_json:
             try:
                 value = json.loads(body.decode("utf-8"))
@@ -690,13 +724,17 @@ class EnsemblRestClient:
     def __init__(self, client: SourceClient) -> None:
         self.client = client
 
-    def sequence_region(self, chromosome: str, start: int, end: int, *, species: str = "homo_sapiens") -> SourcePayload:
+    def sequence_region(
+        self, chromosome: str, start: int, end: int, *, species: str = "homo_sapiens"
+    ) -> SourcePayload:
         if end - start + 1 > 10_000_000:
             raise ValidationError("Ensembl sequence request exceeds the 10 Mb endpoint limit")
         region = f"{normalize_chromosome(chromosome)[3:]}:{start}..{end}:1"
         return self.client.fetch_text(self.source_id, f"/sequence/region/{species}/{region}")
 
-    def lookup_symbol(self, symbol: str, *, species: str = "homo_sapiens", expand: bool = False) -> SourcePayload:
+    def lookup_symbol(
+        self, symbol: str, *, species: str = "homo_sapiens", expand: bool = False
+    ) -> SourcePayload:
         if not symbol.strip():
             raise ValidationError("gene symbol must not be empty")
         params = {"expand": "1"} if expand else None
@@ -737,14 +775,21 @@ class UcscRestClient:
         except KeyError as exc:
             raise ValidationError(f"UCSC assembly is not configured for {genome_build}") from exc
 
-    def sequence(self, chromosome: str, start: int, end: int, *, genome_build: str) -> SourcePayload:
+    def sequence(
+        self, chromosome: str, start: int, end: int, *, genome_build: str
+    ) -> SourcePayload:
         source = self.client.catalog.get(self.source_id)
         if end < start or end - start + 1 > (source.max_region_bp or 10_000_000):
             raise ValidationError("UCSC sequence request exceeds the configured source limit")
         return self.client.fetch_json(
             self.source_id,
             "/getData/sequence",
-            {"genome": self.assembly_name(genome_build), "chrom": normalize_chromosome(chromosome), "start": start - 1, "end": end},
+            {
+                "genome": self.assembly_name(genome_build),
+                "chrom": normalize_chromosome(chromosome),
+                "start": start - 1,
+                "end": end,
+            },
         )
 
     def track(
@@ -807,7 +852,11 @@ class EncodeRestClient:
         normalized = accession.strip().strip("/")
         if not normalized or any(char in normalized for char in "?#"):
             raise ValidationError("ENCODE accession is invalid")
-        return self.client.fetch_json(self.source_id, f"/{urllib.parse.quote(normalized, safe='/')}/", {"format": "json", "frame": "object"})
+        return self.client.fetch_json(
+            self.source_id,
+            f"/{urllib.parse.quote(normalized, safe='/')}/",
+            {"format": "json", "frame": "object"},
+        )
 
 
 class PublicReferenceRetriever:
@@ -827,20 +876,35 @@ class PublicReferenceRetriever:
         self.ucsc = UcscRestClient(self.client)
         self.window_bp = window_bp
 
-    def retrieve(self, variant: VariantIdentity, context: ReferenceContext) -> ReferenceBundle:
+    def retrieve(
+        self,
+        variant: VariantIdentity,
+        context: ReferenceContext,
+        *,
+        window_bp: int | None = None,
+    ) -> ReferenceBundle:
         if variant.genome_build != context.genome_build:
-            raise ValidationError("variant and context genome builds must match for public retrieval")
+            raise ValidationError(
+                "variant and context genome builds must match for public retrieval"
+            )
+        selected_window = self.window_bp if window_bp is None else window_bp
+        if selected_window < 1 or selected_window > 5_000_000:
+            raise ValidationError("window_bp must be between 1 and 5000000")
         chromosome, start, end = variant_interval(variant)
-        query_start = max(1, start - self.window_bp)
-        query_end = end + self.window_bp
+        query_start = max(1, start - selected_window)
+        query_end = end + selected_window
         receipts: list[FetchReceipt] = []
         warnings: list[str] = []
         sequence: SequenceSlice | None = None
         try:
-            sequence_payload = self.ucsc.sequence(chromosome, query_start, query_end, genome_build=context.genome_build)
+            sequence_payload = self.ucsc.sequence(
+                chromosome, query_start, query_end, genome_build=context.genome_build
+            )
             receipts.append(sequence_payload.receipt)
             raw_sequence = sequence_payload.value
-            if not isinstance(raw_sequence, Mapping) or not isinstance(raw_sequence.get("dna"), str):
+            if not isinstance(raw_sequence, Mapping) or not isinstance(
+                raw_sequence.get("dna"), str
+            ):
                 raise SourceError("UCSC sequence response did not contain a dna string")
             sequence = SequenceSlice(
                 assembly=context.genome_build,
@@ -866,7 +930,9 @@ class PublicReferenceRetriever:
             )
             receipts.append(feature_payload.receipt)
             if isinstance(feature_payload.value, list):
-                raw_features.extend(item for item in feature_payload.value if isinstance(item, Mapping))
+                raw_features.extend(
+                    item for item in feature_payload.value if isinstance(item, Mapping)
+                )
             elements = self._candidate_elements(raw_features, context, variant)
         except SourceError as error:
             if getattr(error, "receipt", None) is not None:
@@ -895,7 +961,9 @@ class PublicReferenceRetriever:
     def enrich_manifest(self, manifest: CaseManifest) -> EnrichmentResult:
         """Augment a manifest with live regulatory candidates without coercion."""
 
-        elements: dict[str, CandidateElement] = {element.element_id: element for element in manifest.candidate_elements}
+        elements: dict[str, CandidateElement] = {
+            element.element_id: element for element in manifest.candidate_elements
+        }
         bundles: list[ReferenceBundle] = []
         warnings: list[str] = []
         for variant in manifest.variants:
@@ -935,8 +1003,13 @@ class PublicReferenceRetriever:
             if feature_type not in {"regulatory", "motif"}:
                 continue
             try:
-                element_id = str(feature.get("id") or f"ensembl-{feature_type}-{feature['start']}-{feature['end']}")
-                chromosome = normalize_chromosome(str(feature.get("seq_region_name", variant.chromosome)))
+                element_id = str(
+                    feature.get("id")
+                    or f"ensembl-{feature_type}-{feature['start']}-{feature['end']}"
+                )
+                chromosome = normalize_chromosome(
+                    str(feature.get("seq_region_name", variant.chromosome))
+                )
                 start = int(feature["start"])
                 end = int(feature["end"])
             except (KeyError, TypeError, ValueError):
@@ -961,7 +1034,9 @@ class PublicReferenceRetriever:
                         "link_method": "regional_overlap_baseline",
                         "source_feature": feature,
                         "description": description,
-                        "alternative_explanations": ("nearby gene assignment is a baseline, not a causal link",),
+                        "alternative_explanations": (
+                            "nearby gene assignment is a baseline, not a causal link",
+                        ),
                     },
                 )
             )
@@ -981,19 +1056,32 @@ class LiveReferenceAdapter:
             data_access="public_api",
             supported_contexts=("GRCh38", "GRCh37"),
             channels=("reference_sequence", "regulatory_overlap", "gene_overlap"),
-            failure_modes=("rate_limit", "source_unavailable", "assembly_unsupported", "empty_overlap"),
+            failure_modes=(
+                "rate_limit",
+                "source_unavailable",
+                "assembly_unsupported",
+                "empty_overlap",
+            ),
             validation_status="integration-tested",
             documentation_url="docs/OPERATIONS.md",
         )
 
-    def resolve_elements(self, variant_id: str, context: ReferenceContext) -> tuple[CandidateElement, ...]:
-        raise ValidationError("LiveReferenceAdapter.resolve_elements requires a VariantIdentity; use resolve_variant")
+    def resolve_elements(
+        self, variant_id: str, context: ReferenceContext
+    ) -> tuple[CandidateElement, ...]:
+        raise ValidationError(
+            "LiveReferenceAdapter.resolve_elements requires a VariantIdentity; use resolve_variant"
+        )
 
-    def resolve_variant(self, variant: VariantIdentity, context: ReferenceContext) -> ReferenceBundle:
+    def resolve_variant(
+        self, variant: VariantIdentity, context: ReferenceContext
+    ) -> ReferenceBundle:
         return self.retriever.retrieve(variant, context)
 
     def enrich_manifest(self, manifest):
         return self.retriever.enrich_manifest(manifest)
 
-    def collect_claims(self, variant_id: str, element_id: str, context: ReferenceContext) -> tuple[Any, ...]:
+    def collect_claims(
+        self, variant_id: str, element_id: str, context: ReferenceContext
+    ) -> tuple[Any, ...]:
         return ()
