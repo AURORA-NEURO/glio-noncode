@@ -8,6 +8,7 @@ first and research-use only.
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .intake import VariantIndex, VariantIntake
+from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
 from .models import (
     CaseManifest,
     Dossier,
@@ -47,6 +48,9 @@ __all__ = [
     "VariantIdentity",
     "VariantIndex",
     "VariantIntake",
+    "DriftMonitor",
+    "LifecycleReclassifier",
+    "ReviewPacketBuilder",
     "default_control_plane_registry",
 ]
 
