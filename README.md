@@ -22,6 +22,7 @@ glio-noncode evaluate examples/case-small.json --output dossier.json
 glio-noncode schema
 glio-noncode sources
 glio-noncode registry
+glio-noncode references
 ```
 
 The same runtime can be served locally:

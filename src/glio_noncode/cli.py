@@ -13,6 +13,7 @@ from .control_plane import default_control_plane_registry
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
 from .intake import IntakeFormat, VariantIntake
+from .reference_registry import default_reference_registry
 from .models import CaseManifest
 from .runtime import CaseRuntime
 from .schema import schema_document
@@ -70,6 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     subparsers.add_parser("sources", help="print the live public source catalog")
     subparsers.add_parser("registry", help="print the bounded control-plane registry")
+    subparsers.add_parser("references", help="print the reference assembly registry")
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
     intake.add_argument("input", type=str)
@@ -93,6 +95,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "registry":
             _write_json(default_control_plane_registry().manifest(), None)
+            return 0
+        if args.command == "references":
+            _write_json(default_reference_registry().manifest(), None)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)

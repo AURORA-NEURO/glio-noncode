@@ -15,6 +15,7 @@ from .models import (
     ReferenceContext,
     VariantIdentity,
 )
+from .reference_registry import ReferenceProjector, default_reference_registry
 from .runtime import CaseRuntime
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
 
@@ -27,7 +28,9 @@ __all__ = [
     "Hypothesis",
     "ReferenceContext",
     "ReconstructionResult",
+    "ReferenceProjector",
     "StructuralReconstructor",
+    "default_reference_registry",
     "VariantIdentity",
     "VariantIndex",
     "VariantIntake",
