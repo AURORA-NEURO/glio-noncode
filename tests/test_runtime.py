@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from pathlib import Path
 
-from glio_noncode.models import ReviewDecision, ReviewState
+from glio_noncode.atlas import AtlasBundle, AtlasObservation
 from glio_noncode.data_sources import EnrichmentResult, ReferenceBundle
+from glio_noncode.models import EvidenceState, EvidenceTier, ReviewDecision, ReviewState
 from glio_noncode.replay import ReplayVerifier
 from glio_noncode.reports import render_markdown, summarize
 from glio_noncode.runtime import CaseRuntime
@@ -98,4 +98,57 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(len(dossier.source_bundle_addresses), 1)
             self.assertTrue(dossier.source_bundle_addresses[0].startswith("sha256:"))
             self.assertEqual(len(dossier.source_receipts), 0)
-            self.assertTrue(CaseRuntime(directory).store.store.exists(dossier.source_bundle_addresses[0]))
+            self.assertTrue(
+                CaseRuntime(directory).store.store.exists(dossier.source_bundle_addresses[0])
+            )
+
+    def test_optional_atlas_retriever_adds_reference_claims_and_bundle(self) -> None:
+        manifest = fixture_manifest()
+
+        class StubRetriever:
+            def enrich_manifest(self, value):
+                bundle = ReferenceBundle(
+                    variant_id=value.variants[0].variant_id,
+                    context_key=value.context.key,
+                    sequence=None,
+                    elements=value.candidate_elements,
+                    raw_features=(),
+                    receipts=(),
+                    warnings=(),
+                    content_address="sha256:" + "2" * 64,
+                )
+                return EnrichmentResult(value, (bundle,), ())
+
+        class StubAtlas:
+            def retrieve(self, variant, context):
+                observation = AtlasObservation(
+                    observation_id="atlas-test-observation",
+                    source_id="SRC-ENSEMBL-REST",
+                    feature_type="reference_annotation",
+                    state=EvidenceState.SUPPORTED,
+                    tier=EvidenceTier.REFERENCE,
+                    summary="public reference annotation was returned",
+                    payload={"id": "feature-1"},
+                    context_key=context.key,
+                    context_score=None,
+                    receipt=None,
+                )
+                return AtlasBundle(
+                    variant_id=variant.variant_id,
+                    context_key=context.key,
+                    observations=(observation,),
+                    receipts=(),
+                    warnings=(),
+                    content_address="sha256:" + "3" * 64,
+                )
+
+        with tempfile.TemporaryDirectory() as directory:
+            dossier = CaseRuntime(
+                directory,
+                reference_retriever=StubRetriever(),
+                atlas_retriever=StubAtlas(),
+            ).evaluate(manifest, live_reference=True)
+            self.assertEqual(len(dossier.source_bundle_addresses), 2)
+            self.assertTrue(
+                any(claim.channel == "reference_annotation" for claim in dossier.evidence)
+            )

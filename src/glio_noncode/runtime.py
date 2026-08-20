@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import replace
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
-from .errors import PolicyViolation, ValidationError
+from .atlas import PublicAtlasRetriever
 from .data_sources import EnrichmentResult, PublicReferenceRetriever
+from .errors import PolicyViolation, ValidationError
 from .events import EventLog
 from .experiments import ExperimentPlanner
 from .hypotheses import HypothesisBuilder
@@ -19,7 +21,7 @@ from .models import (
     ReviewState,
 )
 from .policy import ResearchPolicy
-from .serialization import content_hash, jsonable, utc_now
+from .serialization import content_hash, utc_now
 from .storage import RunStore
 
 
@@ -31,12 +33,14 @@ class CaseRuntime:
         data_root: str | Path = ".glio",
         *,
         reference_retriever: PublicReferenceRetriever | None = None,
+        atlas_retriever: PublicAtlasRetriever | None = None,
     ) -> None:
         self.store = RunStore(data_root)
         self.builder = HypothesisBuilder()
         self.planner = ExperimentPlanner()
         self.policy = ResearchPolicy()
         self.reference_retriever = reference_retriever
+        self.atlas_retriever = atlas_retriever
         self._logs: dict[str, EventLog] = {}
 
     def evaluate(self, manifest: CaseManifest, *, live_reference: bool = False) -> Dossier:
@@ -47,12 +51,17 @@ class CaseRuntime:
         log = EventLog(run_id)
         self._logs[run_id] = log
         input_address = self.store.store.put(manifest.to_dict())
-        log.append("case_received", {"input_address": input_address, "case_id": manifest.case_id}, event_id=f"evt-{run_id}-received")
+        log.append(
+            "case_received",
+            {"input_address": input_address, "case_id": manifest.case_id},
+            event_id=f"evt-{run_id}-received",
+        )
         build_manifest = manifest
         enrichment: EnrichmentResult | None = None
         source_receipts: tuple[Mapping[str, Any], ...] = ()
         source_bundle_addresses: tuple[str, ...] = ()
         runtime_warnings: tuple[str, ...] = ()
+        atlas_claims = ()
         if live_reference:
             retriever = self.reference_retriever or PublicReferenceRetriever(
                 cache_root=Path(self.store.root) / "source-cache"
@@ -76,11 +85,49 @@ class CaseRuntime:
                 },
                 event_id=f"evt-{run_id}-reference",
             )
+            if self.atlas_retriever is not None or isinstance(retriever, PublicReferenceRetriever):
+                atlas_retriever = self.atlas_retriever or PublicAtlasRetriever(retriever)
+                atlas_bundles = tuple(
+                    atlas_retriever.retrieve(variant, build_manifest.context)
+                    for variant in build_manifest.variants
+                )
+                atlas_claims = tuple(
+                    claim
+                    for variant, bundle in zip(build_manifest.variants, atlas_bundles, strict=True)
+                    for claim in bundle.to_evidence_claims(
+                        variant=variant,
+                        context=build_manifest.context,
+                        edge_id=f"atlas:{variant.variant_id}",
+                    )
+                )
+                source_bundle_addresses += tuple(
+                    self.store.store.put(bundle.to_dict()) for bundle in atlas_bundles
+                )
+                source_receipts += tuple(
+                    receipt.to_dict() for bundle in atlas_bundles for receipt in bundle.receipts
+                )
+                atlas_warnings = tuple(
+                    warning for bundle in atlas_bundles for warning in bundle.warnings
+                )
+                runtime_warnings = tuple(dict.fromkeys(runtime_warnings + atlas_warnings))
+                log.append(
+                    "public_atlas_collected",
+                    {
+                        "bundle_addresses": list(source_bundle_addresses),
+                        "claim_count": len(atlas_claims),
+                        "warnings": list(atlas_warnings),
+                    },
+                    event_id=f"evt-{run_id}-atlas",
+                )
         built = self.builder.build(build_manifest, run_id)
         all_warnings = tuple(dict.fromkeys(tuple(built.warnings) + runtime_warnings))
         log.append(
             "hypotheses_built",
-            {"hypothesis_count": len(built.hypotheses), "claim_count": len(built.claims), "warnings": list(all_warnings)},
+            {
+                "hypothesis_count": len(built.hypotheses),
+                "claim_count": len(built.claims),
+                "warnings": list(all_warnings),
+            },
             event_id=f"evt-{run_id}-built",
         )
         experiments = self.planner.plan_many(built.hypotheses)
@@ -94,7 +141,7 @@ class CaseRuntime:
             run_id=run_id,
             input_address=input_address,
             hypotheses=built.hypotheses,
-            claims=built.claims,
+            claims=tuple(built.claims) + tuple(atlas_claims),
             experiments=experiments,
             review=None,
             status=ResearchStatus.REVIEW_REQUIRED,
@@ -106,7 +153,9 @@ class CaseRuntime:
         decision = self.policy.validate_dossier(dossier)
         if not decision.allowed:
             raise PolicyViolation("; ".join(decision.violations))
-        log.append("dossier_created", {"dossier_id": dossier.dossier_id}, event_id=f"evt-{run_id}-dossier")
+        log.append(
+            "dossier_created", {"dossier_id": dossier.dossier_id}, event_id=f"evt-{run_id}-dossier"
+        )
         dossier = self._readdress(replace(dossier, event_head=log.head))
         self._persist(manifest, log, dossier, input_address)
         return dossier
@@ -127,10 +176,18 @@ class CaseRuntime:
         log = self._logs.get(dossier.run_id)
         if log is None:
             log = EventLog(dossier.run_id)
-            log.append("replayed_from_dossier", {"dossier_id": dossier.dossier_id}, event_id=f"evt-{dossier.run_id}-replayed")
+            log.append(
+                "replayed_from_dossier",
+                {"dossier_id": dossier.dossier_id},
+                event_id=f"evt-{dossier.run_id}-replayed",
+            )
             self._logs[dossier.run_id] = log
         log.append("review_recorded", review.to_dict(), event_id=review.review_id)
-        status = ResearchStatus.RELEASED_RESEARCH if review.state == ReviewState.ACCEPTED else ResearchStatus.REVIEWED
+        status = (
+            ResearchStatus.RELEASED_RESEARCH
+            if review.state == ReviewState.ACCEPTED
+            else ResearchStatus.REVIEWED
+        )
         updated = self._make_dossier(
             manifest=None,
             run_id=dossier.run_id,
@@ -166,12 +223,16 @@ class CaseRuntime:
 
     @staticmethod
     def _run_id(manifest: CaseManifest) -> str:
-        digest = content_hash({"input": manifest.content_address, "requested_by": manifest.requested_by}).split(":", 1)[1]
+        digest = content_hash(
+            {"input": manifest.content_address, "requested_by": manifest.requested_by}
+        ).split(":", 1)[1]
         return f"run-{digest[:24]}"
 
     @staticmethod
     def _dossier_address(dossier: Dossier) -> str:
-        payload = {key: value for key, value in dossier.to_dict().items() if key != "content_address"}
+        payload = {
+            key: value for key, value in dossier.to_dict().items() if key != "content_address"
+        }
         return content_hash(payload)
 
     def _make_dossier(
@@ -218,7 +279,9 @@ class CaseRuntime:
         return replace(pending, content_address=self._dossier_address(pending))
 
     def _persist(self, manifest, log: EventLog, dossier: Dossier, input_address: str) -> None:
-        event_address = self.store.store.put({"run_id": log.run_id, "events": [event.to_dict() for event in log.all()]})
+        event_address = self.store.store.put(
+            {"run_id": log.run_id, "events": [event.to_dict() for event in log.all()]}
+        )
         dossier_address = self.store.store.put_at(dossier.content_address, dossier.to_dict())
         self.store.save_run(
             log.run_id,

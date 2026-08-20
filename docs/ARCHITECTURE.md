@@ -11,6 +11,7 @@ case manifest
     ├── dependence-aware edge aggregation
     ├── decomposed hypotheses
     ├── validation-route planning
+    ├── optional live public reference + atlas bundles and reference-tier claims
     ├── policy and release checks
     └── content-addressed dossier + hash-chained event log
 ```
@@ -29,7 +30,7 @@ The context matcher scores genome build, disease class, age group, cell state, t
 
 ## Persistence
 
-JSON objects are written under SHA-256 addresses. The run index records the input, event-log, and dossier addresses. Runtime events form a chain so replay can detect order changes or altered payloads. The storage layer is local and intentionally uncomplicated; a future database adapter must preserve immutable addresses and event semantics.
+JSON objects are written under SHA-256 addresses. The run index records the input, event-log, and dossier addresses. Optional live evaluation also stores public reference and atlas bundles, source receipts, and their warnings; generic public annotations remain reference-tier claims. Runtime events form a chain so replay can detect order changes or altered payloads. The storage layer is local and intentionally uncomplicated; a future database adapter must preserve immutable addresses and event semantics.
 
 ## API
 
