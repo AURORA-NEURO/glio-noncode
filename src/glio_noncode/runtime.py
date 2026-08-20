@@ -7,7 +7,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
-from .atlas import PublicAtlasRetriever
+from .atlas import AtlasQuery, PublicAtlasRetriever
 from .data_sources import EnrichmentResult, PublicReferenceRetriever
 from .errors import PolicyViolation, ValidationError
 from .events import EventLog
@@ -88,7 +88,18 @@ class CaseRuntime:
             if self.atlas_retriever is not None or isinstance(retriever, PublicReferenceRetriever):
                 atlas_retriever = self.atlas_retriever or PublicAtlasRetriever(retriever)
                 atlas_bundles = tuple(
-                    atlas_retriever.retrieve(variant, build_manifest.context)
+                    (
+                        atlas_retriever.retrieve(
+                            variant,
+                            build_manifest.context,
+                            query=AtlasQuery(
+                                variant_id=variant.variant_id,
+                                window_bp=getattr(retriever, "window_bp", 2_000),
+                            ),
+                        )
+                        if isinstance(atlas_retriever, PublicAtlasRetriever)
+                        else atlas_retriever.retrieve(variant, build_manifest.context)
+                    )
                     for variant in build_manifest.variants
                 )
                 atlas_claims = tuple(
