@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from .api import create_server
+from .control_plane import default_control_plane_registry
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
 from .models import CaseManifest
@@ -32,17 +33,27 @@ def _write_json(payload: Any, output: str | None) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="glio-noncode", description="Inspectable research hypothesis runtime")
+    parser = argparse.ArgumentParser(
+        prog="glio-noncode", description="Inspectable research hypothesis runtime"
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     evaluate = subparsers.add_parser("evaluate", help="evaluate a case manifest")
     evaluate.add_argument("manifest", type=str)
     evaluate.add_argument("--data-root", default=".glio")
     evaluate.add_argument("--output", default=None)
-    evaluate.add_argument("--live-reference", action="store_true", help="retrieve bounded sequence and annotation data from public APIs")
-    evaluate.add_argument("--window-bp", default=2000, type=int, help="half-window for live reference retrieval")
+    evaluate.add_argument(
+        "--live-reference",
+        action="store_true",
+        help="retrieve bounded sequence and annotation data from public APIs",
+    )
+    evaluate.add_argument(
+        "--window-bp", default=2000, type=int, help="half-window for live reference retrieval"
+    )
 
-    fetch_public = subparsers.add_parser("fetch-public", help="retrieve and emit live public reference data for a manifest")
+    fetch_public = subparsers.add_parser(
+        "fetch-public", help="retrieve and emit live public reference data for a manifest"
+    )
     fetch_public.add_argument("manifest", type=str)
     fetch_public.add_argument("--data-root", default=".glio")
     fetch_public.add_argument("--output", default=None)
@@ -57,6 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
     schema.add_argument("--output", default=None)
 
     subparsers.add_parser("sources", help="print the live public source catalog")
+    subparsers.add_parser("registry", help="print the bounded control-plane registry")
     return parser
 
 
@@ -69,10 +81,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "sources":
             _write_json(default_source_catalog().manifest(), None)
             return 0
+        if args.command == "registry":
+            _write_json(default_control_plane_registry().manifest(), None)
+            return 0
         if args.command == "evaluate":
             manifest = CaseManifest.from_dict(_read_json(args.manifest))
             retriever = (
-                PublicReferenceRetriever(cache_root=Path(args.data_root) / "source-cache", window_bp=args.window_bp)
+                PublicReferenceRetriever(
+                    cache_root=Path(args.data_root) / "source-cache", window_bp=args.window_bp
+                )
                 if args.live_reference
                 else None
             )
