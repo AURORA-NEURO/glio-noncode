@@ -467,6 +467,8 @@ class Dossier:
     content_address: str
     status: ResearchStatus
     warnings: tuple[str, ...] = ()
+    source_receipts: tuple[Mapping[str, Any], ...] = ()
+    source_bundle_addresses: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)

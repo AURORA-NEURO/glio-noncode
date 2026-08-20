@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from glio_noncode.models import ReviewDecision, ReviewState
+from glio_noncode.data_sources import EnrichmentResult, ReferenceBundle
 from glio_noncode.replay import ReplayVerifier
 from glio_noncode.reports import render_markdown, summarize
 from glio_noncode.runtime import CaseRuntime
@@ -71,3 +72,30 @@ class RuntimeTests(unittest.TestCase):
         report = ContractValidator().validate_manifest(fixture_manifest())
         self.assertTrue(report.valid)
         self.assertFalse(any(issue.code == "missing_input_versions" for issue in report.issues))
+
+    def test_live_reference_enrichment_is_persisted_with_dossier_provenance(self) -> None:
+        manifest = fixture_manifest()
+
+        class StubRetriever:
+            def enrich_manifest(self, value):
+                bundle = ReferenceBundle(
+                    variant_id=value.variants[0].variant_id,
+                    context_key=value.context.key,
+                    sequence=None,
+                    elements=value.candidate_elements,
+                    raw_features=(),
+                    receipts=(),
+                    warnings=(),
+                    content_address="sha256:" + "1" * 64,
+                )
+                return EnrichmentResult(value, (bundle,), ())
+
+        with tempfile.TemporaryDirectory() as directory:
+            dossier = CaseRuntime(directory, reference_retriever=StubRetriever()).evaluate(
+                manifest,
+                live_reference=True,
+            )
+            self.assertEqual(len(dossier.source_bundle_addresses), 1)
+            self.assertTrue(dossier.source_bundle_addresses[0].startswith("sha256:"))
+            self.assertEqual(len(dossier.source_receipts), 0)
+            self.assertTrue(CaseRuntime(directory).store.store.exists(dossier.source_bundle_addresses[0]))

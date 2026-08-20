@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Mapping
 
 from .errors import PolicyViolation, ValidationError
+from .data_sources import EnrichmentResult, PublicReferenceRetriever
 from .events import EventLog
 from .experiments import ExperimentPlanner
 from .hypotheses import HypothesisBuilder
@@ -25,14 +26,20 @@ from .storage import RunStore
 class CaseRuntime:
     """Coordinate typed inputs, deterministic builders, policy, and storage."""
 
-    def __init__(self, data_root: str | Path = ".glio") -> None:
+    def __init__(
+        self,
+        data_root: str | Path = ".glio",
+        *,
+        reference_retriever: PublicReferenceRetriever | None = None,
+    ) -> None:
         self.store = RunStore(data_root)
         self.builder = HypothesisBuilder()
         self.planner = ExperimentPlanner()
         self.policy = ResearchPolicy()
+        self.reference_retriever = reference_retriever
         self._logs: dict[str, EventLog] = {}
 
-    def evaluate(self, manifest: CaseManifest) -> Dossier:
+    def evaluate(self, manifest: CaseManifest, *, live_reference: bool = False) -> Dossier:
         """Evaluate a manifest and persist its immutable output."""
 
         self.policy.enforce_texts((manifest.case_id, manifest.requested_by))
@@ -41,10 +48,39 @@ class CaseRuntime:
         self._logs[run_id] = log
         input_address = self.store.store.put(manifest.to_dict())
         log.append("case_received", {"input_address": input_address, "case_id": manifest.case_id}, event_id=f"evt-{run_id}-received")
-        built = self.builder.build(manifest, run_id)
+        build_manifest = manifest
+        enrichment: EnrichmentResult | None = None
+        source_receipts: tuple[Mapping[str, Any], ...] = ()
+        source_bundle_addresses: tuple[str, ...] = ()
+        runtime_warnings: tuple[str, ...] = ()
+        if live_reference:
+            retriever = self.reference_retriever or PublicReferenceRetriever(
+                cache_root=Path(self.store.root) / "source-cache"
+            )
+            self.reference_retriever = retriever
+            enrichment = retriever.enrich_manifest(manifest)
+            build_manifest = enrichment.manifest
+            source_bundle_addresses = tuple(
+                self.store.store.put(bundle.to_dict()) for bundle in enrichment.bundles
+            )
+            source_receipts = tuple(
+                receipt.to_dict() for bundle in enrichment.bundles for receipt in bundle.receipts
+            )
+            runtime_warnings = enrichment.warnings
+            log.append(
+                "public_reference_enriched",
+                {
+                    "bundle_addresses": list(source_bundle_addresses),
+                    "receipt_count": len(source_receipts),
+                    "warnings": list(runtime_warnings),
+                },
+                event_id=f"evt-{run_id}-reference",
+            )
+        built = self.builder.build(build_manifest, run_id)
+        all_warnings = tuple(dict.fromkeys(tuple(built.warnings) + runtime_warnings))
         log.append(
             "hypotheses_built",
-            {"hypothesis_count": len(built.hypotheses), "claim_count": len(built.claims), "warnings": list(built.warnings)},
+            {"hypothesis_count": len(built.hypotheses), "claim_count": len(built.claims), "warnings": list(all_warnings)},
             event_id=f"evt-{run_id}-built",
         )
         experiments = self.planner.plan_many(built.hypotheses)
@@ -54,7 +90,7 @@ class CaseRuntime:
             event_id=f"evt-{run_id}-planned",
         )
         dossier = self._make_dossier(
-            manifest=manifest,
+            manifest=build_manifest,
             run_id=run_id,
             input_address=input_address,
             hypotheses=built.hypotheses,
@@ -63,7 +99,9 @@ class CaseRuntime:
             review=None,
             status=ResearchStatus.REVIEW_REQUIRED,
             event_head=log.head,
-            warnings=built.warnings,
+            warnings=all_warnings,
+            source_receipts=source_receipts,
+            source_bundle_addresses=source_bundle_addresses,
         )
         decision = self.policy.validate_dossier(dossier)
         if not decision.allowed:
@@ -106,6 +144,8 @@ class CaseRuntime:
             warnings=dossier.warnings,
             case_id=dossier.case_id,
             created_at=dossier.created_at,
+            source_receipts=dossier.source_receipts,
+            source_bundle_addresses=dossier.source_bundle_addresses,
         )
         decision = self.policy.validate_dossier(updated)
         if not decision.allowed:
@@ -149,6 +189,8 @@ class CaseRuntime:
         warnings,
         case_id: str | None = None,
         created_at: str | None = None,
+        source_receipts: tuple[Mapping[str, Any], ...] = (),
+        source_bundle_addresses: tuple[str, ...] = (),
     ) -> Dossier:
         draft = Dossier(
             dossier_id=f"dos-{run_id}",
@@ -166,6 +208,8 @@ class CaseRuntime:
             content_address="pending",
             status=status,
             warnings=tuple(warnings),
+            source_receipts=tuple(source_receipts),
+            source_bundle_addresses=tuple(source_bundle_addresses),
         )
         return self._readdress(draft)
 
@@ -174,8 +218,6 @@ class CaseRuntime:
         return replace(pending, content_address=self._dossier_address(pending))
 
     def _persist(self, manifest, log: EventLog, dossier: Dossier, input_address: str) -> None:
-        if manifest is not None:
-            input_address = self.store.store.put(manifest.to_dict())
         event_address = self.store.store.put({"run_id": log.run_id, "events": [event.to_dict() for event in log.all()]})
         dossier_address = self.store.store.put_at(dossier.content_address, dossier.to_dict())
         self.store.save_run(

@@ -66,13 +66,15 @@ class ApiHandler(BaseHTTPRequestHandler):
         self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "path": path})
 
     def do_POST(self) -> None:  # noqa: N802
-        path = urlsplit(self.path).path
+        parsed = urlsplit(self.path)
+        path = parsed.path
         if path != "/v1/evaluate":
             self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "path": path})
             return
         try:
             manifest = CaseManifest.from_dict(self._read_json())
-            dossier = self._runtime().evaluate(manifest)
+            live_reference = parsed.query.lower() in {"live_reference=1", "live_reference=true", "live_reference=yes"}
+            dossier = self._runtime().evaluate(manifest, live_reference=live_reference)
             self._write(HTTPStatus.OK, dossier.to_dict())
         except GlioError as exc:
             self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})

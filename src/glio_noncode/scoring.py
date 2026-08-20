@@ -110,6 +110,7 @@ def feature_readings(element: CandidateElement) -> tuple[FeatureReading, ...]:
     """Read supported numeric channels from an element manifest."""
 
     channel_sources = {
+        "regulatory_overlap": "regulatory_atlas",
         "motif_delta": "sequence",
         "sequence_model": "sequence_model",
         "conservation": "conservation",

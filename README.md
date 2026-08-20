@@ -20,6 +20,7 @@ This repository does not diagnose, classify clinical significance, recommend tre
 python -m pip install -e .
 glio-noncode evaluate examples/case-small.json --output dossier.json
 glio-noncode schema
+glio-noncode sources
 ```
 
 The same runtime can be served locally:
@@ -29,6 +30,15 @@ glio-noncode serve --host 127.0.0.1 --port 8765
 ```
 
 Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary.
+
+To enrich a manifest from bounded live public references, use:
+
+```powershell
+glio-noncode fetch-public examples/case-small.json --window-bp 2000 --output public-reference.json
+glio-noncode evaluate examples/case-small.json --live-reference --window-bp 2000 --output live-dossier.json
+```
+
+Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
 
 ## Design boundaries
 

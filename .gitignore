@@ -11,4 +11,5 @@ build/
 *.egg-info/
 .glio/
 .glio-*/
+work/
 .DS_Store

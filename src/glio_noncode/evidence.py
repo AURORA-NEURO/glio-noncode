@@ -133,6 +133,7 @@ class EvidenceGraph:
     @staticmethod
     def _channel_group(channel: str) -> str:
         mapping = {
+            "regulatory_overlap": "regulatory_atlas",
             "motif_delta": "sequence",
             "sequence_model": "sequence",
             "conservation": "sequence",
