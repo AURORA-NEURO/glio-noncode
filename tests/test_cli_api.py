@@ -128,6 +128,32 @@ class CliApiTests(unittest.TestCase):
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["records"][0]["ccre_id"], "EH38E1")
 
+    def test_parse_chromatin_command_writes_context_track_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "atac.tsv"
+            output = Path(directory) / "atac.json"
+            source.write_text(
+                "chrom\tstart\tend\ttrack_id\tsignal\tcontext\n"
+                "7\t99\t120\tatac-1\t4.5\tGRCh38|glioma|adult|stem_like|unknown|unknown\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "parse-chromatin",
+                        str(source),
+                        "--track-kind",
+                        "atac",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["observations"][0]["track_kind"], "atac")
+            self.assertEqual(payload["observations"][0]["start"], 100)
+
     def test_sequence_adapter_commands_write_typed_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             sequence_output = Path(directory) / "sequence.json"

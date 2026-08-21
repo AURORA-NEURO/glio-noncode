@@ -566,5 +566,57 @@ def default_capability_registry() -> CapabilityRegistry:
                     "ambiguity states; no delta is promoted to a probability."
                 ),
             },
+            "GNC-D07-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_context.ChromatinTrackParser",
+                    "glio_noncode.chromatin_context.ChromatinContextRetriever",
+                ),
+                "test_modules": ("tests.test_chromatin_context",),
+                "evidence_note": (
+                    "ATAC and DNase BED-like TSV/JSON observations retain coordinates, assay kind, "
+                    "replicate IDs, source checksums, context keys, and malformed-row quarantine; "
+                    "external schema fixtures and source anomaly evaluation remain."
+                ),
+            },
+            "GNC-D07-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_context.AccessibilityDeltaEstimator",
+                ),
+                "test_modules": ("tests.test_chromatin_context",),
+                "evidence_note": (
+                    "Measured ATAC/DNase reference-to-alternate deltas expose relative "
+                    "normalization "
+                    "guards and abstain on missing measurements; external calibration, transport, "
+                    "and out-of-distribution benchmarks remain."
+                ),
+            },
+            "GNC-D07-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_context.ChromatinTrackParser",
+                    "glio_noncode.chromatin_context.ChromatinContextRetriever",
+                ),
+                "test_modules": ("tests.test_chromatin_context",),
+                "evidence_note": (
+                    "Histone track observations preserve mark metadata, replicate spread, context "
+                    "gating, and ambiguity; canonical source schemas and cross-assay calibration "
+                    "remain."
+                ),
+            },
+            "GNC-D07-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_context.H3K27acActivityEstimator",
+                ),
+                "test_modules": ("tests.test_chromatin_context",),
+                "evidence_note": (
+                    "H3K27ac observations are summarized with replicate-aware ambiguity and "
+                    "explicit limitations; enhancer activity, target-gene linkage, and assay "
+                    "calibration are "
+                    "not inferred from signal alone."
+                ),
+            },
         }
     )

@@ -93,3 +93,26 @@ model/version and context-window metadata, validate reported deltas, retain
 source hashes, and quarantine inconsistent rows. The delta ensemble reports
 mean and disagreement by variant; it does not convert model output into a
 probability or clinical interpretation.
+
+## Domain 07 chromatin context
+
+The chromatin plane keeps accessibility and histone observations tied to a
+source snapshot and exact reference context. ATAC, DNase, histone, and H3K27ac
+BED-like TSV/JSON rows preserve one-based normalized coordinates, assay kind,
+replicate identifiers, signal values, raw hashes, and malformed-row issues.
+Retriever queries require both interval overlap and an exact
+`ReferenceContext.key`; an overlap from another disease, age, cell state, or
+territory is reported as out-of-domain rather than reused.
+
+Accessibility deltas are measured reference-to-alternate comparisons with
+missing-value abstention and zero-baseline guards. H3K27ac is summarized as an
+observation with replicate spread and ambiguity retained. Neither signal nor
+delta is promoted to a causal effect, enhancer truth label, target-gene link,
+or calibrated probability without external truth sets and assay-specific
+validation.
+
+The command-line boundary is:
+
+```powershell
+glio-noncode parse-chromatin accessibility.tsv --track-kind atac --output accessibility.json
+```

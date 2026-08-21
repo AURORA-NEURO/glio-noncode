@@ -11,6 +11,7 @@ from typing import Any
 from .api import create_server
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
+from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
 from .control_plane import default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
@@ -150,6 +151,17 @@ def build_parser() -> argparse.ArgumentParser:
     ccre.add_argument("--format", choices=("tsv", "json"), default=None)
     ccre.add_argument("--output", default=None)
 
+    chromatin = subparsers.add_parser(
+        "parse-chromatin", help="parse a context-qualified ATAC, DNase, histone, or H3K27ac track"
+    )
+    chromatin.add_argument("input", type=str)
+    chromatin.add_argument("--source-id", default=None)
+    chromatin.add_argument(
+        "--track-kind", choices=[item.value for item in ChromatinTrackKind], required=True
+    )
+    chromatin.add_argument("--format", choices=("tsv", "json"), default=None)
+    chromatin.add_argument("--output", default=None)
+
     encode_sequence = subparsers.add_parser(
         "encode-sequence", help="emit deterministic sequence context features"
     )
@@ -267,6 +279,16 @@ def main(argv: list[str] | None = None) -> int:
                 input_path.read_text(encoding="utf-8"),
                 source_id=args.source_id or input_path.stem,
                 profile=args.profile,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-chromatin":
+            input_path = Path(args.input)
+            result = ChromatinTrackParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                track_kind=args.track_kind,
                 input_format=args.format,
             )
             _write_json(result.to_dict(), args.output)

@@ -11,6 +11,14 @@ from .atlas_context import ContextEvidenceBuilder, ContextObservation
 from .atlas_extensions import CcreAtlasAdapter, CcreAtlasProfile, CcreTrackParser
 from .bcf import BcfDocument, BcfReader
 from .capability_registry import CapabilityRegistry, default_capability_registry
+from .chromatin_context import (
+    AccessibilityDeltaEstimator,
+    AccessibilityMeasurement,
+    ChromatinContextRetriever,
+    ChromatinTrackKind,
+    ChromatinTrackParser,
+    H3K27acActivityEstimator,
+)
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .inference_extensions import InferenceExtensionSuite
@@ -79,6 +87,12 @@ __all__ = [
     "ControlPlaneExecutor",
     "ControlPlaneApplication",
     "CapabilityRegistry",
+    "AccessibilityDeltaEstimator",
+    "AccessibilityMeasurement",
+    "ChromatinContextRetriever",
+    "ChromatinTrackKind",
+    "ChromatinTrackParser",
+    "H3K27acActivityEstimator",
     "Dossier",
     "EvidenceClaim",
     "Hypothesis",
