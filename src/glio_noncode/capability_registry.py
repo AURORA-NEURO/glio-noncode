@@ -1901,55 +1901,66 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D05-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.atlas_alpha.OpenChromatinTrackHarmonizer",
                     "glio_noncode.atlas_alpha.OpenChromatinHarmonizationReport",
+                    "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
+                    "glio_noncode.atlas_alpha_evidence_quality_gate.run_atlas_alpha_evidence_quality_gate",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
                 "evidence_note": (
                     "Open-chromatin observations are split into atomic intervals with replicate "
                     "and caller identity, source hashes, context gating, signal spread, and "
-                    "ambiguity preserved; accessibility is not promoted to activity or causality."
+                    "ambiguity preserved; the public aggregate C09-C12 fixture adds replay, "
+                    "lineage, policy, and release floors without promoting accessibility to activity."
                 ),
             },
             "GNC-D05-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.atlas_alpha.MethylationTrackHarmonizer",
                     "glio_noncode.atlas_alpha.MethylationHarmonizationReport",
+                    "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
+                    "glio_noncode.atlas_alpha_evidence_policy.evaluate_atlas_alpha_evidence_policy",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
                 "evidence_note": (
                     "Methylation fractions retain methylated and total counts, coverage gaps, "
                     "replicate disagreement, source hashes, and exact context; silencing is not "
-                    "inferred from methylation alone."
+                    "inferred from methylation alone, and zero-coverage controls remain partial."
                 ),
             },
             "GNC-D05-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.atlas_alpha.EnhancerPromoterSilencerClassifier",
                     "glio_noncode.atlas_alpha.RegulatoryRoleClassificationReport",
+                    "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
+                    "glio_noncode.atlas_alpha_evidence_scenario_matrix.evaluate_atlas_alpha_evidence_scenarios",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
                 "evidence_note": (
                     "Declared promoter, enhancer, silencer, accessibility, methylation, contact, "
                     "and target-gene channels yield explicit multi-role, missing-channel, and "
-                    "candidate states without collapsing evidence into one activity claim."
+                    "candidate states without collapsing evidence into one activity claim; the "
+                    "scenario and policy layers keep role ambiguity visible."
                 ),
             },
             "GNC-D05-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.atlas_alpha.SuperEnhancerCandidateAtlas",
                     "glio_noncode.atlas_alpha.SuperEnhancerAtlasReport",
+                    "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
+                    "glio_noncode.atlas_alpha_evidence_release.build_atlas_alpha_evidence_release",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
                 "evidence_note": (
                     "Ranked enhancer constituents are grouped into proximity-bounded candidate "
                     "intervals with quantile thresholds, target-gene declarations, source hashes, "
-                    "and partial activity evidence; candidates are not causal claims."
+                    "and partial activity evidence; the accepted release manifest keeps candidate "
+                    "groupings explicitly non-causal."
                 ),
             },
             "GNC-D05-C13": {

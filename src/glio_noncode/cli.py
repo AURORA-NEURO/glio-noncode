@@ -21,6 +21,44 @@ from .atlas_beta import (
     MolecularAtlasState,
     MolecularStateAtlasAdapter,
 )
+from .atlas_alpha_evidence_bundle import (
+    build_atlas_alpha_evidence_bundle,
+    write_atlas_alpha_evidence_bundle,
+)
+from .atlas_alpha_evidence_contracts import default_atlas_alpha_evidence_contracts
+from .atlas_alpha_evidence_fixture_eval import evaluate_atlas_alpha_evidence_fixture
+from .atlas_alpha_evidence_lineage import build_atlas_alpha_evidence_lineage
+from .atlas_alpha_evidence_metrics import compute_atlas_alpha_evidence_metrics
+from .atlas_alpha_evidence_exports import (
+    export_atlas_alpha_evidence_metrics_csv,
+    export_atlas_alpha_evidence_receipts_csv,
+    export_atlas_alpha_evidence_review_csv,
+    render_atlas_alpha_evidence_review_markdown,
+)
+from .atlas_alpha_evidence_observability import build_atlas_alpha_evidence_trace
+from .atlas_alpha_evidence_policy import evaluate_atlas_alpha_evidence_policy
+from .atlas_alpha_evidence_public_data import (
+    audit_atlas_alpha_evidence_data,
+    default_atlas_alpha_evidence_fixture,
+    load_atlas_alpha_evidence_fixture,
+)
+from .atlas_alpha_evidence_quality_gate import run_atlas_alpha_evidence_quality_gate
+from .atlas_alpha_evidence_reconciliation import reconcile_atlas_alpha_evidence
+from .atlas_alpha_evidence_release import (
+    build_atlas_alpha_evidence_release,
+    write_atlas_alpha_evidence_release,
+)
+from .atlas_alpha_evidence_replay import replay_atlas_alpha_evidence_evaluation
+from .atlas_alpha_evidence_runtime import (
+    AtlasAlphaEvidenceRuntimeOptions,
+    run_atlas_alpha_evidence_pipeline,
+)
+from .atlas_alpha_evidence_scenario_matrix import evaluate_atlas_alpha_evidence_scenarios
+from .atlas_alpha_evidence_schema import (
+    atlas_alpha_evidence_schema_manifest,
+    validate_atlas_alpha_evidence_schema,
+)
+from .atlas_alpha_evidence_views import build_atlas_alpha_evidence_view, review_queue_summary
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder, RegulatoryAtlasBundleFormat
 from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
@@ -56,7 +94,10 @@ from .molecular_atlas_metrics import (
 from .molecular_atlas_public_data import audit_molecular_atlas_data, load_molecular_atlas_fixture
 from .molecular_atlas_quality_gate import evaluate_molecular_atlas_quality_gate
 from .molecular_atlas_reconciliation import reconcile_molecular_atlas_views
-from .molecular_atlas_release import build_molecular_atlas_release_manifest, write_molecular_atlas_release_manifest
+from .molecular_atlas_release import (
+    build_molecular_atlas_release_manifest,
+    write_molecular_atlas_release_manifest,
+)
 from .molecular_atlas_replay import replay_molecular_atlas_evaluation
 from .molecular_atlas_runtime import run_molecular_atlas_pipeline_file
 from .molecular_atlas_scenario_matrix import evaluate_molecular_atlas_scenarios
@@ -615,6 +656,15 @@ def _write_json(payload: Any, output: str | None) -> None:
         sys.stdout.write(text)
 
 
+def _write_text(text: str, output: str | None) -> None:
+    """Write a text export or stream it to standard output."""
+
+    if output:
+        Path(output).write_text(text, encoding="utf-8")
+    else:
+        sys.stdout.write(text)
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -628,6 +678,14 @@ def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     if isinstance(payload, list):
         return tuple(payload)
     raise ValueError(f"{path} JSON must be an object or list")
+
+
+def _read_atlas_alpha_evidence_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return (
+        load_atlas_alpha_evidence_fixture(path) if path else default_atlas_alpha_evidence_fixture()
+    )
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -2493,7 +2551,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     regulatory_atlas_bundle.add_argument("input", type=str)
     regulatory_atlas_bundle.add_argument("--output", required=True)
-    regulatory_atlas_bundle.add_argument("--format", choices=[item.value for item in RegulatoryAtlasBundleFormat], default=RegulatoryAtlasBundleFormat.JSON.value)
+    regulatory_atlas_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in RegulatoryAtlasBundleFormat],
+        default=RegulatoryAtlasBundleFormat.JSON.value,
+    )
     regulatory_atlas_bundle.add_argument("--accepted-only", action="store_true")
 
     regulatory_atlas_graph = subparsers.add_parser(
@@ -2578,7 +2640,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     molecular_atlas_bundle.add_argument("input", type=str)
     molecular_atlas_bundle.add_argument("--output", required=True)
-    molecular_atlas_bundle.add_argument("--format", choices=[item.value for item in MolecularAtlasBundleFormat], default=MolecularAtlasBundleFormat.JSON.value)
+    molecular_atlas_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in MolecularAtlasBundleFormat],
+        default=MolecularAtlasBundleFormat.JSON.value,
+    )
     molecular_atlas_bundle.add_argument("--accepted-only", action="store_true")
 
     molecular_atlas_graph = subparsers.add_parser(
@@ -2811,6 +2877,143 @@ def build_parser() -> argparse.ArgumentParser:
     super_enhancer.add_argument("--merge-gap-bp", type=int, default=0)
     super_enhancer.add_argument("--rank-quantile", type=float, default=0.8)
     super_enhancer.add_argument("--output", default=None)
+
+    alpha_evidence_evaluate = subparsers.add_parser(
+        "evaluate-atlas-alpha-evidence",
+        help="evaluate the public aggregate C09-C12 atlas-alpha fixture",
+    )
+    alpha_evidence_evaluate.add_argument("input", nargs="?", default=None)
+    alpha_evidence_evaluate.add_argument("--output", default=None)
+
+    alpha_evidence_audit = subparsers.add_parser(
+        "audit-atlas-alpha-evidence-data",
+        help="audit C09-C12 public source closure and aggregate scope",
+    )
+    alpha_evidence_audit.add_argument("input", nargs="?", default=None)
+    alpha_evidence_audit.add_argument("--output", default=None)
+
+    alpha_evidence_replay = subparsers.add_parser(
+        "replay-atlas-alpha-evidence",
+        help="replay C09-C12 states, issues, and receipt addresses",
+    )
+    alpha_evidence_replay.add_argument("input", nargs="?", default=None)
+    alpha_evidence_replay.add_argument("--output", default=None)
+
+    alpha_evidence_quality = subparsers.add_parser(
+        "atlas-alpha-evidence-quality-gate",
+        help="run the complete C09-C12 evidence quality gate",
+    )
+    alpha_evidence_quality.add_argument("input", nargs="?", default=None)
+    alpha_evidence_quality.add_argument("--output", default=None)
+
+    alpha_evidence_scenarios = subparsers.add_parser(
+        "evaluate-atlas-alpha-evidence-scenarios",
+        help="evaluate positive and review scenario floors for C09-C12",
+    )
+    alpha_evidence_scenarios.add_argument("input", nargs="?", default=None)
+    alpha_evidence_scenarios.add_argument("--output", default=None)
+
+    alpha_evidence_contracts = subparsers.add_parser(
+        "atlas-alpha-evidence-contracts",
+        help="emit typed C09-C12 contracts",
+    )
+    alpha_evidence_contracts.add_argument("--output", default=None)
+
+    alpha_evidence_schema = subparsers.add_parser(
+        "atlas-alpha-evidence-schema",
+        help="emit or validate C09-C12 operation schemas",
+    )
+    alpha_evidence_schema.add_argument("input", nargs="?", default=None)
+    alpha_evidence_schema.add_argument("--output", default=None)
+
+    alpha_evidence_metrics = subparsers.add_parser(
+        "atlas-alpha-evidence-metrics",
+        help="emit C09-C12 operational metrics",
+    )
+    alpha_evidence_metrics.add_argument("input", nargs="?", default=None)
+    alpha_evidence_metrics.add_argument("--output", default=None)
+
+    alpha_evidence_bundle = subparsers.add_parser(
+        "build-atlas-alpha-evidence-bundle",
+        help="build the serialized C09-C12 evidence bundle",
+    )
+    alpha_evidence_bundle.add_argument("input", nargs="?", default=None)
+    alpha_evidence_bundle.add_argument("--output", default=None)
+
+    alpha_evidence_lineage = subparsers.add_parser(
+        "atlas-alpha-evidence-lineage",
+        help="emit C09-C12 source-to-receipt lineage",
+    )
+    alpha_evidence_lineage.add_argument("input", nargs="?", default=None)
+    alpha_evidence_lineage.add_argument("--output", default=None)
+
+    alpha_evidence_reconciliation = subparsers.add_parser(
+        "atlas-alpha-evidence-reconciliation",
+        help="reconcile C09-C12 expected and observed states",
+    )
+    alpha_evidence_reconciliation.add_argument("input", nargs="?", default=None)
+    alpha_evidence_reconciliation.add_argument("--output", default=None)
+
+    alpha_evidence_pipeline = subparsers.add_parser(
+        "run-atlas-alpha-evidence-pipeline",
+        help="run the C09-C12 quality-gated public aggregate pipeline",
+    )
+    alpha_evidence_pipeline.add_argument("input", nargs="?", default=None)
+    alpha_evidence_pipeline.add_argument("--run-id", default="atlas-alpha-cli")
+    alpha_evidence_pipeline.add_argument("--context-key", default=None)
+    alpha_evidence_pipeline.add_argument("--fail-on-review", action="store_true")
+    alpha_evidence_pipeline.add_argument("--output", default=None)
+
+    alpha_evidence_release = subparsers.add_parser(
+        "build-atlas-alpha-evidence-release",
+        help="build a C09-C12 release manifest after the quality gate",
+    )
+    alpha_evidence_release.add_argument("input", nargs="?", default=None)
+    alpha_evidence_release.add_argument("--run-id", default="atlas-alpha-release")
+    alpha_evidence_release.add_argument("--output", default=None)
+
+    alpha_evidence_view = subparsers.add_parser(
+        "atlas-alpha-evidence-review-view",
+        help="emit the sanitized C09-C12 review queue and source matrix",
+    )
+    alpha_evidence_view.add_argument("input", nargs="?", default=None)
+    alpha_evidence_view.add_argument("--output", default=None)
+
+    alpha_evidence_trace = subparsers.add_parser(
+        "atlas-alpha-evidence-trace",
+        help="emit the nine-stage C09-C12 runtime trace",
+    )
+    alpha_evidence_trace.add_argument("input", nargs="?", default=None)
+    alpha_evidence_trace.add_argument("--run-id", default="atlas-alpha-trace")
+    alpha_evidence_trace.add_argument("--output", default=None)
+
+    alpha_evidence_receipts_csv = subparsers.add_parser(
+        "export-atlas-alpha-evidence-receipts-csv",
+        help="export sanitized C09-C12 receipts as CSV",
+    )
+    alpha_evidence_receipts_csv.add_argument("input", nargs="?", default=None)
+    alpha_evidence_receipts_csv.add_argument("--output", default=None)
+
+    alpha_evidence_review_csv = subparsers.add_parser(
+        "export-atlas-alpha-evidence-review-csv",
+        help="export the C09-C12 review queue as CSV",
+    )
+    alpha_evidence_review_csv.add_argument("input", nargs="?", default=None)
+    alpha_evidence_review_csv.add_argument("--output", default=None)
+
+    alpha_evidence_review_md = subparsers.add_parser(
+        "export-atlas-alpha-evidence-review-markdown",
+        help="export the C09-C12 review queue as Markdown",
+    )
+    alpha_evidence_review_md.add_argument("input", nargs="?", default=None)
+    alpha_evidence_review_md.add_argument("--output", default=None)
+
+    alpha_evidence_metrics_csv = subparsers.add_parser(
+        "export-atlas-alpha-evidence-metrics-csv",
+        help="export C09-C12 operation metrics as CSV",
+    )
+    alpha_evidence_metrics_csv.add_argument("input", nargs="?", default=None)
+    alpha_evidence_metrics_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -5046,7 +5249,10 @@ def main(argv: list[str] | None = None) -> int:
             fixture = load_reference_annotation_fixture(_read_json(args.input))
             evaluation = evaluate_reference_annotation_fixture(fixture)
             graph = build_reference_annotation_lineage(evaluation, fixture=fixture)
-            payload = graph.to_dict() | {"audit": graph.audit.to_dict(), "accepted": graph.audit.accepted}
+            payload = graph.to_dict() | {
+                "audit": graph.audit.to_dict(),
+                "accepted": graph.audit.accepted,
+            }
             _write_json(payload, args.output)
             return 0 if graph.audit.accepted else 2
         if args.command == "reference-annotation-reconciliation":
@@ -5055,7 +5261,9 @@ def main(argv: list[str] | None = None) -> int:
             builder = ReferenceAnnotationBundleBuilder()
             bundle = builder.build(evaluation, fixture=fixture)
             graph = build_reference_annotation_lineage(evaluation, fixture=fixture)
-            report = reconcile_reference_annotation_views(evaluation, bundle, graph, fixture=fixture)
+            report = reconcile_reference_annotation_views(
+                evaluation, bundle, graph, fixture=fixture
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "run-reference-annotation-pipeline":
@@ -5067,8 +5275,12 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_reference_annotation_fixture(fixture)
             quality = evaluate_reference_annotation_quality_gate(fixture)
             replay = replay_reference_annotation_evaluation(evaluation)
-            bundle = ReferenceAnnotationBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
-            manifest = build_reference_annotation_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            bundle = ReferenceAnnotationBundleBuilder().build(
+                evaluation, fixture=fixture, accepted_only=True
+            )
+            manifest = build_reference_annotation_release_manifest(
+                evaluation, quality, bundle, replay, fixture=fixture
+            )
             write_reference_annotation_release_manifest(manifest, args.output)
             return 0 if manifest.publishable else 2
         if args.command == "evaluate-reference-governance-fixture":
@@ -5105,20 +5317,35 @@ def main(argv: list[str] | None = None) -> int:
             fixture = load_reference_governance_fixture(_read_json(args.input))
             evaluation = evaluate_reference_governance_fixture(fixture)
             report = build_reference_governance_metrics(evaluation)
-            _write_json(render_reference_governance_metrics(report) | {"accepted": report.accepted, "failures": list(verify_reference_governance_metrics(report))}, args.output)
+            _write_json(
+                render_reference_governance_metrics(report)
+                | {
+                    "accepted": report.accepted,
+                    "failures": list(verify_reference_governance_metrics(report)),
+                },
+                args.output,
+            )
             return 0 if report.accepted and not verify_reference_governance_metrics(report) else 2
         if args.command == "build-reference-governance-bundle":
             fixture = load_reference_governance_fixture(_read_json(args.input))
             evaluation = evaluate_reference_governance_fixture(fixture)
             builder = ReferenceGovernanceBundleBuilder()
-            bundle = builder.build(evaluation, fixture=fixture, output_format=ReferenceGovernanceBundleFormat(args.format), accepted_only=args.accepted_only)
+            bundle = builder.build(
+                evaluation,
+                fixture=fixture,
+                output_format=ReferenceGovernanceBundleFormat(args.format),
+                accepted_only=args.accepted_only,
+            )
             builder.write(bundle, args.output)
             return 0 if not builder.verify(bundle) else 2
         if args.command == "reference-governance-lineage":
             fixture = load_reference_governance_fixture(_read_json(args.input))
             evaluation = evaluate_reference_governance_fixture(fixture)
             graph = build_reference_governance_lineage(evaluation, fixture=fixture)
-            payload = graph.to_dict() | {"audit": graph.audit(evaluation).to_dict(), "accepted": graph.audit(evaluation).passed}
+            payload = graph.to_dict() | {
+                "audit": graph.audit(evaluation).to_dict(),
+                "accepted": graph.audit(evaluation).passed,
+            }
             _write_json(payload, args.output)
             return 0 if graph.audit(evaluation).passed else 2
         if args.command == "reference-governance-reconciliation":
@@ -5128,7 +5355,9 @@ def main(argv: list[str] | None = None) -> int:
             replay = replay_reference_governance_evaluation(evaluation, fixture=fixture)
             scenarios = evaluate_reference_governance_scenarios(fixture, report=evaluation)
             graph = build_reference_governance_lineage(evaluation, fixture=fixture)
-            report = reconcile_reference_governance_views(fixture, data, evaluation, replay, scenarios, graph)
+            report = reconcile_reference_governance_views(
+                fixture, data, evaluation, replay, scenarios, graph
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "run-reference-governance-pipeline":
@@ -5140,8 +5369,12 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_reference_governance_fixture(fixture)
             quality = evaluate_reference_governance_quality_gate(fixture)
             replay = replay_reference_governance_evaluation(evaluation, fixture=fixture)
-            bundle = ReferenceGovernanceBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
-            manifest = build_reference_governance_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            bundle = ReferenceGovernanceBundleBuilder().build(
+                evaluation, fixture=fixture, accepted_only=True
+            )
+            manifest = build_reference_governance_release_manifest(
+                evaluation, quality, bundle, replay, fixture=fixture
+            )
             write_reference_governance_release_manifest(manifest, args.output)
             return 0 if manifest.publishable else 2
         if args.command == "evaluate-regulatory-atlas-fixture":
@@ -5179,13 +5412,22 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_regulatory_atlas_fixture(fixture)
             report = build_regulatory_atlas_metrics(evaluation)
             failures = verify_regulatory_atlas_metrics(report)
-            _write_json(render_regulatory_atlas_metrics(report) | {"accepted": report.accepted, "failures": list(failures)}, args.output)
+            _write_json(
+                render_regulatory_atlas_metrics(report)
+                | {"accepted": report.accepted, "failures": list(failures)},
+                args.output,
+            )
             return 0 if report.accepted and not failures else 2
         if args.command == "build-regulatory-atlas-bundle":
             fixture = load_regulatory_atlas_fixture(_read_json(args.input))
             evaluation = evaluate_regulatory_atlas_fixture(fixture)
             builder = RegulatoryAtlasBundleBuilder()
-            bundle = builder.build(evaluation, fixture=fixture, output_format=RegulatoryAtlasBundleFormat(args.format), accepted_only=args.accepted_only)
+            bundle = builder.build(
+                evaluation,
+                fixture=fixture,
+                output_format=RegulatoryAtlasBundleFormat(args.format),
+                accepted_only=args.accepted_only,
+            )
             builder.write(bundle, args.output)
             return 0 if not builder.verify(bundle) else 2
         if args.command == "regulatory-atlas-lineage":
@@ -5193,7 +5435,9 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_regulatory_atlas_fixture(fixture)
             graph = build_regulatory_atlas_lineage(evaluation, fixture=fixture)
             audit = graph.audit(evaluation)
-            _write_json(graph.to_dict() | {"audit": audit.to_dict(), "accepted": audit.passed}, args.output)
+            _write_json(
+                graph.to_dict() | {"audit": audit.to_dict(), "accepted": audit.passed}, args.output
+            )
             return 0 if audit.passed else 2
         if args.command == "regulatory-atlas-reconciliation":
             fixture = load_regulatory_atlas_fixture(_read_json(args.input))
@@ -5202,7 +5446,9 @@ def main(argv: list[str] | None = None) -> int:
             replay = replay_regulatory_atlas_evaluation(evaluation, fixture=fixture)
             scenarios = evaluate_regulatory_atlas_scenarios(fixture, report=evaluation)
             graph = build_regulatory_atlas_lineage(evaluation, fixture=fixture)
-            report = reconcile_regulatory_atlas_views(fixture, data, evaluation, replay, scenarios, graph)
+            report = reconcile_regulatory_atlas_views(
+                fixture, data, evaluation, replay, scenarios, graph
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "run-regulatory-atlas-pipeline":
@@ -5214,8 +5460,12 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_regulatory_atlas_fixture(fixture)
             quality = evaluate_regulatory_atlas_quality_gate(fixture)
             replay = replay_regulatory_atlas_evaluation(evaluation, fixture=fixture)
-            bundle = RegulatoryAtlasBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
-            manifest = build_regulatory_atlas_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            bundle = RegulatoryAtlasBundleBuilder().build(
+                evaluation, fixture=fixture, accepted_only=True
+            )
+            manifest = build_regulatory_atlas_release_manifest(
+                evaluation, quality, bundle, replay, fixture=fixture
+            )
             write_regulatory_atlas_release_manifest(manifest, args.output)
             return 0 if manifest.publishable else 2
         if args.command == "evaluate-molecular-atlas-fixture":
@@ -5253,13 +5503,22 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_molecular_atlas_fixture(fixture)
             report = build_molecular_atlas_metrics(evaluation)
             failures = verify_molecular_atlas_metrics(report)
-            _write_json(render_molecular_atlas_metrics(report) | {"accepted": report.accepted, "failures": list(failures)}, args.output)
+            _write_json(
+                render_molecular_atlas_metrics(report)
+                | {"accepted": report.accepted, "failures": list(failures)},
+                args.output,
+            )
             return 0 if report.accepted and not failures else 2
         if args.command == "build-molecular-atlas-bundle":
             fixture = load_molecular_atlas_fixture(_read_json(args.input))
             evaluation = evaluate_molecular_atlas_fixture(fixture)
             builder = MolecularAtlasBundleBuilder()
-            bundle = builder.build(evaluation, fixture=fixture, output_format=MolecularAtlasBundleFormat(args.format), accepted_only=args.accepted_only)
+            bundle = builder.build(
+                evaluation,
+                fixture=fixture,
+                output_format=MolecularAtlasBundleFormat(args.format),
+                accepted_only=args.accepted_only,
+            )
             builder.write(bundle, args.output)
             return 0 if not builder.verify(bundle) else 2
         if args.command == "molecular-atlas-lineage":
@@ -5267,7 +5526,9 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_molecular_atlas_fixture(fixture)
             graph = build_molecular_atlas_lineage(evaluation, fixture=fixture)
             audit = graph.audit(evaluation)
-            _write_json(graph.to_dict() | {"audit": audit.to_dict(), "accepted": audit.passed}, args.output)
+            _write_json(
+                graph.to_dict() | {"audit": audit.to_dict(), "accepted": audit.passed}, args.output
+            )
             return 0 if audit.passed else 2
         if args.command == "molecular-atlas-reconciliation":
             fixture = load_molecular_atlas_fixture(_read_json(args.input))
@@ -5276,7 +5537,9 @@ def main(argv: list[str] | None = None) -> int:
             replay = replay_molecular_atlas_evaluation(evaluation, fixture=fixture)
             scenarios = evaluate_molecular_atlas_scenarios(fixture, report=evaluation)
             graph = build_molecular_atlas_lineage(evaluation, fixture=fixture)
-            report = reconcile_molecular_atlas_views(fixture, data, evaluation, replay, scenarios, graph)
+            report = reconcile_molecular_atlas_views(
+                fixture, data, evaluation, replay, scenarios, graph
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "run-molecular-atlas-pipeline":
@@ -5288,8 +5551,12 @@ def main(argv: list[str] | None = None) -> int:
             evaluation = evaluate_molecular_atlas_fixture(fixture)
             quality = evaluate_molecular_atlas_quality_gate(fixture)
             replay = replay_molecular_atlas_evaluation(evaluation, fixture=fixture)
-            bundle = MolecularAtlasBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
-            manifest = build_molecular_atlas_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            bundle = MolecularAtlasBundleBuilder().build(
+                evaluation, fixture=fixture, accepted_only=True
+            )
+            manifest = build_molecular_atlas_release_manifest(
+                evaluation, quality, bundle, replay, fixture=fixture
+            )
             write_molecular_atlas_release_manifest(manifest, args.output)
             return 0 if manifest.publishable else 2
         if args.command == "classify-origin":
@@ -5485,6 +5752,153 @@ def main(argv: list[str] | None = None) -> int:
                 rank_quantile=args.rank_quantile,
             )
             _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-atlas-alpha-evidence":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_json(evaluate_atlas_alpha_evidence_fixture(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "audit-atlas-alpha-evidence-data":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_json(audit_atlas_alpha_evidence_data(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "replay-atlas-alpha-evidence":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            evaluation = evaluate_atlas_alpha_evidence_fixture(fixture)
+            _write_json(
+                replay_atlas_alpha_evidence_evaluation(evaluation, fixture=fixture).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "atlas-alpha-evidence-quality-gate":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_json(run_atlas_alpha_evidence_quality_gate(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-atlas-alpha-evidence-scenarios":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_json(
+                evaluate_atlas_alpha_evidence_scenarios(
+                    evaluate_atlas_alpha_evidence_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "atlas-alpha-evidence-contracts":
+            _write_json(default_atlas_alpha_evidence_contracts().manifest(), args.output)
+            return 0
+        if args.command == "atlas-alpha-evidence-schema":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            evaluation = evaluate_atlas_alpha_evidence_fixture(fixture)
+            _write_json(
+                atlas_alpha_evidence_schema_manifest()
+                | {
+                    "validation": validate_atlas_alpha_evidence_schema(
+                        fixture, evaluation
+                    ).to_dict()
+                },
+                args.output,
+            )
+            return 0
+        if args.command == "atlas-alpha-evidence-metrics":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_json(
+                compute_atlas_alpha_evidence_metrics(
+                    evaluate_atlas_alpha_evidence_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "build-atlas-alpha-evidence-bundle":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            quality = run_atlas_alpha_evidence_quality_gate(fixture)
+            _write_json(quality.bundle.to_dict(), args.output)
+            return 0
+        if args.command == "atlas-alpha-evidence-lineage":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            evaluation = evaluate_atlas_alpha_evidence_fixture(fixture)
+            _write_json(
+                build_atlas_alpha_evidence_lineage(fixture, evaluation).to_dict(), args.output
+            )
+            return 0
+        if args.command == "atlas-alpha-evidence-reconciliation":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_json(
+                reconcile_atlas_alpha_evidence(
+                    fixture, evaluate_atlas_alpha_evidence_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "run-atlas-alpha-evidence-pipeline":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            options = AtlasAlphaEvidenceRuntimeOptions(
+                run_id=args.run_id,
+                fail_on_review=args.fail_on_review,
+                requested_context_key=args.context_key,
+            )
+            _write_json(
+                run_atlas_alpha_evidence_pipeline(options, fixture=fixture).to_dict(), args.output
+            )
+            return 0
+        if args.command == "build-atlas-alpha-evidence-release":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            quality = run_atlas_alpha_evidence_quality_gate(fixture)
+            runtime = run_atlas_alpha_evidence_pipeline(
+                AtlasAlphaEvidenceRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_atlas_alpha_evidence_release(quality, runtime).to_dict(), args.output)
+            return 0
+        if args.command == "atlas-alpha-evidence-review-view":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            evaluation = evaluate_atlas_alpha_evidence_fixture(fixture)
+            view = build_atlas_alpha_evidence_view(fixture, evaluation)
+            _write_json(view.to_dict() | {"summary": review_queue_summary(view)}, args.output)
+            return 0
+        if args.command == "atlas-alpha-evidence-trace":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            runtime = run_atlas_alpha_evidence_pipeline(
+                AtlasAlphaEvidenceRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_atlas_alpha_evidence_trace(runtime).to_dict(), args.output)
+            return 0
+        if args.command == "export-atlas-alpha-evidence-receipts-csv":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_text(
+                export_atlas_alpha_evidence_receipts_csv(
+                    evaluate_atlas_alpha_evidence_fixture(fixture)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-atlas-alpha-evidence-review-csv":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            evaluation = evaluate_atlas_alpha_evidence_fixture(fixture)
+            _write_text(
+                export_atlas_alpha_evidence_review_csv(
+                    build_atlas_alpha_evidence_view(fixture, evaluation)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-atlas-alpha-evidence-review-markdown":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            evaluation = evaluate_atlas_alpha_evidence_fixture(fixture)
+            _write_text(
+                render_atlas_alpha_evidence_review_markdown(
+                    build_atlas_alpha_evidence_view(fixture, evaluation)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-atlas-alpha-evidence-metrics-csv":
+            fixture = _read_atlas_alpha_evidence_fixture(args.input)
+            _write_text(
+                export_atlas_alpha_evidence_metrics_csv(
+                    compute_atlas_alpha_evidence_metrics(
+                        evaluate_atlas_alpha_evidence_fixture(fixture)
+                    )
+                ),
+                args.output,
+            )
             return 0
         if args.command == "parse-methylation":
             input_path = Path(args.input)

@@ -1,0 +1,17 @@
+{
+  "fixture_id": "atlas-alpha-public-aggregate",
+  "fixture_version": "2026.08.d05-c09-c12.v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|stem_like|unknown|unknown",
+  "evidence_boundary": "public_aggregate_non_patient",
+  "positive_records": 4,
+  "control_records": 12,
+  "evaluation_checks": 120,
+  "accepted": true,
+  "interpretation_boundary": [
+    "accessibility_is_not_activity",
+    "methylation_is_not_silencing",
+    "role_labels_are_research_classifications",
+    "super_enhancer_groups_are_not_causal_claims"
+  ],
+  "next_command": "glio-noncode run-atlas-alpha-evidence-pipeline --run-id c09-c12-local --output atlas-alpha-run.json"
+}

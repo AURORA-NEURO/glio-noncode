@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 84 capabilities have deterministic fixture-backed
-verification and 172 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 32.81% of the 256-capability
+capabilities started (100%); 88 capabilities have deterministic fixture-backed
+verification and 168 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 34.38% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 84 controls are verified against the checked-in
-aggregate fixtures, while 172 capabilities remain partial. Partial
+capabilities started (100%); 88 controls are verified against the checked-in
+aggregate fixtures, while 168 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1225,7 +1225,14 @@ glio-noncode harmonize-histone histone.tsv --output histone.json
 ```
 
 The Domain 05 atlas-alpha tranche deepens track and regulatory-role
-boundaries without merging assay semantics:
+boundaries without merging assay semantics. C09-C12 are now verified through a
+public aggregate, non-patient fixture with 4 positive records, 12 review
+controls, 120 evaluation checks, deterministic replay, source lineage,
+reconciliation, policy, metrics, quality-gated runtime, and release artifacts.
+See `docs/ATLAS_ALPHA_EVIDENCE_GATE.md` and
+`docs/ATLAS_ALPHA_EVIDENCE_RELEASE_FORMAT.md` and
+`docs/ATLAS_ALPHA_EVIDENCE_SCHEMA.md` for the evidence boundary, release
+manifest, and typed output schema.
 
 - `OpenChromatinTrackHarmonizer` splits ATAC/DNase-style observations at
   every observed boundary and retains replicate, caller, source, context,
@@ -1245,6 +1252,11 @@ glio-noncode harmonize-open-chromatin atac.json --context-key "GRCh38|glioma|adu
 glio-noncode harmonize-methylation methylation.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output methylation-harmonized.json
 glio-noncode classify-regulatory-role regulatory-elements.json --role-threshold 0.5 --output regulatory-roles.json
 glio-noncode build-super-enhancer-atlas enhancers.json --minimum-constituents 3 --merge-gap-bp 100 --output super-enhancer-candidates.json
+glio-noncode audit-atlas-alpha-evidence-data --output atlas-alpha-audit.json
+glio-noncode evaluate-atlas-alpha-evidence --output atlas-alpha-evaluation.json
+glio-noncode atlas-alpha-evidence-quality-gate --output atlas-alpha-quality.json
+glio-noncode run-atlas-alpha-evidence-pipeline --run-id c09-c12-local --output atlas-alpha-run.json
+glio-noncode build-atlas-alpha-evidence-release --run-id c09-c12-release --output atlas-alpha-release.json
 ```
 
 ## Domain 06 sequence and model adapters
