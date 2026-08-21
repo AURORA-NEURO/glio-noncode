@@ -397,6 +397,37 @@ from .sequence_beta import (
     MotifGrammarRule,
     MotifSpacingGrammarAnalyzer,
 )
+from .sequence_frontier_contracts import default_sequence_frontier_contracts
+from .sequence_frontier_exports import (
+    export_sequence_frontier_metrics_csv,
+    export_sequence_frontier_receipts_csv,
+    export_sequence_frontier_review_csv,
+    render_sequence_frontier_review_markdown,
+)
+from .sequence_frontier_fixture_eval import evaluate_sequence_frontier_fixture
+from .sequence_frontier_lineage import build_sequence_frontier_lineage
+from .sequence_frontier_metrics import compute_sequence_frontier_metrics
+from .sequence_frontier_observability import build_sequence_frontier_trace
+from .sequence_frontier_policy import evaluate_sequence_frontier_policy
+from .sequence_frontier_public_data import (
+    audit_sequence_frontier_data,
+    default_sequence_frontier_fixture,
+    load_sequence_frontier_fixture,
+)
+from .sequence_frontier_quality_gate import run_sequence_frontier_quality_gate
+from .sequence_frontier_reconciliation import reconcile_sequence_frontier
+from .sequence_frontier_release import build_sequence_frontier_release
+from .sequence_frontier_replay import replay_sequence_frontier_evaluation
+from .sequence_frontier_runtime import (
+    SequenceFrontierRuntimeOptions,
+    run_sequence_frontier_pipeline,
+)
+from .sequence_frontier_scenario_matrix import evaluate_sequence_frontier_scenarios
+from .sequence_frontier_schema import (
+    sequence_frontier_schema_manifest,
+    validate_sequence_frontier_schema,
+)
+from .sequence_frontier_views import build_sequence_frontier_view, sequence_frontier_review_summary
 from .specimen_beta import (
     CancerCellFractionEstimator,
     MosaicismPosteriorEstimator,
@@ -711,6 +742,12 @@ def _read_frontier_atlas_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_frontier_atlas_fixture(path) if path else default_frontier_atlas_fixture()
+
+
+def _read_sequence_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_sequence_frontier_fixture(path) if path else default_sequence_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -3183,6 +3220,150 @@ def build_parser() -> argparse.ArgumentParser:
     )
     frontier_atlas_metrics_csv.add_argument("input", nargs="?", default=None)
     frontier_atlas_metrics_csv.add_argument("--output", default=None)
+
+    sequence_frontier_evaluate = subparsers.add_parser(
+        "evaluate-sequence-frontier-fixture",
+        help="evaluate the public Domain 06 C13-C16 fixture and controls",
+    )
+    sequence_frontier_evaluate.add_argument("input", nargs="?", default=None)
+    sequence_frontier_evaluate.add_argument("--output", default=None)
+
+    sequence_frontier_audit = subparsers.add_parser(
+        "audit-sequence-frontier-data",
+        help="audit Domain 06 C13-C16 source receipts and aggregate boundaries",
+    )
+    sequence_frontier_audit.add_argument("input", nargs="?", default=None)
+    sequence_frontier_audit.add_argument("--output", default=None)
+
+    sequence_frontier_replay = subparsers.add_parser(
+        "replay-sequence-frontier",
+        help="replay Domain 06 C13-C16 states and receipt addresses",
+    )
+    sequence_frontier_replay.add_argument("input", nargs="?", default=None)
+    sequence_frontier_replay.add_argument("--output", default=None)
+
+    sequence_frontier_quality = subparsers.add_parser(
+        "sequence-frontier-quality-gate",
+        help="run the complete Domain 06 C13-C16 quality gate",
+    )
+    sequence_frontier_quality.add_argument("input", nargs="?", default=None)
+    sequence_frontier_quality.add_argument("--output", default=None)
+
+    sequence_frontier_scenarios = subparsers.add_parser(
+        "evaluate-sequence-frontier-scenarios",
+        help="evaluate Domain 06 C13-C16 positive and negative controls",
+    )
+    sequence_frontier_scenarios.add_argument("input", nargs="?", default=None)
+    sequence_frontier_scenarios.add_argument("--output", default=None)
+
+    sequence_frontier_policy = subparsers.add_parser(
+        "sequence-frontier-policy",
+        help="evaluate Domain 06 C13-C16 interpretation and state policy",
+    )
+    sequence_frontier_policy.add_argument("input", nargs="?", default=None)
+    sequence_frontier_policy.add_argument("--output", default=None)
+
+    sequence_frontier_contracts = subparsers.add_parser(
+        "sequence-frontier-contracts",
+        help="emit typed Domain 06 C13-C16 contracts",
+    )
+    sequence_frontier_contracts.add_argument("--output", default=None)
+
+    sequence_frontier_schema = subparsers.add_parser(
+        "sequence-frontier-schema",
+        help="emit or validate Domain 06 C13-C16 schemas",
+    )
+    sequence_frontier_schema.add_argument("input", nargs="?", default=None)
+    sequence_frontier_schema.add_argument("--output", default=None)
+
+    sequence_frontier_metrics = subparsers.add_parser(
+        "sequence-frontier-metrics",
+        help="emit Domain 06 C13-C16 operation metrics",
+    )
+    sequence_frontier_metrics.add_argument("input", nargs="?", default=None)
+    sequence_frontier_metrics.add_argument("--output", default=None)
+
+    sequence_frontier_bundle = subparsers.add_parser(
+        "build-sequence-frontier-bundle",
+        help="build the serialized Domain 06 C13-C16 bundle",
+    )
+    sequence_frontier_bundle.add_argument("input", nargs="?", default=None)
+    sequence_frontier_bundle.add_argument("--output", default=None)
+
+    sequence_frontier_lineage = subparsers.add_parser(
+        "sequence-frontier-lineage",
+        help="emit Domain 06 C13-C16 source-to-receipt lineage",
+    )
+    sequence_frontier_lineage.add_argument("input", nargs="?", default=None)
+    sequence_frontier_lineage.add_argument("--output", default=None)
+
+    sequence_frontier_reconciliation = subparsers.add_parser(
+        "sequence-frontier-reconciliation",
+        help="reconcile Domain 06 C13-C16 expected and observed states",
+    )
+    sequence_frontier_reconciliation.add_argument("input", nargs="?", default=None)
+    sequence_frontier_reconciliation.add_argument("--output", default=None)
+
+    sequence_frontier_pipeline = subparsers.add_parser(
+        "run-sequence-frontier-pipeline",
+        help="run the Domain 06 C13-C16 quality-gated pipeline",
+    )
+    sequence_frontier_pipeline.add_argument("input", nargs="?", default=None)
+    sequence_frontier_pipeline.add_argument("--run-id", default="sequence-frontier-cli")
+    sequence_frontier_pipeline.add_argument("--context-key", default=None)
+    sequence_frontier_pipeline.add_argument("--fail-on-review", action="store_true")
+    sequence_frontier_pipeline.add_argument("--output", default=None)
+
+    sequence_frontier_release = subparsers.add_parser(
+        "build-sequence-frontier-release",
+        help="build a Domain 06 C13-C16 release manifest",
+    )
+    sequence_frontier_release.add_argument("input", nargs="?", default=None)
+    sequence_frontier_release.add_argument("--run-id", default="sequence-frontier-release")
+    sequence_frontier_release.add_argument("--output", default=None)
+
+    sequence_frontier_view = subparsers.add_parser(
+        "sequence-frontier-review-view",
+        help="emit the sanitized Domain 06 review queue and source matrix",
+    )
+    sequence_frontier_view.add_argument("input", nargs="?", default=None)
+    sequence_frontier_view.add_argument("--output", default=None)
+
+    sequence_frontier_trace = subparsers.add_parser(
+        "sequence-frontier-trace",
+        help="emit the nine-stage Domain 06 runtime trace",
+    )
+    sequence_frontier_trace.add_argument("input", nargs="?", default=None)
+    sequence_frontier_trace.add_argument("--run-id", default="sequence-frontier-trace")
+    sequence_frontier_trace.add_argument("--output", default=None)
+
+    sequence_frontier_receipts_csv = subparsers.add_parser(
+        "export-sequence-frontier-receipts-csv",
+        help="export sanitized Domain 06 receipts as CSV",
+    )
+    sequence_frontier_receipts_csv.add_argument("input", nargs="?", default=None)
+    sequence_frontier_receipts_csv.add_argument("--output", default=None)
+
+    sequence_frontier_review_csv = subparsers.add_parser(
+        "export-sequence-frontier-review-csv",
+        help="export the Domain 06 review queue as CSV",
+    )
+    sequence_frontier_review_csv.add_argument("input", nargs="?", default=None)
+    sequence_frontier_review_csv.add_argument("--output", default=None)
+
+    sequence_frontier_review_md = subparsers.add_parser(
+        "export-sequence-frontier-review-markdown",
+        help="export the Domain 06 review queue as Markdown",
+    )
+    sequence_frontier_review_md.add_argument("input", nargs="?", default=None)
+    sequence_frontier_review_md.add_argument("--output", default=None)
+
+    sequence_frontier_metrics_csv = subparsers.add_parser(
+        "export-sequence-frontier-metrics-csv",
+        help="export Domain 06 operation metrics as CSV",
+    )
+    sequence_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
+    sequence_frontier_metrics_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -6200,6 +6381,145 @@ def main(argv: list[str] | None = None) -> int:
             _write_text(
                 export_frontier_atlas_metrics_csv(
                     compute_frontier_atlas_metrics(evaluate_frontier_atlas_fixture(fixture))
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "evaluate-sequence-frontier-fixture":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_json(evaluate_sequence_frontier_fixture(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "audit-sequence-frontier-data":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_json(audit_sequence_frontier_data(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "replay-sequence-frontier":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            _write_json(
+                replay_sequence_frontier_evaluation(evaluation, fixture=fixture).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "sequence-frontier-quality-gate":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_json(run_sequence_frontier_quality_gate(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-sequence-frontier-scenarios":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_json(
+                evaluate_sequence_frontier_scenarios(
+                    evaluate_sequence_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "sequence-frontier-policy":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            _write_json(evaluate_sequence_frontier_policy(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "sequence-frontier-contracts":
+            _write_json(default_sequence_frontier_contracts().manifest(), args.output)
+            return 0
+        if args.command == "sequence-frontier-schema":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            _write_json(
+                sequence_frontier_schema_manifest()
+                | {"validation": validate_sequence_frontier_schema(fixture, evaluation).to_dict()},
+                args.output,
+            )
+            return 0
+        if args.command == "sequence-frontier-metrics":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_json(
+                compute_sequence_frontier_metrics(
+                    evaluate_sequence_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "build-sequence-frontier-bundle":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_json(run_sequence_frontier_quality_gate(fixture).bundle.to_dict(), args.output)
+            return 0
+        if args.command == "sequence-frontier-lineage":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            _write_json(build_sequence_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "sequence-frontier-reconciliation":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            _write_json(reconcile_sequence_frontier(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "run-sequence-frontier-pipeline":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            options = SequenceFrontierRuntimeOptions(
+                run_id=args.run_id,
+                fail_on_review=args.fail_on_review,
+                requested_context_key=args.context_key,
+            )
+            _write_json(run_sequence_frontier_pipeline(options, fixture=fixture).to_dict(), args.output)
+            return 0
+        if args.command == "build-sequence-frontier-release":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            quality = run_sequence_frontier_quality_gate(fixture)
+            runtime = run_sequence_frontier_pipeline(
+                SequenceFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_sequence_frontier_release(quality, runtime).to_dict(), args.output)
+            return 0
+        if args.command == "sequence-frontier-review-view":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            view = build_sequence_frontier_view(fixture, evaluation)
+            _write_json(
+                view.to_dict() | {"summary": sequence_frontier_review_summary(view)}, args.output
+            )
+            return 0
+        if args.command == "sequence-frontier-trace":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            runtime = run_sequence_frontier_pipeline(
+                SequenceFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_sequence_frontier_trace(runtime).to_dict(), args.output)
+            return 0
+        if args.command == "export-sequence-frontier-receipts-csv":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_text(
+                export_sequence_frontier_receipts_csv(
+                    evaluate_sequence_frontier_fixture(fixture)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-sequence-frontier-review-csv":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            _write_text(
+                export_sequence_frontier_review_csv(build_sequence_frontier_view(fixture, evaluation)),
+                args.output,
+            )
+            return 0
+        if args.command == "export-sequence-frontier-review-markdown":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            evaluation = evaluate_sequence_frontier_fixture(fixture)
+            _write_text(
+                render_sequence_frontier_review_markdown(
+                    build_sequence_frontier_view(fixture, evaluation)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-sequence-frontier-metrics-csv":
+            fixture = _read_sequence_frontier_fixture(args.input)
+            _write_text(
+                export_sequence_frontier_metrics_csv(
+                    compute_sequence_frontier_metrics(
+                        evaluate_sequence_frontier_fixture(fixture)
+                    )
                 ),
                 args.output,
             )

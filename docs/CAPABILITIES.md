@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 92 capabilities have deterministic fixture-backed
-verification and 164 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 35.94% of the 256-capability
+capabilities started (100%); 96 capabilities have deterministic fixture-backed
+verification and 160 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 37.50% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 92 controls are verified against the checked-in
-aggregate fixtures, while 164 capabilities remain partial. Partial
+capabilities started (100%); 96 controls are verified against the checked-in
+aggregate fixtures, while 160 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1380,6 +1380,47 @@ glio-noncode scan-splice-regulatory splice-windows.json --context-key "GRCh38|gl
 glio-noncode scan-utr-regulatory utr-windows.json --minimum-uorf-codons 2 --output utr-evidence.json
 glio-noncode evaluate-promoter-grammar promoter-grammar.json --minimum-coverage 0.5 --output promoter-grammar.json
 ```
+
+### Domain 06 C13-C16 sequence frontier evidence gate
+
+The Domain 06 C13-C16 tranche makes four sequence-regulatory boundaries
+executable against a checked-in public aggregate fixture. The fixture contains
+four positive records, twelve visible controls, five source receipts, exact
+GRCh38 context, and a `public_aggregate_non_patient` evidence boundary. It
+stores source summaries and content addresses without embedding raw external
+payloads or subject-level identifiers.
+
+- C13 `enhancer_grammar` wraps motif-pair spacing, orientation, coverage, and
+  compatible-pair evidence. Missing motif hits, insufficient coverage, and
+  context mismatch are distinct outcomes; grammar compatibility is descriptive.
+- C14 `allele_saturation` wraps reference-to-alternate score deltas with point
+  counts, uncertainty floors, positive-effect identifiers, and explicit review
+  states. A score delta is not effect proof.
+- C15 `ensemble_disagreement` retains prediction IDs, mean, spread, interval,
+  range disagreement, and completeness checks. Disagreement is reported as a
+  model comparison and is not converted into probability or clinical meaning.
+- C16 `sequence_evidence_publish` binds sequence IDs, model receipt IDs,
+  context, record addresses, bundle addresses, and publication state. Empty
+  records abstain and invalid metadata is quarantined rather than published.
+
+The evidence plane includes 120 deterministic evaluation checks, 23 schema
+checks, 12 review-queue entries, four out-of-domain controls, a seven-rule
+review budget, nine trace stages, lineage and reconciliation reports, replay
+expectations, sanitized CSV/Markdown exports, and a release manifest. Every
+positive and control record is evaluated through the same contract path.
+
+```powershell
+glio-noncode evaluate-sequence-frontier-fixture examples/sequence-frontier-evidence-pipeline-accepted.json --output sequence-frontier-evaluation.json
+glio-noncode sequence-frontier-quality-gate examples/sequence-frontier-evidence-pipeline-accepted.json --output sequence-frontier-quality.json
+glio-noncode run-sequence-frontier-pipeline examples/sequence-frontier-evidence-pipeline-accepted.json --run-id d06-local --output sequence-frontier-run.json
+glio-noncode build-sequence-frontier-release examples/sequence-frontier-evidence-pipeline-accepted.json --run-id d06-release --output sequence-frontier-release.json
+glio-noncode export-sequence-frontier-review-markdown examples/sequence-frontier-evidence-pipeline-accepted.json --output sequence-frontier-review.md
+```
+
+See `docs/SEQUENCE_FRONTIER_EVIDENCE_GATE.md`,
+`docs/SEQUENCE_FRONTIER_RELEASE_FORMAT.md`, and
+`docs/SEQUENCE_FRONTIER_SCHEMA.md` for fixture scope, state transitions,
+receipt fields, schema restrictions, release checks, and output handling.
 
 ## Domain 07 chromatin context
 

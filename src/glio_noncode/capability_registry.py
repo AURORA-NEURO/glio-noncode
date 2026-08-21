@@ -2209,51 +2209,87 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D06-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.EnhancerGrammarModel",
                     "glio_noncode.frontier_context_alpha.EnhancerGrammarReport",
+                    "glio_noncode.sequence_frontier_public_data.default_sequence_frontier_fixture",
+                    "glio_noncode.sequence_frontier_fixture_eval.evaluate_sequence_frontier_fixture",
+                    "glio_noncode.sequence_frontier_quality_gate.run_sequence_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_sequence_frontier_evidence",
+                    "tests.test_sequence_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Motif-pair grammar evaluates declared spacing rules, motif coverage, compatible "
-                    "pairs, and minimum-coverage review boundaries."
+                    "pairs, and minimum-coverage review boundaries. The public aggregate fixture "
+                    "adds explicit positive and control states, source closure, schema validation, "
+                    "replay, and release quality checks."
                 ),
             },
             "GNC-D06-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.AlleleSaturationSimulator",
                     "glio_noncode.frontier_context_alpha.AlleleSaturationReport",
+                    "glio_noncode.sequence_frontier_fixture_eval.evaluate_sequence_frontier_fixture",
+                    "glio_noncode.sequence_frontier_policy.evaluate_sequence_frontier_policy",
+                    "glio_noncode.sequence_frontier_schema.validate_sequence_frontier_schema",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_sequence_frontier_evidence",
+                    "tests.test_sequence_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Declared alternate alleles are scored against an explicit reference with "
-                    "effect deltas and uncertainty-aware review states."
+                    "effect deltas and uncertainty-aware review states. The sequence frontier "
+                    "contract bounds alternate points, uncertainty floors, and non-effect claims."
                 ),
             },
             "GNC-D06-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.EnsembleDisagreementQuantifier",
                     "glio_noncode.frontier_context_alpha.EnsembleDisagreementReport",
+                    "glio_noncode.sequence_frontier_fixture_eval.evaluate_sequence_frontier_fixture",
+                    "glio_noncode.sequence_frontier_metrics.compute_sequence_frontier_metrics",
+                    "glio_noncode.sequence_frontier_views.build_sequence_frontier_view",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_sequence_frontier_evidence",
+                    "tests.test_sequence_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Ensemble mean, standard deviation, interval, range disagreement, and review "
-                    "thresholds remain explicit for every prediction ID."
+                    "thresholds remain explicit for every prediction ID. Metrics, review views, "
+                    "trace stages, and CSV outputs preserve descriptive disagreement without "
+                    "converting spread into calibrated probability."
                 ),
             },
             "GNC-D06-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.SequenceEvidencePublisher",
                     "glio_noncode.frontier_context_alpha.SequenceEvidenceBundle",
+                    "glio_noncode.sequence_frontier_bundle.build_sequence_frontier_bundle",
+                    "glio_noncode.sequence_frontier_runtime.run_sequence_frontier_pipeline",
+                    "glio_noncode.sequence_frontier_release.build_sequence_frontier_release",
+                    "glio_noncode.sequence_frontier_exports.export_sequence_frontier_receipts_csv",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_sequence_frontier_evidence",
+                    "tests.test_sequence_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Sequence evidence bundles retain model IDs, sequence IDs, exact context, "
-                    "record address, and publication address."
+                    "record address, and publication address. The release path adds lineage, "
+                    "reconciliation, quality gates, observability, replay, sanitized exports, "
+                    "and deterministic command boundaries."
                 ),
             },
             "GNC-D07-C01": {

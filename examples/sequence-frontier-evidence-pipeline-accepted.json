@@ -1,0 +1,428 @@
+{
+  "content_address": "sha256:c890eef508017e0dd46217389466f6fdf1aec82107dfaf6bf6b3d71481b05bad",
+  "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+  "evidence_boundary": "public_aggregate_non_patient",
+  "fixture_id": "sequence-frontier-public-aggregate",
+  "fixture_version": "2026.08.d06-c13-c16.v1",
+  "records": [
+    {
+      "content_address": "sha256:818d9eca9a5dda0fdb7dd5f3b4928b42fa2ca708735aa08171f3398f807ffe41",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "compatible enhancer motif pair satisfies the declared spacing and coverage floor",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation": "enhancer_grammar",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"grammar_id\":\"enhancer-egfr\",\"motif_hits\":[{\"end\":110,\"motif_id\":\"M1\",\"start\":100},{\"end\":160,\"motif_id\":\"M2\",\"start\":150}],\"rules\":[{\"left_motif\":\"M1\",\"max_gap\":60,\"min_gap\":40,\"right_motif\":\"M2\"}]}]",
+        "minimum_coverage": 0.6,
+        "source_id": "fixture-grammar",
+        "source_version": "v1"
+      },
+      "record_id": "C13-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-screen",
+        "encode-tf"
+      ]
+    },
+    {
+      "content_address": "sha256:25376519e7452959d27dbf1cec2a1d491ecab693aff4b97a5af8cf373ba97141",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "missing motif hits remain review",
+      "expected_issue_codes": [
+        "grammar_no_motif_hits"
+      ],
+      "expected_state": "review",
+      "operation": "enhancer_grammar",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"grammar_id\":\"enhancer-empty\",\"motif_hits\":[],\"rules\":[]}]",
+        "minimum_coverage": 0.6,
+        "source_id": "fixture-grammar",
+        "source_version": "v1"
+      },
+      "record_id": "C13-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-screen"
+      ]
+    },
+    {
+      "content_address": "sha256:b2cbf9cbd9110a0f6b235df97c946e55f2fc354ef9b00a7bc5ff83d5a300f202",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "incomplete pair coverage remains review",
+      "expected_issue_codes": [
+        "grammar_coverage_below_floor"
+      ],
+      "expected_state": "review",
+      "operation": "enhancer_grammar",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"grammar_id\":\"enhancer-low\",\"motif_hits\":[{\"end\":110,\"motif_id\":\"M1\",\"start\":100},{\"end\":160,\"motif_id\":\"M2\",\"start\":150}],\"rules\":[{\"left_motif\":\"M1\",\"max_gap\":60,\"min_gap\":40,\"right_motif\":\"M2\"},{\"left_motif\":\"M2\",\"max_gap\":5,\"min_gap\":1,\"right_motif\":\"M3\"}]}]",
+        "minimum_coverage": 0.8,
+        "source_id": "fixture-grammar",
+        "source_version": "v1"
+      },
+      "record_id": "C13-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "encode-screen",
+        "encode-tf"
+      ]
+    },
+    {
+      "content_address": "sha256:8a68d01eb2eea23cf8198639131e186cca252d1ac601b0c7f6abec9b050a7e21",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "pediatric motif context is not transported into adult context",
+      "expected_issue_codes": [
+        "sequence_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "enhancer_grammar",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\",\"grammar_id\":\"enhancer-pediatric\",\"motif_hits\":[{\"end\":110,\"motif_id\":\"M1\",\"start\":100},{\"end\":160,\"motif_id\":\"M2\",\"start\":150}],\"rules\":[{\"left_motif\":\"M1\",\"max_gap\":60,\"min_gap\":40,\"right_motif\":\"M2\"}]}]",
+        "minimum_coverage": 0.6,
+        "source_id": "fixture-grammar",
+        "source_version": "v1"
+      },
+      "record_id": "C13-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "encode-screen",
+        "ensembl-regulation"
+      ]
+    },
+    {
+      "content_address": "sha256:20f57dc784300aec712a48633180516cb2984a23a61cb750a9e6bd613e5d8f52",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "declared alternate alleles show effects above the reference floor with bounded uncertainty",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation": "allele_saturation",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"alternate_alleles\":[\"A\",\"C\"],\"alternate_scores\":{\"A\":0.72,\"C\":0.58},\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"reference_score\":0.2,\"uncertainty\":0.08,\"variant_id\":\"var-egfr-1\"}]",
+        "minimum_effect": 0.2,
+        "source_id": "fixture-saturation",
+        "source_version": "v1"
+      },
+      "record_id": "C14-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ncbi-refseq",
+        "ga4gh-va-spec"
+      ]
+    },
+    {
+      "content_address": "sha256:be4f44b37904afadd371ae9bd7785574e146723b60b9d0f970ee8994ecc8fd0e",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "large uncertainty retains the alternate path for review",
+      "expected_issue_codes": [
+        "saturation_uncertainty_above_floor"
+      ],
+      "expected_state": "review",
+      "operation": "allele_saturation",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"alternate_alleles\":[\"A\"],\"alternate_scores\":{\"A\":0.72},\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"reference_score\":0.2,\"uncertainty\":0.9,\"variant_id\":\"var-uncertain-1\"}]",
+        "minimum_effect": 0.2,
+        "source_id": "fixture-saturation",
+        "source_version": "v1"
+      },
+      "record_id": "C14-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ncbi-refseq"
+      ]
+    },
+    {
+      "content_address": "sha256:10353f800261fdf9dc27cac73f53c3d9b7fd8d10795b78ac6e89a2163fb6b910",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "flat alternate score is not a positive saturation effect",
+      "expected_issue_codes": [
+        "saturation_no_positive_effect"
+      ],
+      "expected_state": "review",
+      "operation": "allele_saturation",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"alternate_alleles\":[\"A\"],\"alternate_scores\":{\"A\":0.5},\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"reference_score\":0.5,\"uncertainty\":0.01,\"variant_id\":\"var-flat-1\"}]",
+        "minimum_effect": 0.2,
+        "source_id": "fixture-saturation",
+        "source_version": "v1"
+      },
+      "record_id": "C14-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "ncbi-refseq",
+        "ga4gh-va-spec"
+      ]
+    },
+    {
+      "content_address": "sha256:5e1e5dc7112de815ea518fbda9127cc1dd5d04b61bee3fc4ae5ac371f324f8b1",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "alternate score from another age context is not reused",
+      "expected_issue_codes": [
+        "sequence_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "allele_saturation",
+      "payload": {
+        "input_format": "json",
+        "input_text": "[{\"alternate_alleles\":[\"A\"],\"alternate_scores\":{\"A\":0.72},\"context_key\":\"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\",\"reference_score\":0.2,\"uncertainty\":0.08,\"variant_id\":\"var-pediatric-1\"}]",
+        "minimum_effect": 0.2,
+        "source_id": "fixture-saturation",
+        "source_version": "v1"
+      },
+      "record_id": "C14-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "ncbi-refseq",
+        "ga4gh-va-spec"
+      ]
+    },
+    {
+      "content_address": "sha256:6b1663442ae468505d60b3e777499713dd18ea8426a2cee7c0c5b6eec6c4953b",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "three close predictions retain a stable descriptive ensemble summary",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation": "ensemble_disagreement",
+      "payload": {
+        "disagreement_threshold": 0.1,
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"prediction_id\":\"var-egfr-1\",\"predictions\":[0.6,0.62,0.61]}]",
+        "interval_multiplier": 1.96,
+        "source_id": "fixture-ensemble",
+        "source_version": "v1"
+      },
+      "record_id": "C15-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ga4gh-va-spec",
+        "encode-tf",
+        "ensembl-regulation"
+      ]
+    },
+    {
+      "content_address": "sha256:a4af382f3a8c1c901dd77f5721c62a2237c26f2ae58c2e65368320615d74b6cb",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "wide model spread remains review",
+      "expected_issue_codes": [
+        "ensemble_disagreement_above_floor"
+      ],
+      "expected_state": "review",
+      "operation": "ensemble_disagreement",
+      "payload": {
+        "disagreement_threshold": 0.2,
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"prediction_id\":\"var-disagreement-1\",\"predictions\":[0.1,0.5,0.9]}]",
+        "interval_multiplier": 1.96,
+        "source_id": "fixture-ensemble",
+        "source_version": "v1"
+      },
+      "record_id": "C15-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ga4gh-va-spec",
+        "encode-tf"
+      ]
+    },
+    {
+      "content_address": "sha256:b114f9d00847a993ae651ce53b9df2db4e0e966a7fef2b607cb269b6d69866e2",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "one prediction cannot establish ensemble stability",
+      "expected_issue_codes": [
+        "ensemble_insufficient_predictions"
+      ],
+      "expected_state": "review",
+      "operation": "ensemble_disagreement",
+      "payload": {
+        "disagreement_threshold": 0.2,
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"prediction_id\":\"var-single-1\",\"predictions\":[0.4]}]",
+        "interval_multiplier": 1.96,
+        "source_id": "fixture-ensemble",
+        "source_version": "v1"
+      },
+      "record_id": "C15-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "ga4gh-va-spec"
+      ]
+    },
+    {
+      "content_address": "sha256:3a0560e1443f7e2832697e4c105108c7107b2675824fb53d487b7f8c45f3a8b6",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "out-of-context ensemble predictions remain quarantined",
+      "expected_issue_codes": [
+        "sequence_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "ensemble_disagreement",
+      "payload": {
+        "disagreement_threshold": 0.1,
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\",\"prediction_id\":\"var-pediatric-1\",\"predictions\":[0.6,0.61,0.6]}]",
+        "interval_multiplier": 1.96,
+        "source_id": "fixture-ensemble",
+        "source_version": "v1"
+      },
+      "record_id": "C15-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "ga4gh-va-spec",
+        "ensembl-regulation"
+      ]
+    },
+    {
+      "content_address": "sha256:f065f330f34f90993c66279315082f1df020e79de160704cd0214b3746258e55",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "context-bound sequence observations publish with model and record addresses",
+      "expected_issue_codes": [],
+      "expected_state": "published",
+      "operation": "sequence_evidence_publish",
+      "payload": {
+        "bundle_id": "sequence-evidence-adult",
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"sequence_id\":\"seq-egfr-ref\",\"variant_id\":\"var-egfr-1\"},{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"sequence_id\":\"seq-egfr-alt\",\"variant_id\":\"var-egfr-1\"}]",
+        "model_ids": [
+          "model-grammar-v1",
+          "model-saturation-v1"
+        ],
+        "source_id": "fixture-evidence",
+        "source_version": "v1"
+      },
+      "record_id": "C16-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ga4gh-va-spec",
+        "ncbi-refseq",
+        "encode-screen"
+      ]
+    },
+    {
+      "content_address": "sha256:cb88ffc2ff411143def70a37df5a1fb4a274341282156c486f6b7bf153815946",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "empty sequence evidence abstains rather than publishing absence",
+      "expected_issue_codes": [
+        "empty_sequence_records"
+      ],
+      "expected_state": "abstained",
+      "operation": "sequence_evidence_publish",
+      "payload": {
+        "bundle_id": "sequence-evidence-empty",
+        "input_format": "json",
+        "input_text": "[]",
+        "model_ids": [
+          "model-grammar-v1"
+        ],
+        "source_id": "fixture-evidence",
+        "source_version": "v1"
+      },
+      "record_id": "C16-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ga4gh-va-spec"
+      ]
+    },
+    {
+      "content_address": "sha256:76c5a2fffdf39836b1f1a22509cd1ef104f8b746c7713c26eb80103339055f2d",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "context drift is retained as out-of-domain",
+      "expected_issue_codes": [
+        "sequence_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "sequence_evidence_publish",
+      "payload": {
+        "bundle_id": "sequence-evidence-pediatric",
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\",\"sequence_id\":\"seq-pediatric\",\"variant_id\":\"var-pediatric-1\"}]",
+        "model_ids": [
+          "model-grammar-v1"
+        ],
+        "source_id": "fixture-evidence",
+        "source_version": "v1"
+      },
+      "record_id": "C16-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "ga4gh-va-spec",
+        "ncbi-refseq"
+      ]
+    },
+    {
+      "content_address": "sha256:a055d3d1f7fdce1a3fc70c698014b17b348fae635f7fb8e7e92364ba4477c7fb",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "missing bundle and model metadata cannot publish",
+      "expected_issue_codes": [
+        "publish_metadata_invalid"
+      ],
+      "expected_state": "invalid",
+      "operation": "sequence_evidence_publish",
+      "payload": {
+        "bundle_id": "",
+        "input_format": "json",
+        "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"sequence_id\":\"seq-egfr-ref\",\"variant_id\":\"var-egfr-1\"},{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"sequence_id\":\"seq-egfr-alt\",\"variant_id\":\"var-egfr-1\"}]",
+        "model_ids": [],
+        "source_id": "fixture-evidence",
+        "source_version": "v1"
+      },
+      "record_id": "C16-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "ga4gh-va-spec"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:c5b1c31d5847a2308ba5618c5871696c0ac2924ac5b2f472109c1fb826adece8",
+      "release": "release-236",
+      "scope": "reference genomic, transcript, and protein sequence vocabulary",
+      "source_id": "ncbi-refseq",
+      "source_kind": "official_reference_sequence",
+      "title": "NCBI Reference Sequence Database",
+      "uri": "https://www.ncbi.nlm.nih.gov/refseq/"
+    },
+    {
+      "content_address": "sha256:abb77950b849ccb34adf1f951fad8ae9d523a2f1367c79878ce983c86c0feddd",
+      "release": "1.0",
+      "scope": "variant evidence and study-result representation",
+      "source_id": "ga4gh-va-spec",
+      "source_kind": "official_annotation_standard",
+      "title": "GA4GH Variant Annotation Specification",
+      "uri": "https://va-spec.ga4gh.org/"
+    },
+    {
+      "content_address": "sha256:3b1c760ea4a905b5b0a82ff9262cbaccf1b564052dec30a099b2f4140fbf53ad",
+      "release": "current-public-catalog",
+      "scope": "candidate cis-regulatory and motif context",
+      "source_id": "encode-screen",
+      "source_kind": "official_regulatory_catalog",
+      "title": "ENCODE SCREEN regulatory elements",
+      "uri": "https://screen.encodeproject.org/index/about"
+    },
+    {
+      "content_address": "sha256:758f0fa740acfbaea0b180c80aabbeea70987b92bd7632cf43880e22e669e909",
+      "release": "current-public-catalog",
+      "scope": "transcription-factor and motif assay vocabulary",
+      "source_id": "encode-tf",
+      "source_kind": "official_assay_boundary",
+      "title": "ENCODE transcription-factor assay boundary",
+      "uri": "https://www.encodeproject.org/chip-seq/transcription-factor/"
+    },
+    {
+      "content_address": "sha256:c43ae8faaa1645723984d561b5109e646819d7b7d89f22c681c0758f2f00cb91",
+      "release": "current-public-catalog",
+      "scope": "sequence regulatory annotation vocabulary",
+      "source_id": "ensembl-regulation",
+      "source_kind": "official_regulatory_reference",
+      "title": "Ensembl regulation resources",
+      "uri": "https://www.ensembl.org/info/genome/funcgen/regulation.html"
+    }
+  ]
+}
