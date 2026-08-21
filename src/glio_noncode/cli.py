@@ -20,6 +20,7 @@ from .reference_registry import default_reference_registry
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .schema import schema_document
+from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
 from .variant_normalization import VRSNormalizer
 
 
@@ -106,6 +107,22 @@ def build_parser() -> argparse.ArgumentParser:
     normalize.add_argument("--reference-sequence", default=None)
     normalize.add_argument("--reference-start", type=int, default=None)
     normalize.add_argument("--output", default=None)
+
+    sv_consensus = subparsers.add_parser(
+        "sv-consensus", help="import and reconcile multi-caller structural observations"
+    )
+    sv_consensus.add_argument("input", type=str)
+    sv_consensus.add_argument("--source-id", default=None)
+    sv_consensus.add_argument("--format", choices=("tsv", "json"), default=None)
+    sv_consensus.add_argument("--breakpoint-tolerance", type=int, default=10)
+    sv_consensus.add_argument("--output", default=None)
+
+    cn = subparsers.add_parser(
+        "harmonize-cn", help="harmonize multi-caller copy-number segments"
+    )
+    cn.add_argument("input", type=str)
+    cn.add_argument("--source-id", default=None)
+    cn.add_argument("--output", default=None)
     return parser
 
 
@@ -172,6 +189,25 @@ def main(argv: list[str] | None = None) -> int:
                 reference_start=args.reference_start,
             )
             _write_json(report.to_dict(), args.output)
+            return 0
+        if args.command == "sv-consensus":
+            input_path = Path(args.input)
+            batch = SVConsensusImporter(
+                breakpoint_tolerance=args.breakpoint_tolerance
+            ).parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                input_format=args.format,
+            )
+            _write_json(batch.to_dict(), args.output)
+            return 0
+        if args.command == "harmonize-cn":
+            input_path = Path(args.input)
+            result = CopyNumberSegmentHarmonizer().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+            )
+            _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "evaluate":
             manifest = CaseManifest.from_dict(_read_json(args.manifest))

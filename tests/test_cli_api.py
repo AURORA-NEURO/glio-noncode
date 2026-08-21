@@ -65,6 +65,39 @@ class CliApiTests(unittest.TestCase):
             normalize_payload = json.loads(normalize_output.read_text(encoding="utf-8"))
             self.assertEqual(normalize_payload["state"], "supported")
 
+    def test_structural_extension_commands_write_reconciled_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            sv_source = Path(directory) / "calls.tsv"
+            sv_output = Path(directory) / "calls.json"
+            cn_source = Path(directory) / "segments.tsv"
+            cn_output = Path(directory) / "segments.json"
+            sv_source.write_text(
+                "caller_id\tevent_id\tchrom\tstart\tend\tsvtype\tsupport\n"
+                "a\ta1\t7\t100\t200\tDEL\t1\n"
+                "b\tb1\t7\t102\t201\tDEL\t1\n",
+                encoding="utf-8",
+            )
+            cn_source.write_text(
+                "caller_id\tsegment_id\tchrom\tstart\tend\tcopy_number\n"
+                "a\ta1\t7\t1\t100\t2\n"
+                "b\tb1\t7\t1\t100\t2\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(["sv-consensus", str(sv_source), "--output", str(sv_output)]), 0
+            )
+            self.assertEqual(
+                main(["harmonize-cn", str(cn_source), "--output", str(cn_output)]), 0
+            )
+            self.assertEqual(
+                json.loads(sv_output.read_text(encoding="utf-8"))["consensus"][0]["state"],
+                "supported",
+            )
+            self.assertEqual(
+                json.loads(cn_output.read_text(encoding="utf-8"))["segments"][0]["state"],
+                "supported",
+            )
+
     def test_health_and_evaluate_endpoints(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             server = create_server("127.0.0.1", 0, directory)

@@ -30,3 +30,22 @@ separate evidence inputs.
 and a content address over all of them. This allows a later workflow to persist
 the result as a bundle and to distinguish a changed source record from a
 changed reconstruction implementation.
+
+## Multi-caller and copy-number extension plane
+
+`glio_noncode.structural_extensions` adds three bounded Domain 02 adapters:
+
+- `SVConsensusImporter` accepts caller TSV or JSON, preserves caller versions
+  and row hashes, clusters only within a declared breakpoint tolerance (or an
+  explicit shared event key), and reports partial or ambiguous consensus when
+  support is insufficient or breakpoints disagree;
+- `ComplexRearrangementResolver` builds connected breakpoint-locus components
+  from typed events and retains ambiguity when multiple event identities share
+  a locus. It does not infer a canonical complex rearrangement path;
+- `CopyNumberSegmentHarmonizer` sweeps all observed segment boundaries into
+  atomic intervals, reports median copy number as a view, and keeps caller
+  disagreement visible in every output segment.
+
+These extensions are currently partial capabilities: local fixtures prove
+lossless parsing and safe reconciliation, while locked external truth sets,
+caller conformance, and transport evaluation remain release gates.

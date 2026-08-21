@@ -74,6 +74,7 @@ class CapabilityCoverage:
     total_capabilities: int
     mvp_capabilities: int
     mvp_implemented: int
+    mvp_started: int
     planned: int
     partial: int
     implemented: int
@@ -95,11 +96,27 @@ class CapabilityCoverage:
     def mvp_implementation_percent(self) -> float:
         return round(100.0 * self.mvp_implemented / max(1, self.mvp_capabilities), 2)
 
+    @property
+    def started(self) -> int:
+        """Capabilities with code or tests started, including partial work."""
+
+        return self.partial + self.implemented + self.verified
+
+    @property
+    def started_percent(self) -> float:
+        return round(100.0 * self.started / max(1, self.total_capabilities), 2)
+
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self) | {
             "implementation_percent": self.implementation_percent,
             "verified_percent": self.verified_percent,
             "mvp_implementation_percent": self.mvp_implementation_percent,
+            "started": self.started,
+            "started_percent": self.started_percent,
+            "mvp_started": self.mvp_started,
+            "mvp_started_percent": round(
+                100.0 * self.mvp_started / max(1, self.mvp_capabilities), 2
+            ),
         }
 
 
@@ -275,6 +292,7 @@ class CapabilityRegistry:
                 record.state in {CapabilityState.IMPLEMENTED, CapabilityState.VERIFIED}
                 for record in self.mvp()
             ),
+            mvp_started=sum(record.state != CapabilityState.PLANNED for record in self.mvp()),
             planned=counts[CapabilityState.PLANNED.value],
             partial=counts[CapabilityState.PARTIAL.value],
             implemented=counts[CapabilityState.IMPLEMENTED.value],
@@ -339,6 +357,51 @@ def default_capability_registry() -> CapabilityRegistry:
                     "VRS-shaped Allele output, sequence-digest provenance, trimming, and "
                     "ambiguity abstention are implemented; full RefGet-backed equivalence "
                     "truth sets remain to be built."
+                ),
+            },
+            "GNC-D02-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_reconstruction.StructuralReconstructor",
+                ),
+                "test_modules": ("tests.test_structural_reconstruction",),
+                "evidence_note": (
+                    "Breakend pairing, symbolic interval checks, phased segments, and "
+                    "content-addressed reconstruction are implemented; multi-event graph "
+                    "supersession is still being expanded."
+                ),
+            },
+            "GNC-D02-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_extensions.SVConsensusImporter",
+                ),
+                "test_modules": ("tests.test_structural_extensions",),
+                "evidence_note": (
+                    "TSV/JSON caller observations retain versions, hashes, malformed rows, "
+                    "and bounded consensus disagreement; external caller conformance is pending."
+                ),
+            },
+            "GNC-D02-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_extensions.ComplexRearrangementResolver",
+                ),
+                "test_modules": ("tests.test_structural_extensions",),
+                "evidence_note": (
+                    "Shared breakpoint components and ambiguity are retained without selecting "
+                    "a canonical rearrangement identity; locked truth-set equivalence remains."
+                ),
+            },
+            "GNC-D02-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_extensions.CopyNumberSegmentHarmonizer",
+                ),
+                "test_modules": ("tests.test_structural_extensions",),
+                "evidence_note": (
+                    "Caller segments are split at observed boundaries and median values are "
+                    "reported with disagreement; truth-set and transport evaluation remain."
                 ),
             },
         }

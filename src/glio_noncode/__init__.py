@@ -29,6 +29,12 @@ from .reference_registry import ReferenceProjector, default_reference_registry
 from .regulatory_tracks import RegulatoryFeature, RegulatoryTrackBatch, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .sequence_inference import MotifDefinition, SequenceInference
+from .structural_extensions import (
+    ComplexRearrangementResolver,
+    CopyNumberSegment,
+    CopyNumberSegmentHarmonizer,
+    SVConsensusImporter,
+)
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
 from .uncertainty import OutOfDomainDetector, UncertaintyPropagator
 from .validation_controls import (
@@ -64,6 +70,10 @@ __all__ = [
     "MotifDefinition",
     "PublicAtlasRetriever",
     "StructuralReconstructor",
+    "ComplexRearrangementResolver",
+    "CopyNumberSegment",
+    "CopyNumberSegmentHarmonizer",
+    "SVConsensusImporter",
     "SequenceInference",
     "OutOfDomainDetector",
     "UncertaintyPropagator",
