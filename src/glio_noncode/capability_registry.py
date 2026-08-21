@@ -1130,6 +1130,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "result is explicitly not a probability or clinical interpretation."
                 ),
             },
+            "GNC-D06-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_alpha.NucleosomeSequencePropensityModel",
+                    "glio_noncode.sequence_alpha.NucleosomePropensityReport",
+                ),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "evidence_note": (
+                    "The nucleosome contract calculates phase-aware sequence features with GC "
+                    "balance, length and ambiguity states, and source hashes; the result is a "
+                    "transparent index rather than calibrated occupancy."
+                ),
+            },
+            "GNC-D06-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_alpha.SpliceRegulatoryNoncodingScanner",
+                    "glio_noncode.sequence_alpha.SpliceRegulatoryScanReport",
+                ),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "evidence_note": (
+                    "Declared splice-regulatory motifs are scanned on reference and optional "
+                    "alternate noncoding windows with IUPAC scores, strand, source versions, "
+                    "created/disrupted hits, and context gating; no splice consequence is inferred."
+                ),
+            },
+            "GNC-D06-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_alpha.UtrRegulatoryScanner",
+                    "glio_noncode.sequence_alpha.UtrRegulatoryScanReport",
+                ),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "evidence_note": (
+                    "5-prime and 3-prime UTR motif hits and bounded upstream start/stop patterns "
+                    "retain region, allele delta, source versions, and ambiguity; hits are not RNA "
+                    "binding, translation, stability, or expression predictions."
+                ),
+            },
+            "GNC-D06-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_alpha.PromoterCoreGrammarModel",
+                    "glio_noncode.sequence_alpha.PromoterCoreGrammarReport",
+                ),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "evidence_note": (
+                    "Declared promoter motif pairs are evaluated by spacing, orientation, weighted "
+                    "coverage, source versions, and competing pairs; grammar compatibility is not "
+                    "promoter activity or transcription initiation evidence."
+                ),
+            },
             "GNC-D07-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

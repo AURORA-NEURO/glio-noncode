@@ -357,6 +357,30 @@ glio-noncode analyze-motif-grammar motif-grammar.json --output grammar.json
 glio-noncode score-cooperative-grammar motif-grammar.json --model-id declared-grammar --model-version 2026.1 --output grammar-score.json
 ```
 
+The Domain 06 sequence-alpha tranche adds four bounded sequence-regulatory
+contracts:
+
+- `NucleosomeSequencePropensityModel` emits a transparent phase-aware
+  dinucleotide and GC-balance index with length and ambiguity states. It is a
+  sequence proxy, not calibrated nucleosome occupancy.
+- `SpliceRegulatoryNoncodingScanner` scans declared donor, acceptor,
+  branchpoint, polypyrimidine, or other splice motifs on reference and
+  optional alternate windows, retaining strand, score, source version, and
+  created/disrupted hits without inferring splice consequence.
+- `UtrRegulatoryScanner` keeps 5-prime and 3-prime UTR motif evidence
+  separate and reports bounded start/stop patterns in 5-prime UTRs as
+  sequence observations rather than translation or expression predictions.
+- `PromoterCoreGrammarModel` evaluates declared core-promoter motif pairs by
+  spacing, orientation, and weighted rule coverage, preserving all compatible
+  pairs and unmatched rules instead of selecting one grammar silently.
+
+```powershell
+glio-noncode predict-nucleosome-propensity sequence-windows.json --minimum-length 147 --output nucleosome-index.json
+glio-noncode scan-splice-regulatory splice-windows.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output splice-evidence.json
+glio-noncode scan-utr-regulatory utr-windows.json --minimum-uorf-codons 2 --output utr-evidence.json
+glio-noncode evaluate-promoter-grammar promoter-grammar.json --minimum-coverage 0.5 --output promoter-grammar.json
+```
+
 ## Domain 07 chromatin context
 
 The chromatin plane keeps accessibility and histone observations tied to a

@@ -128,6 +128,16 @@ from .sequence_adapters import (
     SequenceContextEncoder,
     SequenceFoundationModelAdapter,
 )
+from .sequence_alpha import (
+    NucleosomeSequencePropensityModel,
+    PromoterCoreGrammarModel,
+    PromoterGrammarRule,
+    PromoterMotifDefinition,
+    SpliceMotifDefinition,
+    SpliceRegulatoryNoncodingScanner,
+    UtrMotifDefinition,
+    UtrRegulatoryScanner,
+)
 from .sequence_beta import (
     CooperativeTFGrammarModel,
     GrammarInteraction,
@@ -417,6 +427,86 @@ def _grammar_interactions(rows: Any) -> tuple[GrammarInteraction, ...]:
             maximum_spacing=int(row.get("maximum_spacing", 0)),
             required=bool(row.get("required", False)),
             source_id=str(row.get("source_id", "grammar-model")),
+            source_version=str(row.get("source_version", "unspecified")),
+        )
+        for row in rows
+        if isinstance(row, Mapping)
+    )
+
+
+def _splice_alpha_motifs(rows: Any) -> tuple[SpliceMotifDefinition, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("splice motifs must be a list")
+    return tuple(
+        SpliceMotifDefinition(
+            motif_id=str(row.get("motif_id", "")),
+            name=str(row.get("name", row.get("motif_id", ""))),
+            consensus=str(row.get("consensus", "")),
+            role=str(row.get("role", "splice_regulatory")),
+            source_id=str(row.get("source_id", "splice-input")),
+            source_version=str(row.get("source_version", "unspecified")),
+            threshold=float(row.get("threshold", 0.8)),
+            strand_aware=bool(row.get("strand_aware", True)),
+        )
+        for row in rows
+        if isinstance(row, Mapping)
+    )
+
+
+def _utr_alpha_motifs(rows: Any) -> tuple[UtrMotifDefinition, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("UTR motifs must be a list")
+    return tuple(
+        UtrMotifDefinition(
+            motif_id=str(row.get("motif_id", "")),
+            name=str(row.get("name", row.get("motif_id", ""))),
+            consensus=str(row.get("consensus", "")),
+            element_kind=str(row.get("element_kind", "utr_regulatory")),
+            region=str(row.get("region", "both")).lower(),
+            source_id=str(row.get("source_id", "utr-input")),
+            source_version=str(row.get("source_version", "unspecified")),
+            threshold=float(row.get("threshold", 0.8)),
+            strand_aware=bool(row.get("strand_aware", True)),
+        )
+        for row in rows
+        if isinstance(row, Mapping)
+    )
+
+
+def _promoter_alpha_motifs(rows: Any) -> tuple[PromoterMotifDefinition, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("promoter motifs must be a list")
+    return tuple(
+        PromoterMotifDefinition(
+            motif_id=str(row.get("motif_id", "")),
+            name=str(row.get("name", row.get("motif_id", ""))),
+            consensus=str(row.get("consensus", "")),
+            element_kind=str(row.get("element_kind", "core_promoter")),
+            source_id=str(row.get("source_id", "promoter-input")),
+            source_version=str(row.get("source_version", "unspecified")),
+            threshold=float(row.get("threshold", 0.8)),
+            strand_aware=bool(row.get("strand_aware", True)),
+        )
+        for row in rows
+        if isinstance(row, Mapping)
+    )
+
+
+def _promoter_alpha_rules(rows: Any) -> tuple[PromoterGrammarRule, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("promoter grammar rules must be a list")
+    return tuple(
+        PromoterGrammarRule(
+            rule_id=str(row.get("rule_id", "")),
+            motif_a=str(row.get("motif_a", "")),
+            motif_b=str(row.get("motif_b", "")),
+            minimum_spacing=int(row.get("minimum_spacing", 0)),
+            maximum_spacing=int(row.get("maximum_spacing", 0)),
+            allowed_orientations=tuple(
+                str(item) for item in row.get("allowed_orientations", ("same", "opposite", "any"))
+            ),
+            weight=float(row.get("weight", 1.0)),
+            source_id=str(row.get("source_id", "promoter-grammar")),
             source_version=str(row.get("source_version", "unspecified")),
         )
         for row in rows
@@ -1091,6 +1181,44 @@ def build_parser() -> argparse.ArgumentParser:
     cooperative_grammar.add_argument("--context-key", default=None)
     cooperative_grammar.add_argument("--baseline", type=float, default=0.0)
     cooperative_grammar.add_argument("--output", default=None)
+
+    nucleosome = subparsers.add_parser(
+        "predict-nucleosome-propensity",
+        help="calculate a transparent sequence-only nucleosome propensity index",
+    )
+    nucleosome.add_argument("input", type=str)
+    nucleosome.add_argument("--context-key", default=None)
+    nucleosome.add_argument("--minimum-length", type=int, default=147)
+    nucleosome.add_argument("--periodicity-period", type=int, default=10)
+    nucleosome.add_argument("--favored-threshold", type=float, default=0.65)
+    nucleosome.add_argument("--depleted-threshold", type=float, default=0.35)
+    nucleosome.add_argument("--output", default=None)
+
+    splice_alpha = subparsers.add_parser(
+        "scan-splice-regulatory",
+        help="scan declared splice-regulatory motifs in noncoding sequence windows",
+    )
+    splice_alpha.add_argument("input", type=str)
+    splice_alpha.add_argument("--context-key", default=None)
+    splice_alpha.add_argument("--output", default=None)
+
+    utr_alpha = subparsers.add_parser(
+        "scan-utr-regulatory",
+        help="scan declared 5-prime and 3-prime UTR regulatory elements",
+    )
+    utr_alpha.add_argument("input", type=str)
+    utr_alpha.add_argument("--context-key", default=None)
+    utr_alpha.add_argument("--minimum-uorf-codons", type=int, default=2)
+    utr_alpha.add_argument("--output", default=None)
+
+    promoter_alpha = subparsers.add_parser(
+        "evaluate-promoter-grammar",
+        help="evaluate declared core-promoter motif grammar and spacing coverage",
+    )
+    promoter_alpha.add_argument("input", type=str)
+    promoter_alpha.add_argument("--context-key", default=None)
+    promoter_alpha.add_argument("--minimum-coverage", type=float, default=0.5)
+    promoter_alpha.add_argument("--output", default=None)
 
     methylation_parse = subparsers.add_parser(
         "parse-methylation",
@@ -2829,6 +2957,47 @@ def main(argv: list[str] | None = None) -> int:
                 model_version=args.model_version,
                 context_key=args.context_key or payload.get("context_key"),
                 baseline=args.baseline,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "predict-nucleosome-propensity":
+            result = NucleosomeSequencePropensityModel().predict(
+                _read_rows(args.input, "records", "windows", "observations"),
+                context_key=args.context_key,
+                minimum_length=args.minimum_length,
+                periodicity_period=args.periodicity_period,
+                favored_threshold=args.favored_threshold,
+                depleted_threshold=args.depleted_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "scan-splice-regulatory":
+            payload = _read_json(args.input)
+            result = SpliceRegulatoryNoncodingScanner().scan(
+                payload.get("records", payload.get("windows", payload.get("observations", ()))),
+                _splice_alpha_motifs(payload.get("motifs", ())),
+                context_key=args.context_key or payload.get("context_key"),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "scan-utr-regulatory":
+            payload = _read_json(args.input)
+            result = UtrRegulatoryScanner().scan(
+                payload.get("records", payload.get("windows", payload.get("observations", ()))),
+                _utr_alpha_motifs(payload.get("motifs", ())),
+                context_key=args.context_key or payload.get("context_key"),
+                minimum_uorf_codons=args.minimum_uorf_codons,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-promoter-grammar":
+            payload = _read_json(args.input)
+            result = PromoterCoreGrammarModel().evaluate(
+                payload.get("records", payload.get("promoters", payload.get("observations", ()))),
+                _promoter_alpha_motifs(payload.get("motifs", ())),
+                _promoter_alpha_rules(payload.get("rules", ())),
+                context_key=args.context_key or payload.get("context_key"),
+                minimum_coverage=args.minimum_coverage,
             )
             _write_json(result.to_dict(), args.output)
             return 0
