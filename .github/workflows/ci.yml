@@ -194,3 +194,23 @@ jobs:
         run: python -m glio_noncode specimen-beta-frontier-lineage examples/specimen-beta-frontier-public-aggregate.json --output /tmp/glio-specimen-beta-frontier-lineage.json
       - name: Specimen beta frontier pipeline integration
         run: python -m glio_noncode run-specimen-beta-frontier-pipeline examples/specimen-beta-frontier-pipeline-accepted.json --output /tmp/glio-specimen-beta-frontier-pipeline.json
+      - name: Specimen lineage data boundary audit
+        run: python -m glio_noncode audit-specimen-lineage-data examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-data.json
+      - name: Specimen lineage fixture evaluation
+        run: python -m glio_noncode evaluate-specimen-lineage-fixture examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-fixture.json
+      - name: Specimen lineage replay integrity
+        run: python -m glio_noncode replay-specimen-lineage-fixtures examples/specimen-lineage-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-specimen-lineage-replay.json
+      - name: Specimen lineage quality gate
+        run: python -m glio_noncode specimen-lineage-quality-gate examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-quality.json
+      - name: Specimen lineage scenario matrix
+        run: python -m glio_noncode evaluate-specimen-lineage-scenarios examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-scenarios.json
+      - name: Specimen lineage operation contracts
+        run: python -m glio_noncode specimen-lineage-contracts --output /tmp/glio-specimen-lineage-contracts.json
+      - name: Specimen lineage evidence bundle
+        run: python -m glio_noncode build-specimen-lineage-bundle examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-bundle.json
+      - name: Specimen lineage graph
+        run: python -m glio_noncode specimen-lineage-lineage examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-lineage.json
+      - name: Specimen lineage receipt reconciliation
+        run: python -m glio_noncode specimen-lineage-reconciliation examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-reconciliation.json
+      - name: Specimen lineage pipeline integration
+        run: python -m glio_noncode run-specimen-lineage-pipeline examples/specimen-lineage-pipeline-accepted.json --output /tmp/glio-specimen-lineage-pipeline.json

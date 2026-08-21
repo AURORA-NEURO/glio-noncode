@@ -290,6 +290,34 @@ from .specimen_lineage import (
     PrimaryRecurrencePhaseMapper,
     TreatmentExposureContextualizer,
 )
+from .specimen_lineage_bundle import (
+    SpecimenLineageBundleFormat,
+    SpecimenLineageEvidenceBundleBuilder,
+)
+from .specimen_lineage_contracts import default_specimen_lineage_contracts
+from .specimen_lineage_fixture_eval import evaluate_specimen_lineage_fixture
+from .specimen_lineage_lineage import (
+    audit_specimen_lineage_lineage,
+    build_specimen_lineage_lineage,
+)
+from .specimen_lineage_public_data import (
+    SpecimenLineageFixtureCatalog,
+    audit_specimen_lineage_fixture,
+)
+from .specimen_lineage_quality_gate import evaluate_specimen_lineage_quality_gate
+from .specimen_lineage_reconciliation import (
+    audit_specimen_lineage_receipt_index,
+    build_specimen_lineage_receipt_index,
+)
+from .specimen_lineage_replay import (
+    SpecimenLineageReplayExpectation,
+    replay_specimen_lineage_fixtures,
+)
+from .specimen_lineage_runtime import (
+    run_specimen_lineage_pipeline,
+    specimen_lineage_pipeline_request_from_file,
+)
+from .specimen_lineage_scenario_matrix import evaluate_specimen_lineage_scenarios
 from .structural_beta import (
     ChromothripsisPatternDetector,
     EnhancerHijackingCandidateDetector,
@@ -1850,6 +1878,87 @@ def build_parser() -> argparse.ArgumentParser:
     )
     specimen_beta_frontier_pipeline.add_argument("input", type=str)
     specimen_beta_frontier_pipeline.add_argument("--output", default=None)
+
+    specimen_lineage_fixture = subparsers.add_parser(
+        "evaluate-specimen-lineage-fixture",
+        help="evaluate the public aggregate fixture across Domain 03 C09-C12 specimen context operations",
+    )
+    specimen_lineage_fixture.add_argument("input", type=str)
+    specimen_lineage_fixture.add_argument("--output", default=None)
+
+    specimen_lineage_data = subparsers.add_parser(
+        "audit-specimen-lineage-data",
+        help="audit public aggregate C09-C12 specimen lineage sources, context, and payload scope",
+    )
+    specimen_lineage_data.add_argument("input", type=str)
+    specimen_lineage_data.add_argument("--output", default=None)
+
+    specimen_lineage_replay = subparsers.add_parser(
+        "replay-specimen-lineage-fixtures",
+        help="replay C09-C12 specimen lineage fixtures with identity, context, and evidence floors",
+    )
+    specimen_lineage_replay.add_argument("inputs", nargs="+", type=str)
+    specimen_lineage_replay.add_argument("--required-context-key", default=None)
+    specimen_lineage_replay.add_argument("--output", default=None)
+
+    specimen_lineage_quality = subparsers.add_parser(
+        "specimen-lineage-quality-gate",
+        help="reconcile C09-C12 specimen fixture, data, scenario, contract, and lineage evidence",
+    )
+    specimen_lineage_quality.add_argument("input", type=str)
+    specimen_lineage_quality.add_argument("--output", default=None)
+
+    specimen_lineage_scenarios = subparsers.add_parser(
+        "evaluate-specimen-lineage-scenarios",
+        help="run independent C09-C12 specimen lineage positive and review state scenarios",
+    )
+    specimen_lineage_scenarios.add_argument("input", type=str)
+    specimen_lineage_scenarios.add_argument("--output", default=None)
+
+    specimen_lineage_contracts = subparsers.add_parser(
+        "specimen-lineage-contracts",
+        help="print the four-operation Domain 03 C09-C12 specimen lineage contract registry",
+    )
+    specimen_lineage_contracts.add_argument("--output", default=None)
+
+    specimen_lineage_bundle = subparsers.add_parser(
+        "build-specimen-lineage-bundle",
+        help="build a compact JSON, CSV, or Markdown C09-C12 specimen lineage evidence bundle",
+    )
+    specimen_lineage_bundle.add_argument("input", type=str)
+    specimen_lineage_bundle.add_argument("--output", required=True)
+    specimen_lineage_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in SpecimenLineageBundleFormat],
+        default=SpecimenLineageBundleFormat.JSON.value,
+    )
+    specimen_lineage_bundle.add_argument("--bundle-id", default=None)
+    specimen_lineage_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state C09-C12 bundle for inspection instead of requiring the gate",
+    )
+
+    specimen_lineage_graph = subparsers.add_parser(
+        "specimen-lineage-lineage",
+        help="build and audit a sanitized C09-C12 specimen source-to-result lineage graph",
+    )
+    specimen_lineage_graph.add_argument("input", type=str)
+    specimen_lineage_graph.add_argument("--output", default=None)
+
+    specimen_lineage_reconciliation = subparsers.add_parser(
+        "specimen-lineage-reconciliation",
+        help="reconcile C09-C12 fixture records with sanitized execution receipt addresses",
+    )
+    specimen_lineage_reconciliation.add_argument("input", type=str)
+    specimen_lineage_reconciliation.add_argument("--output", default=None)
+
+    specimen_lineage_pipeline = subparsers.add_parser(
+        "run-specimen-lineage-pipeline",
+        help="run region lineage, longitudinal linking, phase mapping, and treatment context stages",
+    )
+    specimen_lineage_pipeline.add_argument("input", type=str)
+    specimen_lineage_pipeline.add_argument("--output", default=None)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -4049,6 +4158,75 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "run-specimen-beta-frontier-pipeline":
             request = specimen_beta_frontier_pipeline_request_from_file(args.input)
             report = run_specimen_beta_frontier_pipeline(request)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
+        if args.command == "evaluate-specimen-lineage-fixture":
+            catalog = SpecimenLineageFixtureCatalog.from_file(args.input)
+            report = evaluate_specimen_lineage_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-specimen-lineage-data":
+            catalog = SpecimenLineageFixtureCatalog.from_file(args.input)
+            report = audit_specimen_lineage_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-specimen-lineage-fixtures":
+            first_catalog = SpecimenLineageFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = SpecimenLineageReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                first_catalog.source_ids,
+                minimum_checks=159,
+                minimum_positive_records=4,
+                minimum_control_records=8,
+            )
+            report = replay_specimen_lineage_fixtures(args.inputs, expectation=expectation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-lineage-quality-gate":
+            catalog = SpecimenLineageFixtureCatalog.from_file(args.input)
+            report = evaluate_specimen_lineage_quality_gate(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-specimen-lineage-scenarios":
+            report = evaluate_specimen_lineage_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-lineage-contracts":
+            _write_json(default_specimen_lineage_contracts().to_dict(), args.output)
+            return 0
+        if args.command == "build-specimen-lineage-bundle":
+            catalog = SpecimenLineageFixtureCatalog.from_file(args.input)
+            builder = SpecimenLineageEvidenceBundleBuilder()
+            bundle = builder.build(
+                catalog,
+                bundle_id=args.bundle_id or "specimen-lineage-c09-c12",
+                allow_review=args.allow_review,
+            )
+            builder.write(bundle, args.output, format=SpecimenLineageBundleFormat(args.format))
+            return 0 if builder.verify(bundle) else 2
+        if args.command == "specimen-lineage-lineage":
+            catalog = SpecimenLineageFixtureCatalog.from_file(args.input)
+            graph = build_specimen_lineage_lineage(catalog)
+            audit = audit_specimen_lineage_lineage(graph)
+            payload = graph.to_dict()
+            payload["node_count"] = len(graph.nodes)
+            payload["edge_count"] = len(graph.edges)
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "specimen-lineage-reconciliation":
+            catalog = SpecimenLineageFixtureCatalog.from_file(args.input)
+            index = build_specimen_lineage_receipt_index(catalog)
+            audit = audit_specimen_lineage_receipt_index(catalog, index)
+            payload = index.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "run-specimen-lineage-pipeline":
+            request = specimen_lineage_pipeline_request_from_file(args.input)
+            report = run_specimen_lineage_pipeline(request)
             _write_json(report.to_dict(), args.output)
             return 0 if report.published else 2
         if args.command == "classify-origin":

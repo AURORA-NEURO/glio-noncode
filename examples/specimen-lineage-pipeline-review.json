@@ -1,0 +1,32 @@
+{
+  "pipeline_id": "specimen-lineage-pipeline-review-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": ["gdc-biospecimen-submission", "gdc-biospecimen-data", "gdc-api-available-fields"],
+  "operations": {
+    "region_lineage": {
+      "records": [
+        {"region_id": "review-region-orphan", "sample_id": "review-sample-orphan", "case_id": "aggregate-review-case", "region_label": "margin", "parent_region_id": "review-region-absent", "relationship": "derived_region", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-data"}
+      ]
+    },
+    "longitudinal_linking": {
+      "records": [
+        {"specimen_id": "review-specimen-01", "sample_id": "review-sample-01", "case_id": "aggregate-review-case", "tissue": "tumor_core", "collection_time": "2024-01-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"},
+        {"specimen_id": "review-specimen-02", "sample_id": "review-sample-02", "case_id": "aggregate-review-case", "tissue": "tumor_core", "collection_time": "2024-03-01", "predecessor_specimen_id": "review-absent-specimen", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+      ]
+    },
+    "phase_mapping": {
+      "records": [
+        {"specimen_id": "review-phase-conflict", "sample_id": "review-phase-sample", "case_id": "aggregate-review-case", "tissue": "tumor_core", "collection_time": "2024-01-01", "phase": "primary|recurrence", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+      ]
+    },
+    "treatment_context": {
+      "specimens": [
+        {"specimen_id": "review-treatment-on", "sample_id": "review-treatment-sample", "case_id": "aggregate-review-case", "tissue": "tumor_core", "collection_time": "2024-03-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+      ],
+      "exposures": [
+        {"exposure_id": "review-exposure-a", "case_id": "aggregate-review-case", "therapy_id": "aggregate-therapy-a", "therapy_class": "alkylator", "start_time": "2024-02-01", "end_time": "2024-04-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"},
+        {"exposure_id": "review-exposure-b", "case_id": "aggregate-review-case", "therapy_id": "aggregate-therapy-b", "therapy_class": "radiation", "start_time": "2024-03-01", "end_time": "2024-05-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+      ]
+    }
+  }
+}

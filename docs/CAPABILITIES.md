@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 56 capabilities have deterministic fixture-backed
-verification and 200 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 60 capabilities have deterministic fixture-backed
+verification and 196 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -806,6 +806,59 @@ review states and does not publish. Review bundles require explicit opt-in.
 The complete source boundary, issue taxonomy, replay rules, and bundle schema
 are documented in `docs/SPECIMEN_BETA_FRONTIER_EVIDENCE_GATE.md` and
 `docs/SPECIMEN_BETA_FRONTIER_BUNDLE_FORMAT.md`.
+
+### Domain 03 C09-C12 longitudinal specimen evidence gate
+
+The longitudinal and exposure adapters now have a complete aggregate evidence
+plane at `examples/specimen-lineage-public-aggregate.json`. The fixture is
+shaped by public GDC biospecimen documentation and contains synthetic
+aggregate observations only. Its exact context is
+`GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment`.
+
+The four verified operation families are:
+
+- C09 region lineage: declared parent edges produce subject-local roots and
+  leaves, while missing parents and cycles remain partial or contradictory.
+- C10 longitudinal linking: declared predecessors and deterministic collection
+  ordering produce same-case links with gap labels, tissue changes, and missing
+  dates retained.
+- C11 phase mapping: primary, recurrence, interval, and unknown states require
+  explicit labels or a declared primary predecessor; later time alone does not
+  become recurrence.
+- C12 treatment context: specimen collection times are compared with declared
+  exposure intervals to preserve pre/on/post relations, overlap ambiguity, and
+  missing times without claiming response or resistance.
+
+The release surface contains four positive records and eight review controls,
+159 deterministic fixture assertions, a 12-row independent scenario matrix,
+four operation contracts, a 22-check quality gate, a 29-node/28-edge typed
+lineage graph, a 12-entry sanitized bundle, a receipt-index reconciliation, and
+a four-stage runtime. The
+public source receipts are the GDC biospecimen submission walkthrough, GDC
+biospecimen data model, TCGA barcode hierarchy, and GDC available-fields
+documentation. The receipts establish schema vocabulary and scope; they do
+not claim that the checked-in synthetic rows were copied from those pages.
+
+Run the complete C09-C12 surface locally:
+
+```powershell
+python -m glio_noncode audit-specimen-lineage-data examples/specimen-lineage-public-aggregate.json --output lineage-data.json
+python -m glio_noncode evaluate-specimen-lineage-fixture examples/specimen-lineage-public-aggregate.json --output lineage-fixture.json
+python -m glio_noncode replay-specimen-lineage-fixtures examples/specimen-lineage-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output lineage-replay.json
+python -m glio_noncode evaluate-specimen-lineage-scenarios examples/specimen-lineage-public-aggregate.json --output lineage-scenarios.json
+python -m glio_noncode specimen-lineage-contracts --output lineage-contracts.json
+python -m glio_noncode specimen-lineage-quality-gate examples/specimen-lineage-public-aggregate.json --output lineage-quality.json
+python -m glio_noncode build-specimen-lineage-bundle examples/specimen-lineage-public-aggregate.json --output lineage-bundle.json
+python -m glio_noncode specimen-lineage-lineage examples/specimen-lineage-public-aggregate.json --output lineage-graph.json
+python -m glio_noncode specimen-lineage-reconciliation examples/specimen-lineage-public-aggregate.json --output lineage-reconciliation.json
+python -m glio_noncode run-specimen-lineage-pipeline examples/specimen-lineage-pipeline-accepted.json --output lineage-pipeline.json
+```
+
+The accepted runtime publishes all four stages; the review runtime keeps the
+missing-parent, missing-predecessor, conflicting-phase, and overlapping-
+exposure states visible and does not publish. Review bundles require explicit
+opt-in. The full contract is implemented in the `specimen_lineage_*` modules
+and covered by the `tests/test_specimen_lineage_*` suite.
 
 The Domain 03 longitudinal and exposure extensions deepen specimen context:
 

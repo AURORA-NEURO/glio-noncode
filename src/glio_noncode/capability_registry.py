@@ -1317,68 +1317,92 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D03-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_lineage.MultiRegionLineageResolver",
                     "glio_noncode.specimen_lineage.RegionLineage",
                     "glio_noncode.specimen_lineage.RegionLineageEdge",
+                    "glio_noncode.specimen_lineage_public_data.SpecimenLineageFixtureCatalog",
+                    "glio_noncode.specimen_lineage_fixture_eval.SpecimenLineageFixtureEvaluator",
+                    "glio_noncode.specimen_lineage_lineage.SpecimenLineageGraph",
+                    "glio_noncode.specimen_lineage_quality_gate.SpecimenLineageQualityGate",
                 ),
                 "test_modules": (
                     "tests.test_specimen_lineage",
                     "tests.test_specimen_lineage_cli",
+                    "tests.test_specimen_lineage_public_data",
+                    "tests.test_specimen_lineage_fixture_eval",
+                    "tests.test_specimen_lineage_quality_bundle",
                 ),
                 "evidence_note": (
                     "Subject-local region graphs retain declared parent edges, roots, leaves, "
-                    "missing parents, cycles, source hashes, and exact context; specimen "
-                    "authentication and biological clonal ancestry remain external."
+                    "missing parents, cycles, source hashes, and exact context; the public "
+                    "aggregate fixture adds 159 assertions, replay, a 29-node/28-edge graph, "
+                    "and a quality-gated bundle; specimen authentication and biological clonal "
+                    "ancestry remain external."
                 ),
             },
             "GNC-D03-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_lineage.LongitudinalSpecimenLinker",
                     "glio_noncode.specimen_lineage.LongitudinalLinkReport",
+                    "glio_noncode.specimen_lineage_fixture_eval.SpecimenLineageFixtureEvaluator",
+                    "glio_noncode.specimen_lineage_runtime.SpecimenLineagePipelineReport",
                 ),
                 "test_modules": (
                     "tests.test_specimen_lineage",
                     "tests.test_specimen_lineage_cli",
+                    "tests.test_specimen_lineage_fixture_eval",
+                    "tests.test_specimen_lineage_runtime",
                 ),
                 "evidence_note": (
                     "Same-subject specimen links preserve declared predecessor edges or "
                     "ordered collection times, tissue differences, gap labels, missing dates, "
-                    "and source receipts; evolution and response are not inferred."
+                    "and source receipts; positive and review controls are independently "
+                    "replayed through a four-stage runtime, and evolution and response are not inferred."
                 ),
             },
             "GNC-D03-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_lineage.PrimaryRecurrencePhaseMapper",
                     "glio_noncode.specimen_lineage.PrimaryRecurrenceMappingReport",
+                    "glio_noncode.specimen_lineage_contracts.SpecimenLineageOperationContract",
+                    "glio_noncode.specimen_lineage_scenario_matrix.SpecimenLineageScenarioReport",
                 ),
                 "test_modules": (
                     "tests.test_specimen_lineage",
                     "tests.test_specimen_lineage_cli",
+                    "tests.test_specimen_lineage_contracts_replay",
+                    "tests.test_specimen_lineage_quality_bundle",
                 ),
                 "evidence_note": (
                     "Primary, recurrence, interval, and unknown assignments use explicit labels "
-                    "or a declared primary predecessor; later dates alone remain unknown and "
-                    "conflicting labels remain contradictory."
+                    "or a declared primary predecessor; later dates alone remain unknown, "
+                    "conflicting labels remain contradictory, and the scenario matrix covers "
+                    "all positive and review transitions."
                 ),
             },
             "GNC-D03-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_lineage.TreatmentExposureContextualizer",
                     "glio_noncode.specimen_lineage.TreatmentExposureReport",
+                    "glio_noncode.specimen_lineage_bundle.SpecimenLineageEvidenceBundleBuilder",
+                    "glio_noncode.specimen_lineage_replay.SpecimenLineageReplayReport",
                 ),
                 "test_modules": (
                     "tests.test_specimen_lineage",
                     "tests.test_specimen_lineage_cli",
+                    "tests.test_specimen_lineage_quality_bundle",
+                    "tests.test_specimen_lineage_runtime",
                 ),
                 "evidence_note": (
                     "Same-subject specimen times are compared with declared treatment intervals "
                     "to retain pre/on/post relations, overlap ambiguity, missing times, and "
-                    "source versions; response and resistance are not inferred."
+                    "source versions; public GDC model receipts, bundle addresses, and runtime "
+                    "stage conservation are verified, while response and resistance are not inferred."
                 ),
             },
             "GNC-D03-C13": {

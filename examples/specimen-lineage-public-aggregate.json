@@ -1,0 +1,220 @@
+{
+  "schema_version": "specimen-lineage-evidence-v1",
+  "fixture_id": "specimen-lineage-public-aggregate-v1",
+  "aggregate_only": true,
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "sources": [
+    {
+      "source_id": "gdc-biospecimen-submission",
+      "label": "GDC biospecimen submission walkthrough",
+      "url": "https://docs.gdc.cancer.gov/Data_Submission_Portal/Users_Guide/Data_Submission_Walkthrough/",
+      "release": "documentation",
+      "scope": "case-linked sample, portion, analyte, aliquot, and read-group hierarchy",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {"receipt_role": "biospecimen entity relationships", "fixture_payload": "synthetic aggregate observations"}
+    },
+    {
+      "source_id": "gdc-biospecimen-data",
+      "label": "GDC biospecimen data model",
+      "url": "https://docs.gdc.cancer.gov/Encyclopedia/pages/Biospecimen_Data/",
+      "release": "documentation",
+      "scope": "sample-to-portion-to-analyte relationships and API retrieval boundary",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {"receipt_role": "biospecimen hierarchy vocabulary", "fixture_payload": "synthetic aggregate observations"}
+    },
+    {
+      "source_id": "gdc-tcga-barcode",
+      "label": "GDC TCGA barcode hierarchy",
+      "url": "https://docs.gdc.cancer.gov/Encyclopedia/pages/TCGA_Barcode/",
+      "release": "documentation",
+      "scope": "case, sample, portion, analyte, and aliquot identity hierarchy",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {"receipt_role": "stable biospecimen identity shape", "fixture_payload": "synthetic aggregate observations"}
+    },
+    {
+      "source_id": "gdc-api-available-fields",
+      "label": "GDC API available fields",
+      "url": "https://docs.gdc.cancer.gov/API/Users_Guide/Appendix_A_Available_Fields/",
+      "release": "documentation",
+      "scope": "sample type, tissue collection, preservation, and clinical/biospecimen field vocabulary",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {"receipt_role": "temporal and specimen context vocabulary", "fixture_payload": "synthetic aggregate observations"}
+    }
+  ],
+  "positives": [
+    {
+      "record_id": "positive-region-branching",
+      "operation": "region_lineage",
+      "source_ids": ["gdc-biospecimen-submission", "gdc-biospecimen-data"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {"lineages": 1, "edges": 2, "roots": 1, "leaves": 2, "missing_parents": 0, "cycles": 0, "issues": 0},
+      "payload": {
+        "records": [
+          {"region_id": "aggregate-region-root", "sample_id": "aggregate-sample-root", "case_id": "aggregate-case-01", "region_label": "primary_core", "relationship": "root", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"},
+          {"region_id": "aggregate-region-left", "sample_id": "aggregate-sample-left", "case_id": "aggregate-case-01", "region_label": "left_margin", "parent_region_id": "aggregate-region-root", "relationship": "derived_region", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-data"},
+          {"region_id": "aggregate-region-right", "sample_id": "aggregate-sample-right", "case_id": "aggregate-case-01", "region_label": "right_margin", "parent_region_id": "aggregate-region-root", "relationship": "derived_region", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-data"}
+        ]
+      }
+    },
+    {
+      "record_id": "positive-longitudinal-chain",
+      "operation": "longitudinal_linking",
+      "source_ids": ["gdc-biospecimen-submission", "gdc-api-available-fields"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {"observations": 3, "links": 2, "supported_links": 2, "partial_links": 0, "unlinked": 0, "issues": 0},
+      "payload": {
+        "records": [
+          {"specimen_id": "aggregate-specimen-01", "sample_id": "aggregate-sample-01", "case_id": "aggregate-case-01", "tissue": "tumor_core", "timepoint": "diagnosis", "collection_time": "2024-01-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"},
+          {"specimen_id": "aggregate-specimen-02", "sample_id": "aggregate-sample-02", "case_id": "aggregate-case-01", "tissue": "tumor_margin", "timepoint": "interval", "collection_time": "2024-03-01", "predecessor_specimen_id": "aggregate-specimen-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"},
+          {"specimen_id": "aggregate-specimen-03", "sample_id": "aggregate-sample-03", "case_id": "aggregate-case-01", "tissue": "tumor_core", "timepoint": "follow_up", "collection_time": "2024-06-01", "predecessor_specimen_id": "aggregate-specimen-02", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+        ]
+      }
+    },
+    {
+      "record_id": "positive-phase-explicit",
+      "operation": "phase_mapping",
+      "source_ids": ["gdc-api-available-fields", "gdc-biospecimen-submission"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {"assignments": 3, "primary": 1, "recurrence": 1, "interval": 1, "unknown": 0, "contradictory": 0, "issues": 0},
+      "payload": {
+        "records": [
+          {"specimen_id": "aggregate-phase-primary", "sample_id": "aggregate-phase-sample-01", "case_id": "aggregate-case-01", "tissue": "tumor_core", "collection_time": "2024-01-01", "phase": "primary", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"},
+          {"specimen_id": "aggregate-phase-recurrence", "sample_id": "aggregate-phase-sample-02", "case_id": "aggregate-case-01", "tissue": "tumor_margin", "collection_time": "2024-05-01", "predecessor_specimen_id": "aggregate-phase-primary", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"},
+          {"specimen_id": "aggregate-phase-interval", "sample_id": "aggregate-phase-sample-03", "case_id": "aggregate-case-01", "tissue": "tumor_core", "collection_time": "2024-03-01", "phase": "surveillance", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+        ]
+      }
+    },
+    {
+      "record_id": "positive-treatment-window",
+      "operation": "treatment_context",
+      "source_ids": ["gdc-api-available-fields", "gdc-biospecimen-submission"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {"specimens": 3, "exposures": 1, "contexts": 3, "pre_treatment": 1, "on_treatment": 1, "post_treatment": 1, "ambiguous": 0, "uncontextualized": 0, "issues": 0},
+      "payload": {
+        "specimens": [
+          {"specimen_id": "aggregate-treatment-pre", "sample_id": "aggregate-treatment-sample-01", "case_id": "aggregate-case-01", "tissue": "tumor_core", "collection_time": "2024-01-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"},
+          {"specimen_id": "aggregate-treatment-on", "sample_id": "aggregate-treatment-sample-02", "case_id": "aggregate-case-01", "tissue": "tumor_core", "collection_time": "2024-03-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"},
+          {"specimen_id": "aggregate-treatment-post", "sample_id": "aggregate-treatment-sample-03", "case_id": "aggregate-case-01", "tissue": "tumor_margin", "collection_time": "2024-06-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+        ],
+        "exposures": [
+          {"exposure_id": "aggregate-exposure-01", "case_id": "aggregate-case-01", "therapy_id": "aggregate-therapy-a", "therapy_class": "alkylator", "start_time": "2024-02-01", "end_time": "2024-04-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+        ]
+      }
+    }
+  ],
+  "controls": [
+    {
+      "record_id": "control-region-missing-parent",
+      "operation": "region_lineage",
+      "source_ids": ["gdc-biospecimen-data"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": ["missing_parent_region"],
+      "expected_counts": {"lineages": 1, "edges": 1, "roots": 0, "leaves": 1, "missing_parents": 1, "cycles": 0, "issues": 1},
+      "payload": {"records": [{"region_id": "aggregate-region-orphan", "sample_id": "aggregate-orphan-sample", "case_id": "aggregate-case-02", "region_label": "margin", "parent_region_id": "aggregate-region-absent", "relationship": "derived_region", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-data"}]}
+    },
+    {
+      "record_id": "control-region-cycle",
+      "operation": "region_lineage",
+      "source_ids": ["gdc-biospecimen-data"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "contradictory",
+      "expected_issue_codes": ["lineage_cycle"],
+      "expected_counts": {"lineages": 1, "edges": 2, "roots": 0, "leaves": 0, "missing_parents": 0, "cycles": 2, "issues": 1},
+      "payload": {"records": [
+        {"region_id": "aggregate-cycle-a", "sample_id": "aggregate-cycle-sample-a", "case_id": "aggregate-case-02", "region_label": "a", "parent_region_id": "aggregate-cycle-b", "relationship": "derived_region", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-data"},
+        {"region_id": "aggregate-cycle-b", "sample_id": "aggregate-cycle-sample-b", "case_id": "aggregate-case-02", "region_label": "b", "parent_region_id": "aggregate-cycle-a", "relationship": "derived_region", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-data"}
+      ]}
+    },
+    {
+      "record_id": "control-longitudinal-missing-time",
+      "operation": "longitudinal_linking",
+      "source_ids": ["gdc-api-available-fields"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": [],
+      "expected_counts": {"observations": 2, "links": 1, "supported_links": 0, "partial_links": 1, "unlinked": 0, "issues": 0},
+      "payload": {"records": [
+        {"specimen_id": "aggregate-missing-time-01", "sample_id": "aggregate-missing-time-sample-01", "case_id": "aggregate-case-03", "tissue": "tumor_core", "collection_time": "2024-01-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"},
+        {"specimen_id": "aggregate-missing-time-02", "sample_id": "aggregate-missing-time-sample-02", "case_id": "aggregate-case-03", "tissue": "tumor_core", "collection_time": "", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+      ]}
+    },
+    {
+      "record_id": "control-longitudinal-missing-predecessor",
+      "operation": "longitudinal_linking",
+      "source_ids": ["gdc-biospecimen-submission"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": ["missing_predecessor_specimen"],
+      "expected_counts": {"observations": 2, "links": 0, "supported_links": 0, "partial_links": 0, "unlinked": 1, "issues": 1},
+      "payload": {"records": [
+        {"specimen_id": "aggregate-predecessor-01", "sample_id": "aggregate-predecessor-sample-01", "case_id": "aggregate-case-03", "tissue": "tumor_core", "collection_time": "2024-01-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"},
+        {"specimen_id": "aggregate-predecessor-02", "sample_id": "aggregate-predecessor-sample-02", "case_id": "aggregate-case-03", "tissue": "tumor_core", "collection_time": "2024-02-01", "predecessor_specimen_id": "aggregate-absent-specimen", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-biospecimen-submission"}
+      ]}
+    },
+    {
+      "record_id": "control-phase-later-only",
+      "operation": "phase_mapping",
+      "source_ids": ["gdc-api-available-fields"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": [],
+      "expected_counts": {"assignments": 2, "primary": 0, "recurrence": 0, "interval": 0, "unknown": 2, "contradictory": 0, "issues": 0},
+      "payload": {"records": [
+        {"specimen_id": "aggregate-unknown-phase-01", "sample_id": "aggregate-unknown-phase-sample-01", "case_id": "aggregate-case-04", "tissue": "tumor_core", "collection_time": "2024-01-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"},
+        {"specimen_id": "aggregate-unknown-phase-02", "sample_id": "aggregate-unknown-phase-sample-02", "case_id": "aggregate-case-04", "tissue": "tumor_margin", "collection_time": "2024-05-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+      ]}
+    },
+    {
+      "record_id": "control-phase-conflicting-labels",
+      "operation": "phase_mapping",
+      "source_ids": ["gdc-api-available-fields"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "contradictory",
+      "expected_issue_codes": ["conflicting_phase_labels"],
+      "expected_counts": {"assignments": 1, "primary": 0, "recurrence": 0, "interval": 0, "unknown": 0, "contradictory": 1, "issues": 1},
+      "payload": {"records": [{"specimen_id": "aggregate-conflicting-phase", "sample_id": "aggregate-conflicting-phase-sample", "case_id": "aggregate-case-04", "tissue": "tumor_core", "collection_time": "2024-01-01", "phase": "primary|recurrence", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}]}
+    },
+    {
+      "record_id": "control-treatment-overlap",
+      "operation": "treatment_context",
+      "source_ids": ["gdc-api-available-fields"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "ambiguous",
+      "expected_issue_codes": [],
+      "expected_counts": {"specimens": 1, "exposures": 2, "contexts": 2, "pre_treatment": 0, "on_treatment": 2, "post_treatment": 0, "ambiguous": 2, "uncontextualized": 0, "issues": 0},
+      "payload": {
+        "specimens": [{"specimen_id": "aggregate-overlap-specimen", "sample_id": "aggregate-overlap-sample", "case_id": "aggregate-case-05", "tissue": "tumor_core", "collection_time": "2024-03-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}],
+        "exposures": [
+          {"exposure_id": "aggregate-overlap-exposure-a", "case_id": "aggregate-case-05", "therapy_id": "aggregate-therapy-a", "therapy_class": "alkylator", "start_time": "2024-02-01", "end_time": "2024-04-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"},
+          {"exposure_id": "aggregate-overlap-exposure-b", "case_id": "aggregate-case-05", "therapy_id": "aggregate-therapy-b", "therapy_class": "radiation", "start_time": "2024-03-01", "end_time": "2024-05-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}
+        ]
+      }
+    },
+    {
+      "record_id": "control-treatment-missing-time",
+      "operation": "treatment_context",
+      "source_ids": ["gdc-api-available-fields"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": ["missing_specimen_time"],
+      "expected_counts": {"specimens": 1, "exposures": 1, "contexts": 0, "pre_treatment": 0, "on_treatment": 0, "post_treatment": 0, "ambiguous": 0, "uncontextualized": 1, "issues": 1},
+      "payload": {
+        "specimens": [{"specimen_id": "aggregate-no-time-specimen", "sample_id": "aggregate-no-time-sample", "case_id": "aggregate-case-05", "tissue": "tumor_core", "collection_time": "", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}],
+        "exposures": [{"exposure_id": "aggregate-no-time-exposure", "case_id": "aggregate-case-05", "therapy_id": "aggregate-therapy-a", "therapy_class": "alkylator", "start_time": "2024-02-01", "end_time": "2024-04-01", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "source_id": "gdc-api-available-fields"}]
+      }
+    }
+  ]
+}
