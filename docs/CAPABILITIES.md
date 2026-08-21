@@ -85,6 +85,36 @@ glio-noncode decompose-multiallelic multiallelic.json --output alleles.json
 glio-noncode normalize-repeat repeat.json --output repeat.json
 ```
 
+## Domain 02 structural beta extensions
+
+The structural beta plane adds four bounded detector contracts:
+
+- `FocalAmplificationBoundaryMapper` thresholds copy-number segments, merges
+  only observed neighboring intervals, and retains left/right boundary support
+  from every caller. It does not impute uncovered sequence or make a gene-level
+  amplification claim.
+- `ChromothripsisPatternDetector` measures bounded breakpoint clustering,
+  orientation switches, and supplied copy-number oscillation. Its evidence
+  index is descriptive, not a probability, and missing copy-number state keeps
+  the result partial.
+- `ExtrachromosomalDnaCandidateDetector` requires explicit circular evidence,
+  junction support, and amplification evidence before returning a stronger
+  candidate state. High copy number by itself never creates an ecDNA result,
+  and conflicting linear evidence remains ambiguous.
+- `EnhancerHijackingCandidateDetector` requires an exact `ReferenceContext.key`,
+  an explicit structural bridge, and declared evidence channels. It keeps
+  alternative target genes and does not substitute nearest-gene proximity for
+  a regulatory link.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode map-focal-amplification segments.json --output focal.json
+glio-noncode detect-chromothripsis breakpoints.json --output chromothripsis.json
+glio-noncode detect-ecdna structural-evidence.json --output ecdna.json
+glio-noncode detect-enhancer-hijacking links.json --context-key "GRCh38|glioma|adult|unknown|unknown|unknown" --output hijacking.json
+```
+
 Every future capability wave must add implementation modules, fixtures,
 negative or abstention cases, and review-facing evidence before its ledger
 state is advanced.

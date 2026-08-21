@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,12 @@ from .sequence_adapters import (
     SequenceFoundationModelAdapter,
 )
 from .specimen_context import PurityPloidyImporter
+from .structural_beta import (
+    ChromothripsisPatternDetector,
+    EnhancerHijackingCandidateDetector,
+    ExtrachromosomalDnaCandidateDetector,
+    FocalAmplificationBoundaryMapper,
+)
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
 from .topology_context import (
     ContactMatrixParser,
@@ -70,6 +77,21 @@ def _write_json(payload: Any, output: str | None) -> None:
         Path(output).write_text(text, encoding="utf-8")
     else:
         sys.stdout.write(text)
+
+
+def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if isinstance(payload, dict):
+        for key in keys:
+            if key in payload:
+                rows = payload[key]
+                if not isinstance(rows, list):
+                    raise ValueError(f"{path} JSON field {key!r} must be a list")
+                return tuple(rows)
+        return (payload,)
+    if isinstance(payload, list):
+        return tuple(payload)
+    raise ValueError(f"{path} JSON must be an object or list")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -239,6 +261,51 @@ def build_parser() -> argparse.ArgumentParser:
     cn.add_argument("input", type=str)
     cn.add_argument("--source-id", default=None)
     cn.add_argument("--output", default=None)
+
+    focal_amp = subparsers.add_parser(
+        "map-focal-amplification",
+        help="map copy-number amplification boundaries with caller disagreement",
+    )
+    focal_amp.add_argument("input", type=str)
+    focal_amp.add_argument("--context-key", default=None)
+    focal_amp.add_argument("--baseline-copy-number", type=float, default=2.0)
+    focal_amp.add_argument("--amplification-threshold", type=float, default=6.0)
+    focal_amp.add_argument("--minimum-gain", type=float, default=2.0)
+    focal_amp.add_argument("--merge-gap-bp", type=int, default=0)
+    focal_amp.add_argument("--boundary-tolerance-bp", type=int, default=50)
+    focal_amp.add_argument("--output", default=None)
+
+    chromothripsis = subparsers.add_parser(
+        "detect-chromothripsis",
+        help="detect bounded breakpoint-cluster patterns with explicit evidence limits",
+    )
+    chromothripsis.add_argument("input", type=str)
+    chromothripsis.add_argument("--context-key", default=None)
+    chromothripsis.add_argument("--min-breakpoints", type=int, default=6)
+    chromothripsis.add_argument("--max-cluster-span-bp", type=int, default=10_000_000)
+    chromothripsis.add_argument("--max-gap-bp", type=int, default=2_000_000)
+    chromothripsis.add_argument("--min-orientation-switches", type=int, default=3)
+    chromothripsis.add_argument("--require-copy-number-oscillation", action="store_true")
+    chromothripsis.add_argument("--output", default=None)
+
+    ecdna = subparsers.add_parser(
+        "detect-ecdna",
+        help="detect extrachromosomal-DNA candidates from explicit circular evidence",
+    )
+    ecdna.add_argument("input", type=str)
+    ecdna.add_argument("--context-key", default=None)
+    ecdna.add_argument("--minimum-copy-number", type=float, default=6.0)
+    ecdna.add_argument("--minimum-junctions", type=int, default=2)
+    ecdna.add_argument("--output", default=None)
+
+    hijack = subparsers.add_parser(
+        "detect-enhancer-hijacking",
+        help="detect context-qualified enhancer-to-gene structural bridge candidates",
+    )
+    hijack.add_argument("input", type=str)
+    hijack.add_argument("--context-key", required=True)
+    hijack.add_argument("--minimum-evidence-channels", type=int, default=2)
+    hijack.add_argument("--output", default=None)
 
     purity = subparsers.add_parser(
         "purity-ploidy", help="import purity and ploidy measurements with source receipts"
@@ -565,6 +632,47 @@ def main(argv: list[str] | None = None) -> int:
             result = CopyNumberSegmentHarmonizer().parse_text(
                 input_path.read_text(encoding="utf-8"),
                 source_id=args.source_id or input_path.stem,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "map-focal-amplification":
+            result = FocalAmplificationBoundaryMapper().map(
+                _read_rows(args.input, "records", "segments"),
+                context_key=args.context_key,
+                baseline_copy_number=args.baseline_copy_number,
+                amplification_threshold=args.amplification_threshold,
+                minimum_gain=args.minimum_gain,
+                merge_gap_bp=args.merge_gap_bp,
+                boundary_tolerance_bp=args.boundary_tolerance_bp,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "detect-chromothripsis":
+            result = ChromothripsisPatternDetector().detect(
+                _read_rows(args.input, "records", "breakpoints"),
+                context_key=args.context_key,
+                min_breakpoints=args.min_breakpoints,
+                max_cluster_span_bp=args.max_cluster_span_bp,
+                max_gap_bp=args.max_gap_bp,
+                min_orientation_switches=args.min_orientation_switches,
+                require_copy_number_oscillation=args.require_copy_number_oscillation,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "detect-ecdna":
+            result = ExtrachromosomalDnaCandidateDetector().detect(
+                _read_rows(args.input, "records", "evidence"),
+                context_key=args.context_key,
+                minimum_copy_number=args.minimum_copy_number,
+                minimum_junctions=args.minimum_junctions,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "detect-enhancer-hijacking":
+            result = EnhancerHijackingCandidateDetector().detect(
+                _read_rows(args.input, "records", "evidence", "links"),
+                context_key=args.context_key,
+                minimum_evidence_channels=args.minimum_evidence_channels,
             )
             _write_json(result.to_dict(), args.output)
             return 0

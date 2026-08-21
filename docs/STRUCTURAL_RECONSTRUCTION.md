@@ -49,3 +49,14 @@ changed reconstruction implementation.
 These extensions are currently partial capabilities: local fixtures prove
 lossless parsing and safe reconciliation, while locked external truth sets,
 caller conformance, and transport evaluation remain release gates.
+
+The scientific-beta detectors in `glio_noncode.structural_beta` extend this
+plane without collapsing it into a mechanistic conclusion. Focal amplification
+mapping keeps caller-specific boundaries; chromothripsis detection keeps
+cluster, orientation, and copy-number pattern metrics; ecDNA detection
+requires declared circular evidence and retains linear conflicts; and
+enhancer-hijacking detection requires an exact context, a declared structural
+bridge, and explicit evidence channels. Each detector emits `supported`,
+`partial`, `ambiguous`, `abstained`, or `out_of_domain` states with raw hashes
+and source/version provenance. External truth sets, orthogonal assays, and
+clinical interpretation are outside these adapters.

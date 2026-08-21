@@ -451,6 +451,55 @@ def default_capability_registry() -> CapabilityRegistry:
                     "reported with disagreement; truth-set and transport evaluation remain."
                 ),
             },
+            "GNC-D02-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_beta.FocalAmplificationBoundaryMapper",
+                ),
+                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "evidence_note": (
+                    "Copy-number segments are thresholded, merged only across observed gaps, "
+                    "and returned with caller-specific left/right boundary support and "
+                    "disagreement; sequence-level amplification truth and clinical focality "
+                    "remain external validation gates."
+                ),
+            },
+            "GNC-D02-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_beta.ChromothripsisPatternDetector",
+                ),
+                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "evidence_note": (
+                    "Bounded breakpoint clusters retain orientation switches, copy-number state "
+                    "oscillation, source hashes, and a descriptive evidence index; the index is "
+                    "not a probability and does not establish a biological mechanism."
+                ),
+            },
+            "GNC-D02-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_beta.ExtrachromosomalDnaCandidateDetector",
+                ),
+                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "evidence_note": (
+                    "ecDNA candidates require explicit circular evidence, junction support, and "
+                    "amplification evidence; conflicting linear evidence remains ambiguous and "
+                    "orthogonal molecule or imaging confirmation is not inferred."
+                ),
+            },
+            "GNC-D02-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_beta.EnhancerHijackingCandidateDetector",
+                ),
+                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "evidence_note": (
+                    "Exact-context enhancer-to-gene candidates require an explicit structural "
+                    "bridge, retain activity/contact channels and alternative genes, and never "
+                    "use nearest-gene proximity as a substitute for linking evidence."
+                ),
+            },
             "GNC-D03-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.specimen_context.SpecimenOntologyMapper",),
