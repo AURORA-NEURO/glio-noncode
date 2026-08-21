@@ -938,6 +938,31 @@ glio-noncode parse-citations citations.tsv --source-id source-1 --source-version
 glio-noncode evidence-graph graph-input.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output dossier.json
 ```
 
+The Domain 14 external-alpha extensions add explicit review operations around
+the immutable graph:
+
+- `BlindedAdjudicationWorkflow` creates deterministic masked cases with
+  evidence digests, masked claim/source receipts, reviewer tokens, and exact
+  context. Consensus, abstention, and split decisions remain distinct.
+- `ReviewerCommentChangeLogger` stores immutable comments plus before/after
+  content-addressed changes and supports append-only review snapshots.
+- `ReleaseDecisionRecorder` records research-only gate results, required and
+  completed reviewer roles, failed conditions, decision rationale, and an
+  optional comment-log address. Approval is never clinical authorization.
+- `EvidenceDeltaDetector` compares graph snapshots and classifies claim,
+  citation, graph-state, and context changes with before/after hashes and
+  review severity. It does not resolve disagreements by averaging evidence.
+
+The external-alpha command boundaries are:
+
+```powershell
+glio-noncode plan-blinded-adjudication adjudication-observations.json --context-key "GRCh38|glioma|adult|stem_like|core|untreated" --reviewer-count 2 --output blinded-plan.json
+glio-noncode adjudicate-blinded-evidence blinded-decision-bundle.json --output adjudication-result.json
+glio-noncode record-review-log review-log.json --context-key "GRCh38|glioma|adult|stem_like|core|untreated" --output review-log-result.json
+glio-noncode record-release-decision release-input.json --requested-decision approved --output release-decision.json
+glio-noncode detect-evidence-delta graph-delta.json --expected-context-key "GRCh38|glioma|adult|stem_like|core|untreated" --output evidence-delta.json
+```
+
 ## Domain 15 research workspaces
 
 The workspace plane is a deterministic read model for future CLI, API,

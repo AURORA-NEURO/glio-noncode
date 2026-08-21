@@ -2324,6 +2324,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "uncertainty, priority, blockers, and research-use boundaries."
                 ),
             },
+            "GNC-D14-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_alpha.BlindedAdjudicationWorkflow",
+                    "glio_noncode.lifecycle_alpha.BlindedAdjudicationPlan",
+                ),
+                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "evidence_note": (
+                    "Blinded adjudication packets mask claim and source receipts, preserve exact "
+                    "context and deterministic reviewer tokens, retain abstentions and split "
+                    "decisions, and never treat reviewer consensus as causal validation."
+                ),
+            },
+            "GNC-D14-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_alpha.ReviewerCommentChangeLogger",
+                    "glio_noncode.lifecycle_alpha.ReviewerCommentChangeLog",
+                ),
+                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "evidence_note": (
+                    "Reviewer comments and before/after changes are immutable, context-gated, "
+                    "content-addressed, and appendable with duplicate and malformed-row checks; "
+                    "the log records process rather than evidentiary truth."
+                ),
+            },
+            "GNC-D14-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_alpha.ReleaseDecisionRecorder",
+                    "glio_noncode.lifecycle_alpha.ReleaseDecisionRecord",
+                ),
+                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "evidence_note": (
+                    "Research-only release records retain graph address, gate results, reviewer "
+                    "roles, failed conditions, comment-log address, and explicit approval or "
+                    "review-required decisions; they never authorize clinical or treatment use."
+                ),
+            },
+            "GNC-D14-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_alpha.EvidenceDeltaDetector",
+                    "glio_noncode.lifecycle_alpha.EvidenceDeltaReport",
+                ),
+                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "evidence_note": (
+                    "Evidence delta reports classify added, removed, and changed claims and "
+                    "citations plus graph-state or context changes with before/after addresses "
+                    "and review severity; a delta does not decide which snapshot is correct."
+                ),
+            },
             "GNC-D15-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

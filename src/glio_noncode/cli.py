@@ -109,6 +109,14 @@ from .identity_beta import (
     VariantEquivalenceResolver,
 )
 from .intake import IntakeFormat, VariantIntake
+from .lifecycle_alpha import (
+    BlindedAdjudicationPlan,
+    BlindedAdjudicationWorkflow,
+    EvidenceDeltaDetector,
+    ReleaseDecision,
+    ReleaseDecisionRecorder,
+    ReviewerCommentChangeLogger,
+)
 from .lifecycle_beta import (
     EvidenceTierAdjudicator,
     ProvenanceLineageViewer,
@@ -1950,6 +1958,59 @@ def build_parser() -> argparse.ArgumentParser:
     power.add_argument("--context-key", required=True)
     power.add_argument("--output", default=None)
 
+    blinded_plan = subparsers.add_parser(
+        "plan-blinded-adjudication",
+        help="create masked exact-context evidence adjudication cases",
+    )
+    blinded_plan.add_argument("input", type=str)
+    blinded_plan.add_argument("--context-key", required=True)
+    blinded_plan.add_argument("--workflow-id", default="blinded-review")
+    blinded_plan.add_argument("--reviewer-count", type=int, default=2)
+    blinded_plan.add_argument("--required-decisions", type=int, default=None)
+    blinded_plan.add_argument("--randomization-seed", default="seed-1")
+    blinded_plan.add_argument("--output", default=None)
+
+    blinded_adjudication = subparsers.add_parser(
+        "adjudicate-blinded-evidence",
+        help="reconcile masked reviewer decisions without unmasking sources",
+    )
+    blinded_adjudication.add_argument("input", type=str)
+    blinded_adjudication.add_argument("--output", default=None)
+
+    review_log = subparsers.add_parser(
+        "record-review-log",
+        help="record immutable reviewer comments and before/after changes",
+    )
+    review_log.add_argument("input", type=str)
+    review_log.add_argument("--context-key", required=True)
+    review_log.add_argument("--review-id", default="review-1")
+    review_log.add_argument("--output", default=None)
+
+    release_record = subparsers.add_parser(
+        "record-release-decision",
+        help="record research-only release gates and reviewer conditions",
+    )
+    release_record.add_argument("input", type=str)
+    release_record.add_argument("--release-id", default="release-1")
+    release_record.add_argument("--required-role", action="append", default=None)
+    release_record.add_argument("--completed-role", action="append", default=None)
+    release_record.add_argument("--reviewer-id", action="append", default=None)
+    release_record.add_argument(
+        "--requested-decision",
+        choices=tuple(item.value for item in ReleaseDecision),
+        default=None,
+    )
+    release_record.add_argument("--comment-log-address", default=None)
+    release_record.add_argument("--output", default=None)
+
+    delta = subparsers.add_parser(
+        "detect-evidence-delta",
+        help="compare two immutable evidence graph snapshots",
+    )
+    delta.add_argument("input", type=str)
+    delta.add_argument("--expected-context-key", default=None)
+    delta.add_argument("--output", default=None)
+
     tier_adjudication = subparsers.add_parser(
         "adjudicate-evidence-tier",
         help="adjudicate declared evidence tiers without erasing alternatives",
@@ -3406,6 +3467,59 @@ def main(argv: list[str] | None = None) -> int:
             result = PowerReplicationEstimator().estimate(
                 _read_rows(args.input, "observations", "records", "power"),
                 context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "plan-blinded-adjudication":
+            result = BlindedAdjudicationWorkflow().plan(
+                _read_rows(args.input, "observations", "records", "evidence"),
+                workflow_id=args.workflow_id,
+                context_key=args.context_key,
+                reviewer_count=args.reviewer_count,
+                required_decisions=args.required_decisions,
+                randomization_seed=args.randomization_seed,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "adjudicate-blinded-evidence":
+            payload = _read_json(args.input)
+            plan = BlindedAdjudicationPlan.from_mapping(payload.get("plan", payload))
+            result = BlindedAdjudicationWorkflow().adjudicate(
+                plan,
+                payload.get("decisions", payload.get("observations", ())),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "record-review-log":
+            payload = _read_json(args.input)
+            result = ReviewerCommentChangeLogger().record(
+                payload.get("comments", ()),
+                payload.get("changes", ()),
+                review_id=args.review_id,
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "record-release-decision":
+            payload = _read_json(args.input)
+            result = ReleaseDecisionRecorder().record(
+                payload.get("graph", payload),
+                payload.get("gates", payload.get("observations", ())),
+                release_id=args.release_id,
+                required_roles=args.required_role or (),
+                completed_roles=args.completed_role or (),
+                reviewer_ids=args.reviewer_id or (),
+                comment_log_address=args.comment_log_address,
+                requested_decision=args.requested_decision,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "detect-evidence-delta":
+            payload = _read_json(args.input)
+            result = EvidenceDeltaDetector().compare(
+                payload.get("previous", {}),
+                payload.get("current", {}),
+                expected_context_key=args.expected_context_key,
             )
             _write_json(result.to_dict(), args.output)
             return 0
