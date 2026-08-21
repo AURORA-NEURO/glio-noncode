@@ -229,3 +229,17 @@ The query boundary is:
 ```powershell
 glio-noncode cohort-query cohort.json --output cohort-selection.json
 ```
+
+## Domain 13 validation planning
+
+The validation plane converts typed hypothesis gaps into ranked review items
+without filling missing evidence. Assay eligibility routes check declared
+model systems, insert bounds, controls, and readouts, and retain blocked
+alternatives plus sensitivity notes.
+
+MPRA and STARR-seq planners validate target context and reference alleles,
+generate reference/alternate constructs, enforce construct budgets, and attach
+required controls and readouts. Context mismatch, allele mismatch, unsupported
+length, and missing inventory remain blocked or abstained. Construct generation
+does not establish expression, effect size, assay success, safety, or causal
+validation; expert review and institutional approvals remain required.

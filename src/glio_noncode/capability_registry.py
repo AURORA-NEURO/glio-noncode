@@ -855,5 +855,49 @@ def default_capability_registry() -> CapabilityRegistry:
                     "negative-control limitations."
                 ),
             },
+            "GNC-D13-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_planning.EvidenceGapAnalyzer",
+                ),
+                "test_modules": ("tests.test_validation_planning",),
+                "evidence_note": (
+                    "Typed hypotheses are converted into ranked evidence gaps with required "
+                    "channels, impact, context, and review warnings; external planning benchmarks "
+                    "and calibration remain."
+                ),
+            },
+            "GNC-D13-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_planning.AssayEligibilityRouter",
+                ),
+                "test_modules": ("tests.test_validation_planning",),
+                "evidence_note": (
+                    "Assay routes check model, insert, control, and readout constraints while "
+                    "preserving blockers, alternatives, sensitivity, and human-review boundaries."
+                ),
+            },
+            "GNC-D13-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.validation_planning.MPRAPlanner",),
+                "test_modules": ("tests.test_validation_planning",),
+                "evidence_note": (
+                    "MPRA packages validate reference alleles, generate reference/alternate "
+                    "constructs, enforce context and construct bounds, and retain controls and "
+                    "research-use limitations."
+                ),
+            },
+            "GNC-D13-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_planning.STARRSeqPlanner",
+                ),
+                "test_modules": ("tests.test_validation_planning",),
+                "evidence_note": (
+                    "STARR-seq packages share the allele-aware bounded planner contract and block "
+                    "context mismatch or construct-budget overflow without claiming assay efficacy."
+                ),
+            },
         }
     )

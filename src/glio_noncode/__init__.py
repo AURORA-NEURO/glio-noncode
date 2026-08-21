@@ -109,6 +109,14 @@ from .validation_controls import (
     ValidationValuePlanner,
 )
 from .validation_design import GuideDesigner, PowerPlanner
+from .validation_planning import (
+    AssayEligibilityRouter,
+    EvidenceGapAnalyzer,
+    MPRAPlanner,
+    STARRSeqPlanner,
+    ValidationPlanBuilder,
+    ValidationTarget,
+)
 from .variant_normalization import NormalizationReport, VRSNormalizer
 
 __all__ = [
@@ -193,6 +201,12 @@ __all__ = [
     "CohortQueryBuilder",
     "LocalBackgroundMutationModel",
     "SequenceContextControlMatcher",
+    "AssayEligibilityRouter",
+    "EvidenceGapAnalyzer",
+    "MPRAPlanner",
+    "STARRSeqPlanner",
+    "ValidationPlanBuilder",
+    "ValidationTarget",
     "OutOfDomainDetector",
     "UncertaintyPropagator",
     "NormalizationReport",
