@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from tempfile import TemporaryDirectory
 from typing import Any
 
 from .atlas import AtlasQuery, PublicAtlasRetriever
+from .benchmarks import BenchmarkExample, BenchmarkRunner
 from .causal import CausalLattice
 from .cohort import CohortObservation, RecurrenceModel
 from .control_plane import (
@@ -26,6 +28,8 @@ from .intake import VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
 from .models import (
     AssayType,
+    CandidateElement,
+    CaseManifest,
     Dossier,
     EdgeType,
     EvidenceClaim,
@@ -58,6 +62,10 @@ from .uncertainty import (
     UncertaintyComponent,
     UncertaintyPropagator,
     UncertaintyReport,
+)
+from .validation_controls import (
+    NegativeControlBuilder,
+    ValidationValuePlanner,
 )
 from .validation_design import AssayRouter, DesignStatus, GuideDesigner, PowerPlanner
 
@@ -99,6 +107,9 @@ class ControlPlaneApplication:
         self.recurrence = RecurrenceModel()
         self.causal = CausalLattice()
         self.reclassifier = LifecycleReclassifier()
+        self.negative_controls = NegativeControlBuilder()
+        self.validation_value = ValidationValuePlanner()
+        self.benchmarks = BenchmarkRunner()
         self.review_packets = ReviewPacketBuilder()
         self.calibration = CalibrationEvaluator()
         self.sequence_inference = sequence_inference or SequenceInference()
@@ -164,6 +175,18 @@ class ControlPlaneApplication:
             "Enumerate local NGG guide candidates with unassessed off-target status.",
         )
         self._bind(
+            "A37.publish",
+            self._negative_control,
+            "validation_controls.NegativeControlBuilder",
+            "Select matched control candidates without declaring measured negatives.",
+        )
+        self._bind(
+            "A38.publish",
+            self._benchmark,
+            "benchmarks.BenchmarkRunner",
+            "Run declared fixture benchmarks and retain abstention and review metrics.",
+        )
+        self._bind(
             "A32.publish",
             self._cohort,
             "cohort.RecurrenceModel",
@@ -192,6 +215,12 @@ class ControlPlaneApplication:
             self._report,
             "reports.render_markdown",
             "Render a typed dossier summary while preserving research-use caveats.",
+        )
+        self._bind(
+            "A42.publish",
+            self._validation_value,
+            "validation_controls.ValidationValuePlanner",
+            "Rank validation actions by declared information value, uncertainty, and cost.",
         )
         self._bind(
             "A41.publish",
@@ -847,6 +876,159 @@ class ControlPlaneApplication:
             limitations=(
                 "Rendering preserves research-use status and does not create a release decision.",
             ),
+        )
+
+    def _negative_control(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        target_raw = raw.get("target")
+        pool_raw = raw.get("pool")
+        try:
+            context = self._context_from_payload(raw)
+            if not isinstance(target_raw, Mapping) or not isinstance(pool_raw, (list, tuple)):
+                raise ValidationError(
+                    "negative control construction requires target and pool mappings"
+                )
+            target = CandidateElement.from_dict(target_raw, context)
+            pool = tuple(CandidateElement.from_dict(item, context) for item in pool_raw)
+            result = self.negative_controls.build(
+                target,
+                pool,
+                limit=int(raw.get("limit", 5)),
+                source_id=str(raw.get("source_id", "validation-control-builder")),
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_negative_control_inputs",
+                "negative_controls",
+                str(exc),
+                ("context", "target", "pool"),
+            )
+        state = EvidenceState.SUPPORTED if result.controls else EvidenceState.ABSTAINED
+        return EvidenceEnvelope(
+            evidence_id=f"negative-controls:{result.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Negative-control construction selected {len(result.controls)} "
+                f"unmeasured candidates for {result.target_element_id}."
+            ),
+            payload_hash=result.content_address,
+            source_ids=(result.source_id,),
+            provenance_digest=request.provenance.digest,
+            confidence=1.0 if result.controls else 0.0,
+            limitations=result.warnings
+            + ("Selected candidates remain unsupported until an assay measures them.",),
+        )
+
+    def _benchmark(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        examples_raw = raw.get("examples")
+        benchmark_id = raw.get("benchmark_id")
+        if not isinstance(examples_raw, (list, tuple)) or not isinstance(benchmark_id, str):
+            return Abstention(
+                "missing_benchmark_inputs",
+                "benchmark",
+                "Benchmark execution requires benchmark_id and example mappings.",
+                ("benchmark_id", "examples"),
+            )
+        try:
+            examples = tuple(
+                BenchmarkExample(
+                    example_id=str(item["example_id"]),
+                    manifest=CaseManifest.from_dict(item["manifest"]),
+                    expected_element_id=(
+                        str(item["expected_element_id"])
+                        if item.get("expected_element_id") is not None
+                        else None
+                    ),
+                    expected_gene_id=(
+                        str(item["expected_gene_id"])
+                        if item.get("expected_gene_id") is not None
+                        else None
+                    ),
+                    max_review_candidates=int(item.get("max_review_candidates", 3)),
+                )
+                for item in examples_raw
+                if isinstance(item, Mapping)
+            )
+            if not examples:
+                raise ValidationError("benchmark requires at least one example")
+            with TemporaryDirectory(prefix="glio-benchmark-") as data_root:
+                report = self.benchmarks.run(benchmark_id, examples, data_root=data_root)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_benchmark_inputs",
+                "benchmark",
+                str(exc),
+                ("benchmark_id", "examples"),
+            )
+        payload_hash = content_hash(report.to_dict())
+        return EvidenceEnvelope(
+            evidence_id=f"benchmark:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Benchmark {report.name} evaluated {len(report.examples)} examples with "
+                f"abstention rate {report.abstention_rate:.6f}."
+            ),
+            payload_hash=payload_hash,
+            source_ids=("local-benchmark-runner",),
+            provenance_digest=request.provenance.digest,
+            confidence=1.0,
+            limitations=(
+                "Benchmark metrics are internal research-quality signals, not external validation.",
+            ),
+        )
+
+    def _validation_value(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        options_raw = raw.get("options")
+        uncertainty_raw = raw.get("uncertainty")
+        if not isinstance(options_raw, (list, tuple)) or not isinstance(uncertainty_raw, Mapping):
+            return Abstention(
+                "missing_validation_value_inputs",
+                "validation_value",
+                "Validation value requires experiment options and an uncertainty report.",
+                ("options", "uncertainty"),
+            )
+        try:
+            options = tuple(self._experiment_from_mapping(item) for item in options_raw)
+            uncertainty = self._uncertainty_report_from_mapping(uncertainty_raw)
+            priority_set = self.validation_value.rank(
+                options,
+                uncertainty,
+                budget_class=str(raw.get("budget_class", "medium")),
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_validation_value_inputs",
+                "validation_value",
+                str(exc),
+                ("options", "uncertainty"),
+            )
+        state = EvidenceState.SUPPORTED if priority_set.priorities else EvidenceState.ABSTAINED
+        return EvidenceEnvelope(
+            evidence_id=f"validation-value:{priority_set.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Validation value ranked {len(priority_set.priorities)} actions; "
+                f"top priority is {priority_set.priorities[0].priority:.6f}."
+                if priority_set.priorities
+                else "Validation value produced no actionable options."
+            ),
+            payload_hash=priority_set.content_address,
+            source_ids=("validation-value-planner",),
+            provenance_digest=request.provenance.digest,
+            confidence=0.8 if state == EvidenceState.SUPPORTED else 0.0,
+            limitations=priority_set.warnings
+            + ("Priority is an information-planning aid, not a causal or clinical conclusion.",),
         )
 
     def _cohort(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:

@@ -112,6 +112,11 @@ Validation handlers preserve the boundary between local design and biological
 validity: assay routes remain research options, guide off-target status remains
 `unassessed`, evidence aggregation retains negative and missing claims, and
 report rendering never changes dossier status or creates a release decision.
+The validation-controls module adds matched negative-control candidates and a
+value-of-information ranking that records matching dimensions, cost class,
+uncertainty band, and blockers. A candidate control is always emitted as
+`unsupported` until an assay produces a measurement; selection is never treated
+as a negative result.
 
 Other registered roles remain available for dependency planning and return
 explicit handler-unavailable errors until their domain module is installed;

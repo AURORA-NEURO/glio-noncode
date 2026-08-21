@@ -22,6 +22,10 @@ from .reference_registry import ReferenceProjector, default_reference_registry
 from .runtime import CaseRuntime
 from .sequence_inference import MotifDefinition, SequenceInference
 from .uncertainty import OutOfDomainDetector, UncertaintyPropagator
+from .validation_controls import (
+    NegativeControlBuilder,
+    ValidationValuePlanner,
+)
 from .validation_design import GuideDesigner, PowerPlanner
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
 
@@ -45,7 +49,9 @@ __all__ = [
     "OutOfDomainDetector",
     "UncertaintyPropagator",
     "GuideDesigner",
+    "NegativeControlBuilder",
     "PowerPlanner",
+    "ValidationValuePlanner",
     "default_reference_registry",
     "VariantIdentity",
     "VariantIndex",

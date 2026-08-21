@@ -17,6 +17,7 @@ from glio_noncode.control_plane import (
 from glio_noncode.control_plane_app import ControlPlaneApplication
 from glio_noncode.data_sources import FetchReceipt, FetchStatus, ReferenceBundle, SequenceSlice
 from glio_noncode.models import (
+    CandidateElement,
     EdgeType,
     EvidenceClaim,
     EvidenceState,
@@ -103,7 +104,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 16)
+        self.assertEqual(app.manifest()["binding_count"], 19)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -389,6 +390,75 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         )
         self.assertEqual(report.state, InvocationState.COMPLETED)
         self.assertIn("report rendered", report.response.claim_summary)
+
+        target = CandidateElement(
+            "element-target",
+            "chr7",
+            100,
+            120,
+            "enhancer",
+            dossier.hypotheses[0].context,
+            "fixture-elements",
+            target_genes=("GENE_TARGET",),
+            features={"accessibility": 0.8, "conservation": 0.6},
+        )
+        control = CandidateElement(
+            "element-control",
+            "chr7",
+            300,
+            320,
+            "enhancer",
+            target.context,
+            "fixture-elements",
+            target_genes=("GENE_CONTROL",),
+            features={"accessibility": 0.78, "conservation": 0.59},
+        )
+        controls = app.executor.execute(
+            _request(
+                "A37.publish",
+                {
+                    "context": target.context.to_dict(),
+                    "target": target.to_dict(),
+                    "pool": [control.to_dict()],
+                },
+                "controls-1",
+            )
+        )
+        self.assertEqual(controls.state, InvocationState.COMPLETED)
+        self.assertIn("unmeasured candidates", controls.response.claim_summary)
+
+        benchmark = app.executor.execute(
+            _request(
+                "A38.publish",
+                {
+                    "benchmark_id": "fixture-benchmark",
+                    "examples": [
+                        {
+                            "example_id": "example-1",
+                            "manifest": fixture_manifest().to_dict(),
+                            "expected_element_id": None,
+                            "expected_gene_id": None,
+                        }
+                    ],
+                },
+                "benchmark-1",
+            )
+        )
+        self.assertEqual(benchmark.state, InvocationState.COMPLETED)
+        self.assertIn("evaluated 1 examples", benchmark.response.claim_summary)
+
+        value = app.executor.execute(
+            _request(
+                "A42.publish",
+                {
+                    "options": [option.to_dict() for option in dossier.experiments],
+                    "uncertainty": uncertainty_payload,
+                },
+                "value-1",
+            )
+        )
+        self.assertEqual(value.state, InvocationState.COMPLETED)
+        self.assertIn("Validation value ranked", value.response.claim_summary)
 
     def test_lifecycle_binding_returns_plan_without_adjudicating(self) -> None:
         with TemporaryDirectory() as directory:
