@@ -46,6 +46,7 @@ from .topology_context import (
     TopologyAssay,
 )
 from .variant_normalization import VRSNormalizer
+from .workspace import CaseWorkspaceBuilder, RegulatoryTrackBrowser
 
 
 def _read_json(path: str) -> dict[str, Any]:
@@ -120,6 +121,24 @@ def build_parser() -> argparse.ArgumentParser:
     evidence_graph.add_argument("--context-key", required=True)
     evidence_graph.add_argument("--graph-id", default="evidence-graph")
     evidence_graph.add_argument("--output", default=None)
+
+    workspace_case = subparsers.add_parser(
+        "workspace-case", help="build a deterministic case research workspace"
+    )
+    workspace_case.add_argument("manifest", type=str)
+    workspace_case.add_argument("--output", default=None)
+
+    workspace_track = subparsers.add_parser(
+        "workspace-track", help="build an exact-context regulatory track workspace"
+    )
+    workspace_track.add_argument("input", type=str)
+    workspace_track.add_argument("--context-key", required=True)
+    workspace_track.add_argument("--source-id", default=None)
+    workspace_track.add_argument(
+        "--format", choices=[item.value for item in RegulatoryTrackFormat], default=None
+    )
+    workspace_track.add_argument("--genome-build", default="GRCh38")
+    workspace_track.add_argument("--output", default=None)
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
     intake.add_argument("input", type=str)
@@ -325,6 +344,21 @@ def main(argv: list[str] | None = None) -> int:
                 context_key=args.context_key,
             )
             _write_json(EvidenceDossierPublisher().publish(graph).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-case":
+            manifest = CaseManifest.from_dict(_read_json(args.manifest))
+            _write_json(CaseWorkspaceBuilder().build(manifest).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-track":
+            input_path = Path(args.input)
+            batch = RegulatoryTrackParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                genome_build=args.genome_build,
+                input_format=args.format,
+            )
+            workspace = RegulatoryTrackBrowser().build(batch, context_key=args.context_key)
+            _write_json(workspace.to_dict(), args.output)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)

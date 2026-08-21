@@ -130,6 +130,22 @@ from .validation_planning import (
     ValidationTarget,
 )
 from .variant_normalization import NormalizationReport, VRSNormalizer
+from .workspace import (
+    CaseWorkspaceBuilder,
+    CohortWorkspaceBuilder,
+    RegulatoryTrackBrowser,
+    ResearchWorkspace,
+    VariantDetail,
+    VariantExplorer,
+    WorkspaceBrowser,
+    WorkspaceKind,
+    WorkspacePage,
+    WorkspaceQuery,
+    WorkspaceRecord,
+    WorkspaceRecordType,
+    WorkspaceSection,
+    WorkspaceState,
+)
 
 __all__ = [
     "CaseManifest",
@@ -248,6 +264,20 @@ __all__ = [
     "ReviewPacketBuilder",
     "default_control_plane_registry",
     "default_capability_registry",
+    "CaseWorkspaceBuilder",
+    "CohortWorkspaceBuilder",
+    "RegulatoryTrackBrowser",
+    "ResearchWorkspace",
+    "VariantDetail",
+    "VariantExplorer",
+    "WorkspaceBrowser",
+    "WorkspaceKind",
+    "WorkspacePage",
+    "WorkspaceQuery",
+    "WorkspaceRecord",
+    "WorkspaceRecordType",
+    "WorkspaceSection",
+    "WorkspaceState",
 ]
 
 __version__ = "0.1.0"

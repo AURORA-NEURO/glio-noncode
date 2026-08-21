@@ -950,5 +950,48 @@ def default_capability_registry() -> CapabilityRegistry:
                     "adjudication benchmarks and calibrated disagreement metrics remain."
                 ),
             },
+            "GNC-D15-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace.CaseWorkspaceBuilder",
+                    "glio_noncode.workspace.WorkspaceBrowser",
+                ),
+                "test_modules": ("tests.test_workspace", "tests.test_cli_api"),
+                "evidence_note": (
+                    "Case workspaces expose immutable variant, element, hypothesis, evidence, "
+                    "and validation sections with exact context, facets, pagination, and research "
+                    "limitations; UI rendering and accessibility conformance remain."
+                ),
+            },
+            "GNC-D15-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.workspace.CohortWorkspaceBuilder",),
+                "test_modules": ("tests.test_workspace",),
+                "evidence_note": (
+                    "Cohort workspaces retain selected records, callable/background summaries, "
+                    "and control candidates as separate filterable records; cohort-scale rendering "
+                    "and performance benchmarks remain."
+                ),
+            },
+            "GNC-D15-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.workspace.VariantExplorer",),
+                "test_modules": ("tests.test_workspace",),
+                "evidence_note": (
+                    "Variant detail resolution keeps exact context, declared related records, "
+                    "absent variants, and out-of-domain requests explicit; multi-view interaction "
+                    "and external usability evaluation remain."
+                ),
+            },
+            "GNC-D15-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.workspace.RegulatoryTrackBrowser",),
+                "test_modules": ("tests.test_workspace", "tests.test_cli_api"),
+                "evidence_note": (
+                    "Regulatory tracks become interval-searchable records with source IDs, row "
+                    "hashes, coordinate overlap, facets, and exact-context out-of-domain behavior; "
+                    "large-track rendering and accessibility tests remain."
+                ),
+            },
         }
     )

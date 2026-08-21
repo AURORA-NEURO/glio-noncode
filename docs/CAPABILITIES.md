@@ -271,3 +271,29 @@ The lifecycle boundaries are:
 glio-noncode parse-citations citations.tsv --source-id source-1 --source-version v1 --output citations.json
 glio-noncode evidence-graph graph-input.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output dossier.json
 ```
+
+## Domain 15 research workspaces
+
+The workspace plane is a deterministic read model for future CLI, API,
+notebook, or graphical clients. Immutable records carry typed section identity,
+exact reference context, source IDs, coordinates, tags, searchable fields, and
+research state. Bounded queries support text search, chromosome/interval
+overlap, source and state filters, tag conjunctions, pagination, facets, and a
+command-palette surface. A context mismatch returns out-of-domain rather than
+transporting records silently.
+
+Case workspaces expose manifest variants and candidate regulatory elements, and
+optionally add dossier hypotheses, evidence claims, and validation routes.
+Cohort workspaces keep selected records, local callable/background summaries,
+and matched controls in separate sections. The variant explorer resolves a
+single variant and only declared relationships. The regulatory track browser
+turns parsed intervals into source-accounted overlap-searchable records while
+keeping parse issues and the annotation-only limitation visible.
+
+These are research navigation artifacts. They do not infer activity, causality,
+diagnosis, prognosis, actionability, or treatment.
+
+```powershell
+glio-noncode workspace-case manifest.json --output case-workspace.json
+glio-noncode workspace-track regulatory.bed --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output track-workspace.json
+```

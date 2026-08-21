@@ -353,6 +353,63 @@ class CliApiTests(unittest.TestCase):
             self.assertEqual(dossier["release_state"], "review_required")
             self.assertTrue(dossier["integrity_digest"].startswith("sha256:"))
 
+    def test_workspace_commands_write_case_and_track_views(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            manifest = Path(directory) / "manifest.json"
+            track = Path(directory) / "track.bed"
+            manifest_output = Path(directory) / "workspace.json"
+            track_output = Path(directory) / "track-workspace.json"
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "case_id": "case-cli",
+                        "subject_id": "subject-cli",
+                        "context": {
+                            "genome_build": "GRCh38",
+                            "disease_class": "glioma",
+                            "age_group": "adult",
+                            "cell_state": "stem_like",
+                        },
+                        "variants": [
+                            {
+                                "variant_id": "v1",
+                                "kind": "snv",
+                                "chromosome": "7",
+                                "start": 100,
+                                "end": 100,
+                                "reference": "A",
+                                "alternate": "T",
+                                "genome_build": "GRCh38",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            track.write_text("7\t99\t120\treg-1\t800\t+\n", encoding="utf-8")
+            self.assertEqual(
+                main(["workspace-case", str(manifest), "--output", str(manifest_output)]), 0
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "workspace-track",
+                        str(track),
+                        "--context-key",
+                        "GRCh38|glioma|adult|stem_like|unknown|unknown",
+                        "--output",
+                        str(track_output),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(manifest_output.read_text(encoding="utf-8"))["kind"], "case"
+            )
+            self.assertEqual(
+                len(json.loads(track_output.read_text(encoding="utf-8"))["records"]), 1
+            )
+
     def test_cohort_query_command_writes_context_selection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "cohort.json"
