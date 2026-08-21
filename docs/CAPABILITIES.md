@@ -163,3 +163,26 @@ The parser boundaries are:
 glio-noncode parse-contacts contacts.tsv --assay hi-c --output contacts.json
 glio-noncode parse-boundaries boundaries.tsv --assay micro-c --output boundaries.json
 ```
+
+## Domain 10 candidate link graph
+
+The link plane produces context-qualified candidate relationships among
+variants, regulatory elements, and genes. Coordinate-overlap links require
+exact element context. Gene intervals are imported with source receipts and
+support a nearest-gene baseline that retains distance ties and can abstain
+outside a declared distance window. Neither overlap nor proximity is treated
+as a regulatory mechanism.
+
+cCRE assignment retains every overlapping context-matched element and exposes
+one-to-many ambiguity. Enhancer-gene consensus groups method-specific evidence
+by variant, element, and gene, reports confidence-weighted support, keeps
+alternative genes, and marks single-method evidence partial. Contradictory
+evidence is not averaged away, and context-mismatched evidence is not
+transported. Candidate graphs are research evidence structures, not causal,
+clinical, pathogenicity, or actionability claims.
+
+The gene-source boundary is:
+
+```powershell
+glio-noncode parse-genes genes.tsv --output genes.json
+```

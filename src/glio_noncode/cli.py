@@ -18,6 +18,7 @@ from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
 from .intake import IntakeFormat, VariantIntake
+from .link_graph import GeneFeatureParser
 from .models import CaseManifest
 from .reference_registry import default_reference_registry
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
@@ -199,6 +200,15 @@ def build_parser() -> argparse.ArgumentParser:
     boundaries.add_argument("--format", choices=("tsv", "json"), default=None)
     boundaries.add_argument("--output", default=None)
 
+    genes = subparsers.add_parser(
+        "parse-genes", help="parse context-qualified gene intervals for link baselines"
+    )
+    genes.add_argument("input", type=str)
+    genes.add_argument("--source-id", default=None)
+    genes.add_argument("--format", choices=("tsv", "json"), default=None)
+    genes.add_argument("--genome-build", default="GRCh38")
+    genes.add_argument("--output", default=None)
+
     encode_sequence = subparsers.add_parser(
         "encode-sequence", help="emit deterministic sequence context features"
     )
@@ -356,6 +366,16 @@ def main(argv: list[str] | None = None) -> int:
                 source_id=args.source_id or input_path.stem,
                 assay=args.assay,
                 input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-genes":
+            input_path = Path(args.input)
+            result = GeneFeatureParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                input_format=args.format,
+                default_genome_build=args.genome_build,
             )
             _write_json(result.to_dict(), args.output)
             return 0

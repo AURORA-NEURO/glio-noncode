@@ -221,6 +221,22 @@ class CliApiTests(unittest.TestCase):
                 "micro-c",
             )
 
+    def test_parse_genes_command_writes_link_baseline_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "genes.tsv"
+            output = Path(directory) / "genes.json"
+            source.write_text(
+                "gene_id\tsymbol\tchromosome\tstart\tend\tcontext\n"
+                "g1\tGENE1\t7\t199\t300\tGRCh38|glioma|adult|stem_like|unknown|unknown\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(["parse-genes", str(source), "--output", str(output)]), 0
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["genes"][0]["gene_id"], "g1")
+            self.assertEqual(payload["genes"][0]["start"], 200)
+
     def test_sequence_adapter_commands_write_typed_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             sequence_output = Path(directory) / "sequence.json"

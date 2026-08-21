@@ -716,5 +716,49 @@ def default_capability_registry() -> CapabilityRegistry:
                     "external benchmark calibration remains."
                 ),
             },
+            "GNC-D10-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.link_graph.CoordinateOverlapLinker",),
+                "test_modules": ("tests.test_link_graph",),
+                "evidence_note": (
+                    "Coordinate-overlap candidates require exact element context and preserve "
+                    "source IDs, alternatives, out-of-domain overlap, and baseline limitations; "
+                    "external benchmark, calibration, transport, and OOD evaluation remain."
+                ),
+            },
+            "GNC-D10-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph.GeneFeatureParser",
+                    "glio_noncode.link_graph.NearestGeneBaseline",
+                ),
+                "test_modules": ("tests.test_link_graph",),
+                "evidence_note": (
+                    "Gene intervals preserve coordinate conversion, source checksums, malformed "
+                    "rows, nearest distance, ties, and distance-window abstention; nearest-gene "
+                    "assignment is not presented as a mechanism."
+                ),
+            },
+            "GNC-D10-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.link_graph.CcreElementAssigner",),
+                "test_modules": ("tests.test_link_graph",),
+                "evidence_note": (
+                    "cCRE assignments retain every context-matched overlapping element and report "
+                    "one-to-many ambiguity or context transport without silently selecting an ID."
+                ),
+            },
+            "GNC-D10-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph.EnhancerGeneConsensusLinker",
+                ),
+                "test_modules": ("tests.test_link_graph",),
+                "evidence_note": (
+                    "Enhancer-gene consensus retains method-specific evidence, confidence-weighted "
+                    "support, alternatives, single-method partial status, and contradictions; "
+                    "consensus is not a causal or clinical conclusion."
+                ),
+            },
         }
     )

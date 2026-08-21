@@ -34,6 +34,13 @@ from .inference_extensions import InferenceExtensionSuite
 from .intake import VariantIndex, VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
 from .lineage import LineageResolver
+from .link_graph import (
+    CcreElementAssigner,
+    CoordinateOverlapLinker,
+    EnhancerGeneConsensusLinker,
+    GeneFeatureParser,
+    NearestGeneBaseline,
+)
 from .models import (
     CaseManifest,
     Dossier,
@@ -157,6 +164,11 @@ __all__ = [
     "MatchedNormalResolver",
     "PurityPloidyImporter",
     "SpecimenOntologyMapper",
+    "CcreElementAssigner",
+    "CoordinateOverlapLinker",
+    "EnhancerGeneConsensusLinker",
+    "GeneFeatureParser",
+    "NearestGeneBaseline",
     "OutOfDomainDetector",
     "UncertaintyPropagator",
     "NormalizationReport",
