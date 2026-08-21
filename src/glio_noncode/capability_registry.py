@@ -2634,5 +2634,57 @@ def default_capability_registry() -> CapabilityRegistry:
                     "and signed adjudication remain."
                 ),
             },
+            "GNC-D16-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.platform_alpha.EventSourcedExecutionLedger",
+                    "glio_noncode.platform_alpha.ExecutionLedger",
+                ),
+                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "evidence_note": (
+                    "Execution ledgers enforce typed event transitions, contiguous sequence, "
+                    "execution and context identity, duplicate detection, replay, terminal-state "
+                    "receipts, and retained transition issues without asserting scientific success."
+                ),
+            },
+            "GNC-D16-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.platform_alpha.ModelRegistry",
+                    "glio_noncode.platform_alpha.ModelRegistrySnapshot",
+                ),
+                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "evidence_note": (
+                    "Model registry resolution preserves artifact digest, version, input/output "
+                    "contracts, exact-context support, status, license, evaluation receipts, and "
+                    "explicit compatibility blockers; it does not validate model performance."
+                ),
+            },
+            "GNC-D16-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.platform_alpha.DataReferenceRegistry",
+                    "glio_noncode.platform_alpha.DataReferenceRegistrySnapshot",
+                ),
+                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "evidence_note": (
+                    "Data/reference registry resolution retains URI, checksum, schema, coordinate "
+                    "system, context, license, retrieval, source, and lifecycle receipts while "
+                    "blocking unsupported or unavailable combinations."
+                ),
+            },
+            "GNC-D16-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.platform_alpha.DriftAndOODMonitor",
+                    "glio_noncode.platform_alpha.DriftMonitorReport",
+                ),
+                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "evidence_note": (
+                    "Drift and OOD monitoring computes declared mean-delta, PSI, KS-proxy, or "
+                    "missingness signals with watch/drift thresholds, support boundaries, source "
+                    "receipts, and review states; it is not a model-failure or clinical conclusion."
+                ),
+            },
         }
     )

@@ -1087,6 +1087,31 @@ glio-noncode route-fallback fallback.json --output fallback-route.json
 glio-noncode queue-human-review review-items.json --roles domain_expert statistical_review --output review-queue.json
 ```
 
+The Domain 16 external-alpha runtime controls add four inspectable registry
+and quality surfaces:
+
+- `EventSourcedExecutionLedger` replays typed requested, planned, admitted,
+  started, checkpoint, completed, failed, rejected, and cancelled events with
+  contiguous sequence and transition checks.
+- `ModelRegistry` resolves versioned artifacts against exact context,
+  input/output contracts, lifecycle status, license, source, and evaluation
+  receipts, retaining compatibility blockers.
+- `DataReferenceRegistry` resolves versioned data and reference records while
+  preserving URI, checksum, schema, coordinate system, license, retrieval,
+  context, and lifecycle gates.
+- `DriftAndOODMonitor` computes declared mean-delta, PSI, KS-proxy, or
+  missingness signals with watch/drift thresholds and explicit support-boundary
+  states. These are monitoring signals, not model-failure findings.
+
+The external-alpha command boundaries are:
+
+```powershell
+glio-noncode replay-execution-ledger execution-events.json --execution-id execution-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output execution-ledger.json
+glio-noncode resolve-model-registry models.json --model-id model-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output model-resolution.json
+glio-noncode resolve-data-reference references.json --dataset-id reference-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output reference-resolution.json
+glio-noncode monitor-drift drift-observations.json --monitor-id monitor-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output drift-report.json
+```
+
 This runtime is for bounded research orchestration. It does not authorize a
 clinical claim, treatment decision, or release beyond the existing review and
 research-use policy.

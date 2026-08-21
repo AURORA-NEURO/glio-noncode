@@ -150,6 +150,12 @@ from .methylation_beta import (
 )
 from .mission_runtime import MissionPlanBuilder, MissionRequest
 from .models import CaseManifest, ReferenceContext, VariantIdentity
+from .platform_alpha import (
+    DataReferenceRegistry,
+    DriftAndOODMonitor,
+    EventSourcedExecutionLedger,
+    ModelRegistry,
+)
 from .reference_alpha import (
     GeneAliasVersionResolver,
     LicenseUseRestrictionRegistry,
@@ -2074,6 +2080,48 @@ def build_parser() -> argparse.ArgumentParser:
     collaboration.add_argument("--context-key", required=True)
     collaboration.add_argument("--output", default=None)
 
+    ledger = subparsers.add_parser(
+        "replay-execution-ledger",
+        help="replay typed append-only execution events",
+    )
+    ledger.add_argument("input", type=str)
+    ledger.add_argument("--execution-id", required=True)
+    ledger.add_argument("--context-key", required=True)
+    ledger.add_argument("--output", default=None)
+
+    model_resolve = subparsers.add_parser(
+        "resolve-model-registry",
+        help="resolve a versioned model against context and contracts",
+    )
+    model_resolve.add_argument("input", type=str)
+    model_resolve.add_argument("--model-id", required=True)
+    model_resolve.add_argument("--version", default=None)
+    model_resolve.add_argument("--context-key", required=True)
+    model_resolve.add_argument("--input-contract", default=None)
+    model_resolve.add_argument("--output-contract", default=None)
+    model_resolve.add_argument("--output", default=None)
+
+    data_resolve = subparsers.add_parser(
+        "resolve-data-reference",
+        help="resolve a versioned data/reference record",
+    )
+    data_resolve.add_argument("input", type=str)
+    data_resolve.add_argument("--dataset-id", required=True)
+    data_resolve.add_argument("--version", default=None)
+    data_resolve.add_argument("--context-key", required=True)
+    data_resolve.add_argument("--coordinate-system", default=None)
+    data_resolve.add_argument("--license-id", default=None)
+    data_resolve.add_argument("--output", default=None)
+
+    drift = subparsers.add_parser(
+        "monitor-drift",
+        help="evaluate declared drift and out-of-domain monitor observations",
+    )
+    drift.add_argument("input", type=str)
+    drift.add_argument("--monitor-id", required=True)
+    drift.add_argument("--context-key", required=True)
+    drift.add_argument("--output", default=None)
+
     tier_adjudication = subparsers.add_parser(
         "adjudicate-evidence-tier",
         help="adjudicate declared evidence tiers without erasing alternatives",
@@ -3636,6 +3684,48 @@ def main(argv: list[str] | None = None) -> int:
                 payload.get("members", payload.get("roster", ())),
                 payload.get("requests", payload.get("access_requests", ())),
                 workspace_id=args.workspace_id,
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "replay-execution-ledger":
+            result = EventSourcedExecutionLedger().replay(
+                _read_rows(args.input, "events", "records"),
+                execution_id=args.execution_id,
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "resolve-model-registry":
+            payload = _read_json(args.input)
+            result = ModelRegistry.from_mappings(
+                payload.get("records", payload.get("models", ()))
+            ).snapshot.resolve(
+                args.model_id,
+                context_key=args.context_key,
+                version=args.version,
+                input_contract=args.input_contract,
+                output_contract=args.output_contract,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "resolve-data-reference":
+            payload = _read_json(args.input)
+            result = DataReferenceRegistry.from_mappings(
+                payload.get("records", payload.get("references", ()))
+            ).snapshot.resolve(
+                args.dataset_id,
+                context_key=args.context_key,
+                version=args.version,
+                coordinate_system=args.coordinate_system,
+                license_id=args.license_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "monitor-drift":
+            result = DriftAndOODMonitor().evaluate(
+                _read_rows(args.input, "observations", "records", "drift"),
+                monitor_id=args.monitor_id,
                 context_key=args.context_key,
             )
             _write_json(result.to_dict(), args.output)
