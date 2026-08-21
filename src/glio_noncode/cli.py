@@ -46,6 +46,13 @@ from .topology_context import (
     TadBoundaryParser,
     TopologyAssay,
 )
+from .variant_beta import (
+    CategoricalCatalogParser,
+    CatVRSNormalizer,
+    MultiAllelicDecomposer,
+    RepeatAwareNormalizer,
+    VAAnnotationEnvelopeBuilder,
+)
 from .variant_normalization import VRSNormalizer
 from .workspace import CaseWorkspaceBuilder, RegulatoryTrackBrowser
 
@@ -174,6 +181,48 @@ def build_parser() -> argparse.ArgumentParser:
     normalize.add_argument("--reference-sequence", default=None)
     normalize.add_argument("--reference-start", type=int, default=None)
     normalize.add_argument("--output", default=None)
+
+    normalize_categorical = subparsers.add_parser(
+        "normalize-categorical",
+        help="normalize a declared categorical variation against a versioned catalog",
+    )
+    normalize_categorical.add_argument("input", type=str)
+    normalize_categorical.add_argument("--catalog", default=None)
+    normalize_categorical.add_argument("--source-id", default=None)
+    normalize_categorical.add_argument("--source-version", default="unspecified")
+    normalize_categorical.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
+    normalize_categorical.add_argument("--output", default=None)
+
+    annotation = subparsers.add_parser(
+        "build-annotation",
+        help="build a provenance-complete VA-Spec-shaped annotation envelope",
+    )
+    annotation.add_argument("input", type=str)
+    annotation.add_argument("--context-key", required=True)
+    annotation.add_argument("--annotation-id", default=None)
+    annotation.add_argument("--profile", default="glio-noncode.research.statement")
+    annotation.add_argument("--specification-version", default="1.0-shaped")
+    annotation.add_argument("--output", default=None)
+
+    decompose = subparsers.add_parser(
+        "decompose-multiallelic",
+        help="split a multi-allelic record while retaining parent lineage and genotype projections",
+    )
+    decompose.add_argument("input", type=str)
+    decompose.add_argument("--source-id", default="multiallelic-cli")
+    decompose.add_argument("--source-version", default="unspecified")
+    decompose.add_argument("--genome-build", default="GRCh38")
+    decompose.add_argument("--output", default=None)
+
+    repeat = subparsers.add_parser(
+        "normalize-repeat",
+        help="enumerate locally equivalent literal indel placements by sequence replay",
+    )
+    repeat.add_argument("input", type=str)
+    repeat.add_argument("--reference-start", type=int, default=None)
+    repeat.add_argument("--max-shift-bp", type=int, default=50)
+    repeat.add_argument("--genome-build", default="GRCh38")
+    repeat.add_argument("--output", default=None)
 
     sv_consensus = subparsers.add_parser(
         "sv-consensus", help="import and reconcile multi-caller structural observations"
@@ -440,6 +489,65 @@ def main(argv: list[str] | None = None) -> int:
                 reference_start=args.reference_start,
             )
             _write_json(report.to_dict(), args.output)
+            return 0
+        if args.command == "normalize-categorical":
+            payload = _read_json(args.input)
+            if args.catalog:
+                catalog_path = Path(args.catalog)
+                batch = CategoricalCatalogParser().parse_text(
+                    catalog_path.read_text(encoding="utf-8"),
+                    source_id=args.source_id or catalog_path.stem,
+                    source_version=args.source_version,
+                    input_format=args.format,
+                )
+                report = CatVRSNormalizer(batch.definitions).normalize(payload)
+                _write_json(
+                    {"catalog": batch.to_dict(), "normalization": report.to_dict()},
+                    args.output,
+                )
+            else:
+                _write_json(CatVRSNormalizer().normalize(payload).to_dict(), args.output)
+            return 0
+        if args.command == "build-annotation":
+            payload = _read_json(args.input)
+            builder = VAAnnotationEnvelopeBuilder()
+            envelope = builder.build_from_mappings(
+                str(args.annotation_id or payload.get("annotation_id", "annotation-cli")),
+                dict(payload.get("subject", {})),
+                payload.get("statements", ()),
+                payload.get("evidence_lines", payload.get("evidence", ())),
+                context_key=args.context_key,
+                profile=args.profile,
+                specification_version=args.specification_version,
+            )
+            _write_json(envelope.to_dict(), args.output)
+            return 0
+        if args.command == "decompose-multiallelic":
+            result = MultiAllelicDecomposer().decompose(
+                _read_json(args.input),
+                genome_build=args.genome_build,
+                source_id=args.source_id,
+                source_version=args.source_version,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "normalize-repeat":
+            payload = _read_json(args.input)
+            reference_start = args.reference_start
+            if reference_start is None:
+                reference_start = int(payload.get("reference_start", 0))
+            if not reference_start:
+                raise ValueError("normalize-repeat requires reference_start")
+            if "reference_sequence" not in payload:
+                raise ValueError("normalize-repeat requires reference_sequence")
+            result = RepeatAwareNormalizer().normalize(
+                payload.get("variant", payload),
+                reference_sequence=str(payload["reference_sequence"]),
+                reference_start=reference_start,
+                max_shift_bp=args.max_shift_bp,
+                genome_build=args.genome_build,
+            )
+            _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "sv-consensus":
             input_path = Path(args.input)

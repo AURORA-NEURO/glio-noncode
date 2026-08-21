@@ -359,6 +359,53 @@ def default_capability_registry() -> CapabilityRegistry:
                     "truth sets remain to be built."
                 ),
             },
+            "GNC-D01-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.variant_beta.CategoricalCatalogParser",
+                    "glio_noncode.variant_beta.CatVRSNormalizer",
+                ),
+                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "evidence_note": (
+                    "Versioned JSON/TSV/CSV categorical catalogs retain malformed rows and "
+                    "support exact declared category, alias, ontology-term, and member-ID "
+                    "matching; label-only scientific inference and external Cat-VRS schema "
+                    "validation remain out of scope."
+                ),
+            },
+            "GNC-D01-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.variant_beta.AnnotationStatement",
+                    "glio_noncode.variant_beta.VAAnnotationEnvelopeBuilder",
+                ),
+                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "evidence_note": (
+                    "Statement/evidence envelopes retain provenance, context, subject scope, "
+                    "missing references, and contradictory supported values without averaging; "
+                    "external VA-Spec profile/schema validation remains a release gate."
+                ),
+            },
+            "GNC-D01-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.variant_beta.MultiAllelicDecomposer",),
+                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "evidence_note": (
+                    "Literal alternate alleles become indexed child identities with parent raw "
+                    "hashes, source versions, and allele-specific genotype projections; symbolic "
+                    "structural forms abstain and phasing is never inferred."
+                ),
+            },
+            "GNC-D01-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.variant_beta.RepeatAwareNormalizer",),
+                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "evidence_note": (
+                    "Literal SNVs and indels are replayed against a supplied local reference "
+                    "window to enumerate equivalent placements and expose ambiguity; global "
+                    "repeat truth sets, RefGet equivalence, and structural normalization remain."
+                ),
+            },
             "GNC-D02-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

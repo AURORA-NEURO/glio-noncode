@@ -54,6 +54,37 @@ glio-noncode parse-track regulatory.bed --output track.json
 glio-noncode normalize 7:140453136:A>T --genome-build GRCh38
 ```
 
+The Domain 01 beta extensions deepen the variation contract without silently
+coercing unresolved data:
+
+- Cat-VRS-shaped categorical definitions can be loaded from versioned JSON,
+  TSV, or CSV catalogs. Matching is limited to declared category IDs, aliases,
+  ontology terms, and member variation IDs; a scientific label by itself never
+  creates membership. The shape follows the [GA4GH Cat-VRS project](https://github.com/ga4gh/cat-vrs),
+  while external schema validation remains a release gate.
+- VA-Spec-shaped annotation envelopes retain subject, context, method,
+  statement, evidence-line, source-version, and raw-hash provenance. Missing
+  evidence, subject/context mismatch, and conflicting supported values are
+  explicit states. The shape follows [GA4GH VA-Spec](https://va-spec.ga4gh.org/en/latest/core-information-model/index.html)
+  and is not a clinical interpretation.
+- Literal multi-allelic records become indexed child identities that retain the
+  parent input hash, source version, original alternate, and allele-specific
+  genotype projection. Symbolic structural alternates abstain and phasing is
+  never inferred.
+- Literal SNVs and indels can be replayed against a supplied local reference
+  window to enumerate equivalent placements in homopolymers and short repeats.
+  Reference mismatches, unsupported classes, and window limits abstain; global
+  repeat equivalence is not claimed.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode normalize-categorical variant.json --catalog categories.tsv --output category.json
+glio-noncode build-annotation annotation.json --context-key "GRCh38|glioma|adult|unknown|unknown|unknown" --output annotation.json
+glio-noncode decompose-multiallelic multiallelic.json --output alleles.json
+glio-noncode normalize-repeat repeat.json --output repeat.json
+```
+
 Every future capability wave must add implementation modules, fixtures,
 negative or abstention cases, and review-facing evidence before its ledger
 state is advanced.
