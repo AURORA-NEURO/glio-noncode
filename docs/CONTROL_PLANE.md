@@ -96,7 +96,9 @@ variants, measurements, statistical results, posterior values, or citations.
 publication tools: mission planning (`A01`), VCF/TSV/JSON intake (`A07`),
 identity normalization (`A08`), public atlas retrieval (`A15`), sequence
 inference (`A23`), uncertainty/OOD aggregation (`A36`), power planning (`A41`),
-human-review abstention (`A45`), and drift monitoring (`A47`).
+cohort recurrence (`A32`), causal lattice assembly (`A34`), power planning
+(`A41`), human-review abstention (`A45`), lifecycle reclassification (`A46`),
+and drift monitoring (`A47`).
 
 Atlas execution has an additional runtime boundary because the current
 publication handler can invoke the public adapters: the mission must set

@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from .atlas import AtlasQuery, PublicAtlasRetriever
+from .causal import CausalLattice
+from .cohort import CohortObservation, RecurrenceModel
 from .control_plane import (
     Abstention,
     ControlPlaneExecutor,
@@ -20,8 +22,23 @@ from .data_sources import FetchReceipt, FetchStatus, SequenceSlice
 from .errors import ValidationError
 from .identity import normalize_variant, parse_variant
 from .intake import VariantIntake
-from .lifecycle import DriftMonitor, ReviewPacketBuilder
-from .models import EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext
+from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
+from .models import (
+    AssayType,
+    Dossier,
+    EdgeType,
+    EvidenceClaim,
+    EvidenceState,
+    EvidenceTier,
+    ExperimentOption,
+    Hypothesis,
+    HypothesisEdge,
+    ReferenceContext,
+    ResearchStatus,
+    ReviewDecision,
+    ReviewState,
+    SupportLevel,
+)
 from .sequence_inference import (
     MotifDefinition,
     SequenceAnalysisResult,
@@ -73,6 +90,9 @@ class ControlPlaneApplication:
         self.planner = MissionPlanner(self.executor.registry)
         self.power = PowerPlanner()
         self.drift = DriftMonitor()
+        self.recurrence = RecurrenceModel()
+        self.causal = CausalLattice()
+        self.reclassifier = LifecycleReclassifier()
         self.review_packets = ReviewPacketBuilder()
         self.calibration = CalibrationEvaluator()
         self.sequence_inference = sequence_inference or SequenceInference()
@@ -124,6 +144,24 @@ class ControlPlaneApplication:
             self._uncertainty,
             "uncertainty.UncertaintyPropagator",
             "Aggregate typed uncertainty components and optional domain assessment.",
+        )
+        self._bind(
+            "A32.publish",
+            self._cohort,
+            "cohort.RecurrenceModel",
+            "Estimate recurrence against a declared callable matched cohort.",
+        )
+        self._bind(
+            "A34.publish",
+            self._causal,
+            "causal.CausalLattice",
+            "Assemble factorized causal path support and edge sensitivity.",
+        )
+        self._bind(
+            "A46.publish",
+            self._reclassify,
+            "lifecycle.LifecycleReclassifier",
+            "Compare immutable dossier snapshots and emit a review-aware plan.",
         )
         self._bind(
             "A41.publish",
@@ -544,6 +582,257 @@ class ControlPlaneApplication:
                 str(raw["model_digest"]) if raw.get("model_digest") is not None else None
             ),
             watch_threshold=float(raw.get("watch_threshold", 0.15)),
+        )
+
+    def _cohort(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        observations_raw = raw.get("observations")
+        locus_id = raw.get("locus_id")
+        if not isinstance(observations_raw, (list, tuple)) or not isinstance(locus_id, str):
+            return Abstention(
+                "missing_cohort_payload",
+                "cohort_recurrence",
+                "Cohort recurrence requires observations and a locus_id.",
+                ("observations", "locus_id"),
+            )
+        try:
+            observations = tuple(self._cohort_observation(item) for item in observations_raw)
+            result = self.recurrence.evaluate(observations, locus_id)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_cohort_payload",
+                "cohort_recurrence",
+                str(exc),
+                ("observations", "locus_id"),
+            )
+        payload_hash = content_hash(result.to_dict())
+        return EvidenceEnvelope(
+            evidence_id=f"cohort:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED if result.callable_count else EvidenceState.ABSTAINED,
+            tier=EvidenceTier.COHORT,
+            claim_summary=(
+                f"Cohort recurrence for {result.locus_id} observed "
+                f"{result.observed_count} mutations in {result.callable_count} callable rows."
+            ),
+            payload_hash=payload_hash,
+            source_ids=(str(raw.get("source_id", "declared-cohort")),),
+            provenance_digest=request.provenance.digest,
+            confidence=round(max(0.0, 1.0 - result.uncertainty), 6),
+            limitations=result.limitations + result.matched_control.warnings,
+        )
+
+    @staticmethod
+    def _cohort_observation(raw: object) -> CohortObservation:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("each cohort observation must be a mapping")
+        context_raw = raw.get("context")
+        if not isinstance(context_raw, Mapping):
+            raise ValidationError("each cohort observation requires a context mapping")
+        return CohortObservation(
+            observation_id=str(raw["observation_id"]),
+            subject_id=str(raw["subject_id"]),
+            locus_id=str(raw["locus_id"]),
+            mutated=bool(raw["mutated"]),
+            callable=bool(raw["callable"]),
+            mutability_score=float(raw["mutability_score"]),
+            chromatin_score=float(raw["chromatin_score"]),
+            ancestry_group=str(raw["ancestry_group"]),
+            disease_class=str(raw["disease_class"]),
+            context=ReferenceContext.from_dict(context_raw),
+        )
+
+    def _causal(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        path_id = raw.get("path_id")
+        edges_raw = raw.get("edges")
+        if not isinstance(path_id, str) or not isinstance(edges_raw, (list, tuple)):
+            return Abstention(
+                "missing_causal_payload",
+                "causal_lattice",
+                "Causal lattice assembly requires path_id and edge mappings.",
+                ("path_id", "edges"),
+            )
+        try:
+            edges = tuple(self._hypothesis_edge(item) for item in edges_raw)
+            summary = self.causal.summarize(
+                path_id,
+                edges,
+                alternatives=tuple(str(item) for item in raw.get("alternatives", ())),
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_causal_payload",
+                "causal_lattice",
+                str(exc),
+                ("path_id", "edges"),
+            )
+        payload_hash = content_hash(summary.to_dict())
+        return EvidenceEnvelope(
+            evidence_id=f"causal:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Causal path {summary.path_id} has support {summary.support:.6f}; "
+                f"weakest edge is {summary.weakest_edge_id}."
+            ),
+            payload_hash=payload_hash,
+            source_ids=tuple(sorted({edge.source_id for edge in edges})),
+            provenance_digest=request.provenance.digest,
+            confidence=round(1.0 - summary.uncertainty, 6),
+            limitations=summary.limitations,
+        )
+
+    @staticmethod
+    def _hypothesis_edge(raw: object) -> HypothesisEdge:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("each causal edge must be a mapping")
+        return HypothesisEdge(
+            edge_id=str(raw["edge_id"]),
+            edge_type=EdgeType(str(raw["edge_type"])),
+            source_id=str(raw["source_id"]),
+            target_id=str(raw["target_id"]),
+            support=float(raw["support"]),
+            uncertainty=float(raw["uncertainty"]),
+            context_fit=float(raw["context_fit"]),
+            claim_ids=tuple(str(item) for item in raw["claim_ids"]),
+            support_level=SupportLevel(str(raw["support_level"])),
+            alternatives=tuple(str(item) for item in raw.get("alternatives", ())),
+        )
+
+    def _reclassify(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        previous_raw = raw.get("previous")
+        current_raw = raw.get("current")
+        if not isinstance(previous_raw, Mapping) or not isinstance(current_raw, Mapping):
+            return Abstention(
+                "missing_dossier_snapshots",
+                "lifecycle_reclassification",
+                "Reclassification requires previous and current dossier snapshots.",
+                ("previous", "current"),
+            )
+        try:
+            previous = self._dossier_from_mapping(previous_raw)
+            current = self._dossier_from_mapping(current_raw)
+            plan = self.reclassifier.plan(
+                previous,
+                current,
+                source_version_before=str(raw["source_version_before"]),
+                source_version_after=str(raw["source_version_after"]),
+                reason=str(raw["reason"]),
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_dossier_snapshots",
+                "lifecycle_reclassification",
+                str(exc),
+                ("previous", "current", "source versions", "reason"),
+            )
+        return EvidenceEnvelope(
+            evidence_id=f"reclassification:{plan.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Reclassification identified {len(plan.deltas)} evidence deltas "
+                f"across {len(plan.records)} hypothesis records."
+            ),
+            payload_hash=plan.content_address,
+            source_ids=("lifecycle-reclassifier",),
+            provenance_digest=request.provenance.digest,
+            confidence=0.8 if plan.requires_review else 0.95,
+            limitations=(
+                plan.reason,
+                "A reclassification plan is not an expert adjudication or release decision.",
+            ),
+        )
+
+    @classmethod
+    def _dossier_from_mapping(cls, raw: Mapping[str, Any]) -> Dossier:
+        hypotheses = tuple(cls._hypothesis_from_mapping(item) for item in raw["hypotheses"])
+        evidence = tuple(cls._claim_from_mapping(item) for item in raw["evidence"])
+        experiments = tuple(cls._experiment_from_mapping(item) for item in raw["experiments"])
+        review_raw = raw.get("review")
+        review = cls._review_from_mapping(review_raw) if isinstance(review_raw, Mapping) else None
+        return Dossier(
+            dossier_id=str(raw["dossier_id"]),
+            case_id=str(raw["case_id"]),
+            run_id=str(raw["run_id"]),
+            created_at=str(raw["created_at"]),
+            input_address=str(raw["input_address"]),
+            hypotheses=hypotheses,
+            evidence=evidence,
+            experiments=experiments,
+            review=review,
+            research_use_only=bool(raw["research_use_only"]),
+            policy_version=str(raw["policy_version"]),
+            event_head=str(raw["event_head"]),
+            content_address=str(raw["content_address"]),
+            status=ResearchStatus(str(raw["status"])),
+            warnings=tuple(str(item) for item in raw.get("warnings", ())),
+            source_receipts=tuple(dict(item) for item in raw.get("source_receipts", ())),
+            source_bundle_addresses=tuple(
+                str(item) for item in raw.get("source_bundle_addresses", ())
+            ),
+        )
+
+    @classmethod
+    def _hypothesis_from_mapping(cls, raw: object) -> Hypothesis:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("each dossier hypothesis must be a mapping")
+        context_raw = raw.get("context")
+        if not isinstance(context_raw, Mapping):
+            raise ValidationError("each hypothesis requires a context mapping")
+        return Hypothesis(
+            hypothesis_id=str(raw["hypothesis_id"]),
+            variant_id=str(raw["variant_id"]),
+            element_id=str(raw["element_id"]),
+            gene_id=str(raw["gene_id"]),
+            state_id=str(raw["state_id"]),
+            mechanism=str(raw["mechanism"]),
+            context=ReferenceContext.from_dict(context_raw),
+            edges=tuple(cls._hypothesis_edge(item) for item in raw["edges"]),
+            support=float(raw["support"]),
+            uncertainty=float(raw["uncertainty"]),
+            status=ResearchStatus(str(raw.get("status", ResearchStatus.DRAFT.value))),
+            missing_evidence=tuple(str(item) for item in raw.get("missing_evidence", ())),
+            negative_evidence=tuple(str(item) for item in raw.get("negative_evidence", ())),
+            alternatives=tuple(str(item) for item in raw.get("alternatives", ())),
+            provenance=tuple(str(item) for item in raw.get("provenance", ())),
+        )
+
+    @staticmethod
+    def _experiment_from_mapping(raw: object) -> ExperimentOption:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("each dossier experiment must be a mapping")
+        return ExperimentOption(
+            option_id=str(raw["option_id"]),
+            assay=AssayType(str(raw["assay"])),
+            tests_edges=tuple(str(item) for item in raw["tests_edges"]),
+            expected_information_gain=float(raw["expected_information_gain"]),
+            feasibility=float(raw["feasibility"]),
+            cost_class=str(raw["cost_class"]),
+            required_context=tuple(str(item) for item in raw["required_context"]),
+            controls=tuple(str(item) for item in raw["controls"]),
+            readouts=tuple(str(item) for item in raw["readouts"]),
+            limitations=tuple(str(item) for item in raw["limitations"]),
+        )
+
+    @staticmethod
+    def _review_from_mapping(raw: Mapping[str, Any]) -> ReviewDecision:
+        return ReviewDecision(
+            review_id=str(raw["review_id"]),
+            case_id=str(raw["case_id"]),
+            reviewer=str(raw["reviewer"]),
+            state=ReviewState(str(raw["state"])),
+            reviewed_hypothesis_ids=tuple(str(item) for item in raw["reviewed_hypothesis_ids"]),
+            rationale=str(raw["rationale"]),
+            checked_claim_ids=tuple(str(item) for item in raw["checked_claim_ids"]),
+            created_at=str(raw.get("created_at", "control-plane-input")),
         )
 
     @staticmethod

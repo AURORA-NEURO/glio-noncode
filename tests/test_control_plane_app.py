@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
+from tempfile import TemporaryDirectory
 
 from glio_noncode.atlas import PublicAtlasRetriever
+from glio_noncode.causal import CausalLattice
+from glio_noncode.cohort import CohortObservation, RecurrenceModel
 from glio_noncode.control_plane import (
     ClaimCeiling,
     InvocationRequest,
@@ -12,8 +16,19 @@ from glio_noncode.control_plane import (
 )
 from glio_noncode.control_plane_app import ControlPlaneApplication
 from glio_noncode.data_sources import FetchReceipt, FetchStatus, ReferenceBundle, SequenceSlice
-from glio_noncode.models import EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext
+from glio_noncode.models import (
+    EdgeType,
+    EvidenceClaim,
+    EvidenceState,
+    EvidenceTier,
+    HypothesisEdge,
+    ReferenceContext,
+    SupportLevel,
+)
+from glio_noncode.runtime import CaseRuntime
 from glio_noncode.serialization import content_hash
+
+from .helpers import fixture_manifest
 
 
 def _request(
@@ -87,7 +102,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 9)
+        self.assertEqual(app.manifest()["binding_count"], 12)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -218,6 +233,121 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         self.assertEqual(uncertainty.state, InvocationState.COMPLETED)
         self.assertEqual(uncertainty.response.state, EvidenceState.SUPPORTED)
         self.assertIn("uncertainty aggregation", uncertainty.response.claim_summary.lower())
+
+    def test_cohort_and_causal_bindings_preserve_denominators_and_weakest_edges(self) -> None:
+        app = ControlPlaneApplication()
+        context = ReferenceContext("GRCh38", "diffuse_glioma", "adult", "stem_like")
+        rows = [
+            CohortObservation(
+                observation_id=f"obs-{index}",
+                subject_id=f"subject-{index}",
+                locus_id="locus-a" if index < 2 else f"locus-{index}",
+                mutated=index < 2,
+                callable=True,
+                mutability_score=0.4 + index * 0.01,
+                chromatin_score=0.6,
+                ancestry_group="group-a",
+                disease_class="diffuse_glioma",
+                context=context,
+            )
+            for index in range(6)
+        ]
+        recurrence = app.executor.execute(
+            _request(
+                "A32.publish",
+                {
+                    "locus_id": "locus-a",
+                    "source_id": "fixture-cohort",
+                    "observations": [
+                        {
+                            "observation_id": row.observation_id,
+                            "subject_id": row.subject_id,
+                            "locus_id": row.locus_id,
+                            "mutated": row.mutated,
+                            "callable": row.callable,
+                            "mutability_score": row.mutability_score,
+                            "chromatin_score": row.chromatin_score,
+                            "ancestry_group": row.ancestry_group,
+                            "disease_class": row.disease_class,
+                            "context": row.context.to_dict(),
+                        }
+                        for row in rows
+                    ],
+                },
+                "cohort-1",
+            )
+        )
+        expected = RecurrenceModel().evaluate(rows, "locus-a")
+        self.assertEqual(recurrence.state, InvocationState.COMPLETED)
+        self.assertIn(str(expected.callable_count), recurrence.response.claim_summary)
+
+        edges = (
+            HypothesisEdge(
+                "e1",
+                EdgeType.VARIANT_TO_ELEMENT,
+                "variant",
+                "element",
+                0.8,
+                0.2,
+                1.0,
+                ("claim-1",),
+                SupportLevel.HIGH,
+            ),
+            HypothesisEdge(
+                "e2",
+                EdgeType.ELEMENT_TO_GENE,
+                "element",
+                "gene",
+                0.25,
+                0.7,
+                0.8,
+                ("claim-2",),
+                SupportLevel.LOW,
+            ),
+        )
+        causal = app.executor.execute(
+            _request(
+                "A34.publish",
+                {
+                    "path_id": "path-1",
+                    "edges": [edge.to_dict() for edge in edges],
+                    "alternatives": ["alternative-gene"],
+                },
+                "causal-1",
+            )
+        )
+        expected_path = CausalLattice().summarize(
+            "path-1", edges, alternatives=("alternative-gene",)
+        )
+        self.assertEqual(causal.state, InvocationState.COMPLETED)
+        self.assertIn(expected_path.weakest_edge_id, causal.response.claim_summary)
+
+    def test_lifecycle_binding_returns_plan_without_adjudicating(self) -> None:
+        with TemporaryDirectory() as directory:
+            previous = CaseRuntime(directory).evaluate(fixture_manifest())
+        changed = replace(
+            previous,
+            dossier_id=previous.dossier_id + "-next",
+            evidence=(replace(previous.evidence[0], state=EvidenceState.CONTRADICTORY),)
+            + previous.evidence[1:],
+        )
+        result = ControlPlaneApplication().executor.execute(
+            _request(
+                "A46.publish",
+                {
+                    "previous": previous.to_dict(),
+                    "current": changed.to_dict(),
+                    "source_version_before": "source-1",
+                    "source_version_after": "source-2",
+                    "reason": "public reference source release changed",
+                },
+                "reclass-1",
+                release=True,
+            )
+        )
+        self.assertEqual(result.state, InvocationState.COMPLETED)
+        self.assertEqual(result.review_route.required, True)
+        self.assertIn("reclassification", result.response.evidence_id)
 
 
 if __name__ == "__main__":
