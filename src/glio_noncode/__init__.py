@@ -25,6 +25,22 @@ from .atlas_context import ContextEvidenceBuilder, ContextObservation
 from .atlas_extensions import CcreAtlasAdapter, CcreAtlasProfile, CcreTrackParser
 from .bcf import BcfDocument, BcfReader
 from .capability_registry import CapabilityRegistry, default_capability_registry
+from .causal_beta import (
+    CausalBetaIssue,
+    CausalBetaState,
+    CausalEvidenceDirection,
+    CausalMediatorBatch,
+    CausalMediatorEvidence,
+    CausalMediatorEvidenceParser,
+    CausalMediatorResult,
+    CounterfactualAlleleStateObservation,
+    CounterfactualAlleleStateResult,
+    CounterfactualAlleleStateSimulator,
+    ElementToGeneCausalMediator,
+    GeneToStateCausalMediator,
+    MediatorKind,
+    SequenceToElementCausalMediator,
+)
 from .causal_reasoning import (
     ContextConditionedPriorModel,
     ContextPriorProfile,
@@ -367,6 +383,20 @@ __all__ = [
     "VersionedEvidenceClaim",
     "VersionedEvidenceGraphConstructor",
     "CapabilityRegistry",
+    "CausalBetaIssue",
+    "CausalBetaState",
+    "CausalEvidenceDirection",
+    "CausalMediatorBatch",
+    "CausalMediatorEvidence",
+    "CausalMediatorEvidenceParser",
+    "CausalMediatorResult",
+    "CounterfactualAlleleStateObservation",
+    "CounterfactualAlleleStateResult",
+    "CounterfactualAlleleStateSimulator",
+    "ElementToGeneCausalMediator",
+    "GeneToStateCausalMediator",
+    "MediatorKind",
+    "SequenceToElementCausalMediator",
     "AdultPediatricRouter",
     "CellStateContextAssembler",
     "ContextObservationParser",

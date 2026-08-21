@@ -1280,6 +1280,53 @@ def default_capability_registry() -> CapabilityRegistry:
                     "a likelihood proxy rather than a calibrated clinical probability."
                 ),
             },
+            "GNC-D11-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_beta.SequenceToElementCausalMediator",
+                ),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "evidence_note": (
+                    "Sequence-to-element mediator evidence is parsed with row-level quarantine, "
+                    "exact-context gates, independent-source minimums, sensitivity receipts, "
+                    "negative controls, and contradiction retention; causal calibration and "
+                    "external validation remain."
+                ),
+            },
+            "GNC-D11-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.causal_beta.ElementToGeneCausalMediator",),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "evidence_note": (
+                    "Element-to-gene mediator paths retain exact context, source/version "
+                    "lineage, directional disagreement, independent-source support, and "
+                    "bounded sensitivity; a supported path is not a causal or clinical claim."
+                ),
+            },
+            "GNC-D11-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.causal_beta.GeneToStateCausalMediator",),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "evidence_note": (
+                    "Gene-to-state mediator evidence preserves state-specific context, "
+                    "negative evidence, source disagreement, uncertainty, model receipts, "
+                    "and explicit abstention/out-of-domain behavior; state effects require "
+                    "perturbation and transport validation."
+                ),
+            },
+            "GNC-D11-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_beta.CounterfactualAlleleStateSimulator",
+                ),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "evidence_note": (
+                    "Reference/alternate allele-state comparisons report exact-context values, "
+                    "replicate ambiguity, allele coverage, and alternate-minus-reference "
+                    "deltas with model/version lineage; the output is descriptive and does "
+                    "not establish causality or clinical effect."
+                ),
+            },
             "GNC-D12-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.cohort_discovery.CohortQueryBuilder",),

@@ -457,6 +457,32 @@ contradictory measurements. Both are explicitly proxies, not calibrated
 probabilities, causal effects, diagnoses, prognoses, treatment recommendations,
 or actionability claims.
 
+The Domain 11 scientific-beta extensions make the three mediator steps and the
+allele comparison explicit:
+
+- `SequenceToElementCausalMediator` evaluates sequence-to-element evidence only
+  when source and target nodes, exact context, and mediator kind match. It
+  requires independent source paths for `supported`, keeps against-direction
+  and negative-control evidence, and reports bounded uncertainty and sensitivity.
+- `ElementToGeneCausalMediator` and `GeneToStateCausalMediator` apply the same
+  source/version, context, contradiction, and abstention gates to downstream
+  mediator edges. A single positive source remains partial and a context-only
+  mismatch is out of domain.
+- `CounterfactualAlleleStateSimulator` compares declared reference and
+  alternate state observations, reports the alternate-minus-reference delta,
+  retains replicate ambiguity, and carries model/version receipts. The delta
+  is descriptive and is not proof of causality or clinical effect.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode parse-causal-evidence causal-evidence.json --output causal-evidence-parsed.json
+glio-noncode evaluate-sequence-element-mediator causal-evidence.json --source-node variant:v1 --target-node element:enh-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id seq-element-beta --model-version 1 --output sequence-element.json
+glio-noncode evaluate-element-gene-mediator causal-evidence.json --source-node element:enh-1 --target-node gene:GENE1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id element-gene-beta --model-version 1 --output element-gene.json
+glio-noncode evaluate-gene-state-mediator causal-evidence.json --source-node gene:GENE1 --target-node state:stem_like --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id gene-state-beta --model-version 1 --output gene-state.json
+glio-noncode simulate-counterfactual-allele-state allele-state.json --state-id state:open --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id allele-state-beta --model-version 1 --output allele-state-delta.json
+```
+
 The replayable factor boundary is:
 
 ```powershell

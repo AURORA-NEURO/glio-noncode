@@ -17,6 +17,13 @@ from .atlas_beta import (
 )
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
+from .causal_beta import (
+    CausalMediatorEvidenceParser,
+    CounterfactualAlleleStateSimulator,
+    ElementToGeneCausalMediator,
+    GeneToStateCausalMediator,
+    SequenceToElementCausalMediator,
+)
 from .causal_reasoning import FactorGraphConstructor, FactorObservation
 from .cell_context import ContextObservationParser
 from .cell_context_beta import (
@@ -858,6 +865,52 @@ def build_parser() -> argparse.ArgumentParser:
     allele_link.add_argument("--variant-id", default=None)
     allele_link.add_argument("--output", default=None)
 
+    causal_parse = subparsers.add_parser(
+        "parse-causal-evidence",
+        help="parse causal mediator evidence with row-level quarantine",
+    )
+    causal_parse.add_argument("input", type=str)
+    causal_parse.add_argument("--source-id", default=None)
+    causal_parse.add_argument("--source-version", default="unspecified")
+    causal_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    causal_parse.add_argument("--output", default=None)
+
+    for command, help_text in (
+        (
+            "evaluate-sequence-element-mediator",
+            "evaluate exact-context sequence-to-element mediator evidence",
+        ),
+        (
+            "evaluate-element-gene-mediator",
+            "evaluate exact-context element-to-gene mediator evidence",
+        ),
+        (
+            "evaluate-gene-state-mediator",
+            "evaluate exact-context gene-to-state mediator evidence",
+        ),
+    ):
+        mediator = subparsers.add_parser(command, help=help_text)
+        mediator.add_argument("input", type=str)
+        mediator.add_argument("--source-node", required=True)
+        mediator.add_argument("--target-node", required=True)
+        mediator.add_argument("--context-key", required=True)
+        mediator.add_argument("--model-id", required=True)
+        mediator.add_argument("--model-version", required=True)
+        mediator.add_argument("--minimum-sources", type=int, default=2)
+        mediator.add_argument("--output", default=None)
+
+    counterfactual = subparsers.add_parser(
+        "simulate-counterfactual-allele-state",
+        help="compare exact-context reference and alternate state observations",
+    )
+    counterfactual.add_argument("input", type=str)
+    counterfactual.add_argument("--state-id", required=True)
+    counterfactual.add_argument("--context-key", required=True)
+    counterfactual.add_argument("--model-id", required=True)
+    counterfactual.add_argument("--model-version", required=True)
+    counterfactual.add_argument("--ambiguity-tolerance", type=float, default=0.20)
+    counterfactual.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -1555,6 +1608,51 @@ def main(argv: list[str] | None = None) -> int:
                 payload.get("observations", payload.get("evidence", payload.get("records", ()))),
                 _context_from_key(args.context_key),
                 variant_id=args.variant_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-causal-evidence":
+            input_path = Path(args.input)
+            result = CausalMediatorEvidenceParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in {
+            "evaluate-sequence-element-mediator",
+            "evaluate-element-gene-mediator",
+            "evaluate-gene-state-mediator",
+        }:
+            payload = _read_json(args.input)
+            evidence = payload.get("evidence", payload.get("records", ()))
+            mediator = {
+                "evaluate-sequence-element-mediator": SequenceToElementCausalMediator,
+                "evaluate-element-gene-mediator": ElementToGeneCausalMediator,
+                "evaluate-gene-state-mediator": GeneToStateCausalMediator,
+            }[args.command]()
+            result = mediator.evaluate(
+                evidence,
+                source_node=args.source_node,
+                target_node=args.target_node,
+                context_key=args.context_key,
+                model_id=args.model_id,
+                model_version=args.model_version,
+                minimum_sources=args.minimum_sources,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "simulate-counterfactual-allele-state":
+            payload = _read_json(args.input)
+            result = CounterfactualAlleleStateSimulator().simulate(
+                payload.get("observations", payload.get("records", ())),
+                state_id=args.state_id,
+                context_key=args.context_key,
+                model_id=args.model_id,
+                model_version=args.model_version,
+                ambiguity_tolerance=args.ambiguity_tolerance,
             )
             _write_json(result.to_dict(), args.output)
             return 0
