@@ -324,3 +324,27 @@ jobs:
         run: python -m glio_noncode run-regulatory-atlas-pipeline examples/regulatory-atlas-pipeline-accepted.json --output /tmp/glio-regulatory-atlas-pipeline.json
       - name: Regulatory atlas release manifest
         run: python -m glio_noncode build-regulatory-atlas-release examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-release.json
+      - name: Molecular atlas data boundary audit
+        run: python -m glio_noncode audit-molecular-atlas-data examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-data.json
+      - name: Molecular atlas fixture evaluation
+        run: python -m glio_noncode evaluate-molecular-atlas-fixture examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-fixture.json
+      - name: Molecular atlas replay integrity
+        run: python -m glio_noncode replay-molecular-atlas-fixtures examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-replay.json
+      - name: Molecular atlas quality gate
+        run: python -m glio_noncode molecular-atlas-quality-gate examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-quality.json
+      - name: Molecular atlas scenario matrix
+        run: python -m glio_noncode evaluate-molecular-atlas-scenarios examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-scenarios.json
+      - name: Molecular atlas operation contracts
+        run: python -m glio_noncode molecular-atlas-contracts --output /tmp/glio-molecular-atlas-contracts.json
+      - name: Molecular atlas metrics
+        run: python -m glio_noncode molecular-atlas-metrics examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-metrics.json
+      - name: Molecular atlas evidence bundle
+        run: python -m glio_noncode build-molecular-atlas-bundle examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-bundle.json --accepted-only
+      - name: Molecular atlas lineage graph
+        run: python -m glio_noncode molecular-atlas-lineage examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-lineage.json
+      - name: Molecular atlas receipt reconciliation
+        run: python -m glio_noncode molecular-atlas-reconciliation examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-reconciliation.json
+      - name: Molecular atlas pipeline integration
+        run: python -m glio_noncode run-molecular-atlas-pipeline examples/molecular-atlas-pipeline-accepted.json --output /tmp/glio-molecular-atlas-pipeline.json
+      - name: Molecular atlas release manifest
+        run: python -m glio_noncode build-molecular-atlas-release examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-release.json

@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 80 capabilities have deterministic fixture-backed
-verification and 176 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 31.25% of the 256-capability
+capabilities started (100%); 84 capabilities have deterministic fixture-backed
+verification and 172 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 32.81% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 80 controls are verified against the checked-in
-aggregate fixtures, while 176 capabilities remain partial. Partial
+capabilities started (100%); 84 controls are verified against the checked-in
+aggregate fixtures, while 172 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1162,6 +1162,50 @@ python -m glio_noncode build-regulatory-atlas-release examples/regulatory-atlas-
 See `docs/REGULATORY_ATLAS_EVIDENCE_GATE.md` and
 `docs/REGULATORY_ATLAS_RELEASE_FORMAT.md` for the complete source boundary,
 state semantics, receipt fields, policy rules, and release schema.
+
+### Domain 05 C05-C08 molecular-state and histone evidence gate
+
+The next four atlas capabilities now have a separate public aggregate evidence
+plane. The fixture at `examples/molecular-atlas-public-aggregate.json` covers:
+
+- `MolecularStateAtlasAdapter` for IDH-mutant state evidence;
+- `MolecularStateAtlasAdapter` for IDH-wildtype state evidence;
+- `MolecularStateAtlasAdapter` for H3K27-altered state evidence;
+- `HistoneMarkTrackHarmonizer` for replicate-aware H3K27ac interval summaries.
+
+The state profiles require exact state and `ReferenceContext.key` matches.
+Supported, absent, out-of-domain, and ambiguous results remain distinct. The
+histone path splits intervals at observed boundaries, retains replicate and
+caller identity, reports median signal and spread, and keeps invalid rows,
+single replicates, and disagreement as review states. Histone signal remains a
+descriptive observation rather than an activity or causal estimate.
+
+The public source receipts use [ENCODE histone standards](https://www.encodeproject.org/chip-seq/histone/), the [ENCODE histone pipeline](https://www.encodeproject.org/pipelines/ENCPL272XAE/), the [NCI adult CNS tumor reference](https://www.cancer.gov/types/brain/hp/adult-brain-treatment-pdq), the [NCI childhood cancer data boundary](https://www.cancer.gov/research/areas/childhood/childhood-cancer-data-initiative), and the [NCI GDC lower-grade glioma publication](https://gdc.cancer.gov/about-data/publications/lgg_2015). These receipts describe the public vocabulary and processing boundary; the checked-in rows are compact aggregate fixture records.
+
+The accepted path executes 120 evaluation checks, 15 independent scenarios,
+13 replay checks, 12 policy rules, a 157-node/158-edge sanitized lineage
+graph, 25 quality checks, four balanced operation metrics, accepted-only
+JSON/CSV/Markdown bundles, a nine-stage runtime, and a twelve-check release
+manifest.
+
+```powershell
+python -m glio_noncode audit-molecular-atlas-data examples/molecular-atlas-public-aggregate.json --output molecular-atlas-data.json
+python -m glio_noncode evaluate-molecular-atlas-fixture examples/molecular-atlas-public-aggregate.json --output molecular-atlas-fixture.json
+python -m glio_noncode replay-molecular-atlas-fixtures examples/molecular-atlas-public-aggregate.json --output molecular-atlas-replay.json
+python -m glio_noncode molecular-atlas-quality-gate examples/molecular-atlas-public-aggregate.json --output molecular-atlas-quality.json
+python -m glio_noncode evaluate-molecular-atlas-scenarios examples/molecular-atlas-public-aggregate.json --output molecular-atlas-scenarios.json
+python -m glio_noncode molecular-atlas-contracts --output molecular-atlas-contracts.json
+python -m glio_noncode molecular-atlas-metrics examples/molecular-atlas-public-aggregate.json --output molecular-atlas-metrics.json
+python -m glio_noncode build-molecular-atlas-bundle examples/molecular-atlas-public-aggregate.json --output molecular-atlas-bundle.json --accepted-only
+python -m glio_noncode molecular-atlas-lineage examples/molecular-atlas-public-aggregate.json --output molecular-atlas-lineage.json
+python -m glio_noncode molecular-atlas-reconciliation examples/molecular-atlas-public-aggregate.json --output molecular-atlas-reconciliation.json
+python -m glio_noncode run-molecular-atlas-pipeline examples/molecular-atlas-pipeline-accepted.json --output molecular-atlas-pipeline.json
+python -m glio_noncode build-molecular-atlas-release examples/molecular-atlas-public-aggregate.json --output molecular-atlas-release.json
+```
+
+See `docs/MOLECULAR_ATLAS_EVIDENCE_GATE.md` and
+`docs/MOLECULAR_ATLAS_RELEASE_FORMAT.md` for source scope, state semantics,
+histone handling, policy rules, receipt fields, and release verification.
 
 The Domain 05 scientific-beta extensions keep molecular states separate:
 

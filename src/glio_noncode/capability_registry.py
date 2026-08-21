@@ -1843,41 +1843,61 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D05-C05": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_beta.MolecularStateAtlasAdapter",),
-                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_beta.MolecularStateAtlasAdapter",
+                    "glio_noncode.molecular_atlas_fixture_eval.evaluate_molecular_atlas_fixture",
+                    "glio_noncode.molecular_atlas_quality_gate.evaluate_molecular_atlas_quality_gate",
+                ),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_molecular_atlas"),
                 "evidence_note": (
                     "IDH-mutant state atlas records are stored with exact molecular state, "
                     "context, assay, signal, source version, and raw hashes; cross-state and "
-                    "cross-context transport is blocked."
+                    "cross-context transport is blocked and verified through positive, absent, "
+                    "mismatch, ambiguity, replay, policy, and release checks."
                 ),
             },
             "GNC-D05-C06": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_beta.MolecularStateAtlasAdapter",),
-                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_beta.MolecularStateAtlasAdapter",
+                    "glio_noncode.molecular_atlas_fixture_eval.evaluate_molecular_atlas_fixture",
+                    "glio_noncode.molecular_atlas_release.build_molecular_atlas_release_manifest",
+                ),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_molecular_atlas"),
                 "evidence_note": (
                     "IDH-wildtype atlas queries use the same versioned state-specific contract "
-                    "and preserve out-of-domain results rather than borrowing IDH-mutant evidence."
+                    "and preserve out-of-domain results rather than borrowing IDH-mutant evidence; "
+                    "the aggregate fixture verifies state isolation and publication closure."
                 ),
             },
             "GNC-D05-C07": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_beta.MolecularStateAtlasAdapter",),
-                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_beta.MolecularStateAtlasAdapter",
+                    "glio_noncode.molecular_atlas_policy.evaluate_molecular_atlas_policy",
+                    "glio_noncode.molecular_atlas_runtime.run_molecular_atlas_pipeline",
+                ),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_molecular_atlas"),
                 "evidence_note": (
                     "H3K27-altered state observations retain exact state and context keys, with "
-                    "overlap ambiguity and unsupported context made explicit."
+                    "overlap ambiguity and unsupported context made explicit; age and territory "
+                    "drift remain review outcomes in the C05-C08 policy plane."
                 ),
             },
             "GNC-D05-C08": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_beta.HistoneMarkTrackHarmonizer",),
-                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_beta.HistoneMarkTrackHarmonizer",
+                    "glio_noncode.molecular_atlas_metrics.build_molecular_atlas_metrics",
+                    "glio_noncode.molecular_atlas_lineage.build_molecular_atlas_lineage",
+                ),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_molecular_atlas"),
                 "evidence_note": (
                     "Histone-mark tracks are converted to atomic observed intervals with median "
                     "signal, replicate spread, callers, source versions, and disagreement states; "
-                    "the result is not a calibrated activity call."
+                    "the result is not a calibrated activity call and now has explicit invalid-row, "
+                    "single-replicate, ambiguity, replay, bundle, and release verification."
                 ),
             },
             "GNC-D05-C09": {

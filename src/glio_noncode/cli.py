@@ -44,6 +44,22 @@ from .regulatory_atlas_release import (
 from .regulatory_atlas_replay import replay_regulatory_atlas_evaluation
 from .regulatory_atlas_runtime import run_regulatory_atlas_pipeline_file
 from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
+from .molecular_atlas_bundle import MolecularAtlasBundleBuilder, MolecularAtlasBundleFormat
+from .molecular_atlas_contracts import default_molecular_atlas_contracts
+from .molecular_atlas_fixture_eval import evaluate_molecular_atlas_fixture
+from .molecular_atlas_lineage import build_molecular_atlas_lineage
+from .molecular_atlas_metrics import (
+    build_molecular_atlas_metrics,
+    render_molecular_atlas_metrics,
+    verify_molecular_atlas_metrics,
+)
+from .molecular_atlas_public_data import audit_molecular_atlas_data, load_molecular_atlas_fixture
+from .molecular_atlas_quality_gate import evaluate_molecular_atlas_quality_gate
+from .molecular_atlas_reconciliation import reconcile_molecular_atlas_views
+from .molecular_atlas_release import build_molecular_atlas_release_manifest, write_molecular_atlas_release_manifest
+from .molecular_atlas_replay import replay_molecular_atlas_evaluation
+from .molecular_atlas_runtime import run_molecular_atlas_pipeline_file
+from .molecular_atlas_scenario_matrix import evaluate_molecular_atlas_scenarios
 from .capability_registry import default_capability_registry
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
@@ -2507,6 +2523,91 @@ def build_parser() -> argparse.ArgumentParser:
     )
     regulatory_atlas_release.add_argument("input", type=str)
     regulatory_atlas_release.add_argument("--output", required=True)
+
+    molecular_atlas_fixture = subparsers.add_parser(
+        "evaluate-molecular-atlas-fixture",
+        help="evaluate the public aggregate C05-C08 molecular-state and histone fixture",
+    )
+    molecular_atlas_fixture.add_argument("input", type=str)
+    molecular_atlas_fixture.add_argument("--output", default=None)
+
+    molecular_atlas_data = subparsers.add_parser(
+        "audit-molecular-atlas-data",
+        help="audit public C05-C08 molecular-state and histone source boundaries",
+    )
+    molecular_atlas_data.add_argument("input", type=str)
+    molecular_atlas_data.add_argument("--output", default=None)
+
+    molecular_atlas_replay = subparsers.add_parser(
+        "replay-molecular-atlas-fixtures",
+        help="replay C05-C08 state separation and histone harmonization fixtures",
+    )
+    molecular_atlas_replay.add_argument("input", type=str)
+    molecular_atlas_replay.add_argument("--output", default=None)
+
+    molecular_atlas_quality = subparsers.add_parser(
+        "molecular-atlas-quality-gate",
+        help="run the integrated C05-C08 molecular atlas quality gate",
+    )
+    molecular_atlas_quality.add_argument("input", type=str)
+    molecular_atlas_quality.add_argument("--output", default=None)
+
+    molecular_atlas_scenarios = subparsers.add_parser(
+        "evaluate-molecular-atlas-scenarios",
+        help="run C05-C08 state, context, absence, ambiguity, and replicate scenarios",
+    )
+    molecular_atlas_scenarios.add_argument("input", type=str)
+    molecular_atlas_scenarios.add_argument("--output", default=None)
+
+    molecular_atlas_contracts = subparsers.add_parser(
+        "molecular-atlas-contracts",
+        help="print the four-operation Domain 05 C05-C08 contract registry",
+    )
+    molecular_atlas_contracts.add_argument("--output", default=None)
+
+    molecular_atlas_metrics = subparsers.add_parser(
+        "molecular-atlas-metrics",
+        help="render C05-C08 molecular-state and histone coverage metrics",
+    )
+    molecular_atlas_metrics.add_argument("input", type=str)
+    molecular_atlas_metrics.add_argument("--output", default=None)
+
+    molecular_atlas_bundle = subparsers.add_parser(
+        "build-molecular-atlas-bundle",
+        help="build a compact JSON, CSV, or Markdown C05-C08 evidence bundle",
+    )
+    molecular_atlas_bundle.add_argument("input", type=str)
+    molecular_atlas_bundle.add_argument("--output", required=True)
+    molecular_atlas_bundle.add_argument("--format", choices=[item.value for item in MolecularAtlasBundleFormat], default=MolecularAtlasBundleFormat.JSON.value)
+    molecular_atlas_bundle.add_argument("--accepted-only", action="store_true")
+
+    molecular_atlas_graph = subparsers.add_parser(
+        "molecular-atlas-lineage",
+        help="build and audit the sanitized C05-C08 source-to-result graph",
+    )
+    molecular_atlas_graph.add_argument("input", type=str)
+    molecular_atlas_graph.add_argument("--output", default=None)
+
+    molecular_atlas_reconciliation = subparsers.add_parser(
+        "molecular-atlas-reconciliation",
+        help="reconcile C05-C08 fixture, data, replay, scenario, and lineage views",
+    )
+    molecular_atlas_reconciliation.add_argument("input", type=str)
+    molecular_atlas_reconciliation.add_argument("--output", default=None)
+
+    molecular_atlas_pipeline = subparsers.add_parser(
+        "run-molecular-atlas-pipeline",
+        help="run the complete C05-C08 molecular atlas pipeline",
+    )
+    molecular_atlas_pipeline.add_argument("input", type=str)
+    molecular_atlas_pipeline.add_argument("--output", default=None)
+
+    molecular_atlas_release = subparsers.add_parser(
+        "build-molecular-atlas-release",
+        help="build and verify the C05-C08 molecular atlas publication manifest",
+    )
+    molecular_atlas_release.add_argument("input", type=str)
+    molecular_atlas_release.add_argument("--output", required=True)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -5116,6 +5217,80 @@ def main(argv: list[str] | None = None) -> int:
             bundle = RegulatoryAtlasBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
             manifest = build_regulatory_atlas_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
             write_regulatory_atlas_release_manifest(manifest, args.output)
+            return 0 if manifest.publishable else 2
+        if args.command == "evaluate-molecular-atlas-fixture":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            report = evaluate_molecular_atlas_fixture(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "audit-molecular-atlas-data":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            report = audit_molecular_atlas_data(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-molecular-atlas-fixtures":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_molecular_atlas_fixture(fixture)
+            report = replay_molecular_atlas_evaluation(evaluation, fixture=fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "molecular-atlas-quality-gate":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            report = evaluate_molecular_atlas_quality_gate(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-molecular-atlas-scenarios":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_molecular_atlas_fixture(fixture)
+            report = evaluate_molecular_atlas_scenarios(fixture, report=evaluation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "molecular-atlas-contracts":
+            _write_json(default_molecular_atlas_contracts().manifest(), args.output)
+            return 0
+        if args.command == "molecular-atlas-metrics":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_molecular_atlas_fixture(fixture)
+            report = build_molecular_atlas_metrics(evaluation)
+            failures = verify_molecular_atlas_metrics(report)
+            _write_json(render_molecular_atlas_metrics(report) | {"accepted": report.accepted, "failures": list(failures)}, args.output)
+            return 0 if report.accepted and not failures else 2
+        if args.command == "build-molecular-atlas-bundle":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_molecular_atlas_fixture(fixture)
+            builder = MolecularAtlasBundleBuilder()
+            bundle = builder.build(evaluation, fixture=fixture, output_format=MolecularAtlasBundleFormat(args.format), accepted_only=args.accepted_only)
+            builder.write(bundle, args.output)
+            return 0 if not builder.verify(bundle) else 2
+        if args.command == "molecular-atlas-lineage":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_molecular_atlas_fixture(fixture)
+            graph = build_molecular_atlas_lineage(evaluation, fixture=fixture)
+            audit = graph.audit(evaluation)
+            _write_json(graph.to_dict() | {"audit": audit.to_dict(), "accepted": audit.passed}, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "molecular-atlas-reconciliation":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            data = audit_molecular_atlas_data(fixture)
+            evaluation = evaluate_molecular_atlas_fixture(fixture)
+            replay = replay_molecular_atlas_evaluation(evaluation, fixture=fixture)
+            scenarios = evaluate_molecular_atlas_scenarios(fixture, report=evaluation)
+            graph = build_molecular_atlas_lineage(evaluation, fixture=fixture)
+            report = reconcile_molecular_atlas_views(fixture, data, evaluation, replay, scenarios, graph)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "run-molecular-atlas-pipeline":
+            report = run_molecular_atlas_pipeline_file(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
+        if args.command == "build-molecular-atlas-release":
+            fixture = load_molecular_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_molecular_atlas_fixture(fixture)
+            quality = evaluate_molecular_atlas_quality_gate(fixture)
+            replay = replay_molecular_atlas_evaluation(evaluation, fixture=fixture)
+            bundle = MolecularAtlasBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
+            manifest = build_molecular_atlas_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            write_molecular_atlas_release_manifest(manifest, args.output)
             return 0 if manifest.publishable else 2
         if args.command == "classify-origin":
             result = SomaticGermlineOriginClassifier().classify(
