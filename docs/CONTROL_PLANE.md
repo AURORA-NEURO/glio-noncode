@@ -94,8 +94,18 @@ variants, measurements, statistical results, posterior values, or citations.
 
 `ControlPlaneApplication` binds the core executable slice to registered
 publication tools: mission planning (`A01`), VCF/TSV/JSON intake (`A07`),
-identity normalization (`A08`), power planning (`A41`), human-review
-abstention (`A45`), and drift monitoring (`A47`). Other registered roles remain
-available for dependency planning and return explicit handler-unavailable
-errors until their domain module is installed; they do not silently report
-success.
+identity normalization (`A08`), public atlas retrieval (`A15`), sequence
+inference (`A23`), uncertainty/OOD aggregation (`A36`), power planning (`A41`),
+human-review abstention (`A45`), and drift monitoring (`A47`).
+
+Atlas execution has an additional runtime boundary because the current
+publication handler can invoke the public adapters: the mission must set
+`allow_network=True` and explicitly allowlist `SRC-ENSEMBL-REST` and
+`SRC-UCSC-REST`; `SRC-ENCODE-REST` is required only when the query requests
+the ENCODE catalog. If the boundary is missing, the handler abstains without
+making a request. Sequence and uncertainty handlers accept receipt-backed
+sequence/claim mappings and return content-addressed computed envelopes.
+
+Other registered roles remain available for dependency planning and return
+explicit handler-unavailable errors until their domain module is installed;
+they do not silently report success.
