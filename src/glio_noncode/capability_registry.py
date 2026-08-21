@@ -789,6 +789,48 @@ def default_capability_registry() -> CapabilityRegistry:
                     "ambiguity states; no delta is promoted to a probability."
                 ),
             },
+            "GNC-D06-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.sequence_beta.MotifDisruptionScanner",),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "evidence_note": (
+                    "Declared IUPAC motif disruption scans compare reference and alternate local "
+                    "windows, preserve strand, source version, sequence hashes, context, and "
+                    "loss evidence; calibrated regulatory-effect performance remains pending."
+                ),
+            },
+            "GNC-D06-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.sequence_beta.MotifCreationScanner",),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "evidence_note": (
+                    "Declared motif creation scans retain alternate-only hits, reference/alternate "
+                    "window hashes, IUPAC source versions, strand, context, and explicit non-claim "
+                    "warnings; external validation is not claimed."
+                ),
+            },
+            "GNC-D06-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_beta.MotifSpacingGrammarAnalyzer",
+                ),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "evidence_note": (
+                    "Spacing and orientation rules retain every compatible motif pair, unmatched "
+                    "rules, context, and ambiguity states; compatibility is not treated as proof "
+                    "of cooperative binding."
+                ),
+            },
+            "GNC-D06-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.sequence_beta.CooperativeTFGrammarModel",),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "evidence_note": (
+                    "Versioned cooperative grammar interactions produce a reproducible descriptive "
+                    "score with per-interaction contributions and required-missing states; the "
+                    "result is explicitly not a probability or clinical interpretation."
+                ),
+            },
             "GNC-D07-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
@@ -973,9 +1015,7 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D10-C04": {
                 "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": (
-                    "glio_noncode.link_graph.EnhancerGeneConsensusLinker",
-                ),
+                "implementation_modules": ("glio_noncode.link_graph.EnhancerGeneConsensusLinker",),
                 "test_modules": ("tests.test_link_graph",),
                 "evidence_note": (
                     "Enhancer-gene consensus retains method-specific evidence, confidence-weighted "
@@ -997,9 +1037,7 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D11-C02": {
                 "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": (
-                    "glio_noncode.causal_reasoning.FactorGraphConstructor",
-                ),
+                "implementation_modules": ("glio_noncode.causal_reasoning.FactorGraphConstructor",),
                 "test_modules": ("tests.test_causal_reasoning",),
                 "evidence_note": (
                     "Immutable factor graph snapshots preserve parent lineage, supersession, "
@@ -1033,9 +1071,7 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D12-C01": {
                 "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": (
-                    "glio_noncode.cohort_discovery.CohortQueryBuilder",
-                ),
+                "implementation_modules": ("glio_noncode.cohort_discovery.CohortQueryBuilder",),
                 "test_modules": ("tests.test_cohort_discovery",),
                 "evidence_note": (
                     "Cohort queries preserve exact context, variant/origin/sample criteria, "
@@ -1080,9 +1116,7 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D13-C01": {
                 "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": (
-                    "glio_noncode.validation_planning.EvidenceGapAnalyzer",
-                ),
+                "implementation_modules": ("glio_noncode.validation_planning.EvidenceGapAnalyzer",),
                 "test_modules": ("tests.test_validation_planning",),
                 "evidence_note": (
                     "Typed hypotheses are converted into ranked evidence gaps with required "
@@ -1113,9 +1147,7 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D13-C04": {
                 "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": (
-                    "glio_noncode.validation_planning.STARRSeqPlanner",
-                ),
+                "implementation_modules": ("glio_noncode.validation_planning.STARRSeqPlanner",),
                 "test_modules": ("tests.test_validation_planning",),
                 "evidence_note": (
                     "STARR-seq packages share the allele-aware bounded planner contract and block "

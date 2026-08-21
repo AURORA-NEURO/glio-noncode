@@ -137,6 +137,24 @@ from .sequence_adapters import (
     SequenceContextEncoder,
     SequenceFoundationModelAdapter,
 )
+from .sequence_beta import (
+    CooperativeGrammarScore,
+    CooperativeTFGrammarModel,
+    GrammarInteraction,
+    MotifCreationScanner,
+    MotifDisruptionScanner,
+    MotifGrammarObservation,
+    MotifGrammarReport,
+    MotifGrammarRule,
+    MotifHit,
+    MotifScanReport,
+    MotifSpacingGrammarAnalyzer,
+    SequenceBetaIssue,
+    SequenceBetaState,
+)
+from .sequence_beta import (
+    MotifDefinition as SequenceBetaMotifDefinition,
+)
 from .sequence_inference import MotifDefinition, SequenceInference
 from .specimen_beta import (
     CancerCellFractionBatch,
@@ -367,6 +385,20 @@ __all__ = [
     "RegulatoryTrackDeltaEnsemble",
     "SequenceContextEncoder",
     "SequenceFoundationModelAdapter",
+    "CooperativeGrammarScore",
+    "CooperativeTFGrammarModel",
+    "GrammarInteraction",
+    "MotifCreationScanner",
+    "SequenceBetaMotifDefinition",
+    "MotifDisruptionScanner",
+    "MotifGrammarObservation",
+    "MotifGrammarReport",
+    "MotifGrammarRule",
+    "MotifHit",
+    "MotifScanReport",
+    "MotifSpacingGrammarAnalyzer",
+    "SequenceBetaIssue",
+    "SequenceBetaState",
     "ContaminationSwapDetector",
     "MatchedNormalResolver",
     "PurityPloidyImporter",

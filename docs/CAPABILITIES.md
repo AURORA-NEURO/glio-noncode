@@ -221,6 +221,30 @@ source hashes, and quarantine inconsistent rows. The delta ensemble reports
 mean and disagreement by variant; it does not convert model output into a
 probability or clinical interpretation.
 
+The Domain 06 scientific-beta extensions make sequence grammar inspectable:
+
+- `MotifDisruptionScanner` and `MotifCreationScanner` compare reference and
+  alternate windows against declared IUPAC consensus motifs. Hits retain
+  one-based coordinates, strand, match score, motif source/version, sequence
+  hashes, exact context, and alternate-only or reference-only evidence.
+- `MotifSpacingGrammarAnalyzer` evaluates declared motif-pair spacing and
+  orientation rules, retains every compatible pair, and reports unmatched
+  rules instead of selecting a preferred pair silently.
+- `CooperativeTFGrammarModel` applies versioned weighted interactions to
+  compatible motif hits and returns per-interaction contributions, required
+  missing interactions, and a reproducible descriptive score. Its result is
+  explicitly not a probability, binding claim, clinical interpretation, or
+  calibrated regulatory-effect estimate.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode scan-motif-disruption motif-window.json --output motif-losses.json
+glio-noncode scan-motif-creation motif-window.json --output motif-gains.json
+glio-noncode analyze-motif-grammar motif-grammar.json --output grammar.json
+glio-noncode score-cooperative-grammar motif-grammar.json --model-id declared-grammar --model-version 2026.1 --output grammar-score.json
+```
+
 ## Domain 07 chromatin context
 
 The chromatin plane keeps accessibility and histone observations tied to a

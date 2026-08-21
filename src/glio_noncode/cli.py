@@ -51,6 +51,15 @@ from .sequence_adapters import (
     SequenceContextEncoder,
     SequenceFoundationModelAdapter,
 )
+from .sequence_beta import (
+    CooperativeTFGrammarModel,
+    GrammarInteraction,
+    MotifCreationScanner,
+    MotifDefinition,
+    MotifDisruptionScanner,
+    MotifGrammarRule,
+    MotifSpacingGrammarAnalyzer,
+)
 from .specimen_beta import (
     CancerCellFractionEstimator,
     MosaicismPosteriorEstimator,
@@ -122,6 +131,65 @@ def _context_from_key(context_key: str) -> ReferenceContext:
         cell_state=parts[3],
         territory=parts[4],
         treatment_phase=parts[5],
+    )
+
+
+def _motif_definitions(rows: Any) -> tuple[MotifDefinition, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("motifs must be a list")
+    return tuple(
+        MotifDefinition(
+            motif_id=str(row.get("motif_id", "")),
+            name=str(row.get("name", row.get("motif_id", ""))),
+            consensus=str(row.get("consensus", "")),
+            source_id=str(row.get("source_id", "motif-input")),
+            source_version=str(row.get("source_version", "unspecified")),
+            threshold=float(row.get("threshold", 1.0)),
+            strand_aware=bool(row.get("strand_aware", True)),
+            attributes=dict(row.get("attributes", {})),
+        )
+        for row in rows
+        if isinstance(row, Mapping)
+    )
+
+
+def _grammar_rules(rows: Any) -> tuple[MotifGrammarRule, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("rules must be a list")
+    return tuple(
+        MotifGrammarRule(
+            rule_id=str(row.get("rule_id", "")),
+            motif_a=str(row.get("motif_a", "")),
+            motif_b=str(row.get("motif_b", "")),
+            minimum_spacing=int(row.get("minimum_spacing", 0)),
+            maximum_spacing=int(row.get("maximum_spacing", 0)),
+            allowed_orientations=tuple(
+                str(item) for item in row.get("allowed_orientations", ("same", "opposite", "any"))
+            ),
+            source_id=str(row.get("source_id", "grammar-input")),
+            source_version=str(row.get("source_version", "unspecified")),
+        )
+        for row in rows
+        if isinstance(row, Mapping)
+    )
+
+
+def _grammar_interactions(rows: Any) -> tuple[GrammarInteraction, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("interactions must be a list")
+    return tuple(
+        GrammarInteraction(
+            interaction_id=str(row.get("interaction_id", "")),
+            motif_a=str(row.get("motif_a", "")),
+            motif_b=str(row.get("motif_b", "")),
+            weight=float(row.get("weight", 0.0)),
+            maximum_spacing=int(row.get("maximum_spacing", 0)),
+            required=bool(row.get("required", False)),
+            source_id=str(row.get("source_id", "grammar-model")),
+            source_version=str(row.get("source_version", "unspecified")),
+        )
+        for row in rows
+        if isinstance(row, Mapping)
     )
 
 
@@ -329,9 +397,7 @@ def build_parser() -> argparse.ArgumentParser:
     sv_consensus.add_argument("--breakpoint-tolerance", type=int, default=10)
     sv_consensus.add_argument("--output", default=None)
 
-    cn = subparsers.add_parser(
-        "harmonize-cn", help="harmonize multi-caller copy-number segments"
-    )
+    cn = subparsers.add_parser("harmonize-cn", help="harmonize multi-caller copy-number segments")
     cn.add_argument("input", type=str)
     cn.add_argument("--source-id", default=None)
     cn.add_argument("--output", default=None)
@@ -428,9 +494,7 @@ def build_parser() -> argparse.ArgumentParser:
     subclones.add_argument("--boundary-ambiguity", type=float, default=0.02)
     subclones.add_argument("--output", default=None)
 
-    ccre = subparsers.add_parser(
-        "parse-ccre", help="parse an ENCODE SCREEN-style cCRE track"
-    )
+    ccre = subparsers.add_parser("parse-ccre", help="parse an ENCODE SCREEN-style cCRE track")
     ccre.add_argument("input", type=str)
     ccre.add_argument("--source-id", default=None)
     ccre.add_argument(
@@ -482,6 +546,45 @@ def build_parser() -> argparse.ArgumentParser:
     histone.add_argument("--spread-tolerance", type=float, default=0.25)
     histone.add_argument("--output", default=None)
 
+    motif_disruption = subparsers.add_parser(
+        "scan-motif-disruption",
+        help="compare reference and alternate sequence windows for declared motif losses",
+    )
+    motif_disruption.add_argument("input", type=str)
+    motif_disruption.add_argument("--variant-id", default=None)
+    motif_disruption.add_argument("--window-start", type=int, default=None)
+    motif_disruption.add_argument("--context-key", default=None)
+    motif_disruption.add_argument("--output", default=None)
+
+    motif_creation = subparsers.add_parser(
+        "scan-motif-creation",
+        help="compare reference and alternate sequence windows for declared motif gains",
+    )
+    motif_creation.add_argument("input", type=str)
+    motif_creation.add_argument("--variant-id", default=None)
+    motif_creation.add_argument("--window-start", type=int, default=None)
+    motif_creation.add_argument("--context-key", default=None)
+    motif_creation.add_argument("--output", default=None)
+
+    motif_grammar = subparsers.add_parser(
+        "analyze-motif-grammar",
+        help="evaluate declared motif spacing and orientation grammar rules",
+    )
+    motif_grammar.add_argument("input", type=str)
+    motif_grammar.add_argument("--context-key", default=None)
+    motif_grammar.add_argument("--output", default=None)
+
+    cooperative_grammar = subparsers.add_parser(
+        "score-cooperative-grammar",
+        help="score versioned cooperative motif interactions as a descriptive model output",
+    )
+    cooperative_grammar.add_argument("input", type=str)
+    cooperative_grammar.add_argument("--model-id", required=True)
+    cooperative_grammar.add_argument("--model-version", required=True)
+    cooperative_grammar.add_argument("--context-key", default=None)
+    cooperative_grammar.add_argument("--baseline", type=float, default=0.0)
+    cooperative_grammar.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -496,9 +599,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     contacts.add_argument("input", type=str)
     contacts.add_argument("--source-id", default=None)
-    contacts.add_argument(
-        "--assay", choices=[item.value for item in TopologyAssay], required=True
-    )
+    contacts.add_argument("--assay", choices=[item.value for item in TopologyAssay], required=True)
     contacts.add_argument("--format", choices=("tsv", "json"), default=None)
     contacts.add_argument("--output", default=None)
 
@@ -693,7 +794,8 @@ def main(argv: list[str] | None = None) -> int:
                     for item in raw.get("allowed_data_scopes", ("synthetic", "public_reference"))
                 ),
                 allowed_mutations=tuple(
-                    str(item) for item in raw.get(
+                    str(item)
+                    for item in raw.get(
                         "allowed_mutations", ("none", "event_log", "content_addressed_store")
                     )
                 ),
@@ -811,9 +913,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "sv-consensus":
             input_path = Path(args.input)
-            batch = SVConsensusImporter(
-                breakpoint_tolerance=args.breakpoint_tolerance
-            ).parse_text(
+            batch = SVConsensusImporter(breakpoint_tolerance=args.breakpoint_tolerance).parse_text(
                 input_path.read_text(encoding="utf-8"),
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
@@ -966,6 +1066,52 @@ def main(argv: list[str] | None = None) -> int:
                 input_format=args.format,
                 coordinate_system=args.coordinate_system,
                 spread_tolerance=args.spread_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in {"scan-motif-disruption", "scan-motif-creation"}:
+            payload = _read_json(args.input)
+            variant_id = args.variant_id or str(payload.get("variant_id", Path(args.input).stem))
+            window_start = args.window_start
+            if window_start is None:
+                window_start = int(payload.get("window_start", 1))
+            context_key = args.context_key or payload.get("context_key")
+            motifs = _motif_definitions(payload.get("motifs", ()))
+            scanner = (
+                MotifDisruptionScanner()
+                if args.command == "scan-motif-disruption"
+                else MotifCreationScanner()
+            )
+            result = scanner.scan(
+                str(payload.get("reference_sequence", "")),
+                str(payload.get("alternate_sequence", "")),
+                variant_id=variant_id,
+                motifs=motifs,
+                window_start=window_start,
+                context_key=context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "analyze-motif-grammar":
+            payload = _read_json(args.input)
+            result = MotifSpacingGrammarAnalyzer().analyze(
+                payload.get("hits", ()),
+                _grammar_rules(payload.get("rules", ())),
+                context_key=args.context_key or payload.get("context_key"),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "score-cooperative-grammar":
+            payload = _read_json(args.input)
+            result = CooperativeTFGrammarModel().score(
+                payload.get("hits", ()),
+                _grammar_interactions(payload.get("interactions", ())),
+                sequence_id=str(payload.get("sequence_id", Path(args.input).stem)),
+                sequence=str(payload.get("sequence", "")),
+                model_id=args.model_id,
+                model_version=args.model_version,
+                context_key=args.context_key or payload.get("context_key"),
+                baseline=args.baseline,
             )
             _write_json(result.to_dict(), args.output)
             return 0
