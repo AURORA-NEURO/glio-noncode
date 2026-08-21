@@ -39,6 +39,12 @@ from .cell_context_beta import (
     H3K27AlteredDevelopmentalStatePrior,
     IdhMutantLineageStatePrior,
 )
+from .chromatin_alpha import (
+    AlleleSpecificChromatinAnalyzer,
+    BatchCellCompositionCorrector,
+    ChromatinStateSegmentationAdapter,
+    EpigenomicPurityDeconvolver,
+)
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
 from .cohort_beta import (
     FunctionalConvergenceParser,
@@ -1070,6 +1076,44 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chromatin.add_argument("--format", choices=("tsv", "json"), default=None)
     chromatin.add_argument("--output", default=None)
+
+    chromatin_segments = subparsers.add_parser(
+        "segment-chromatin-state",
+        help="segment context-qualified chromatin observations at observed boundaries",
+    )
+    chromatin_segments.add_argument("input", type=str)
+    chromatin_segments.add_argument("--context-key", default=None)
+    chromatin_segments.add_argument("--low-signal", type=float, default=0.25)
+    chromatin_segments.add_argument("--high-signal", type=float, default=0.75)
+    chromatin_segments.add_argument("--output", default=None)
+
+    allele_chromatin = subparsers.add_parser(
+        "analyze-allele-specific-chromatin",
+        help="compare reference and alternate chromatin signals by replicate",
+    )
+    allele_chromatin.add_argument("input", type=str)
+    allele_chromatin.add_argument("--context-key", default=None)
+    allele_chromatin.add_argument("--ambiguity-tolerance", type=float, default=0.25)
+    allele_chromatin.add_argument("--delta-threshold", type=float, default=0.0)
+    allele_chromatin.add_argument("--output", default=None)
+
+    purity = subparsers.add_parser(
+        "deconvolve-epigenomic-purity",
+        help="estimate bounded purity from declared tumor and normal epigenomic references",
+    )
+    purity.add_argument("input", type=str)
+    purity.add_argument("--context-key", default=None)
+    purity.add_argument("--minimum-markers", type=int, default=2)
+    purity.add_argument("--spread-tolerance", type=float, default=0.2)
+    purity.add_argument("--output", default=None)
+
+    batch_composition = subparsers.add_parser(
+        "correct-batch-cell-composition",
+        help="apply declared batch offsets and cell-composition corrections",
+    )
+    batch_composition.add_argument("input", type=str)
+    batch_composition.add_argument("--context-key", default=None)
+    batch_composition.add_argument("--output", default=None)
 
     state_atlas = subparsers.add_parser(
         "query-state-atlas",
@@ -2304,6 +2348,43 @@ def main(argv: list[str] | None = None) -> int:
                 source_id=args.source_id or input_path.stem,
                 track_kind=args.track_kind,
                 input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "segment-chromatin-state":
+            result = ChromatinStateSegmentationAdapter().segment(
+                _read_rows(args.input, "records", "observations", "segments"),
+                context_key=args.context_key,
+                low_signal=args.low_signal,
+                high_signal=args.high_signal,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "analyze-allele-specific-chromatin":
+            result = AlleleSpecificChromatinAnalyzer().analyze(
+                _read_rows(args.input, "records", "observations", "measurements"),
+                context_key=args.context_key,
+                ambiguity_tolerance=args.ambiguity_tolerance,
+                delta_threshold=args.delta_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "deconvolve-epigenomic-purity":
+            result = EpigenomicPurityDeconvolver().estimate(
+                _read_rows(args.input, "records", "markers", "observations"),
+                context_key=args.context_key,
+                minimum_markers=args.minimum_markers,
+                spread_tolerance=args.spread_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "correct-batch-cell-composition":
+            payload = _read_json(args.input)
+            result = BatchCellCompositionCorrector().correct(
+                payload.get("records", payload.get("observations", ())),
+                context_key=args.context_key or payload.get("context_key"),
+                batch_offsets=payload.get("batch_offsets"),
+                target_composition=payload.get("target_composition"),
             )
             _write_json(result.to_dict(), args.output)
             return 0

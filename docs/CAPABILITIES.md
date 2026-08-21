@@ -433,6 +433,29 @@ glio-noncode analyze-methylation-motifs methylation-motifs.json --output methyla
 glio-noncode model-idh-hypermethylation idh-panel.json --model-id idh-panel --model-version 2026.1 --context-key "GRCh38|glioma|adult|stem_like|tumor|unknown" --output idh-context.json
 ```
 
+The Domain 07 chromatin-alpha tranche adds assay-control depth:
+
+- `ChromatinStateSegmentationAdapter` splits overlapping observations at all
+  observed boundaries and retains open/intermediate/closed labels, signal
+  spread, replicate/sample support, mixed-state ambiguity, and source hashes.
+- `AlleleSpecificChromatinAnalyzer` summarizes reference-versus-alternate
+  signals by variant and assay, retaining replicate deltas, directions,
+  missingness, mixed directions, and exact context.
+- `EpigenomicPurityDeconvolver` solves a bounded one-dimensional mixture
+  proportion from declared observed, tumor-reference, and normal-reference
+  marker signals. Out-of-range marker estimates remain visible and the
+  aggregate is not a clinical purity call.
+- `BatchCellCompositionCorrector` applies declared batch offsets and
+  cell-composition coefficients while retaining raw signal, both adjustment
+  terms, target composition, and missing-parameter partial states.
+
+```powershell
+glio-noncode segment-chromatin-state chromatin-intervals.json --low-signal 0.25 --high-signal 0.75 --output chromatin-segments.json
+glio-noncode analyze-allele-specific-chromatin allele-chromatin.json --ambiguity-tolerance 0.25 --output allele-chromatin.json
+glio-noncode deconvolve-epigenomic-purity purity-markers.json --minimum-markers 3 --output epigenomic-purity.json
+glio-noncode correct-batch-cell-composition corrected-signals.json --output batch-corrected.json
+```
+
 ## Domain 08 cell state, disease class, and territory
 
 The biological-context plane parses subject-scoped disease ontology, age-route,

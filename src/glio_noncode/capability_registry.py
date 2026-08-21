@@ -1297,6 +1297,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "and minimum-site abstention; this is not a diagnostic classifier."
                 ),
             },
+            "GNC-D07-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_alpha.ChromatinStateSegmentationAdapter",
+                    "glio_noncode.chromatin_alpha.ChromatinSegmentationReport",
+                ),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "evidence_note": (
+                    "Context-qualified chromatin intervals are split at observed boundaries and "
+                    "assigned transparent open/intermediate/closed labels with replicate support, "
+                    "signal spread, source hashes, and mixed-state ambiguity retained."
+                ),
+            },
+            "GNC-D07-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_alpha.AlleleSpecificChromatinAnalyzer",
+                    "glio_noncode.chromatin_alpha.AlleleSpecificChromatinReport",
+                ),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "evidence_note": (
+                    "Reference/alternate chromatin signals are summarized per variant and assay "
+                    "with replicate-aware deltas, directions, missingness, mixed-direction states, "
+                    "context gates, and source hashes; deltas are not causal effects."
+                ),
+            },
+            "GNC-D07-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_alpha.EpigenomicPurityDeconvolver",
+                    "glio_noncode.chromatin_alpha.EpigenomicPurityReport",
+                ),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "evidence_note": (
+                    "Declared tumor/normal epigenomic reference markers produce bounded mixture "
+                    "estimates with marker denominators, clipping visibility, spread, minimum-site "
+                    "gates, and context/source provenance; this is not a clinical purity call."
+                ),
+            },
+            "GNC-D07-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.chromatin_alpha.BatchCellCompositionCorrector",
+                    "glio_noncode.chromatin_alpha.BatchCompositionCorrectionReport",
+                ),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "evidence_note": (
+                    "Declared batch offsets and cell-composition coefficients retain raw signal, "
+                    "batch and composition adjustment terms, target composition, missing-parameter "
+                    "partial states, and source hashes; corrected values remain descriptive."
+                ),
+            },
             "GNC-D08-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
