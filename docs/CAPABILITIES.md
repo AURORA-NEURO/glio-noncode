@@ -207,6 +207,65 @@ uncertainty, subgroup gaps, feature overlap, privacy floors, and abstentions
 visible. None of them turns an association or posterior score into a clinical
 decision.
 
+The D13-D16 frontier completes all 256 catalog capabilities with partial,
+test-backed implementations. The ledger now reports 256 of 256 capabilities
+started (100%); partial means the bounded code and tests exist while external
+validation, calibration, and institutional release evidence remain separate.
+
+Domain 13 now includes off-target risk estimation, prerequisite-safe validation
+value-of-information selection, content-addressed experiment packages, and
+result-driven claim updates. Domain 14 includes evidence reclassification,
+cycle-checked deprecation/supersession, audit reproducibility bundles, and
+HMAC-signed research dossiers with audience and expiry verification. Domain 15
+includes structured review forms, deterministic JSON/Markdown/CSV-oriented
+reports, global search and command matching, and accessibility/human-factors
+checks. Domain 16 includes deny-by-default privacy/security policy evaluation,
+offline deployment manifests, site-local federated coordination, and explicit
+release/rollback gates.
+
+```powershell
+glio-noncode estimate-off-target-risk off-targets.json --output off-target-report.json
+glio-noncode optimize-validation-voi validation-options.json --output voi-plan.json
+glio-noncode export-experiment-package experiment-package.json --output experiment-package.json
+glio-noncode ingest-result-update-claims result-ingestion.json --output claim-updates.json
+glio-noncode reclassify-evidence reclassification.json --output reclassification-report.json
+glio-noncode manage-deprecation-supersession supersession.json --output supersession-report.json
+glio-noncode build-audit-reproducibility-bundle audit-sections.json --output audit-bundle.json
+glio-noncode publish-signed-dossier dossier.json --output signed-dossier.json
+glio-noncode evaluate-structured-review review-form.json --output review-result.json
+glio-noncode build-export-report report-sections.json --output report.json
+glio-noncode search-command-palette search.json --output search-results.json
+glio-noncode evaluate-accessibility-human-factors accessibility.json --output accessibility-report.json
+glio-noncode evaluate-privacy-security-policy security-requests.json --output security-report.json
+glio-noncode build-local-deployment-bundle deployment.json --output deployment-bundle.json
+glio-noncode coordinate-federated-execution federated-plan.json --output federated-plan.json
+glio-noncode decide-release-rollback release.json --output release-decision.json
+```
+
+These are research and platform-control receipts. A signed dossier is not a
+clinical authorization, federated eligibility is not permission to access raw
+data, and a release or rollback decision does not assert scientific validity.
+
+The frontier controls also compose into four end-to-end pipelines. These
+pipelines preserve every stage receipt and stop at the first reviewable gate:
+
+- `ValidationFrontierPipeline` combines off-target risk, value-of-information
+  selection, package export, execution readiness, and result-to-claim updates.
+- `EvidenceLifecyclePipeline` combines graph integrity, lineage, reclassification,
+  supersession, audit bundling, and signed dossier publication.
+- `WorkbenchQualityPipeline` combines structured review, report export, search,
+  accessibility, and human-factors event simulation.
+- `DeploymentGovernancePipeline` combines policy admission, service dependency
+  resolution, federated privacy accounting, deployment readiness, site-local
+  coordination, and release/rollback gates.
+
+```powershell
+glio-noncode run-validation-frontier-pipeline validation-pipeline.json --output validation-pipeline-report.json
+glio-noncode run-evidence-lifecycle-pipeline evidence-pipeline.json --output evidence-pipeline-report.json
+glio-noncode run-workbench-quality-pipeline workbench-pipeline.json --output workbench-pipeline-report.json
+glio-noncode run-deployment-governance-pipeline deployment-pipeline.json --output deployment-pipeline-report.json
+```
+
 The Domain 01 beta extensions deepen the variation contract without silently
 coercing unresolved data:
 

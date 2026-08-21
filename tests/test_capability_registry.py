@@ -16,12 +16,12 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertEqual(coverage.total_capabilities, 256)
         self.assertEqual(coverage.mvp_capabilities, 64)
         self.assertEqual(coverage.verified, 3)
-        self.assertEqual(coverage.partial, 237)
-        self.assertEqual(coverage.planned, 16)
+        self.assertEqual(coverage.partial, 253)
+        self.assertEqual(coverage.planned, 0)
         self.assertAlmostEqual(coverage.implementation_percent, 1.17)
         self.assertAlmostEqual(coverage.mvp_implementation_percent, 4.69)
-        self.assertEqual(coverage.started, 240)
-        self.assertAlmostEqual(coverage.started_percent, 93.75)
+        self.assertEqual(coverage.started, 256)
+        self.assertAlmostEqual(coverage.started_percent, 100.0)
         self.assertEqual(coverage.mvp_started, 64)
         self.assertAlmostEqual(coverage.to_dict()["mvp_started_percent"], 100.0)
         self.assertEqual(len(registry.by_domain("D01")), 16)
@@ -115,6 +115,14 @@ class CapabilityRegistryTests(unittest.TestCase):
             "GNC-D11-C16",
             "GNC-D12-C13",
             "GNC-D12-C16",
+            "GNC-D13-C13",
+            "GNC-D13-C16",
+            "GNC-D14-C13",
+            "GNC-D14-C16",
+            "GNC-D15-C13",
+            "GNC-D15-C16",
+            "GNC-D16-C13",
+            "GNC-D16-C16",
         ):
             self.assertEqual(registry.record(capability_id).state, CapabilityState.PARTIAL)
 

@@ -107,10 +107,16 @@ from .frontier_context_alpha import (
     run_context_frontier_operation,
 )
 from .frontier_data_alpha import FRONTIER_OPERATIONS, run_frontier_operation
+from .frontier_end_to_end import END_TO_END_OPERATIONS, run_end_to_end_operation
 from .frontier_inference_alpha import (
     INFERENCE_FRONTIER_OPERATIONS,
     run_inference_frontier_operation,
 )
+from .frontier_release_alpha import (
+    RELEASE_FRONTIER_OPERATIONS,
+    run_release_frontier_operation,
+)
+from .frontier_release_hardening import HARDENING_OPERATIONS, run_hardening_operation
 from .identity_beta import (
     BatchSampleIdentityChecker,
     ChainOfCustodyCapture,
@@ -1981,7 +1987,12 @@ def build_parser() -> argparse.ArgumentParser:
     power.add_argument("--output", default=None)
 
     for operation in (
-        FRONTIER_OPERATIONS + CONTEXT_FRONTIER_OPERATIONS + INFERENCE_FRONTIER_OPERATIONS
+        FRONTIER_OPERATIONS
+        + CONTEXT_FRONTIER_OPERATIONS
+        + INFERENCE_FRONTIER_OPERATIONS
+        + RELEASE_FRONTIER_OPERATIONS
+        + HARDENING_OPERATIONS
+        + END_TO_END_OPERATIONS
     ):
         frontier = subparsers.add_parser(operation, help=f"run frontier capability: {operation}")
         frontier.add_argument("input", type=str)
@@ -3616,6 +3627,30 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command in INFERENCE_FRONTIER_OPERATIONS:
             result = run_inference_frontier_operation(
+                args.command,
+                _read_json(args.input),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in RELEASE_FRONTIER_OPERATIONS:
+            result = run_release_frontier_operation(
+                args.command,
+                _read_json(args.input),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in HARDENING_OPERATIONS:
+            result = run_hardening_operation(
+                args.command,
+                _read_json(args.input),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in END_TO_END_OPERATIONS:
+            result = run_end_to_end_operation(
                 args.command,
                 _read_json(args.input),
                 context_key=args.context_key,

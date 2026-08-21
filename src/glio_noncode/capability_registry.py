@@ -2807,6 +2807,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "clinical claim."
                 ),
             },
+            "GNC-D13-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.OffTargetRiskEstimator",
+                    "glio_noncode.frontier_release_alpha.OffTargetRiskReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha", "tests.test_frontier_release_alpha_cli"),
+                "evidence_note": (
+                    "Off-target estimates retain candidate scores, weights, maximum and weighted "
+                    "burden, specificity, thresholds, and review or blocking issues."
+                ),
+            },
+            "GNC-D13-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.ValidationValueOfInformationOptimizer",
+                    "glio_noncode.frontier_release_alpha.ValueOfInformationPlan",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Validation value-of-information planning selects prerequisite-safe experiments "
+                    "by information/risk value density under a declared budget."
+                ),
+            },
+            "GNC-D13-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.ExperimentPackageExporter",
+                    "glio_noncode.frontier_release_alpha.ExperimentPackage",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Experiment packages retain experiment, control, and protocol IDs with per-file "
+                    "content addresses and a deterministic manifest."
+                ),
+            },
+            "GNC-D13-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.ResultIngestionClaimUpdater",
+                    "glio_noncode.frontier_release_alpha.ClaimUpdateReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Result ingestion updates known claims only with exact context, result identity, "
+                    "changed fields, evidence address, and unknown-claim review."
+                ),
+            },
             "GNC-D14-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
@@ -2950,6 +2998,55 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Evidence delta reports classify added, removed, and changed claims and "
                     "citations plus graph-state or context changes with before/after addresses "
                     "and review severity; a delta does not decide which snapshot is correct."
+                ),
+            },
+            "GNC-D14-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.ReclassificationEngine",
+                    "glio_noncode.frontier_release_alpha.ReclassificationReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Reclassification proposes evidence-tier changes from declared scores and "
+                    "requires independent reviewer counts and exact context."
+                ),
+            },
+            "GNC-D14-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.DeprecationSupersessionManager",
+                    "glio_noncode.frontier_release_alpha.SupersessionReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Deprecation and supersession records detect missing targets, self-links, context "
+                    "mismatches, and supersession cycles."
+                ),
+            },
+            "GNC-D14-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.AuditReproducibilityBundleBuilder",
+                    "glio_noncode.frontier_release_alpha.ReproducibilityBundle",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Audit bundles require evidence, review, and release sections and retain each "
+                    "section address and item count in a reproducible manifest."
+                ),
+            },
+            "GNC-D14-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.SignedDossierPublisher",
+                    "glio_noncode.frontier_release_alpha.DossierVerification",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha", "tests.test_frontier_release_alpha_cli"),
+                "evidence_note": (
+                    "Research dossier signing uses an explicit key ID, audience, payload address, "
+                    "expiry, HMAC receipt, and verification state; shared-secret signing is not a "
+                    "public-key identity."
                 ),
             },
             "GNC-D15-C01": {
@@ -3102,6 +3199,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Role-based collaboration evaluation applies an explicit deny-by-default "
                     "permission matrix, exact-context gates, inactive-member handling, policy "
                     "receipts, and access decisions without replacing institutional controls."
+                ),
+            },
+            "GNC-D15-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.StructuredReviewForm",
+                    "glio_noncode.frontier_release_alpha.StructuredReviewResult",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Structured review forms validate required fields and choices while retaining field "
+                    "labels, values, completion, and review state."
+                ),
+            },
+            "GNC-D15-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.ExportReportBuilder",
+                    "glio_noncode.frontier_release_alpha.ExportedReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Report export preserves ordered sections, format, content addresses, and line "
+                    "counts for JSON, Markdown, or CSV-oriented output."
+                ),
+            },
+            "GNC-D15-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.GlobalSearchCommandPalette",
+                    "glio_noncode.frontier_release_alpha.SearchPaletteReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Global search ranks field matches and command matches deterministically with type "
+                    "filters, matched fields, and bounded result counts."
+                ),
+            },
+            "GNC-D15-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.AccessibilityHumanFactorsLayer",
+                    "glio_noncode.frontier_release_alpha.AccessibilityReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Accessibility evaluation retains keyboard, labels, focus, contrast, motion, and "
+                    "reading-order findings with pass/fail counts and a score."
                 ),
             },
             "GNC-D16-C01": {
@@ -3260,6 +3405,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Drift and OOD monitoring computes declared mean-delta, PSI, KS-proxy, or "
                     "missingness signals with watch/drift thresholds, support boundaries, source "
                     "receipts, and review states; it is not a model-failure or clinical conclusion."
+                ),
+            },
+            "GNC-D16-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.PrivacySecurityPolicyEngine",
+                    "glio_noncode.frontier_release_alpha.SecurityPolicyReport",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Privacy/security policy evaluation is deny-by-default and retains roles, sensitive "
+                    "access, network, retention, context, matched policies, and reasons."
+                ),
+            },
+            "GNC-D16-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.LocalDeploymentBundleBuilder",
+                    "glio_noncode.frontier_release_alpha.LocalDeploymentBundle",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Local deployment bundles retain artifact digests, service manifests, runtime and "
+                    "environment requirements, offline mode, and readiness state."
+                ),
+            },
+            "GNC-D16-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.FederatedExecutionCoordinator",
+                    "glio_noncode.frontier_release_alpha.FederatedExecutionPlan",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha",),
+                "evidence_note": (
+                    "Federated coordination retains site-local eligibility, context support, sample "
+                    "minimums, privacy costs, assignments, and denied tasks."
+                ),
+            },
+            "GNC-D16-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_release_alpha.ReleaseRollbackController",
+                    "glio_noncode.frontier_release_alpha.ReleaseRollbackDecision",
+                ),
+                "test_modules": ("tests.test_frontier_release_alpha", "tests.test_frontier_release_alpha_cli"),
+                "evidence_note": (
+                    "Release and rollback decisions apply explicit tests, integrity, compatibility, "
+                    "policy, version, and previous-version gates with content-addressed receipts."
                 ),
             },
         }
