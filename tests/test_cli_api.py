@@ -277,6 +277,82 @@ class CliApiTests(unittest.TestCase):
             self.assertEqual(payload["state"], "supported")
             self.assertEqual(payload["active_factor_ids"], ["f1"])
 
+    def test_evidence_lifecycle_commands_write_quarantine_and_dossier_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            citations = Path(directory) / "citations.tsv"
+            citation_output = Path(directory) / "citations.json"
+            graph_input = Path(directory) / "graph.json"
+            dossier_output = Path(directory) / "dossier.json"
+            citations.write_text(
+                "citation_id\tsource_uri\ttitle\tversion\tcitation_text\n"
+                "c1\thttps://example.test/1\tOne\tv1\tOne citation\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "parse-citations",
+                        str(citations),
+                        "--source-id",
+                        "source-1",
+                        "--source-version",
+                        "v1",
+                        "--output",
+                        str(citation_output),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(citation_output.read_text(encoding="utf-8"))["state"], "supported"
+            )
+            graph_input.write_text(
+                json.dumps(
+                    {
+                        "citations": [
+                            {
+                                "citation_id": "c1",
+                                "source_id": "source-1",
+                                "source_uri": "https://example.test/1",
+                                "title": "One",
+                                "version": "v1",
+                                "citation_text": "One citation",
+                                "retrieved_at": "2026-08-20T00:00:00+00:00",
+                            }
+                        ],
+                        "claims": [
+                            {
+                                "claim_id": "claim-1",
+                                "edge_id": "edge-1",
+                                "source_ids": ["source-1"],
+                                "state": "supported",
+                                "support": 0.8,
+                                "confidence": 0.9,
+                                "claim_type": "functional",
+                                "summary": "A bounded research claim",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "evidence-graph",
+                        str(graph_input),
+                        "--context-key",
+                        "GRCh38|glioma|adult|stem_like|unknown|unknown",
+                        "--output",
+                        str(dossier_output),
+                    ]
+                ),
+                0,
+            )
+            dossier = json.loads(dossier_output.read_text(encoding="utf-8"))
+            self.assertEqual(dossier["release_state"], "review_required")
+            self.assertTrue(dossier["integrity_digest"].startswith("sha256:"))
+
     def test_cohort_query_command_writes_context_selection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "cohort.json"

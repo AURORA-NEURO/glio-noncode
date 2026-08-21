@@ -899,5 +899,56 @@ def default_capability_registry() -> CapabilityRegistry:
                     "context mismatch or construct-budget overflow without claiming assay efficacy."
                 ),
             },
+            "GNC-D14-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.evidence_lifecycle.VersionedEvidenceGraphConstructor",
+                    "glio_noncode.evidence_lifecycle.EvidenceDossierPublisher",
+                ),
+                "test_modules": ("tests.test_evidence_lifecycle",),
+                "evidence_note": (
+                    "Immutable graph snapshots preserve claims, citations, lineage, supersession, "
+                    "replay addresses, and a review-required research dossier integrity envelope; "
+                    "migration fixtures and cryptographic release signing remain."
+                ),
+            },
+            "GNC-D14-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.evidence_lifecycle.CitationResolver",
+                    "glio_noncode.evidence_lifecycle.EvidenceCitation",
+                ),
+                "test_modules": ("tests.test_evidence_lifecycle",),
+                "evidence_note": (
+                    "TSV, CSV, and JSON citation fixtures retain source versions, row hashes, "
+                    "raw records, and malformed-row quarantine; broader source-schema conformance "
+                    "and live citation reconciliation remain."
+                ),
+            },
+            "GNC-D14-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.evidence_lifecycle.ClaimEvidenceEdgeValidator",
+                ),
+                "test_modules": ("tests.test_evidence_lifecycle",),
+                "evidence_note": (
+                    "Edge validation checks active lineage, citation coverage, exact graph "
+                    "context, "
+                    "contradiction state, and abstention conditions without averaging conflicting "
+                    "claims; external benchmark calibration and negative controls remain."
+                ),
+            },
+            "GNC-D14-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.evidence_lifecycle.ContradictionDisagreementTracker",
+                ),
+                "test_modules": ("tests.test_evidence_lifecycle",),
+                "evidence_note": (
+                    "Disagreement reports retain positive and negative claims, declared value "
+                    "groups, source IDs, unresolved state, and out-of-domain handling; external "
+                    "adjudication benchmarks and calibrated disagreement metrics remain."
+                ),
+            },
         }
     )

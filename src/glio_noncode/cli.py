@@ -19,6 +19,13 @@ from .control_plane import default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
+from .evidence_lifecycle import (
+    CitationResolver,
+    EvidenceCitation,
+    EvidenceDossierPublisher,
+    VersionedEvidenceClaim,
+    VersionedEvidenceGraphConstructor,
+)
 from .intake import IntakeFormat, VariantIntake
 from .link_graph import GeneFeatureParser
 from .models import CaseManifest, ReferenceContext, VariantIdentity
@@ -96,6 +103,23 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
     subparsers.add_parser("capabilities", help="print the 256-capability implementation ledger")
     subparsers.add_parser("references", help="print the reference assembly registry")
+
+    citations = subparsers.add_parser(
+        "parse-citations", help="parse a versioned citation manifest with quarantine accounting"
+    )
+    citations.add_argument("input", type=str)
+    citations.add_argument("--source-id", default=None)
+    citations.add_argument("--source-version", default="unspecified")
+    citations.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
+    citations.add_argument("--output", default=None)
+
+    evidence_graph = subparsers.add_parser(
+        "evidence-graph", help="build and validate an immutable versioned evidence graph"
+    )
+    evidence_graph.add_argument("input", type=str)
+    evidence_graph.add_argument("--context-key", required=True)
+    evidence_graph.add_argument("--graph-id", default="evidence-graph")
+    evidence_graph.add_argument("--output", default=None)
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
     intake.add_argument("input", type=str)
@@ -264,6 +288,43 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "references":
             _write_json(default_reference_registry().manifest(), None)
+            return 0
+        if args.command == "parse-citations":
+            input_path = Path(args.input)
+            result = CitationResolver().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "evidence-graph":
+            payload = _read_json(args.input)
+            citations = tuple(
+                EvidenceCitation.from_mapping(
+                    row,
+                    fallback_source_id=str(row.get("source_id", "declared_source")),
+                    fallback_version=str(row.get("version", "unspecified")),
+                    fallback_row_number=index,
+                )
+                for index, row in enumerate(payload.get("citations", ()), start=1)
+            )
+            claims = tuple(
+                VersionedEvidenceClaim.from_mapping(
+                    row,
+                    fallback_id=f"{Path(args.input).stem}:{index}",
+                    context_key=args.context_key,
+                )
+                for index, row in enumerate(payload.get("claims", ()), start=1)
+            )
+            graph = VersionedEvidenceGraphConstructor().construct(
+                claims,
+                citations=citations,
+                graph_id=args.graph_id,
+                context_key=args.context_key,
+            )
+            _write_json(EvidenceDossierPublisher().publish(graph).to_dict(), args.output)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)

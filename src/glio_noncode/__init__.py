@@ -44,6 +44,18 @@ from .cohort_discovery import (
 )
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
+from .evidence_lifecycle import (
+    CitationResolver,
+    ClaimEvidenceEdgeValidator,
+    ContradictionDisagreementTracker,
+    EvidenceCitation,
+    EvidenceDossierPublisher,
+    EvidenceGraphSnapshot,
+    LifecycleState,
+    ResearchEvidenceDossier,
+    VersionedEvidenceClaim,
+    VersionedEvidenceGraphConstructor,
+)
 from .inference_extensions import InferenceExtensionSuite
 from .intake import VariantIndex, VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
@@ -135,6 +147,16 @@ __all__ = [
     "CaseRuntime",
     "ControlPlaneExecutor",
     "ControlPlaneApplication",
+    "ClaimEvidenceEdgeValidator",
+    "CitationResolver",
+    "ContradictionDisagreementTracker",
+    "EvidenceCitation",
+    "EvidenceDossierPublisher",
+    "EvidenceGraphSnapshot",
+    "LifecycleState",
+    "ResearchEvidenceDossier",
+    "VersionedEvidenceClaim",
+    "VersionedEvidenceGraphConstructor",
     "CapabilityRegistry",
     "AdultPediatricRouter",
     "CellStateContextAssembler",

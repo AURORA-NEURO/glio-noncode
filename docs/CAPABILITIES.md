@@ -243,3 +243,31 @@ required controls and readouts. Context mismatch, allele mismatch, unsupported
 length, and missing inventory remain blocked or abstained. Construct generation
 does not establish expression, effect size, assay success, safety, or causal
 validation; expert review and institutional approvals remain required.
+
+## Domain 14 evidence lifecycle
+
+The evidence-lifecycle plane resolves versioned citation manifests and retains
+source version, URI, checksum, raw record, and retrieval metadata for every
+accepted citation. TSV, CSV, and JSON rows that lack a URI, title, or citation
+text are quarantined with a row hash instead of being silently dropped.
+
+Versioned evidence claims are assembled into immutable graph snapshots. Parent
+lineage, supersession, missing citations, citation-context mismatch, active
+claim IDs, and historical claim IDs are all retained. A replay reconstructs the
+same content address, while appending creates a new graph version without
+erasing prior claims.
+
+Edge validation checks exact graph context, active lineage, source coverage,
+and disagreement state. The contradiction tracker keeps positive, negative,
+contradictory, and declared-value alternatives separate; it never averages
+conflicting evidence into a false consensus. A research-only dossier envelope
+records a deterministic integrity digest and remains review-required. The
+digest is a content-addressed reproducibility aid, not a cryptographic identity
+signature, clinical conclusion, or treatment recommendation.
+
+The lifecycle boundaries are:
+
+```powershell
+glio-noncode parse-citations citations.tsv --source-id source-1 --source-version v1 --output citations.json
+glio-noncode evidence-graph graph-input.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output dossier.json
+```
