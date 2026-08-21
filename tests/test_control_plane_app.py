@@ -27,6 +27,7 @@ from glio_noncode.models import (
 )
 from glio_noncode.runtime import CaseRuntime
 from glio_noncode.serialization import content_hash
+from glio_noncode.uncertainty import UncertaintyPropagator
 
 from .helpers import fixture_manifest
 
@@ -102,7 +103,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 12)
+        self.assertEqual(app.manifest()["binding_count"], 16)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -321,6 +322,73 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         )
         self.assertEqual(causal.state, InvocationState.COMPLETED)
         self.assertIn(expected_path.weakest_edge_id, causal.response.claim_summary)
+
+    def test_validation_evidence_and_report_bindings_execute_typed_work(self) -> None:
+        with TemporaryDirectory() as directory:
+            dossier = CaseRuntime(directory).evaluate(fixture_manifest())
+        app = ControlPlaneApplication()
+        uncertainty = UncertaintyPropagator().summarize(dossier.evidence)
+        uncertainty_payload = uncertainty.to_dict()
+        for component in uncertainty_payload["components"]:
+            component["component_id"] = component.pop("name")
+
+        route = app.executor.execute(
+            _request(
+                "A39.publish",
+                {
+                    "hypothesis": dossier.hypotheses[0].to_dict(),
+                    "options": [option.to_dict() for option in dossier.experiments],
+                    "uncertainty": uncertainty_payload,
+                },
+                "route-1",
+            )
+        )
+        self.assertEqual(route.state, InvocationState.COMPLETED)
+        self.assertIn("validation routes", route.response.claim_summary)
+
+        sequence = "A" + ("C" * 19) + "AGG" + ("T" * 5)
+        guide = app.executor.execute(
+            _request(
+                "A40.publish",
+                {
+                    "notation": "7:100:A>T",
+                    "sequence": {
+                        "assembly": "GRCh38",
+                        "chromosome": "chr7",
+                        "start": 100,
+                        "end": 127,
+                        "sequence": sequence,
+                        "source_id": "SRC-UCSC-REST",
+                        "receipt": _receipt("SRC-UCSC-REST", "guide-window").to_dict(),
+                    },
+                },
+                "guide-1",
+            )
+        )
+        self.assertEqual(guide.state, InvocationState.COMPLETED)
+        self.assertIn("candidates", guide.response.claim_summary)
+
+        claim = dossier.evidence[0]
+        edge = dossier.hypotheses[0].edges[0]
+        graph = app.executor.execute(
+            _request(
+                "A43.publish",
+                {"claims": [claim.to_dict()], "edge": edge.to_dict()},
+                "graph-1",
+            )
+        )
+        self.assertEqual(graph.state, InvocationState.COMPLETED)
+        self.assertIn(edge.edge_id, graph.response.evidence_id)
+
+        report = app.executor.execute(
+            _request(
+                "A44.publish",
+                {"dossier": dossier.to_dict(), "format": "json"},
+                "report-1",
+            )
+        )
+        self.assertEqual(report.state, InvocationState.COMPLETED)
+        self.assertIn("report rendered", report.response.claim_summary)
 
     def test_lifecycle_binding_returns_plan_without_adjudicating(self) -> None:
         with TemporaryDirectory() as directory:

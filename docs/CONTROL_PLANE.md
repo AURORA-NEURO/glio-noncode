@@ -95,10 +95,11 @@ variants, measurements, statistical results, posterior values, or citations.
 `ControlPlaneApplication` binds the core executable slice to registered
 publication tools: mission planning (`A01`), VCF/TSV/JSON intake (`A07`),
 identity normalization (`A08`), public atlas retrieval (`A15`), sequence
-inference (`A23`), uncertainty/OOD aggregation (`A36`), power planning (`A41`),
-cohort recurrence (`A32`), causal lattice assembly (`A34`), power planning
-(`A41`), human-review abstention (`A45`), lifecycle reclassification (`A46`),
-and drift monitoring (`A47`).
+inference (`A23`), uncertainty/OOD aggregation (`A36`), cohort recurrence
+(`A32`), causal lattice assembly (`A34`), power planning (`A41`), human-review
+abstention (`A45`), lifecycle reclassification (`A46`),
+drift monitoring (`A47`), assay routing (`A39`), local guide enumeration (`A40`),
+evidence graph aggregation (`A43`), and report rendering (`A44`).
 
 Atlas execution has an additional runtime boundary because the current
 publication handler can invoke the public adapters: the mission must set
@@ -107,6 +108,10 @@ publication handler can invoke the public adapters: the mission must set
 the ENCODE catalog. If the boundary is missing, the handler abstains without
 making a request. Sequence and uncertainty handlers accept receipt-backed
 sequence/claim mappings and return content-addressed computed envelopes.
+Validation handlers preserve the boundary between local design and biological
+validity: assay routes remain research options, guide off-target status remains
+`unassessed`, evidence aggregation retains negative and missing claims, and
+report rendering never changes dossier status or creates a release decision.
 
 Other registered roles remain available for dependency planning and return
 explicit handler-unavailable errors until their domain module is installed;

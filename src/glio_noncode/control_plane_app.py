@@ -20,6 +20,7 @@ from .control_plane import (
 )
 from .data_sources import FetchReceipt, FetchStatus, SequenceSlice
 from .errors import ValidationError
+from .evidence import EvidenceGraph
 from .identity import normalize_variant, parse_variant
 from .intake import VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
@@ -39,6 +40,7 @@ from .models import (
     ReviewState,
     SupportLevel,
 )
+from .reports import render_json, render_markdown, summarize
 from .sequence_inference import (
     MotifDefinition,
     SequenceAnalysisResult,
@@ -49,11 +51,15 @@ from .serialization import content_hash
 from .uncertainty import (
     CalibrationEvaluator,
     DomainProfile,
+    OODAssessment,
+    OODStatus,
     OutOfDomainDetector,
     UncertaintyBand,
+    UncertaintyComponent,
     UncertaintyPropagator,
+    UncertaintyReport,
 )
-from .validation_design import PowerPlanner
+from .validation_design import AssayRouter, DesignStatus, GuideDesigner, PowerPlanner
 
 
 @dataclass(frozen=True, slots=True)
@@ -146,6 +152,18 @@ class ControlPlaneApplication:
             "Aggregate typed uncertainty components and optional domain assessment.",
         )
         self._bind(
+            "A39.publish",
+            self._assay_route,
+            "validation_design.AssayRouter",
+            "Rank declared assay options against explicit hypothesis uncertainty.",
+        )
+        self._bind(
+            "A40.publish",
+            self._guide_design,
+            "validation_design.GuideDesigner",
+            "Enumerate local NGG guide candidates with unassessed off-target status.",
+        )
+        self._bind(
             "A32.publish",
             self._cohort,
             "cohort.RecurrenceModel",
@@ -162,6 +180,18 @@ class ControlPlaneApplication:
             self._reclassify,
             "lifecycle.LifecycleReclassifier",
             "Compare immutable dossier snapshots and emit a review-aware plan.",
+        )
+        self._bind(
+            "A43.publish",
+            self._evidence_graph,
+            "evidence.EvidenceGraph",
+            "Aggregate claims for one declared hypothesis edge without erasing negatives.",
+        )
+        self._bind(
+            "A44.publish",
+            self._report,
+            "reports.render_markdown",
+            "Render a typed dossier summary while preserving research-use caveats.",
         )
         self._bind(
             "A41.publish",
@@ -582,6 +612,241 @@ class ControlPlaneApplication:
                 str(raw["model_digest"]) if raw.get("model_digest") is not None else None
             ),
             watch_threshold=float(raw.get("watch_threshold", 0.15)),
+        )
+
+    def _assay_route(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        hypothesis_raw = raw.get("hypothesis")
+        options_raw = raw.get("options")
+        uncertainty_raw = raw.get("uncertainty")
+        if (
+            not isinstance(hypothesis_raw, Mapping)
+            or not isinstance(options_raw, (list, tuple))
+            or not isinstance(uncertainty_raw, Mapping)
+        ):
+            return Abstention(
+                "missing_validation_route_inputs",
+                "assay_router",
+                "Assay routing requires a hypothesis, experiment options, and uncertainty report.",
+                ("hypothesis", "options", "uncertainty"),
+            )
+        try:
+            hypothesis = self._hypothesis_from_mapping(hypothesis_raw)
+            options = tuple(self._experiment_from_mapping(item) for item in options_raw)
+            uncertainty = self._uncertainty_report_from_mapping(uncertainty_raw)
+            routes = AssayRouter().route(hypothesis, options, uncertainty)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_validation_route_inputs",
+                "assay_router",
+                str(exc),
+                ("hypothesis", "options", "uncertainty"),
+            )
+        if not routes:
+            return Abstention(
+                "no_supported_validation_route",
+                "assay_router",
+                "No declared assay option tests an edge in the supplied hypothesis.",
+                ("options.tests_edges", "hypothesis.edges"),
+            )
+        payload_hash = content_hash(routes)
+        return EvidenceEnvelope(
+            evidence_id=f"assay-route:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Assay routing produced {len(routes)} ranked validation routes; "
+                f"top priority is {routes[0].priority:.6f}."
+            ),
+            payload_hash=payload_hash,
+            source_ids=("validation-design",),
+            provenance_digest=request.provenance.digest,
+            confidence=round(max(0.0, 1.0 - uncertainty.overall), 6),
+            limitations=tuple(
+                dict.fromkeys(blocker for route in routes for blocker in route.blockers)
+            ),
+        )
+
+    @staticmethod
+    def _uncertainty_report_from_mapping(raw: Mapping[str, Any]) -> UncertaintyReport:
+        components = tuple(
+            UncertaintyComponent(
+                name=str(item.get("name", item.get("component_id", item.get("label", "")))),
+                value=float(item["value"]),
+                rationale=str(item["rationale"]),
+                evidence_ids=tuple(str(value) for value in item.get("evidence_ids", ())),
+            )
+            for item in raw.get("components", ())
+            if isinstance(item, Mapping)
+        )
+        if not components:
+            raise ValidationError("uncertainty report requires components")
+        ood_raw = raw.get("ood")
+        ood: OODAssessment | None = None
+        if isinstance(ood_raw, Mapping):
+            ood = OODAssessment(
+                status=OODStatus(str(ood_raw["status"])),
+                distance=float(ood_raw["distance"]),
+                missing_features=tuple(str(item) for item in ood_raw.get("missing_features", ())),
+                out_of_range_features=tuple(
+                    str(item) for item in ood_raw.get("out_of_range_features", ())
+                ),
+                warnings=tuple(str(item) for item in ood_raw.get("warnings", ())),
+                profile_id=str(ood_raw["profile_id"]),
+                content_address=str(ood_raw["content_address"]),
+            )
+        return UncertaintyReport(
+            overall=float(raw["overall"]),
+            band=UncertaintyBand(str(raw["band"])),
+            components=components,
+            ood=ood,
+            limitations=tuple(str(item) for item in raw.get("limitations", ())),
+            content_address=str(raw["content_address"]),
+        )
+
+    def _guide_design(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        try:
+            variant = self._variant_from_payload(raw)
+            sequence_raw = raw.get("sequence")
+            if not isinstance(sequence_raw, Mapping):
+                raise ValidationError("guide design requires a sequence mapping")
+            sequence = self._sequence_slice(sequence_raw)
+            result = GuideDesigner().design(
+                variant,
+                sequence,
+                protospacer_length=int(raw.get("protospacer_length", 20)),
+                pam_pattern=str(raw.get("pam_pattern", "NGG")),
+                max_candidates=int(raw.get("max_candidates", 50)),
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_guide_design_inputs",
+                "guide_design",
+                str(exc),
+                ("variant", "sequence", "sequence.receipt"),
+            )
+        state = (
+            EvidenceState.SUPPORTED
+            if result.status == DesignStatus.READY_FOR_REVIEW
+            else EvidenceState.ABSTAINED
+        )
+        payload_hash = result.content_address
+        return EvidenceEnvelope(
+            evidence_id=f"guide-design:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Guide design status is {result.status.value}; "
+                f"{len(result.candidates)} local candidates were enumerated."
+            ),
+            payload_hash=payload_hash,
+            source_ids=(result.source_id,),
+            provenance_digest=request.provenance.digest,
+            confidence=0.7 if state == EvidenceState.SUPPORTED else 0.0,
+            limitations=result.warnings,
+        )
+
+    def _evidence_graph(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        claims_raw = raw.get("claims")
+        edge_raw = raw.get("edge")
+        if not isinstance(claims_raw, (list, tuple)) or not isinstance(edge_raw, Mapping):
+            return Abstention(
+                "missing_evidence_graph_inputs",
+                "evidence_graph",
+                "Evidence aggregation requires claims and one hypothesis edge.",
+                ("claims", "edge"),
+            )
+        try:
+            claims = tuple(self._claim_from_mapping(item) for item in claims_raw)
+            edge = self._hypothesis_edge(edge_raw)
+            graph = EvidenceGraph()
+            graph.extend(claims)
+            aggregate = graph.aggregate(edge)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_evidence_graph_inputs",
+                "evidence_graph",
+                str(exc),
+                ("claims", "edge"),
+            )
+        payload_hash = content_hash(aggregate.to_dict())
+        state = (
+            EvidenceState.SUPPORTED if aggregate.supported_claim_ids else EvidenceState.ABSTAINED
+        )
+        return EvidenceEnvelope(
+            evidence_id=f"evidence-graph:{edge.edge_id}:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Evidence graph aggregate for {edge.edge_id} has score "
+                f"{aggregate.score:.6f} and uncertainty {aggregate.uncertainty:.6f}."
+            ),
+            payload_hash=payload_hash,
+            source_ids=tuple(sorted({claim.source_id for claim in claims})),
+            provenance_digest=request.provenance.digest,
+            confidence=aggregate.context_support,
+            limitations=(aggregate.rationale,),
+        )
+
+    def _report(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        dossier_raw = raw.get("dossier")
+        output_format = str(raw.get("format", "markdown"))
+        if not isinstance(dossier_raw, Mapping):
+            return Abstention(
+                "missing_report_dossier",
+                "reporting",
+                "Report rendering requires a typed dossier mapping.",
+                ("dossier",),
+            )
+        if output_format not in {"markdown", "json"}:
+            return Abstention(
+                "unsupported_report_format",
+                "reporting",
+                "Report format must be markdown or json.",
+                ("format",),
+            )
+        try:
+            dossier = self._dossier_from_mapping(dossier_raw)
+            summary = summarize(dossier)
+            rendered = (
+                render_markdown(dossier) if output_format == "markdown" else render_json(dossier)
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_report_dossier",
+                "reporting",
+                str(exc),
+                ("dossier",),
+            )
+        payload_hash = content_hash(
+            {"format": output_format, "summary": summary.to_dict(), "rendered": rendered}
+        )
+        return EvidenceEnvelope(
+            evidence_id=f"report:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"{output_format} research report rendered for {summary.case_id} with "
+                f"{summary.evidence_count} evidence claims."
+            ),
+            payload_hash=payload_hash,
+            source_ids=("report-renderer",),
+            provenance_digest=request.provenance.digest,
+            confidence=1.0,
+            limitations=(
+                "Rendering preserves research-use status and does not create a release decision.",
+            ),
         )
 
     def _cohort(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
