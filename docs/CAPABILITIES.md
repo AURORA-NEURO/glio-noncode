@@ -208,3 +208,24 @@ The replayable factor boundary is:
 ```powershell
 glio-noncode factor-graph factors.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output graph.json
 ```
+
+## Domain 12 cohort discovery and controls
+
+The cohort plane builds exact-context queries with variant-kind, origin, sample,
+chromosome, and callable-space criteria. It returns selected records together
+with exclusion reasons and never treats an empty or context-mismatched cohort
+as negative evidence. The local background model reports observed variants per
+callable base, target-space expectation, source intervals, and small-sample
+uncertainty without emitting an unvalidated significance claim.
+
+Sequence-context controls use bounded Hamming distance; chromatin controls use
+declared feature ranges and RMS distance. Both retain candidate pools,
+distances, source IDs, cutoff criteria, partial/absent states, and exact-context
+out-of-domain behavior. These are negative-control constructions for research,
+not causal null proofs, clinical risk estimates, or treatment evidence.
+
+The query boundary is:
+
+```powershell
+glio-noncode cohort-query cohort.json --output cohort-selection.json
+```

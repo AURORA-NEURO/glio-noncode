@@ -277,6 +277,52 @@ class CliApiTests(unittest.TestCase):
             self.assertEqual(payload["state"], "supported")
             self.assertEqual(payload["active_factor_ids"], ["f1"])
 
+    def test_cohort_query_command_writes_context_selection(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "cohort.json"
+            output = Path(directory) / "query.json"
+            context = {
+                "genome_build": "GRCh38",
+                "disease_class": "glioma",
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "territory": "unknown",
+                "treatment_phase": "unknown",
+            }
+            source.write_text(
+                json.dumps(
+                    {
+                        "context": context,
+                        "query": {"query_id": "q1", "variant_kinds": ["snv"]},
+                        "records": [
+                            {
+                                "record_id": "r1",
+                                "variant": {
+                                    "variant_id": "v1",
+                                    "kind": "snv",
+                                    "chromosome": "chr7",
+                                    "start": 100,
+                                    "end": 100,
+                                    "reference": "A",
+                                    "alternate": "T",
+                                    "genome_build": "GRCh38",
+                                    "origin": "somatic",
+                                },
+                                "source_id": "cohort",
+                                "sample_id": "s1",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(["cohort-query", str(source), "--output", str(output)]), 0
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["state"], "supported")
+            self.assertEqual(payload["variant_ids"], ["v1"])
+
     def test_sequence_adapter_commands_write_typed_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             sequence_output = Path(directory) / "sequence.json"

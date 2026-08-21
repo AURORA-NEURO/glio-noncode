@@ -14,13 +14,14 @@ from .capability_registry import default_capability_registry
 from .causal_reasoning import FactorGraphConstructor, FactorObservation
 from .cell_context import ContextObservationParser
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
+from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
 from .control_plane import default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
 from .intake import IntakeFormat, VariantIntake
 from .link_graph import GeneFeatureParser
-from .models import CaseManifest
+from .models import CaseManifest, ReferenceContext, VariantIdentity
 from .reference_registry import default_reference_registry
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
@@ -218,6 +219,12 @@ def build_parser() -> argparse.ArgumentParser:
     factor_graph.add_argument("--graph-id", default="factor-graph")
     factor_graph.add_argument("--output", default=None)
 
+    cohort_query = subparsers.add_parser(
+        "cohort-query", help="apply an exact-context cohort query to a JSON record bundle"
+    )
+    cohort_query.add_argument("input", type=str)
+    cohort_query.add_argument("--output", default=None)
+
     encode_sequence = subparsers.add_parser(
         "encode-sequence", help="emit deterministic sequence context features"
     )
@@ -404,6 +411,39 @@ def main(argv: list[str] | None = None) -> int:
             result = FactorGraphConstructor().construct(
                 factors, context_key=args.context_key, graph_id=args.graph_id
             )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "cohort-query":
+            payload = _read_json(args.input)
+            context = ReferenceContext.from_dict(payload["context"])
+            records = tuple(
+                CohortVariantRecord(
+                    record_id=str(item["record_id"]),
+                    variant=VariantIdentity.from_dict(item["variant"]),
+                    context_key=str(item.get("context_key", context.key)),
+                    source_id=str(item.get("source_id", "cohort-cli")),
+                    sample_id=str(item.get("sample_id", "unspecified")),
+                    callable=bool(item.get("callable", True)),
+                    sequence_context=item.get("sequence_context"),
+                    chromatin_features={
+                        str(key): float(value)
+                        for key, value in dict(item.get("chromatin_features", {})).items()
+                    },
+                    annotations=dict(item.get("annotations", {})),
+                )
+                for item in payload.get("records", ())
+            )
+            query_raw = dict(payload.get("query", {}))
+            query = CohortQuery(
+                query_id=str(query_raw.get("query_id", "cohort-cli")),
+                context_key=str(query_raw.get("context_key", context.key)),
+                variant_kinds=tuple(str(item) for item in query_raw.get("variant_kinds", ())),
+                origins=tuple(str(item) for item in query_raw.get("origins", ())),
+                chromosomes=tuple(str(item) for item in query_raw.get("chromosomes", ())),
+                sample_ids=tuple(str(item) for item in query_raw.get("sample_ids", ())),
+                require_callable=bool(query_raw.get("require_callable", True)),
+            )
+            result = CohortQueryBuilder().build(query, records)
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "encode-sequence":

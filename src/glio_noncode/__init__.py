@@ -35,6 +35,13 @@ from .chromatin_context import (
     ChromatinTrackParser,
     H3K27acActivityEstimator,
 )
+from .cohort_discovery import (
+    ChromatinContextControlMatcher,
+    CohortDiscoveryEvidenceBuilder,
+    CohortQueryBuilder,
+    LocalBackgroundMutationModel,
+    SequenceContextControlMatcher,
+)
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .inference_extensions import InferenceExtensionSuite
@@ -181,6 +188,11 @@ __all__ = [
     "FactorGraphConstructor",
     "MeasurementLikelihoodModel",
     "TypedHypothesisObjectBuilder",
+    "ChromatinContextControlMatcher",
+    "CohortDiscoveryEvidenceBuilder",
+    "CohortQueryBuilder",
+    "LocalBackgroundMutationModel",
+    "SequenceContextControlMatcher",
     "OutOfDomainDetector",
     "UncertaintyPropagator",
     "NormalizationReport",

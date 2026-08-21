@@ -808,5 +808,52 @@ def default_capability_registry() -> CapabilityRegistry:
                     "a likelihood proxy rather than a calibrated clinical probability."
                 ),
             },
+            "GNC-D12-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_discovery.CohortQueryBuilder",
+                ),
+                "test_modules": ("tests.test_cohort_discovery",),
+                "evidence_note": (
+                    "Cohort queries preserve exact context, variant/origin/sample criteria, "
+                    "callable requirements, exclusion reasons, source IDs, and out-of-domain "
+                    "transport; external task calibration remains."
+                ),
+            },
+            "GNC-D12-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_discovery.LocalBackgroundMutationModel",
+                ),
+                "test_modules": ("tests.test_cohort_discovery",),
+                "evidence_note": (
+                    "Local background summaries retain callable bases, observed records, context "
+                    "rate, target-space expectation, and small-sample uncertainty without emitting "
+                    "an unvalidated significance claim."
+                ),
+            },
+            "GNC-D12-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_discovery.SequenceContextControlMatcher",
+                ),
+                "test_modules": ("tests.test_cohort_discovery",),
+                "evidence_note": (
+                    "Sequence controls use exact context and bounded normalized Hamming distance, "
+                    "preserving candidate count, distances, source IDs, and abstention/OOD states."
+                ),
+            },
+            "GNC-D12-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_discovery.ChromatinContextControlMatcher",
+                ),
+                "test_modules": ("tests.test_cohort_discovery",),
+                "evidence_note": (
+                    "Chromatin controls use declared feature ranges and RMS distance with complete "
+                    "vector requirements, context gating, candidate accounting, and explicit "
+                    "negative-control limitations."
+                ),
+            },
         }
     )
