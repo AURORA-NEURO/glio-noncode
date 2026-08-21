@@ -1190,6 +1190,50 @@ def default_capability_registry() -> CapabilityRegistry:
                     "consensus is not a causal or clinical conclusion."
                 ),
             },
+            "GNC-D10-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_beta.ActivityByContactLinkAdapter",
+                ),
+                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "evidence_note": (
+                    "Activity-by-contact link records preserve activity and contact components, "
+                    "declared scales, variant-element-gene identity, confidence, context, source "
+                    "versions, hashes, and malformed-row quarantine."
+                ),
+            },
+            "GNC-D10-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.link_graph_beta.CoaccessibilityLinker",),
+                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "evidence_note": (
+                    "Coaccessibility paths become exact-context candidate graph edges with method "
+                    "identity, evidence IDs, source versions, alternatives, and single-method "
+                    "partial state; calibration and negative controls remain."
+                ),
+            },
+            "GNC-D10-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.link_graph_beta.MolecularQtlLinker",),
+                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "evidence_note": (
+                    "Molecular-QTL evidence retains effect and p/q-value metadata while applying a "
+                    "declared bounded support transform and exact-context graph gate; support is "
+                    "not a causal or clinical claim."
+                ),
+            },
+            "GNC-D10-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_beta.AlleleSpecificLinkEvidenceIntegrator",
+                ),
+                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "evidence_note": (
+                    "Allele-specific link paths preserve gain/loss direction, method identity, "
+                    "context, evidence lineage, and direction conflicts; contradictory candidates "
+                    "are not averaged into a selected gene."
+                ),
+            },
             "GNC-D11-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

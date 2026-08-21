@@ -41,6 +41,12 @@ from .evidence_lifecycle import (
 )
 from .intake import IntakeFormat, VariantIntake
 from .link_graph import GeneFeatureParser
+from .link_graph_beta import (
+    ActivityByContactLinkAdapter,
+    AlleleSpecificLinkEvidenceIntegrator,
+    CoaccessibilityLinker,
+    MolecularQtlLinker,
+)
 from .methylation_beta import (
     CpGCreationLossAnalyzer,
     IdhHypermethylationContextModel,
@@ -814,6 +820,44 @@ def build_parser() -> argparse.ArgumentParser:
     abc_score.add_argument("--ambiguity-tolerance", type=float, default=0.50)
     abc_score.add_argument("--output", default=None)
 
+    activity_contact_link = subparsers.add_parser(
+        "parse-activity-contact-link",
+        help="parse activity-by-contact variant-element-gene evidence rows",
+    )
+    activity_contact_link.add_argument("input", type=str)
+    activity_contact_link.add_argument("--source-id", default=None)
+    activity_contact_link.add_argument("--source-version", default="unspecified")
+    activity_contact_link.add_argument("--format", choices=("tsv", "json"), default=None)
+    activity_contact_link.add_argument("--contact-scale", type=float, default=10.0)
+    activity_contact_link.add_argument("--output", default=None)
+
+    coaccess_link = subparsers.add_parser(
+        "link-coaccessibility",
+        help="link exact-context coaccessibility evidence into candidate graph edges",
+    )
+    coaccess_link.add_argument("input", type=str)
+    coaccess_link.add_argument("--context-key", required=True)
+    coaccess_link.add_argument("--variant-id", default=None)
+    coaccess_link.add_argument("--output", default=None)
+
+    qtl_link = subparsers.add_parser(
+        "link-molecular-qtl",
+        help="link exact-context molecular-QTL evidence into candidate graph edges",
+    )
+    qtl_link.add_argument("input", type=str)
+    qtl_link.add_argument("--context-key", required=True)
+    qtl_link.add_argument("--variant-id", default=None)
+    qtl_link.add_argument("--output", default=None)
+
+    allele_link = subparsers.add_parser(
+        "integrate-allele-specific-links",
+        help="integrate allele-specific link paths while retaining direction conflict",
+    )
+    allele_link.add_argument("input", type=str)
+    allele_link.add_argument("--context-key", required=True)
+    allele_link.add_argument("--variant-id", default=None)
+    allele_link.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -1473,6 +1517,44 @@ def main(argv: list[str] | None = None) -> int:
                 contact_scale=args.contact_scale,
                 activity_scale=args.activity_scale,
                 ambiguity_tolerance=args.ambiguity_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-activity-contact-link":
+            input_path = Path(args.input)
+            result = ActivityByContactLinkAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                contact_scale=args.contact_scale,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "link-coaccessibility":
+            payload = _read_json(args.input)
+            result = CoaccessibilityLinker().link(
+                payload.get("observations", payload.get("evidence", payload.get("records", ()))),
+                _context_from_key(args.context_key),
+                variant_id=args.variant_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "link-molecular-qtl":
+            payload = _read_json(args.input)
+            result = MolecularQtlLinker().link(
+                payload.get("observations", payload.get("evidence", payload.get("records", ()))),
+                _context_from_key(args.context_key),
+                variant_id=args.variant_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "integrate-allele-specific-links":
+            payload = _read_json(args.input)
+            result = AlleleSpecificLinkEvidenceIntegrator().integrate(
+                payload.get("observations", payload.get("evidence", payload.get("records", ()))),
+                _context_from_key(args.context_key),
+                variant_id=args.variant_id,
             )
             _write_json(result.to_dict(), args.output)
             return 0

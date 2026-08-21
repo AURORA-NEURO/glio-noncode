@@ -419,6 +419,28 @@ The gene-source boundary is:
 glio-noncode parse-genes genes.tsv --output genes.json
 ```
 
+The Domain 10 scientific-beta extensions add evidence-path linkers:
+
+- `ActivityByContactLinkAdapter` preserves activity and contact components,
+  declared scales, variant-element-gene identity, confidence, source versions,
+  and raw hashes before any graph edge is produced.
+- `CoaccessibilityLinker` and `MolecularQtlLinker` create candidate graph
+  edges with method identity, effect metadata, exact context, alternatives,
+  and single-method partial state. Molecular-QTL p/q values use a declared
+  bounded transform and are not treated as causal evidence by themselves.
+- `AlleleSpecificLinkEvidenceIntegrator` keeps allele-direction evidence and
+  reports gain/loss conflicts as contradictory graph state instead of averaging
+  them into a selected target gene.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode parse-activity-contact-link activity-contact.tsv --output activity-contact.json
+glio-noncode link-coaccessibility coaccessibility.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --variant-id v1 --output coaccessibility-links.json
+glio-noncode link-molecular-qtl molecular-qtl.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --variant-id v1 --output qtl-links.json
+glio-noncode integrate-allele-specific-links allele-links.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --variant-id v1 --output allele-integrated-links.json
+```
+
 ## Domain 11 causal evidence structures
 
 The causal-evidence plane builds immutable factor-graph snapshots with parent
