@@ -1057,42 +1057,131 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D03-C01": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.specimen_context.SpecimenOntologyMapper",),
-                "test_modules": ("tests.test_specimen_context",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_context.SpecimenOntologyMapper",
+                    "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
+                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
+                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
+                    "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_context",
+                    "tests.test_specimen_frontier_public_data",
+                    "tests.test_specimen_frontier_fixture_eval",
+                    "tests.test_specimen_frontier_contracts",
+                    "tests.test_specimen_frontier_replay",
+                    "tests.test_specimen_frontier_quality_gate",
+                    "tests.test_specimen_frontier_bundle",
+                    "tests.test_specimen_frontier_lineage",
+                    "tests.test_specimen_frontier_runtime",
+                    "tests.test_specimen_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Project-local sample/specimen rows map to explicit candidates and expose "
-                    "missing or conflicting subject and relationship labels; canonical ontology "
-                    "equivalence fixtures remain."
+                    "Aggregate pseudonymous specimen records are checked against declared "
+                    "BioSample, GDC, and ENA source receipts, exact context, deterministic "
+                    "content addresses, ontology mappings, matched-normal relationships, "
+                    "purity/ploidy rows, integrity results, replay, bundle, lineage, and "
+                    "runtime gates."
                 ),
             },
             "GNC-D03-C02": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.specimen_context.MatchedNormalResolver",),
-                "test_modules": ("tests.test_specimen_context",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_context.MatchedNormalResolver",
+                    "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
+                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
+                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
+                    "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_context",
+                    "tests.test_specimen_frontier_public_data",
+                    "tests.test_specimen_frontier_fixture_eval",
+                    "tests.test_specimen_frontier_contracts",
+                    "tests.test_specimen_frontier_replay",
+                    "tests.test_specimen_frontier_quality_gate",
+                    "tests.test_specimen_frontier_bundle",
+                    "tests.test_specimen_frontier_lineage",
+                    "tests.test_specimen_frontier_runtime",
+                    "tests.test_specimen_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Same-subject normal resolution handles unique, missing, and one-to-many "
-                    "normal declarations without manufacturing a match."
+                    "Matched-normal positives, missing normals, and multiple-normal controls "
+                    "are evaluated from aggregate pseudonymous records with explicit result "
+                    "states, issue codes, source receipts, replay, bundle, lineage, and "
+                    "four-stage runtime evidence."
                 ),
             },
             "GNC-D03-C03": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.specimen_context.PurityPloidyImporter",),
-                "test_modules": ("tests.test_specimen_context",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_context.PurityPloidyImporter",
+                    "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
+                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
+                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
+                    "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_context",
+                    "tests.test_specimen_frontier_public_data",
+                    "tests.test_specimen_frontier_fixture_eval",
+                    "tests.test_specimen_frontier_contracts",
+                    "tests.test_specimen_frontier_replay",
+                    "tests.test_specimen_frontier_quality_gate",
+                    "tests.test_specimen_frontier_bundle",
+                    "tests.test_specimen_frontier_lineage",
+                    "tests.test_specimen_frontier_runtime",
+                    "tests.test_specimen_frontier_cli",
+                ),
                 "evidence_note": (
-                    "TSV/JSON purity and ploidy records preserve caller versions, hashes, "
-                    "percent normalization, and malformed-row quarantine."
+                    "Synthetic aggregate purity/ploidy rows preserve caller/version receipts, "
+                    "normalized values, malformed-row quarantine, expected counts, deterministic "
+                    "addresses, and review controls before bundle publication."
                 ),
             },
             "GNC-D03-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_context.ContaminationSwapDetector",
+                    "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
+                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
+                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
+                    "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_specimen_context",),
+                "test_modules": (
+                    "tests.test_specimen_context",
+                    "tests.test_specimen_frontier_public_data",
+                    "tests.test_specimen_frontier_fixture_eval",
+                    "tests.test_specimen_frontier_contracts",
+                    "tests.test_specimen_frontier_replay",
+                    "tests.test_specimen_frontier_quality_gate",
+                    "tests.test_specimen_frontier_bundle",
+                    "tests.test_specimen_frontier_lineage",
+                    "tests.test_specimen_frontier_runtime",
+                    "tests.test_specimen_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Declared fingerprint mismatches are flagged and incomplete metrics abstain; "
-                    "external benchmark calibration is not claimed."
+                    "Aggregate fingerprint controls cover matching, subject mismatch, "
+                    "contamination, and incomplete-metric abstention, with deterministic issue "
+                    "codes, sanitization checks, source receipts, lineage, replay, and runtime "
+                    "publication state."
                 ),
             },
             "GNC-D03-C05": {

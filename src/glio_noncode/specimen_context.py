@@ -183,9 +183,20 @@ class SpecimenOntologyMapper:
         for line_number, row in enumerate(rows, start=1):
             raw_hash = content_hash(row)
             try:
-                sample_id = str(_row_value(row, "sample_id", "sample"))
+                sample_value = _row_value(row, "sample_id", "sample")
+                if sample_value is None or not str(sample_value).strip():
+                    raise ValidationError("sample_id is required")
+                sample_id = str(sample_value)
                 specimen_id = str(_row_value(row, "specimen_id", "specimen", default=sample_id))
-                subject_value = _row_value(row, "subject_id", "patient_id", "participant_id")
+                subject_value = _row_value(
+                    row,
+                    "subject_id",
+                    "subject_key",
+                    "case_key",
+                    "donor_key",
+                    "patient_id",
+                    "participant_id",
+                )
                 relationship = str(
                     _row_value(row, "relationship", "sample_type", default="unspecified")
                 )
@@ -193,8 +204,6 @@ class SpecimenOntologyMapper:
                     _row_value(row, "specimen_type", "material", default="unspecified")
                 )
                 timepoint = str(_row_value(row, "timepoint", "visit", default="unspecified"))
-                if not sample_id.strip():
-                    raise ValidationError("sample_id is required")
                 observations.append(
                     SpecimenObservation(
                         observation_id=f"{source_id}:{line_number}",

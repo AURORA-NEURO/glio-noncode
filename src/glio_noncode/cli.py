@@ -239,6 +239,27 @@ from .specimen_beta import (
     SubcloneAssigner,
 )
 from .specimen_context import PurityPloidyImporter
+from .specimen_frontier_bundle import (
+    SpecimenFrontierBundleFormat,
+    SpecimenFrontierEvidenceBundleBuilder,
+)
+from .specimen_frontier_contracts import default_specimen_frontier_contract_registry
+from .specimen_frontier_fixture_eval import evaluate_specimen_frontier_fixture
+from .specimen_frontier_lineage import (
+    audit_specimen_frontier_lineage,
+    build_specimen_frontier_lineage,
+)
+from .specimen_frontier_public_data import (
+    SpecimenFrontierFixtureCatalog,
+    audit_specimen_frontier_fixture,
+)
+from .specimen_frontier_quality_gate import evaluate_specimen_frontier_quality_gate
+from .specimen_frontier_replay import (
+    SpecimenFrontierReplayExpectation,
+    replay_specimen_frontier_fixtures,
+)
+from .specimen_frontier_runtime import run_specimen_frontier_pipeline
+from .specimen_frontier_scenario_matrix import evaluate_specimen_frontier_scenarios
 from .specimen_lineage import (
     LongitudinalSpecimenLinker,
     MultiRegionLineageResolver,
@@ -1657,6 +1678,80 @@ def build_parser() -> argparse.ArgumentParser:
     purity.add_argument("--source-id", default=None)
     purity.add_argument("--format", choices=("tsv", "json"), default=None)
     purity.add_argument("--output", default=None)
+
+    specimen_frontier_fixture = subparsers.add_parser(
+        "evaluate-specimen-frontier-fixture",
+        help="evaluate the public aggregate fixture across Domain 03 C01-C04 specimen operations",
+    )
+    specimen_frontier_fixture.add_argument("input", type=str)
+    specimen_frontier_fixture.add_argument("--output", default=None)
+
+    specimen_frontier_data = subparsers.add_parser(
+        "audit-specimen-frontier-data",
+        help="audit public aggregate C01-C04 sources, contexts, identities, and payload scope",
+    )
+    specimen_frontier_data.add_argument("input", type=str)
+    specimen_frontier_data.add_argument("--output", default=None)
+
+    specimen_frontier_replay = subparsers.add_parser(
+        "replay-specimen-frontier-fixtures",
+        help="replay C01-C04 fixtures with identity, context, source, and evidence floors",
+    )
+    specimen_frontier_replay.add_argument("inputs", nargs="+", type=str)
+    specimen_frontier_replay.add_argument("--required-context-key", default=None)
+    specimen_frontier_replay.add_argument("--output", default=None)
+
+    specimen_frontier_quality = subparsers.add_parser(
+        "specimen-frontier-quality-gate",
+        help="reconcile C01-C04 fixture, data, replay, scenario, contract, and lineage evidence",
+    )
+    specimen_frontier_quality.add_argument("input", type=str)
+    specimen_frontier_quality.add_argument("--output", default=None)
+
+    specimen_frontier_scenarios = subparsers.add_parser(
+        "evaluate-specimen-frontier-scenarios",
+        help="run independent C01-C04 positive and review state-transition scenarios",
+    )
+    specimen_frontier_scenarios.add_argument("input", type=str)
+    specimen_frontier_scenarios.add_argument("--output", default=None)
+
+    specimen_frontier_contracts = subparsers.add_parser(
+        "specimen-frontier-contracts",
+        help="print the four-operation Domain 03 C01-C04 specimen contract registry",
+    )
+    specimen_frontier_contracts.add_argument("--output", default=None)
+
+    specimen_frontier_bundle = subparsers.add_parser(
+        "build-specimen-frontier-bundle",
+        help="build a compact JSON, CSV, or Markdown C01-C04 specimen evidence bundle",
+    )
+    specimen_frontier_bundle.add_argument("input", type=str)
+    specimen_frontier_bundle.add_argument("--output", required=True)
+    specimen_frontier_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in SpecimenFrontierBundleFormat],
+        default=SpecimenFrontierBundleFormat.JSON.value,
+    )
+    specimen_frontier_bundle.add_argument("--bundle-id", default=None)
+    specimen_frontier_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state C01-C04 bundle for inspection instead of requiring the gate",
+    )
+
+    specimen_frontier_lineage = subparsers.add_parser(
+        "specimen-frontier-lineage",
+        help="build and audit a sanitized C01-C04 source-to-result lineage graph",
+    )
+    specimen_frontier_lineage.add_argument("input", type=str)
+    specimen_frontier_lineage.add_argument("--output", default=None)
+
+    specimen_frontier_pipeline = subparsers.add_parser(
+        "run-specimen-frontier-pipeline",
+        help="run ontology, matched-normal, purity/ploidy, and integrity stages",
+    )
+    specimen_frontier_pipeline.add_argument("input", type=str)
+    specimen_frontier_pipeline.add_argument("--output", default=None)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -3734,6 +3829,64 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(result.to_dict(), args.output)
             return 0
+        if args.command == "evaluate-specimen-frontier-fixture":
+            report = evaluate_specimen_frontier_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-specimen-frontier-data":
+            catalog = SpecimenFrontierFixtureCatalog.from_file(args.input)
+            report = audit_specimen_frontier_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-specimen-frontier-fixtures":
+            first_catalog = SpecimenFrontierFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = SpecimenFrontierReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                first_catalog.source_ids,
+                minimum_checks=40,
+                minimum_positive_records=4,
+                minimum_control_records=8,
+            )
+            report = replay_specimen_frontier_fixtures(
+                args.inputs,
+                expectation=expectation,
+                required_context_key=required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-frontier-quality-gate":
+            report = evaluate_specimen_frontier_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-specimen-frontier-scenarios":
+            report = evaluate_specimen_frontier_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-frontier-contracts":
+            _write_json(default_specimen_frontier_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-specimen-frontier-bundle":
+            bundle = SpecimenFrontierEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+                allow_review=args.allow_review,
+            )
+            return 0 if bundle.accepted else 2
+        if args.command == "specimen-frontier-lineage":
+            graph = build_specimen_frontier_lineage(args.input)
+            audit = audit_specimen_frontier_lineage(graph)
+            payload = graph.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "run-specimen-frontier-pipeline":
+            report = run_specimen_frontier_pipeline(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "classify-origin":
             result = SomaticGermlineOriginClassifier().classify(
                 _read_rows(args.input, "records", "observations"),

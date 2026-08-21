@@ -1,0 +1,65 @@
+{
+  "request_id": "specimen-frontier-pipeline-review-001",
+  "manifest_id": "specimen-frontier-manifest-review-001",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": [
+    "ncbi-biosample-docs",
+    "gdc-data-model",
+    "gdc-data-dictionary",
+    "ena-browser-guides"
+  ],
+  "operations": {
+    "ontology_mapping": {
+      "source_id": "ncbi-biosample-docs",
+      "records": [
+        {
+          "sample_id": "pipeline-conflict-001",
+          "specimen_id": "pipeline-specimen-conflict-a",
+          "subject_key": "pipeline-entity-010",
+          "relationship": "tumor",
+          "specimen_type": "tissue",
+          "timepoint": "baseline"
+        },
+        {
+          "sample_id": "pipeline-conflict-001",
+          "specimen_id": "pipeline-specimen-conflict-b",
+          "subject_key": "pipeline-entity-011",
+          "relationship": "tumor",
+          "specimen_type": "tissue",
+          "timepoint": "baseline"
+        }
+      ]
+    },
+    "matched_normal": {
+      "source_id": "gdc-data-model",
+      "records": [
+        {
+          "sample_id": "pipeline-tumor-002",
+          "specimen_id": "pipeline-specimen-tumor-002",
+          "subject_key": "pipeline-entity-012",
+          "relationship": "tumor",
+          "specimen_type": "tissue",
+          "timepoint": "baseline"
+        }
+      ]
+    },
+    "purity_ploidy": {
+      "source_id": "gdc-data-dictionary",
+      "input_format": "tsv",
+      "text": "sample_id\tcaller_id\tversion\tpurity\tploidy\npipeline-tumor-002\tcaller-a\t1.0\tbad\t2.40\n"
+    },
+    "sample_integrity": {
+      "source_id": "ena-browser-guides",
+      "fingerprints": [
+        {
+          "sample_id": "pipeline-tumor-002",
+          "declared_subject_key": "pipeline-entity-012",
+          "observed_subject_key": "pipeline-entity-013",
+          "contamination_fraction": 0.0,
+          "discordance_rate": 0.0,
+          "marker_count": 1000
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,428 @@
+{
+  "schema_version": "specimen-frontier-evidence-v1",
+  "fixture_id": "specimen-frontier-public-aggregate-2026-08-21",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "aggregate_only": true,
+  "sources": [
+    {
+      "source_id": "ncbi-biosample-docs",
+      "label": "NCBI BioSample documentation",
+      "url": "https://www.ncbi.nlm.nih.gov/biosample/docs/",
+      "release": "accessed-2026-08-21",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "boundary": "structured sample attributes and provenance"
+      }
+    },
+    {
+      "source_id": "gdc-data-model",
+      "label": "GDC data model",
+      "url": "https://docs.gdc.cancer.gov/Data/Data_Model/GDC_Data_Model/",
+      "release": "accessed-2026-08-21",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "boundary": "case, sample, and linked entity relationships"
+      }
+    },
+    {
+      "source_id": "gdc-data-dictionary",
+      "label": "GDC data dictionary",
+      "url": "https://docs.gdc.cancer.gov/Data_Dictionary/",
+      "release": "accessed-2026-08-21",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "boundary": "biospecimen properties and validation vocabulary"
+      }
+    },
+    {
+      "source_id": "ena-browser-guides",
+      "label": "European Nucleotide Archive browser guides",
+      "url": "https://www.ebi.ac.uk/ena/browser/guides",
+      "release": "accessed-2026-08-21",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "boundary": "sample registration and metadata retrieval guidance"
+      }
+    }
+  ],
+  "positives": [
+    {
+      "record_id": "positive-ontology-mapping",
+      "operation": "ontology_mapping",
+      "source_id": "ncbi-biosample-docs",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "accepted",
+      "expected_result_state": "supported",
+      "parameters": {
+        "expected_counts": {
+          "observations": 1,
+          "mappings": 1,
+          "ambiguous": 0,
+          "partial": 0,
+          "issues": 0
+        },
+        "required_issue_codes": []
+      },
+      "payload": {
+        "records": [
+          {
+            "sample_id": "sample-tumor-001",
+            "specimen_id": "specimen-tumor-001",
+            "subject_key": "entity-001",
+            "relationship": "tumor",
+            "specimen_type": "tissue",
+            "timepoint": "baseline"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-matched-normal",
+      "operation": "matched_normal",
+      "source_id": "gdc-data-model",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "accepted",
+      "expected_result_state": "supported",
+      "parameters": {
+        "expected_counts": {
+          "observations": 2,
+          "tumors": 1,
+          "supported": 1,
+          "ambiguous": 0,
+          "abstained": 0,
+          "issues": 0
+        },
+        "required_issue_codes": []
+      },
+      "payload": {
+        "records": [
+          {
+            "sample_id": "sample-tumor-001",
+            "specimen_id": "specimen-tumor-001",
+            "subject_key": "entity-001",
+            "relationship": "tumor",
+            "specimen_type": "tissue",
+            "timepoint": "baseline"
+          },
+          {
+            "sample_id": "sample-normal-001",
+            "specimen_id": "specimen-normal-001",
+            "subject_key": "entity-001",
+            "relationship": "normal",
+            "specimen_type": "blood",
+            "timepoint": "baseline"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-purity-ploidy",
+      "operation": "purity_ploidy",
+      "source_id": "gdc-data-dictionary",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "accepted",
+      "expected_result_state": "accepted",
+      "parameters": {
+        "input_format": "tsv",
+        "expected_counts": {
+          "records": 2,
+          "issues": 0,
+          "percent_normalized": 2
+        },
+        "required_issue_codes": []
+      },
+      "payload": {
+        "text": "sample_id\tcaller_id\tversion\tpurity\tploidy\nsample-tumor-001\tcaller-a\t1.0\t70\t2.40\nsample-tumor-002\tcaller-b\t2.1\t0.65\t2.10\n"
+      }
+    },
+    {
+      "record_id": "positive-sample-integrity",
+      "operation": "sample_integrity",
+      "source_id": "ena-browser-guides",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "accepted",
+      "expected_result_state": "clear",
+      "parameters": {
+        "expected_counts": {
+          "fingerprints": 1,
+          "clear": 1,
+          "watch": 0,
+          "flagged": 0,
+          "abstained": 0
+        },
+        "required_issue_codes": []
+      },
+      "payload": {
+        "fingerprints": [
+          {
+            "sample_id": "sample-tumor-001",
+            "declared_subject_key": "entity-001",
+            "observed_subject_key": "entity-001",
+            "contamination_fraction": 0.01,
+            "discordance_rate": 0.01,
+            "marker_count": 1000
+          }
+        ]
+      }
+    }
+  ],
+  "controls": [
+    {
+      "record_id": "control-ontology-conflicting-subject",
+      "operation": "ontology_mapping",
+      "source_id": "ncbi-biosample-docs",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "ambiguous",
+      "parameters": {
+        "expected_counts": {
+          "observations": 2,
+          "mappings": 1,
+          "ambiguous": 1,
+          "partial": 0,
+          "issues": 0
+        },
+        "required_issue_codes": ["ambiguous_subject"]
+      },
+      "payload": {
+        "records": [
+          {
+            "sample_id": "sample-conflict-001",
+            "specimen_id": "specimen-conflict-001-a",
+            "subject_key": "entity-001",
+            "relationship": "tumor",
+            "specimen_type": "tissue",
+            "timepoint": "baseline"
+          },
+          {
+            "sample_id": "sample-conflict-001",
+            "specimen_id": "specimen-conflict-001-b",
+            "subject_key": "entity-002",
+            "relationship": "tumor",
+            "specimen_type": "tissue",
+            "timepoint": "baseline"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-ontology-invalid-row",
+      "operation": "ontology_mapping",
+      "source_id": "ncbi-biosample-docs",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "invalid",
+      "parameters": {
+        "expected_counts": {
+          "observations": 0,
+          "mappings": 0,
+          "ambiguous": 0,
+          "partial": 0,
+          "issues": 1
+        },
+        "required_issue_codes": ["invalid_specimen_row"]
+      },
+      "payload": {
+        "records": [
+          {
+            "specimen_id": "specimen-invalid-001",
+            "relationship": "tumor",
+            "subject_key": "entity-003"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-matched-multiple-normals",
+      "operation": "matched_normal",
+      "source_id": "gdc-data-model",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "ambiguous",
+      "parameters": {
+        "expected_counts": {
+          "observations": 3,
+          "tumors": 1,
+          "supported": 0,
+          "ambiguous": 1,
+          "abstained": 0,
+          "issues": 0
+        },
+        "required_issue_codes": ["multiple_same_subject_normals"]
+      },
+      "payload": {
+        "records": [
+          {
+            "sample_id": "sample-tumor-002",
+            "specimen_id": "specimen-tumor-002",
+            "subject_key": "entity-004",
+            "relationship": "tumor",
+            "specimen_type": "tissue",
+            "timepoint": "baseline"
+          },
+          {
+            "sample_id": "sample-normal-002-a",
+            "specimen_id": "specimen-normal-002-a",
+            "subject_key": "entity-004",
+            "relationship": "normal",
+            "specimen_type": "blood",
+            "timepoint": "baseline"
+          },
+          {
+            "sample_id": "sample-normal-002-b",
+            "specimen_id": "specimen-normal-002-b",
+            "subject_key": "entity-004",
+            "relationship": "normal",
+            "specimen_type": "saliva",
+            "timepoint": "baseline"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-matched-missing-normal",
+      "operation": "matched_normal",
+      "source_id": "gdc-data-model",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "abstained",
+      "parameters": {
+        "expected_counts": {
+          "observations": 1,
+          "tumors": 1,
+          "supported": 0,
+          "ambiguous": 0,
+          "abstained": 1,
+          "issues": 0
+        },
+        "required_issue_codes": ["missing_matched_normal"]
+      },
+      "payload": {
+        "records": [
+          {
+            "sample_id": "sample-tumor-003",
+            "specimen_id": "specimen-tumor-003",
+            "subject_key": "entity-005",
+            "relationship": "tumor",
+            "specimen_type": "tissue",
+            "timepoint": "baseline"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-purity-invalid-row",
+      "operation": "purity_ploidy",
+      "source_id": "gdc-data-dictionary",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "review",
+      "parameters": {
+        "input_format": "tsv",
+        "expected_counts": {
+          "records": 1,
+          "issues": 1,
+          "percent_normalized": 1
+        },
+        "required_issue_codes": ["invalid_purity_ploidy_row"]
+      },
+      "payload": {
+        "text": "sample_id\tcaller_id\tversion\tpurity\tploidy\nsample-tumor-004\tcaller-a\t1.0\t55\t2.20\nsample-tumor-005\tcaller-a\t1.0\tbad\t2.00\n"
+      }
+    },
+    {
+      "record_id": "control-integrity-subject-mismatch",
+      "operation": "sample_integrity",
+      "source_id": "ena-browser-guides",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "flagged",
+      "parameters": {
+        "expected_counts": {
+          "fingerprints": 1,
+          "clear": 0,
+          "watch": 0,
+          "flagged": 1,
+          "abstained": 0
+        },
+        "required_issue_codes": ["subject_fingerprint_mismatch"]
+      },
+      "payload": {
+        "fingerprints": [
+          {
+            "sample_id": "sample-swap-001",
+            "declared_subject_key": "entity-006",
+            "observed_subject_key": "entity-007",
+            "contamination_fraction": 0.0,
+            "discordance_rate": 0.0,
+            "marker_count": 1000
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-integrity-contamination",
+      "operation": "sample_integrity",
+      "source_id": "ena-browser-guides",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "flagged",
+      "parameters": {
+        "expected_counts": {
+          "fingerprints": 1,
+          "clear": 0,
+          "watch": 0,
+          "flagged": 1,
+          "abstained": 0
+        },
+        "required_issue_codes": ["contamination_flag"]
+      },
+      "payload": {
+        "fingerprints": [
+          {
+            "sample_id": "sample-contaminated-001",
+            "declared_subject_key": "entity-008",
+            "observed_subject_key": "entity-008",
+            "contamination_fraction": 0.08,
+            "discordance_rate": 0.01,
+            "marker_count": 1000
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-integrity-incomplete",
+      "operation": "sample_integrity",
+      "source_id": "ena-browser-guides",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "expected_state": "review",
+      "expected_result_state": "abstained",
+      "parameters": {
+        "expected_counts": {
+          "fingerprints": 1,
+          "clear": 0,
+          "watch": 0,
+          "flagged": 0,
+          "abstained": 1
+        },
+        "required_issue_codes": ["incomplete_fingerprint"]
+      },
+      "payload": {
+        "fingerprints": [
+          {
+            "sample_id": "sample-incomplete-001",
+            "declared_subject_key": "entity-009",
+            "observed_subject_key": null,
+            "contamination_fraction": null,
+            "discordance_rate": null,
+            "marker_count": null
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -158,3 +158,21 @@ jobs:
         run: python -m glio_noncode structural-frontier-lineage examples/structural-frontier-public-aggregate.json --output /tmp/glio-structural-frontier-lineage.json
       - name: Structural frontier pipeline integration
         run: python -m glio_noncode run-structural-frontier-pipeline examples/structural-frontier-pipeline-accepted.json --output /tmp/glio-structural-frontier-pipeline.json
+      - name: Specimen frontier data boundary audit
+        run: python -m glio_noncode audit-specimen-frontier-data examples/specimen-frontier-public-aggregate.json --output /tmp/glio-specimen-frontier-data.json
+      - name: Specimen frontier fixture evaluation
+        run: python -m glio_noncode evaluate-specimen-frontier-fixture examples/specimen-frontier-public-aggregate.json --output /tmp/glio-specimen-frontier-fixture.json
+      - name: Specimen frontier replay integrity
+        run: python -m glio_noncode replay-specimen-frontier-fixtures examples/specimen-frontier-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-specimen-frontier-replay.json
+      - name: Specimen frontier quality gate
+        run: python -m glio_noncode specimen-frontier-quality-gate examples/specimen-frontier-public-aggregate.json --output /tmp/glio-specimen-frontier-quality.json
+      - name: Specimen frontier scenario matrix
+        run: python -m glio_noncode evaluate-specimen-frontier-scenarios examples/specimen-frontier-public-aggregate.json --output /tmp/glio-specimen-frontier-scenarios.json
+      - name: Specimen frontier operation contracts
+        run: python -m glio_noncode specimen-frontier-contracts --output /tmp/glio-specimen-frontier-contracts.json
+      - name: Specimen frontier evidence bundle
+        run: python -m glio_noncode build-specimen-frontier-bundle examples/specimen-frontier-public-aggregate.json --output /tmp/glio-specimen-frontier-bundle.json
+      - name: Specimen frontier lineage graph
+        run: python -m glio_noncode specimen-frontier-lineage examples/specimen-frontier-public-aggregate.json --output /tmp/glio-specimen-frontier-lineage.json
+      - name: Specimen frontier pipeline integration
+        run: python -m glio_noncode run-specimen-frontier-pipeline examples/specimen-frontier-pipeline-accepted.json --output /tmp/glio-specimen-frontier-pipeline.json

@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 48 capabilities have deterministic fixture-backed
-verification and 208 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 52 capabilities have deterministic fixture-backed
+verification and 204 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -228,6 +228,73 @@ glio-noncode adjudicate-identity-conflicts identity-observations.json --output i
 glio-noncode publish-specimen-context specimen-envelope.json --output specimen-envelope.json
 ```
 
+### Domain 03 C01-C04 aggregate evidence gate
+
+The first four specimen capabilities now have a separate, deterministic
+aggregate evidence plane. It is independent from the older specimen-context
+examples so that each capability has its own source receipts, positive
+controls, review controls, replay contract, quality gate, bundle, and lineage
+graph.
+
+The four adapters are:
+
+- `SpecimenOntologyMapper` maps aggregate sample rows to a declared ontology
+  and keeps missing identifiers, conflicting subject keys, and invalid rows as
+  structured issues.
+- `MatchedNormalResolver` resolves a unique normal for a pseudonymous subject
+  only when the relationship is explicit; missing and multiple normals are
+  review states rather than guessed links.
+- `PurityPloidyImporter` ingests tabular or JSON measurements, preserves
+  caller/version and row receipts, normalizes percentage values, and
+  quarantines malformed measurements.
+- `ContaminationSwapDetector` compares declared and observed fingerprint
+  summaries, retains mismatch and contamination signals, and abstains when
+  required metrics are incomplete.
+
+The evidence catalog at
+`examples/specimen-frontier-public-aggregate.json` has four accepted positive
+records and eight review controls. The fixture contains aggregate, synthetic
+records only. It uses pseudonymous subject keys and six exact context fields;
+it contains no patient-level payloads. Its source receipts are metadata-shaped
+references to the NCBI BioSample documentation, the GDC data model and data
+dictionary, and the ENA browser guides. The receipts describe source scope;
+they are not claims that the source pages contain the synthetic fixture rows.
+
+The complete command surface is:
+
+```powershell
+python -m glio_noncode audit-specimen-frontier-data examples/specimen-frontier-public-aggregate.json --output specimen-data.json
+python -m glio_noncode evaluate-specimen-frontier-fixture examples/specimen-frontier-public-aggregate.json --output specimen-fixture.json
+python -m glio_noncode replay-specimen-frontier-fixtures examples/specimen-frontier-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output specimen-replay.json
+python -m glio_noncode specimen-frontier-quality-gate examples/specimen-frontier-public-aggregate.json --output specimen-quality.json
+python -m glio_noncode evaluate-specimen-frontier-scenarios examples/specimen-frontier-public-aggregate.json --output specimen-scenarios.json
+python -m glio_noncode specimen-frontier-contracts --output specimen-contracts.json
+python -m glio_noncode build-specimen-frontier-bundle examples/specimen-frontier-public-aggregate.json --output specimen-bundle.json
+python -m glio_noncode specimen-frontier-lineage examples/specimen-frontier-public-aggregate.json --output specimen-lineage.json
+python -m glio_noncode run-specimen-frontier-pipeline examples/specimen-frontier-pipeline-accepted.json --output specimen-pipeline.json
+```
+
+The accepted path executes 72 fixture assertions, 21 quality checks, 12
+independent scenarios, four operation contracts, and a four-stage runtime.
+The bundle contains 12 sanitized entries. The lineage graph contains 29 nodes
+and 36 typed edges. A second pipeline example at
+`examples/specimen-frontier-pipeline-review.json` keeps review issue codes and
+does not publish the run as an accepted result.
+
+The accepted bundle requires an exact fixture identity, source membership,
+context agreement, record-address agreement, operation coverage, positive and
+control floors, and sanitized output. Review bundles require explicit opt-in.
+Replay rejects duplicate record IDs, duplicate addresses, source drift,
+context drift, and changed expected floors. Lineage rejects missing endpoints,
+unknown relations, orphan results, and content-address mismatches. These are
+mechanical evidence controls; they do not establish specimen identity,
+diagnostic truth, or clinical validity.
+
+See `docs/SPECIMEN_FRONTIER_EVIDENCE_GATE.md` for the record schema, source
+boundary, control design, replay rules, and failure semantics. See
+`docs/SPECIMEN_FRONTIER_BUNDLE_FORMAT.md` for the JSON, CSV, Markdown,
+lineage, and runtime receipt formats.
+
 ## Domain 04 reference frontier
 
 Reference governance now has explicit provenance, drift, bundle, and release
@@ -320,8 +387,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 48 controls are now verified against the checked-in
-Domain 01, Domain 02, and D13-D16 fixtures, while 208 capabilities remain partial. Partial
+capabilities started (100%); 52 controls are now verified against the checked-in
+Domain 01, Domain 02, Domain 03 C01-C04, and D13-D16 fixtures, while 204 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
