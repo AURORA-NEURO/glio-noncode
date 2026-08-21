@@ -443,5 +443,48 @@ def default_capability_registry() -> CapabilityRegistry:
                     "external benchmark calibration is not claimed."
                 ),
             },
+            "GNC-D04-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.reference_registry.ReferenceRegistry",),
+                "test_modules": ("tests.test_reference_registry",),
+                "evidence_note": (
+                    "Assembly aliases, species separation, and identity/mapped/abstained "
+                    "projection states are covered locally; canonical reference equivalence "
+                    "fixtures remain a release gate."
+                ),
+            },
+            "GNC-D04-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_extensions.LiftoverChainManager",
+                ),
+                "test_modules": ("tests.test_reference_extensions",),
+                "evidence_note": (
+                    "Chain-like equal-length mapping segments can be imported with source "
+                    "checksums and malformed-row quarantine; external chain conformance is pending."
+                ),
+            },
+            "GNC-D04-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_extensions.LiftoverAmbiguityScorer",
+                ),
+                "test_modules": ("tests.test_reference_extensions",),
+                "evidence_note": (
+                    "Absent, unique, and competing mapping candidates produce explicit states "
+                    "and bounded scores without selecting a mapping."
+                ),
+            },
+            "GNC-D04-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_extensions.PangenomeCoordinateMapper",
+                ),
+                "test_modules": ("tests.test_reference_extensions",),
+                "evidence_note": (
+                    "Declared pangenome paths preserve sequence IDs and report unique, multiple, "
+                    "or absent mappings; truth-set path equivalence remains."
+                ),
+            },
         }
     )

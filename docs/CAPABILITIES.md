@@ -67,3 +67,11 @@ imports purity/ploidy tables with caller receipts, and flags declared
 fingerprint conflicts while abstaining on incomplete contamination evidence.
 These are local partial capabilities until locked canonical fixtures and
 external calibration benchmarks are available.
+
+## Domain 04 reference coordinates
+
+The reference plane resolves assembly aliases separately from mapping
+evidence. Chain-like tables are imported as explicit equal-length segments;
+liftover scoring reports absent, unique, or competing mappings; and
+pangenome coordinates retain every declared path candidate. The resolver
+never treats a coordinate conversion as proof of sequence equivalence.

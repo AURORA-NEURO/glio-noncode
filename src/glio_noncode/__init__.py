@@ -25,6 +25,11 @@ from .models import (
     VariantIdentity,
 )
 from .origin import OriginClonalityAssessor
+from .reference_extensions import (
+    LiftoverAmbiguityScorer,
+    LiftoverChainManager,
+    PangenomeCoordinateMapper,
+)
 from .reference_registry import ReferenceProjector, default_reference_registry
 from .regulatory_tracks import RegulatoryFeature, RegulatoryTrackBatch, RegulatoryTrackParser
 from .runtime import CaseRuntime
@@ -70,6 +75,9 @@ __all__ = [
     "ReferenceContext",
     "ReconstructionResult",
     "ReferenceProjector",
+    "LiftoverAmbiguityScorer",
+    "LiftoverChainManager",
+    "PangenomeCoordinateMapper",
     "RegulatoryFeature",
     "RegulatoryTrackBatch",
     "RegulatoryTrackParser",
