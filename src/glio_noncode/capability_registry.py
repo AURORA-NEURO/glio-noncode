@@ -404,5 +404,44 @@ def default_capability_registry() -> CapabilityRegistry:
                     "reported with disagreement; truth-set and transport evaluation remain."
                 ),
             },
+            "GNC-D03-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.specimen_context.SpecimenOntologyMapper",),
+                "test_modules": ("tests.test_specimen_context",),
+                "evidence_note": (
+                    "Project-local sample/specimen rows map to explicit candidates and expose "
+                    "missing or conflicting subject and relationship labels; canonical ontology "
+                    "equivalence fixtures remain."
+                ),
+            },
+            "GNC-D03-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.specimen_context.MatchedNormalResolver",),
+                "test_modules": ("tests.test_specimen_context",),
+                "evidence_note": (
+                    "Same-subject normal resolution handles unique, missing, and one-to-many "
+                    "normal declarations without manufacturing a match."
+                ),
+            },
+            "GNC-D03-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.specimen_context.PurityPloidyImporter",),
+                "test_modules": ("tests.test_specimen_context",),
+                "evidence_note": (
+                    "TSV/JSON purity and ploidy records preserve caller versions, hashes, "
+                    "percent normalization, and malformed-row quarantine."
+                ),
+            },
+            "GNC-D03-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_context.ContaminationSwapDetector",
+                ),
+                "test_modules": ("tests.test_specimen_context",),
+                "evidence_note": (
+                    "Declared fingerprint mismatches are flagged and incomplete metrics abstain; "
+                    "external benchmark calibration is not claimed."
+                ),
+            },
         }
     )

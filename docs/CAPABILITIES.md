@@ -57,3 +57,13 @@ glio-noncode normalize 7:140453136:A>T --genome-build GRCh38
 Every future capability wave must add implementation modules, fixtures,
 negative or abstention cases, and review-facing evidence before its ledger
 state is advanced.
+
+## Domain 03 specimen context
+
+The specimen-context plane keeps sample and specimen labels project-local and
+declarative. It maps conflicting ontology rows as ambiguous, resolves a
+matched normal only when the same subject has exactly one declared normal,
+imports purity/ploidy tables with caller receipts, and flags declared
+fingerprint conflicts while abstaining on incomplete contamination evidence.
+These are local partial capabilities until locked canonical fixtures and
+external calibration benchmarks are available.

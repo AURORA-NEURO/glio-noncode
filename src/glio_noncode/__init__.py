@@ -29,6 +29,12 @@ from .reference_registry import ReferenceProjector, default_reference_registry
 from .regulatory_tracks import RegulatoryFeature, RegulatoryTrackBatch, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .sequence_inference import MotifDefinition, SequenceInference
+from .specimen_context import (
+    ContaminationSwapDetector,
+    MatchedNormalResolver,
+    PurityPloidyImporter,
+    SpecimenOntologyMapper,
+)
 from .structural_extensions import (
     ComplexRearrangementResolver,
     CopyNumberSegment,
@@ -75,6 +81,10 @@ __all__ = [
     "CopyNumberSegmentHarmonizer",
     "SVConsensusImporter",
     "SequenceInference",
+    "ContaminationSwapDetector",
+    "MatchedNormalResolver",
+    "PurityPloidyImporter",
+    "SpecimenOntologyMapper",
     "OutOfDomainDetector",
     "UncertaintyPropagator",
     "NormalizationReport",

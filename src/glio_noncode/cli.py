@@ -20,6 +20,7 @@ from .reference_registry import default_reference_registry
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .schema import schema_document
+from .specimen_context import PurityPloidyImporter
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
 from .variant_normalization import VRSNormalizer
 
@@ -123,6 +124,14 @@ def build_parser() -> argparse.ArgumentParser:
     cn.add_argument("input", type=str)
     cn.add_argument("--source-id", default=None)
     cn.add_argument("--output", default=None)
+
+    purity = subparsers.add_parser(
+        "purity-ploidy", help="import purity and ploidy measurements with source receipts"
+    )
+    purity.add_argument("input", type=str)
+    purity.add_argument("--source-id", default=None)
+    purity.add_argument("--format", choices=("tsv", "json"), default=None)
+    purity.add_argument("--output", default=None)
     return parser
 
 
@@ -206,6 +215,15 @@ def main(argv: list[str] | None = None) -> int:
             result = CopyNumberSegmentHarmonizer().parse_text(
                 input_path.read_text(encoding="utf-8"),
                 source_id=args.source_id or input_path.stem,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "purity-ploidy":
+            input_path = Path(args.input)
+            result = PurityPloidyImporter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                input_format=args.format,
             )
             _write_json(result.to_dict(), args.output)
             return 0

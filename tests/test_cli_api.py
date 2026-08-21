@@ -98,6 +98,21 @@ class CliApiTests(unittest.TestCase):
                 "supported",
             )
 
+    def test_purity_ploidy_command_preserves_measurement_receipts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "purity.tsv"
+            output = Path(directory) / "purity.json"
+            source.write_text(
+                "sample_id\tcaller_id\tpurity\tploidy\n"
+                "tumor-1\tcaller-a\t70\t2.3\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(["purity-ploidy", str(source), "--output", str(output)]), 0
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["records"][0]["purity"], 0.7)
+
     def test_health_and_evaluate_endpoints(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             server = create_server("127.0.0.1", 0, directory)
