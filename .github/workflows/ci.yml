@@ -276,3 +276,27 @@ jobs:
         run: python -m glio_noncode run-reference-annotation-pipeline examples/reference-annotation-pipeline-accepted.json --output /tmp/glio-reference-annotation-pipeline.json
       - name: Reference annotation release manifest
         run: python -m glio_noncode build-reference-annotation-release examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-release.json
+      - name: Reference governance data boundary audit
+        run: python -m glio_noncode audit-reference-governance-data examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-data.json
+      - name: Reference governance fixture evaluation
+        run: python -m glio_noncode evaluate-reference-governance-fixture examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-fixture.json
+      - name: Reference governance replay integrity
+        run: python -m glio_noncode replay-reference-governance-fixtures examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-replay.json
+      - name: Reference governance quality gate
+        run: python -m glio_noncode reference-governance-quality-gate examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-quality.json
+      - name: Reference governance scenario matrix
+        run: python -m glio_noncode evaluate-reference-governance-scenarios examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-scenarios.json
+      - name: Reference governance operation contracts
+        run: python -m glio_noncode reference-governance-contracts --output /tmp/glio-reference-governance-contracts.json
+      - name: Reference governance metrics
+        run: python -m glio_noncode reference-governance-metrics examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-metrics.json
+      - name: Reference governance evidence bundle
+        run: python -m glio_noncode build-reference-governance-bundle examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-bundle.json --accepted-only
+      - name: Reference governance lineage graph
+        run: python -m glio_noncode reference-governance-lineage examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-lineage.json
+      - name: Reference governance receipt reconciliation
+        run: python -m glio_noncode reference-governance-reconciliation examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-reconciliation.json
+      - name: Reference governance pipeline integration
+        run: python -m glio_noncode run-reference-governance-pipeline examples/reference-governance-pipeline-accepted.json --output /tmp/glio-reference-governance-pipeline.json
+      - name: Reference governance release manifest
+        run: python -m glio_noncode build-reference-governance-release examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-release.json

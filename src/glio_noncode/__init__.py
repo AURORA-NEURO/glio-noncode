@@ -836,6 +836,107 @@ from .reference_alpha import (
     ReferenceSnapshotManager,
     SnapshotComparison,
 )
+from .reference_governance_bundle import (
+    ReferenceGovernanceBundle,
+    ReferenceGovernanceBundleBuilder,
+    ReferenceGovernanceBundleEntry,
+    ReferenceGovernanceBundleFormat,
+)
+from .reference_governance_contracts import (
+    ReferenceGovernanceContract,
+    ReferenceGovernanceContractRegistry,
+    default_reference_governance_contracts,
+)
+from .reference_governance_fixture_eval import (
+    ReferenceGovernanceCheck,
+    ReferenceGovernanceEvaluationReport,
+    ReferenceGovernanceExecutionReceipt,
+    evaluate_reference_governance_fixture,
+    evaluate_reference_governance_fixture_file,
+)
+from .reference_governance_lineage import (
+    ReferenceGovernanceEdgeKind,
+    ReferenceGovernanceLineageAudit,
+    ReferenceGovernanceLineageEdge,
+    ReferenceGovernanceLineageGraph,
+    ReferenceGovernanceLineageNode,
+    ReferenceGovernanceNodeKind,
+    build_reference_governance_lineage,
+)
+from .reference_governance_metrics import (
+    ReferenceGovernanceMetricsReport,
+    ReferenceGovernanceOperationMetric,
+    build_reference_governance_metrics,
+    render_reference_governance_metrics,
+    verify_reference_governance_metrics,
+)
+from .reference_governance_public_data import (
+    REFERENCE_GOVERNANCE_CONTEXT_KEY,
+    REFERENCE_GOVERNANCE_CONTROL_COUNT,
+    REFERENCE_GOVERNANCE_EVIDENCE_BOUNDARY,
+    REFERENCE_GOVERNANCE_FIXTURE_VERSION,
+    REFERENCE_GOVERNANCE_POSITIVE_COUNT,
+    REFERENCE_GOVERNANCE_SOURCE_COUNT,
+    ReferenceGovernanceDataAudit,
+    ReferenceGovernanceDataCheck,
+    ReferenceGovernanceFixture,
+    ReferenceGovernanceFixtureCatalog,
+    ReferenceGovernanceOperation,
+    ReferenceGovernanceRecord,
+    ReferenceGovernanceRole,
+    ReferenceGovernanceSourceReceipt,
+    audit_reference_governance_data,
+    build_reference_governance_catalog,
+    default_reference_governance_fixture,
+    load_reference_governance_fixture,
+)
+from .reference_governance_quality_gate import (
+    ReferenceGovernanceQualityCheck,
+    ReferenceGovernanceQualityGateReport,
+    evaluate_reference_governance_quality_gate,
+)
+from .reference_governance_policy import (
+    ReferenceGovernancePolicyCheck,
+    ReferenceGovernancePolicyDisposition,
+    ReferenceGovernancePolicyReport,
+    ReferenceGovernancePolicyRule,
+    default_reference_governance_policy_rules,
+    evaluate_reference_governance_policy,
+    verify_reference_governance_policy,
+)
+from .reference_governance_reconciliation import (
+    ReferenceGovernanceReconciliationCheck,
+    ReferenceGovernanceReconciliationReport,
+    reconcile_reference_governance_views,
+)
+from .reference_governance_release import (
+    ReferenceGovernanceReleaseCheck,
+    ReferenceGovernanceReleaseManifest,
+    ReferenceGovernanceReleaseState,
+    build_reference_governance_release_manifest,
+    verify_reference_governance_release_manifest,
+    write_reference_governance_release_manifest,
+)
+from .reference_governance_replay import (
+    ReferenceGovernanceReplayCheck,
+    ReferenceGovernanceReplayExpectation,
+    ReferenceGovernanceReplayReport,
+    build_reference_governance_expectation,
+    replay_reference_governance_evaluation,
+)
+from .reference_governance_runtime import (
+    ReferenceGovernancePipelineRequest,
+    ReferenceGovernanceRuntimeReport,
+    ReferenceGovernanceRuntimeStage,
+    ReferenceGovernanceStageReceipt,
+    run_reference_governance_pipeline,
+    run_reference_governance_pipeline_file,
+)
+from .reference_governance_scenario_matrix import (
+    ReferenceGovernanceScenarioMatrix,
+    ReferenceGovernanceScenarioResult,
+    evaluate_reference_governance_scenarios,
+)
 from .reference_annotation_bundle import (
     ReferenceAnnotationBundle,
     ReferenceAnnotationBundleBuilder,

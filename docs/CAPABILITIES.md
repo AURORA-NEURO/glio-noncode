@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 72 capabilities have deterministic fixture-backed
-verification and 184 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 28.12% of the 256-capability
+capabilities started (100%); 76 capabilities have deterministic fixture-backed
+verification and 180 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 29.69% of the 256-capability
 catalog; MVP implementation coverage is 25.00%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -360,6 +360,50 @@ glio-noncode run-reference-annotation-pipeline examples/reference-annotation-pip
 glio-noncode build-reference-annotation-release examples/reference-annotation-public-aggregate.json --output reference-annotation-release.json
 ```
 
+The C09-C12 reference-governance plane now turns the existing identity,
+frequency, snapshot, and permission adapters into a deeply checked public
+aggregate release surface. It uses five public source receipts, four positive
+records, and twelve controls under
+`GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline`:
+
+- C09 resolves declared HGNC-shaped IDs, symbols, aliases, versions, and
+  assemblies while retaining ambiguity and unknown identity controls.
+- C10 retains population, ancestry, AC, AN, homozygote count, declared or
+  derived AF, build, and source versions. Missing counts and conflicting rows
+  remain review evidence.
+- C11 builds sorted content-addressed reference manifests, checks expected
+  hashes, rejects duplicate resource identities, and marks another assembly
+  as out of context. It does not fetch resource bytes.
+- C12 evaluates explicit SPDX-shaped permission rows for use, attribution,
+  redistribution, commercial terms, and expiry. Missing or conflicting
+  permission blocks use.
+
+The aggregate emits 23 public-data checks, 120 execution checks, 13 replay
+checks, 14 named state scenarios, a 157-node/155-edge lineage graph, 16
+reconciliation checks, a 25-check quality gate plus a 12-rule policy report, a four-entry accepted-only
+bundle, a metrics report, an explicit 12-rule policy report, and a publication manifest. Receipts are sanitized
+and retain state, counts, issue codes, and addresses without copying input
+collections.
+
+```powershell
+glio-noncode audit-reference-governance-data examples/reference-governance-public-aggregate.json --output reference-governance-data.json
+glio-noncode evaluate-reference-governance-fixture examples/reference-governance-public-aggregate.json --output reference-governance-fixture.json
+glio-noncode replay-reference-governance-fixtures examples/reference-governance-public-aggregate.json --output reference-governance-replay.json
+glio-noncode reference-governance-quality-gate examples/reference-governance-public-aggregate.json --output reference-governance-quality.json
+glio-noncode evaluate-reference-governance-scenarios examples/reference-governance-public-aggregate.json --output reference-governance-scenarios.json
+glio-noncode reference-governance-contracts --output reference-governance-contracts.json
+glio-noncode reference-governance-metrics examples/reference-governance-public-aggregate.json --output reference-governance-metrics.json
+glio-noncode build-reference-governance-bundle examples/reference-governance-public-aggregate.json --output reference-governance-bundle.json --accepted-only
+glio-noncode reference-governance-lineage examples/reference-governance-public-aggregate.json --output reference-governance-lineage.json
+glio-noncode reference-governance-reconciliation examples/reference-governance-public-aggregate.json --output reference-governance-reconciliation.json
+glio-noncode run-reference-governance-pipeline examples/reference-governance-pipeline-accepted.json --output reference-governance-pipeline.json
+glio-noncode build-reference-governance-release examples/reference-governance-public-aggregate.json --output reference-governance-release.json
+```
+
+The complete schema and release rules are documented in
+`docs/REFERENCE_GOVERNANCE_EVIDENCE_GATE.md` and
+`docs/REFERENCE_GOVERNANCE_RELEASE_FORMAT.md`.
+
 The same frontier wave extended the atlas, sequence, chromatin, and cell-state
 boundaries through Domains 05-08. Those modules remain part of the current
 256-capability ledger, with the individual capability records retaining their
@@ -436,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 72 controls are verified against the checked-in
-aggregate fixtures, while 184 capabilities remain partial. Partial
+capabilities started (100%); 76 controls are verified against the checked-in
+aggregate fixtures, while 180 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.

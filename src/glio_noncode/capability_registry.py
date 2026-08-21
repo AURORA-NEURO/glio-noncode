@@ -1655,67 +1655,87 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D04-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_alpha.GeneAliasVersionResolver",
                     "glio_noncode.reference_alpha.GeneAliasResolutionReport",
+                    "glio_noncode.reference_governance_fixture_eval.evaluate_reference_governance_fixture",
+                    "glio_noncode.reference_governance_quality_gate.evaluate_reference_governance_quality_gate",
                 ),
                 "test_modules": (
                     "tests.test_reference_alpha",
                     "tests.test_reference_alpha_cli",
+                    "tests.test_reference_governance",
+                    "tests.test_reference_governance_cli",
                 ),
                 "evidence_note": (
-                    "Declared gene IDs, symbols, aliases, assemblies, and versions resolve with "
-                    "exact match bases and ambiguity; free-text functional descriptions and "
-                    "canonical external equivalence remain outside the adapter."
+                    "Public HGNC-shaped aggregate records execute exact gene ID, symbol, alias, "
+                    "version, and assembly resolution with ambiguity, unknown identity, and "
+                    "assembly controls; 16 receipts, replay, lineage, and release checks close "
+                    "the evidence boundary."
                 ),
             },
             "GNC-D04-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_alpha.PopulationFrequencyAdapter",
                     "glio_noncode.reference_alpha.PopulationFrequencyReport",
+                    "glio_noncode.reference_governance_fixture_eval.evaluate_reference_governance_fixture",
+                    "glio_noncode.reference_governance_metrics.build_reference_governance_metrics",
                 ),
                 "test_modules": (
                     "tests.test_reference_alpha",
                     "tests.test_reference_alpha_cli",
+                    "tests.test_reference_governance",
+                    "tests.test_reference_governance_cli",
                 ),
                 "evidence_note": (
-                    "Population rows retain ancestry, population, AC/AN counts, derived or "
-                    "declared frequency, genome build, source versions, and conflicting rows; "
-                    "frequency is not a clinical classification."
+                    "Public aggregate rows retain population, ancestry, AC/AN, derived or declared "
+                    "frequency, genome build, source versions, and conflict controls; missing "
+                    "counts and build mismatch remain review states, and frequency is not a "
+                    "clinical classification."
                 ),
             },
             "GNC-D04-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_alpha.ReferenceSnapshotManager",
                     "glio_noncode.reference_alpha.ReferenceSnapshot",
+                    "glio_noncode.reference_governance_lineage.build_reference_governance_lineage",
+                    "glio_noncode.reference_governance_release.build_reference_governance_release_manifest",
                 ),
                 "test_modules": (
                     "tests.test_reference_alpha",
                     "tests.test_reference_alpha_cli",
+                    "tests.test_reference_governance",
+                    "tests.test_reference_governance_cli",
                 ),
                 "evidence_note": (
-                    "Reference resources form sorted content-addressed manifests with checksums, "
-                    "versions, sizes, licenses, expected-hash checks, and snapshot comparison; "
-                    "resource bytes are not fetched or validated here."
+                    "Public RefSeq-shaped resources form sorted content-addressed manifests with "
+                    "checksums, versions, sizes, licenses, expected-hash controls, duplicate "
+                    "identity controls, lineage, and release verification; resource bytes are "
+                    "not fetched or validated here."
                 ),
             },
             "GNC-D04-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_alpha.LicenseUseRestrictionRegistry",
                     "glio_noncode.reference_alpha.LicenseEvaluationReport",
+                    "glio_noncode.reference_governance_bundle.ReferenceGovernanceBundleBuilder",
+                    "glio_noncode.reference_governance_quality_gate.evaluate_reference_governance_quality_gate",
                 ),
                 "test_modules": (
                     "tests.test_reference_alpha",
                     "tests.test_reference_alpha_cli",
+                    "tests.test_reference_governance",
+                    "tests.test_reference_governance_cli",
                 ),
                 "evidence_note": (
-                    "Declared allowed/prohibited uses, attribution, redistribution, commercial "
-                    "terms, expiry, missing restrictions, and conflicts produce bounded use "
-                    "decisions; absent permission blocks rather than grants use."
+                    "SPDX-shaped public restriction records evaluate allowed/prohibited uses, "
+                    "attribution, redistribution, commercial terms, expiry, missing permissions, "
+                    "and conflicts; absent permission blocks use, and accepted-only release "
+                    "bundles preserve four supported positive decisions."
                 ),
             },
             "GNC-D04-C13": {

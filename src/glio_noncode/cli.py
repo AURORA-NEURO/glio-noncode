@@ -225,6 +225,31 @@ from .reference_annotation_release import (
 )
 from .reference_annotation_runtime import run_reference_annotation_pipeline_file
 from .reference_annotation_scenario_matrix import evaluate_reference_annotation_scenarios
+from .reference_governance_bundle import (
+    ReferenceGovernanceBundleBuilder,
+    ReferenceGovernanceBundleFormat,
+)
+from .reference_governance_contracts import default_reference_governance_contracts
+from .reference_governance_fixture_eval import evaluate_reference_governance_fixture
+from .reference_governance_lineage import build_reference_governance_lineage
+from .reference_governance_metrics import (
+    build_reference_governance_metrics,
+    render_reference_governance_metrics,
+    verify_reference_governance_metrics,
+)
+from .reference_governance_public_data import (
+    audit_reference_governance_data,
+    load_reference_governance_fixture,
+)
+from .reference_governance_quality_gate import evaluate_reference_governance_quality_gate
+from .reference_governance_reconciliation import reconcile_reference_governance_views
+from .reference_governance_release import (
+    build_reference_governance_release_manifest,
+    write_reference_governance_release_manifest,
+)
+from .reference_governance_replay import replay_reference_governance_evaluation
+from .reference_governance_runtime import run_reference_governance_pipeline_file
+from .reference_governance_scenario_matrix import evaluate_reference_governance_scenarios
 from .reference_coordinate_bundle import (
     ReferenceCoordinateBundleBuilder,
     ReferenceCoordinateBundleFormat,
@@ -2286,6 +2311,95 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reference_annotation_release.add_argument("input", type=str)
     reference_annotation_release.add_argument("--output", required=True)
+
+    reference_governance_fixture = subparsers.add_parser(
+        "evaluate-reference-governance-fixture",
+        help="evaluate the public aggregate fixture across Domain 04 C09-C12 governance operations",
+    )
+    reference_governance_fixture.add_argument("input", type=str)
+    reference_governance_fixture.add_argument("--output", default=None)
+
+    reference_governance_data = subparsers.add_parser(
+        "audit-reference-governance-data",
+        help="audit public C09-C12 governance source boundaries and payload scope",
+    )
+    reference_governance_data.add_argument("input", type=str)
+    reference_governance_data.add_argument("--output", default=None)
+
+    reference_governance_replay = subparsers.add_parser(
+        "replay-reference-governance-fixtures",
+        help="replay C09-C12 governance fixtures with identity, context, and state floors",
+    )
+    reference_governance_replay.add_argument("input", type=str)
+    reference_governance_replay.add_argument("--output", default=None)
+
+    reference_governance_quality = subparsers.add_parser(
+        "reference-governance-quality-gate",
+        help="reconcile C09-C12 public data, execution, scenarios, lineage, and release bundle",
+    )
+    reference_governance_quality.add_argument("input", type=str)
+    reference_governance_quality.add_argument("--output", default=None)
+
+    reference_governance_scenarios = subparsers.add_parser(
+        "evaluate-reference-governance-scenarios",
+        help="run C09-C12 governance support, ambiguity, drift, and missing-evidence scenarios",
+    )
+    reference_governance_scenarios.add_argument("input", type=str)
+    reference_governance_scenarios.add_argument("--output", default=None)
+
+    reference_governance_contracts = subparsers.add_parser(
+        "reference-governance-contracts",
+        help="print the four-operation Domain 04 C09-C12 governance contract registry",
+    )
+    reference_governance_contracts.add_argument("--output", default=None)
+
+    reference_governance_metrics = subparsers.add_parser(
+        "reference-governance-metrics",
+        help="render C09-C12 governance coverage, issue, and sanitization metrics",
+    )
+    reference_governance_metrics.add_argument("input", type=str)
+    reference_governance_metrics.add_argument("--output", default=None)
+
+    reference_governance_bundle = subparsers.add_parser(
+        "build-reference-governance-bundle",
+        help="build a compact JSON, CSV, or Markdown C09-C12 governance evidence bundle",
+    )
+    reference_governance_bundle.add_argument("input", type=str)
+    reference_governance_bundle.add_argument("--output", required=True)
+    reference_governance_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in ReferenceGovernanceBundleFormat],
+        default=ReferenceGovernanceBundleFormat.JSON.value,
+    )
+    reference_governance_bundle.add_argument("--accepted-only", action="store_true")
+
+    reference_governance_graph = subparsers.add_parser(
+        "reference-governance-lineage",
+        help="build and audit the sanitized C09-C12 governance source-to-result graph",
+    )
+    reference_governance_graph.add_argument("input", type=str)
+    reference_governance_graph.add_argument("--output", default=None)
+
+    reference_governance_reconciliation = subparsers.add_parser(
+        "reference-governance-reconciliation",
+        help="reconcile C09-C12 fixture, data, replay, scenario, lineage, and bundle views",
+    )
+    reference_governance_reconciliation.add_argument("input", type=str)
+    reference_governance_reconciliation.add_argument("--output", default=None)
+
+    reference_governance_pipeline = subparsers.add_parser(
+        "run-reference-governance-pipeline",
+        help="run C09 alias, C10 frequency, C11 snapshot, and C12 license stages",
+    )
+    reference_governance_pipeline.add_argument("input", type=str)
+    reference_governance_pipeline.add_argument("--output", default=None)
+
+    reference_governance_release = subparsers.add_parser(
+        "build-reference-governance-release",
+        help="build and verify the C09-C12 governance publication manifest",
+    )
+    reference_governance_release.add_argument("input", type=str)
+    reference_governance_release.add_argument("--output", required=True)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -4748,6 +4862,79 @@ def main(argv: list[str] | None = None) -> int:
             bundle = ReferenceAnnotationBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
             manifest = build_reference_annotation_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
             write_reference_annotation_release_manifest(manifest, args.output)
+            return 0 if manifest.publishable else 2
+        if args.command == "evaluate-reference-governance-fixture":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            report = evaluate_reference_governance_fixture(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "audit-reference-governance-data":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            report = audit_reference_governance_data(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-reference-governance-fixtures":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_governance_fixture(fixture)
+            report = replay_reference_governance_evaluation(evaluation, fixture=fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-governance-quality-gate":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            report = evaluate_reference_governance_quality_gate(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-reference-governance-scenarios":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_governance_fixture(fixture)
+            report = evaluate_reference_governance_scenarios(fixture, report=evaluation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-governance-contracts":
+            _write_json(default_reference_governance_contracts().manifest(), args.output)
+            return 0
+        if args.command == "reference-governance-metrics":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_governance_fixture(fixture)
+            report = build_reference_governance_metrics(evaluation)
+            _write_json(render_reference_governance_metrics(report) | {"accepted": report.accepted, "failures": list(verify_reference_governance_metrics(report))}, args.output)
+            return 0 if report.accepted and not verify_reference_governance_metrics(report) else 2
+        if args.command == "build-reference-governance-bundle":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_governance_fixture(fixture)
+            builder = ReferenceGovernanceBundleBuilder()
+            bundle = builder.build(evaluation, fixture=fixture, output_format=ReferenceGovernanceBundleFormat(args.format), accepted_only=args.accepted_only)
+            builder.write(bundle, args.output)
+            return 0 if not builder.verify(bundle) else 2
+        if args.command == "reference-governance-lineage":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_governance_fixture(fixture)
+            graph = build_reference_governance_lineage(evaluation, fixture=fixture)
+            payload = graph.to_dict() | {"audit": graph.audit(evaluation).to_dict(), "accepted": graph.audit(evaluation).passed}
+            _write_json(payload, args.output)
+            return 0 if graph.audit(evaluation).passed else 2
+        if args.command == "reference-governance-reconciliation":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            data = audit_reference_governance_data(fixture)
+            evaluation = evaluate_reference_governance_fixture(fixture)
+            replay = replay_reference_governance_evaluation(evaluation, fixture=fixture)
+            scenarios = evaluate_reference_governance_scenarios(fixture, report=evaluation)
+            graph = build_reference_governance_lineage(evaluation, fixture=fixture)
+            report = reconcile_reference_governance_views(fixture, data, evaluation, replay, scenarios, graph)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "run-reference-governance-pipeline":
+            report = run_reference_governance_pipeline_file(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
+        if args.command == "build-reference-governance-release":
+            fixture = load_reference_governance_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_governance_fixture(fixture)
+            quality = evaluate_reference_governance_quality_gate(fixture)
+            replay = replay_reference_governance_evaluation(evaluation, fixture=fixture)
+            bundle = ReferenceGovernanceBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
+            manifest = build_reference_governance_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            write_reference_governance_release_manifest(manifest, args.output)
             return 0 if manifest.publishable else 2
         if args.command == "classify-origin":
             result = SomaticGermlineOriginClassifier().classify(

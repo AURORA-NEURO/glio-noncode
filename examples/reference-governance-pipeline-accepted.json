@@ -1,0 +1,7 @@
+{
+  "fixture": {
+    "fixture": "default_reference_governance_fixture"
+  },
+  "expected_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+  "accepted_only": true
+}
