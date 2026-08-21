@@ -31,6 +31,12 @@ from .intake import IntakeFormat, VariantIntake
 from .link_graph import GeneFeatureParser
 from .mission_runtime import MissionPlanBuilder, MissionRequest
 from .models import CaseManifest, ReferenceContext, VariantIdentity
+from .reference_beta import (
+    DiseaseOntologyMapper,
+    GencodeTranscriptAdapter,
+    ManeTranscriptAdapter,
+    RegulatoryOntologyAdapter,
+)
 from .reference_registry import default_reference_registry
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
@@ -140,6 +146,49 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
     subparsers.add_parser("capabilities", help="print the 256-capability implementation ledger")
     subparsers.add_parser("references", help="print the reference assembly registry")
+
+    gencode = subparsers.add_parser(
+        "parse-gencode",
+        help="parse a versioned GENCODE transcript GTF or JSON snapshot",
+    )
+    gencode.add_argument("input", type=str)
+    gencode.add_argument("--source-id", default=None)
+    gencode.add_argument("--source-version", default="unspecified")
+    gencode.add_argument("--assembly", default="GRCh38")
+    gencode.add_argument("--format", choices=("gtf", "gff3", "json"), default=None)
+    gencode.add_argument("--output", default=None)
+
+    mane = subparsers.add_parser(
+        "parse-mane",
+        help="parse a versioned MANE transcript TSV, CSV, or JSON snapshot",
+    )
+    mane.add_argument("input", type=str)
+    mane.add_argument("--source-id", default=None)
+    mane.add_argument("--source-version", default="unspecified")
+    mane.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
+    mane.add_argument("--output", default=None)
+
+    regulatory_term = subparsers.add_parser(
+        "normalize-regulatory-term",
+        help="normalize a regulatory term against a declared ontology catalog",
+    )
+    regulatory_term.add_argument("input", type=str)
+    regulatory_term.add_argument("--catalog", required=True)
+    regulatory_term.add_argument("--source-id", default=None)
+    regulatory_term.add_argument("--source-version", default="unspecified")
+    regulatory_term.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
+    regulatory_term.add_argument("--output", default=None)
+
+    disease_term = subparsers.add_parser(
+        "map-disease-term",
+        help="map a disease term against a declared ontology mapping catalog",
+    )
+    disease_term.add_argument("input", type=str)
+    disease_term.add_argument("--catalog", required=True)
+    disease_term.add_argument("--source-id", default=None)
+    disease_term.add_argument("--source-version", default="unspecified")
+    disease_term.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
+    disease_term.add_argument("--output", default=None)
 
     citations = subparsers.add_parser(
         "parse-citations", help="parse a versioned citation manifest with quarantine accounting"
@@ -475,6 +524,54 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "references":
             _write_json(default_reference_registry().manifest(), None)
+            return 0
+        if args.command == "parse-gencode":
+            input_path = Path(args.input)
+            result = GencodeTranscriptAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                assembly=args.assembly,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-mane":
+            input_path = Path(args.input)
+            result = ManeTranscriptAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "normalize-regulatory-term":
+            catalog_path = Path(args.catalog)
+            adapter = RegulatoryOntologyAdapter()
+            catalog = adapter.parse_text(
+                catalog_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or catalog_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            result = adapter.normalize(_read_json(args.input), catalog=catalog)
+            _write_json(
+                {"catalog": catalog.to_dict(), "normalization": result.to_dict()},
+                args.output,
+            )
+            return 0
+        if args.command == "map-disease-term":
+            catalog_path = Path(args.catalog)
+            mapper = DiseaseOntologyMapper()
+            catalog = mapper.parse_text(
+                catalog_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or catalog_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            result = mapper.map(_read_json(args.input), catalog=catalog)
+            _write_json({"catalog": catalog.to_dict(), "mapping": result.to_dict()}, args.output)
             return 0
         if args.command == "parse-citations":
             input_path = Path(args.input)

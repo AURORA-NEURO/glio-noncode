@@ -629,6 +629,48 @@ def default_capability_registry() -> CapabilityRegistry:
                     "or absent mappings; truth-set path equivalence remains."
                 ),
             },
+            "GNC-D04-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.reference_beta.GencodeTranscriptAdapter",),
+                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "evidence_note": (
+                    "GENCODE-like GTF/JSON transcript records preserve transcript version, gene "
+                    "identity, assembly, coordinates, attributes, source version, and malformed "
+                    "rows; full release-specific schema conformance remains."
+                ),
+            },
+            "GNC-D04-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.reference_beta.ManeTranscriptAdapter",),
+                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "evidence_note": (
+                    "MANE Select/Plus Clinical TSV, CSV, and JSON records preserve RefSeq/Ensembl "
+                    "cross-identifiers, status, assembly coordinates, and one-to-many resolution; "
+                    "release snapshot validation remains."
+                ),
+            },
+            "GNC-D04-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_beta.RegulatoryOntologyAdapter",
+                ),
+                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "evidence_note": (
+                    "Declared regulatory term catalogs preserve namespace, definitions, parents, "
+                    "aliases, and source hashes; matching is exact/declared and ambiguous aliases "
+                    "are not silently selected."
+                ),
+            },
+            "GNC-D04-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.reference_beta.DiseaseOntologyMapper",),
+                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "evidence_note": (
+                    "Disease ontology mapping catalogs retain source terms, target namespaces, "
+                    "relationships, versions, and one-to-many targets; mapped identity is not a "
+                    "clinical diagnosis and live ontology retrieval is not claimed."
+                ),
+            },
             "GNC-D05-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.atlas_extensions.CcreTrackParser",),

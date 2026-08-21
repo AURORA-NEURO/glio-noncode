@@ -162,6 +162,30 @@ liftover scoring reports absent, unique, or competing mappings; and
 pangenome coordinates retain every declared path candidate. The resolver
 never treats a coordinate conversion as proof of sequence equivalence.
 
+The Domain 04 scientific-beta adapters add versioned annotation governance:
+
+- `GencodeTranscriptAdapter` parses GTF/JSON transcript snapshots, splits
+  versioned Ensembl identifiers, retains attributes and coordinates, and
+  reports gene-level one-to-many transcript ambiguity.
+- `ManeTranscriptAdapter` preserves MANE Select/Plus Clinical status and
+  RefSeq/Ensembl cross-identifiers without selecting a preferred record when
+  the catalog remains one-to-many.
+- `RegulatoryOntologyAdapter` matches only declared regulatory term IDs,
+  labels, and aliases. Ambiguous aliases remain ambiguous and no scientific
+  label-based ontology inference is performed.
+- `DiseaseOntologyMapper` maps declared source terms to explicit target
+  namespaces and relationships, retaining multiple targets. It is an identity
+  mapping surface, not a disease diagnosis.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode parse-gencode gencode.gtf --output gencode.json
+glio-noncode parse-mane mane.tsv --output mane.json
+glio-noncode normalize-regulatory-term term.json --catalog regulatory-ontology.json --output term-normalized.json
+glio-noncode map-disease-term disease.json --catalog disease-mappings.json --output disease-mapped.json
+```
+
 ## Domain 05 regulatory atlases
 
 The atlas extension parses ENCODE SCREEN-style cCRE records and supports
