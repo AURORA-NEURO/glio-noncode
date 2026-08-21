@@ -103,6 +103,15 @@ from .lifecycle_beta import (
     UncertaintyLedgerBuilder,
 )
 from .link_graph import GeneFeatureParser
+from .link_graph_alpha import (
+    ContactAssayKind,
+    CRISPRPerturbationLinkAdapter,
+    CRISPRPerturbationLinker,
+    MultiGeneElementGraphBuilder,
+    PromoterTetheringModel,
+    ThreeDContactLinkAdapter,
+    ThreeDContactLinker,
+)
 from .link_graph_beta import (
     ActivityByContactLinkAdapter,
     AlleleSpecificLinkEvidenceIntegrator,
@@ -1569,6 +1578,74 @@ def build_parser() -> argparse.ArgumentParser:
     allele_link.add_argument("--variant-id", default=None)
     allele_link.add_argument("--output", default=None)
 
+    crispr_parse = subparsers.add_parser(
+        "parse-crispr-perturbation-links",
+        help="parse CRISPR perturbation variant-element-gene evidence rows",
+    )
+    crispr_parse.add_argument("input", type=str)
+    crispr_parse.add_argument("--source-id", default=None)
+    crispr_parse.add_argument("--source-version", default="unspecified")
+    crispr_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    crispr_parse.add_argument("--effect-scale", type=float, default=1.0)
+    crispr_parse.add_argument("--output", default=None)
+
+    crispr_link = subparsers.add_parser(
+        "link-crispr-perturbations",
+        help="link exact-context CRISPR perturbation paths into candidate edges",
+    )
+    crispr_link.add_argument("input", type=str)
+    crispr_link.add_argument("--context-key", required=True)
+    crispr_link.add_argument("--variant-id", default=None)
+    crispr_link.add_argument("--output", default=None)
+
+    contact_parse = subparsers.add_parser(
+        "parse-3d-contact-links",
+        help="parse 3D contact variant-element-gene evidence rows",
+    )
+    contact_parse.add_argument("input", type=str)
+    contact_parse.add_argument("--source-id", default=None)
+    contact_parse.add_argument("--source-version", default="unspecified")
+    contact_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    contact_parse.add_argument("--contact-scale", type=float, default=1.0)
+    contact_parse.add_argument("--resolution-bp", type=int, default=5000)
+    contact_parse.add_argument(
+        "--assay-kind",
+        choices=tuple(item.value for item in ContactAssayKind),
+        default=ContactAssayKind.HIC.value,
+    )
+    contact_parse.add_argument("--output", default=None)
+
+    contact_link = subparsers.add_parser(
+        "link-3d-contacts",
+        help="link exact-context 3D contact paths into candidate edges",
+    )
+    contact_link.add_argument("input", type=str)
+    contact_link.add_argument("--context-key", required=True)
+    contact_link.add_argument("--variant-id", default=None)
+    contact_link.add_argument("--output", default=None)
+
+    tether = subparsers.add_parser(
+        "model-promoter-tethering",
+        help="score a bounded promoter-tethering evidence baseline",
+    )
+    tether.add_argument("input", type=str)
+    tether.add_argument("--context-key", default=None)
+    tether.add_argument("--minimum-score", type=float, default=0.35)
+    tether.add_argument("--maximum-distance-bp", type=int, default=None)
+    tether.add_argument("--minimum-components", type=int, default=2)
+    tether.add_argument("--output", default=None)
+
+    graph = subparsers.add_parser(
+        "build-multi-gene-element-graph",
+        help="build a context-qualified multi-gene multi-element graph",
+    )
+    graph.add_argument("input", type=str)
+    graph.add_argument("--context-key", required=True)
+    graph.add_argument("--graph-id", default="multi-gene-element-graph")
+    graph.add_argument("--variant-id", default=None)
+    graph.add_argument("--minimum-support", type=float, default=0.0)
+    graph.add_argument("--output", default=None)
+
     causal_parse = subparsers.add_parser(
         "parse-causal-evidence",
         help="parse causal mediator evidence with row-level quarantine",
@@ -2821,6 +2898,69 @@ def main(argv: list[str] | None = None) -> int:
                 payload.get("observations", payload.get("evidence", payload.get("records", ()))),
                 _context_from_key(args.context_key),
                 variant_id=args.variant_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-crispr-perturbation-links":
+            input_path = Path(args.input)
+            result = CRISPRPerturbationLinkAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                effect_scale=args.effect_scale,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "link-crispr-perturbations":
+            payload = _read_json(args.input)
+            result = CRISPRPerturbationLinker().link(
+                payload.get("observations", payload.get("evidence", payload.get("records", ()))),
+                _context_from_key(args.context_key),
+                variant_id=args.variant_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-3d-contact-links":
+            input_path = Path(args.input)
+            result = ThreeDContactLinkAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                contact_scale=args.contact_scale,
+                resolution_bp=args.resolution_bp,
+                assay_kind=ContactAssayKind(args.assay_kind),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "link-3d-contacts":
+            payload = _read_json(args.input)
+            result = ThreeDContactLinker().link(
+                payload.get("observations", payload.get("evidence", payload.get("records", ()))),
+                _context_from_key(args.context_key),
+                variant_id=args.variant_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "model-promoter-tethering":
+            result = PromoterTetheringModel().assess(
+                _read_rows(args.input, "observations", "records", "tethering"),
+                context_key=args.context_key,
+                minimum_score=args.minimum_score,
+                maximum_distance_bp=args.maximum_distance_bp,
+                minimum_components=args.minimum_components,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "build-multi-gene-element-graph":
+            payload = _read_json(args.input)
+            result = MultiGeneElementGraphBuilder().build(
+                payload.get("evidence", payload.get("observations", payload.get("records", ()))),
+                _context_from_key(args.context_key),
+                graph_id=args.graph_id,
+                variant_id=args.variant_id,
+                minimum_support=args.minimum_support,
             )
             _write_json(result.to_dict(), args.output)
             return 0

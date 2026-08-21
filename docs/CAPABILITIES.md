@@ -641,6 +641,35 @@ glio-noncode link-molecular-qtl molecular-qtl.json --context-key "GRCh38|glioma|
 glio-noncode integrate-allele-specific-links allele-links.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --variant-id v1 --output allele-integrated-links.json
 ```
 
+The external-alpha link extensions add four deeper contracts:
+
+- `CRISPRPerturbationLinkAdapter` and `CRISPRPerturbationLinker` preserve
+  perturbation mode, direction, effect size and scale, guides, replicates,
+  exact context, and opposing-direction contradiction before producing a
+  candidate edge.
+- `ThreeDContactLinkAdapter` and `ThreeDContactLinker` preserve raw contact
+  signal, declared normalization scale, assay kind, resolution, replicate
+  identity, source version, and candidate-edge limitations.
+- `PromoterTetheringModel` computes a bounded descriptive baseline from
+  distance, contact, promoter activity, element activity, and overlap channels,
+  retaining alternative genes and abstaining when components are missing.
+- `MultiGeneElementGraphBuilder` builds a context-qualified graph slice with
+  multi-gene alternatives, node degrees, connected components, evidence paths,
+  source lineage, and support-threshold receipts.
+
+These models preserve ambiguity and missingness. They do not convert contact,
+perturbation, proximity, or graph connectivity into a causal, clinical,
+pathogenicity, or actionability conclusion.
+
+```powershell
+glio-noncode parse-crispr-perturbation-links crispr-links.tsv --source-id crispr-atlas --effect-scale 1.0 --output crispr-links.json
+glio-noncode link-crispr-perturbations crispr-links.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --variant-id v1 --output crispr-candidates.json
+glio-noncode parse-3d-contact-links contacts.tsv --source-id hic-atlas --assay-kind hic --resolution-bp 5000 --output contact-links.json
+glio-noncode link-3d-contacts contact-links.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --variant-id v1 --output contact-candidates.json
+glio-noncode model-promoter-tethering tethering.json --minimum-score 0.35 --minimum-components 2 --output tethering-model.json
+glio-noncode build-multi-gene-element-graph link-evidence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-support 0.2 --output multi-gene-graph.json
+```
+
 ## Domain 11 causal evidence structures
 
 The causal-evidence plane builds immutable factor-graph snapshots with parent

@@ -1753,6 +1753,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "are not averaged into a selected gene."
                 ),
             },
+            "GNC-D10-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_alpha.CRISPRPerturbationLinkAdapter",
+                    "glio_noncode.link_graph_alpha.CRISPRPerturbationLinker",
+                ),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "evidence_note": (
+                    "CRISPR perturbation paths retain mode, direction, effect size, scale, guide "
+                    "and replicate metadata, exact context, source hashes, and opposing-direction "
+                    "contradiction; perturbation evidence is not a causal claim."
+                ),
+            },
+            "GNC-D10-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_alpha.ThreeDContactLinkAdapter",
+                    "glio_noncode.link_graph_alpha.ThreeDContactLinker",
+                ),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "evidence_note": (
+                    "3D contact paths preserve assay kind, raw and normalized signal, scale, "
+                    "resolution, replicate identity, exact context, and source receipts before "
+                    "candidate edges are emitted; contact is not treated as regulation."
+                ),
+            },
+            "GNC-D10-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_alpha.PromoterTetheringModel",
+                    "glio_noncode.link_graph_alpha.PromoterTetheringReport",
+                ),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "evidence_note": (
+                    "Promoter-tethering baselines expose distance prior, contact, promoter, "
+                    "element, and overlap components with thresholds, alternatives, abstention, "
+                    "and calibration limitations; no tethering mechanism is inferred."
+                ),
+            },
+            "GNC-D10-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_alpha.MultiGeneElementGraphBuilder",
+                    "glio_noncode.link_graph_alpha.MultiGeneElementGraph",
+                ),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "evidence_note": (
+                    "Multi-gene/multi-element graph slices retain every aggregate edge, evidence "
+                    "path, alternative gene, node degree, connected component, context gate, and "
+                    "threshold receipt without selecting a preferred target."
+                ),
+            },
             "GNC-D11-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
