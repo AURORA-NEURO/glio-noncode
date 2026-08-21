@@ -1,0 +1,41 @@
+{
+  "request_id": "structural-beta-pipeline-review-2026-08-21",
+  "manifest_id": "structural-beta-pipeline-manifest-review",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": [
+    "ncbi-dbvar-nstd102",
+    "ncbi-dbvar-nstd186",
+    "gnomad-sv-v4",
+    "ncbi-dbvar-study-browser"
+  ],
+  "operations": {
+    "focal_amplification": {
+      "records": [
+        {"segment_id": "review-amp", "caller_id": "caller-a", "source_id": "ncbi-dbvar-nstd186", "chrom": "7", "start": 55200000, "end": 55201000, "copy_number": -1}
+      ]
+    },
+    "chromothripsis": {
+      "parameters": {"min_breakpoints": 6, "min_orientation_switches": 3},
+      "records": [
+        {"event_id": "review-sv-1", "chrom": "7", "pos": 1000000, "orientation": "forward"},
+        {"event_id": "review-sv-2", "chrom": "7", "pos": 1000100, "orientation": "reverse"},
+        {"event_id": "review-sv-3", "chrom": "7", "pos": 1000200, "orientation": "forward"},
+        {"event_id": "review-sv-4", "chrom": "7", "pos": 1000300, "orientation": "reverse"},
+        {"event_id": "review-sv-5", "chrom": "7", "pos": 1000400, "orientation": "forward"},
+        {"event_id": "review-sv-6", "chrom": "7", "pos": 1000500, "orientation": "reverse"}
+      ]
+    },
+    "ecdna": {
+      "records": [
+        {"component_id": "review-cycle", "caller_id": "circle-a", "is_circular": true, "junction_count": 3, "copy_number": 12},
+        {"component_id": "review-cycle", "caller_id": "linear-b", "is_circular": true, "linear_evidence": true, "junction_count": 3, "copy_number": 12}
+      ]
+    },
+    "enhancer_hijacking": {
+      "parameters": {"minimum_evidence_channels": 2},
+      "records": [
+        {"event_id": "review-bridge", "enhancer_id": "review-enhancer", "target_gene_id": "gene-review", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_margin|pre_treatment", "breakpoint_supported": true, "contact_supported": true, "source_id": "ncbi-dbvar-study-browser"}
+      ]
+    }
+  }
+}

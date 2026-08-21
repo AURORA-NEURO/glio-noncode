@@ -251,6 +251,15 @@ from .structural_beta import (
     ExtrachromosomalDnaCandidateDetector,
     FocalAmplificationBoundaryMapper,
 )
+from .structural_beta_bundle import StructuralBetaBundleFormat, StructuralBetaEvidenceBundleBuilder
+from .structural_beta_contracts import default_structural_beta_contract_registry
+from .structural_beta_fixture_eval import evaluate_structural_beta_fixture
+from .structural_beta_lineage import audit_structural_beta_lineage, build_structural_beta_lineage
+from .structural_beta_public_data import StructuralBetaFixtureCatalog, audit_structural_beta_fixture
+from .structural_beta_quality_gate import evaluate_structural_beta_quality_gate
+from .structural_beta_replay import StructuralBetaReplayExpectation, replay_structural_beta_fixtures
+from .structural_beta_runtime import run_structural_beta_pipeline
+from .structural_beta_scenario_matrix import evaluate_structural_beta_scenarios
 from .structural_bundle import StructuralBundleFormat, StructuralEvidenceBundleBuilder
 from .structural_contracts import default_structural_contract_registry
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
@@ -1278,6 +1287,80 @@ def build_parser() -> argparse.ArgumentParser:
     )
     structural_lineage.add_argument("input", type=str)
     structural_lineage.add_argument("--output", default=None)
+
+    structural_beta_fixture = subparsers.add_parser(
+        "evaluate-structural-beta-fixture",
+        help="evaluate the public aggregate fixture across Domain 02 C05-C08 beta operations",
+    )
+    structural_beta_fixture.add_argument("input", type=str)
+    structural_beta_fixture.add_argument("--output", default=None)
+
+    structural_beta_data = subparsers.add_parser(
+        "audit-structural-beta-data",
+        help="audit C05-C08 public aggregate sources, contexts, identities, and payload scope",
+    )
+    structural_beta_data.add_argument("input", type=str)
+    structural_beta_data.add_argument("--output", default=None)
+
+    structural_beta_replay = subparsers.add_parser(
+        "replay-structural-beta-fixtures",
+        help="replay C05-C08 fixtures with identity, context, source, and evidence floors",
+    )
+    structural_beta_replay.add_argument("inputs", nargs="+", type=str)
+    structural_beta_replay.add_argument("--required-context-key", default=None)
+    structural_beta_replay.add_argument("--output", default=None)
+
+    structural_beta_quality = subparsers.add_parser(
+        "structural-beta-quality-gate",
+        help="reconcile C05-C08 fixture, data, replay, scenario, contract, and lineage evidence",
+    )
+    structural_beta_quality.add_argument("input", type=str)
+    structural_beta_quality.add_argument("--output", default=None)
+
+    structural_beta_scenarios = subparsers.add_parser(
+        "evaluate-structural-beta-scenarios",
+        help="run independent C05-C08 positive and review state-transition scenarios",
+    )
+    structural_beta_scenarios.add_argument("input", type=str)
+    structural_beta_scenarios.add_argument("--output", default=None)
+
+    structural_beta_contracts = subparsers.add_parser(
+        "structural-beta-contracts",
+        help="print the four-operation Domain 02 C05-C08 beta contract registry",
+    )
+    structural_beta_contracts.add_argument("--output", default=None)
+
+    structural_beta_bundle = subparsers.add_parser(
+        "build-structural-beta-bundle",
+        help="build a compact JSON, CSV, or Markdown C05-C08 beta evidence bundle",
+    )
+    structural_beta_bundle.add_argument("input", type=str)
+    structural_beta_bundle.add_argument("--output", required=True)
+    structural_beta_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in StructuralBetaBundleFormat],
+        default=StructuralBetaBundleFormat.JSON.value,
+    )
+    structural_beta_bundle.add_argument("--bundle-id", default=None)
+    structural_beta_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state beta bundle for inspection instead of requiring the gate",
+    )
+
+    structural_beta_lineage = subparsers.add_parser(
+        "structural-beta-lineage",
+        help="build and audit a sanitized C05-C08 source-to-result lineage graph",
+    )
+    structural_beta_lineage.add_argument("input", type=str)
+    structural_beta_lineage.add_argument("--output", default=None)
+
+    structural_beta_pipeline = subparsers.add_parser(
+        "run-structural-beta-pipeline",
+        help="run C05-C08 focal, chromothripsis, ecDNA, and enhancer-hijacking stages",
+    )
+    structural_beta_pipeline.add_argument("input", type=str)
+    structural_beta_pipeline.add_argument("--output", default=None)
 
     sv_consensus = subparsers.add_parser(
         "sv-consensus", help="import and reconcile multi-caller structural observations"
@@ -3185,6 +3268,64 @@ def main(argv: list[str] | None = None) -> int:
             payload["audit"] = audit.to_dict()
             _write_json(payload, args.output)
             return 0 if audit.passed else 2
+        if args.command == "evaluate-structural-beta-fixture":
+            report = evaluate_structural_beta_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-structural-beta-data":
+            catalog = StructuralBetaFixtureCatalog.from_file(args.input)
+            report = audit_structural_beta_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-structural-beta-fixtures":
+            first_catalog = StructuralBetaFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = StructuralBetaReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                first_catalog.source_ids,
+                minimum_checks=40,
+                minimum_positive_records=4,
+                minimum_control_records=8,
+            )
+            report = replay_structural_beta_fixtures(
+                args.inputs,
+                expectation=expectation,
+                required_context_key=required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-beta-quality-gate":
+            report = evaluate_structural_beta_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-structural-beta-scenarios":
+            report = evaluate_structural_beta_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-beta-contracts":
+            _write_json(default_structural_beta_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-structural-beta-bundle":
+            bundle = StructuralBetaEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+                allow_review=args.allow_review,
+            )
+            return 0 if bundle.accepted else 2
+        if args.command == "structural-beta-lineage":
+            graph = build_structural_beta_lineage(args.input)
+            audit = audit_structural_beta_lineage(graph)
+            payload = graph.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "run-structural-beta-pipeline":
+            report = run_structural_beta_pipeline(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "sv-consensus":
             input_path = Path(args.input)
             batch = SVConsensusImporter(breakpoint_tolerance=args.breakpoint_tolerance).parse_text(

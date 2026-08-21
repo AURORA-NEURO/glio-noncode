@@ -1,0 +1,511 @@
+{
+  "fixture_id": "structural-beta-public-aggregate-2026-08-21",
+  "schema_version": "structural-beta-evidence-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "provenance": "Public aggregate source receipts frame a deterministic C05-C08 mechanics fixture; operation rows are de-identified validation records and are not a complete source callset.",
+  "patient_level": false,
+  "sources": [
+    {
+      "source_id": "ncbi-dbvar-nstd102",
+      "title": "NCBI dbVar Structural Variation Data Hub: Clinical Structural Variants",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/human_hub/",
+      "version": "2026-04-09",
+      "license": "NCBI public data terms",
+      "data_scope": "public aggregate structural-variation release metadata",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Public source receipt for clinical structural-variation scope; no individual records are copied into this fixture."
+    },
+    {
+      "source_id": "ncbi-dbvar-nstd186",
+      "title": "NCBI Curated Common Structural Variants",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/common_summary/",
+      "version": "2026-04-09",
+      "license": "NCBI public data terms",
+      "data_scope": "public aggregate common structural-variation summary",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Public aggregate scope used to frame common-variation interval mechanics."
+    },
+    {
+      "source_id": "gnomad-sv-v4",
+      "title": "Structural Variants in gnomAD v4",
+      "url": "https://gnomad.broadinstitute.org/news/2023-11-v4-structural-variants/",
+      "version": "v4.0-2023-11-01",
+      "license": "gnomAD data-use terms",
+      "data_scope": "public aggregate GRCh38 structural-variation release description",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Release-level source receipt; the fixture does not copy sample-level observations."
+    },
+    {
+      "source_id": "ncbi-dbvar-study-browser",
+      "title": "NCBI dbVar Study Browser",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/studies/",
+      "version": "2026-04",
+      "license": "NCBI public data terms",
+      "data_scope": "public aggregate study and structural-variation catalog metadata",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Catalog receipt used to preserve study-level source identity and release framing."
+    }
+  ],
+  "positives": [
+    {
+      "record_id": "positive-focal-amplification",
+      "operation": "focal_amplification",
+      "expected_state": "accepted",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd186",
+      "expected_counts": {
+        "candidates": 1,
+        "issues": 0
+      },
+      "description": "Two public-aggregate caller summaries agree on a high-copy interval while retaining both boundary supports.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "parameters": {
+          "baseline_copy_number": 2,
+          "amplification_threshold": 6,
+          "minimum_gain": 2,
+          "merge_gap_bp": 0,
+          "boundary_tolerance_bp": 50
+        },
+        "records": [
+          {
+            "segment_id": "amp-a-1",
+            "caller_id": "aggregate-caller-a",
+            "source_id": "ncbi-dbvar-nstd186",
+            "source_version": "2026-04-09",
+            "chrom": "7",
+            "start": 55200000,
+            "end": 55201000,
+            "copy_number": 8,
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          },
+          {
+            "segment_id": "amp-b-1",
+            "caller_id": "aggregate-caller-b",
+            "source_id": "gnomad-sv-v4",
+            "source_version": "v4.0-2023-11-01",
+            "chrom": "7",
+            "start": 55200000,
+            "end": 55201000,
+            "copy_number": 7,
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-chromothripsis",
+      "operation": "chromothripsis",
+      "expected_state": "accepted",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd102",
+      "expected_counts": {
+        "candidates": 1,
+        "issues": 0
+      },
+      "description": "A bounded six-breakpoint cluster contains alternating orientations and copy-number states.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "parameters": {
+          "min_breakpoints": 6,
+          "max_cluster_span_bp": 10000000,
+          "max_gap_bp": 2000000,
+          "min_orientation_switches": 3,
+          "require_copy_number_oscillation": true
+        },
+        "records": [
+          {
+            "event_id": "cluster-sv-1",
+            "chrom": "7",
+            "pos": 1000000,
+            "orientation": "forward",
+            "copy_number_state": "high",
+            "source_id": "ncbi-dbvar-nstd102",
+            "source_version": "2026-04-09",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          },
+          {
+            "event_id": "cluster-sv-2",
+            "chrom": "7",
+            "pos": 1000100,
+            "orientation": "reverse",
+            "copy_number_state": "low",
+            "source_id": "ncbi-dbvar-nstd102",
+            "source_version": "2026-04-09",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          },
+          {
+            "event_id": "cluster-sv-3",
+            "chrom": "7",
+            "pos": 1000200,
+            "orientation": "forward",
+            "copy_number_state": "high",
+            "source_id": "ncbi-dbvar-nstd102",
+            "source_version": "2026-04-09",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          },
+          {
+            "event_id": "cluster-sv-4",
+            "chrom": "7",
+            "pos": 1000300,
+            "orientation": "reverse",
+            "copy_number_state": "low",
+            "source_id": "ncbi-dbvar-nstd102",
+            "source_version": "2026-04-09",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          },
+          {
+            "event_id": "cluster-sv-5",
+            "chrom": "7",
+            "pos": 1000400,
+            "orientation": "forward",
+            "copy_number_state": "high",
+            "source_id": "ncbi-dbvar-nstd102",
+            "source_version": "2026-04-09",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          },
+          {
+            "event_id": "cluster-sv-6",
+            "chrom": "7",
+            "pos": 1000500,
+            "orientation": "reverse",
+            "copy_number_state": "low",
+            "source_id": "ncbi-dbvar-nstd102",
+            "source_version": "2026-04-09",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-ecdna",
+      "operation": "ecdna",
+      "expected_state": "accepted",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "expected_counts": {
+        "candidates": 1,
+        "issues": 0
+      },
+      "description": "Two independent aggregate evidence rows declare circularity, junction support, and high copy number.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "parameters": {
+          "minimum_copy_number": 6,
+          "minimum_junctions": 2
+        },
+        "records": [
+          {
+            "component_id": "cycle-aggregate-1",
+            "caller_id": "circle-caller-a",
+            "source_id": "gnomad-sv-v4",
+            "source_version": "v4.0-2023-11-01",
+            "is_circular": true,
+            "junction_count": 4,
+            "copy_number": 12,
+            "chrom": "7",
+            "start": 55200000,
+            "end": 55201000,
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          },
+          {
+            "component_id": "cycle-aggregate-1",
+            "caller_id": "circle-caller-b",
+            "source_id": "ncbi-dbvar-nstd102",
+            "source_version": "2026-04-09",
+            "is_circular": true,
+            "junction_count": 3,
+            "copy_number": 11,
+            "chrom": "7",
+            "start": 55200000,
+            "end": 55201000,
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-enhancer-hijacking",
+      "operation": "enhancer_hijacking",
+      "expected_state": "accepted",
+      "expected_result_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "expected_counts": {
+        "candidates": 2,
+        "issues": 0
+      },
+      "description": "One structural bridge retains two explicit target-gene alternatives with activity and contact channels.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "parameters": {
+          "minimum_evidence_channels": 2
+        },
+        "records": [
+          {
+            "event_id": "bridge-aggregate-1",
+            "enhancer_id": "enhancer-aggregate-1",
+            "target_gene_id": "gene-alpha",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "breakpoint_supported": true,
+            "activity_supported": true,
+            "contact_supported": true,
+            "enhancer_chrom": "7",
+            "enhancer_start": 55199000,
+            "enhancer_end": 55199500,
+            "promoter_chrom": "7",
+            "promoter_start": 55202000,
+            "promoter_end": 55202500,
+            "source_id": "ncbi-dbvar-study-browser",
+            "source_version": "2026-04"
+          },
+          {
+            "event_id": "bridge-aggregate-1",
+            "enhancer_id": "enhancer-aggregate-1",
+            "target_gene_id": "gene-beta",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "breakpoint_supported": true,
+            "contact_supported": true,
+            "source_id": "ncbi-dbvar-study-browser",
+            "source_version": "2026-04"
+          }
+        ]
+      }
+    }
+  ],
+  "controls": [
+    {
+      "record_id": "control-focal-no-amplification",
+      "operation": "focal_amplification",
+      "expected_state": "review",
+      "expected_result_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd186",
+      "expected_counts": {
+        "candidates": 0,
+        "issues": 0
+      },
+      "description": "A valid low-copy interval must not create a focal-amplification candidate.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "parameters": {
+          "amplification_threshold": 6,
+          "minimum_gain": 2
+        },
+        "records": [
+          {
+            "segment_id": "control-low-copy",
+            "caller_id": "aggregate-caller-a",
+            "source_id": "ncbi-dbvar-nstd186",
+            "chrom": "7",
+            "start": 55200000,
+            "end": 55201000,
+            "copy_number": 3,
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-focal-negative-copy",
+      "operation": "focal_amplification",
+      "expected_state": "review",
+      "expected_result_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd186",
+      "required_issue_codes": ["invalid_copy_number_record"],
+      "expected_counts": {
+        "candidates": 0,
+        "issues": 1
+      },
+      "description": "Negative copy number is rejected at the typed input boundary.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "segment_id": "control-negative-copy",
+            "caller_id": "aggregate-caller-a",
+            "source_id": "ncbi-dbvar-nstd186",
+            "chrom": "7",
+            "start": 55200000,
+            "end": 55201000,
+            "copy_number": -1,
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-chromothripsis-missing-copy-state",
+      "operation": "chromothripsis",
+      "expected_state": "review",
+      "expected_result_state": "partial",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd102",
+      "expected_counts": {
+        "candidates": 1,
+        "issues": 0
+      },
+      "description": "Breakpoint clustering remains visible while missing copy-number oscillation keeps the result partial.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "parameters": {
+          "min_breakpoints": 6,
+          "min_orientation_switches": 3,
+          "require_copy_number_oscillation": true
+        },
+        "records": [
+          {"event_id": "partial-sv-1", "chrom": "7", "pos": 1000000, "orientation": "forward", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "partial-sv-2", "chrom": "7", "pos": 1000100, "orientation": "reverse", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "partial-sv-3", "chrom": "7", "pos": 1000200, "orientation": "forward", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "partial-sv-4", "chrom": "7", "pos": 1000300, "orientation": "reverse", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "partial-sv-5", "chrom": "7", "pos": 1000400, "orientation": "forward", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "partial-sv-6", "chrom": "7", "pos": 1000500, "orientation": "reverse", "source_id": "ncbi-dbvar-nstd102"}
+        ]
+      }
+    },
+    {
+      "record_id": "control-chromothripsis-far-gaps",
+      "operation": "chromothripsis",
+      "expected_state": "review",
+      "expected_result_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd102",
+      "expected_counts": {
+        "candidates": 0,
+        "issues": 0
+      },
+      "description": "Widely separated breakpoints do not satisfy the declared cluster boundary.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "parameters": {
+          "min_breakpoints": 6,
+          "max_gap_bp": 1000,
+          "min_orientation_switches": 3
+        },
+        "records": [
+          {"event_id": "far-sv-1", "chrom": "7", "pos": 1000000, "orientation": "forward", "copy_number_state": "high", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "far-sv-2", "chrom": "7", "pos": 2000000, "orientation": "reverse", "copy_number_state": "low", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "far-sv-3", "chrom": "7", "pos": 3000000, "orientation": "forward", "copy_number_state": "high", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "far-sv-4", "chrom": "7", "pos": 4000000, "orientation": "reverse", "copy_number_state": "low", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "far-sv-5", "chrom": "7", "pos": 5000000, "orientation": "forward", "copy_number_state": "high", "source_id": "ncbi-dbvar-nstd102"},
+          {"event_id": "far-sv-6", "chrom": "7", "pos": 6000000, "orientation": "reverse", "copy_number_state": "low", "source_id": "ncbi-dbvar-nstd102"}
+        ]
+      }
+    },
+    {
+      "record_id": "control-ecdna-high-copy-only",
+      "operation": "ecdna",
+      "expected_state": "review",
+      "expected_result_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "expected_counts": {
+        "candidates": 0,
+        "issues": 0
+      },
+      "description": "High copy number without explicit circular evidence remains abstained.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "component_id": "linear-amplification-only",
+            "source_id": "gnomad-sv-v4",
+            "copy_number": 12,
+            "junction_count": 4,
+            "is_circular": false
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-ecdna-conflicting-linear",
+      "operation": "ecdna",
+      "expected_state": "review",
+      "expected_result_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "expected_counts": {
+        "candidates": 1,
+        "issues": 0
+      },
+      "description": "Circular evidence with an explicit linear-path conflict remains ambiguous.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "records": [
+          {"component_id": "ambiguous-cycle", "caller_id": "circle-caller-a", "source_id": "gnomad-sv-v4", "is_circular": true, "junction_count": 3, "copy_number": 12},
+          {"component_id": "ambiguous-cycle", "caller_id": "linear-caller-b", "source_id": "ncbi-dbvar-nstd102", "is_circular": true, "linear_evidence": true, "junction_count": 3, "copy_number": 12}
+        ]
+      }
+    },
+    {
+      "record_id": "control-enhancer-missing-bridge",
+      "operation": "enhancer_hijacking",
+      "expected_state": "review",
+      "expected_result_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "required_issue_codes": ["missing_structural_bridge"],
+      "expected_counts": {
+        "candidates": 0,
+        "issues": 1
+      },
+      "description": "Contact evidence alone does not create a structural enhancer-hijacking candidate.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "event_id": "no-bridge-event",
+            "enhancer_id": "enhancer-no-bridge",
+            "target_gene_id": "gene-gamma",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "contact_supported": true,
+            "source_id": "ncbi-dbvar-study-browser",
+            "source_version": "2026-04"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-enhancer-context-mismatch",
+      "operation": "enhancer_hijacking",
+      "expected_state": "review",
+      "expected_result_state": "out_of_domain",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "required_issue_codes": ["context_mismatch"],
+      "expected_counts": {
+        "candidates": 0,
+        "issues": 1
+      },
+      "description": "A context mismatch blocks enhancer-to-gene inference before candidate construction.",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "event_id": "out-of-domain-event",
+            "enhancer_id": "enhancer-out-of-domain",
+            "target_gene_id": "gene-delta",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_margin|pre_treatment",
+            "breakpoint_supported": true,
+            "contact_supported": true,
+            "source_id": "ncbi-dbvar-study-browser",
+            "source_version": "2026-04"
+          }
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "The fixture is public aggregate and de-identified; it contains no patient, donor, participant, or direct-contact fields.",
+    "C05-C08 detector outputs preserve ambiguity, abstention, and out-of-domain states as reviewable results.",
+    "The source receipts identify public release framing; local evaluation is offline and does not claim exhaustive source retrieval."
+  ]
+}

@@ -670,52 +670,101 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D02-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_beta.FocalAmplificationBoundaryMapper",
+                    "glio_noncode.structural_beta_public_data.StructuralBetaFixtureCatalog",
+                    "glio_noncode.structural_beta_fixture_eval.evaluate_structural_beta_fixture",
+                    "glio_noncode.structural_beta_runtime.StructuralBetaPipeline",
+                    "glio_noncode.structural_beta_bundle.StructuralBetaEvidenceBundleBuilder",
                 ),
-                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "test_modules": (
+                    "tests.test_structural_beta",
+                    "tests.test_structural_beta_public_data",
+                    "tests.test_structural_beta_fixture_eval",
+                    "tests.test_structural_beta_quality_gate",
+                    "tests.test_structural_beta_runtime",
+                    "tests.test_structural_beta_cli",
+                ),
                 "evidence_note": (
                     "Copy-number segments are thresholded, merged only across observed gaps, "
                     "and returned with caller-specific left/right boundary support and "
-                    "disagreement; sequence-level amplification truth and clinical focality "
-                    "remain external validation gates."
+                    "disagreement. The public aggregate gate exercises two positive callers, "
+                    "low-copy abstention, negative-copy validation, replay, contracts, "
+                    "lineage, and sanitized bundle publication; sequence-level amplification "
+                    "truth and clinical focality remain external validation gates."
                 ),
             },
             "GNC-D02-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_beta.ChromothripsisPatternDetector",
+                    "glio_noncode.structural_beta_public_data.StructuralBetaFixtureCatalog",
+                    "glio_noncode.structural_beta_fixture_eval.evaluate_structural_beta_fixture",
+                    "glio_noncode.structural_beta_lineage.StructuralBetaLineageBuilder",
+                    "glio_noncode.structural_beta_quality_gate.evaluate_structural_beta_quality_gate",
                 ),
-                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "test_modules": (
+                    "tests.test_structural_beta",
+                    "tests.test_structural_beta_fixture_eval",
+                    "tests.test_structural_beta_scenario_matrix",
+                    "tests.test_structural_beta_lineage",
+                    "tests.test_structural_beta_cli",
+                ),
                 "evidence_note": (
                     "Bounded breakpoint clusters retain orientation switches, copy-number state "
-                    "oscillation, source hashes, and a descriptive evidence index; the index is "
-                    "not a probability and does not establish a biological mechanism."
+                    "oscillation, source hashes, and a descriptive evidence index. The public "
+                    "aggregate gate exercises alternating positive clusters, missing-state and "
+                    "far-gap controls, independent scenarios, and address-checked lineage; the "
+                    "index is not a probability and does not establish a biological mechanism."
                 ),
             },
             "GNC-D02-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_beta.ExtrachromosomalDnaCandidateDetector",
+                    "glio_noncode.structural_beta_public_data.StructuralBetaSourceReceipt",
+                    "glio_noncode.structural_beta_scenario_matrix.evaluate_structural_beta_scenarios",
+                    "glio_noncode.structural_beta_contracts.StructuralBetaOperationContract",
+                    "glio_noncode.structural_beta_bundle.StructuralBetaEvidenceBundleBuilder",
                 ),
-                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "test_modules": (
+                    "tests.test_structural_beta",
+                    "tests.test_structural_beta_public_data",
+                    "tests.test_structural_beta_scenario_matrix",
+                    "tests.test_structural_beta_bundle",
+                    "tests.test_structural_beta_cli",
+                ),
                 "evidence_note": (
                     "ecDNA candidates require explicit circular evidence, junction support, and "
-                    "amplification evidence; conflicting linear evidence remains ambiguous and "
-                    "orthogonal molecule or imaging confirmation is not inferred."
+                    "amplification evidence. The public aggregate gate exercises two circular "
+                    "callers, high-copy-only abstention, conflicting linear evidence, scenario "
+                    "replay, and compact publication; orthogonal molecule or imaging confirmation "
+                    "is not inferred."
                 ),
             },
             "GNC-D02-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_beta.EnhancerHijackingCandidateDetector",
+                    "glio_noncode.structural_beta_public_data.StructuralBetaFixtureRecord",
+                    "glio_noncode.structural_beta_fixture_eval.evaluate_structural_beta_fixture",
+                    "glio_noncode.structural_beta_replay.replay_structural_beta_fixtures",
+                    "glio_noncode.structural_beta_runtime.run_structural_beta_pipeline",
                 ),
-                "test_modules": ("tests.test_structural_beta", "tests.test_structural_beta_cli"),
+                "test_modules": (
+                    "tests.test_structural_beta",
+                    "tests.test_structural_beta_fixture_eval",
+                    "tests.test_structural_beta_replay",
+                    "tests.test_structural_beta_runtime",
+                    "tests.test_structural_beta_cli",
+                ),
                 "evidence_note": (
                     "Exact-context enhancer-to-gene candidates require an explicit structural "
                     "bridge, retain activity/contact channels and alternative genes, and never "
-                    "use nearest-gene proximity as a substitute for linking evidence."
+                    "use nearest-gene proximity as a substitute for linking evidence. The public "
+                    "aggregate gate exercises supported bridges, missing-bridge and context-drift "
+                    "controls, runtime review propagation, replay identity, and sanitized output."
                 ),
             },
             "GNC-D02-C09": {

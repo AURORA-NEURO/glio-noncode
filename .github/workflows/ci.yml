@@ -104,3 +104,21 @@ jobs:
         run: python -m glio_noncode run-structural-pipeline examples/structural-pipeline-accepted.json --output /tmp/glio-structural-pipeline.json
       - name: Structural lineage graph
         run: python -m glio_noncode structural-lineage examples/structural-public-aggregate.json --output /tmp/glio-structural-lineage.json
+      - name: Structural beta data boundary audit
+        run: python -m glio_noncode audit-structural-beta-data examples/structural-beta-public-aggregate.json --output /tmp/glio-structural-beta-data.json
+      - name: Structural beta fixture evaluation
+        run: python -m glio_noncode evaluate-structural-beta-fixture examples/structural-beta-public-aggregate.json --output /tmp/glio-structural-beta-fixture.json
+      - name: Structural beta replay integrity
+        run: python -m glio_noncode replay-structural-beta-fixtures examples/structural-beta-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-structural-beta-replay.json
+      - name: Structural beta quality gate
+        run: python -m glio_noncode structural-beta-quality-gate examples/structural-beta-public-aggregate.json --output /tmp/glio-structural-beta-quality.json
+      - name: Structural beta scenario matrix
+        run: python -m glio_noncode evaluate-structural-beta-scenarios examples/structural-beta-public-aggregate.json --output /tmp/glio-structural-beta-scenarios.json
+      - name: Structural beta operation contracts
+        run: python -m glio_noncode structural-beta-contracts --output /tmp/glio-structural-beta-contracts.json
+      - name: Structural beta evidence bundle
+        run: python -m glio_noncode build-structural-beta-bundle examples/structural-beta-public-aggregate.json --output /tmp/glio-structural-beta-bundle.json
+      - name: Structural beta lineage graph
+        run: python -m glio_noncode structural-beta-lineage examples/structural-beta-public-aggregate.json --output /tmp/glio-structural-beta-lineage.json
+      - name: Structural beta pipeline integration
+        run: python -m glio_noncode run-structural-beta-pipeline examples/structural-beta-pipeline-accepted.json --output /tmp/glio-structural-beta-pipeline.json

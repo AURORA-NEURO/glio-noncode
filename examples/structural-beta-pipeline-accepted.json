@@ -1,0 +1,53 @@
+{
+  "request_id": "structural-beta-pipeline-accepted-2026-08-21",
+  "manifest_id": "structural-beta-pipeline-manifest-accepted",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": [
+    "ncbi-dbvar-nstd102",
+    "ncbi-dbvar-nstd186",
+    "gnomad-sv-v4",
+    "ncbi-dbvar-study-browser"
+  ],
+  "operations": {
+    "focal_amplification": {
+      "parameters": {
+        "amplification_threshold": 6,
+        "minimum_gain": 2,
+        "boundary_tolerance_bp": 50
+      },
+      "records": [
+        {"segment_id": "pipeline-amp-a", "caller_id": "caller-a", "source_id": "ncbi-dbvar-nstd186", "chrom": "7", "start": 55200000, "end": 55201000, "copy_number": 8},
+        {"segment_id": "pipeline-amp-b", "caller_id": "caller-b", "source_id": "gnomad-sv-v4", "chrom": "7", "start": 55200000, "end": 55201000, "copy_number": 7}
+      ]
+    },
+    "chromothripsis": {
+      "parameters": {
+        "min_breakpoints": 6,
+        "min_orientation_switches": 3,
+        "require_copy_number_oscillation": true
+      },
+      "records": [
+        {"event_id": "pipeline-sv-1", "chrom": "7", "pos": 1000000, "orientation": "forward", "copy_number_state": "high"},
+        {"event_id": "pipeline-sv-2", "chrom": "7", "pos": 1000100, "orientation": "reverse", "copy_number_state": "low"},
+        {"event_id": "pipeline-sv-3", "chrom": "7", "pos": 1000200, "orientation": "forward", "copy_number_state": "high"},
+        {"event_id": "pipeline-sv-4", "chrom": "7", "pos": 1000300, "orientation": "reverse", "copy_number_state": "low"},
+        {"event_id": "pipeline-sv-5", "chrom": "7", "pos": 1000400, "orientation": "forward", "copy_number_state": "high"},
+        {"event_id": "pipeline-sv-6", "chrom": "7", "pos": 1000500, "orientation": "reverse", "copy_number_state": "low"}
+      ]
+    },
+    "ecdna": {
+      "parameters": {"minimum_copy_number": 6, "minimum_junctions": 2},
+      "records": [
+        {"component_id": "pipeline-cycle", "caller_id": "circle-a", "source_id": "gnomad-sv-v4", "is_circular": true, "junction_count": 4, "copy_number": 12},
+        {"component_id": "pipeline-cycle", "caller_id": "circle-b", "source_id": "ncbi-dbvar-nstd102", "is_circular": true, "junction_count": 3, "copy_number": 11}
+      ]
+    },
+    "enhancer_hijacking": {
+      "parameters": {"minimum_evidence_channels": 2},
+      "records": [
+        {"event_id": "pipeline-bridge", "enhancer_id": "pipeline-enhancer", "target_gene_id": "gene-alpha", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "breakpoint_supported": true, "activity_supported": true, "contact_supported": true, "source_id": "ncbi-dbvar-study-browser"},
+        {"event_id": "pipeline-bridge", "enhancer_id": "pipeline-enhancer", "target_gene_id": "gene-beta", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment", "breakpoint_supported": true, "contact_supported": true, "source_id": "ncbi-dbvar-study-browser"}
+      ]
+    }
+  }
+}

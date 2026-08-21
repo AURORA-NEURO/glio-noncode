@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 36 capabilities have deterministic fixture-backed
-verification and 220 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 40 capabilities have deterministic fixture-backed
+verification and 216 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -175,6 +175,44 @@ result nodes connected by 36 typed edges. Its graph address is independently
 audited for exact context, source coverage, record/result pairing, and endpoint
 integrity. Raw operation payloads remain outside the compact lineage receipt.
 
+The C05-C08 structural beta gate extends Domain 02 with a second, independently
+replayable evidence plane at `examples/structural-beta-public-aggregate.json`:
+
+- focal amplification requires thresholded copy number and caller-supported
+  boundaries; low-copy and invalid-copy controls abstain or enter review;
+- chromothripsis retains breakpoint span, orientation switches, and supplied
+  copy-number oscillation while missing state and far-gap patterns remain
+  partial or abstained;
+- ecDNA requires circularity, junction support, and amplification evidence;
+  high copy number alone is not sufficient and conflicting linear evidence is
+  retained as review;
+- enhancer hijacking requires exact six-field context, an explicit structural
+  bridge, and declared activity/contact channels; missing bridges and context
+  drift remain review states.
+
+The beta evidence plane executes 63 fixture assertions across four positives and
+eight controls, a 12-case scenario matrix, four operation contracts, a 20-check
+quality gate, a 29-node/36-edge lineage graph, and a four-stage runtime. The
+compact bundle contains twelve sanitized entries and independently addressable
+quality and lineage receipts. Its public source receipts point to aggregate
+dbVar and gnomAD structural-variation material; the fixture is a mechanics and
+boundary contract, not a patient callset or clinical truth set. See
+`docs/STRUCTURAL_BETA_EVIDENCE_GATE.md` and
+`docs/STRUCTURAL_BETA_BUNDLE_FORMAT.md` for the full schema, state semantics,
+source scope, limitations, and verification rules.
+
+```powershell
+python -m glio_noncode audit-structural-beta-data examples/structural-beta-public-aggregate.json --output structural-beta-data.json
+python -m glio_noncode evaluate-structural-beta-fixture examples/structural-beta-public-aggregate.json --output structural-beta-fixture.json
+python -m glio_noncode replay-structural-beta-fixtures examples/structural-beta-public-aggregate.json --output structural-beta-replay.json
+python -m glio_noncode structural-beta-quality-gate examples/structural-beta-public-aggregate.json --output structural-beta-quality.json
+python -m glio_noncode evaluate-structural-beta-scenarios examples/structural-beta-public-aggregate.json --output structural-beta-scenarios.json
+python -m glio_noncode structural-beta-contracts --output structural-beta-contracts.json
+python -m glio_noncode build-structural-beta-bundle examples/structural-beta-public-aggregate.json --output structural-beta-bundle.json
+python -m glio_noncode structural-beta-lineage examples/structural-beta-public-aggregate.json --output structural-beta-lineage.json
+python -m glio_noncode run-structural-beta-pipeline examples/structural-beta-pipeline-accepted.json --output structural-beta-pipeline.json
+```
+
 ## Domain 03 specimen frontier
 
 Specimen context is now represented as a linked, reviewable envelope. The
@@ -282,8 +320,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 36 controls are now verified against the checked-in
-Domain 01, Domain 02, and D13-D16 fixtures, while 220 capabilities remain partial. Partial
+capabilities started (100%); 40 controls are now verified against the checked-in
+Domain 01, Domain 02, and D13-D16 fixtures, while 216 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
