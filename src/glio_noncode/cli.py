@@ -10,6 +10,11 @@ from pathlib import Path
 from typing import Any
 
 from .api import create_server
+from .atlas_beta import (
+    HistoneMarkTrackHarmonizer,
+    MolecularAtlasState,
+    MolecularStateAtlasAdapter,
+)
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
 from .causal_reasoning import FactorGraphConstructor, FactorObservation
@@ -104,6 +109,20 @@ def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     if isinstance(payload, list):
         return tuple(payload)
     raise ValueError(f"{path} JSON must be an object or list")
+
+
+def _context_from_key(context_key: str) -> ReferenceContext:
+    parts = context_key.split("|")
+    if len(parts) != 6:
+        raise ValueError("context-key must contain six pipe-delimited fields")
+    return ReferenceContext(
+        genome_build=parts[0],
+        disease_class=parts[1],
+        age_group=parts[2],
+        cell_state=parts[3],
+        territory=parts[4],
+        treatment_phase=parts[5],
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -430,6 +449,38 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chromatin.add_argument("--format", choices=("tsv", "json"), default=None)
     chromatin.add_argument("--output", default=None)
+
+    state_atlas = subparsers.add_parser(
+        "query-state-atlas",
+        help="query an exact molecular-state atlas record against a context-qualified interval",
+    )
+    state_atlas.add_argument("input", type=str)
+    state_atlas.add_argument(
+        "--molecular-state",
+        choices=[item.value for item in MolecularAtlasState],
+        required=True,
+    )
+    state_atlas.add_argument("--chromosome", required=True)
+    state_atlas.add_argument("--start", type=int, required=True)
+    state_atlas.add_argument("--end", type=int, required=True)
+    state_atlas.add_argument("--context-key", required=True)
+    state_atlas.add_argument("--source-id", default="state-atlas-cli")
+    state_atlas.add_argument("--source-version", default="unspecified")
+    state_atlas.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
+    state_atlas.add_argument("--coordinate-system", choices=("bed", "one_based"), default="bed")
+    state_atlas.add_argument("--output", default=None)
+
+    histone = subparsers.add_parser(
+        "harmonize-histone",
+        help="harmonize context-qualified histone-mark tracks into atomic intervals",
+    )
+    histone.add_argument("input", type=str)
+    histone.add_argument("--source-id", default=None)
+    histone.add_argument("--source-version", default="unspecified")
+    histone.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
+    histone.add_argument("--coordinate-system", choices=("bed", "one_based"), default="bed")
+    histone.add_argument("--spread-tolerance", type=float, default=0.25)
+    histone.add_argument("--output", default=None)
 
     context = subparsers.add_parser(
         "parse-context",
@@ -879,6 +930,42 @@ def main(argv: list[str] | None = None) -> int:
                 source_id=args.source_id or input_path.stem,
                 track_kind=args.track_kind,
                 input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "query-state-atlas":
+            payload = _read_json(args.input)
+            rows = payload.get("records", payload.get("elements", ()))
+            if not isinstance(rows, list):
+                raise ValueError("state atlas JSON must contain a records list")
+            context = _context_from_key(args.context_key)
+            adapter = MolecularStateAtlasAdapter()
+            batch = adapter.parse_text(
+                json.dumps({"records": rows}),
+                source_id=args.source_id,
+                source_version=args.source_version,
+                input_format="json",
+                coordinate_system=args.coordinate_system,
+            )
+            query = adapter.query(
+                batch.records,
+                molecular_state=args.molecular_state,
+                chromosome=args.chromosome,
+                start=args.start,
+                end=args.end,
+                context=context,
+            )
+            _write_json({"catalog": batch.to_dict(), "query": query.to_dict()}, args.output)
+            return 0
+        if args.command == "harmonize-histone":
+            input_path = Path(args.input)
+            result = HistoneMarkTrackHarmonizer().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                coordinate_system=args.coordinate_system,
+                spread_tolerance=args.spread_tolerance,
             )
             _write_json(result.to_dict(), args.output)
             return 0

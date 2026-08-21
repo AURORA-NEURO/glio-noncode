@@ -7,6 +7,20 @@ first and research-use only.
 
 from .assay_qc import AssayQCEvaluator
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
+from .atlas_beta import (
+    AtlasBetaIssue,
+    AtlasBetaState,
+    HistoneHarmonizationBatch,
+    HistoneHarmonizedInterval,
+    HistoneMarkTrackHarmonizer,
+    HistoneObservation,
+    MolecularAtlasState,
+    MolecularStateAtlasAdapter,
+    MolecularStateAtlasBatch,
+    MolecularStateAtlasMatch,
+    MolecularStateAtlasQueryResult,
+    MolecularStateAtlasRecord,
+)
 from .atlas_context import ContextEvidenceBuilder, ContextObservation
 from .atlas_extensions import CcreAtlasAdapter, CcreAtlasProfile, CcreTrackParser
 from .bcf import BcfDocument, BcfReader
@@ -247,6 +261,18 @@ __all__ = [
     "BcfReader",
     "AtlasBundle",
     "AtlasQuery",
+    "AtlasBetaIssue",
+    "AtlasBetaState",
+    "HistoneHarmonizationBatch",
+    "HistoneHarmonizedInterval",
+    "HistoneMarkTrackHarmonizer",
+    "HistoneObservation",
+    "MolecularAtlasState",
+    "MolecularStateAtlasAdapter",
+    "MolecularStateAtlasBatch",
+    "MolecularStateAtlasMatch",
+    "MolecularStateAtlasQueryResult",
+    "MolecularStateAtlasRecord",
     "InferenceExtensionSuite",
     "CaseRuntime",
     "ControlPlaneExecutor",

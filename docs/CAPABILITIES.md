@@ -195,6 +195,23 @@ cell state, disease, and age context, and distinguish supported overlap from
 absence, ambiguity, and out-of-domain context. Atlas overlap is an annotation
 observation, not proof of activity or causality.
 
+The Domain 05 scientific-beta extensions keep molecular states separate:
+
+- `MolecularStateAtlasAdapter` supports IDH-mutant, IDH-wildtype, and
+  H3K27-altered state records with exact state and `ReferenceContext.key`
+  matching. Evidence from another state or context is not transported.
+- `HistoneMarkTrackHarmonizer` converts histone-mark observations into atomic
+  intervals at observed boundaries, reports median signal and replicate spread,
+  and keeps one-replicate and high-disagreement intervals partial or ambiguous.
+  Signal remains descriptive and is not a calibrated activity call.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode query-state-atlas state-atlas.json --molecular-state "IDH-mutant" --chromosome 7 --start 100 --end 200 --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output state-query.json
+glio-noncode harmonize-histone histone.tsv --output histone.json
+```
+
 ## Domain 06 sequence and model adapters
 
 The sequence plane emits deterministic context features separately from

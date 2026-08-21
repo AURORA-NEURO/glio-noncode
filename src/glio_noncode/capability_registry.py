@@ -707,6 +707,44 @@ def default_capability_registry() -> CapabilityRegistry:
                     "abstain or report out-of-domain when contexts do not match."
                 ),
             },
+            "GNC-D05-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_beta.MolecularStateAtlasAdapter",),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "evidence_note": (
+                    "IDH-mutant state atlas records are stored with exact molecular state, "
+                    "context, assay, signal, source version, and raw hashes; cross-state and "
+                    "cross-context transport is blocked."
+                ),
+            },
+            "GNC-D05-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_beta.MolecularStateAtlasAdapter",),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "evidence_note": (
+                    "IDH-wildtype atlas queries use the same versioned state-specific contract "
+                    "and preserve out-of-domain results rather than borrowing IDH-mutant evidence."
+                ),
+            },
+            "GNC-D05-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_beta.MolecularStateAtlasAdapter",),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "evidence_note": (
+                    "H3K27-altered state observations retain exact state and context keys, with "
+                    "overlap ambiguity and unsupported context made explicit."
+                ),
+            },
+            "GNC-D05-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_beta.HistoneMarkTrackHarmonizer",),
+                "test_modules": ("tests.test_atlas_beta", "tests.test_atlas_beta_cli"),
+                "evidence_note": (
+                    "Histone-mark tracks are converted to atomic observed intervals with median "
+                    "signal, replicate spread, callers, source versions, and disagreement states; "
+                    "the result is not a calibrated activity call."
+                ),
+            },
             "GNC-D06-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
