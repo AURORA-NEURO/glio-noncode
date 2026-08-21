@@ -99,7 +99,9 @@ inference (`A23`), uncertainty/OOD aggregation (`A36`), cohort recurrence
 (`A32`), causal lattice assembly (`A34`), power planning (`A41`), human-review
 abstention (`A45`), lifecycle reclassification (`A46`),
 drift monitoring (`A47`), assay routing (`A39`), local guide enumeration (`A40`),
-evidence graph aggregation (`A43`), and report rendering (`A44`).
+evidence graph aggregation (`A43`), report rendering (`A44`), reference
+projection (`A09`/`A11`), structural reconstruction (`A10`), sample lineage
+(`A12`), origin/clonality (`A13`), and assay QC (`A14`).
 
 Atlas execution has an additional runtime boundary because the current
 publication handler can invoke the public adapters: the mission must set
@@ -117,6 +119,11 @@ value-of-information ranking that records matching dimensions, cost class,
 uncertainty band, and blockers. A candidate control is always emitted as
 `unsupported` until an assay produces a measurement; selection is never treated
 as a negative result.
+
+The data-plane bindings preserve explicit projection status, structural issues,
+lineage cycles and missing parents, origin ambiguity, and missing or failed QC
+metrics. These states are returned as typed evidence or abstentions rather than
+being converted into silent defaults.
 
 Other registered roles remain available for dependency planning and return
 explicit handler-unavailable errors until their domain module is installed;

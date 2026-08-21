@@ -7,8 +7,10 @@ first and research-use only.
 
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
+from .assay_qc import AssayQCEvaluator
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .intake import VariantIndex, VariantIntake
+from .lineage import LineageResolver
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
 from .models import (
     CaseManifest,
@@ -19,6 +21,7 @@ from .models import (
     VariantIdentity,
 )
 from .reference_registry import ReferenceProjector, default_reference_registry
+from .origin import OriginClonalityAssessor
 from .runtime import CaseRuntime
 from .sequence_inference import MotifDefinition, SequenceInference
 from .uncertainty import OutOfDomainDetector, UncertaintyPropagator
@@ -31,6 +34,7 @@ from .structural_reconstruction import ReconstructionResult, StructuralReconstru
 
 __all__ = [
     "CaseManifest",
+    "AssayQCEvaluator",
     "AtlasBundle",
     "AtlasQuery",
     "CaseRuntime",
@@ -56,6 +60,8 @@ __all__ = [
     "VariantIdentity",
     "VariantIndex",
     "VariantIntake",
+    "LineageResolver",
+    "OriginClonalityAssessor",
     "DriftMonitor",
     "LifecycleReclassifier",
     "ReviewPacketBuilder",

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from tempfile import TemporaryDirectory
 from typing import Any
 
+from .assay_qc import AssayQCEvaluator, AssayQCObservation, QCStatus
 from .atlas import AtlasQuery, PublicAtlasRetriever
 from .benchmarks import BenchmarkExample, BenchmarkRunner
 from .causal import CausalLattice
@@ -24,8 +25,9 @@ from .data_sources import FetchReceipt, FetchStatus, SequenceSlice
 from .errors import ValidationError
 from .evidence import EvidenceGraph
 from .identity import normalize_variant, parse_variant
-from .intake import VariantIntake
+from .intake import RawVariantRecord, VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
+from .lineage import LineageResolver, SampleLineageRecord
 from .models import (
     AssayType,
     CandidateElement,
@@ -44,6 +46,14 @@ from .models import (
     ReviewState,
     SupportLevel,
 )
+from .origin import OriginClonalityAssessor, OriginObservation
+from .reference_registry import (
+    MappingCatalog,
+    MappingSegment,
+    ProjectionStatus,
+    ReferenceProjector,
+    default_reference_registry,
+)
 from .reports import render_json, render_markdown, summarize
 from .sequence_inference import (
     MotifDefinition,
@@ -52,6 +62,7 @@ from .sequence_inference import (
     SequenceInference,
 )
 from .serialization import content_hash
+from .structural_reconstruction import StructuralReconstructor
 from .uncertainty import (
     CalibrationEvaluator,
     DomainProfile,
@@ -107,6 +118,11 @@ class ControlPlaneApplication:
         self.recurrence = RecurrenceModel()
         self.causal = CausalLattice()
         self.reclassifier = LifecycleReclassifier()
+        self.reference_registry = default_reference_registry()
+        self.structural = StructuralReconstructor()
+        self.lineage = LineageResolver()
+        self.origin = OriginClonalityAssessor()
+        self.assay_qc = AssayQCEvaluator()
         self.negative_controls = NegativeControlBuilder()
         self.validation_value = ValidationValuePlanner()
         self.benchmarks = BenchmarkRunner()
@@ -143,6 +159,42 @@ class ControlPlaneApplication:
             self._identity,
             "identity.normalize_variant",
             "Normalize one declared variant notation into a canonical identity.",
+        )
+        self._bind(
+            "A09.publish",
+            self._reference_projection,
+            "reference_registry.ReferenceProjector",
+            "Project a canonical variant through an explicit reference mapping.",
+        )
+        self._bind(
+            "A10.publish",
+            self._structural_reconstruction,
+            "structural_reconstruction.StructuralReconstructor",
+            "Reconstruct symbolic and breakend events without flattening unsupported records.",
+        )
+        self._bind(
+            "A11.publish",
+            self._pangenome_projection,
+            "reference_registry.ReferenceProjector",
+            "Return explicit projections for every declared target assembly.",
+        )
+        self._bind(
+            "A12.publish",
+            self._lineage_resolution,
+            "lineage.LineageResolver",
+            "Validate pseudonymous sample relationships and retain missing-parent warnings.",
+        )
+        self._bind(
+            "A13.publish",
+            self._origin_assessment,
+            "origin.OriginClonalityAssessor",
+            "Assess origin and clonality from declared multi-sample observations.",
+        )
+        self._bind(
+            "A14.publish",
+            self._assay_qc,
+            "assay_qc.AssayQCEvaluator",
+            "Evaluate assay QC metrics with explicit missingness and thresholds.",
         )
         self._bind(
             "A15.publish",
@@ -317,6 +369,376 @@ class ControlPlaneApplication:
             provenance_digest=request.provenance.digest,
             confidence=1.0,
         )
+
+    def _reference_projection(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        try:
+            variant = self._variant_from_payload(raw)
+            target_build = str(raw["target_build"])
+            projector = self._projector(raw.get("mappings", ()))
+            result = projector.project(variant, target_build)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_reference_projection_inputs",
+                "reference_projection",
+                str(exc),
+                ("variant", "target_build"),
+            )
+        state = (
+            EvidenceState.SUPPORTED
+            if result.status in {ProjectionStatus.IDENTITY, ProjectionStatus.MAPPED}
+            else EvidenceState.ABSTAINED
+        )
+        payload_hash = content_hash(result.to_dict())
+        return EvidenceEnvelope(
+            evidence_id=f"reference-projection:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.REFERENCE,
+            claim_summary=f"Reference projection status is {result.status.value}: {result.reason}.",
+            payload_hash=payload_hash,
+            source_ids=("reference-registry",),
+            provenance_digest=request.provenance.digest,
+            confidence=0.95 if state == EvidenceState.SUPPORTED else 0.0,
+            limitations=(result.reason,),
+        )
+
+    def _pangenome_projection(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        targets_raw = raw.get("target_builds", raw.get("target_build"))
+        if isinstance(targets_raw, str):
+            targets = (targets_raw,)
+        elif isinstance(targets_raw, (list, tuple)):
+            targets = tuple(str(item) for item in targets_raw)
+        else:
+            targets = ()
+        if not targets:
+            return Abstention(
+                "missing_projection_targets",
+                "pangenome_projection",
+                "Pangenome projection requires at least one target assembly.",
+                ("target_builds",),
+            )
+        try:
+            variant = self._variant_from_payload(raw)
+            projector = self._projector(raw.get("mappings", ()))
+            results = tuple(projector.project(variant, target) for target in targets)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_projection_inputs",
+                "pangenome_projection",
+                str(exc),
+                ("variant", "target_builds"),
+            )
+        mapped = sum(
+            result.status in {ProjectionStatus.IDENTITY, ProjectionStatus.MAPPED}
+            for result in results
+        )
+        payload_hash = content_hash(results)
+        return EvidenceEnvelope(
+            evidence_id=f"pangenome-projection:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED if mapped else EvidenceState.ABSTAINED,
+            tier=EvidenceTier.REFERENCE,
+            claim_summary=(
+                f"Pangenome projection returned {mapped} supported results across "
+                f"{len(results)} target assemblies."
+            ),
+            payload_hash=payload_hash,
+            source_ids=("reference-registry",),
+            provenance_digest=request.provenance.digest,
+            confidence=round(mapped / max(1, len(results)), 6),
+            limitations=tuple(
+                result.reason for result in results if result.status != ProjectionStatus.MAPPED
+            ),
+        )
+
+    def _projector(self, mappings_raw: object) -> ReferenceProjector:
+        if not isinstance(mappings_raw, (list, tuple)):
+            raise ValidationError("reference mappings must be a list")
+        segments = tuple(self._mapping_segment(item) for item in mappings_raw)
+        return ReferenceProjector(self.reference_registry, MappingCatalog(segments))
+
+    @staticmethod
+    def _mapping_segment(raw: object) -> MappingSegment:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("each mapping segment must be a mapping")
+        return MappingSegment(
+            mapping_id=str(raw["mapping_id"]),
+            source_assembly=str(raw["source_assembly"]),
+            source_chromosome=str(raw["source_chromosome"]),
+            source_start=int(raw["source_start"]),
+            source_end=int(raw["source_end"]),
+            target_assembly=str(raw["target_assembly"]),
+            target_chromosome=str(raw["target_chromosome"]),
+            target_start=int(raw["target_start"]),
+            target_end=int(raw["target_end"]),
+            strand=str(raw["strand"]),
+            source_version=str(raw["source_version"]),
+        )
+
+    def _structural_reconstruction(
+        self, request: InvocationRequest
+    ) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        records_raw = raw.get("records")
+        try:
+            context = self._context_from_payload(raw)
+            if not isinstance(records_raw, (list, tuple)):
+                raise ValidationError("structural reconstruction requires records")
+            records = tuple(self._raw_variant_record(item) for item in records_raw)
+            result = self.structural.reconstruct(
+                records,
+                context=context,
+                source_id=str(raw.get("source_id", "structural-input")),
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_structural_inputs",
+                "structural_reconstruction",
+                str(exc),
+                ("context", "records"),
+            )
+        state = EvidenceState.SUPPORTED if result.events else EvidenceState.ABSTAINED
+        return EvidenceEnvelope(
+            evidence_id=f"structural:{result.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Structural reconstruction produced {len(result.events)} events from "
+                f"{result.deferred_count} records."
+            ),
+            payload_hash=result.content_address,
+            source_ids=(result.source_id,),
+            provenance_digest=request.provenance.digest,
+            confidence=0.9 if state == EvidenceState.SUPPORTED and not result.has_errors else 0.45,
+            limitations=tuple(issue.message for issue in result.issues),
+        )
+
+    @staticmethod
+    def _raw_variant_record(raw: object) -> RawVariantRecord:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("each structural record must be a mapping")
+        return RawVariantRecord(
+            record_id=str(raw["record_id"]),
+            chromosome=str(raw["chromosome"]),
+            position=int(raw["position"]),
+            reference=str(raw.get("reference", "N")),
+            alternate=str(raw["alternate"]),
+            source_line=int(raw.get("source_line", 1)),
+            raw_hash=str(raw.get("raw_hash", content_hash(raw))),
+            info=dict(raw.get("info", {})),
+            sample=dict(raw.get("sample", {})),
+            filter_value=str(raw.get("filter_value", ".")),
+            quality=str(raw.get("quality", ".")),
+        )
+
+    def _lineage_resolution(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        records_raw = raw.get("records")
+        if not isinstance(records_raw, (list, tuple)):
+            return Abstention(
+                "missing_lineage_records",
+                "sample_lineage",
+                "Lineage resolution requires a records list.",
+                ("records",),
+            )
+        try:
+            records = tuple(
+                SampleLineageRecord(
+                    sample_id=str(item["sample_id"]),
+                    parent_sample_ids=tuple(
+                        str(value) for value in item.get("parent_sample_ids", ())
+                    ),
+                    relationship=str(item["relationship"]),
+                    timepoint=str(item.get("timepoint", "unspecified")),
+                    source_id=str(item.get("source_id", "lineage-input")),
+                    metadata=dict(item.get("metadata", {})) if item.get("metadata") else None,
+                )
+                for item in records_raw
+                if isinstance(item, Mapping)
+            )
+            result = self.lineage.resolve(records)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_lineage_records",
+                "sample_lineage",
+                str(exc),
+                ("records",),
+            )
+        state = EvidenceState.SUPPORTED if result.supported else EvidenceState.ABSTAINED
+        return EvidenceEnvelope(
+            evidence_id=f"lineage:{result.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Lineage resolution retained {len(result.records)} records and "
+                f"{len(result.edges)} directed relationships."
+            ),
+            payload_hash=result.content_address,
+            source_ids=tuple(sorted({record.source_id for record in result.records})),
+            provenance_digest=request.provenance.digest,
+            confidence=0.9 if state == EvidenceState.SUPPORTED else 0.0,
+            limitations=result.warnings + result.errors,
+        )
+
+    def _origin_assessment(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        observations_raw = raw.get("observations")
+        if not isinstance(observations_raw, (list, tuple)):
+            return Abstention(
+                "missing_origin_observations",
+                "origin_clonality",
+                "Origin assessment requires observation mappings.",
+                ("observations",),
+            )
+        try:
+            observations = tuple(
+                OriginObservation(
+                    observation_id=str(item["observation_id"]),
+                    variant_id=str(item["variant_id"]),
+                    sample_id=str(item["sample_id"]),
+                    relationship=str(item["relationship"]),
+                    alternate_fraction=(
+                        float(item["alternate_fraction"])
+                        if item.get("alternate_fraction") is not None
+                        else None
+                    ),
+                    present_in_normal=self._optional_bool(item.get("present_in_normal")),
+                    timepoint=str(item.get("timepoint", "unspecified")),
+                    source_id=str(item.get("source_id", "origin-input")),
+                )
+                for item in observations_raw
+                if isinstance(item, Mapping)
+            )
+            result = self.origin.assess(
+                observations,
+                variant_id=str(raw["variant_id"]) if raw.get("variant_id") else None,
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_origin_observations",
+                "origin_clonality",
+                str(exc),
+                ("observations",),
+            )
+        return EvidenceEnvelope(
+            evidence_id=f"origin:{result.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Origin assessment is {result.origin.value} and clonality is {result.clonality}."
+            ),
+            payload_hash=result.content_address,
+            source_ids=tuple(sorted({item.source_id for item in observations})),
+            provenance_digest=request.provenance.digest,
+            confidence=result.support,
+            limitations=result.warnings,
+        )
+
+    def _assay_qc(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        observations_raw = raw.get("observations")
+        if not isinstance(observations_raw, (list, tuple)):
+            return Abstention(
+                "missing_assay_qc_observations",
+                "assay_qc",
+                "Assay QC requires observation mappings.",
+                ("observations",),
+            )
+        try:
+            observations = tuple(
+                AssayQCObservation(
+                    assay_id=str(item["assay_id"]),
+                    sample_id=str(item["sample_id"]),
+                    assay_type=str(item["assay_type"]),
+                    usable_reads=int(item["usable_reads"])
+                    if item.get("usable_reads") is not None
+                    else None,
+                    mapping_rate=float(item["mapping_rate"])
+                    if item.get("mapping_rate") is not None
+                    else None,
+                    replicate_correlation=(
+                        float(item["replicate_correlation"])
+                        if item.get("replicate_correlation") is not None
+                        else None
+                    ),
+                    contamination_rate=(
+                        float(item["contamination_rate"])
+                        if item.get("contamination_rate") is not None
+                        else None
+                    ),
+                    controls_passed=self._optional_bool(item.get("controls_passed")),
+                    source_id=str(item.get("source_id", "assay-qc-input")),
+                )
+                for item in observations_raw
+                if isinstance(item, Mapping)
+            )
+            results = self.assay_qc.evaluate_many(observations)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_assay_qc_observations",
+                "assay_qc",
+                str(exc),
+                ("observations",),
+            )
+        if not results:
+            return Abstention(
+                "empty_assay_qc_observations",
+                "assay_qc",
+                "No assay QC observations were supplied.",
+                ("observations",),
+            )
+        counts = {
+            status.value: sum(result.status == status for result in results) for status in QCStatus
+        }
+        payload_hash = content_hash(results)
+        state = (
+            EvidenceState.ABSTAINED
+            if counts[QCStatus.ABSTAINED.value] == len(results)
+            else EvidenceState.SUPPORTED
+        )
+        return EvidenceEnvelope(
+            evidence_id=f"assay-qc:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Assay QC evaluated {len(results)} observations: "
+                + ", ".join(f"{key}={value}" for key, value in counts.items())
+                + "."
+            ),
+            payload_hash=payload_hash,
+            source_ids=tuple(sorted({result.source_id for result in results})),
+            provenance_digest=request.provenance.digest,
+            confidence=0.8 if state == EvidenceState.SUPPORTED else 0.0,
+            limitations=tuple(issue for result in results for issue in result.issues),
+        )
+
+    @staticmethod
+    def _optional_bool(value: object) -> bool | None:
+        if value is None:
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)) and value in {0, 1}:
+            return bool(value)
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"true", "yes", "1"}:
+                return True
+            if normalized in {"false", "no", "0"}:
+                return False
+        raise ValidationError("boolean field must be true, false, 1, or 0")
 
     def _atlas(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
         """Run a public atlas query only under an explicit network allowlist."""

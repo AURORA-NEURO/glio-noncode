@@ -104,7 +104,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 19)
+        self.assertEqual(app.manifest()["binding_count"], 25)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -195,6 +195,131 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         self.assertEqual(allowed.state, InvocationState.COMPLETED)
         self.assertEqual(allowed.response.state, EvidenceState.SUPPORTED)
         self.assertIn("SRC-UCSC-REST", allowed.response.source_ids)
+
+    def test_data_plane_bindings_preserve_projection_structure_lineage_origin_and_qc(self) -> None:
+        app = ControlPlaneApplication()
+        context = {
+            "genome_build": "GRCh38",
+            "disease_class": "glioma",
+            "age_group": "adult",
+            "cell_state": "stem_like",
+        }
+        projection = app.executor.execute(
+            _request(
+                "A09.publish",
+                {"notation": "7:100:A>T", "target_build": "GRCh38"},
+                "projection-1",
+            )
+        )
+        self.assertEqual(projection.state, InvocationState.COMPLETED)
+        self.assertIn("identity", projection.response.claim_summary)
+
+        pangenome = app.executor.execute(
+            _request(
+                "A11.publish",
+                {
+                    "notation": "7:100:A>T",
+                    "target_builds": ["GRCh38", "GRCh37"],
+                },
+                "pangenome-1",
+            )
+        )
+        self.assertEqual(pangenome.state, InvocationState.COMPLETED)
+        self.assertIn("target assemblies", pangenome.response.claim_summary)
+
+        structural = app.executor.execute(
+            _request(
+                "A10.publish",
+                {
+                    "context": context,
+                    "source_id": "fixture-sv",
+                    "records": [
+                        {
+                            "record_id": "sv1",
+                            "chromosome": "7",
+                            "position": 100,
+                            "reference": "N",
+                            "alternate": "<DEL>",
+                            "info": {"END": "120"},
+                        }
+                    ],
+                },
+                "structural-1",
+            )
+        )
+        self.assertEqual(structural.state, InvocationState.COMPLETED)
+        self.assertIn("1 events", structural.response.claim_summary)
+
+        lineage = app.executor.execute(
+            _request(
+                "A12.publish",
+                {
+                    "records": [
+                        {
+                            "sample_id": "normal-1",
+                            "parent_sample_ids": [],
+                            "relationship": "normal",
+                            "timepoint": "baseline",
+                        },
+                        {
+                            "sample_id": "tumor-1",
+                            "parent_sample_ids": ["normal-1"],
+                            "relationship": "tumor",
+                            "timepoint": "baseline",
+                        },
+                    ]
+                },
+                "lineage-1",
+            )
+        )
+        self.assertEqual(lineage.state, InvocationState.COMPLETED)
+        self.assertIn("2 records", lineage.response.claim_summary)
+
+        origin = app.executor.execute(
+            _request(
+                "A13.publish",
+                {
+                    "variant_id": "v1",
+                    "observations": [
+                        {
+                            "observation_id": "obs-1",
+                            "variant_id": "v1",
+                            "sample_id": "tumor-1",
+                            "relationship": "tumor",
+                            "alternate_fraction": 0.42,
+                            "present_in_normal": False,
+                            "timepoint": "baseline",
+                        }
+                    ],
+                },
+                "origin-1",
+            )
+        )
+        self.assertEqual(origin.state, InvocationState.COMPLETED)
+        self.assertIn("somatic", origin.response.claim_summary)
+
+        qc = app.executor.execute(
+            _request(
+                "A14.publish",
+                {
+                    "observations": [
+                        {
+                            "assay_id": "assay-1",
+                            "sample_id": "tumor-1",
+                            "assay_type": "atac",
+                            "usable_reads": 200000,
+                            "mapping_rate": 0.95,
+                            "replicate_correlation": 0.90,
+                            "contamination_rate": 0.01,
+                            "controls_passed": True,
+                        }
+                    ]
+                },
+                "qc-1",
+            )
+        )
+        self.assertEqual(qc.state, InvocationState.COMPLETED)
+        self.assertIn("pass=1", qc.response.claim_summary)
 
     def test_sequence_and_uncertainty_bindings_preserve_typed_boundaries(self) -> None:
         app = ControlPlaneApplication()
