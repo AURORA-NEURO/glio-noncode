@@ -113,6 +113,14 @@ serialized observations and retain explicit states, context scores, measured
 values, observation IDs, and limitations. The posterior is intentionally marked
 as an unvalidated research proxy and requires a declared prior.
 
+The control-plane orchestration bindings expose the same typed contracts used by
+the executor: workflow compilation (`A02`), policy inspection (`A03`), resource
+preview (`A04`), evidence arbitration (`A05`), and human-review routing (`A06`).
+Policy and resource handlers inspect nested targets without bypassing the outer
+executor gate; scheduling previews do not increment counters. Arbitration keeps
+payload conflicts as explicit abstentions, and routing an abstention returns a
+blocked expert-review route.
+
 Atlas execution has an additional runtime boundary because the current
 publication handler can invoke the public adapters: the mission must set
 `allow_network=True` and explicitly allowlist `SRC-ENSEMBL-REST` and

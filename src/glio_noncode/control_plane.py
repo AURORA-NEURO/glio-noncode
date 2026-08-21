@@ -3,8 +3,8 @@
 The control plane is intentionally explicit.  A mission names its research
 boundary, data scope, provenance, and resource budget.  An invocation names
 one registered role and one registered tool.  The executor checks both before
-calling a handler and returns one of four typed outcomes: an evidence
-envelope, a workflow decision, a typed error, or an explicit abstention.
+calling a handler and returns one of the registered typed outcomes: an evidence
+envelope, a workflow or control decision, a typed error, or an explicit abstention.
 
 The registry is data-driven in this module so a fresh checkout can inspect the
 complete architecture without a service dependency.  Handlers are injected
@@ -338,9 +338,6 @@ class Abstention:
         return jsonable(self)
 
 
-ControlOutput: TypeAlias = EvidenceEnvelope | WorkflowDecision | TypedInvocationError | Abstention
-
-
 @dataclass(frozen=True, slots=True)
 class ControlPolicyDecision:
     """Decision produced before scheduling or handler execution."""
@@ -392,6 +389,18 @@ class ReviewRoute:
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
+
+
+ControlOutput: TypeAlias = (
+    EvidenceEnvelope
+    | WorkflowDecision
+    | ControlPolicyDecision
+    | ScheduleDecision
+    | ArbitrationResult
+    | ReviewRoute
+    | TypedInvocationError
+    | Abstention
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -1229,6 +1238,29 @@ class ResourceScheduler:
         with self._lock:
             self._active.pop(request_id, None)
 
+    def preview(self, request: InvocationRequest, tool: ToolContract) -> ScheduleDecision:
+        """Inspect admission without incrementing counters or claiming a slot."""
+
+        resource = request.effective_resource(tool)
+        with self._lock:
+            if request.request_id in self._active:
+                return self._snapshot(True, "request is already admitted")
+            if not resource.fits(self.capacity):
+                return self._snapshot(False, "requested resources exceed scheduler capacity")
+            if resource.max_seconds > request.deadline_seconds:
+                return self._snapshot(False, "resource deadline exceeds invocation deadline")
+            if self._total_invocations >= request.budget.max_invocations:
+                return self._snapshot(False, "mission invocation budget exhausted")
+            if resource.network_egress or tool.network_egress:
+                if self._network_requests >= request.budget.max_network_requests:
+                    return self._snapshot(False, "mission network request budget exhausted")
+            projected_seconds = (
+                sum(item.max_seconds for item in self._active.values()) + resource.max_seconds
+            )
+            if projected_seconds > request.budget.max_seconds:
+                return self._snapshot(False, "mission wall-time budget exhausted")
+            return self._snapshot(True, "request would be admitted")
+
     def snapshot(self) -> ScheduleDecision:
         with self._lock:
             return self._snapshot(True, "snapshot")
@@ -1444,7 +1476,17 @@ class ControlPlaneExecutor:
             state = InvocationState.ABSTAINED
         elif isinstance(response, TypedInvocationError):
             state = InvocationState.FAILED
-        elif isinstance(response, (EvidenceEnvelope, WorkflowDecision)):
+        elif isinstance(
+            response,
+            (
+                EvidenceEnvelope,
+                WorkflowDecision,
+                ControlPolicyDecision,
+                ScheduleDecision,
+                ArbitrationResult,
+                ReviewRoute,
+            ),
+        ):
             state = InvocationState.COMPLETED
         else:
             response = TypedInvocationError(

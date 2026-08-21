@@ -104,7 +104,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 43)
+        self.assertEqual(app.manifest()["binding_count"], 48)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -640,6 +640,84 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         )
         self.assertEqual(value.state, InvocationState.COMPLETED)
         self.assertIn("Validation value ranked", value.response.claim_summary)
+
+    def test_control_plane_orchestration_bindings_preserve_typed_decisions(self) -> None:
+        app = ControlPlaneApplication()
+        compile_result = app.executor.execute(
+            _request(
+                "A02.publish",
+                {"requested_agent_ids": ["A35"]},
+                "compile-1",
+            )
+        )
+        self.assertEqual(compile_result.state, InvocationState.COMPLETED)
+        self.assertIn("A35", compile_result.response.selected_agent_ids)
+
+        policy_result = app.executor.execute(
+            _request(
+                "A03.publish",
+                {
+                    "target_agent_id": "A15",
+                    "target_tool_id": "A15.inspect",
+                    "invocation_payload": {"variant_id": "v1"},
+                },
+                "policy-1",
+            )
+        )
+        self.assertEqual(policy_result.state, InvocationState.COMPLETED)
+        self.assertFalse(policy_result.response.allowed)
+        self.assertTrue(policy_result.response.violations)
+
+        schedule_result = app.executor.execute(
+            _request(
+                "A04.publish",
+                {"target_tool_id": "A23.publish"},
+                "schedule-1",
+            )
+        )
+        self.assertEqual(schedule_result.state, InvocationState.COMPLETED)
+        self.assertTrue(schedule_result.response.admitted)
+
+        envelope = {
+            "evidence_id": "shared-evidence",
+            "agent_id": "A23",
+            "tool_id": "A23.publish",
+            "state": "supported",
+            "tier": "computed",
+            "claim_summary": "fixture",
+            "payload_hash": "sha256:one",
+        }
+        conflict = dict(envelope, payload_hash="sha256:two")
+        arbitration_result = app.executor.execute(
+            _request(
+                "A05.publish",
+                {"envelopes": [envelope, conflict]},
+                "arbiter-1",
+            )
+        )
+        self.assertEqual(arbitration_result.state, InvocationState.COMPLETED)
+        self.assertEqual(arbitration_result.response.conflicts, ("shared-evidence",))
+        self.assertEqual(len(arbitration_result.response.abstentions), 1)
+
+        review_result = app.executor.execute(
+            _request(
+                "A06.publish",
+                {
+                    "target_agent_id": "A23",
+                    "response": {
+                        "kind": "abstention",
+                        "reason_code": "missing_sequence",
+                        "scope": "sequence",
+                        "explanation": "No sequence receipt was supplied.",
+                    },
+                },
+                "review-1",
+                release=True,
+            )
+        )
+        self.assertEqual(review_result.state, InvocationState.COMPLETED)
+        self.assertTrue(review_result.response.required)
+        self.assertTrue(review_result.response.blocked)
 
     def test_lifecycle_binding_returns_plan_without_adjudicating(self) -> None:
         with TemporaryDirectory() as directory:

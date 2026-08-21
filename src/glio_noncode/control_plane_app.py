@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import partial
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -16,10 +16,16 @@ from .causal import CausalLattice
 from .cohort import CohortObservation, RecurrenceModel
 from .control_plane import (
     Abstention,
+    ArbitrationResult,
     ControlPlaneExecutor,
+    ControlPolicyDecision,
+    EvidenceArbiter,
     EvidenceEnvelope,
     InvocationRequest,
     MissionPlanner,
+    ReviewRoute,
+    ScheduleDecision,
+    TypedInvocationError,
     WorkflowDecision,
     default_control_plane_registry,
 )
@@ -121,6 +127,7 @@ class ControlPlaneApplication:
         self.drift = DriftMonitor()
         self.recurrence = RecurrenceModel()
         self.causal = CausalLattice()
+        self.arbiter = EvidenceArbiter()
         self.reclassifier = LifecycleReclassifier()
         self.reference_registry = default_reference_registry()
         self.structural = StructuralReconstructor()
@@ -153,6 +160,36 @@ class ControlPlaneApplication:
             self._plan,
             "control_plane.MissionPlanner",
             "Expand requested roles and dependencies into a named workflow decision.",
+        )
+        self._bind(
+            "A02.publish",
+            self._compile,
+            "control_plane.MissionPlanner",
+            "Compile a dependency-safe workflow graph with the declared mission boundary.",
+        )
+        self._bind(
+            "A03.publish",
+            self._policy,
+            "control_plane.PolicyClaimGate",
+            "Evaluate claim, source, data-scope, and mutation policy for one invocation.",
+        )
+        self._bind(
+            "A04.publish",
+            self._schedule,
+            "control_plane.ResourceScheduler",
+            "Preview resource admission without mutating scheduler counters.",
+        )
+        self._bind(
+            "A05.publish",
+            self._arbitrate,
+            "control_plane.EvidenceArbiter",
+            "Merge matching envelopes while retaining payload conflicts as abstentions.",
+        )
+        self._bind(
+            "A06.publish",
+            self._review,
+            "control_plane.HumanReviewRouter",
+            "Route a declared outcome to an explicit human-review gate.",
         )
         self._bind(
             "A07.publish",
@@ -386,6 +423,202 @@ class ControlPlaneApplication:
                 ("requested_agent_ids",),
             )
         return self.planner.plan(request.mission, (str(item) for item in requested))
+
+    def _compile(self, request: InvocationRequest) -> WorkflowDecision | Abstention:
+        requested = request.input_payload.get("requested_agent_ids", ())
+        if not isinstance(requested, (list, tuple)):
+            return Abstention(
+                "missing_requested_roles",
+                "workflow_compiler",
+                "Workflow compilation requires a requested_agent_ids list.",
+                ("requested_agent_ids",),
+            )
+        try:
+            decision = self.planner.plan(request.mission, (str(item) for item in requested))
+        except (TypeError, ValueError, ValidationError) as exc:
+            return Abstention(
+                "invalid_workflow_request",
+                "workflow_compiler",
+                str(exc),
+                ("requested_agent_ids", "mission.claim_ceiling"),
+            )
+        warnings = list(decision.warnings)
+        if request.budget.max_invocations < len(decision.selected_agent_ids):
+            warnings.append("Mission invocation budget is smaller than the selected role count.")
+        return replace(decision, warnings=tuple(dict.fromkeys(warnings)))
+
+    def _policy(self, request: InvocationRequest) -> ControlPolicyDecision | Abstention:
+        raw = request.input_payload
+        target_agent_id = raw.get("target_agent_id")
+        target_tool_id = raw.get("target_tool_id")
+        nested_payload = raw.get("invocation_payload", {})
+        if not isinstance(target_agent_id, str) or not isinstance(target_tool_id, str):
+            return Abstention(
+                "missing_policy_target",
+                "policy_gate",
+                "Policy inspection requires target_agent_id and target_tool_id.",
+                ("target_agent_id", "target_tool_id"),
+            )
+        if not isinstance(nested_payload, Mapping):
+            return Abstention(
+                "invalid_policy_payload",
+                "policy_gate",
+                "invocation_payload must be a mapping.",
+                ("invocation_payload",),
+            )
+        try:
+            agent = self.executor.registry.agent(target_agent_id)
+            tool = self.executor.registry.tool(target_tool_id)
+            if tool.owner_agent_id != agent.agent_id:
+                raise ValidationError("target tool is not owned by target agent")
+            nested_request = replace(
+                request,
+                agent_id=target_agent_id,
+                tool_id=target_tool_id,
+                input_payload=nested_payload,
+                idempotency_key=f"{request.idempotency_key}:policy-target",
+            )
+            return self.executor.policy_gate.inspect(nested_request, agent, tool)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_policy_target",
+                "policy_gate",
+                str(exc),
+                ("target_agent_id", "target_tool_id"),
+            )
+
+    def _schedule(self, request: InvocationRequest) -> ScheduleDecision | Abstention:
+        target_tool_id = request.input_payload.get("target_tool_id", "A04.publish")
+        if not isinstance(target_tool_id, str):
+            return Abstention(
+                "invalid_schedule_target",
+                "resource_scheduler",
+                "target_tool_id must be a string.",
+                ("target_tool_id",),
+            )
+        try:
+            tool = self.executor.registry.tool(target_tool_id)
+            preview_request = replace(
+                request,
+                request_id=f"{request.request_id}:schedule-preview",
+                agent_id=tool.owner_agent_id,
+                tool_id=target_tool_id,
+                idempotency_key=f"{request.idempotency_key}:schedule-preview",
+            )
+            return self.executor.scheduler.preview(preview_request, tool)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_schedule_target",
+                "resource_scheduler",
+                str(exc),
+                ("target_tool_id",),
+            )
+
+    def _arbitrate(self, request: InvocationRequest) -> ArbitrationResult | Abstention:
+        raw = request.input_payload.get("envelopes", ())
+        if not isinstance(raw, (list, tuple)):
+            return Abstention(
+                "missing_evidence_envelopes",
+                "evidence_arbiter",
+                "Arbitration requires an envelopes list.",
+                ("envelopes",),
+            )
+        try:
+            envelopes = tuple(self._evidence_envelope(item) for item in raw)
+            if not envelopes:
+                return ArbitrationResult(
+                    accepted=(),
+                    abstentions=(
+                        Abstention(
+                            "no_evidence_envelopes",
+                            "evidence_arbiter",
+                            "No evidence envelopes were supplied for arbitration.",
+                            ("envelopes",),
+                        ),
+                    ),
+                )
+            return self.arbiter.arbitrate(envelopes)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_evidence_envelope",
+                "evidence_arbiter",
+                str(exc),
+                ("envelopes",),
+            )
+
+    def _review(self, request: InvocationRequest) -> ReviewRoute | Abstention:
+        raw = request.input_payload
+        target_agent_id = raw.get("target_agent_id")
+        if not isinstance(target_agent_id, str):
+            return Abstention(
+                "missing_review_target",
+                "human_review_router",
+                "Review routing requires target_agent_id.",
+                ("target_agent_id", "response"),
+            )
+        try:
+            agent = self.executor.registry.agent(target_agent_id)
+            response = self._control_output(raw.get("response"))
+            return self.executor.review_router.route(agent, response)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_review_outcome",
+                "human_review_router",
+                str(exc),
+                ("target_agent_id", "response"),
+            )
+
+    @staticmethod
+    def _evidence_envelope(raw: object) -> EvidenceEnvelope:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("evidence envelope must be a mapping")
+        return EvidenceEnvelope(
+            evidence_id=str(raw["evidence_id"]),
+            agent_id=str(raw["agent_id"]),
+            tool_id=str(raw["tool_id"]),
+            state=EvidenceState(str(raw["state"])),
+            tier=EvidenceTier(str(raw["tier"])),
+            claim_summary=str(raw["claim_summary"]),
+            payload_hash=str(raw["payload_hash"]),
+            source_ids=tuple(str(value) for value in raw.get("source_ids", ())),
+            provenance_digest=str(raw.get("provenance_digest", "declared")),
+            confidence=(float(raw["confidence"]) if raw.get("confidence") is not None else None),
+            limitations=tuple(str(value) for value in raw.get("limitations", ())),
+        )
+
+    @classmethod
+    def _control_output(cls, raw: object) -> Any:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("review response must be a mapping")
+        kind = str(raw.get("kind", raw.get("type", "abstention")))
+        if kind == "abstention":
+            return Abstention(
+                str(raw["reason_code"]),
+                str(raw["scope"]),
+                str(raw["explanation"]),
+                tuple(str(value) for value in raw.get("missing_inputs", ())),
+                str(raw.get("remediation", "Route the case for review.")),
+            )
+        if kind == "typed_error":
+            return TypedInvocationError(
+                str(raw["code"]),
+                str(raw["message"]),
+                bool(raw.get("retryable", False)),
+                raw.get("details", {}),
+            )
+        if kind == "evidence_envelope":
+            return cls._evidence_envelope(raw)
+        if kind == "workflow_decision":
+            return WorkflowDecision(
+                decision=str(raw["decision"]),
+                selected_agent_ids=tuple(str(value) for value in raw.get("selected_agent_ids", ())),
+                selected_tool_ids=tuple(str(value) for value in raw.get("selected_tool_ids", ())),
+                requires_human_review=bool(raw.get("requires_human_review", False)),
+                reasons=tuple(str(value) for value in raw.get("reasons", ())),
+                warnings=tuple(str(value) for value in raw.get("warnings", ())),
+                abstained=bool(raw.get("abstained", False)),
+            )
+        raise ValidationError(f"unsupported review response type: {kind}")
 
     def _intake(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
         text = request.input_payload.get("text")
