@@ -128,6 +128,41 @@ class CliApiTests(unittest.TestCase):
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["records"][0]["ccre_id"], "EH38E1")
 
+    def test_sequence_adapter_commands_write_typed_outputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            sequence_output = Path(directory) / "sequence.json"
+            effects = Path(directory) / "effects.tsv"
+            effect_output = Path(directory) / "effects.json"
+            self.assertEqual(
+                main(
+                    [
+                        "encode-sequence",
+                        "ACGTACGT",
+                        "--sequence-id",
+                        "window-1",
+                        "--output",
+                        str(sequence_output),
+                    ]
+                ),
+                0,
+            )
+            effects.write_text(
+                "model_id\tmodel_version\tvariant_id\tref_score\talt_score\tcontext_length\n"
+                "model-a\t1\tv1\t0.2\t0.8\t512\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(["parse-effect", str(effects), "--output", str(effect_output)]), 0
+            )
+            self.assertEqual(
+                json.loads(sequence_output.read_text(encoding="utf-8"))["length"],
+                8,
+            )
+            self.assertEqual(
+                len(json.loads(effect_output.read_text(encoding="utf-8"))["observations"]),
+                1,
+            )
+
     def test_health_and_evaluate_endpoints(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             server = create_server("127.0.0.1", 0, directory)

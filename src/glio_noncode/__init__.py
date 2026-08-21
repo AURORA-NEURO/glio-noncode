@@ -34,6 +34,12 @@ from .reference_extensions import (
 from .reference_registry import ReferenceProjector, default_reference_registry
 from .regulatory_tracks import RegulatoryFeature, RegulatoryTrackBatch, RegulatoryTrackParser
 from .runtime import CaseRuntime
+from .sequence_adapters import (
+    LongContextVariantEffectAdapter,
+    RegulatoryTrackDeltaEnsemble,
+    SequenceContextEncoder,
+    SequenceFoundationModelAdapter,
+)
 from .sequence_inference import MotifDefinition, SequenceInference
 from .specimen_context import (
     ContaminationSwapDetector,
@@ -93,6 +99,10 @@ __all__ = [
     "CopyNumberSegmentHarmonizer",
     "SVConsensusImporter",
     "SequenceInference",
+    "LongContextVariantEffectAdapter",
+    "RegulatoryTrackDeltaEnsemble",
+    "SequenceContextEncoder",
+    "SequenceFoundationModelAdapter",
     "ContaminationSwapDetector",
     "MatchedNormalResolver",
     "PurityPloidyImporter",

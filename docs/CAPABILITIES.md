@@ -84,3 +84,12 @@ snapshot. Queries preserve source versions and raw hashes, gate on declared
 cell state, disease, and age context, and distinguish supported overlap from
 absence, ambiguity, and out-of-domain context. Atlas overlap is an annotation
 observation, not proof of activity or causality.
+
+## Domain 06 sequence and model adapters
+
+The sequence plane emits deterministic context features separately from
+external model outputs. Foundation-model and long-context adapters require
+model/version and context-window metadata, validate reported deltas, retain
+source hashes, and quarantine inconsistent rows. The delta ensemble reports
+mean and disagreement by variant; it does not convert model output into a
+probability or clinical interpretation.

@@ -522,5 +522,49 @@ def default_capability_registry() -> CapabilityRegistry:
                     "abstain or report out-of-domain when contexts do not match."
                 ),
             },
+            "GNC-D06-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_adapters.SequenceContextEncoder",
+                ),
+                "test_modules": ("tests.test_sequence_adapters",),
+                "evidence_note": (
+                    "Bounded deterministic GC, ambiguity, and k-mer context features are "
+                    "content-addressed; external benchmark performance is not claimed."
+                ),
+            },
+            "GNC-D06-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_adapters.SequenceFoundationModelAdapter",
+                ),
+                "test_modules": ("tests.test_sequence_adapters",),
+                "evidence_note": (
+                    "Foundation-model output rows preserve model/version/source metadata and "
+                    "quarantine malformed or inconsistent deltas; model calibration remains."
+                ),
+            },
+            "GNC-D06-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_adapters.LongContextVariantEffectAdapter",
+                ),
+                "test_modules": ("tests.test_sequence_adapters",),
+                "evidence_note": (
+                    "Long-context outputs require a declared minimum window and preserve "
+                    "short-context failures as explicit issues."
+                ),
+            },
+            "GNC-D06-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_adapters.RegulatoryTrackDeltaEnsemble",
+                ),
+                "test_modules": ("tests.test_sequence_adapters",),
+                "evidence_note": (
+                    "Model deltas are grouped by variant with mean, spread, model IDs, and "
+                    "ambiguity states; no delta is promoted to a probability."
+                ),
+            },
         }
     )

@@ -21,6 +21,11 @@ from .reference_registry import default_reference_registry
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .schema import schema_document
+from .sequence_adapters import (
+    LongContextVariantEffectAdapter,
+    SequenceContextEncoder,
+    SequenceFoundationModelAdapter,
+)
 from .specimen_context import PurityPloidyImporter
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
 from .variant_normalization import VRSNormalizer
@@ -144,6 +149,23 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ccre.add_argument("--format", choices=("tsv", "json"), default=None)
     ccre.add_argument("--output", default=None)
+
+    encode_sequence = subparsers.add_parser(
+        "encode-sequence", help="emit deterministic sequence context features"
+    )
+    encode_sequence.add_argument("sequence", type=str)
+    encode_sequence.add_argument("--sequence-id", required=True)
+    encode_sequence.add_argument("--source-id", default="sequence-cli")
+    encode_sequence.add_argument("--kmer-size", type=int, default=3)
+    encode_sequence.add_argument("--output", default=None)
+
+    effect = subparsers.add_parser(
+        "parse-effect", help="parse a foundation or long-context model output table"
+    )
+    effect.add_argument("input", type=str)
+    effect.add_argument("--source-id", default=None)
+    effect.add_argument("--adapter", choices=("foundation", "long-context"), default="foundation")
+    effect.add_argument("--output", default=None)
     return parser
 
 
@@ -246,6 +268,28 @@ def main(argv: list[str] | None = None) -> int:
                 source_id=args.source_id or input_path.stem,
                 profile=args.profile,
                 input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "encode-sequence":
+            result = SequenceContextEncoder().encode(
+                args.sequence,
+                sequence_id=args.sequence_id,
+                source_id=args.source_id,
+                kmer_size=args.kmer_size,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-effect":
+            input_path = Path(args.input)
+            adapter = (
+                LongContextVariantEffectAdapter()
+                if args.adapter == "long-context"
+                else SequenceFoundationModelAdapter()
+            )
+            result = adapter.parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
             )
             _write_json(result.to_dict(), args.output)
             return 0
