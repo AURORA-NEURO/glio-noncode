@@ -225,6 +225,13 @@ from .topology_context import (
     TadBoundaryParser,
     TopologyAssay,
 )
+from .validation_alpha import (
+    ControlsRandomizationPlanner,
+    ControlType,
+    GuideOligoDesignAdapter,
+    ModelSystemEligibilityMatcher,
+    PowerReplicationEstimator,
+)
 from .validation_beta import (
     AlleleSpecificReporterPlanner,
     BaseEditingDesignPlanner,
@@ -1897,6 +1904,52 @@ def build_parser() -> argparse.ArgumentParser:
         validation.add_argument("--pam-pattern", default=None)
         validation.add_argument("--output", default=None)
 
+    eligibility = subparsers.add_parser(
+        "match-model-system-eligibility",
+        help="match validation targets to declared model-system eligibility",
+    )
+    eligibility.add_argument("input", type=str)
+    eligibility.add_argument("--context-key", required=True)
+    eligibility.add_argument("--model-system", default=None)
+    eligibility.add_argument("--minimum-evidence-strength", type=float, default=0.5)
+    eligibility.add_argument("--output", default=None)
+
+    oligo_parse = subparsers.add_parser(
+        "parse-guide-oligo-design",
+        help="adapt guide and oligo design rows with sequence receipts",
+    )
+    oligo_parse.add_argument("input", type=str)
+    oligo_parse.add_argument("--source-id", default=None)
+    oligo_parse.add_argument("--source-version", default="unspecified")
+    oligo_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    oligo_parse.add_argument("--output", default=None)
+
+    controls = subparsers.add_parser(
+        "plan-controls-randomization",
+        help="plan deterministic controls and biological/technical replicates",
+    )
+    controls.add_argument("input", type=str)
+    controls.add_argument("--context-key", required=True)
+    controls.add_argument("--plan-id", default="validation-alpha-plan")
+    controls.add_argument(
+        "--control-type",
+        action="append",
+        choices=tuple(item.value for item in ControlType),
+        default=None,
+    )
+    controls.add_argument("--biological-replicates", type=int, default=3)
+    controls.add_argument("--technical-replicates", type=int, default=1)
+    controls.add_argument("--randomization-seed", default="seed-1")
+    controls.add_argument("--output", default=None)
+
+    power = subparsers.add_parser(
+        "estimate-power-replication",
+        help="estimate transparent replicate requirements and planned power",
+    )
+    power.add_argument("input", type=str)
+    power.add_argument("--context-key", required=True)
+    power.add_argument("--output", default=None)
+
     tier_adjudication = subparsers.add_parser(
         "adjudicate-evidence-tier",
         help="adjudicate declared evidence tiers without erasing alternatives",
@@ -3310,6 +3363,50 @@ def main(argv: list[str] | None = None) -> int:
                 result = PrimeEditingDesignPlanner().plan(targets, constraints)
             else:
                 result = AlleleSpecificReporterPlanner().plan(targets, constraints)
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "match-model-system-eligibility":
+            result = ModelSystemEligibilityMatcher().match(
+                _read_rows(args.input, "observations", "records", "eligibility"),
+                context_key=args.context_key,
+                model_system=args.model_system,
+                minimum_evidence_strength=args.minimum_evidence_strength,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-guide-oligo-design":
+            input_path = Path(args.input)
+            result = GuideOligoDesignAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "plan-controls-randomization":
+            payload = _read_json(args.input)
+            control_types = (
+                tuple(ControlType(item) for item in args.control_type)
+                if args.control_type
+                else (ControlType.NEGATIVE, ControlType.NON_TARGETING)
+            )
+            result = ControlsRandomizationPlanner().plan(
+                payload.get("targets", payload.get("records", payload.get("observations", ()))),
+                context_key=args.context_key,
+                plan_id=args.plan_id,
+                control_types=control_types,
+                biological_replicates=args.biological_replicates,
+                technical_replicates=args.technical_replicates,
+                randomization_seed=args.randomization_seed,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "estimate-power-replication":
+            result = PowerReplicationEstimator().estimate(
+                _read_rows(args.input, "observations", "records", "power"),
+                context_key=args.context_key,
+            )
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "adjudicate-evidence-tier":

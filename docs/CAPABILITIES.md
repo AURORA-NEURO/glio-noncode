@@ -858,6 +858,34 @@ glio-noncode plan-prime-editing validation-targets.json --context-key "GRCh38|gl
 glio-noncode plan-allele-specific-reporter validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --max-guides 2 --output allele-reporter.json
 ```
 
+The Domain 13 external-alpha planning extensions deepen model and assay
+readiness without converting planning metadata into biological conclusions:
+
+- `ModelSystemEligibilityMatcher` matches exact context to declared model
+  systems, cell states, evidence strength, and explicit eligibility blockers.
+- `GuideOligoDesignAdapter` losslessly adapts TSV or JSON guide/oligo designs,
+  retaining sequence roles, design and target identifiers, strand, offsets,
+  PAMs, versions, row hashes, and quarantined malformed rows.
+- `ControlsRandomizationPlanner` produces deterministic content-addressed
+  control assignments across biological and technical replicates, with
+  reproducible seeds, context gates, and execution-review warnings.
+- `PowerReplicationEstimator` calculates a transparent normal-approximation
+  replicate requirement and achieved-power proxy while exposing effect,
+  variance, alpha, blocking, shortfall, and assumptions.
+
+These alpha outputs are bounded research-planning records. They do not prove
+model fidelity, guide efficacy, off-target safety, assay success, statistical
+guarantees, causal effects, clinical utility, or institutional approval.
+
+The external-alpha command boundaries are:
+
+```powershell
+glio-noncode match-model-system-eligibility eligibility.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-system organoid --output eligibility-match.json
+glio-noncode parse-guide-oligo-design guides.tsv --source-id guide-design --output guides-adapted.json
+glio-noncode plan-controls-randomization validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --biological-replicates 3 --technical-replicates 1 --output controls-plan.json
+glio-noncode estimate-power-replication power.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output power.json
+```
+
 ## Domain 14 evidence lifecycle
 
 The evidence-lifecycle plane resolves versioned citation manifests and retains

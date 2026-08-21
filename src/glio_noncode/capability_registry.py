@@ -2177,6 +2177,60 @@ def default_capability_registry() -> CapabilityRegistry:
                     "reporter activity does not establish endogenous causality or clinical effect."
                 ),
             },
+            "GNC-D13-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_alpha.ModelSystemEligibilityMatcher",
+                    "glio_noncode.validation_alpha.ModelSystemEligibilityReport",
+                ),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "evidence_note": (
+                    "Model-system eligibility matches exact context, declared model support, "
+                    "cell state, evidence strength, blockers, and source receipts; it is a "
+                    "planning gate and not proof of model fidelity or validation success."
+                ),
+            },
+            "GNC-D13-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_alpha.GuideOligoDesignAdapter",
+                    "glio_noncode.validation_alpha.GuideOligoBatch",
+                ),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "evidence_note": (
+                    "Guide and oligo adaptation preserves design IDs, target IDs, sequences, "
+                    "strand, offsets, PAM, context, versions, row hashes, and malformed-row "
+                    "quarantine; sequence adaptation does not establish efficacy or safety."
+                ),
+            },
+            "GNC-D13-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_alpha.ControlsRandomizationPlanner",
+                    "glio_noncode.validation_alpha.ControlsRandomizationReport",
+                ),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "evidence_note": (
+                    "Control and replicate plans generate deterministic content-addressed "
+                    "assignments for biological and technical replicates while retaining context "
+                    "blockers and review boundaries; they do not guarantee balance or assay "
+                    "validity."
+                ),
+            },
+            "GNC-D13-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_alpha.PowerReplicationEstimator",
+                    "glio_noncode.validation_alpha.PowerReplicationReport",
+                ),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "evidence_note": (
+                    "Power planning exposes effect, variance, alpha, target power, replicate "
+                    "requirements, blocking factors, shortfalls, assumptions, and source receipts "
+                    "under a transparent approximation; it is not a statistical guarantee or a "
+                    "clinical claim."
+                ),
+            },
             "GNC-D14-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
