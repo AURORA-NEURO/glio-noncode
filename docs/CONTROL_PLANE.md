@@ -101,7 +101,8 @@ abstention (`A45`), lifecycle reclassification (`A46`),
 drift monitoring (`A47`), assay routing (`A39`), local guide enumeration (`A40`),
 evidence graph aggregation (`A43`), report rendering (`A44`), reference
 projection (`A09`/`A11`), structural reconstruction (`A10`), sample lineage
-(`A12`), origin/clonality (`A13`), and assay QC (`A14`).
+(`A12`), origin/clonality (`A13`), assay QC (`A14`), and project-scoped security
+and privacy policy evaluation (`A48`).
 
 Atlas execution has an additional runtime boundary because the current
 publication handler can invoke the public adapters: the mission must set
@@ -130,6 +131,11 @@ The data-plane bindings preserve explicit projection status, structural issues,
 lineage cycles and missing parents, origin ambiguity, and missing or failed QC
 metrics. These states are returned as typed evidence or abstentions rather than
 being converted into silent defaults.
+
+The security binding sanitizes metadata and evaluates export targets against the
+local project policy. A denied target is a completed, review-routed security
+decision with explicit reasons; it is not reported as biological evidence and
+does not expose the original metadata in the event payload.
 
 Other registered roles remain available for dependency planning and return
 explicit handler-unavailable errors until their domain module is installed;

@@ -23,6 +23,7 @@ from .control_plane import (
     WorkflowDecision,
     default_control_plane_registry,
 )
+from .controls import ExportTarget, LocalDataController, default_local_policy
 from .data_sources import FetchReceipt, FetchStatus, SequenceSlice
 from .errors import ValidationError
 from .evidence import EvidenceGraph
@@ -287,6 +288,12 @@ class ControlPlaneApplication:
             self._validation_value,
             "validation_controls.ValidationValuePlanner",
             "Rank validation actions by declared information value, uncertainty, and cost.",
+        )
+        self._bind(
+            "A48.publish",
+            self._security,
+            "controls.LocalDataController",
+            "Sanitize metadata and evaluate project-scoped export policy.",
         )
         self._bind(
             "A41.publish",
@@ -1556,6 +1563,63 @@ class ControlPlaneApplication:
             confidence=0.8 if state == EvidenceState.SUPPORTED else 0.0,
             limitations=priority_set.warnings
             + ("Priority is an information-planning aid, not a causal or clinical conclusion.",),
+        )
+
+    def _security(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        project_id = raw.get("project_id", request.mission.project_id)
+        artifact_class = raw.get("artifact_class")
+        target_raw = raw.get("target")
+        if (
+            not isinstance(project_id, str)
+            or not isinstance(artifact_class, str)
+            or not isinstance(target_raw, str)
+        ):
+            return Abstention(
+                "missing_security_inputs",
+                "security_privacy",
+                "Security evaluation requires project_id, artifact_class, and target.",
+                ("project_id", "artifact_class", "target"),
+            )
+        try:
+            target = ExportTarget(target_raw)
+            metadata = raw.get("metadata", {})
+            if not isinstance(metadata, Mapping):
+                raise ValidationError("security metadata must be a mapping")
+            controller = LocalDataController(default_local_policy(project_id))
+            decision = controller.decide_export(artifact_class, target)
+            sanitized = controller.sanitize_metadata(metadata)
+            warnings = controller.validate_project_metadata(metadata)
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_security_inputs",
+                "security_privacy",
+                str(exc),
+                ("project_id", "artifact_class", "target", "metadata"),
+            )
+        payload_hash = content_hash(
+            {
+                "decision": decision.to_dict(),
+                "sanitized_metadata": sanitized,
+                "warnings": warnings,
+            }
+        )
+        return EvidenceEnvelope(
+            evidence_id=f"security:{payload_hash}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=EvidenceState.SUPPORTED,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"Security decision for {artifact_class} to {target.value}: "
+                f"allowed={str(decision.allowed).lower()}; "
+                f"{len(sanitized)} metadata fields retained."
+            ),
+            payload_hash=payload_hash,
+            source_ids=("local-project-policy",),
+            provenance_digest=request.provenance.digest,
+            confidence=1.0,
+            limitations=decision.reasons + warnings,
         )
 
     def _cohort(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:

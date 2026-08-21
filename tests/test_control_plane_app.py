@@ -104,7 +104,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 32)
+        self.assertEqual(app.manifest()["binding_count"], 33)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -320,6 +320,23 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         )
         self.assertEqual(qc.state, InvocationState.COMPLETED)
         self.assertIn("pass=1", qc.response.claim_summary)
+
+        security = app.executor.execute(
+            _request(
+                "A48.publish",
+                {
+                    "project_id": "project-app-test",
+                    "artifact_class": "research_dossier",
+                    "target": "public_artifact",
+                    "metadata": {"retained_field": "value"},
+                },
+                "security-1",
+                release=True,
+            )
+        )
+        self.assertEqual(security.state, InvocationState.COMPLETED)
+        self.assertIn("allowed=false", security.response.claim_summary)
+        self.assertTrue(security.review_route.required)
 
         atlas_channels = {
             "A16": "brain_context",
