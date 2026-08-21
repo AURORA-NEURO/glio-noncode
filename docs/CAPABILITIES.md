@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 88 capabilities have deterministic fixture-backed
-verification and 168 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 34.38% of the 256-capability
+capabilities started (100%); 92 capabilities have deterministic fixture-backed
+verification and 164 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 35.94% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 88 controls are verified against the checked-in
-aggregate fixtures, while 168 capabilities remain partial. Partial
+capabilities started (100%); 92 controls are verified against the checked-in
+aggregate fixtures, while 164 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1258,6 +1258,71 @@ glio-noncode atlas-alpha-evidence-quality-gate --output atlas-alpha-quality.json
 glio-noncode run-atlas-alpha-evidence-pipeline --run-id c09-c12-local --output atlas-alpha-run.json
 glio-noncode build-atlas-alpha-evidence-release --run-id c09-c12-release --output atlas-alpha-release.json
 ```
+
+### Domain 05 C13-C16 frontier atlas evidence gate
+
+The C13-C16 frontier completes the deeper regulatory-atlas evidence plane for
+insulator boundaries, regulatory hotspots, evidence-tier adjudication, and
+snapshot publication. The checked-in fixture at
+`examples/frontier-atlas-evidence-pipeline-accepted.json` is a public,
+non-patient aggregate boundary with four positive paths and twelve visible
+controls. It uses exact context `GRCh38|diffuse_glioma|adult|stem_like|core|untreated`
+and never treats aggregate evidence as a patient-level or clinical claim.
+
+The public source receipts define the data vocabulary and processing boundary:
+
+- [ENCODE Hi-C standards](https://www.encodeproject.org/hic/)
+- [ENCODE Hi-C pipeline](https://www.encodeproject.org/pipelines/ENCPL839OAB/)
+- [ENCODE pipeline catalog](https://www.encodeproject.org/pipelines/)
+- [ENCODE SCREEN overview](https://screen.encodeproject.org/index/about)
+- [NCI adult CNS tumor reference](https://www.cancer.gov/types/brain/hp/adult-brain-treatment-pdq)
+
+The four operations preserve distinct outcomes:
+
+- C13 `InsulatorBoundaryAtlas` retains interval validity, insulation score,
+  support, orientation, exact context, and low-support or malformed-interval
+  review states.
+- C14 `RegulatoryHotspotAtlas` retains source count, evidence types, direction
+  concordance, support, and disagreement; direction is not a mechanism claim.
+- C15 `AtlasEvidenceTierAdjudicator` emits evidence labels from declared source
+  and reproducibility floors; a tier is not a calibrated probability.
+- C16 `AtlasSnapshotPublisher` binds schema, version, context, record address,
+  and manifest address. Empty snapshots abstain, context drift is quarantined,
+  and invalid metadata cannot publish.
+
+The evidence plane executes 120 fixture checks, 12 policy rules, 23 schema
+checks, deterministic replay, scenario evaluation, source-to-receipt lineage,
+expected/observed reconciliation, operation metrics, a nine-stage runtime
+trace, sanitized review views, CSV/Markdown/JSON exports, and a release
+manifest. Receipts exclude raw input text and aggregate payload collections.
+
+```powershell
+python -m glio_noncode audit-frontier-atlas-data examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-data.json
+python -m glio_noncode evaluate-frontier-atlas-fixture examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-fixture.json
+python -m glio_noncode replay-frontier-atlas examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-replay.json
+python -m glio_noncode frontier-atlas-quality-gate examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-quality.json
+python -m glio_noncode evaluate-frontier-atlas-scenarios examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-scenarios.json
+python -m glio_noncode frontier-atlas-contracts --output frontier-atlas-contracts.json
+python -m glio_noncode frontier-atlas-schema examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-schema.json
+python -m glio_noncode frontier-atlas-metrics examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-metrics.json
+python -m glio_noncode build-frontier-atlas-bundle examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-bundle.json
+python -m glio_noncode frontier-atlas-lineage examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-lineage.json
+python -m glio_noncode frontier-atlas-reconciliation examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-reconciliation.json
+python -m glio_noncode frontier-atlas-policy examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-policy.json
+python -m glio_noncode run-frontier-atlas-pipeline examples/frontier-atlas-evidence-pipeline-accepted.json --run-id frontier-atlas-release --output frontier-atlas-runtime.json
+python -m glio_noncode build-frontier-atlas-release examples/frontier-atlas-evidence-pipeline-accepted.json --run-id frontier-atlas-release --output frontier-atlas-release.json
+python -m glio_noncode frontier-atlas-review-view examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-review.json
+python -m glio_noncode frontier-atlas-trace examples/frontier-atlas-evidence-pipeline-accepted.json --run-id frontier-atlas-trace --output frontier-atlas-trace.json
+python -m glio_noncode export-frontier-atlas-receipts-csv examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-receipts.csv
+python -m glio_noncode export-frontier-atlas-review-csv examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-review.csv
+python -m glio_noncode export-frontier-atlas-review-markdown examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-review.md
+python -m glio_noncode export-frontier-atlas-metrics-csv examples/frontier-atlas-evidence-pipeline-accepted.json --output frontier-atlas-metrics.csv
+```
+
+See `docs/ATLAS_FRONTIER_EVIDENCE_GATE.md`,
+`docs/ATLAS_FRONTIER_RELEASE_FORMAT.md`, and
+`docs/ATLAS_FRONTIER_SCHEMA.md` for source scope, state transitions, receipt
+fields, output restrictions, and release verification.
 
 ## Domain 06 sequence and model adapters
 

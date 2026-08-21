@@ -1,0 +1,446 @@
+{
+  "content_address": "sha256:629e53f4e5c97e297ccc4232cfc97fc5b1d83dd2c237ae5142526aea5144e128",
+  "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+  "evidence_boundary": "public_aggregate_non_patient",
+  "fixture_id": "frontier-atlas-public-aggregate",
+  "fixture_version": "2026.08.d05-c13-c16.v1",
+  "records": [
+    {
+      "content_address": "sha256:d9b9660ccf639ff0c544851916a2c0c8a70b2374a55b995c05a457d9d39ad1f0",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "convergent supported boundary with strong insulation support",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation": "insulator_boundary_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"boundary_id\": \"boundary-egfr\", \"boundary_support\": 0.91, \"chromosome\": \"chr7\", \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"end\": 120, \"insulation_score\": 0.82, \"orientation\": \"convergent\", \"start\": 100}]}",
+        "minimum_support": 0.7,
+        "source_id": "fixture-boundary",
+        "source_version": "v1"
+      },
+      "record_id": "C13-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-hic",
+        "encode-hic-pipeline"
+      ]
+    },
+    {
+      "content_address": "sha256:56550359335466576512ff24e0ac4cc067c7036149d5aefabe0baf18d46c606a",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "boundary support below the declared acceptance floor",
+      "expected_issue_codes": [
+        "boundary_low_support"
+      ],
+      "expected_state": "review",
+      "operation": "insulator_boundary_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"boundary_id\": \"boundary-low\", \"boundary_support\": 0.2, \"chromosome\": \"chr7\", \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"end\": 120, \"insulation_score\": 0.42, \"orientation\": \"convergent\", \"start\": 100}]}",
+        "minimum_support": 0.7,
+        "source_id": "fixture-boundary",
+        "source_version": "v1"
+      },
+      "record_id": "C13-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-hic"
+      ]
+    },
+    {
+      "content_address": "sha256:3560863b6f28060eb2dd3392ac1fe3b2560ae8746365f4abd9473fed254b4b17",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "invalid interval is retained as review",
+      "expected_issue_codes": [
+        "invalid_boundary_interval"
+      ],
+      "expected_state": "review",
+      "operation": "insulator_boundary_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"boundary_id\": \"boundary-invalid\", \"boundary_support\": 0.9, \"chromosome\": \"chr7\", \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"end\": 100, \"insulation_score\": 0.8, \"orientation\": \"convergent\", \"start\": 200}]}",
+        "minimum_support": 0.7,
+        "source_id": "fixture-boundary",
+        "source_version": "v1"
+      },
+      "record_id": "C13-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "encode-hic"
+      ]
+    },
+    {
+      "content_address": "sha256:4c96834e7a2f361657c821f8cbf44754255e267677c4f87d0e575b02270309be",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "pediatric boundary is not transported into adult context",
+      "expected_issue_codes": [
+        "boundary_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "insulator_boundary_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"boundary_id\": \"boundary-pediatric\", \"boundary_support\": 0.91, \"chromosome\": \"chr7\", \"context_key\": \"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\", \"end\": 120, \"insulation_score\": 0.82, \"orientation\": \"convergent\", \"start\": 100}]}",
+        "minimum_support": 0.7,
+        "source_id": "fixture-boundary",
+        "source_version": "v1"
+      },
+      "record_id": "C13-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "encode-hic",
+        "nci-adult-glioma"
+      ]
+    },
+    {
+      "content_address": "sha256:0f18dbf9db8a3594697f6aae043bd0f2c7b96a715b94692f46023140786f5e42",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "two independent concordant regulatory signals support a hotspot",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation": "regulatory_hotspot_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"direction\": \"gain\", \"evidence_type\": \"accessibility\", \"hotspot_id\": \"hotspot-egfr\", \"source_id\": \"encode-screen\"}, {\"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"direction\": \"gain\", \"evidence_type\": \"contact\", \"hotspot_id\": \"hotspot-egfr\", \"source_id\": \"encode-hic\"}]}",
+        "minimum_concordance": 0.7,
+        "minimum_support_count": 2,
+        "source_id": "fixture-hotspot",
+        "source_version": "v1"
+      },
+      "record_id": "C14-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-screen",
+        "encode-hic"
+      ]
+    },
+    {
+      "content_address": "sha256:433ba68466db05397cfc5cc965226c0400b88b6631addec648c7ea25ad5414d5",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "one source does not satisfy independent-source floor",
+      "expected_issue_codes": [
+        "insufficient_hotspot_sources"
+      ],
+      "expected_state": "review",
+      "operation": "regulatory_hotspot_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"direction\": \"gain\", \"evidence_type\": \"accessibility\", \"hotspot_id\": \"hotspot-one\", \"source_id\": \"encode-screen\"}]}",
+        "minimum_concordance": 0.7,
+        "minimum_support_count": 2,
+        "source_id": "fixture-hotspot",
+        "source_version": "v1"
+      },
+      "record_id": "C14-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-screen"
+      ]
+    },
+    {
+      "content_address": "sha256:11d67698f7d36785fae3d62c5ff1f8164110486fae3922df293ad62df112b23b",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "opposing directions remain reviewable",
+      "expected_issue_codes": [
+        "hotspot_direction_disagreement"
+      ],
+      "expected_state": "review",
+      "operation": "regulatory_hotspot_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"direction\": \"gain\", \"evidence_type\": \"accessibility\", \"hotspot_id\": \"hotspot-disagree\", \"source_id\": \"encode-screen\"}, {\"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"direction\": \"loss\", \"evidence_type\": \"contact\", \"hotspot_id\": \"hotspot-disagree\", \"source_id\": \"encode-hic\"}]}",
+        "minimum_concordance": 0.7,
+        "minimum_support_count": 2,
+        "source_id": "fixture-hotspot",
+        "source_version": "v1"
+      },
+      "record_id": "C14-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "encode-screen",
+        "encode-hic"
+      ]
+    },
+    {
+      "content_address": "sha256:8d8bced755a1b630731aaab26c0aee23c50ca9810172fedfddcd2e66e3413210",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "hotspot source context is outside the requested adult context",
+      "expected_issue_codes": [
+        "hotspot_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "regulatory_hotspot_atlas",
+      "payload": {
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"context_key\": \"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\", \"direction\": \"gain\", \"evidence_type\": \"accessibility\", \"hotspot_id\": \"hotspot-pediatric\", \"source_id\": \"encode-screen\"}, {\"context_key\": \"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\", \"direction\": \"gain\", \"evidence_type\": \"contact\", \"hotspot_id\": \"hotspot-pediatric\", \"source_id\": \"encode-hic\"}]}",
+        "minimum_concordance": 0.7,
+        "minimum_support_count": 2,
+        "source_id": "fixture-hotspot",
+        "source_version": "v1"
+      },
+      "record_id": "C14-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "encode-screen",
+        "encode-hic",
+        "nci-adult-glioma"
+      ]
+    },
+    {
+      "content_address": "sha256:3a542073490e3ab3f3979aaacdba8e52d00cecfcddaf2398d91edd65f3d8d17b",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "high source count and concordant reproducibility produce a high tier",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation": "atlas_evidence_tier_adjudication",
+      "payload": {
+        "high_consistency": 0.8,
+        "high_source_count": 3,
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"atlas_id\": \"atlas-egfr\", \"consistency\": 0.92, \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"reproducibility\": 0.9, \"source_count\": 3}]}",
+        "medium_consistency": 0.6,
+        "source_id": "fixture-tier",
+        "source_version": "v1"
+      },
+      "record_id": "C15-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-pipelines",
+        "encode-screen",
+        "encode-hic"
+      ]
+    },
+    {
+      "content_address": "sha256:55d6868e5df98f9ce81f281abb34ed3046f3c118055c682ee39d59de8ebf6108",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "low consistency remains review rather than a confidence claim",
+      "expected_issue_codes": [
+        "low_evidence_tier"
+      ],
+      "expected_state": "review",
+      "operation": "atlas_evidence_tier_adjudication",
+      "payload": {
+        "high_consistency": 0.8,
+        "high_source_count": 3,
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"atlas_id\": \"atlas-low\", \"consistency\": 0.3, \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"reproducibility\": 0.4, \"source_count\": 2}]}",
+        "medium_consistency": 0.6,
+        "source_id": "fixture-tier",
+        "source_version": "v1"
+      },
+      "record_id": "C15-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-pipelines"
+      ]
+    },
+    {
+      "content_address": "sha256:d3117b5386399dfe0c1d87115bfd908b32784f5fd63d40b5c3540ed31dec9825",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "zero source count is a blocking evidence issue",
+      "expected_issue_codes": [
+        "no_evidence_sources"
+      ],
+      "expected_state": "review",
+      "operation": "atlas_evidence_tier_adjudication",
+      "payload": {
+        "high_consistency": 0.8,
+        "high_source_count": 3,
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"atlas_id\": \"atlas-none\", \"consistency\": 0.9, \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"reproducibility\": 0.9, \"source_count\": 0}]}",
+        "medium_consistency": 0.6,
+        "source_id": "fixture-tier",
+        "source_version": "v1"
+      },
+      "record_id": "C15-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "encode-pipelines"
+      ]
+    },
+    {
+      "content_address": "sha256:793e9f13d8a1202d41d9dc59a9f29e6e81a516ec7457e753231a7c98c1b5c29f",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "tier evidence is not borrowed across age context",
+      "expected_issue_codes": [
+        "tier_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "atlas_evidence_tier_adjudication",
+      "payload": {
+        "high_consistency": 0.8,
+        "high_source_count": 3,
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"atlas_id\": \"atlas-pediatric\", \"consistency\": 0.92, \"context_key\": \"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\", \"reproducibility\": 0.9, \"source_count\": 3}]}",
+        "medium_consistency": 0.6,
+        "source_id": "fixture-tier",
+        "source_version": "v1"
+      },
+      "record_id": "C15-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "encode-pipelines",
+        "nci-adult-glioma"
+      ]
+    },
+    {
+      "content_address": "sha256:c0513bb6288671db02ead02733bd750c1cff8d769f23f4cf0cc1ab73eed19eb5",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "context-qualified records publish into a content-addressed snapshot manifest",
+      "expected_issue_codes": [],
+      "expected_state": "published",
+      "operation": "atlas_snapshot_publish",
+      "payload": {
+        "atlas_type": "regulatory-boundary",
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"chromosome\": \"chr7\", \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"end\": 120, \"id\": \"cCRE-egfr\", \"start\": 100}, {\"chromosome\": \"chr4\", \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"end\": 220, \"id\": \"cCRE-pdgfra\", \"start\": 200}]}",
+        "schema_version": "atlas-frontier-v1",
+        "snapshot_id": "atlas-snapshot-adult",
+        "source_id": "fixture-snapshot",
+        "source_version": "v1",
+        "version": "2026.08"
+      },
+      "record_id": "C16-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-screen",
+        "encode-hic",
+        "encode-pipelines"
+      ]
+    },
+    {
+      "content_address": "sha256:bab86f63ffb7ea41902447d6a58ad9721d01094e3e1fe2e73ae11ce99e19f26d",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "an empty snapshot abstains rather than publishing absence",
+      "expected_issue_codes": [
+        "empty_snapshot_records"
+      ],
+      "expected_state": "abstained",
+      "operation": "atlas_snapshot_publish",
+      "payload": {
+        "atlas_type": "regulatory-boundary",
+        "input_format": "json",
+        "input_text": "{\"records\": []}",
+        "schema_version": "atlas-frontier-v1",
+        "snapshot_id": "atlas-empty",
+        "source_id": "fixture-snapshot",
+        "source_version": "v1",
+        "version": "2026.08"
+      },
+      "record_id": "C16-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-screen"
+      ]
+    },
+    {
+      "content_address": "sha256:c521e1cee837db4c51a707fdc58468581407771ca0b164910fb7a07d163b6142",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "snapshot publisher blocks context drift",
+      "expected_issue_codes": [
+        "snapshot_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "operation": "atlas_snapshot_publish",
+      "payload": {
+        "atlas_type": "regulatory-boundary",
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"chromosome\": \"chr7\", \"context_key\": \"GRCh38|diffuse_glioma|pediatric|stem_like|core|untreated\", \"end\": 120, \"id\": \"cCRE-pediatric\", \"start\": 100}]}",
+        "schema_version": "atlas-frontier-v1",
+        "snapshot_id": "atlas-pediatric",
+        "source_id": "fixture-snapshot",
+        "source_version": "v1",
+        "version": "2026.08"
+      },
+      "record_id": "C16-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "encode-screen",
+        "nci-adult-glioma"
+      ]
+    },
+    {
+      "content_address": "sha256:3ed39a098983e2e0f3b4ae7d99526025698cd453d2c3bda9422579eca3313fd7",
+      "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "empty snapshot identity is rejected by the release boundary",
+      "expected_issue_codes": [
+        "snapshot_metadata_invalid"
+      ],
+      "expected_state": "invalid",
+      "operation": "atlas_snapshot_publish",
+      "payload": {
+        "atlas_type": "regulatory-boundary",
+        "input_format": "json",
+        "input_text": "{\"records\": [{\"chromosome\": \"chr7\", \"context_key\": \"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\", \"end\": 120, \"id\": \"cCRE-metadata\", \"start\": 100}]}",
+        "schema_version": "atlas-frontier-v1",
+        "snapshot_id": "",
+        "source_id": "fixture-snapshot",
+        "source_version": "v1",
+        "version": "2026.08"
+      },
+      "record_id": "C16-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "encode-screen"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "accessed_on": "2026-08-21",
+      "content_address": "sha256:59f1e75d560acf72cf816eba287bc5c686f9b8f68b3aa6ba42baaf1e6abd28ac",
+      "license": "public portal terms",
+      "release": "released-overview",
+      "scope": "3D chromatin contact and context boundary",
+      "source_id": "encode-hic",
+      "source_kind": "official_assay_standard",
+      "title": "ENCODE Hi-C data standards and processing",
+      "uri": "https://www.encodeproject.org/hic/"
+    },
+    {
+      "accessed_on": "2026-08-21",
+      "content_address": "sha256:2f2b6604bdefdb1f54445d43ac639d0eab39f011c78fc89053a731ff7ecdc6c2",
+      "license": "public portal terms",
+      "release": "released",
+      "scope": "Hi-C processing and replicate/library boundary",
+      "source_id": "encode-hic-pipeline",
+      "source_kind": "official_pipeline_receipt",
+      "title": "ENCODE released Hi-C pipeline",
+      "uri": "https://www.encodeproject.org/pipelines/ENCPL839OAB/"
+    },
+    {
+      "accessed_on": "2026-08-21",
+      "content_address": "sha256:0e0efe9032547443cf308edbf6a94fd823b849007fb8928d977c6d8e0a476c61",
+      "license": "public portal terms",
+      "release": "current-public-page",
+      "scope": "versioned uniform processing boundary",
+      "source_id": "encode-pipelines",
+      "source_kind": "official_pipeline_catalog",
+      "title": "ENCODE data processing pipeline catalog",
+      "uri": "https://www.encodeproject.org/pipelines/"
+    },
+    {
+      "accessed_on": "2026-08-21",
+      "content_address": "sha256:91b8633b3990d33d331de9087b4dd1ed8e3165805d9817bf17bc99c36292fc06",
+      "license": "public portal terms",
+      "release": "current-public-page",
+      "scope": "cCRE and candidate regulatory-element boundary",
+      "source_id": "encode-screen",
+      "source_kind": "official_annotation_resource",
+      "title": "ENCODE SCREEN candidate cis-regulatory elements",
+      "uri": "https://screen.encodeproject.org/index/about"
+    },
+    {
+      "accessed_on": "2026-08-21",
+      "content_address": "sha256:1ae24ee6a023248875577245f1db9bf0b963465454fbfd774e4afe178f07d1ec",
+      "license": "public portal terms",
+      "release": "current-public-page",
+      "scope": "adult glioma context vocabulary",
+      "source_id": "nci-adult-glioma",
+      "source_kind": "official_disease_reference",
+      "title": "NCI adult central nervous system tumor reference",
+      "uri": "https://www.cancer.gov/types/brain/hp/adult-brain-treatment-pdq"
+    }
+  ]
+}

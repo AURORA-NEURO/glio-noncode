@@ -16,27 +16,17 @@ from .atlas_alpha import (
     OpenChromatinTrackHarmonizer,
     SuperEnhancerCandidateAtlas,
 )
-from .atlas_beta import (
-    HistoneMarkTrackHarmonizer,
-    MolecularAtlasState,
-    MolecularStateAtlasAdapter,
-)
-from .atlas_alpha_evidence_bundle import (
-    build_atlas_alpha_evidence_bundle,
-    write_atlas_alpha_evidence_bundle,
-)
 from .atlas_alpha_evidence_contracts import default_atlas_alpha_evidence_contracts
-from .atlas_alpha_evidence_fixture_eval import evaluate_atlas_alpha_evidence_fixture
-from .atlas_alpha_evidence_lineage import build_atlas_alpha_evidence_lineage
-from .atlas_alpha_evidence_metrics import compute_atlas_alpha_evidence_metrics
 from .atlas_alpha_evidence_exports import (
     export_atlas_alpha_evidence_metrics_csv,
     export_atlas_alpha_evidence_receipts_csv,
     export_atlas_alpha_evidence_review_csv,
     render_atlas_alpha_evidence_review_markdown,
 )
+from .atlas_alpha_evidence_fixture_eval import evaluate_atlas_alpha_evidence_fixture
+from .atlas_alpha_evidence_lineage import build_atlas_alpha_evidence_lineage
+from .atlas_alpha_evidence_metrics import compute_atlas_alpha_evidence_metrics
 from .atlas_alpha_evidence_observability import build_atlas_alpha_evidence_trace
-from .atlas_alpha_evidence_policy import evaluate_atlas_alpha_evidence_policy
 from .atlas_alpha_evidence_public_data import (
     audit_atlas_alpha_evidence_data,
     default_atlas_alpha_evidence_fixture,
@@ -46,7 +36,6 @@ from .atlas_alpha_evidence_quality_gate import run_atlas_alpha_evidence_quality_
 from .atlas_alpha_evidence_reconciliation import reconcile_atlas_alpha_evidence
 from .atlas_alpha_evidence_release import (
     build_atlas_alpha_evidence_release,
-    write_atlas_alpha_evidence_release,
 )
 from .atlas_alpha_evidence_replay import replay_atlas_alpha_evidence_evaluation
 from .atlas_alpha_evidence_runtime import (
@@ -59,48 +48,12 @@ from .atlas_alpha_evidence_schema import (
     validate_atlas_alpha_evidence_schema,
 )
 from .atlas_alpha_evidence_views import build_atlas_alpha_evidence_view, review_queue_summary
+from .atlas_beta import (
+    HistoneMarkTrackHarmonizer,
+    MolecularAtlasState,
+    MolecularStateAtlasAdapter,
+)
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
-from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder, RegulatoryAtlasBundleFormat
-from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
-from .regulatory_atlas_lineage import build_regulatory_atlas_lineage
-from .regulatory_atlas_metrics import (
-    build_regulatory_atlas_metrics,
-    render_regulatory_atlas_metrics,
-    verify_regulatory_atlas_metrics,
-)
-from .regulatory_atlas_contracts import default_regulatory_atlas_contracts
-from .regulatory_atlas_public_data import (
-    audit_regulatory_atlas_data,
-    load_regulatory_atlas_fixture,
-)
-from .regulatory_atlas_quality_gate import evaluate_regulatory_atlas_quality_gate
-from .regulatory_atlas_reconciliation import reconcile_regulatory_atlas_views
-from .regulatory_atlas_release import (
-    build_regulatory_atlas_release_manifest,
-    write_regulatory_atlas_release_manifest,
-)
-from .regulatory_atlas_replay import replay_regulatory_atlas_evaluation
-from .regulatory_atlas_runtime import run_regulatory_atlas_pipeline_file
-from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
-from .molecular_atlas_bundle import MolecularAtlasBundleBuilder, MolecularAtlasBundleFormat
-from .molecular_atlas_contracts import default_molecular_atlas_contracts
-from .molecular_atlas_fixture_eval import evaluate_molecular_atlas_fixture
-from .molecular_atlas_lineage import build_molecular_atlas_lineage
-from .molecular_atlas_metrics import (
-    build_molecular_atlas_metrics,
-    render_molecular_atlas_metrics,
-    verify_molecular_atlas_metrics,
-)
-from .molecular_atlas_public_data import audit_molecular_atlas_data, load_molecular_atlas_fixture
-from .molecular_atlas_quality_gate import evaluate_molecular_atlas_quality_gate
-from .molecular_atlas_reconciliation import reconcile_molecular_atlas_views
-from .molecular_atlas_release import (
-    build_molecular_atlas_release_manifest,
-    write_molecular_atlas_release_manifest,
-)
-from .molecular_atlas_replay import replay_molecular_atlas_evaluation
-from .molecular_atlas_runtime import run_molecular_atlas_pipeline_file
-from .molecular_atlas_scenario_matrix import evaluate_molecular_atlas_scenarios
 from .capability_registry import default_capability_registry
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
@@ -181,6 +134,31 @@ from .evidence_lifecycle import (
     VersionedEvidenceClaim,
     VersionedEvidenceGraphConstructor,
 )
+from .frontier_atlas_contracts import default_frontier_atlas_contracts
+from .frontier_atlas_exports import (
+    export_frontier_atlas_metrics_csv,
+    export_frontier_atlas_receipts_csv,
+    export_frontier_atlas_review_csv,
+    render_frontier_atlas_review_markdown,
+)
+from .frontier_atlas_fixture_eval import evaluate_frontier_atlas_fixture
+from .frontier_atlas_lineage import build_frontier_atlas_lineage
+from .frontier_atlas_metrics import compute_frontier_atlas_metrics
+from .frontier_atlas_observability import build_frontier_atlas_trace
+from .frontier_atlas_policy import evaluate_frontier_atlas_policy
+from .frontier_atlas_public_data import (
+    audit_frontier_atlas_data,
+    default_frontier_atlas_fixture,
+    load_frontier_atlas_fixture,
+)
+from .frontier_atlas_quality_gate import run_frontier_atlas_quality_gate
+from .frontier_atlas_reconciliation import reconcile_frontier_atlas
+from .frontier_atlas_release import build_frontier_atlas_release
+from .frontier_atlas_replay import replay_frontier_atlas_evaluation
+from .frontier_atlas_runtime import FrontierAtlasRuntimeOptions, run_frontier_atlas_pipeline
+from .frontier_atlas_scenario_matrix import evaluate_frontier_atlas_scenarios
+from .frontier_atlas_schema import frontier_atlas_schema_manifest, validate_frontier_atlas_schema
+from .frontier_atlas_views import build_frontier_atlas_view, frontier_atlas_review_summary
 from .frontier_context_alpha import (
     CONTEXT_FRONTIER_OPERATIONS,
     run_context_frontier_operation,
@@ -265,6 +243,25 @@ from .methylation_beta import (
 )
 from .mission_runtime import MissionPlanBuilder, MissionRequest
 from .models import CaseManifest, ReferenceContext, VariantIdentity
+from .molecular_atlas_bundle import MolecularAtlasBundleBuilder, MolecularAtlasBundleFormat
+from .molecular_atlas_contracts import default_molecular_atlas_contracts
+from .molecular_atlas_fixture_eval import evaluate_molecular_atlas_fixture
+from .molecular_atlas_lineage import build_molecular_atlas_lineage
+from .molecular_atlas_metrics import (
+    build_molecular_atlas_metrics,
+    render_molecular_atlas_metrics,
+    verify_molecular_atlas_metrics,
+)
+from .molecular_atlas_public_data import audit_molecular_atlas_data, load_molecular_atlas_fixture
+from .molecular_atlas_quality_gate import evaluate_molecular_atlas_quality_gate
+from .molecular_atlas_reconciliation import reconcile_molecular_atlas_views
+from .molecular_atlas_release import (
+    build_molecular_atlas_release_manifest,
+    write_molecular_atlas_release_manifest,
+)
+from .molecular_atlas_replay import replay_molecular_atlas_evaluation
+from .molecular_atlas_runtime import run_molecular_atlas_pipeline_file
+from .molecular_atlas_scenario_matrix import evaluate_molecular_atlas_scenarios
 from .platform_alpha import (
     DataReferenceRegistry,
     DriftAndOODMonitor,
@@ -277,13 +274,6 @@ from .reference_alpha import (
     PopulationFrequencyAdapter,
     ReferenceSnapshotManager,
 )
-from .reference_beta import (
-    DiseaseOntologyMapper,
-    GencodeTranscriptAdapter,
-    ManeTranscriptAdapter,
-    RegulatoryOntologyAdapter,
-)
-from .reference_registry import default_reference_registry
 from .reference_annotation_bundle import (
     ReferenceAnnotationBundleBuilder,
     ReferenceAnnotationBundleFormat,
@@ -297,13 +287,41 @@ from .reference_annotation_public_data import (
 )
 from .reference_annotation_quality_gate import evaluate_reference_annotation_quality_gate
 from .reference_annotation_reconciliation import reconcile_reference_annotation_views
-from .reference_annotation_replay import replay_reference_annotation_evaluation
 from .reference_annotation_release import (
     build_reference_annotation_release_manifest,
     write_reference_annotation_release_manifest,
 )
+from .reference_annotation_replay import replay_reference_annotation_evaluation
 from .reference_annotation_runtime import run_reference_annotation_pipeline_file
 from .reference_annotation_scenario_matrix import evaluate_reference_annotation_scenarios
+from .reference_beta import (
+    DiseaseOntologyMapper,
+    GencodeTranscriptAdapter,
+    ManeTranscriptAdapter,
+    RegulatoryOntologyAdapter,
+)
+from .reference_coordinate_bundle import (
+    ReferenceCoordinateBundleBuilder,
+    ReferenceCoordinateBundleFormat,
+)
+from .reference_coordinate_contracts import default_reference_coordinate_contracts
+from .reference_coordinate_fixture_eval import evaluate_reference_coordinate_fixture
+from .reference_coordinate_lineage import build_reference_coordinate_lineage
+from .reference_coordinate_public_data import (
+    ReferenceCoordinateFixtureCatalog,
+    audit_reference_coordinate_data,
+)
+from .reference_coordinate_quality_gate import evaluate_reference_coordinate_quality_gate
+from .reference_coordinate_reconciliation import reconcile_reference_coordinate_views
+from .reference_coordinate_replay import (
+    default_reference_coordinate_expectation,
+    replay_reference_coordinate_fixture,
+)
+from .reference_coordinate_runtime import (
+    ReferenceCoordinatePipelineRequest,
+    run_reference_coordinate_pipeline,
+)
+from .reference_coordinate_scenario_matrix import evaluate_reference_coordinate_scenarios
 from .reference_governance_bundle import (
     ReferenceGovernanceBundleBuilder,
     ReferenceGovernanceBundleFormat,
@@ -329,28 +347,29 @@ from .reference_governance_release import (
 from .reference_governance_replay import replay_reference_governance_evaluation
 from .reference_governance_runtime import run_reference_governance_pipeline_file
 from .reference_governance_scenario_matrix import evaluate_reference_governance_scenarios
-from .reference_coordinate_bundle import (
-    ReferenceCoordinateBundleBuilder,
-    ReferenceCoordinateBundleFormat,
+from .reference_registry import default_reference_registry
+from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder, RegulatoryAtlasBundleFormat
+from .regulatory_atlas_contracts import default_regulatory_atlas_contracts
+from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
+from .regulatory_atlas_lineage import build_regulatory_atlas_lineage
+from .regulatory_atlas_metrics import (
+    build_regulatory_atlas_metrics,
+    render_regulatory_atlas_metrics,
+    verify_regulatory_atlas_metrics,
 )
-from .reference_coordinate_contracts import default_reference_coordinate_contracts
-from .reference_coordinate_fixture_eval import evaluate_reference_coordinate_fixture
-from .reference_coordinate_lineage import build_reference_coordinate_lineage
-from .reference_coordinate_public_data import (
-    ReferenceCoordinateFixtureCatalog,
-    audit_reference_coordinate_data,
+from .regulatory_atlas_public_data import (
+    audit_regulatory_atlas_data,
+    load_regulatory_atlas_fixture,
 )
-from .reference_coordinate_quality_gate import evaluate_reference_coordinate_quality_gate
-from .reference_coordinate_reconciliation import reconcile_reference_coordinate_views
-from .reference_coordinate_replay import (
-    default_reference_coordinate_expectation,
-    replay_reference_coordinate_fixture,
+from .regulatory_atlas_quality_gate import evaluate_regulatory_atlas_quality_gate
+from .regulatory_atlas_reconciliation import reconcile_regulatory_atlas_views
+from .regulatory_atlas_release import (
+    build_regulatory_atlas_release_manifest,
+    write_regulatory_atlas_release_manifest,
 )
-from .reference_coordinate_runtime import (
-    ReferenceCoordinatePipelineRequest,
-    run_reference_coordinate_pipeline,
-)
-from .reference_coordinate_scenario_matrix import evaluate_reference_coordinate_scenarios
+from .regulatory_atlas_replay import replay_regulatory_atlas_evaluation
+from .regulatory_atlas_runtime import run_regulatory_atlas_pipeline_file
+from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .schema import schema_document
@@ -686,6 +705,12 @@ def _read_atlas_alpha_evidence_fixture(path: str | None):
     return (
         load_atlas_alpha_evidence_fixture(path) if path else default_atlas_alpha_evidence_fixture()
     )
+
+
+def _read_frontier_atlas_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_frontier_atlas_fixture(path) if path else default_frontier_atlas_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -3014,6 +3039,150 @@ def build_parser() -> argparse.ArgumentParser:
     )
     alpha_evidence_metrics_csv.add_argument("input", nargs="?", default=None)
     alpha_evidence_metrics_csv.add_argument("--output", default=None)
+
+    frontier_atlas_evaluate = subparsers.add_parser(
+        "evaluate-frontier-atlas-fixture",
+        help="evaluate the public C13-C16 frontier atlas fixture and controls",
+    )
+    frontier_atlas_evaluate.add_argument("input", nargs="?", default=None)
+    frontier_atlas_evaluate.add_argument("--output", default=None)
+
+    frontier_atlas_audit = subparsers.add_parser(
+        "audit-frontier-atlas-data",
+        help="audit C13-C16 source receipts and aggregate data boundaries",
+    )
+    frontier_atlas_audit.add_argument("input", nargs="?", default=None)
+    frontier_atlas_audit.add_argument("--output", default=None)
+
+    frontier_atlas_replay = subparsers.add_parser(
+        "replay-frontier-atlas",
+        help="replay C13-C16 states, issues, and content addresses",
+    )
+    frontier_atlas_replay.add_argument("input", nargs="?", default=None)
+    frontier_atlas_replay.add_argument("--output", default=None)
+
+    frontier_atlas_quality = subparsers.add_parser(
+        "frontier-atlas-quality-gate",
+        help="run the complete C13-C16 frontier atlas quality gate",
+    )
+    frontier_atlas_quality.add_argument("input", nargs="?", default=None)
+    frontier_atlas_quality.add_argument("--output", default=None)
+
+    frontier_atlas_scenarios = subparsers.add_parser(
+        "evaluate-frontier-atlas-scenarios",
+        help="evaluate C13-C16 positive and negative control scenarios",
+    )
+    frontier_atlas_scenarios.add_argument("input", nargs="?", default=None)
+    frontier_atlas_scenarios.add_argument("--output", default=None)
+
+    frontier_atlas_policy = subparsers.add_parser(
+        "frontier-atlas-policy",
+        help="evaluate C13-C16 state and issue policy rules",
+    )
+    frontier_atlas_policy.add_argument("input", nargs="?", default=None)
+    frontier_atlas_policy.add_argument("--output", default=None)
+
+    frontier_atlas_contracts = subparsers.add_parser(
+        "frontier-atlas-contracts",
+        help="emit typed C13-C16 frontier atlas contracts",
+    )
+    frontier_atlas_contracts.add_argument("--output", default=None)
+
+    frontier_atlas_schema = subparsers.add_parser(
+        "frontier-atlas-schema",
+        help="emit or validate C13-C16 frontier atlas schemas",
+    )
+    frontier_atlas_schema.add_argument("input", nargs="?", default=None)
+    frontier_atlas_schema.add_argument("--output", default=None)
+
+    frontier_atlas_metrics = subparsers.add_parser(
+        "frontier-atlas-metrics",
+        help="emit C13-C16 frontier atlas operational metrics",
+    )
+    frontier_atlas_metrics.add_argument("input", nargs="?", default=None)
+    frontier_atlas_metrics.add_argument("--output", default=None)
+
+    frontier_atlas_bundle = subparsers.add_parser(
+        "build-frontier-atlas-bundle",
+        help="build the serialized C13-C16 frontier atlas bundle",
+    )
+    frontier_atlas_bundle.add_argument("input", nargs="?", default=None)
+    frontier_atlas_bundle.add_argument("--output", default=None)
+
+    frontier_atlas_lineage = subparsers.add_parser(
+        "frontier-atlas-lineage",
+        help="emit C13-C16 source-to-receipt lineage",
+    )
+    frontier_atlas_lineage.add_argument("input", nargs="?", default=None)
+    frontier_atlas_lineage.add_argument("--output", default=None)
+
+    frontier_atlas_reconciliation = subparsers.add_parser(
+        "frontier-atlas-reconciliation",
+        help="reconcile C13-C16 expected and observed states",
+    )
+    frontier_atlas_reconciliation.add_argument("input", nargs="?", default=None)
+    frontier_atlas_reconciliation.add_argument("--output", default=None)
+
+    frontier_atlas_pipeline = subparsers.add_parser(
+        "run-frontier-atlas-pipeline",
+        help="run the C13-C16 quality-gated frontier atlas pipeline",
+    )
+    frontier_atlas_pipeline.add_argument("input", nargs="?", default=None)
+    frontier_atlas_pipeline.add_argument("--run-id", default="frontier-atlas-cli")
+    frontier_atlas_pipeline.add_argument("--context-key", default=None)
+    frontier_atlas_pipeline.add_argument("--fail-on-review", action="store_true")
+    frontier_atlas_pipeline.add_argument("--output", default=None)
+
+    frontier_atlas_release = subparsers.add_parser(
+        "build-frontier-atlas-release",
+        help="build a C13-C16 release manifest after the quality gate",
+    )
+    frontier_atlas_release.add_argument("input", nargs="?", default=None)
+    frontier_atlas_release.add_argument("--run-id", default="frontier-atlas-release")
+    frontier_atlas_release.add_argument("--output", default=None)
+
+    frontier_atlas_view = subparsers.add_parser(
+        "frontier-atlas-review-view",
+        help="emit the sanitized C13-C16 review queue and source matrix",
+    )
+    frontier_atlas_view.add_argument("input", nargs="?", default=None)
+    frontier_atlas_view.add_argument("--output", default=None)
+
+    frontier_atlas_trace = subparsers.add_parser(
+        "frontier-atlas-trace",
+        help="emit the nine-stage C13-C16 runtime trace",
+    )
+    frontier_atlas_trace.add_argument("input", nargs="?", default=None)
+    frontier_atlas_trace.add_argument("--run-id", default="frontier-atlas-trace")
+    frontier_atlas_trace.add_argument("--output", default=None)
+
+    frontier_atlas_receipts_csv = subparsers.add_parser(
+        "export-frontier-atlas-receipts-csv",
+        help="export sanitized C13-C16 receipts as CSV",
+    )
+    frontier_atlas_receipts_csv.add_argument("input", nargs="?", default=None)
+    frontier_atlas_receipts_csv.add_argument("--output", default=None)
+
+    frontier_atlas_review_csv = subparsers.add_parser(
+        "export-frontier-atlas-review-csv",
+        help="export the C13-C16 review queue as CSV",
+    )
+    frontier_atlas_review_csv.add_argument("input", nargs="?", default=None)
+    frontier_atlas_review_csv.add_argument("--output", default=None)
+
+    frontier_atlas_review_md = subparsers.add_parser(
+        "export-frontier-atlas-review-markdown",
+        help="export the C13-C16 review queue as Markdown",
+    )
+    frontier_atlas_review_md.add_argument("input", nargs="?", default=None)
+    frontier_atlas_review_md.add_argument("--output", default=None)
+
+    frontier_atlas_metrics_csv = subparsers.add_parser(
+        "export-frontier-atlas-metrics-csv",
+        help="export C13-C16 operation metrics as CSV",
+    )
+    frontier_atlas_metrics_csv.add_argument("input", nargs="?", default=None)
+    frontier_atlas_metrics_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -5896,6 +6065,141 @@ def main(argv: list[str] | None = None) -> int:
                     compute_atlas_alpha_evidence_metrics(
                         evaluate_atlas_alpha_evidence_fixture(fixture)
                     )
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "evaluate-frontier-atlas-fixture":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_json(evaluate_frontier_atlas_fixture(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "audit-frontier-atlas-data":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_json(audit_frontier_atlas_data(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "replay-frontier-atlas":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            _write_json(
+                replay_frontier_atlas_evaluation(evaluation, fixture=fixture).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "frontier-atlas-quality-gate":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_json(run_frontier_atlas_quality_gate(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-frontier-atlas-scenarios":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_json(
+                evaluate_frontier_atlas_scenarios(
+                    evaluate_frontier_atlas_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "frontier-atlas-contracts":
+            _write_json(default_frontier_atlas_contracts().manifest(), args.output)
+            return 0
+        if args.command == "frontier-atlas-schema":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            _write_json(
+                frontier_atlas_schema_manifest()
+                | {"validation": validate_frontier_atlas_schema(fixture, evaluation).to_dict()},
+                args.output,
+            )
+            return 0
+        if args.command == "frontier-atlas-metrics":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_json(
+                compute_frontier_atlas_metrics(evaluate_frontier_atlas_fixture(fixture)).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "build-frontier-atlas-bundle":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_json(run_frontier_atlas_quality_gate(fixture).bundle.to_dict(), args.output)
+            return 0
+        if args.command == "frontier-atlas-lineage":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            _write_json(build_frontier_atlas_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "frontier-atlas-reconciliation":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            _write_json(reconcile_frontier_atlas(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "frontier-atlas-policy":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            _write_json(evaluate_frontier_atlas_policy(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "run-frontier-atlas-pipeline":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            options = FrontierAtlasRuntimeOptions(
+                run_id=args.run_id,
+                fail_on_review=args.fail_on_review,
+                requested_context_key=args.context_key,
+            )
+            _write_json(
+                run_frontier_atlas_pipeline(options, fixture=fixture).to_dict(), args.output
+            )
+            return 0
+        if args.command == "build-frontier-atlas-release":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            quality = run_frontier_atlas_quality_gate(fixture)
+            runtime = run_frontier_atlas_pipeline(
+                FrontierAtlasRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_frontier_atlas_release(quality, runtime).to_dict(), args.output)
+            return 0
+        if args.command == "frontier-atlas-review-view":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            view = build_frontier_atlas_view(fixture, evaluation)
+            _write_json(
+                view.to_dict() | {"summary": frontier_atlas_review_summary(view)}, args.output
+            )
+            return 0
+        if args.command == "frontier-atlas-trace":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            runtime = run_frontier_atlas_pipeline(
+                FrontierAtlasRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_frontier_atlas_trace(runtime).to_dict(), args.output)
+            return 0
+        if args.command == "export-frontier-atlas-receipts-csv":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_text(
+                export_frontier_atlas_receipts_csv(evaluate_frontier_atlas_fixture(fixture)),
+                args.output,
+            )
+            return 0
+        if args.command == "export-frontier-atlas-review-csv":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            _write_text(
+                export_frontier_atlas_review_csv(build_frontier_atlas_view(fixture, evaluation)),
+                args.output,
+            )
+            return 0
+        if args.command == "export-frontier-atlas-review-markdown":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            evaluation = evaluate_frontier_atlas_fixture(fixture)
+            _write_text(
+                render_frontier_atlas_review_markdown(
+                    build_frontier_atlas_view(fixture, evaluation)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-frontier-atlas-metrics-csv":
+            fixture = _read_frontier_atlas_fixture(args.input)
+            _write_text(
+                export_frontier_atlas_metrics_csv(
+                    compute_frontier_atlas_metrics(evaluate_frontier_atlas_fixture(fixture))
                 ),
                 args.output,
             )

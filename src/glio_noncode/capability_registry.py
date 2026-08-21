@@ -1756,7 +1756,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_data_alpha.AnnotationDriftDetector",
                     "glio_noncode.frontier_data_alpha.AnnotationDriftReport",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_frontier_data_alpha_cli",
+                ),
                 "evidence_note": (
                     "Versioned annotation rows are compared field by field with ignored receipt "
                     "fields, change scores, new-row drift, and stable-row classifications."
@@ -1780,7 +1783,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_data_alpha.ReferenceReleaseGate",
                     "glio_noncode.frontier_data_alpha.ReferenceReleaseDecision",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_frontier_data_alpha_cli",
+                ),
                 "evidence_note": (
                     "Reference release decisions apply explicit checksum, schema, license, "
                     "context, and source checks with deny-by-default missing-check behavior."
@@ -1908,7 +1914,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
                     "glio_noncode.atlas_alpha_evidence_quality_gate.run_atlas_alpha_evidence_quality_gate",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
+                "test_modules": (
+                    "tests.test_atlas_alpha",
+                    "tests.test_atlas_alpha_cli",
+                    "tests.test_atlas_alpha_evidence",
+                ),
                 "evidence_note": (
                     "Open-chromatin observations are split into atomic intervals with replicate "
                     "and caller identity, source hashes, context gating, signal spread, and "
@@ -1924,7 +1934,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
                     "glio_noncode.atlas_alpha_evidence_policy.evaluate_atlas_alpha_evidence_policy",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
+                "test_modules": (
+                    "tests.test_atlas_alpha",
+                    "tests.test_atlas_alpha_cli",
+                    "tests.test_atlas_alpha_evidence",
+                ),
                 "evidence_note": (
                     "Methylation fractions retain methylated and total counts, coverage gaps, "
                     "replicate disagreement, source hashes, and exact context; silencing is not "
@@ -1939,7 +1953,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
                     "glio_noncode.atlas_alpha_evidence_scenario_matrix.evaluate_atlas_alpha_evidence_scenarios",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
+                "test_modules": (
+                    "tests.test_atlas_alpha",
+                    "tests.test_atlas_alpha_cli",
+                    "tests.test_atlas_alpha_evidence",
+                ),
                 "evidence_note": (
                     "Declared promoter, enhancer, silencer, accessibility, methylation, contact, "
                     "and target-gene channels yield explicit multi-role, missing-channel, and "
@@ -1955,7 +1973,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.atlas_alpha_evidence_fixture_eval.evaluate_atlas_alpha_evidence_fixture",
                     "glio_noncode.atlas_alpha_evidence_release.build_atlas_alpha_evidence_release",
                 ),
-                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli", "tests.test_atlas_alpha_evidence"),
+                "test_modules": (
+                    "tests.test_atlas_alpha",
+                    "tests.test_atlas_alpha_cli",
+                    "tests.test_atlas_alpha_evidence",
+                ),
                 "evidence_note": (
                     "Ranked enhancer constituents are grouped into proximity-bounded candidate "
                     "intervals with quantile thresholds, target-gene declarations, source hashes, "
@@ -1964,51 +1986,88 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D05-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.InsulatorBoundaryAtlas",
                     "glio_noncode.frontier_context_alpha.BoundaryAtlasReport",
+                    "glio_noncode.frontier_atlas_public_data.default_frontier_atlas_fixture",
+                    "glio_noncode.frontier_atlas_fixture_eval.evaluate_frontier_atlas_fixture",
+                    "glio_noncode.frontier_atlas_quality_gate.run_frontier_atlas_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_frontier_atlas_evidence",
+                    "tests.test_frontier_atlas_evidence_cli",
+                ),
                 "evidence_note": (
                     "Boundary intervals retain insulation score, support, orientation, exact "
-                    "context, and interval or support review states."
+                    "context, and interval or support review states; public aggregate fixtures "
+                    "exercise one accepted path plus low-support, invalid-interval, and context "
+                    "controls through replay, schema, lineage, and release gates."
                 ),
             },
             "GNC-D05-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.RegulatoryHotspotAtlas",
                     "glio_noncode.frontier_context_alpha.HotspotAtlasReport",
+                    "glio_noncode.frontier_atlas_public_data.default_frontier_atlas_fixture",
+                    "glio_noncode.frontier_atlas_fixture_eval.evaluate_frontier_atlas_fixture",
+                    "glio_noncode.frontier_atlas_policy.evaluate_frontier_atlas_policy",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_frontier_atlas_evidence",
+                    "tests.test_frontier_atlas_evidence_cli",
+                ),
                 "evidence_note": (
                     "Hotspot aggregation preserves independent sources, evidence types, direction "
-                    "concordance, support count, and insufficient-source review."
+                    "concordance, support count, and insufficient-source review; deterministic "
+                    "fixtures expose direction disagreement, out-of-domain context, source "
+                    "closure, policy, and sanitized export behavior."
                 ),
             },
             "GNC-D05-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.AtlasEvidenceTierAdjudicator",
                     "glio_noncode.frontier_context_alpha.AtlasEvidenceTierReport",
+                    "glio_noncode.frontier_atlas_public_data.default_frontier_atlas_fixture",
+                    "glio_noncode.frontier_atlas_fixture_eval.evaluate_frontier_atlas_fixture",
+                    "glio_noncode.frontier_atlas_schema.validate_frontier_atlas_schema",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_frontier_atlas_evidence",
+                    "tests.test_frontier_atlas_evidence_cli",
+                ),
                 "evidence_note": (
                     "Atlas evidence tiers are derived from source count, consistency, and "
-                    "reproducibility thresholds with low or missing evidence retained for review."
+                    "reproducibility thresholds with low or missing evidence retained for review; "
+                    "schema validation, policy vocabulary, positive and control replay, and "
+                    "content-addressed metrics prevent tier labels from becoming probabilities."
                 ),
             },
             "GNC-D05-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.AtlasSnapshotPublisher",
                     "glio_noncode.frontier_context_alpha.AtlasSnapshot",
+                    "glio_noncode.frontier_atlas_bundle.build_frontier_atlas_bundle",
+                    "glio_noncode.frontier_atlas_runtime.run_frontier_atlas_pipeline",
+                    "glio_noncode.frontier_atlas_release.build_frontier_atlas_release",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha", "tests.test_frontier_context_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_frontier_context_alpha_cli",
+                    "tests.test_frontier_atlas_evidence",
+                    "tests.test_frontier_atlas_evidence_cli",
+                ),
                 "evidence_note": (
                     "Atlas snapshots bind type, version, schema, exact context, record address, "
-                    "and deterministic publication identity."
+                    "and deterministic publication identity; a published positive snapshot, "
+                    "empty abstention, context quarantine, invalid metadata control, runtime "
+                    "trace, review view, and release manifest are all exercised."
                 ),
             },
             "GNC-D06-C01": {
@@ -2614,7 +2673,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_context_alpha.CellStateOODDetector",
                     "glio_noncode.frontier_context_alpha.CellStateOODReport",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha", "tests.test_frontier_context_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_frontier_context_alpha_cli",
+                ),
                 "evidence_note": (
                     "Cell-state OOD checks preserve distance, support score, support boundary, and "
                     "explicit out-of-domain review findings."
@@ -3187,7 +3249,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_inference_alpha.SelectivePredictionAndAbstention",
                     "glio_noncode.frontier_inference_alpha.SelectivePredictionReport",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_frontier_inference_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_frontier_inference_alpha_cli",
+                ),
                 "evidence_note": (
                     "Selective prediction applies uncertainty-aware score thresholds and records "
                     "abstentions rather than forcing weak causal outputs."
@@ -3376,7 +3441,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_inference_alpha.FederatedSummaryAnalyzer",
                     "glio_noncode.frontier_inference_alpha.FederatedSummaryReport",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_frontier_inference_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_frontier_inference_alpha_cli",
+                ),
                 "evidence_note": (
                     "Federated summaries aggregate site counts and means while retaining privacy-floor "
                     "violations and between-site spread without raw cross-site records."
