@@ -768,67 +768,151 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D02-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_haplotype.PhasedHaplotypeAssembler",
                     "glio_noncode.structural_haplotype.HaplotypeAssemblyReport",
+                    "glio_noncode.structural_haplotype_public_data",
+                    "glio_noncode.structural_haplotype_fixture_eval",
+                    "glio_noncode.structural_haplotype_contracts",
+                    "glio_noncode.structural_haplotype_replay",
+                    "glio_noncode.structural_haplotype_scenario_matrix",
+                    "glio_noncode.structural_haplotype_quality_gate",
+                    "glio_noncode.structural_haplotype_bundle",
+                    "glio_noncode.structural_haplotype_lineage",
+                    "glio_noncode.structural_haplotype_runtime",
                 ),
                 "test_modules": (
                     "tests.test_structural_haplotype",
                     "tests.test_structural_haplotype_cli",
+                    "tests.test_structural_haplotype_public_data",
+                    "tests.test_structural_haplotype_fixture_eval",
+                    "tests.test_structural_haplotype_contracts",
+                    "tests.test_structural_haplotype_replay",
+                    "tests.test_structural_haplotype_scenario_matrix",
+                    "tests.test_structural_haplotype_quality_gate",
+                    "tests.test_structural_haplotype_bundle",
+                    "tests.test_structural_haplotype_lineage",
+                    "tests.test_structural_haplotype_runtime",
                 ),
                 "evidence_note": (
                     "Explicitly phased genotype records become ordered haplotype paths with "
                     "allele calls, phase completeness, source hashes, and retained unphased "
-                    "observations; read-backed phasing and sequence reconstruction remain."
+                    "observations. The public aggregate gate adds four positive records, "
+                    "eight review controls, 72 executable assertions, replay identity, "
+                    "independent scenarios, a 20-check quality gate, a 29-node lineage graph, "
+                    "and a sanitized release bundle. Read-backed phasing, long-read evidence, "
+                    "and sequence reconstruction remain outside this aggregate boundary."
                 ),
             },
             "GNC-D02-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_haplotype.AlleleAwareSvRepresenter",
                     "glio_noncode.structural_haplotype.AlleleAwareStructuralEvent",
+                    "glio_noncode.structural_haplotype_public_data",
+                    "glio_noncode.structural_haplotype_fixture_eval",
+                    "glio_noncode.structural_haplotype_contracts",
+                    "glio_noncode.structural_haplotype_replay",
+                    "glio_noncode.structural_haplotype_scenario_matrix",
+                    "glio_noncode.structural_haplotype_quality_gate",
+                    "glio_noncode.structural_haplotype_bundle",
+                    "glio_noncode.structural_haplotype_lineage",
+                    "glio_noncode.structural_haplotype_runtime",
                 ),
                 "test_modules": (
                     "tests.test_structural_haplotype",
                     "tests.test_structural_haplotype_cli",
+                    "tests.test_structural_haplotype_public_data",
+                    "tests.test_structural_haplotype_fixture_eval",
+                    "tests.test_structural_haplotype_contracts",
+                    "tests.test_structural_haplotype_replay",
+                    "tests.test_structural_haplotype_scenario_matrix",
+                    "tests.test_structural_haplotype_quality_gate",
+                    "tests.test_structural_haplotype_bundle",
+                    "tests.test_structural_haplotype_lineage",
+                    "tests.test_structural_haplotype_runtime",
                 ),
                 "evidence_note": (
                     "Structural observations retain allele index, genotype dosage, zygosity, "
-                    "copy number, support, and contradictory coordinates; molecule-level "
-                    "allele assignment and caller truth-set validation remain."
+                    "copy number, support, and contradictory coordinates. Aggregate controls "
+                    "exercise conflicting alleles and missing dosage, while receipts preserve "
+                    "source/context identity and review state through runtime, replay, lineage, "
+                    "and bundle boundaries. Molecule-level allele assignment and caller "
+                    "truth-set validation remain."
                 ),
             },
             "GNC-D02-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_haplotype.PangenomeGraphProjector",
                     "glio_noncode.structural_haplotype.GraphProjectionReport",
+                    "glio_noncode.structural_haplotype_public_data",
+                    "glio_noncode.structural_haplotype_fixture_eval",
+                    "glio_noncode.structural_haplotype_contracts",
+                    "glio_noncode.structural_haplotype_replay",
+                    "glio_noncode.structural_haplotype_scenario_matrix",
+                    "glio_noncode.structural_haplotype_quality_gate",
+                    "glio_noncode.structural_haplotype_bundle",
+                    "glio_noncode.structural_haplotype_lineage",
+                    "glio_noncode.structural_haplotype_runtime",
                 ),
                 "test_modules": (
                     "tests.test_structural_haplotype",
                     "tests.test_structural_haplotype_cli",
+                    "tests.test_structural_haplotype_public_data",
+                    "tests.test_structural_haplotype_fixture_eval",
+                    "tests.test_structural_haplotype_contracts",
+                    "tests.test_structural_haplotype_replay",
+                    "tests.test_structural_haplotype_scenario_matrix",
+                    "tests.test_structural_haplotype_quality_gate",
+                    "tests.test_structural_haplotype_bundle",
+                    "tests.test_structural_haplotype_lineage",
+                    "tests.test_structural_haplotype_runtime",
                 ),
                 "evidence_note": (
                     "Coordinate-bounded queries project onto supplied graph nodes and paths "
-                    "with exact, contained, spanning, and ambiguous mappings; graph sequence "
-                    "homology and population-scale path validation remain."
+                    "with exact, contained, spanning, and ambiguous mappings. The aggregate "
+                    "fixture exercises supported, ambiguous, and unmapped paths with source "
+                    "receipts, deterministic replay, independent scenario checks, lineage, "
+                    "and sanitized bundles. Graph sequence homology and population-scale path "
+                    "validation remain."
                 ),
             },
             "GNC-D02-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_haplotype.RepeatMobileElementAnnotator",
                     "glio_noncode.structural_haplotype.RepeatMobileAnnotationReport",
+                    "glio_noncode.structural_haplotype_public_data",
+                    "glio_noncode.structural_haplotype_fixture_eval",
+                    "glio_noncode.structural_haplotype_contracts",
+                    "glio_noncode.structural_haplotype_replay",
+                    "glio_noncode.structural_haplotype_scenario_matrix",
+                    "glio_noncode.structural_haplotype_quality_gate",
+                    "glio_noncode.structural_haplotype_bundle",
+                    "glio_noncode.structural_haplotype_lineage",
+                    "glio_noncode.structural_haplotype_runtime",
                 ),
                 "test_modules": (
                     "tests.test_structural_haplotype",
                     "tests.test_structural_haplotype_cli",
+                    "tests.test_structural_haplotype_public_data",
+                    "tests.test_structural_haplotype_fixture_eval",
+                    "tests.test_structural_haplotype_contracts",
+                    "tests.test_structural_haplotype_replay",
+                    "tests.test_structural_haplotype_scenario_matrix",
+                    "tests.test_structural_haplotype_quality_gate",
+                    "tests.test_structural_haplotype_bundle",
+                    "tests.test_structural_haplotype_lineage",
+                    "tests.test_structural_haplotype_runtime",
                 ),
                 "evidence_note": (
                     "Indexed repeat intervals retain family, class, subfamily, strand, mobile "
-                    "status, overlap fraction, and source versions; annotation completeness "
-                    "and sequence-derived transposition interpretation remain."
+                    "status, overlap fraction, and source versions. Mixed repeat classes and "
+                    "context drift are explicit review controls, and the quality/runtime/bundle "
+                    "surfaces preserve their issue codes without raw payloads. Annotation "
+                    "completeness and sequence-derived transposition interpretation remain."
                 ),
             },
             "GNC-D02-C13": {

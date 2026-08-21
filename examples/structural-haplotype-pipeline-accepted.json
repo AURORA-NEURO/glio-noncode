@@ -1,0 +1,30 @@
+{
+  "request_id": "structural-haplotype-pipeline-accepted-2026-08-21",
+  "manifest_id": "structural-haplotype-pipeline-manifest-accepted",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": ["ncbi-dbvar-haplotype", "gnomad-sv-v4", "ncbi-dbvar-study-browser", "ncbi-dbvar-ftp-manifest"],
+  "operations": {
+    "phased_haplotype": {
+      "parameters": {"max_haplotypes": 4},
+      "records": [
+        {"observation_id": "pipeline-phase-1", "sample_id": "aggregate-pipeline-phase", "chrom": "7", "pos": 100, "ref": "A", "alt": "T", "GT": "1|0", "PS": "pipeline-ps", "source_id": "ncbi-dbvar-haplotype", "source_version": "public-hub-2026-04"},
+        {"observation_id": "pipeline-phase-2", "sample_id": "aggregate-pipeline-phase", "chrom": "7", "pos": 200, "ref": "G", "alt": "C", "GT": "0|1", "PS": "pipeline-ps", "source_id": "ncbi-dbvar-haplotype", "source_version": "public-hub-2026-04"}
+      ]
+    },
+    "allele_aware_sv": {
+      "records": [
+        {"event_id": "pipeline-allele-1", "sample_id": "aggregate-pipeline-sv", "chrom": "7", "start": 500, "end": 700, "kind": "deletion", "alternate": "<DEL>", "GT": "1|0", "allele_index": 1, "phase_set": "pipeline-sv-ps", "copy_number": 1, "support": 0.9, "source_id": "gnomad-sv-v4", "source_version": "v4-public-release"}
+      ]
+    },
+    "pangenome_projection": {
+      "parameters": {"max_candidates_per_query": 8},
+      "queries": [{"query_id": "pipeline-projection-q", "chrom": "7", "start": 100, "end": 120, "path_id": "pipeline-path", "source_id": "ncbi-dbvar-study-browser"}],
+      "nodes": [{"node_id": "pipeline-node", "path_id": "pipeline-path", "chrom": "7", "start": 50, "end": 150, "sequence": "AGCT", "orientation": "forward", "source_id": "ncbi-dbvar-study-browser", "source_version": "study-browser-2026-04"}]
+    },
+    "repeat_mobile_annotation": {
+      "parameters": {"min_overlap_fraction": 0.2, "include_non_mobile": true},
+      "queries": [{"query_id": "pipeline-repeat-q", "chrom": "7", "start": 100, "end": 150, "source_id": "ncbi-dbvar-ftp-manifest"}],
+      "annotations": [{"annotation_id": "pipeline-repeat", "chrom": "7", "start": 110, "end": 140, "family": "L1", "class": "LINE", "subfamily": "L1HS", "strand": "+", "source_id": "ncbi-dbvar-ftp-manifest", "source_version": "manifest-2026-04"}]
+    }
+  }
+}

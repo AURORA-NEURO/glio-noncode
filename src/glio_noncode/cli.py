@@ -270,6 +270,27 @@ from .structural_haplotype import (
     PhasedHaplotypeAssembler,
     RepeatMobileElementAnnotator,
 )
+from .structural_haplotype_bundle import (
+    StructuralHaplotypeBundleFormat,
+    StructuralHaplotypeEvidenceBundleBuilder,
+)
+from .structural_haplotype_contracts import default_structural_haplotype_contract_registry
+from .structural_haplotype_fixture_eval import evaluate_structural_haplotype_fixture
+from .structural_haplotype_lineage import (
+    audit_structural_haplotype_lineage,
+    build_structural_haplotype_lineage,
+)
+from .structural_haplotype_public_data import (
+    StructuralHaplotypeFixtureCatalog,
+    audit_structural_haplotype_fixture,
+)
+from .structural_haplotype_quality_gate import evaluate_structural_haplotype_quality_gate
+from .structural_haplotype_replay import (
+    StructuralHaplotypeReplayExpectation,
+    replay_structural_haplotype_fixtures,
+)
+from .structural_haplotype_runtime import run_structural_haplotype_pipeline
+from .structural_haplotype_scenario_matrix import evaluate_structural_haplotype_scenarios
 from .structural_lineage import audit_structural_lineage, build_structural_lineage
 from .structural_public_data import StructuralFixtureCatalog, audit_structural_fixture
 from .structural_quality_gate import evaluate_structural_quality_gate
@@ -1287,6 +1308,80 @@ def build_parser() -> argparse.ArgumentParser:
     )
     structural_lineage.add_argument("input", type=str)
     structural_lineage.add_argument("--output", default=None)
+
+    structural_haplotype_fixture = subparsers.add_parser(
+        "evaluate-structural-haplotype-fixture",
+        help="evaluate the public aggregate fixture across Domain 02 C09-C12 structural haplotype operations",
+    )
+    structural_haplotype_fixture.add_argument("input", type=str)
+    structural_haplotype_fixture.add_argument("--output", default=None)
+
+    structural_haplotype_data = subparsers.add_parser(
+        "audit-structural-haplotype-data",
+        help="audit public aggregate C09-C12 sources, contexts, identities, and payload scope",
+    )
+    structural_haplotype_data.add_argument("input", type=str)
+    structural_haplotype_data.add_argument("--output", default=None)
+
+    structural_haplotype_replay = subparsers.add_parser(
+        "replay-structural-haplotype-fixtures",
+        help="replay C09-C12 fixtures with identity, context, source, and evidence floors",
+    )
+    structural_haplotype_replay.add_argument("inputs", nargs="+", type=str)
+    structural_haplotype_replay.add_argument("--required-context-key", default=None)
+    structural_haplotype_replay.add_argument("--output", default=None)
+
+    structural_haplotype_quality = subparsers.add_parser(
+        "structural-haplotype-quality-gate",
+        help="reconcile C09-C12 fixture, data, replay, scenario, contract, and lineage evidence",
+    )
+    structural_haplotype_quality.add_argument("input", type=str)
+    structural_haplotype_quality.add_argument("--output", default=None)
+
+    structural_haplotype_scenarios = subparsers.add_parser(
+        "evaluate-structural-haplotype-scenarios",
+        help="run independent C09-C12 positive and review state-transition scenarios",
+    )
+    structural_haplotype_scenarios.add_argument("input", type=str)
+    structural_haplotype_scenarios.add_argument("--output", default=None)
+
+    structural_haplotype_contracts = subparsers.add_parser(
+        "structural-haplotype-contracts",
+        help="print the four-operation Domain 02 C09-C12 structural haplotype contract registry",
+    )
+    structural_haplotype_contracts.add_argument("--output", default=None)
+
+    structural_haplotype_bundle = subparsers.add_parser(
+        "build-structural-haplotype-bundle",
+        help="build a compact JSON, CSV, or Markdown C09-C12 structural haplotype evidence bundle",
+    )
+    structural_haplotype_bundle.add_argument("input", type=str)
+    structural_haplotype_bundle.add_argument("--output", required=True)
+    structural_haplotype_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in StructuralHaplotypeBundleFormat],
+        default=StructuralHaplotypeBundleFormat.JSON.value,
+    )
+    structural_haplotype_bundle.add_argument("--bundle-id", default=None)
+    structural_haplotype_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state C09-C12 bundle for inspection instead of requiring the gate",
+    )
+
+    structural_haplotype_lineage = subparsers.add_parser(
+        "structural-haplotype-lineage",
+        help="build and audit a sanitized C09-C12 source-to-result lineage graph",
+    )
+    structural_haplotype_lineage.add_argument("input", type=str)
+    structural_haplotype_lineage.add_argument("--output", default=None)
+
+    structural_haplotype_pipeline = subparsers.add_parser(
+        "run-structural-haplotype-pipeline",
+        help="run phased haplotype, allele-aware SV, pangenome projection, and repeat annotation stages",
+    )
+    structural_haplotype_pipeline.add_argument("input", type=str)
+    structural_haplotype_pipeline.add_argument("--output", default=None)
 
     structural_beta_fixture = subparsers.add_parser(
         "evaluate-structural-beta-fixture",
@@ -3268,6 +3363,64 @@ def main(argv: list[str] | None = None) -> int:
             payload["audit"] = audit.to_dict()
             _write_json(payload, args.output)
             return 0 if audit.passed else 2
+        if args.command == "evaluate-structural-haplotype-fixture":
+            report = evaluate_structural_haplotype_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-structural-haplotype-data":
+            catalog = StructuralHaplotypeFixtureCatalog.from_file(args.input)
+            report = audit_structural_haplotype_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-structural-haplotype-fixtures":
+            first_catalog = StructuralHaplotypeFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = StructuralHaplotypeReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                first_catalog.source_ids,
+                minimum_checks=40,
+                minimum_positive_records=4,
+                minimum_control_records=8,
+            )
+            report = replay_structural_haplotype_fixtures(
+                args.inputs,
+                expectation=expectation,
+                required_context_key=required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-haplotype-quality-gate":
+            report = evaluate_structural_haplotype_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-structural-haplotype-scenarios":
+            report = evaluate_structural_haplotype_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-haplotype-contracts":
+            _write_json(default_structural_haplotype_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-structural-haplotype-bundle":
+            bundle = StructuralHaplotypeEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+                allow_review=args.allow_review,
+            )
+            return 0 if bundle.accepted else 2
+        if args.command == "structural-haplotype-lineage":
+            graph = build_structural_haplotype_lineage(args.input)
+            audit = audit_structural_haplotype_lineage(graph)
+            payload = graph.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "run-structural-haplotype-pipeline":
+            report = run_structural_haplotype_pipeline(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "evaluate-structural-beta-fixture":
             report = evaluate_structural_beta_fixture(args.input)
             _write_json(report.to_dict(), args.output)

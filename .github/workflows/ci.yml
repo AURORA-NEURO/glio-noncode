@@ -122,3 +122,21 @@ jobs:
         run: python -m glio_noncode structural-beta-lineage examples/structural-beta-public-aggregate.json --output /tmp/glio-structural-beta-lineage.json
       - name: Structural beta pipeline integration
         run: python -m glio_noncode run-structural-beta-pipeline examples/structural-beta-pipeline-accepted.json --output /tmp/glio-structural-beta-pipeline.json
+      - name: Structural haplotype data boundary audit
+        run: python -m glio_noncode audit-structural-haplotype-data examples/structural-haplotype-public-aggregate.json --output /tmp/glio-structural-haplotype-data.json
+      - name: Structural haplotype fixture evaluation
+        run: python -m glio_noncode evaluate-structural-haplotype-fixture examples/structural-haplotype-public-aggregate.json --output /tmp/glio-structural-haplotype-fixture.json
+      - name: Structural haplotype replay integrity
+        run: python -m glio_noncode replay-structural-haplotype-fixtures examples/structural-haplotype-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-structural-haplotype-replay.json
+      - name: Structural haplotype quality gate
+        run: python -m glio_noncode structural-haplotype-quality-gate examples/structural-haplotype-public-aggregate.json --output /tmp/glio-structural-haplotype-quality.json
+      - name: Structural haplotype scenario matrix
+        run: python -m glio_noncode evaluate-structural-haplotype-scenarios examples/structural-haplotype-public-aggregate.json --output /tmp/glio-structural-haplotype-scenarios.json
+      - name: Structural haplotype operation contracts
+        run: python -m glio_noncode structural-haplotype-contracts --output /tmp/glio-structural-haplotype-contracts.json
+      - name: Structural haplotype evidence bundle
+        run: python -m glio_noncode build-structural-haplotype-bundle examples/structural-haplotype-public-aggregate.json --output /tmp/glio-structural-haplotype-bundle.json
+      - name: Structural haplotype lineage graph
+        run: python -m glio_noncode structural-haplotype-lineage examples/structural-haplotype-public-aggregate.json --output /tmp/glio-structural-haplotype-lineage.json
+      - name: Structural haplotype pipeline integration
+        run: python -m glio_noncode run-structural-haplotype-pipeline examples/structural-haplotype-pipeline-accepted.json --output /tmp/glio-structural-haplotype-pipeline.json

@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 40 capabilities have deterministic fixture-backed
-verification and 216 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 44 capabilities have deterministic fixture-backed
+verification and 212 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -320,8 +320,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 40 controls are now verified against the checked-in
-Domain 01, Domain 02, and D13-D16 fixtures, while 216 capabilities remain partial. Partial
+capabilities started (100%); 44 controls are now verified against the checked-in
+Domain 01, Domain 02, and D13-D16 fixtures, while 212 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -587,6 +587,68 @@ glio-noncode represent-allele-aware-sv structural-events.json --output allele-aw
 glio-noncode project-pangenome projection-queries.json --nodes graph-nodes.json --output graph-projection.json
 glio-noncode annotate-repeat-mobile structural-events.json --annotations repeats.json --mobile-only --output repeat-annotations.json
 ```
+
+## Domain 02 structural haplotype evidence boundary
+
+The C09-C12 extension turns the four structural haplotype adapters into one
+independently auditable release family. The boundary is organized around four
+operations and one exact aggregate context:
+
+- C09 phased haplotypes preserve explicit `GT`, phase-set, allele, and source
+  observations. A missing phase is retained as an ambiguous control rather
+  than being filled by inference.
+- C10 allele-aware structural events preserve allele index, dosage, phase,
+  copy number, support, and contradictory observations. A coordinate conflict
+  is review evidence, not a silent merge.
+- C11 pangenome projection maps bounded queries to supplied path nodes and
+  keeps ambiguous and unmapped candidates visible. Coordinate overlap is not
+  sequence homology.
+- C12 repeat/mobile annotation joins bounded intervals to a supplied,
+  source-versioned catalogue and retains class, family, strand, mobile status,
+  and overlap. A context mismatch stays in review.
+
+The checked-in aggregate contains four positive records and eight controls,
+all scoped to
+`GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment`.
+It is built from public aggregate receipts for NCBI dbVar, the dbVar Human
+Structural Variation Data Hub, the dbVar Study Browser, the dbVar FTP manifest,
+and gnomAD-SV. No patient-level values are required by the fixture.
+
+The execution stack is deliberately layered:
+
+- the fixture evaluator produces 72 individual checks and sanitized operation
+  receipts;
+- the replay runner proves fixture identity, exact context, source set,
+  record floors, and deterministic addresses;
+- the scenario matrix independently exercises 12 positive/review transitions;
+- the quality gate reconciles 20 checks, including contracts, lineage, and
+  the sanitized output boundary;
+- the lineage graph contains 29 typed nodes and 36 typed edges from sources
+  through fixture records to result receipts;
+- the bundle builder publishes 12 compact entries in JSON, CSV, or Markdown;
+- the runtime executes C09, C10, C11, and C12 in order and returns accepted,
+  review, or blocked aggregate state with a stage manifest.
+
+Run the complete C09-C12 surface locally:
+
+```powershell
+python -m glio_noncode audit-structural-haplotype-data examples/structural-haplotype-public-aggregate.json --output haplotype-data.json
+python -m glio_noncode evaluate-structural-haplotype-fixture examples/structural-haplotype-public-aggregate.json --output haplotype-fixture.json
+python -m glio_noncode replay-structural-haplotype-fixtures examples/structural-haplotype-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output haplotype-replay.json
+python -m glio_noncode evaluate-structural-haplotype-scenarios examples/structural-haplotype-public-aggregate.json --output haplotype-scenarios.json
+python -m glio_noncode structural-haplotype-contracts --output haplotype-contracts.json
+python -m glio_noncode structural-haplotype-quality-gate examples/structural-haplotype-public-aggregate.json --output haplotype-quality.json
+python -m glio_noncode build-structural-haplotype-bundle examples/structural-haplotype-public-aggregate.json --output haplotype-bundle.json
+python -m glio_noncode structural-haplotype-lineage examples/structural-haplotype-public-aggregate.json --output haplotype-lineage.json
+python -m glio_noncode run-structural-haplotype-pipeline examples/structural-haplotype-pipeline-accepted.json --output haplotype-pipeline.json
+```
+
+The evidence gate is local software verification, not clinical validation. It
+does not establish read-backed phase, long-read molecule assignment, graph
+sequence homology, repeat annotation completeness, transposition, pathogenicity,
+or treatment response. The full schema, issue taxonomy, release rules, and
+tamper checks are documented in `docs/STRUCTURAL_HAPLOTYPE_EVIDENCE_GATE.md`
+and `docs/STRUCTURAL_HAPLOTYPE_BUNDLE_FORMAT.md`.
 
 Every future capability wave must add implementation modules, fixtures,
 negative or abstention cases, and review-facing evidence before its ledger

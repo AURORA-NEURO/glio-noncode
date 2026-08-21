@@ -1,0 +1,215 @@
+{
+  "fixture_id": "structural-haplotype-public-aggregate-2026-08-21",
+  "schema_version": "structural-haplotype-evidence-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "provenance": "public aggregate structural-variation and reference-annotation mechanics fixture",
+  "patient_level": false,
+  "sources": [
+    {
+      "source_id": "ncbi-dbvar-haplotype",
+      "title": "NCBI dbVar Structural Variation Data Hub",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/human_hub/",
+      "version": "public-hub-2026-04",
+      "license": "NCBI public resource terms",
+      "data_scope": "public aggregate structural-variation reference",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Receipt frames public haplotype-resolved and structural-variation scope; local rows are bounded mechanics data."
+    },
+    {
+      "source_id": "gnomad-sv-v4",
+      "title": "gnomAD Structural Variants v4",
+      "url": "https://gnomad.broadinstitute.org/news/2023-11-v4-structural-variants/",
+      "version": "v4-public-release",
+      "license": "gnomAD data use terms",
+      "data_scope": "public aggregate structural-variant reference",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Receipt frames public population structural-variant scope; no individual-level payload is copied."
+    },
+    {
+      "source_id": "ncbi-dbvar-study-browser",
+      "title": "NCBI dbVar Study Browser",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/studies/",
+      "version": "study-browser-2026-04",
+      "license": "NCBI public resource terms",
+      "data_scope": "public aggregate study and structural-variation index",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Receipt frames public study indexing and source-version accounting."
+    },
+    {
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "title": "NCBI dbVar FTP File Manifest",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/ftp_manifest/",
+      "version": "manifest-2026-04",
+      "license": "NCBI public resource terms",
+      "data_scope": "public aggregate structural-variation file and assembly index",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Receipt frames public assembly, source-version, and annotation-file scope."
+    }
+  ],
+  "positives": [
+    {
+      "record_id": "positive-phased-haplotype",
+      "operation": "phased_haplotype",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-haplotype",
+      "payload": {
+        "parameters": {"max_haplotypes": 4},
+        "records": [
+          {"observation_id": "phase-v1", "sample_id": "aggregate-phase-1", "chrom": "7", "pos": 100, "ref": "A", "alt": "T", "GT": "1|0", "PS": "phase-block-1", "source_id": "ncbi-dbvar-haplotype", "source_version": "public-hub-2026-04", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"},
+          {"observation_id": "phase-v2", "sample_id": "aggregate-phase-1", "chrom": "7", "pos": 200, "ref": "G", "alt": "C", "GT": "0|1", "PS": "phase-block-1", "source_id": "ncbi-dbvar-haplotype", "source_version": "public-hub-2026-04", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}
+        ]
+      },
+      "expected_counts": {"haplotypes": 2, "unphased": 0, "issues": 0},
+      "description": "Two explicit phase paths retain reciprocal allele calls without sequence reconstruction."
+    },
+    {
+      "record_id": "positive-allele-aware-sv",
+      "operation": "allele_aware_sv",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "payload": {
+        "records": [
+          {"event_id": "allele-sv-1", "sample_id": "aggregate-sv-1", "chrom": "7", "start": 55200000, "end": 55201000, "kind": "deletion", "alternate": "<DEL>", "GT": "1|0", "allele_index": 1, "phase_set": "sv-phase-1", "copy_number": 1, "support": 0.94, "source_id": "gnomad-sv-v4", "source_version": "v4-public-release", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}
+        ]
+      },
+      "expected_counts": {"events": 1, "issues": 0},
+      "description": "One phased structural event retains alternate allele, dosage, zygosity, copy number, and support."
+    },
+    {
+      "record_id": "positive-pangenome-projection",
+      "operation": "pangenome_projection",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "payload": {
+        "parameters": {"max_candidates_per_query": 8},
+        "queries": [{"query_id": "projection-q1", "chrom": "7", "start": 100, "end": 120, "path_id": "path-reference", "source_id": "ncbi-dbvar-study-browser", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}],
+        "nodes": [{"node_id": "graph-node-1", "path_id": "path-reference", "chrom": "7", "start": 50, "end": 150, "sequence": "AGCT", "orientation": "forward", "source_id": "ncbi-dbvar-study-browser", "source_version": "study-browser-2026-04", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}]
+      },
+      "expected_counts": {"matches": 1, "unmapped": 0, "issues": 0},
+      "description": "One interval maps to one declared path by coordinate containment."
+    },
+    {
+      "record_id": "positive-repeat-mobile-annotation",
+      "operation": "repeat_mobile_annotation",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "payload": {
+        "parameters": {"min_overlap_fraction": 0.2, "include_non_mobile": true},
+        "queries": [{"query_id": "repeat-q1", "chrom": "7", "start": 100, "end": 150, "source_id": "ncbi-dbvar-ftp-manifest", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}],
+        "annotations": [{"annotation_id": "repeat-line-1", "chrom": "7", "start": 110, "end": 140, "family": "L1", "class": "LINE", "subfamily": "L1HS", "strand": "+", "source_id": "ncbi-dbvar-ftp-manifest", "source_version": "manifest-2026-04", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}]
+      },
+      "expected_counts": {"hits": 1, "unannotated": 0, "issues": 0},
+      "description": "One interval overlaps a supplied mobile-element annotation above the declared threshold."
+    }
+  ],
+  "controls": [
+    {
+      "record_id": "control-phased-unphased",
+      "operation": "phased_haplotype",
+      "expected_result_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-haplotype",
+      "payload": {"records": [{"observation_id": "phase-control-unphased", "sample_id": "aggregate-phase-control", "chrom": "7", "pos": 300, "ref": "C", "alt": "A", "GT": "0/1", "source_id": "ncbi-dbvar-haplotype", "source_version": "public-hub-2026-04", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}]},
+      "expected_counts": {"haplotypes": 0, "unphased": 1, "issues": 0},
+      "description": "Unphased genotype remains outside an assembled path."
+    },
+    {
+      "record_id": "control-phased-context-drift",
+      "operation": "phased_haplotype",
+      "expected_result_state": "out_of_domain",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-haplotype",
+      "payload": {"records": [{"observation_id": "phase-control-context", "sample_id": "aggregate-phase-control", "chrom": "7", "pos": 400, "ref": "T", "alt": "G", "GT": "1|0", "PS": "phase-block-x", "source_id": "ncbi-dbvar-haplotype", "source_version": "public-hub-2026-04", "context_key": "GRCh37|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}]},
+      "required_issue_codes": ["context_mismatch"],
+      "expected_counts": {"haplotypes": 0, "unphased": 0, "issues": 1},
+      "description": "A different assembly is excluded instead of being combined with the requested context."
+    },
+    {
+      "record_id": "control-allele-conflict",
+      "operation": "allele_aware_sv",
+      "expected_result_state": "contradictory",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "payload": {"records": [
+        {"event_id": "allele-conflict-1", "sample_id": "aggregate-sv-control", "chrom": "7", "start": 100, "end": 200, "kind": "deletion", "alternate": "<DEL>", "GT": "1|0", "allele_index": 1, "source_id": "gnomad-sv-v4", "source_version": "v4-public-release"},
+        {"event_id": "allele-conflict-1", "sample_id": "aggregate-sv-control", "chrom": "7", "start": 101, "end": 200, "kind": "deletion", "alternate": "<DEL>", "GT": "1|0", "allele_index": 1, "source_id": "gnomad-sv-v4", "source_version": "v4-public-release"}
+      ]},
+      "required_issue_codes": ["conflicting_allele_observation"],
+      "expected_counts": {"events": 1, "issues": 1},
+      "description": "Incompatible coordinates for one event and allele remain contradictory."
+    },
+    {
+      "record_id": "control-allele-missing-dosage",
+      "operation": "allele_aware_sv",
+      "expected_result_state": "partial",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "payload": {"records": [{"event_id": "allele-missing-1", "sample_id": "aggregate-sv-control", "chrom": "7", "start": 300, "end": 350, "kind": "insertion", "alternate": "<INS>", "source_id": "gnomad-sv-v4", "source_version": "v4-public-release"}]},
+      "expected_counts": {"events": 1, "issues": 0},
+      "description": "A structural event without declared genotype or allele index remains partial."
+    },
+    {
+      "record_id": "control-pangenome-ambiguous-paths",
+      "operation": "pangenome_projection",
+      "expected_result_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "payload": {
+        "queries": [{"query_id": "projection-control-ambiguous", "chrom": "7", "start": 110, "end": 120, "source_id": "ncbi-dbvar-study-browser"}],
+        "nodes": [
+          {"node_id": "graph-ambiguous-a", "path_id": "path-a", "chrom": "7", "start": 100, "end": 150, "sequence": "AGCT", "orientation": "forward", "source_id": "ncbi-dbvar-study-browser", "source_version": "study-browser-2026-04"},
+          {"node_id": "graph-ambiguous-b", "path_id": "path-b", "chrom": "7", "start": 100, "end": 150, "sequence": "TCGA", "orientation": "reverse", "source_id": "ncbi-dbvar-study-browser", "source_version": "study-browser-2026-04"}
+        ]
+      },
+      "expected_counts": {"matches": 2, "unmapped": 0, "issues": 0},
+      "description": "Two supplied graph paths remain visible for one coordinate-overlapping query."
+    },
+    {
+      "record_id": "control-pangenome-unmapped",
+      "operation": "pangenome_projection",
+      "expected_result_state": "partial",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "payload": {"queries": [{"query_id": "projection-control-unmapped", "chrom": "7", "start": 900, "end": 910, "source_id": "ncbi-dbvar-study-browser"}], "nodes": [{"node_id": "graph-unmapped-only", "path_id": "path-a", "chrom": "7", "start": 100, "end": 150, "sequence": "AGCT", "orientation": "forward", "source_id": "ncbi-dbvar-study-browser", "source_version": "study-browser-2026-04"}]},
+      "expected_counts": {"matches": 0, "unmapped": 1, "issues": 0},
+      "description": "No supplied node covers the query, so the query remains explicitly unmapped."
+    },
+    {
+      "record_id": "control-repeat-mixed-classes",
+      "operation": "repeat_mobile_annotation",
+      "expected_result_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "payload": {"queries": [{"query_id": "repeat-control-mixed", "chrom": "7", "start": 100, "end": 150, "source_id": "ncbi-dbvar-ftp-manifest"}], "annotations": [
+        {"annotation_id": "repeat-mixed-line", "chrom": "7", "start": 110, "end": 125, "family": "L1", "class": "LINE", "subfamily": "L1HS", "strand": "+", "source_id": "ncbi-dbvar-ftp-manifest", "source_version": "manifest-2026-04"},
+        {"annotation_id": "repeat-mixed-satellite", "chrom": "7", "start": 130, "end": 145, "family": "Satellite", "class": "satellite", "subfamily": "satellite", "strand": ".", "source_id": "ncbi-dbvar-ftp-manifest", "source_version": "manifest-2026-04"}
+      ]},
+      "expected_counts": {"hits": 2, "unannotated": 0, "issues": 0},
+      "description": "Overlapping annotations from different classes remain ambiguous."
+    },
+    {
+      "record_id": "control-repeat-context-drift",
+      "operation": "repeat_mobile_annotation",
+      "expected_result_state": "partial",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "payload": {"queries": [{"query_id": "repeat-control-context", "chrom": "7", "start": 100, "end": 150, "source_id": "ncbi-dbvar-ftp-manifest", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}], "annotations": [{"annotation_id": "repeat-wrong-context", "chrom": "7", "start": 110, "end": 140, "family": "L1", "class": "LINE", "subfamily": "L1HS", "strand": "+", "source_id": "ncbi-dbvar-ftp-manifest", "source_version": "manifest-2026-04", "context_key": "GRCh37|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}]},
+      "required_issue_codes": ["annotation_context_mismatch"],
+      "expected_counts": {"hits": 0, "unannotated": 1, "issues": 1},
+      "description": "An annotation from another assembly is excluded and the query remains unannotated."
+    }
+  ],
+  "notes": [
+    "All rows are aggregate mechanics records and contain no individual-level payload.",
+    "Coordinates, genotype strings, graph paths, and repeat labels are bounded test observations.",
+    "The operations preserve review and ambiguity rather than inferring sequence, homology, transposition, or clinical meaning."
+  ]
+}
