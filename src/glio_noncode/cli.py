@@ -132,6 +132,12 @@ from .specimen_beta import (
     SubcloneAssigner,
 )
 from .specimen_context import PurityPloidyImporter
+from .specimen_lineage import (
+    LongitudinalSpecimenLinker,
+    MultiRegionLineageResolver,
+    PrimaryRecurrencePhaseMapper,
+    TreatmentExposureContextualizer,
+)
 from .structural_beta import (
     ChromothripsisPatternDetector,
     EnhancerHijackingCandidateDetector,
@@ -866,6 +872,40 @@ def build_parser() -> argparse.ArgumentParser:
     subclones.add_argument("--max-ccf-distance", type=float, default=0.15)
     subclones.add_argument("--boundary-ambiguity", type=float, default=0.02)
     subclones.add_argument("--output", default=None)
+
+    region_lineage = subparsers.add_parser(
+        "resolve-multi-region-lineage",
+        help="resolve declared multi-region specimen parent edges within each subject",
+    )
+    region_lineage.add_argument("input", type=str)
+    region_lineage.add_argument("--context-key", default=None)
+    region_lineage.add_argument("--output", default=None)
+
+    longitudinal = subparsers.add_parser(
+        "link-longitudinal-specimens",
+        help="link same-subject specimens using declared or ordered temporal evidence",
+    )
+    longitudinal.add_argument("input", type=str)
+    longitudinal.add_argument("--context-key", default=None)
+    longitudinal.add_argument("--link-singleton", action="store_true")
+    longitudinal.add_argument("--output", default=None)
+
+    phase_map = subparsers.add_parser(
+        "map-primary-recurrence",
+        help="map explicit primary, recurrence, interval, and unknown specimen phases",
+    )
+    phase_map.add_argument("input", type=str)
+    phase_map.add_argument("--context-key", default=None)
+    phase_map.add_argument("--output", default=None)
+
+    treatment_context = subparsers.add_parser(
+        "contextualize-treatment",
+        help="join specimens to same-subject treatment exposure intervals",
+    )
+    treatment_context.add_argument("input", type=str)
+    treatment_context.add_argument("--exposures", required=True)
+    treatment_context.add_argument("--context-key", default=None)
+    treatment_context.add_argument("--output", default=None)
 
     ccre = subparsers.add_parser("parse-ccre", help="parse an ENCODE SCREEN-style cCRE track")
     ccre.add_argument("input", type=str)
@@ -1952,6 +1992,36 @@ def main(argv: list[str] | None = None) -> int:
                 _read_rows(args.input, "records", "estimates"),
                 max_ccf_distance=args.max_ccf_distance,
                 boundary_ambiguity=args.boundary_ambiguity,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "resolve-multi-region-lineage":
+            result = MultiRegionLineageResolver().resolve(
+                _read_rows(args.input, "records", "regions", "observations"),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "link-longitudinal-specimens":
+            result = LongitudinalSpecimenLinker().link(
+                _read_rows(args.input, "records", "specimens", "observations"),
+                context_key=args.context_key,
+                link_singleton=args.link_singleton,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "map-primary-recurrence":
+            result = PrimaryRecurrencePhaseMapper().map(
+                _read_rows(args.input, "records", "specimens", "observations"),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "contextualize-treatment":
+            result = TreatmentExposureContextualizer().contextualize(
+                _read_rows(args.input, "records", "specimens", "observations"),
+                _read_rows(args.exposures, "exposures", "records"),
+                context_key=args.context_key,
             )
             _write_json(result.to_dict(), args.output)
             return 0

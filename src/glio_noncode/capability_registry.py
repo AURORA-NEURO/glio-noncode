@@ -704,6 +704,71 @@ def default_capability_registry() -> CapabilityRegistry:
                     "or named biological clones."
                 ),
             },
+            "GNC-D03-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_lineage.MultiRegionLineageResolver",
+                    "glio_noncode.specimen_lineage.RegionLineage",
+                    "glio_noncode.specimen_lineage.RegionLineageEdge",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_lineage",
+                    "tests.test_specimen_lineage_cli",
+                ),
+                "evidence_note": (
+                    "Subject-local region graphs retain declared parent edges, roots, leaves, "
+                    "missing parents, cycles, source hashes, and exact context; specimen "
+                    "authentication and biological clonal ancestry remain external."
+                ),
+            },
+            "GNC-D03-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_lineage.LongitudinalSpecimenLinker",
+                    "glio_noncode.specimen_lineage.LongitudinalLinkReport",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_lineage",
+                    "tests.test_specimen_lineage_cli",
+                ),
+                "evidence_note": (
+                    "Same-subject specimen links preserve declared predecessor edges or "
+                    "ordered collection times, tissue differences, gap labels, missing dates, "
+                    "and source receipts; evolution and response are not inferred."
+                ),
+            },
+            "GNC-D03-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_lineage.PrimaryRecurrencePhaseMapper",
+                    "glio_noncode.specimen_lineage.PrimaryRecurrenceMappingReport",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_lineage",
+                    "tests.test_specimen_lineage_cli",
+                ),
+                "evidence_note": (
+                    "Primary, recurrence, interval, and unknown assignments use explicit labels "
+                    "or a declared primary predecessor; later dates alone remain unknown and "
+                    "conflicting labels remain contradictory."
+                ),
+            },
+            "GNC-D03-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_lineage.TreatmentExposureContextualizer",
+                    "glio_noncode.specimen_lineage.TreatmentExposureReport",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_lineage",
+                    "tests.test_specimen_lineage_cli",
+                ),
+                "evidence_note": (
+                    "Same-subject specimen times are compared with declared treatment intervals "
+                    "to retain pre/on/post relations, overlap ambiguity, missing times, and "
+                    "source versions; response and resistance are not inferred."
+                ),
+            },
             "GNC-D04-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.reference_registry.ReferenceRegistry",),

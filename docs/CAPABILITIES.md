@@ -195,6 +195,31 @@ glio-noncode estimate-ccf ccf-input.json --output ccf.json
 glio-noncode assign-subclones ccf-estimates.json --output subclones.json
 ```
 
+The Domain 03 longitudinal and exposure extensions deepen specimen context:
+
+- `MultiRegionLineageResolver` builds subject-local region graphs from
+  declared parent edges and retains roots, leaves, missing parents, cycles,
+  relationship labels, and source receipts. It does not authenticate a
+  specimen or infer clonal ancestry.
+- `LongitudinalSpecimenLinker` links same-subject specimens through declared
+  predecessors or deterministic collection-time ordering. Tissue changes,
+  missing dates, gap labels, and the ordering basis remain visible; temporal
+  order is not biological evolution.
+- `PrimaryRecurrencePhaseMapper` maps explicit primary, recurrence, interval,
+  and unknown labels. A later collection date alone remains unknown, and
+  conflicting phase declarations remain contradictory.
+- `TreatmentExposureContextualizer` compares same-subject specimen times with
+  declared therapy intervals and returns pre-treatment, on-treatment, or
+  post-treatment context, including overlapping exposures and missing times.
+  It does not infer response, resistance, or causality.
+
+```powershell
+glio-noncode resolve-multi-region-lineage regions.json --output region-lineage.json
+glio-noncode link-longitudinal-specimens specimens.json --output longitudinal.json
+glio-noncode map-primary-recurrence specimens.json --output phase-map.json
+glio-noncode contextualize-treatment specimens.json --exposures treatments.json --output treatment-context.json
+```
+
 ## Domain 04 reference coordinates
 
 The reference plane resolves assembly aliases separately from mapping
