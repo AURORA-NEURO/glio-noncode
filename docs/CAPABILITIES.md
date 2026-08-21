@@ -718,6 +718,32 @@ The replayable factor boundary is:
 glio-noncode factor-graph factors.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output graph.json
 ```
 
+The external-alpha causal controls add four deeper contracts:
+
+- `MediationSensitivityAnalyzer` reruns a typed mediator after omitting each
+  source, retaining base and leave-one-out states, support deltas, source
+  influence, model versions, and robustness tolerance.
+- `ConfoundingChecklistAdjudicator` records addressed, unresolved, missing,
+  and not-applicable confounders with severity, adjustment method, source
+  lineage, and exact-context gates.
+- `EvidenceDependenceCorrector` groups declaredly dependent evidence paths,
+  selects one representative per group, and retains excluded IDs, group
+  counts, source families, uncertainty, and contradiction state.
+- `NegativeEvidenceIntegrator` keeps positive paths, negative controls, and
+  measured-negative observations separate, reporting coverage and conflict
+  instead of erasing negative evidence or treating it as proof of absence.
+
+All four are bounded research controls. They do not establish causal
+identification, calibrated posteriors, diagnoses, treatment recommendations,
+or actionability.
+
+```powershell
+glio-noncode analyze-mediation-sensitivity causal-evidence.json --mediator-kind sequence_to_element --source-node variant:v1 --target-node element:enh-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id seq-alpha --model-version 1 --output sensitivity.json
+glio-noncode adjudicate-confounding confounders.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --required-confounder batch --required-confounder purity --output confounding.json
+glio-noncode correct-evidence-dependence dependence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-independent-groups 2 --output dependence-corrected.json
+glio-noncode integrate-negative-evidence negative-evidence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-negative-controls 1 --output negative-integrated.json
+```
+
 ## Domain 12 cohort discovery and controls
 
 The cohort plane builds exact-context queries with variant-kind, origin, sample,

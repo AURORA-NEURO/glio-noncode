@@ -23,11 +23,19 @@ from .atlas_beta import (
 )
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
+from .causal_alpha import (
+    ConfoundingChecklistAdjudicator,
+    DependenceMethod,
+    EvidenceDependenceCorrector,
+    MediationSensitivityAnalyzer,
+    NegativeEvidenceIntegrator,
+)
 from .causal_beta import (
     CausalMediatorEvidenceParser,
     CounterfactualAlleleStateSimulator,
     ElementToGeneCausalMediator,
     GeneToStateCausalMediator,
+    MediatorKind,
     SequenceToElementCausalMediator,
 )
 from .causal_reasoning import FactorGraphConstructor, FactorObservation
@@ -1692,6 +1700,59 @@ def build_parser() -> argparse.ArgumentParser:
     counterfactual.add_argument("--ambiguity-tolerance", type=float, default=0.20)
     counterfactual.add_argument("--output", default=None)
 
+    sensitivity = subparsers.add_parser(
+        "analyze-mediation-sensitivity",
+        help="run leave-one-source-out sensitivity for a typed mediator edge",
+    )
+    sensitivity.add_argument("input", type=str)
+    sensitivity.add_argument(
+        "--mediator-kind",
+        choices=tuple(item.value for item in MediatorKind),
+        required=True,
+    )
+    sensitivity.add_argument("--source-node", required=True)
+    sensitivity.add_argument("--target-node", required=True)
+    sensitivity.add_argument("--context-key", required=True)
+    sensitivity.add_argument("--model-id", required=True)
+    sensitivity.add_argument("--model-version", required=True)
+    sensitivity.add_argument("--minimum-sources", type=int, default=2)
+    sensitivity.add_argument("--robustness-tolerance", type=float, default=0.20)
+    sensitivity.add_argument("--output", default=None)
+
+    confounding = subparsers.add_parser(
+        "adjudicate-confounding",
+        help="adjudicate declared confounder checklist observations",
+    )
+    confounding.add_argument("input", type=str)
+    confounding.add_argument("--context-key", default=None)
+    confounding.add_argument("--required-confounder", action="append", default=[])
+    confounding.add_argument("--output", default=None)
+
+    dependence = subparsers.add_parser(
+        "correct-evidence-dependence",
+        help="correct repeated evidence paths using declared dependence groups",
+    )
+    dependence.add_argument("input", type=str)
+    dependence.add_argument("--context-key", required=True)
+    dependence.add_argument("--edge-id", default=None)
+    dependence.add_argument(
+        "--correction-method",
+        choices=tuple(item.value for item in DependenceMethod),
+        default=DependenceMethod.DECLARED_GROUP.value,
+    )
+    dependence.add_argument("--minimum-independent-groups", type=int, default=2)
+    dependence.add_argument("--output", default=None)
+
+    negative = subparsers.add_parser(
+        "integrate-negative-evidence",
+        help="integrate positive paths and negative controls without erasing either",
+    )
+    negative.add_argument("input", type=str)
+    negative.add_argument("--context-key", required=True)
+    negative.add_argument("--edge-id", default=None)
+    negative.add_argument("--minimum-negative-controls", type=int, default=1)
+    negative.add_argument("--output", default=None)
+
     recurrence_parse = subparsers.add_parser(
         "parse-regulatory-recurrence",
         help="parse context-qualified recurrence observations with row quarantine",
@@ -3006,6 +3067,48 @@ def main(argv: list[str] | None = None) -> int:
                 model_id=args.model_id,
                 model_version=args.model_version,
                 ambiguity_tolerance=args.ambiguity_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "analyze-mediation-sensitivity":
+            payload = _read_json(args.input)
+            result = MediationSensitivityAnalyzer().analyze(
+                payload.get("evidence", payload.get("records", ())),
+                mediator_kind=MediatorKind(args.mediator_kind),
+                source_node=args.source_node,
+                target_node=args.target_node,
+                context_key=args.context_key,
+                model_id=args.model_id,
+                model_version=args.model_version,
+                minimum_sources=args.minimum_sources,
+                robustness_tolerance=args.robustness_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "adjudicate-confounding":
+            result = ConfoundingChecklistAdjudicator().assess(
+                _read_rows(args.input, "observations", "records", "confounders"),
+                context_key=args.context_key,
+                required_confounder_ids=args.required_confounder,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "correct-evidence-dependence":
+            result = EvidenceDependenceCorrector().correct(
+                _read_rows(args.input, "observations", "evidence", "records"),
+                context_key=args.context_key,
+                edge_id=args.edge_id,
+                correction_method=DependenceMethod(args.correction_method),
+                minimum_independent_groups=args.minimum_independent_groups,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "integrate-negative-evidence":
+            result = NegativeEvidenceIntegrator().integrate(
+                _read_rows(args.input, "observations", "evidence", "records"),
+                context_key=args.context_key,
+                edge_id=args.edge_id,
+                minimum_negative_controls=args.minimum_negative_controls,
             )
             _write_json(result.to_dict(), args.output)
             return 0

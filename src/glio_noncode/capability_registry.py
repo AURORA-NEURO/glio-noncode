@@ -1898,6 +1898,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "not establish causality or clinical effect."
                 ),
             },
+            "GNC-D11-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_alpha.MediationSensitivityAnalyzer",
+                    "glio_noncode.causal_alpha.MediationSensitivityResult",
+                ),
+                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "evidence_note": (
+                    "Leave-one-source-out mediation sensitivity retains base and rerun states, "
+                    "source influence deltas, evidence IDs, model versions, and robustness "
+                    "tolerance; sensitivity is not causal identification."
+                ),
+            },
+            "GNC-D11-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_alpha.ConfoundingChecklistAdjudicator",
+                    "glio_noncode.causal_alpha.ConfoundingAdjudicationReport",
+                ),
+                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "evidence_note": (
+                    "Confounding checklists retain addressed, unresolved, missing, and not "
+                    "applicable items with severity, adjustment methods, source lineage, and "
+                    "exact-context gates; completion does not prove no unmeasured confounding."
+                ),
+            },
+            "GNC-D11-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_alpha.EvidenceDependenceCorrector",
+                    "glio_noncode.causal_alpha.DependenceCorrectionReport",
+                ),
+                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "evidence_note": (
+                    "Declared dependence groups select one representative path per group while "
+                    "retaining duplicate IDs, method families, uncertainty, independent-group "
+                    "counts, and contradictions; corrected support is a bounded proxy."
+                ),
+            },
+            "GNC-D11-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_alpha.NegativeEvidenceIntegrator",
+                    "glio_noncode.causal_alpha.NegativeEvidenceIntegrationReport",
+                ),
+                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "evidence_note": (
+                    "Positive paths, negative controls, measured-negative states, coverage, and "
+                    "positive/negative contradiction remain separate with exact context and "
+                    "assay limitations; negative evidence is not proof of absence."
+                ),
+            },
             "GNC-D12-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.cohort_discovery.CohortQueryBuilder",),
