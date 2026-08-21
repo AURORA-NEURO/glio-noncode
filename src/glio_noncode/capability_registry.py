@@ -1104,6 +1104,50 @@ def default_capability_registry() -> CapabilityRegistry:
                     "external benchmark calibration remains."
                 ),
             },
+            "GNC-D09-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.topology_beta.LoopStripeAdapter",),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "evidence_note": (
+                    "Loop and stripe adapters preserve two-anchor coordinates, feature kind, "
+                    "signal, resolution, replicate/caller metadata, source versions, hashes, and "
+                    "malformed-row quarantine; external schema conformance remains."
+                ),
+            },
+            "GNC-D09-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_beta.PromoterCaptureContactAdapter",
+                ),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "evidence_note": (
+                    "Promoter-capture adapters retain promoter and target-element identity, bait, "
+                    "coordinates, signal, context, source versions, hashes, and parser issues; "
+                    "locked external fixtures remain."
+                ),
+            },
+            "GNC-D09-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_beta.EnhancerPromoterContactScorer",
+                ),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "evidence_note": (
+                    "Exact-context enhancer-promoter contact scoring retains every observation, "
+                    "replicate spread, source versions, bounded signal normalization, and "
+                    "out-of-domain context; calibration and negative controls remain."
+                ),
+            },
+            "GNC-D09-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.topology_beta.ActivityByContactScorer",),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "evidence_note": (
+                    "Activity-by-contact combines exact-context activity and contact components "
+                    "with model/version receipts, missingness, ambiguity, and source lineage; the "
+                    "product is not a probability or causal regulatory claim."
+                ),
+            },
             "GNC-D10-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.link_graph.CoordinateOverlapLinker",),

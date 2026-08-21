@@ -89,6 +89,12 @@ from .structural_beta import (
     FocalAmplificationBoundaryMapper,
 )
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
+from .topology_beta import (
+    ActivityByContactScorer,
+    EnhancerPromoterContactScorer,
+    LoopStripeAdapter,
+    PromoterCaptureContactAdapter,
+)
 from .topology_context import (
     ContactMatrixParser,
     TadBoundaryParser,
@@ -757,6 +763,57 @@ def build_parser() -> argparse.ArgumentParser:
     h3_prior.add_argument("--ambiguity-margin", type=float, default=0.15)
     h3_prior.add_argument("--output", default=None)
 
+    loop_stripe = subparsers.add_parser(
+        "parse-loop-stripe",
+        help="parse versioned loop and stripe features with two-anchor provenance",
+    )
+    loop_stripe.add_argument("input", type=str)
+    loop_stripe.add_argument("--source-id", default=None)
+    loop_stripe.add_argument("--source-version", default="unspecified")
+    loop_stripe.add_argument("--format", choices=("tsv", "json"), default=None)
+    loop_stripe.add_argument("--coordinate-system", choices=("bed", "one_based"), default="bed")
+    loop_stripe.add_argument("--output", default=None)
+
+    promoter_capture = subparsers.add_parser(
+        "parse-promoter-capture",
+        help="parse promoter-capture bait-to-element contact records",
+    )
+    promoter_capture.add_argument("input", type=str)
+    promoter_capture.add_argument("--source-id", default=None)
+    promoter_capture.add_argument("--source-version", default="unspecified")
+    promoter_capture.add_argument("--format", choices=("tsv", "json"), default=None)
+    promoter_capture.add_argument(
+        "--coordinate-system", choices=("bed", "one_based"), default="bed"
+    )
+    promoter_capture.add_argument("--output", default=None)
+
+    contact_score = subparsers.add_parser(
+        "score-enhancer-promoter-contact",
+        help="score exact-context enhancer-promoter contact observations",
+    )
+    contact_score.add_argument("input", type=str)
+    contact_score.add_argument("--enhancer-id", required=True)
+    contact_score.add_argument("--promoter-id", required=True)
+    contact_score.add_argument("--context-key", required=True)
+    contact_score.add_argument("--signal-scale", type=float, default=10.0)
+    contact_score.add_argument("--ambiguity-tolerance", type=float, default=0.50)
+    contact_score.add_argument("--output", default=None)
+
+    abc_score = subparsers.add_parser(
+        "score-activity-by-contact",
+        help="combine exact-context enhancer activity and contact components",
+    )
+    abc_score.add_argument("input", type=str)
+    abc_score.add_argument("--enhancer-id", required=True)
+    abc_score.add_argument("--promoter-id", required=True)
+    abc_score.add_argument("--context-key", required=True)
+    abc_score.add_argument("--model-id", required=True)
+    abc_score.add_argument("--model-version", required=True)
+    abc_score.add_argument("--contact-scale", type=float, default=10.0)
+    abc_score.add_argument("--activity-scale", type=float, default=1.0)
+    abc_score.add_argument("--ambiguity-tolerance", type=float, default=0.50)
+    abc_score.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -1367,6 +1424,56 @@ def main(argv: list[str] | None = None) -> int:
                     declared_molecular_state=args.molecular_state,
                     **common,
                 )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-loop-stripe":
+            input_path = Path(args.input)
+            result = LoopStripeAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                coordinate_system=args.coordinate_system,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-promoter-capture":
+            input_path = Path(args.input)
+            result = PromoterCaptureContactAdapter().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                coordinate_system=args.coordinate_system,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "score-enhancer-promoter-contact":
+            payload = _read_json(args.input)
+            result = EnhancerPromoterContactScorer().score(
+                payload.get("observations", payload.get("contacts", ())),
+                enhancer_id=args.enhancer_id,
+                promoter_id=args.promoter_id,
+                context_key=args.context_key,
+                signal_scale=args.signal_scale,
+                ambiguity_tolerance=args.ambiguity_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "score-activity-by-contact":
+            payload = _read_json(args.input)
+            result = ActivityByContactScorer().score(
+                payload.get("contacts", payload.get("contact_observations", ())),
+                payload.get("activities", payload.get("activity_observations", ())),
+                enhancer_id=args.enhancer_id,
+                promoter_id=args.promoter_id,
+                context_key=args.context_key,
+                model_id=args.model_id,
+                model_version=args.model_version,
+                contact_scale=args.contact_scale,
+                activity_scale=args.activity_scale,
+                ambiguity_tolerance=args.ambiguity_tolerance,
+            )
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command in {"scan-motif-disruption", "scan-motif-creation"}:

@@ -370,6 +370,32 @@ glio-noncode parse-contacts contacts.tsv --assay hi-c --output contacts.json
 glio-noncode parse-boundaries boundaries.tsv --assay micro-c --output boundaries.json
 ```
 
+The Domain 09 scientific-beta extensions add topology-specific adapters and
+scorers:
+
+- `LoopStripeAdapter` parses loop and stripe features with two normalized
+  anchors, feature kind, signal, resolution, replicate/caller metadata,
+  source versions, hashes, and row-level quarantine.
+- `PromoterCaptureContactAdapter` preserves promoter and target-element
+  identity, bait metadata, coordinates, signal, exact context, and source
+  receipts for promoter-capture snapshots.
+- `EnhancerPromoterContactScorer` summarizes exact-context contact observations
+  with replicate spread and a declared bounded signal transform. It retains
+  all observations and does not turn contact into a link claim.
+- `ActivityByContactScorer` combines measured activity and contact components
+  under explicit scales, retaining both component states, model/version, and
+  missingness. The product is descriptive evidence, not a probability or
+  causal regulatory effect.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode parse-loop-stripe loops.tsv --output loops.json
+glio-noncode parse-promoter-capture promoter-capture.json --coordinate-system one_based --output promoter-capture-normalized.json
+glio-noncode score-enhancer-promoter-contact contact-evidence.json --enhancer-id enh-1 --promoter-id GENE1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output contact-score.json
+glio-noncode score-activity-by-contact activity-contact.json --enhancer-id enh-1 --promoter-id GENE1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id abc-model --model-version 2026.1 --output abc-score.json
+```
+
 ## Domain 10 candidate link graph
 
 The link plane produces context-qualified candidate relationships among
