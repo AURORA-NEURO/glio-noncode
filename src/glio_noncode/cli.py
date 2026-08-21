@@ -269,6 +269,13 @@ from .workspace import (
     WorkspaceSection,
     WorkspaceState,
 )
+from .workspace_alpha import (
+    NotebookRuntime,
+    NotebookSDKLauncher,
+    RoleBasedCollaborationEvaluator,
+    ShareableSnapshotPublisher,
+    ValidationExperimentBoardBuilder,
+)
 from .workspace_beta import (
     CausalChainExplorer,
     EvidenceTableAndFilters,
@@ -2011,6 +2018,62 @@ def build_parser() -> argparse.ArgumentParser:
     delta.add_argument("--expected-context-key", default=None)
     delta.add_argument("--output", default=None)
 
+    board = subparsers.add_parser(
+        "build-validation-board",
+        help="build an exact-context validation experiment board",
+    )
+    board.add_argument("input", type=str)
+    board.add_argument("--context-key", required=True)
+    board.add_argument("--board-id", default="validation-board")
+    board.add_argument("--output", default=None)
+
+    launch = subparsers.add_parser(
+        "plan-notebook-launch",
+        help="plan a bounded notebook or SDK launch descriptor",
+    )
+    launch.add_argument("input", type=str)
+    launch.add_argument("--context-key", required=True)
+    launch.add_argument("--plan-id", default="notebook-launch-plan")
+    launch.add_argument(
+        "--allowed-runtime",
+        action="append",
+        choices=tuple(item.value for item in NotebookRuntime),
+        default=None,
+    )
+    launch.add_argument("--output", default=None)
+
+    share = subparsers.add_parser(
+        "publish-shareable-snapshot",
+        help="publish a research-only shareable HMAC snapshot",
+    )
+    share.add_argument("input", type=str)
+    share.add_argument("--snapshot-id", required=True)
+    share.add_argument("--snapshot-type", default="workspace")
+    share.add_argument("--context-key", required=True)
+    share.add_argument("--key-id", required=True)
+    share.add_argument("--signing-secret", required=True)
+    share.add_argument("--audience", action="append", default=None)
+    share.add_argument("--expires-at", default=None)
+    share.add_argument("--output", default=None)
+
+    verify_share = subparsers.add_parser(
+        "verify-shareable-snapshot",
+        help="verify a shareable HMAC snapshot envelope",
+    )
+    verify_share.add_argument("input", type=str)
+    verify_share.add_argument("--signing-secret", required=True)
+    verify_share.add_argument("--now", default=None)
+    verify_share.add_argument("--output", default=None)
+
+    collaboration = subparsers.add_parser(
+        "evaluate-collaboration-access",
+        help="evaluate role-based research workspace access requests",
+    )
+    collaboration.add_argument("input", type=str)
+    collaboration.add_argument("--workspace-id", default="workspace-1")
+    collaboration.add_argument("--context-key", required=True)
+    collaboration.add_argument("--output", default=None)
+
     tier_adjudication = subparsers.add_parser(
         "adjudicate-evidence-tier",
         help="adjudicate declared evidence tiers without erasing alternatives",
@@ -3520,6 +3583,60 @@ def main(argv: list[str] | None = None) -> int:
                 payload.get("previous", {}),
                 payload.get("current", {}),
                 expected_context_key=args.expected_context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "build-validation-board":
+            result = ValidationExperimentBoardBuilder().build(
+                _read_rows(args.input, "experiments", "cards", "records"),
+                context_key=args.context_key,
+                board_id=args.board_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "plan-notebook-launch":
+            result = NotebookSDKLauncher().plan(
+                _read_rows(args.input, "requests", "launches", "records"),
+                context_key=args.context_key,
+                plan_id=args.plan_id,
+                allowed_runtimes=(
+                    tuple(NotebookRuntime(item) for item in args.allowed_runtime)
+                    if args.allowed_runtime
+                    else tuple(NotebookRuntime)
+                ),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "publish-shareable-snapshot":
+            payload = _read_json(args.input)
+            snapshot_payload = payload.get("payload", payload)
+            result = ShareableSnapshotPublisher().publish(
+                snapshot_payload,
+                snapshot_id=args.snapshot_id,
+                snapshot_type=args.snapshot_type,
+                context_key=args.context_key,
+                key_id=args.key_id,
+                signing_secret=args.signing_secret,
+                audience=args.audience or (),
+                expires_at=args.expires_at,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "verify-shareable-snapshot":
+            result = ShareableSnapshotPublisher().verify(
+                _read_json(args.input),
+                signing_secret=args.signing_secret,
+                now=args.now,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-collaboration-access":
+            payload = _read_json(args.input)
+            result = RoleBasedCollaborationEvaluator().evaluate(
+                payload.get("members", payload.get("roster", ())),
+                payload.get("requests", payload.get("access_requests", ())),
+                workspace_id=args.workspace_id,
+                context_key=args.context_key,
             )
             _write_json(result.to_dict(), args.output)
             return 0

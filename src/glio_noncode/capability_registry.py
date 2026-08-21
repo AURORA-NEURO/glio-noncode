@@ -2476,6 +2476,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "conformance remain."
                 ),
             },
+            "GNC-D15-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_alpha.ValidationExperimentBoardBuilder",
+                    "glio_noncode.workspace_alpha.ValidationExperimentBoard",
+                ),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "evidence_note": (
+                    "Validation experiment boards group exact-context cards by declared status, "
+                    "priority, dependencies, blockers, owners, readouts, and accessible column "
+                    "metadata; they do not execute or approve experiments."
+                ),
+            },
+            "GNC-D15-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_alpha.NotebookSDKLauncher",
+                    "glio_noncode.workspace_alpha.NotebookLaunchPlan",
+                ),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "evidence_note": (
+                    "Notebook and SDK launch plans produce bounded runtime, artifact, parameter, "
+                    "resource, network-policy, and source receipts without executing code or "
+                    "silently enabling external access."
+                ),
+            },
+            "GNC-D15-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_alpha.ShareableSnapshotPublisher",
+                    "glio_noncode.workspace_alpha.ShareableSignedSnapshot",
+                ),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "evidence_note": (
+                    "Shareable snapshots carry payload addresses, audience, expiry, key IDs, and "
+                    "HMAC verification receipts while retaining research-use limitations; shared "
+                    "secret possession is not a public-key identity or scientific validation."
+                ),
+            },
+            "GNC-D15-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_alpha.RoleBasedCollaborationEvaluator",
+                    "glio_noncode.workspace_alpha.CollaborationAccessReport",
+                ),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "evidence_note": (
+                    "Role-based collaboration evaluation applies an explicit deny-by-default "
+                    "permission matrix, exact-context gates, inactive-member handling, policy "
+                    "receipts, and access decisions without replacing institutional controls."
+                ),
+            },
             "GNC-D16-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.mission_runtime.MissionPlanBuilder",),

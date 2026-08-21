@@ -1007,6 +1007,27 @@ The Domain 15 scientific-beta projections add four deep research surfaces:
 These are research navigation artifacts. They do not infer activity, causality,
 diagnosis, prognosis, actionability, or treatment.
 
+The Domain 15 external-alpha extensions add coordination and sharing records:
+
+- `ValidationExperimentBoardBuilder` groups exact-context experiment cards by
+  declared status, priority, dependencies, blockers, owners, readouts, and
+  accessible board-column metadata. It is a planning read model and does not
+  execute or approve experiments.
+- `NotebookSDKLauncher` produces bounded notebook or SDK launch descriptors
+  with runtime, artifact, parameter, resource, source, and network-policy
+  receipts. It never executes user code, and requested network access remains
+  review-required.
+- `ShareableSnapshotPublisher` emits research-only shareable snapshot
+  envelopes with payload addresses, audiences, expiry, key IDs, and HMAC
+  verification. Shared-secret integrity is not public-key identity or
+  scientific validation.
+- `RoleBasedCollaborationEvaluator` applies a deny-by-default role matrix to
+  view, comment, edit, launch, share, and approve requests while retaining
+  exact-context decisions and policy receipts.
+
+These coordination artifacts do not replace identity, data-governance,
+institutional, security, accessibility, or scientific review controls.
+
 ```powershell
 glio-noncode workspace-case manifest.json --output case-workspace.json
 glio-noncode workspace-track regulatory.bed --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output track-workspace.json
@@ -1014,6 +1035,11 @@ glio-noncode view-topology topology.json --context-key "GRCh38|glioma|adult|stem
 glio-noncode explore-causal-chain causal-results.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output causal-chain.json
 glio-noncode view-posterior-decomposition posterior.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output posterior-view.json
 glio-noncode filter-evidence-table case-workspace.json --channel sequence --min-confidence 0.8 --output evidence-table.json
+glio-noncode build-validation-board validation-experiments.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output validation-board.json
+glio-noncode plan-notebook-launch launch-requests.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output launch-plan.json
+glio-noncode publish-shareable-snapshot workspace.json --snapshot-id workspace-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --key-id review-key --signing-secret "$env:GLIO_SNAPSHOT_SECRET" --output shared-snapshot.json
+glio-noncode verify-shareable-snapshot shared-snapshot.json --signing-secret "$env:GLIO_SNAPSHOT_SECRET" --output snapshot-verification.json
+glio-noncode evaluate-collaboration-access access.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output access-report.json
 ```
 
 ## Domain 16 typed mission runtime
