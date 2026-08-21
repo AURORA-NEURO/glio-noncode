@@ -15,10 +15,10 @@ class CapabilityRegistryTests(unittest.TestCase):
         coverage = registry.coverage()
         self.assertEqual(coverage.total_capabilities, 256)
         self.assertEqual(coverage.mvp_capabilities, 64)
-        self.assertEqual(coverage.verified, 3)
-        self.assertEqual(coverage.partial, 253)
+        self.assertEqual(coverage.verified, 19)
+        self.assertEqual(coverage.partial, 237)
         self.assertEqual(coverage.planned, 0)
-        self.assertAlmostEqual(coverage.implementation_percent, 1.17)
+        self.assertAlmostEqual(coverage.implementation_percent, 7.42)
         self.assertAlmostEqual(coverage.mvp_implementation_percent, 4.69)
         self.assertEqual(coverage.started, 256)
         self.assertAlmostEqual(coverage.started_percent, 100.0)
@@ -124,7 +124,12 @@ class CapabilityRegistryTests(unittest.TestCase):
             "GNC-D16-C13",
             "GNC-D16-C16",
         ):
-            self.assertEqual(registry.record(capability_id).state, CapabilityState.PARTIAL)
+            expected_state = (
+                CapabilityState.VERIFIED
+                if capability_id.split("-")[1] in {"D13", "D14", "D15", "D16"}
+                else CapabilityState.PARTIAL
+            )
+            self.assertEqual(registry.record(capability_id).state, expected_state)
 
     def test_evidence_updates_only_declared_capabilities(self) -> None:
         registry = CapabilityRegistry.from_csv().with_evidence(

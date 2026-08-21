@@ -295,6 +295,12 @@ from .frontier_context_alpha import (
     SingleCellReferenceMapper,
     run_context_frontier_operation,
 )
+from .frontier_contracts import (
+    FrontierContractRegistry,
+    OperationContract,
+    OperationFamily,
+    default_frontier_contract_registry,
+)
 from .frontier_data_alpha import (
     AnnotationDriftDetector,
     AnnotationDriftFinding,
@@ -352,6 +358,13 @@ from .frontier_end_to_end import (
     WorkbenchQualityPipeline,
     run_end_to_end_operation,
 )
+from .frontier_fixture_eval import (
+    FIXTURE_SCHEMA_VERSION,
+    FixtureCheck,
+    FixtureEvaluationReport,
+    FrontierFixtureEvaluator,
+    evaluate_frontier_fixture,
+)
 from .frontier_inference_alpha import (
     CausalDossier,
     CausalDossierPublisher,
@@ -399,6 +412,17 @@ from .frontier_inference_alpha import (
 )
 from .frontier_inference_alpha import (
     DependenceCorrectionReport as LinkDependenceCorrectionReport,
+)
+from .frontier_public_data import (
+    ContextFingerprint,
+    DataQualityIssue,
+    PublicDataQualityReport,
+    PublicDataState,
+    PublicFixtureCatalog,
+    PublicRecordKind,
+    PublicResearchRecord,
+    SourceReceipt,
+    audit_public_fixture,
 )
 from .frontier_release_alpha import (
     AccessibilityFinding,
@@ -476,6 +500,29 @@ from .frontier_release_hardening import (
     ValidationExecutionReadinessChecker,
     ValidationReadinessReport,
     run_hardening_operation,
+)
+from .frontier_replay import (
+    FrontierReplayReport,
+    FrontierReplayRunner,
+    ReplayCaseReceipt,
+    ReplayExpectation,
+    replay_frontier_fixtures,
+)
+from .frontier_scenario_matrix import (
+    FrontierScenario,
+    FrontierScenarioMatrix,
+    FrontierScenarioMatrixReport,
+    FrontierScenarioResult,
+    ScenarioExpectation,
+    evaluate_frontier_scenarios,
+)
+from .frontier_quality_gate import (
+    FrontierQualityGate,
+    FrontierQualityGateReport,
+    QualityGateCheck,
+    QualityGateState,
+    evaluate_frontier_quality_gate,
+    evaluate_frontier_scenarios_from_mapping,
 )
 from .identity_beta import (
     AliasReconciliationReport,
@@ -1944,6 +1991,41 @@ __all__ = [
     "ValidationFrontierPipeline",
     "WorkbenchQualityPipeline",
     "run_end_to_end_operation",
+    "FIXTURE_SCHEMA_VERSION",
+    "FixtureCheck",
+    "FixtureEvaluationReport",
+    "FrontierFixtureEvaluator",
+    "evaluate_frontier_fixture",
+    "ContextFingerprint",
+    "DataQualityIssue",
+    "PublicDataQualityReport",
+    "PublicDataState",
+    "PublicFixtureCatalog",
+    "PublicRecordKind",
+    "PublicResearchRecord",
+    "SourceReceipt",
+    "audit_public_fixture",
+    "FrontierContractRegistry",
+    "OperationContract",
+    "OperationFamily",
+    "default_frontier_contract_registry",
+    "FrontierReplayReport",
+    "FrontierReplayRunner",
+    "ReplayCaseReceipt",
+    "ReplayExpectation",
+    "replay_frontier_fixtures",
+    "FrontierScenario",
+    "FrontierScenarioMatrix",
+    "FrontierScenarioMatrixReport",
+    "FrontierScenarioResult",
+    "ScenarioExpectation",
+    "evaluate_frontier_scenarios",
+    "FrontierQualityGate",
+    "FrontierQualityGateReport",
+    "QualityGateCheck",
+    "QualityGateState",
+    "evaluate_frontier_quality_gate",
+    "evaluate_frontier_scenarios_from_mapping",
 ]
 
 __version__ = "0.1.0"

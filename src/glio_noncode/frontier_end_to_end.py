@@ -98,7 +98,23 @@ def _stage(stage_id: str, result: Any) -> PipelineStage:
         getattr(
             result,
             "content_address",
-            getattr(result, "manifest_address", getattr(result, "bundle_address", "")),
+            getattr(
+                result,
+                "manifest_address",
+                getattr(
+                    result,
+                    "bundle_address",
+                    getattr(
+                        result,
+                        "dossier_address",
+                        getattr(
+                            result,
+                            "report_address",
+                            getattr(result, "aggregate_address", ""),
+                        ),
+                    ),
+                ),
+            ),
         )
     )
     return PipelineStage(stage_id, state, address, tuple(sorted(set(issues))))

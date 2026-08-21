@@ -1525,9 +1525,11 @@ class FederatedExecutionCoordinator:
             )
         site_rows = tuple(_mapping(item, label="federated site") for item in sites)
         assignments: list[FederatedAssignment] = []
+        requested_task_ids: list[str] = []
         for index, raw in enumerate(tasks, start=1):
             task = _mapping(raw, label=f"federated task {index}")
             task_id = _text(task.get("task_id", task.get("id")), field="task_id") or f"task:{index}"
+            requested_task_ids.append(task_id)
             required_sites = set(_tuple_text(task.get("site_ids", ()), field="site_ids"))
             task_cost = int(task.get("privacy_cost", 0))
             for site in site_rows:
@@ -1567,7 +1569,7 @@ class FederatedExecutionCoordinator:
             if sum(row.eligible for row in rows) >= minimum_site_count
         )
         denied_tasks = tuple(
-            task_id for task_id in sorted(grouped) if task_id not in eligible_tasks
+            task_id for task_id in sorted(set(requested_task_ids)) if task_id not in eligible_tasks
         )
         aggregate = _address(
             {

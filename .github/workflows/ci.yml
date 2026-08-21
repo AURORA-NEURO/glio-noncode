@@ -30,3 +30,15 @@ jobs:
         run: python -m glio_noncode schema --output /tmp/glio-schema.json
       - name: Fixture evaluation
         run: python -m glio_noncode evaluate examples/case-small.json --data-root /tmp/glio-data --output /tmp/glio-dossier.json
+      - name: Frontier fixture evaluation
+        run: python -m glio_noncode evaluate-frontier-fixture examples/frontier-glioma-case.json --output /tmp/glio-frontier-fixture.json
+      - name: Frontier data boundary audit
+        run: python -m glio_noncode audit-frontier-data examples/frontier-glioma-case.json --output /tmp/glio-frontier-data.json
+      - name: Frontier replay integrity
+        run: python -m glio_noncode replay-frontier-fixtures examples/frontier-glioma-case.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-frontier-replay.json
+      - name: Frontier operation contracts
+        run: python -m glio_noncode frontier-contracts --output /tmp/glio-frontier-contracts.json
+      - name: Frontier scenario matrix
+        run: python -m glio_noncode evaluate-frontier-scenarios examples/frontier-glioma-case.json --output /tmp/glio-frontier-scenarios.json
+      - name: Frontier quality gate
+        run: python -m glio_noncode frontier-quality-gate examples/frontier-glioma-case.json --output /tmp/glio-frontier-quality.json

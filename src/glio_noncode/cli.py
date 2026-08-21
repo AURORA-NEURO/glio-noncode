@@ -106,17 +106,23 @@ from .frontier_context_alpha import (
     CONTEXT_FRONTIER_OPERATIONS,
     run_context_frontier_operation,
 )
+from .frontier_contracts import default_frontier_contract_registry
 from .frontier_data_alpha import FRONTIER_OPERATIONS, run_frontier_operation
 from .frontier_end_to_end import END_TO_END_OPERATIONS, run_end_to_end_operation
+from .frontier_fixture_eval import evaluate_frontier_fixture
 from .frontier_inference_alpha import (
     INFERENCE_FRONTIER_OPERATIONS,
     run_inference_frontier_operation,
 )
+from .frontier_public_data import audit_public_fixture
+from .frontier_quality_gate import evaluate_frontier_quality_gate
 from .frontier_release_alpha import (
     RELEASE_FRONTIER_OPERATIONS,
     run_release_frontier_operation,
 )
+from .frontier_scenario_matrix import evaluate_frontier_scenarios
 from .frontier_release_hardening import HARDENING_OPERATIONS, run_hardening_operation
+from .frontier_replay import replay_frontier_fixtures
 from .identity_beta import (
     BatchSampleIdentityChecker,
     ChainOfCustodyCapture,
@@ -720,11 +726,49 @@ def build_parser() -> argparse.ArgumentParser:
     schema = subparsers.add_parser("schema", help="print the public contract summary")
     schema.add_argument("--output", default=None)
 
+    frontier_fixture = subparsers.add_parser(
+        "evaluate-frontier-fixture",
+        help="run the checked-in D13-D16 frontier fixture and its negative controls",
+    )
+    frontier_fixture.add_argument("input", type=str)
+    frontier_fixture.add_argument("--output", default=None)
+
+    frontier_data = subparsers.add_parser(
+        "audit-frontier-data",
+        help="audit public identifiers, source receipts, and exact-context fixture data",
+    )
+    frontier_data.add_argument("input", type=str)
+    frontier_data.add_argument("--output", default=None)
+
+    frontier_replay = subparsers.add_parser(
+        "replay-frontier-fixtures",
+        help="replay one or more frontier fixtures with cross-case integrity checks",
+    )
+    frontier_replay.add_argument("inputs", nargs="+", type=str)
+    frontier_replay.add_argument("--required-context-key", default=None)
+    frontier_replay.add_argument("--output", default=None)
+
     subparsers.add_parser("sources", help="print the live public source catalog")
     subparsers.add_parser("registry", help="print the bounded control-plane registry")
     subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
     subparsers.add_parser("capabilities", help="print the 256-capability implementation ledger")
     subparsers.add_parser("references", help="print the reference assembly registry")
+    frontier_contracts = subparsers.add_parser(
+        "frontier-contracts", help="print the 79-operation frontier contract registry"
+    )
+    frontier_contracts.add_argument("--output", default=None)
+    frontier_scenarios = subparsers.add_parser(
+        "evaluate-frontier-scenarios",
+        help="run accepted and review scenarios declared by a frontier fixture",
+    )
+    frontier_scenarios.add_argument("input", type=str)
+    frontier_scenarios.add_argument("--output", default=None)
+    frontier_quality = subparsers.add_parser(
+        "frontier-quality-gate",
+        help="reconcile fixture, public-data, replay, scenario, and contract evidence",
+    )
+    frontier_quality.add_argument("input", type=str)
+    frontier_quality.add_argument("--output", default=None)
 
     equivalence = subparsers.add_parser(
         "resolve-variant-equivalence",
@@ -4180,6 +4224,32 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(retriever.enrich_manifest(manifest).to_dict(), args.output)
             return 0
+        if args.command == "evaluate-frontier-fixture":
+            report = evaluate_frontier_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "frontier-contracts":
+            _write_json(default_frontier_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "evaluate-frontier-scenarios":
+            report = evaluate_frontier_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "frontier-quality-gate":
+            report = evaluate_frontier_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-frontier-data":
+            report = audit_public_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-frontier-fixtures":
+            report = replay_frontier_fixtures(
+                args.inputs,
+                required_context_key=args.required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
         if args.command == "serve":
             server = create_server(args.host, args.port, args.data_root)
             print(f"glio-noncode listening on http://{args.host}:{args.port}")

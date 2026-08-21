@@ -1,7 +1,7 @@
 # Capability coverage
 
 GLIO-NONCODE is measured against the approved product blueprint, not against
-the number of Python files or agent roles. The checked-in catalog at
+the number of Python files or workflow roles. The checked-in catalog at
 `schemas/capability_catalog.csv` contains:
 
 | Measure | Denominator | Meaning |
@@ -10,7 +10,7 @@ the number of Python files or agent roles. The checked-in catalog at
 | MVP capabilities | 64 | The first four capabilities in each domain |
 | Delivery surfaces | 4 per capability | Core, API, CLI, and review/operations surfaces |
 | Feature instances | 1,024 | 256 capabilities × 4 delivery surfaces |
-| Control-plane roles | 48 | Bounded agent responsibilities |
+| Control-plane roles | 48 | Bounded workflow responsibilities |
 | Typed tool contracts | 96 | Two contracts per bounded role |
 
 The 48-role and 96-contract figures describe orchestration coverage. They are
@@ -20,12 +20,13 @@ verified only when tests and the stated evidence boundary support that claim.
 The registry reports planned, partial, implemented, and verified counts
 separately so a single percentage cannot hide unfinished work.
 
-The first frontier expansion wave now adds partial, test-backed coverage for
-all C13-C16 capabilities in Domains 01-04. This moves the repository ledger
-to 208 of 256 capabilities started (81.25%); 48 capabilities remain planned.
-The frontier surfaces are bounded research infrastructure: they retain source
-receipts, uncertainty, policy checks, and review states rather than converting
-missing evidence into a scientific or clinical conclusion.
+The frontier expansion waves add partial, test-backed coverage for all C13-C16
+capabilities in Domains 01-16. The repository ledger now has 256 of 256
+capabilities started (100%); 16 capabilities have deterministic fixture-backed
+verification and 240 remain partial. The frontier surfaces are bounded research
+infrastructure: they retain source receipts, uncertainty, policy checks, and
+review states rather than converting missing evidence into a scientific or
+clinical conclusion.
 
 Inspect the current ledger locally:
 
@@ -207,10 +208,13 @@ uncertainty, subgroup gaps, feature overlap, privacy floors, and abstentions
 visible. None of them turns an association or posterior score into a clinical
 decision.
 
-The D13-D16 frontier completes all 256 catalog capabilities with partial,
-test-backed implementations. The ledger now reports 256 of 256 capabilities
-started (100%); partial means the bounded code and tests exist while external
-validation, calibration, and institutional release evidence remain separate.
+The D13-D16 frontier completes all 256 catalog capability code paths with
+partial, test-backed implementations. The ledger reports 256 of 256
+capabilities started (100%); 16 D13-D16 controls are now verified against the
+checked-in frontier fixture, while 240 capabilities remain partial. Partial
+means the bounded code and tests exist. Verified means the local deterministic
+fixture and negative-control boundary pass; external validation, calibration,
+and institutional release evidence remain separate.
 
 Domain 13 now includes off-target risk estimation, prerequisite-safe validation
 value-of-information selection, content-addressed experiment packages, and
@@ -222,6 +226,39 @@ reports, global search and command matching, and accessibility/human-factors
 checks. Domain 16 includes deny-by-default privacy/security policy evaluation,
 offline deployment manifests, site-local federated coordination, and explicit
 release/rollback gates.
+
+Run the full frontier evidence gate locally or in CI:
+
+```powershell
+glio-noncode evaluate-frontier-fixture examples/frontier-glioma-case.json --output frontier-fixture-report.json
+glio-noncode audit-frontier-data examples/frontier-glioma-case.json --output frontier-data-report.json
+glio-noncode replay-frontier-fixtures examples/frontier-glioma-case.json --output frontier-replay-report.json
+glio-noncode frontier-contracts --output frontier-contracts.json
+glio-noncode evaluate-frontier-scenarios examples/frontier-glioma-case.json --output frontier-scenario-report.json
+glio-noncode frontier-quality-gate examples/frontier-glioma-case.json --output frontier-quality-report.json
+```
+
+The contract registry covers 79 operations across data, context, inference,
+release, hardening, and end-to-end surfaces. The 17 release operations map to
+the 16 D13-D16 capability receipts; signed-dossier publication and verification
+share one lifecycle capability by design.
+
+The scenario matrix replays all four positive pipeline payloads and every
+negative control in the fixture. It independently checks the accepted/review
+boundary and verifies that each declared blocked stage remains present. This
+gives the repository a state-transition proof in addition to individual
+operation checks.
+
+The quality gate reconciles those component receipts into one deterministic
+verdict. It requires the 49-check fixture floor, accepted public-data audit,
+identity/context/source-consistent replay, eight passing state-transition
+scenarios, the 79-operation registry, sixteen release capability mappings,
+stable repeated evaluation, and a secret-output boundary.
+
+The fixture contains public research identifiers and declared reproducibility
+measurements only. It contains no patient-level data. Its four negative controls
+must remain in review: context mismatch, evidence-cycle detection,
+accessibility failure, and deny-by-default deployment policy.
 
 ```powershell
 glio-noncode estimate-off-target-risk off-targets.json --output off-target-report.json

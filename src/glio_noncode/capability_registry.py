@@ -2808,51 +2808,72 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D13-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.OffTargetRiskEstimator",
                     "glio_noncode.frontier_release_alpha.OffTargetRiskReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha", "tests.test_frontier_release_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_release_alpha_cli",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Off-target estimates retain candidate scores, weights, maximum and weighted "
-                    "burden, specificity, thresholds, and review or blocking issues."
+                    "burden, specificity, thresholds, and review or blocking issues. The checked-in "
+                    "glioma frontier fixture verifies an accepted path and a context-mismatch gate."
                 ),
             },
             "GNC-D13-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.ValidationValueOfInformationOptimizer",
                     "glio_noncode.frontier_release_alpha.ValueOfInformationPlan",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Validation value-of-information planning selects prerequisite-safe experiments "
-                    "by information/risk value density under a declared budget."
+                    "by information/risk value density under a declared budget. A public-identifier "
+                    "fixture verifies prerequisite ordering and a deterministic content receipt."
                 ),
             },
             "GNC-D13-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.ExperimentPackageExporter",
                     "glio_noncode.frontier_release_alpha.ExperimentPackage",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Experiment packages retain experiment, control, and protocol IDs with per-file "
-                    "content addresses and a deterministic manifest."
+                    "content addresses and a deterministic manifest. The frontier fixture exercises "
+                    "the package through readiness and receipt checks."
                 ),
             },
             "GNC-D13-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.ResultIngestionClaimUpdater",
                     "glio_noncode.frontier_release_alpha.ClaimUpdateReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Result ingestion updates known claims only with exact context, result identity, "
-                    "changed fields, evidence address, and unknown-claim review."
+                    "changed fields, evidence address, and unknown-claim review. The fixture verifies "
+                    "a supported research result and preserves the declared evidence boundary."
                 ),
             },
             "GNC-D14-C01": {
@@ -3001,52 +3022,73 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.ReclassificationEngine",
                     "glio_noncode.frontier_release_alpha.ReclassificationReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Reclassification proposes evidence-tier changes from declared scores and "
-                    "requires independent reviewer counts and exact context."
+                    "requires independent reviewer counts and exact context. The fixture verifies "
+                    "the reviewer gate and a bounded supported classification proposal."
                 ),
             },
             "GNC-D14-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.DeprecationSupersessionManager",
                     "glio_noncode.frontier_release_alpha.SupersessionReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Deprecation and supersession records detect missing targets, self-links, context "
-                    "mismatches, and supersession cycles."
+                    "mismatches, and supersession cycles. The fixture verifies an active exact-context "
+                    "record while a separate cycle control remains review-required."
                 ),
             },
             "GNC-D14-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.AuditReproducibilityBundleBuilder",
                     "glio_noncode.frontier_release_alpha.ReproducibilityBundle",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Audit bundles require evidence, review, and release sections and retain each "
-                    "section address and item count in a reproducible manifest."
+                    "section address and item count in a reproducible manifest. The fixture verifies "
+                    "all required sections and a stable bundle receipt."
                 ),
             },
             "GNC-D14-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.SignedDossierPublisher",
                     "glio_noncode.frontier_release_alpha.DossierVerification",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha", "tests.test_frontier_release_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_release_alpha_cli",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Research dossier signing uses an explicit key ID, audience, payload address, "
                     "expiry, HMAC receipt, and verification state; shared-secret signing is not a "
-                    "public-key identity."
+                    "public-key identity. The fixture verifies dossier publication without emitting "
+                    "the signing secret."
                 ),
             },
             "GNC-D15-C01": {
@@ -3202,51 +3244,71 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D15-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.StructuredReviewForm",
                     "glio_noncode.frontier_release_alpha.StructuredReviewResult",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Structured review forms validate required fields and choices while retaining field "
-                    "labels, values, completion, and review state."
+                    "labels, values, completion, and review state. The fixture verifies a complete "
+                    "review and an incomplete-form negative control."
                 ),
             },
             "GNC-D15-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.ExportReportBuilder",
                     "glio_noncode.frontier_release_alpha.ExportedReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Report export preserves ordered sections, format, content addresses, and line "
-                    "counts for JSON, Markdown, or CSV-oriented output."
+                    "counts for JSON, Markdown, or CSV-oriented output. The fixture verifies stable "
+                    "ordered sections in the composed workbench pipeline."
                 ),
             },
             "GNC-D15-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.GlobalSearchCommandPalette",
                     "glio_noncode.frontier_release_alpha.SearchPaletteReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Global search ranks field matches and command matches deterministically with type "
-                    "filters, matched fields, and bounded result counts."
+                    "filters, matched fields, and bounded result counts. The fixture verifies gene "
+                    "and assay record discovery from declared public identifiers."
                 ),
             },
             "GNC-D15-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.AccessibilityHumanFactorsLayer",
                     "glio_noncode.frontier_release_alpha.AccessibilityReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Accessibility evaluation retains keyboard, labels, focus, contrast, motion, and "
-                    "reading-order findings with pass/fail counts and a score."
+                    "reading-order findings with pass/fail counts and a score. The fixture verifies "
+                    "all criteria and a failing accessibility negative control."
                 ),
             },
             "GNC-D16-C01": {
@@ -3408,51 +3470,72 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D16-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.PrivacySecurityPolicyEngine",
                     "glio_noncode.frontier_release_alpha.SecurityPolicyReport",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Privacy/security policy evaluation is deny-by-default and retains roles, sensitive "
-                    "access, network, retention, context, matched policies, and reasons."
+                    "access, network, retention, context, matched policies, and reasons. The fixture "
+                    "verifies an allowed local read and a denied policy-boundary control."
                 ),
             },
             "GNC-D16-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.LocalDeploymentBundleBuilder",
                     "glio_noncode.frontier_release_alpha.LocalDeploymentBundle",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Local deployment bundles retain artifact digests, service manifests, runtime and "
-                    "environment requirements, offline mode, and readiness state."
+                    "environment requirements, offline mode, and readiness state. The fixture verifies "
+                    "a digest-addressed offline bundle and a malformed-digest hold."
                 ),
             },
             "GNC-D16-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.FederatedExecutionCoordinator",
                     "glio_noncode.frontier_release_alpha.FederatedExecutionPlan",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Federated coordination retains site-local eligibility, context support, sample "
-                    "minimums, privacy costs, assignments, and denied tasks."
+                    "minimums, privacy costs, assignments, and denied tasks. The fixture verifies "
+                    "one eligible site and the no-site review boundary."
                 ),
             },
             "GNC-D16-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_release_alpha.ReleaseRollbackController",
                     "glio_noncode.frontier_release_alpha.ReleaseRollbackDecision",
                 ),
-                "test_modules": ("tests.test_frontier_release_alpha", "tests.test_frontier_release_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_release_alpha",
+                    "tests.test_frontier_release_alpha_cli",
+                    "tests.test_frontier_fixture_eval",
+                    "tests.test_frontier_fixture_cli",
+                ),
                 "evidence_note": (
                     "Release and rollback decisions apply explicit tests, integrity, compatibility, "
-                    "policy, version, and previous-version gates with content-addressed receipts."
+                    "policy, version, and previous-version gates with content-addressed receipts. "
+                    "The fixture verifies a released version with the full check set."
                 ),
             },
         }

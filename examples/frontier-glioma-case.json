@@ -1,0 +1,355 @@
+{
+  "fixture_id": "glioma-frontier-public-aggregate-001",
+  "fixture_version": "frontier-fixture-v1",
+  "provenance": {
+    "source_class": "public_aggregate_reference_identifiers",
+    "license": "research-fixture-data-only",
+    "patient_level_data": false,
+    "numeric_values": "declared reproducibility measurements, not patient observations",
+    "evidence_boundary": "deterministic repository contract evaluation; no biological, clinical, or transport claim"
+  },
+  "source_receipts": [
+    {
+      "source_id": "glioma-regulatory-reference",
+      "record_type": "public_gene_identifier_set",
+      "accession": "EGFR|PDGFRA|CDKN2A|TERT|IDH1|MGMT|OLIG2|SOX2",
+      "coordinate_system": "GRCh38",
+      "retrieval_mode": "checked-in fixture",
+      "notes": "Identifiers and context labels are public research vocabulary; scores are fixture measurements."
+    },
+    {
+      "source_id": "regulatory-assay-contract-reference",
+      "record_type": "assay_contract_profile",
+      "accession": "ATAC-seq|H3K27ac|HiChIP|CRISPRi|targeted-sequencing",
+      "coordinate_system": "GRCh38",
+      "retrieval_mode": "checked-in fixture",
+      "notes": "Assay names define declared evidence channels and do not contain donor-level measurements."
+    }
+  ],
+  "context": {
+    "genome_build": "GRCh38",
+    "disease_class": "diffuse_glioma",
+    "age_group": "adult",
+    "cell_state": "malignant_oligodendrocyte_like",
+    "territory": "tumor_core",
+    "treatment_phase": "pre_treatment"
+  },
+  "pipelines": {
+    "validation": {
+      "risk_records": [
+        {
+          "target_id": "EGFR-regulatory-guide-01",
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+          "on_target_score": 0.92,
+          "off_targets": [
+            {"target_id": "PDGFRA", "score": 0.06, "weight": 1.0},
+            {"target_id": "SOX2", "score": 0.08, "weight": 0.8}
+          ]
+        }
+      ],
+      "voi_records": [
+        {
+          "experiment_id": "orthogonal-open-chromatin-01",
+          "cost": 2.0,
+          "information_gain": 0.82,
+          "risk_reduction": 0.28,
+          "prerequisites": []
+        },
+        {
+          "experiment_id": "allele-specific-contact-01",
+          "cost": 2.5,
+          "information_gain": 0.74,
+          "risk_reduction": 0.31,
+          "prerequisites": ["orthogonal-open-chromatin-01"]
+        }
+      ],
+      "budget": 5.0,
+      "package": {
+        "schema_version": "validation-package-v1",
+        "experiments": [
+          {
+            "experiment_id": "orthogonal-open-chromatin-01",
+            "assay": "ATAC-seq",
+            "target": "EGFR",
+            "readout": "allele-aware accessibility"
+          },
+          {
+            "experiment_id": "allele-specific-contact-01",
+            "assay": "HiChIP",
+            "target": "EGFR",
+            "readout": "enhancer-promoter contact"
+          }
+        ],
+        "controls": [
+          {"control_id": "non_targeting-guide-01", "control_type": "negative"},
+          {"control_id": "known-active-locus-01", "control_type": "positive"}
+        ],
+        "protocols": [
+          {"protocol_id": "protocol-open-chromatin-v1", "version": "1.0"},
+          {"protocol_id": "protocol-contact-map-v1", "version": "1.0"}
+        ],
+        "outputs": ["allele_effect", "contact_support", "quality_receipt"]
+      },
+      "required_controls": ["non_targeting-guide-01", "known-active-locus-01"],
+      "required_outputs": ["allele_effect", "contact_support"],
+      "claims": [
+        {
+          "claim_id": "claim-egfr-regulatory-effect",
+          "state": "hypothesis",
+          "effect_direction": "increased",
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        }
+      ],
+      "results": [
+        {
+          "claim_id": "claim-egfr-regulatory-effect",
+          "result_id": "result-orthogonal-open-chromatin-01",
+          "claim_state": "supported",
+          "effect_direction": "increased",
+          "effect_size": 0.41,
+          "evidence_address": "sha256:fixture-evidence-egfr-01",
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        }
+      ]
+    },
+    "evidence": {
+      "signing_secret": "fixture-signing-secret-v1",
+      "key_id": "fixture-review-key-01",
+      "audience": ["research-reviewers", "release-auditors"],
+      "nodes": [
+        {
+          "node_id": "claim-egfr-regulatory-effect",
+          "node_type": "hypothesis",
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        },
+        {
+          "node_id": "evidence-egfr-open-chromatin",
+          "node_type": "assay_observation",
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        }
+      ],
+      "edges": [
+        {"source_id": "evidence-egfr-open-chromatin", "target_id": "claim-egfr-regulatory-effect"}
+      ],
+      "lineage": [
+        {
+          "item_id": "claim-egfr-regulatory-effect",
+          "parent_ids": [],
+          "source_addresses": ["sha256:fixture-evidence-egfr-01"],
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        },
+        {
+          "item_id": "evidence-egfr-open-chromatin",
+          "parent_ids": ["claim-egfr-regulatory-effect"],
+          "source_addresses": ["sha256:fixture-assay-atac-01"],
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "claim-egfr-regulatory-effect",
+          "classification": "suggestive",
+          "evidence_score": 0.91,
+          "reviewer_ids": ["reviewer-alpha", "reviewer-beta"],
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        }
+      ],
+      "supersession": [
+        {
+          "record_id": "claim-egfr-regulatory-effect",
+          "status": "active",
+          "reason": "current exact-context evidence record",
+          "effective_at": "2026-08-20",
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        }
+      ],
+      "audit_sections": {
+        "evidence": [{"id": "evidence-egfr-open-chromatin", "source": "ATAC-seq"}],
+        "review": [{"id": "reviewer-alpha"}, {"id": "reviewer-beta"}],
+        "release": [{"id": "frontier-release-1", "version": "0.2.0"}]
+      },
+      "dossier": {
+        "claim_id": "claim-egfr-regulatory-effect",
+        "title": "EGFR regulatory evidence review",
+        "evidence_tier": "fixture-bounded-research"
+      }
+    },
+    "workbench": {
+      "reviewer_id": "reviewer-alpha",
+      "form_schema": [
+        {"field_id": "decision", "label": "Review decision", "required": true, "choices": ["accept", "hold"]},
+        {"field_id": "rationale", "label": "Rationale", "required": true}
+      ],
+      "form_response": {"decision": "accept", "rationale": "Exact-context evidence receipt is complete."},
+      "report_format": "json",
+      "report_sections": [
+        {"section_id": "context", "title": "Context", "order": 1, "content": {"gene": "EGFR", "state": "malignant_oligodendrocyte_like"}},
+        {"section_id": "evidence", "title": "Evidence", "order": 2, "content": {"assays": ["ATAC-seq", "HiChIP"], "tier": "fixture-bounded-research"}}
+      ],
+      "records": [
+        {"record_id": "claim-egfr-regulatory-effect", "record_type": "claim", "title": "EGFR regulatory effect", "gene": "EGFR"},
+        {"record_id": "evidence-egfr-open-chromatin", "record_type": "evidence", "title": "EGFR open chromatin", "assay": "ATAC-seq"}
+      ],
+      "query": "EGFR",
+      "commands": ["open-claim", "open-evidence", "export-report"],
+      "accessibility_surface": {"keyboard": true, "label": true, "focus_order": true, "contrast": true, "motion": true, "reading_order": true},
+      "human_factors_events": [
+        {"event_id": "event-focus", "event_type": "focus", "target_id": "decision"},
+        {"event_id": "event-submit", "event_type": "submit", "target_id": "decision"}
+      ]
+    },
+    "deployment": {
+      "requests": [
+        {
+          "request_id": "review-read-01",
+          "subject_id": "research-reviewer",
+          "action": "read",
+          "roles": ["research-reviewer"],
+          "sensitive": false,
+          "network": false,
+          "retention_days": 7,
+          "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+        }
+      ],
+      "policies": {"research-read": {"actions": ["read"], "roles": ["research-reviewer"], "maximum_retention_days": 30}},
+      "services": [{"service_id": "api", "depends_on": ["evidence-store"]}, {"service_id": "evidence-store", "depends_on": []}],
+      "privacy_requests": [
+        {"request_id": "site-a-query", "site_id": "site-a", "epsilon": 0.2, "delta": 0.01},
+        {"request_id": "site-b-query", "site_id": "site-b", "epsilon": 0.2, "delta": 0.01}
+      ],
+      "epsilon_budget": 1.0,
+      "delta_budget": 0.1,
+      "deployment": {
+        "artifacts": [{"artifact_id": "glio-runtime", "version": "0.2.0", "digest": "sha256:runtime-fixture-01", "size_bytes": 1024, "required_runtime": "python3.11", "local_only": true}],
+        "services": [{"service_id": "api", "port": 8765}],
+        "environment_requirements": {"GLIO_DATA_MODE": "fixture", "GLIO_NETWORK": "disabled"}
+      },
+      "platform": "local",
+      "runtime_version": "python3.11",
+      "tasks": [{"task_id": "task-egfr-review", "privacy_cost": 1, "minimum_sample_count": 5}],
+      "sites": [{"site_id": "site-a", "available": true, "sample_count": 12, "supported_contexts": ["GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"]}],
+      "privacy_budget": 1,
+      "current_version": "0.1.0",
+      "requested_version": "0.2.0",
+      "release_checks": {"tests": true, "integrity": true, "compatibility": true, "policy": true},
+      "release_action": "release"
+    }
+  },
+  "hardening": {
+    "audit-off-target-alignments": {
+      "records": [{"candidate_id": "EGFR-guide-01", "guide_sequence": "ACGTACGTACGTACGTACGT", "target_sequence": "NNNNNNNNNNNNNNNNNNNN", "pam": "NGA", "pam_match": false, "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}],
+      "risk_threshold": 0.35
+    },
+    "check-validation-readiness": {
+      "package_id": "fixture-readiness-package",
+      "package": {"experiments": [{"experiment_id": "orthogonal-open-chromatin-01"}], "controls": [{"control_id": "non_targeting-guide-01"}], "protocols": [{"protocol_id": "protocol-open-chromatin-v1"}], "outputs": ["allele_effect"]},
+      "required_controls": ["non_targeting-guide-01"],
+      "required_outputs": ["allele_effect"]
+    },
+    "audit-evidence-graph-integrity": {
+      "nodes": [{"node_id": "claim-egfr-regulatory-effect", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}, {"node_id": "evidence-egfr-open-chromatin", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}],
+      "edges": [{"source_id": "evidence-egfr-open-chromatin", "target_id": "claim-egfr-regulatory-effect"}]
+    },
+    "build-evidence-lineage": {
+      "records": [{"item_id": "claim-egfr-regulatory-effect", "parent_ids": [], "source_addresses": ["sha256:fixture-evidence-egfr-01"], "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}]
+    },
+    "render-report-artifact": {
+      "artifact_id": "fixture-evidence-table",
+      "format": "csv",
+      "columns": ["record_id", "gene", "assay"],
+      "rows": [{"record_id": "evidence-egfr-open-chromatin", "gene": "EGFR", "assay": "ATAC-seq"}]
+    },
+    "simulate-human-factors": {
+      "scenario_id": "fixture-review-submit",
+      "events": [{"event_id": "focus", "event_type": "focus", "target_id": "decision"}, {"event_id": "submit", "event_type": "submit", "target_id": "decision"}]
+    },
+    "scan-security-paths": {
+      "payload": {"case_class": "aggregate-research", "gene": "EGFR", "assay": "ATAC-seq", "context": "exact"}
+    },
+    "resolve-deployment-dependencies": {
+      "services": [{"service_id": "api", "depends_on": ["evidence-store"]}, {"service_id": "evidence-store", "depends_on": []}]
+    },
+    "account-federated-privacy": {
+      "requests": [{"request_id": "site-a-query", "site_id": "site-a", "epsilon": 0.2, "delta": 0.01}, {"request_id": "site-b-query", "site_id": "site-b", "epsilon": 0.2, "delta": 0.01}],
+      "epsilon_budget": 1.0,
+      "delta_budget": 0.1
+    },
+    "append-release-history": {
+      "history": [],
+      "release_id": "frontier-release-1",
+      "version": "0.2.0",
+      "action": "release",
+      "result": "accepted"
+    }
+  },
+  "negative_controls": [
+    {
+      "check_id": "validation-context-mismatch",
+      "operation": "run-validation-frontier-pipeline",
+      "expected_state": "review",
+      "expected_blocked_stage_ids": ["off_target_risk"],
+      "payload": {
+        "pipeline_id": "negative-validation-context",
+        "risk_records": [{"target_id": "mismatched-target", "context_key": "GRCh38|diffuse_glioma|adult|different_cell_state|tumor_core|pre_treatment", "on_target_score": 0.9, "off_targets": []}],
+        "package": {"experiments": [{"experiment_id": "exp-negative"}], "controls": [{"control_id": "ctrl-negative"}], "protocols": [{"protocol_id": "proto-negative"}], "outputs": ["readout"]},
+        "required_controls": ["ctrl-negative"],
+        "required_outputs": ["readout"]
+      }
+    },
+    {
+      "check_id": "evidence-cycle-review",
+      "operation": "run-evidence-lifecycle-pipeline",
+      "expected_state": "review",
+      "expected_blocked_stage_ids": ["graph_integrity"],
+      "payload": {
+        "pipeline_id": "negative-evidence-cycle",
+        "signing_secret": "fixture-signing-secret-v1",
+        "key_id": "fixture-review-key-01",
+        "nodes": [{"node_id": "cycle-a", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}, {"node_id": "cycle-b", "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}],
+        "edges": [{"source_id": "cycle-a", "target_id": "cycle-b"}, {"source_id": "cycle-b", "target_id": "cycle-a"}],
+        "dossier": {"claim_id": "cycle-a"}
+      }
+    },
+    {
+      "check_id": "workbench-accessibility-review",
+      "operation": "run-workbench-quality-pipeline",
+      "expected_state": "review",
+      "expected_blocked_stage_ids": ["accessibility"],
+      "payload": {
+        "pipeline_id": "negative-workbench-accessibility",
+        "reviewer_id": "reviewer-alpha",
+        "form_schema": [{"field_id": "decision", "required": true, "choices": ["accept"]}],
+        "form_response": {"decision": "accept"},
+        "report_sections": [{"section_id": "summary", "title": "Summary", "content": {"gene": "EGFR"}}],
+        "records": [{"record_id": "claim-egfr", "record_type": "claim", "title": "EGFR"}],
+        "query": "EGFR",
+        "accessibility_surface": {"keyboard": true},
+        "human_factors_events": []
+      }
+    },
+    {
+      "check_id": "deployment-policy-review",
+      "operation": "run-deployment-governance-pipeline",
+      "expected_state": "review",
+      "expected_blocked_stage_ids": ["security_policy"],
+      "payload": {
+        "pipeline_id": "negative-deployment-policy",
+        "requests": [{"request_id": "network-denied", "subject_id": "research-reviewer", "action": "write", "roles": ["research-reviewer"], "network": true, "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}],
+        "policies": {"read-only": {"actions": ["read"], "roles": ["research-reviewer"]}},
+        "services": [{"service_id": "api", "depends_on": []}],
+        "privacy_requests": [],
+        "epsilon_budget": 1.0,
+        "delta_budget": 0.1,
+        "deployment": {"artifacts": [{"artifact_id": "runtime", "version": "0.2.0", "digest": "sha256:runtime", "size_bytes": 100, "required_runtime": "python3.11"}], "services": [{"service_id": "api"}], "environment_requirements": {"MODE": "fixture"}},
+        "platform": "local",
+        "runtime_version": "python3.11",
+        "tasks": [],
+        "sites": [],
+        "privacy_budget": 0,
+        "current_version": "0.1.0",
+        "requested_version": "0.2.0",
+        "release_checks": {"tests": true, "integrity": true, "compatibility": true, "policy": true}
+      }
+    }
+  ]
+}
