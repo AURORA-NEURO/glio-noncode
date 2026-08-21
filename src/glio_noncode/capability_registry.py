@@ -1489,46 +1489,86 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D04-C01": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.reference_registry.ReferenceRegistry",),
-                "test_modules": ("tests.test_reference_registry",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_registry.ReferenceRegistry",
+                    "glio_noncode.reference_coordinate_public_data.ReferenceCoordinateFixtureCatalog",
+                    "glio_noncode.reference_coordinate_fixture_eval.ReferenceCoordinateFixtureEvaluator",
+                    "glio_noncode.reference_coordinate_quality_gate.evaluate_reference_coordinate_quality_gate",
+                ),
+                "test_modules": (
+                    "tests.test_reference_registry",
+                    "tests.test_reference_coordinate_public_data",
+                    "tests.test_reference_coordinate_fixture_eval",
+                    "tests.test_reference_coordinate_quality_bundle",
+                ),
                 "evidence_note": (
-                    "Assembly aliases, species separation, and identity/mapped/abstained "
-                    "projection states are covered locally; canonical reference equivalence "
-                    "fixtures remain a release gate."
+                    "The registry resolves GRCh38/GRCh37 aliases and retains species, release, "
+                    "accession, and source metadata. The public aggregate fixture adds exact "
+                    "source receipts, unknown-accession controls, deterministic evaluation, "
+                    "replay floors, bundle verification, lineage, reconciliation, and a "
+                    "25-check integrated gate without claiming sequence equivalence."
                 ),
             },
             "GNC-D04-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_extensions.LiftoverChainManager",
+                    "glio_noncode.reference_coordinate_fixture_eval.ReferenceCoordinateFixtureEvaluator",
+                    "glio_noncode.reference_coordinate_runtime.run_reference_coordinate_pipeline",
                 ),
-                "test_modules": ("tests.test_reference_extensions",),
+                "test_modules": (
+                    "tests.test_reference_extensions",
+                    "tests.test_reference_coordinate_fixture_eval",
+                    "tests.test_reference_coordinate_runtime",
+                ),
                 "evidence_note": (
-                    "Chain-like equal-length mapping segments can be imported with source "
-                    "checksums and malformed-row quarantine; external chain conformance is pending."
+                    "Explicit equal-length chain-like segments are parsed with source hashes, "
+                    "malformed rows remain visible, forward and reverse projections retain "
+                    "mapping receipts, and controls cover unmapped and breakend abstention. "
+                    "The fixture is grounded in the public UCSC chain vocabulary; it does not "
+                    "pretend that a local vector is a complete downloaded chain file."
                 ),
             },
             "GNC-D04-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_extensions.LiftoverAmbiguityScorer",
+                    "glio_noncode.reference_coordinate_scenario_matrix.evaluate_reference_coordinate_scenarios",
+                    "glio_noncode.reference_coordinate_reconciliation.reconcile_reference_coordinate_views",
                 ),
-                "test_modules": ("tests.test_reference_extensions",),
+                "test_modules": (
+                    "tests.test_reference_extensions",
+                    "tests.test_reference_coordinate_contracts_replay",
+                    "tests.test_reference_coordinate_lineage",
+                ),
                 "evidence_note": (
-                    "Absent, unique, and competing mapping candidates produce explicit states "
-                    "and bounded scores without selecting a mapping."
+                    "Absent, unique, and competing mapping candidates produce explicit states, "
+                    "bounded scores, candidate IDs, and content addresses. The public controls "
+                    "prove that competing segments are retained, full-interval containment is "
+                    "required, and reconciliation cannot collapse ambiguity into a choice."
                 ),
             },
             "GNC-D04-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_extensions.PangenomeCoordinateMapper",
+                    "glio_noncode.reference_coordinate_bundle.ReferenceCoordinateBundleBuilder",
+                    "glio_noncode.reference_coordinate_lineage.build_reference_coordinate_lineage",
+                    "glio_noncode.reference_coordinate_runtime.run_reference_coordinate_pipeline",
                 ),
-                "test_modules": ("tests.test_reference_extensions",),
+                "test_modules": (
+                    "tests.test_reference_extensions",
+                    "tests.test_reference_coordinate_quality_bundle",
+                    "tests.test_reference_coordinate_runtime",
+                    "tests.test_reference_coordinate_cli",
+                ),
                 "evidence_note": (
-                    "Declared pangenome paths preserve sequence IDs and report unique, multiple, "
-                    "or absent mappings; truth-set path equivalence remains."
+                    "Declared HPRC path metadata preserves sequence IDs, path versions, source "
+                    "receipts, and exact interval containment. Unique, multiple, absent, and "
+                    "boundary controls are replayed through sanitized bundles, 39-node/38-edge "
+                    "lineage, cross-view reconciliation, and a five-stage runtime; coordinate "
+                    "containment is not treated as sequence or clinical truth."
                 ),
             },
             "GNC-D04-C05": {

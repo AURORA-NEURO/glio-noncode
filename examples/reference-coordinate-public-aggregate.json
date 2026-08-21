@@ -1,0 +1,400 @@
+{
+  "fixture_id": "reference-coordinate-public-aggregate",
+  "fixture_version": "reference-coordinate-public-aggregate-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+  "source_receipts": [
+    {
+      "source_id": "SRC-NCBI-GRC-FAQ",
+      "title": "Genome Reference Consortium assembly FAQ",
+      "uri": "https://www.ncbi.nlm.nih.gov/grc/help/faq/",
+      "scope": "official assembly names, aliases, and accessions",
+      "patient_level": false,
+      "accessed_on": "2026-08-21",
+      "license_note": "public reference documentation"
+    },
+    {
+      "source_id": "SRC-NCBI-GRCH38-DATA",
+      "title": "NCBI Genome Reference Consortium GRCh38 assembly data",
+      "uri": "https://www.ncbi.nlm.nih.gov/grc/human/data?asm=GRCh38",
+      "scope": "public chromosome lengths and assembly accession metadata",
+      "patient_level": false,
+      "accessed_on": "2026-08-21",
+      "license_note": "public reference assembly metadata"
+    },
+    {
+      "source_id": "SRC-UCSC-LIFTOVER",
+      "title": "UCSC Genome Browser LiftOver documentation",
+      "uri": "https://genome.ucsc.edu/FAQ/FAQdownloads",
+      "scope": "public assembly conversion workflow and chain-file access",
+      "patient_level": false,
+      "accessed_on": "2026-08-21",
+      "license_note": "public tool documentation"
+    },
+    {
+      "source_id": "SRC-UCSC-CHAIN",
+      "title": "UCSC Genome Browser chain format",
+      "uri": "https://www.genome.ucsc.edu/goldenPath/help/chain.html",
+      "scope": "pairwise chain header and alignment-block vocabulary",
+      "patient_level": false,
+      "accessed_on": "2026-08-21",
+      "license_note": "public format documentation"
+    },
+    {
+      "source_id": "SRC-HPRC-DATA",
+      "title": "Human Pangenome Reference Consortium data use",
+      "uri": "https://humanpangenome.org/data-use/",
+      "scope": "public pangenome release scope and data-use boundary",
+      "patient_level": false,
+      "accessed_on": "2026-08-21",
+      "license_note": "public aggregate reference data guidance"
+    },
+    {
+      "source_id": "SRC-HPRC-ALIGNMENTS",
+      "title": "Human Pangenome Reference Consortium alignment catalog",
+      "uri": "https://data.humanpangenome.org/alignments",
+      "scope": "public pangenome alignment release and path vocabulary",
+      "patient_level": false,
+      "accessed_on": "2026-08-21",
+      "license_note": "public aggregate reference catalog"
+    }
+  ],
+  "records": [
+    {
+      "record_id": "d04-c01-positive-hg38-alias",
+      "operation": "reference_registry",
+      "role": "positive",
+      "expected_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-NCBI-GRC-FAQ", "SRC-NCBI-GRCH38-DATA"],
+      "expected_issue_codes": ["reference_alias_resolved"],
+      "payload": {"query": "hg38"}
+    },
+    {
+      "record_id": "d04-c01-control-genbank-accession",
+      "operation": "reference_registry",
+      "role": "control",
+      "expected_state": "invalid",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-NCBI-GRC-FAQ"],
+      "expected_issue_codes": ["reference_alias_unknown"],
+      "payload": {"query": "GCA_000001405.15"}
+    },
+    {
+      "record_id": "d04-c01-control-refseq-accession",
+      "operation": "reference_registry",
+      "role": "control",
+      "expected_state": "invalid",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-NCBI-GRC-FAQ", "SRC-NCBI-GRCH38-DATA"],
+      "expected_issue_codes": ["reference_alias_unknown"],
+      "payload": {"query": "GCF_000001405.26"}
+    },
+    {
+      "record_id": "d04-c01-control-future-assembly",
+      "operation": "reference_registry",
+      "role": "control",
+      "expected_state": "invalid",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-NCBI-GRC-FAQ"],
+      "expected_issue_codes": ["reference_alias_unknown"],
+      "payload": {"query": "GRCh39"}
+    },
+    {
+      "record_id": "d04-c02-positive-forward-chain",
+      "operation": "liftover_chain",
+      "role": "positive",
+      "expected_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-LIFTOVER", "SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["chain_parsed"],
+      "payload": {
+        "source_assembly": "GRCh38",
+        "target_assembly": "GRCh37",
+        "variant": "7:102:A>T",
+        "chain_text": "mapping_id\tsource_chrom\tsource_start\tsource_end\ttarget_chrom\ttarget_start\ttarget_end\tstrand\tversion\nchain-grch38-grch37-7\t7\t100\t109\t7\t200\t209\t+\tucsc-hg38ToHg19-fixture\n"
+      }
+    },
+    {
+      "record_id": "d04-c02-control-malformed-chain",
+      "operation": "liftover_chain",
+      "role": "control",
+      "expected_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-LIFTOVER", "SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["chain_parse_issue"],
+      "payload": {
+        "source_assembly": "GRCh38",
+        "target_assembly": "GRCh37",
+        "variant": "7:102:A>T",
+        "chain_text": "mapping_id\tsource_chrom\tsource_start\tsource_end\ttarget_chrom\ttarget_start\ttarget_end\tstrand\tversion\nchain-bad\t7\t100\t108\t7\t300\t309\t+\tbad-length\n"
+      }
+    },
+    {
+      "record_id": "d04-c02-control-breakend",
+      "operation": "liftover_chain",
+      "role": "control",
+      "expected_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-LIFTOVER", "SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["chain_breakend_abstained"],
+      "payload": {
+        "source_assembly": "GRCh38",
+        "target_assembly": "GRCh37",
+        "variant": "7:102:BND:8:200",
+        "chain_text": "mapping_id\tsource_chrom\tsource_start\tsource_end\ttarget_chrom\ttarget_start\ttarget_end\tstrand\tversion\nchain-bnd\t7\t100\t109\t7\t200\t209\t+\tfixture\n"
+      }
+    },
+    {
+      "record_id": "d04-c02-control-unmapped-interval",
+      "operation": "liftover_chain",
+      "role": "control",
+      "expected_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-LIFTOVER", "SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["chain_unmapped"],
+      "payload": {
+        "source_assembly": "GRCh38",
+        "target_assembly": "GRCh37",
+        "variant": "7:102:A>T",
+        "chain_text": "mapping_id\tsource_chrom\tsource_start\tsource_end\ttarget_chrom\ttarget_start\ttarget_end\tstrand\tversion\nchain-other\t8\t100\t109\t8\t200\t209\t+\tfixture\n"
+      }
+    },
+    {
+      "record_id": "d04-c03-positive-unique-segment",
+      "operation": "liftover_ambiguity",
+      "role": "positive",
+      "expected_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["ambiguity_unique"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 102, "end": 104},
+        "segments": [
+          {
+            "mapping_id": "ambiguity-unique-7",
+            "source_assembly": "GRCh38",
+            "source_chromosome": "7",
+            "source_start": 100,
+            "source_end": 109,
+            "target_assembly": "GRCh37",
+            "target_chromosome": "7",
+            "target_start": 200,
+            "target_end": 209,
+            "strand": "+",
+            "source_version": "ucsc-fixture"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "d04-c03-control-competing-segments",
+      "operation": "liftover_ambiguity",
+      "role": "control",
+      "expected_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["ambiguity_competing"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 102, "end": 104},
+        "segments": [
+          {
+            "mapping_id": "ambiguity-compete-a",
+            "source_assembly": "GRCh38",
+            "source_chromosome": "7",
+            "source_start": 100,
+            "source_end": 109,
+            "target_assembly": "GRCh37",
+            "target_chromosome": "7",
+            "target_start": 200,
+            "target_end": 209,
+            "strand": "+",
+            "source_version": "ucsc-fixture-a"
+          },
+          {
+            "mapping_id": "ambiguity-compete-b",
+            "source_assembly": "GRCh38",
+            "source_chromosome": "7",
+            "source_start": 100,
+            "source_end": 109,
+            "target_assembly": "GRCh37",
+            "target_chromosome": "7",
+            "target_start": 300,
+            "target_end": 309,
+            "strand": "+",
+            "source_version": "ucsc-fixture-b"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "d04-c03-control-absent-chromosome",
+      "operation": "liftover_ambiguity",
+      "role": "control",
+      "expected_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["ambiguity_absent"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 102, "end": 104},
+        "segments": [
+          {
+            "mapping_id": "ambiguity-absent-8",
+            "source_assembly": "GRCh38",
+            "source_chromosome": "8",
+            "source_start": 100,
+            "source_end": 109,
+            "target_assembly": "GRCh37",
+            "target_chromosome": "8",
+            "target_start": 200,
+            "target_end": 209,
+            "strand": "+",
+            "source_version": "ucsc-fixture"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "d04-c03-control-partial-interval",
+      "operation": "liftover_ambiguity",
+      "role": "control",
+      "expected_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-UCSC-CHAIN"],
+      "expected_issue_codes": ["ambiguity_absent"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 102, "end": 108},
+        "segments": [
+          {
+            "mapping_id": "ambiguity-short-7",
+            "source_assembly": "GRCh38",
+            "source_chromosome": "7",
+            "source_start": 100,
+            "source_end": 104,
+            "target_assembly": "GRCh37",
+            "target_chromosome": "7",
+            "target_start": 200,
+            "target_end": 204,
+            "strand": "+",
+            "source_version": "ucsc-fixture"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "d04-c04-positive-hprc-path",
+      "operation": "pangenome_coordinate",
+      "role": "positive",
+      "expected_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-HPRC-DATA", "SRC-HPRC-ALIGNMENTS"],
+      "expected_issue_codes": ["pangenome_unique"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 100, "end": 120},
+        "paths": [
+          {
+            "path_id": "hprc-v2-grch38-minigraph-chr7",
+            "path_name": "HPRC-v2.0-grch38-minigraph",
+            "chromosome": "7",
+            "start": 1,
+            "end": 159345973,
+            "strand": "+",
+            "sequence_id": "SQ.hprc.grch38.chr7",
+            "source_id": "SRC-HPRC-ALIGNMENTS",
+            "version": "HPRC-v2.0",
+            "attributes": {"reference_coordinates": "grch38", "pipeline": "minigraph"}
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "d04-c04-control-multiple-hprc-paths",
+      "operation": "pangenome_coordinate",
+      "role": "control",
+      "expected_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-HPRC-DATA", "SRC-HPRC-ALIGNMENTS"],
+      "expected_issue_codes": ["pangenome_multiple"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 100, "end": 120},
+        "paths": [
+          {
+            "path_id": "hprc-v2-grch38-primary-7",
+            "path_name": "HPRC-v2.0-grch38-minigraph-cactus",
+            "chromosome": "7",
+            "start": 1,
+            "end": 159345973,
+            "strand": "+",
+            "sequence_id": "SQ.hprc.grch38.primary.chr7",
+            "source_id": "SRC-HPRC-ALIGNMENTS",
+            "version": "HPRC-v2.0",
+            "attributes": {"reference_coordinates": "grch38", "pipeline": "minigraph-cactus"}
+          },
+          {
+            "path_id": "hprc-v2-grch38-alt-7",
+            "path_name": "HPRC-v2.0-grch38-alt-path-7",
+            "chromosome": "7",
+            "start": 1,
+            "end": 159345973,
+            "strand": "-",
+            "sequence_id": "SQ.hprc.grch38.alt.chr7",
+            "source_id": "SRC-HPRC-ALIGNMENTS",
+            "version": "HPRC-v2.0",
+            "attributes": {"reference_coordinates": "grch38", "path_class": "alternate"}
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "d04-c04-control-absent-hprc-path",
+      "operation": "pangenome_coordinate",
+      "role": "control",
+      "expected_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-HPRC-DATA", "SRC-HPRC-ALIGNMENTS"],
+      "expected_issue_codes": ["pangenome_absent"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 100, "end": 120},
+        "paths": [
+          {
+            "path_id": "hprc-v2-grch38-only-8",
+            "path_name": "HPRC-v2.0-grch38-minigraph-chr8",
+            "chromosome": "8",
+            "start": 1,
+            "end": 145138636,
+            "strand": "+",
+            "sequence_id": "SQ.hprc.grch38.chr8",
+            "source_id": "SRC-HPRC-ALIGNMENTS",
+            "version": "HPRC-v2.0",
+            "attributes": {"reference_coordinates": "grch38"}
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "d04-c04-control-boundary-truncation",
+      "operation": "pangenome_coordinate",
+      "role": "control",
+      "expected_state": "abstained",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+      "source_ids": ["SRC-HPRC-DATA", "SRC-HPRC-ALIGNMENTS"],
+      "expected_issue_codes": ["pangenome_absent"],
+      "payload": {
+        "query_interval": {"chromosome": "7", "start": 159345900, "end": 159346020},
+        "paths": [
+          {
+            "path_id": "hprc-v2-grch38-short-7",
+            "path_name": "HPRC-v2.0-grch38-short-path-7",
+            "chromosome": "7",
+            "start": 1,
+            "end": 159345973,
+            "strand": "+",
+            "sequence_id": "SQ.hprc.grch38.short.chr7",
+            "source_id": "SRC-HPRC-ALIGNMENTS",
+            "version": "HPRC-v2.0",
+            "attributes": {"reference_coordinates": "grch38"}
+          }
+        ]
+      }
+    }
+  ]
+}

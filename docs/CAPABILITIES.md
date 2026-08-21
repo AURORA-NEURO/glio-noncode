@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 64 capabilities have deterministic fixture-backed
-verification and 192 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 25.00% of the 256-capability
-catalog; MVP implementation coverage remains 18.75%. The surfaces retain
+capabilities started (100%); 68 capabilities have deterministic fixture-backed
+verification and 188 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 26.56% of the 256-capability
+catalog; MVP implementation coverage is 25.00%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -313,6 +313,28 @@ glio-noncode build-reference-bundle references.json --output reference-bundle.js
 glio-noncode gate-reference-release release-checks.json --output release-decision.json
 ```
 
+The C01-C04 reference-coordinate vertical slice adds a public aggregate
+fixture with six official source receipts, four positive records, and twelve
+controls. It resolves canonical assembly aliases, parses explicit chain-like
+segments, scores unique/competing/absent mappings, and retains every declared
+HPRC path candidate. The release plane adds 26 data-boundary checks, 134
+operation checks, 16 scenario transitions, 16 replay checks, 24
+reconciliation checks, a 39-node/38-edge lineage graph, a sanitized bundle,
+and five conserved runtime stages.
+
+```powershell
+glio-noncode audit-reference-coordinate-data examples/reference-coordinate-public-aggregate.json --output reference-coordinate-data.json
+glio-noncode evaluate-reference-coordinate-fixture examples/reference-coordinate-public-aggregate.json --output reference-coordinate-fixture.json
+glio-noncode replay-reference-coordinate-fixtures examples/reference-coordinate-public-aggregate.json --output reference-coordinate-replay.json
+glio-noncode reference-coordinate-quality-gate examples/reference-coordinate-public-aggregate.json --output reference-coordinate-quality.json
+glio-noncode evaluate-reference-coordinate-scenarios examples/reference-coordinate-public-aggregate.json --output reference-coordinate-scenarios.json
+glio-noncode reference-coordinate-contracts --output reference-coordinate-contracts.json
+glio-noncode build-reference-coordinate-bundle examples/reference-coordinate-public-aggregate.json --output reference-coordinate-bundle.json --format markdown
+glio-noncode reference-coordinate-lineage examples/reference-coordinate-public-aggregate.json --output reference-coordinate-lineage.json
+glio-noncode reference-coordinate-reconciliation examples/reference-coordinate-public-aggregate.json --output reference-coordinate-reconciliation.json
+glio-noncode run-reference-coordinate-pipeline examples/reference-coordinate-pipeline-accepted.json --output reference-coordinate-pipeline.json
+```
+
 The same frontier wave extended the atlas, sequence, chromatin, and cell-state
 boundaries through Domains 05-08. Those modules remain part of the current
 256-capability ledger, with the individual capability records retaining their
@@ -389,8 +411,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 64 controls are verified against the checked-in
-aggregate fixtures, while 192 capabilities remain partial. Partial
+capabilities started (100%); 68 controls are verified against the checked-in
+aggregate fixtures, while 188 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -941,6 +963,31 @@ evidence. Chain-like tables are imported as explicit equal-length segments;
 liftover scoring reports absent, unique, or competing mappings; and
 pangenome coordinates retain every declared path candidate. The resolver
 never treats a coordinate conversion as proof of sequence equivalence.
+
+The C01-C04 evidence gate is explicit at each boundary:
+
+- C01 `ReferenceRegistry` resolves `GRCh38`/`hg38` and `GRCh37`/`hg19` aliases
+  while retaining species, release, accession, and source metadata. Unknown
+  accessions and future assembly labels remain invalid rather than being
+  guessed from a string pattern.
+- C02 `LiftoverChainManager` imports equal-length mapping segments with source
+  hashes, preserves malformed rows, and projects only through one supplied
+  segment. Missing mappings, competing segments, reverse-strand alleles, and
+  breakends retain explicit outcomes.
+- C03 `LiftoverAmbiguityScorer` emits a bounded score over all candidates.
+  Unique, competing, and absent candidates are different states, and the
+  score never selects a coordinate or discards alternatives.
+- C04 `PangenomeCoordinateMapper` keeps path ID, sequence ID, source, version,
+  strand, and interval for every declared path candidate. HPRC path labels are
+  public reference metadata; containment is not a claim of graph equivalence.
+
+The fixture source receipts point to NCBI GRC assembly documentation, NCBI
+GRCh38 assembly data, UCSC LiftOver and chain-format documentation, and HPRC
+public data and alignment catalogs. The fixture records are bounded coordinate
+vectors, not patient records and not a substitute for downloading or validating
+the complete underlying reference resources. C01-C04 changes must preserve
+source closure, exact context, candidate retention, content addresses, and
+non-publishing review controls.
 
 The Domain 04 scientific-beta adapters add versioned annotation governance:
 

@@ -234,3 +234,23 @@ jobs:
         run: python -m glio_noncode specimen-preanalytic-reconciliation examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-reconciliation.json
       - name: Specimen preanalytic pipeline integration
         run: python -m glio_noncode run-specimen-preanalytic-pipeline examples/specimen-preanalytic-pipeline-accepted.json --output /tmp/glio-specimen-preanalytic-pipeline.json
+      - name: Reference coordinate data boundary audit
+        run: python -m glio_noncode audit-reference-coordinate-data examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-data.json
+      - name: Reference coordinate fixture evaluation
+        run: python -m glio_noncode evaluate-reference-coordinate-fixture examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-fixture.json
+      - name: Reference coordinate replay integrity
+        run: python -m glio_noncode replay-reference-coordinate-fixtures examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-replay.json
+      - name: Reference coordinate quality gate
+        run: python -m glio_noncode reference-coordinate-quality-gate examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-quality.json
+      - name: Reference coordinate scenario matrix
+        run: python -m glio_noncode evaluate-reference-coordinate-scenarios examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-scenarios.json
+      - name: Reference coordinate operation contracts
+        run: python -m glio_noncode reference-coordinate-contracts --output /tmp/glio-reference-coordinate-contracts.json
+      - name: Reference coordinate evidence bundle
+        run: python -m glio_noncode build-reference-coordinate-bundle examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-bundle.json
+      - name: Reference coordinate lineage graph
+        run: python -m glio_noncode reference-coordinate-lineage examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-lineage.json
+      - name: Reference coordinate receipt reconciliation
+        run: python -m glio_noncode reference-coordinate-reconciliation examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-reconciliation.json
+      - name: Reference coordinate pipeline integration
+        run: python -m glio_noncode run-reference-coordinate-pipeline examples/reference-coordinate-pipeline-accepted.json --output /tmp/glio-reference-coordinate-pipeline.json

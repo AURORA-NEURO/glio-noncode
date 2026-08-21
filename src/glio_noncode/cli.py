@@ -205,6 +205,28 @@ from .reference_beta import (
     RegulatoryOntologyAdapter,
 )
 from .reference_registry import default_reference_registry
+from .reference_coordinate_bundle import (
+    ReferenceCoordinateBundleBuilder,
+    ReferenceCoordinateBundleFormat,
+)
+from .reference_coordinate_contracts import default_reference_coordinate_contracts
+from .reference_coordinate_fixture_eval import evaluate_reference_coordinate_fixture
+from .reference_coordinate_lineage import build_reference_coordinate_lineage
+from .reference_coordinate_public_data import (
+    ReferenceCoordinateFixtureCatalog,
+    audit_reference_coordinate_data,
+)
+from .reference_coordinate_quality_gate import evaluate_reference_coordinate_quality_gate
+from .reference_coordinate_reconciliation import reconcile_reference_coordinate_views
+from .reference_coordinate_replay import (
+    default_reference_coordinate_expectation,
+    replay_reference_coordinate_fixture,
+)
+from .reference_coordinate_runtime import (
+    ReferenceCoordinatePipelineRequest,
+    run_reference_coordinate_pipeline,
+)
+from .reference_coordinate_scenario_matrix import evaluate_reference_coordinate_scenarios
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .schema import schema_document
@@ -2071,6 +2093,93 @@ def build_parser() -> argparse.ArgumentParser:
     )
     specimen_preanalytic_pipeline.add_argument("input", type=str)
     specimen_preanalytic_pipeline.add_argument("--output", default=None)
+
+    reference_coordinate_fixture = subparsers.add_parser(
+        "evaluate-reference-coordinate-fixture",
+        help="evaluate the public aggregate fixture across Domain 04 C01-C04 coordinate operations",
+    )
+    reference_coordinate_fixture.add_argument("input", type=str)
+    reference_coordinate_fixture.add_argument("--output", default=None)
+
+    reference_coordinate_data = subparsers.add_parser(
+        "audit-reference-coordinate-data",
+        help="audit public C01-C04 assembly, liftover, ambiguity, and pangenome boundaries",
+    )
+    reference_coordinate_data.add_argument("input", type=str)
+    reference_coordinate_data.add_argument("--output", default=None)
+
+    reference_coordinate_replay = subparsers.add_parser(
+        "replay-reference-coordinate-fixtures",
+        help="replay C01-C04 coordinate fixtures with identity, context, and evidence floors",
+    )
+    reference_coordinate_replay.add_argument("input", type=str)
+    reference_coordinate_replay.add_argument("--output", default=None)
+
+    reference_coordinate_quality = subparsers.add_parser(
+        "reference-coordinate-quality-gate",
+        help=(
+            "reconcile C01-C04 public data, fixture, scenarios, contracts, graph, "
+            "bundle, and runtime evidence"
+        ),
+    )
+    reference_coordinate_quality.add_argument("input", type=str)
+    reference_coordinate_quality.add_argument("--output", default=None)
+
+    reference_coordinate_scenarios = subparsers.add_parser(
+        "evaluate-reference-coordinate-scenarios",
+        help="run C01-C04 coordinate positive and review state scenarios",
+    )
+    reference_coordinate_scenarios.add_argument("input", type=str)
+    reference_coordinate_scenarios.add_argument("--output", default=None)
+
+    reference_coordinate_contracts = subparsers.add_parser(
+        "reference-coordinate-contracts",
+        help="print the four-operation Domain 04 reference-coordinate contract registry",
+    )
+    reference_coordinate_contracts.add_argument("--output", default=None)
+
+    reference_coordinate_bundle = subparsers.add_parser(
+        "build-reference-coordinate-bundle",
+        help="build a JSON, CSV, or Markdown C01-C04 coordinate evidence bundle",
+    )
+    reference_coordinate_bundle.add_argument("input", type=str)
+    reference_coordinate_bundle.add_argument("--output", required=True)
+    reference_coordinate_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in ReferenceCoordinateBundleFormat],
+        default=ReferenceCoordinateBundleFormat.JSON.value,
+    )
+    reference_coordinate_bundle.add_argument(
+        "--accepted-only",
+        action="store_true",
+        help="include only supported positive operation receipts",
+    )
+    reference_coordinate_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="retain review controls in a verification bundle",
+    )
+
+    reference_coordinate_graph = subparsers.add_parser(
+        "reference-coordinate-lineage",
+        help="build and audit the sanitized C01-C04 coordinate source-to-result graph",
+    )
+    reference_coordinate_graph.add_argument("input", type=str)
+    reference_coordinate_graph.add_argument("--output", default=None)
+
+    reference_coordinate_reconciliation = subparsers.add_parser(
+        "reference-coordinate-reconciliation",
+        help="reconcile C01-C04 fixture records with coordinate receipt and graph addresses",
+    )
+    reference_coordinate_reconciliation.add_argument("input", type=str)
+    reference_coordinate_reconciliation.add_argument("--output", default=None)
+
+    reference_coordinate_pipeline = subparsers.add_parser(
+        "run-reference-coordinate-pipeline",
+        help="run C01 registry, C02 liftover, C03 ambiguity, and C04 pangenome stages",
+    )
+    reference_coordinate_pipeline.add_argument("input", type=str)
+    reference_coordinate_pipeline.add_argument("--output", default=None)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -4407,6 +4516,65 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "run-specimen-preanalytic-pipeline":
             request, catalog = SpecimenPreanalyticPipelineRequest.from_file(args.input)
             report = run_specimen_preanalytic_pipeline(request, catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
+        if args.command == "evaluate-reference-coordinate-fixture":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            report = evaluate_reference_coordinate_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-reference-coordinate-data":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            report = audit_reference_coordinate_data(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "replay-reference-coordinate-fixtures":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            expectation = default_reference_coordinate_expectation(catalog)
+            report = replay_reference_coordinate_fixture(catalog, expectation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "reference-coordinate-quality-gate":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            report = evaluate_reference_coordinate_quality_gate(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-reference-coordinate-scenarios":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            report = evaluate_reference_coordinate_scenarios(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "reference-coordinate-contracts":
+            _write_json(default_reference_coordinate_contracts().manifest(), args.output)
+            return 0
+        if args.command == "build-reference-coordinate-bundle":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            builder = ReferenceCoordinateBundleBuilder()
+            bundle = builder.build(
+                catalog,
+                output_format=ReferenceCoordinateBundleFormat(args.format),
+                accepted_only=args.accepted_only,
+                allow_review=args.allow_review,
+            )
+            rendered = builder.render(bundle)
+            Path(args.output).write_text(rendered, encoding="utf-8")
+            verification = builder.verify(bundle, catalog)
+            return 0 if verification.passed else 2
+        if args.command == "reference-coordinate-lineage":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            graph = build_reference_coordinate_lineage(catalog)
+            payload = graph.to_dict()
+            payload["audit"] = graph.audit(catalog).to_dict()
+            _write_json(payload, args.output)
+            return 0 if graph.audit(catalog).passed else 2
+        if args.command == "reference-coordinate-reconciliation":
+            catalog = ReferenceCoordinateFixtureCatalog.from_file(args.input)
+            report = reconcile_reference_coordinate_views(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "run-reference-coordinate-pipeline":
+            request = ReferenceCoordinatePipelineRequest.from_file(args.input)
+            report = run_reference_coordinate_pipeline(request)
             _write_json(report.to_dict(), args.output)
             return 0 if report.published else 2
         if args.command == "classify-origin":

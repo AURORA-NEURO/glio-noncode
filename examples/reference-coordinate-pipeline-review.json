@@ -1,0 +1,7 @@
+{
+  "fixture_path": "reference-coordinate-public-aggregate.json",
+  "context_key": "GRCh37|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline",
+  "accepted_only": true,
+  "allow_review": false,
+  "output_format": "json"
+}
