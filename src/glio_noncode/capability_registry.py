@@ -1787,39 +1787,59 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D05-C01": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_extensions.CcreTrackParser",),
-                "test_modules": ("tests.test_atlas_extensions",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_extensions.CcreTrackParser",
+                    "glio_noncode.regulatory_atlas_fixture_eval.evaluate_regulatory_atlas_fixture",
+                    "glio_noncode.regulatory_atlas_public_data.audit_regulatory_atlas_data",
+                ),
+                "test_modules": ("tests.test_atlas_extensions", "tests.test_regulatory_atlas"),
                 "evidence_note": (
                     "ENCODE SCREEN-style cCRE TSV/JSON records preserve registry class, "
-                    "versions, hashes, BED conversion, and malformed-row quarantine."
+                    "versions, hashes, BED conversion, malformed-row quarantine, and a "
+                    "public aggregate fixture with replay, lineage, policy, and release checks."
                 ),
             },
             "GNC-D05-C02": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_extensions.CcreAtlasAdapter",),
-                "test_modules": ("tests.test_atlas_extensions",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_extensions.CcreAtlasAdapter",
+                    "glio_noncode.regulatory_atlas_fixture_eval.evaluate_regulatory_atlas_fixture",
+                    "glio_noncode.regulatory_atlas_quality_gate.evaluate_regulatory_atlas_quality_gate",
+                ),
+                "test_modules": ("tests.test_atlas_extensions", "tests.test_regulatory_atlas"),
                 "evidence_note": (
                     "Brain cell-type cCRE queries are context-gated and preserve absent or "
-                    "out-of-domain states; external atlas evaluation is pending."
+                    "out-of-domain states; the public aggregate profile is exercised through "
+                    "supported, mismatch, absent, and ambiguous scenarios."
                 ),
             },
             "GNC-D05-C03": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_extensions.CcreAtlasAdapter",),
-                "test_modules": ("tests.test_atlas_extensions",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_extensions.CcreAtlasAdapter",
+                    "glio_noncode.regulatory_atlas_fixture_eval.evaluate_regulatory_atlas_fixture",
+                    "glio_noncode.regulatory_atlas_release.build_regulatory_atlas_release_manifest",
+                ),
+                "test_modules": ("tests.test_atlas_extensions", "tests.test_regulatory_atlas"),
                 "evidence_note": (
                     "Adult glioma cCRE queries retain source IDs and context keys without "
-                    "turning overlap into a mechanistic claim."
+                    "turning overlap into a mechanistic claim; accepted positives and review "
+                    "controls are included in the reproducible publication boundary."
                 ),
             },
             "GNC-D05-C04": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.atlas_extensions.CcreAtlasAdapter",),
-                "test_modules": ("tests.test_atlas_extensions",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_extensions.CcreAtlasAdapter",
+                    "glio_noncode.regulatory_atlas_fixture_eval.evaluate_regulatory_atlas_fixture",
+                    "glio_noncode.regulatory_atlas_runtime.run_regulatory_atlas_pipeline",
+                ),
+                "test_modules": ("tests.test_atlas_extensions", "tests.test_regulatory_atlas"),
                 "evidence_note": (
                     "Pediatric glioma cCRE queries preserve pediatric context boundaries and "
-                    "abstain or report out-of-domain when contexts do not match."
+                    "abstain or report out-of-domain when contexts do not match; pipeline "
+                    "runtime and release verification preserve that boundary."
                 ),
             },
             "GNC-D05-C05": {

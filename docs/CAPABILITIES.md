@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 76 capabilities have deterministic fixture-backed
-verification and 180 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 29.69% of the 256-capability
-catalog; MVP implementation coverage is 25.00%. The surfaces retain
+capabilities started (100%); 80 capabilities have deterministic fixture-backed
+verification and 176 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 31.25% of the 256-capability
+catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 76 controls are verified against the checked-in
-aggregate fixtures, while 180 capabilities remain partial. Partial
+capabilities started (100%); 80 controls are verified against the checked-in
+aggregate fixtures, while 176 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1116,6 +1116,52 @@ snapshot. Queries preserve source versions and raw hashes, gate on declared
 cell state, disease, and age context, and distinguish supported overlap from
 absence, ambiguity, and out-of-domain context. Atlas overlap is an annotation
 observation, not proof of activity or causality.
+
+### Domain 05 C01-C04 public cCRE evidence gate
+
+The first four regulatory-atlas capabilities now have a dedicated, executable
+public aggregate boundary. The fixture at
+`examples/regulatory-atlas-public-aggregate.json` is shaped from official
+ENCODE SCREEN/cCRE release documentation and keeps the local rows compact,
+versioned, and non-subject-level. The official source receipts are:
+
+- [SCREEN cCRE overview](https://screen.encodeproject.org/index/about)
+- [ENCODE cCRE release ENCFF272QXW](https://www.encodeproject.org/files/ENCFF272QXW/)
+- [ENCODE cCRE v2 pipeline](https://www.encodeproject.org/pipelines/ENCPL751FOQ/)
+- [ENCODE annotations catalog](https://www.encodeproject.org/data/annotations/)
+- [ENCODE portal](https://www.encodeproject.org/)
+
+The executable slice includes `CcreTrackParser` for BED/TSV/JSON conversion
+and malformed-row quarantine, plus context-gated brain-cell, adult-glioma, and
+pediatric-glioma profile queries. Four positive rows and twelve controls cover
+valid parsing, malformed coordinates, malformed JSON, context mismatch,
+absence, and overlap ambiguity. The profile layer preserves the distinction
+between a supported overlap and a biological conclusion.
+
+The integrated boundary contains 120 evaluation checks, 13 independent
+scenarios, 13 replay checks, 12 policy rules, a 157-node/157-edge sanitized
+lineage graph, 25 quality checks, balanced operation metrics, accepted-only
+JSON/CSV/Markdown bundles, a nine-stage runtime, and a twelve-check release
+manifest. Receipts omit input text and executable payload collections.
+
+```powershell
+python -m glio_noncode audit-regulatory-atlas-data examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-data.json
+python -m glio_noncode evaluate-regulatory-atlas-fixture examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-fixture.json
+python -m glio_noncode replay-regulatory-atlas-fixtures examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-replay.json
+python -m glio_noncode regulatory-atlas-quality-gate examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-quality.json
+python -m glio_noncode evaluate-regulatory-atlas-scenarios examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-scenarios.json
+python -m glio_noncode regulatory-atlas-contracts --output regulatory-atlas-contracts.json
+python -m glio_noncode regulatory-atlas-metrics examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-metrics.json
+python -m glio_noncode build-regulatory-atlas-bundle examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-bundle.json --accepted-only
+python -m glio_noncode regulatory-atlas-lineage examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-lineage.json
+python -m glio_noncode regulatory-atlas-reconciliation examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-reconciliation.json
+python -m glio_noncode run-regulatory-atlas-pipeline examples/regulatory-atlas-pipeline-accepted.json --output regulatory-atlas-pipeline.json
+python -m glio_noncode build-regulatory-atlas-release examples/regulatory-atlas-public-aggregate.json --output regulatory-atlas-release.json
+```
+
+See `docs/REGULATORY_ATLAS_EVIDENCE_GATE.md` and
+`docs/REGULATORY_ATLAS_RELEASE_FORMAT.md` for the complete source boundary,
+state semantics, receipt fields, policy rules, and release schema.
 
 The Domain 05 scientific-beta extensions keep molecular states separate:
 

@@ -1,0 +1,5 @@
+{
+  "fixture": "default_regulatory_atlas_fixture",
+  "expected_context_key": "GRCh38|diffuse_glioma|adult|stem_like|unknown|unknown",
+  "accepted_only": true
+}

@@ -22,6 +22,28 @@ from .atlas_beta import (
     MolecularStateAtlasAdapter,
 )
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
+from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder, RegulatoryAtlasBundleFormat
+from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
+from .regulatory_atlas_lineage import build_regulatory_atlas_lineage
+from .regulatory_atlas_metrics import (
+    build_regulatory_atlas_metrics,
+    render_regulatory_atlas_metrics,
+    verify_regulatory_atlas_metrics,
+)
+from .regulatory_atlas_contracts import default_regulatory_atlas_contracts
+from .regulatory_atlas_public_data import (
+    audit_regulatory_atlas_data,
+    load_regulatory_atlas_fixture,
+)
+from .regulatory_atlas_quality_gate import evaluate_regulatory_atlas_quality_gate
+from .regulatory_atlas_reconciliation import reconcile_regulatory_atlas_views
+from .regulatory_atlas_release import (
+    build_regulatory_atlas_release_manifest,
+    write_regulatory_atlas_release_manifest,
+)
+from .regulatory_atlas_replay import replay_regulatory_atlas_evaluation
+from .regulatory_atlas_runtime import run_regulatory_atlas_pipeline_file
+from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
 from .capability_registry import default_capability_registry
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
@@ -2400,6 +2422,91 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reference_governance_release.add_argument("input", type=str)
     reference_governance_release.add_argument("--output", required=True)
+
+    regulatory_atlas_fixture = subparsers.add_parser(
+        "evaluate-regulatory-atlas-fixture",
+        help="evaluate the public aggregate cCRE fixture across Domain 05 C01-C04 profiles",
+    )
+    regulatory_atlas_fixture.add_argument("input", type=str)
+    regulatory_atlas_fixture.add_argument("--output", default=None)
+
+    regulatory_atlas_data = subparsers.add_parser(
+        "audit-regulatory-atlas-data",
+        help="audit public ENCODE SCREEN-shaped C01-C04 source boundaries and payload scope",
+    )
+    regulatory_atlas_data.add_argument("input", type=str)
+    regulatory_atlas_data.add_argument("--output", default=None)
+
+    regulatory_atlas_replay = subparsers.add_parser(
+        "replay-regulatory-atlas-fixtures",
+        help="replay C01-C04 cCRE profiles with identity, context, and state floors",
+    )
+    regulatory_atlas_replay.add_argument("input", type=str)
+    regulatory_atlas_replay.add_argument("--output", default=None)
+
+    regulatory_atlas_quality = subparsers.add_parser(
+        "regulatory-atlas-quality-gate",
+        help="run the integrated C01-C04 public-data and publication quality gate",
+    )
+    regulatory_atlas_quality.add_argument("input", type=str)
+    regulatory_atlas_quality.add_argument("--output", default=None)
+
+    regulatory_atlas_scenarios = subparsers.add_parser(
+        "evaluate-regulatory-atlas-scenarios",
+        help="run C01-C04 parse, context mismatch, absence, and ambiguity scenarios",
+    )
+    regulatory_atlas_scenarios.add_argument("input", type=str)
+    regulatory_atlas_scenarios.add_argument("--output", default=None)
+
+    regulatory_atlas_contracts = subparsers.add_parser(
+        "regulatory-atlas-contracts",
+        help="print the four-operation Domain 05 C01-C04 contract registry",
+    )
+    regulatory_atlas_contracts.add_argument("--output", default=None)
+
+    regulatory_atlas_metrics = subparsers.add_parser(
+        "regulatory-atlas-metrics",
+        help="render C01-C04 cCRE coverage, issue, and sanitization metrics",
+    )
+    regulatory_atlas_metrics.add_argument("input", type=str)
+    regulatory_atlas_metrics.add_argument("--output", default=None)
+
+    regulatory_atlas_bundle = subparsers.add_parser(
+        "build-regulatory-atlas-bundle",
+        help="build a compact JSON, CSV, or Markdown C01-C04 evidence bundle",
+    )
+    regulatory_atlas_bundle.add_argument("input", type=str)
+    regulatory_atlas_bundle.add_argument("--output", required=True)
+    regulatory_atlas_bundle.add_argument("--format", choices=[item.value for item in RegulatoryAtlasBundleFormat], default=RegulatoryAtlasBundleFormat.JSON.value)
+    regulatory_atlas_bundle.add_argument("--accepted-only", action="store_true")
+
+    regulatory_atlas_graph = subparsers.add_parser(
+        "regulatory-atlas-lineage",
+        help="build and audit the sanitized C01-C04 source-to-result graph",
+    )
+    regulatory_atlas_graph.add_argument("input", type=str)
+    regulatory_atlas_graph.add_argument("--output", default=None)
+
+    regulatory_atlas_reconciliation = subparsers.add_parser(
+        "regulatory-atlas-reconciliation",
+        help="reconcile C01-C04 fixture, data, replay, scenario, and lineage views",
+    )
+    regulatory_atlas_reconciliation.add_argument("input", type=str)
+    regulatory_atlas_reconciliation.add_argument("--output", default=None)
+
+    regulatory_atlas_pipeline = subparsers.add_parser(
+        "run-regulatory-atlas-pipeline",
+        help="run the complete C01-C04 regulatory atlas pipeline",
+    )
+    regulatory_atlas_pipeline.add_argument("input", type=str)
+    regulatory_atlas_pipeline.add_argument("--output", default=None)
+
+    regulatory_atlas_release = subparsers.add_parser(
+        "build-regulatory-atlas-release",
+        help="build and verify the C01-C04 regulatory atlas publication manifest",
+    )
+    regulatory_atlas_release.add_argument("input", type=str)
+    regulatory_atlas_release.add_argument("--output", required=True)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -4935,6 +5042,80 @@ def main(argv: list[str] | None = None) -> int:
             bundle = ReferenceGovernanceBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
             manifest = build_reference_governance_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
             write_reference_governance_release_manifest(manifest, args.output)
+            return 0 if manifest.publishable else 2
+        if args.command == "evaluate-regulatory-atlas-fixture":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            report = evaluate_regulatory_atlas_fixture(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "audit-regulatory-atlas-data":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            report = audit_regulatory_atlas_data(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-regulatory-atlas-fixtures":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_regulatory_atlas_fixture(fixture)
+            report = replay_regulatory_atlas_evaluation(evaluation, fixture=fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "regulatory-atlas-quality-gate":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            report = evaluate_regulatory_atlas_quality_gate(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-regulatory-atlas-scenarios":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_regulatory_atlas_fixture(fixture)
+            report = evaluate_regulatory_atlas_scenarios(fixture, report=evaluation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "regulatory-atlas-contracts":
+            _write_json(default_regulatory_atlas_contracts().manifest(), args.output)
+            return 0
+        if args.command == "regulatory-atlas-metrics":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_regulatory_atlas_fixture(fixture)
+            report = build_regulatory_atlas_metrics(evaluation)
+            failures = verify_regulatory_atlas_metrics(report)
+            _write_json(render_regulatory_atlas_metrics(report) | {"accepted": report.accepted, "failures": list(failures)}, args.output)
+            return 0 if report.accepted and not failures else 2
+        if args.command == "build-regulatory-atlas-bundle":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_regulatory_atlas_fixture(fixture)
+            builder = RegulatoryAtlasBundleBuilder()
+            bundle = builder.build(evaluation, fixture=fixture, output_format=RegulatoryAtlasBundleFormat(args.format), accepted_only=args.accepted_only)
+            builder.write(bundle, args.output)
+            return 0 if not builder.verify(bundle) else 2
+        if args.command == "regulatory-atlas-lineage":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_regulatory_atlas_fixture(fixture)
+            graph = build_regulatory_atlas_lineage(evaluation, fixture=fixture)
+            audit = graph.audit(evaluation)
+            _write_json(graph.to_dict() | {"audit": audit.to_dict(), "accepted": audit.passed}, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "regulatory-atlas-reconciliation":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            data = audit_regulatory_atlas_data(fixture)
+            evaluation = evaluate_regulatory_atlas_fixture(fixture)
+            replay = replay_regulatory_atlas_evaluation(evaluation, fixture=fixture)
+            scenarios = evaluate_regulatory_atlas_scenarios(fixture, report=evaluation)
+            graph = build_regulatory_atlas_lineage(evaluation, fixture=fixture)
+            report = reconcile_regulatory_atlas_views(fixture, data, evaluation, replay, scenarios, graph)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "run-regulatory-atlas-pipeline":
+            report = run_regulatory_atlas_pipeline_file(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
+        if args.command == "build-regulatory-atlas-release":
+            fixture = load_regulatory_atlas_fixture(_read_json(args.input))
+            evaluation = evaluate_regulatory_atlas_fixture(fixture)
+            quality = evaluate_regulatory_atlas_quality_gate(fixture)
+            replay = replay_regulatory_atlas_evaluation(evaluation, fixture=fixture)
+            bundle = RegulatoryAtlasBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
+            manifest = build_regulatory_atlas_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            write_regulatory_atlas_release_manifest(manifest, args.output)
             return 0 if manifest.publishable else 2
         if args.command == "classify-origin":
             result = SomaticGermlineOriginClassifier().classify(

@@ -300,3 +300,27 @@ jobs:
         run: python -m glio_noncode run-reference-governance-pipeline examples/reference-governance-pipeline-accepted.json --output /tmp/glio-reference-governance-pipeline.json
       - name: Reference governance release manifest
         run: python -m glio_noncode build-reference-governance-release examples/reference-governance-public-aggregate.json --output /tmp/glio-reference-governance-release.json
+      - name: Regulatory atlas data boundary audit
+        run: python -m glio_noncode audit-regulatory-atlas-data examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-data.json
+      - name: Regulatory atlas fixture evaluation
+        run: python -m glio_noncode evaluate-regulatory-atlas-fixture examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-fixture.json
+      - name: Regulatory atlas replay integrity
+        run: python -m glio_noncode replay-regulatory-atlas-fixtures examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-replay.json
+      - name: Regulatory atlas quality gate
+        run: python -m glio_noncode regulatory-atlas-quality-gate examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-quality.json
+      - name: Regulatory atlas scenario matrix
+        run: python -m glio_noncode evaluate-regulatory-atlas-scenarios examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-scenarios.json
+      - name: Regulatory atlas operation contracts
+        run: python -m glio_noncode regulatory-atlas-contracts --output /tmp/glio-regulatory-atlas-contracts.json
+      - name: Regulatory atlas metrics
+        run: python -m glio_noncode regulatory-atlas-metrics examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-metrics.json
+      - name: Regulatory atlas evidence bundle
+        run: python -m glio_noncode build-regulatory-atlas-bundle examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-bundle.json --accepted-only
+      - name: Regulatory atlas lineage graph
+        run: python -m glio_noncode regulatory-atlas-lineage examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-lineage.json
+      - name: Regulatory atlas receipt reconciliation
+        run: python -m glio_noncode regulatory-atlas-reconciliation examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-reconciliation.json
+      - name: Regulatory atlas pipeline integration
+        run: python -m glio_noncode run-regulatory-atlas-pipeline examples/regulatory-atlas-pipeline-accepted.json --output /tmp/glio-regulatory-atlas-pipeline.json
+      - name: Regulatory atlas release manifest
+        run: python -m glio_noncode build-regulatory-atlas-release examples/regulatory-atlas-public-aggregate.json --output /tmp/glio-regulatory-atlas-release.json
