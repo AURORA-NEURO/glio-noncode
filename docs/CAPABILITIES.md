@@ -505,6 +505,26 @@ glio-noncode estimate-idh-lineage-prior idh-prior.json --context-key "GRCh38|gli
 glio-noncode estimate-h3k27-developmental-prior h3-prior.json --context-key "GRCh38|glioma|pediatric|stem_like|midline|unknown" --molecular-state "H3K27-altered" --output h3-result.json
 ```
 
+The Domain 08 context-alpha tranche adds four exact-context priors:
+
+- `SpatialNichePrior` ranks declared niche candidates within a subject and
+  context while retaining sample support, close-candidate margins, and
+  alternatives.
+- `CoreMarginTerritoryPrior` compares declared core and margin scores with an
+  explicit ambiguity tolerance, preserving mixed and one-sided evidence.
+- `RecurrenceStatePrior` ranks primary, recurrence, and progression candidates
+  without transporting one phase into another or collapsing close scores.
+- `TreatmentInducedStatePrior` compares baseline and post-treatment support
+  for a declared state and treatment phase, preserving induced, stable, or
+  reduced labels as descriptive changes.
+
+```powershell
+glio-noncode estimate-spatial-niche-prior spatial-niches.json --context-key "GRCh38|glioma|adult|stem_like|tumor|unknown" --output spatial-niche-prior.json
+glio-noncode estimate-core-margin-prior core-margin.json --ambiguity-tolerance 0.1 --output core-margin-prior.json
+glio-noncode estimate-recurrence-state-prior recurrence-states.json --ambiguity-margin 0.1 --output recurrence-prior.json
+glio-noncode estimate-treatment-induced-state-prior treatment-states.json --induction-threshold 0.1 --output treatment-state-prior.json
+```
+
 ## Domain 09 3D topology
 
 The topology plane imports long-form Hi-C and Micro-C contacts and TAD-boundary

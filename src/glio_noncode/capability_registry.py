@@ -1457,6 +1457,70 @@ def default_capability_registry() -> CapabilityRegistry:
                     "limitations without inferring developmental identity clinically."
                 ),
             },
+            "GNC-D08-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_alpha.SpatialNichePrior",
+                    "glio_noncode.cell_context_alpha.SpatialNichePriorReport",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_alpha",
+                    "tests.test_cell_context_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Spatial niche candidates are ranked within subject and exact context while "
+                    "retaining support spread, close-candidate ambiguity, sample IDs, source "
+                    "versions, and raw hashes; the output is a descriptive prior."
+                ),
+            },
+            "GNC-D08-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_alpha.CoreMarginTerritoryPrior",
+                    "glio_noncode.cell_context_alpha.CoreMarginTerritoryReport",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_alpha",
+                    "tests.test_cell_context_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Core and margin scores are compared with an explicit tolerance, preserving "
+                    "mixed or one-sided territory evidence, exact context, subject identity, and "
+                    "source hashes without inventing localization."
+                ),
+            },
+            "GNC-D08-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_alpha.RecurrenceStatePrior",
+                    "glio_noncode.cell_context_alpha.RecurrenceStatePriorReport",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_alpha",
+                    "tests.test_cell_context_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Primary, recurrence, and progression candidates are ranked per subject and "
+                    "context with phase margins, replicate support, alternatives, and ambiguity "
+                    "retained; no prognosis is inferred."
+                ),
+            },
+            "GNC-D08-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_alpha.TreatmentInducedStatePrior",
+                    "glio_noncode.cell_context_alpha.TreatmentInducedStatePriorReport",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_alpha",
+                    "tests.test_cell_context_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Baseline and post-treatment support deltas retain treatment phase, state IDs, "
+                    "subject/context gates, raw hashes, and induced/stable/reduced labels as "
+                    "descriptive evidence rather than response or resistance claims."
+                ),
+            },
             "GNC-D09-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

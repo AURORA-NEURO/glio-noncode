@@ -32,6 +32,12 @@ from .causal_beta import (
 )
 from .causal_reasoning import FactorGraphConstructor, FactorObservation
 from .cell_context import ContextObservationParser
+from .cell_context_alpha import (
+    CoreMarginTerritoryPrior,
+    RecurrenceStatePrior,
+    SpatialNichePrior,
+    TreatmentInducedStatePrior,
+)
 from .cell_context_beta import (
     ContextPriorObservationParser,
     DevelopmentalLineagePrior,
@@ -1397,6 +1403,42 @@ def build_parser() -> argparse.ArgumentParser:
     h3_prior.add_argument("--ambiguity-margin", type=float, default=0.15)
     h3_prior.add_argument("--output", default=None)
 
+    spatial_niche = subparsers.add_parser(
+        "estimate-spatial-niche-prior",
+        help="rank context-qualified spatial niche candidates",
+    )
+    spatial_niche.add_argument("input", type=str)
+    spatial_niche.add_argument("--context-key", default=None)
+    spatial_niche.add_argument("--ambiguity-margin", type=float, default=0.1)
+    spatial_niche.add_argument("--output", default=None)
+
+    core_margin = subparsers.add_parser(
+        "estimate-core-margin-prior",
+        help="estimate a core-versus-margin territory prior",
+    )
+    core_margin.add_argument("input", type=str)
+    core_margin.add_argument("--context-key", default=None)
+    core_margin.add_argument("--ambiguity-tolerance", type=float, default=0.1)
+    core_margin.add_argument("--output", default=None)
+
+    recurrence_prior = subparsers.add_parser(
+        "estimate-recurrence-state-prior",
+        help="rank declared primary and recurrence-state candidates",
+    )
+    recurrence_prior.add_argument("input", type=str)
+    recurrence_prior.add_argument("--context-key", default=None)
+    recurrence_prior.add_argument("--ambiguity-margin", type=float, default=0.1)
+    recurrence_prior.add_argument("--output", default=None)
+
+    treatment_prior = subparsers.add_parser(
+        "estimate-treatment-induced-state-prior",
+        help="compare baseline and post-treatment cell-state support",
+    )
+    treatment_prior.add_argument("input", type=str)
+    treatment_prior.add_argument("--context-key", default=None)
+    treatment_prior.add_argument("--induction-threshold", type=float, default=0.1)
+    treatment_prior.add_argument("--output", default=None)
+
     loop_stripe = subparsers.add_parser(
         "parse-loop-stripe",
         help="parse versioned loop and stripe features with two-anchor provenance",
@@ -2586,6 +2628,38 @@ def main(argv: list[str] | None = None) -> int:
                     declared_molecular_state=args.molecular_state,
                     **common,
                 )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "estimate-spatial-niche-prior":
+            result = SpatialNichePrior().estimate(
+                _read_rows(args.input, "records", "observations", "niches"),
+                context_key=args.context_key,
+                ambiguity_margin=args.ambiguity_margin,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "estimate-core-margin-prior":
+            result = CoreMarginTerritoryPrior().estimate(
+                _read_rows(args.input, "records", "observations", "territories"),
+                context_key=args.context_key,
+                ambiguity_tolerance=args.ambiguity_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "estimate-recurrence-state-prior":
+            result = RecurrenceStatePrior().estimate(
+                _read_rows(args.input, "records", "observations", "states"),
+                context_key=args.context_key,
+                ambiguity_margin=args.ambiguity_margin,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "estimate-treatment-induced-state-prior":
+            result = TreatmentInducedStatePrior().estimate(
+                _read_rows(args.input, "records", "observations", "states"),
+                context_key=args.context_key,
+                induction_threshold=args.induction_threshold,
+            )
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "parse-loop-stripe":
