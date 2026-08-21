@@ -28,6 +28,7 @@ from .data_sources import FetchReceipt, FetchStatus, SequenceSlice
 from .errors import ValidationError
 from .evidence import EvidenceGraph
 from .identity import normalize_variant, parse_variant
+from .inference_extensions import InferenceExtensionSuite
 from .intake import RawVariantRecord, VariantIntake
 from .lifecycle import DriftMonitor, LifecycleReclassifier, ReviewPacketBuilder
 from .lineage import LineageResolver, SampleLineageRecord
@@ -132,6 +133,7 @@ class ControlPlaneApplication:
         self.benchmarks = BenchmarkRunner()
         self.review_packets = ReviewPacketBuilder()
         self.calibration = CalibrationEvaluator()
+        self.inference = InferenceExtensionSuite()
         self.sequence_inference = sequence_inference or SequenceInference()
         self.uncertainty = uncertainty_propagator or UncertaintyPropagator()
         self.atlas = atlas_retriever or PublicAtlasRetriever(
@@ -222,6 +224,66 @@ class ControlPlaneApplication:
             self._sequence,
             "sequence_inference.SequenceInference",
             "Compare reference and alternate sequence windows with motif deltas.",
+        )
+        self._bind(
+            "A24.publish",
+            self._motif_grammar,
+            "inference_extensions.InferenceExtensionSuite",
+            "Interpret supplied sequence motif deltas as bounded element-grammar evidence.",
+        )
+        self._bind(
+            "A25.publish",
+            self._accessibility_delta,
+            "inference_extensions.InferenceExtensionSuite",
+            "Compare explicit chromatin accessibility measurements with context gating.",
+        )
+        self._bind(
+            "A26.publish",
+            self._topology_rewiring,
+            "inference_extensions.InferenceExtensionSuite",
+            "Evaluate explicit contact changes without inferring gene causality.",
+        )
+        self._bind(
+            "A27.publish",
+            self._variant_element_link,
+            "inference_extensions.InferenceExtensionSuite",
+            "Score variant-element linkage from declared contextual features.",
+        )
+        self._bind(
+            "A28.publish",
+            self._element_gene_link,
+            "inference_extensions.InferenceExtensionSuite",
+            "Score element-gene linkage from nominated genes and contact observations.",
+        )
+        self._bind(
+            "A29.publish",
+            self._allele_specific,
+            "inference_extensions.InferenceExtensionSuite",
+            "Compare reference and alternate functional measurements explicitly.",
+        )
+        self._bind(
+            "A30.publish",
+            self._cell_state_mechanism,
+            "inference_extensions.InferenceExtensionSuite",
+            "Assemble context-specific mechanism edges from supplied links.",
+        )
+        self._bind(
+            "A31.publish",
+            self._longitudinal,
+            "inference_extensions.InferenceExtensionSuite",
+            "Compare measured longitudinal timepoints without treating missingness as a negative.",
+        )
+        self._bind(
+            "A33.publish",
+            self._germline_context,
+            "inference_extensions.InferenceExtensionSuite",
+            "Separate inherited context from the somatic research path.",
+        )
+        self._bind(
+            "A35.publish",
+            self._driver_posterior,
+            "inference_extensions.InferenceExtensionSuite",
+            "Compute a declared-prior research posterior proxy with review routing.",
         )
         self._bind(
             "A36.publish",
@@ -1007,6 +1069,169 @@ class ControlPlaneApplication:
             provenance_digest=request.provenance.digest,
             confidence=confidence,
             limitations=result.limitations,
+        )
+
+    def _inference_extension(
+        self,
+        request: InvocationRequest,
+        *,
+        scope: str,
+        missing_inputs: tuple[str, ...],
+        calculation: Any,
+    ) -> EvidenceEnvelope | Abstention:
+        try:
+            result = calculation()
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                f"invalid_{scope}_payload",
+                scope,
+                str(exc),
+                missing_inputs,
+            )
+        payload = result.to_dict()
+        state = EvidenceState(result.state.value)
+        sources = tuple(
+            dict.fromkeys(
+                str(value) for value in payload.get("source_ids", ()) if str(value).strip()
+            )
+        )
+        if not sources:
+            sources = ("declared_inference_input",)
+        return EvidenceEnvelope(
+            evidence_id=f"{scope}:{result.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.COMPUTED,
+            claim_summary=(
+                f"{scope} result is {result.state.value}; uncertainty={result.uncertainty:.3f}."
+            ),
+            payload_hash=result.content_address,
+            source_ids=sources,
+            provenance_digest=request.provenance.digest,
+            confidence=round(1.0 - result.uncertainty, 6),
+            limitations=tuple(result.limitations)
+            + (f"Result payload fields: {', '.join(sorted(payload))}.",),
+        )
+
+    def _motif_grammar(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="motif_grammar",
+            missing_inputs=("sequence_evidence", "candidate_element"),
+            calculation=lambda: self.inference.motif_grammar(
+                raw["sequence_evidence"],
+                raw["candidate_element"],
+            ),
+        )
+
+    def _accessibility_delta(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="accessibility_delta",
+            missing_inputs=("sequence_evidence", "chromatin_evidence"),
+            calculation=lambda: self.inference.accessibility_delta(
+                raw["sequence_evidence"],
+                raw["chromatin_evidence"],
+            ),
+        )
+
+    def _topology_rewiring(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="topology_rewiring",
+            missing_inputs=("contact_evidence", "candidate_element"),
+            calculation=lambda: self.inference.topology_rewiring(
+                raw["contact_evidence"],
+                raw["candidate_element"],
+            ),
+        )
+
+    def _variant_element_link(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="variant_element_link",
+            missing_inputs=("canonical_variant", "candidate_element"),
+            calculation=lambda: self.inference.variant_element_link(
+                raw["canonical_variant"],
+                raw["candidate_element"],
+            ),
+        )
+
+    def _element_gene_link(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="element_gene_link",
+            missing_inputs=("candidate_element", "contact_evidence"),
+            calculation=lambda: self.inference.element_gene_link(
+                raw["candidate_element"],
+                raw["contact_evidence"],
+            ),
+        )
+
+    def _allele_specific(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="allele_specific",
+            missing_inputs=("canonical_variant", "functional_evidence"),
+            calculation=lambda: self.inference.allele_specific(
+                raw["canonical_variant"],
+                raw["functional_evidence"],
+            ),
+        )
+
+    def _cell_state_mechanism(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="cell_state_mechanism",
+            missing_inputs=("link_evidence", "cell_state_annotation"),
+            calculation=lambda: self.inference.cell_state_mechanism(
+                raw["link_evidence"],
+                raw["cell_state_annotation"],
+            ),
+        )
+
+    def _longitudinal(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="longitudinal",
+            missing_inputs=("origin_assessment", "functional_evidence"),
+            calculation=lambda: self.inference.longitudinal(
+                raw["origin_assessment"],
+                raw["functional_evidence"],
+            ),
+        )
+
+    def _germline_context(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="germline_context",
+            missing_inputs=("origin_assessment", "cohort_record"),
+            calculation=lambda: self.inference.germline_context(
+                raw["origin_assessment"],
+                raw["cohort_record"],
+            ),
+        )
+
+    def _driver_posterior(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        return self._inference_extension(
+            request,
+            scope="driver_posterior",
+            missing_inputs=("causal_lattice", "evidence_envelope", "causal_lattice.declared_prior"),
+            calculation=lambda: self.inference.driver_posterior(
+                raw["causal_lattice"],
+                raw["evidence_envelope"],
+            ),
         )
 
     @staticmethod

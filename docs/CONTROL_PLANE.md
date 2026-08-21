@@ -104,6 +104,15 @@ projection (`A09`/`A11`), structural reconstruction (`A10`), sample lineage
 (`A12`), origin/clonality (`A13`), assay QC (`A14`), and project-scoped security
 and privacy policy evaluation (`A48`).
 
+The inference extension layer now binds motif grammar (`A24`), accessibility
+delta (`A25`), topology rewiring (`A26`), variant-element and element-gene
+linkage (`A27`/`A28`), allele-specific comparison (`A29`), cell-state mechanism
+edges (`A30`), longitudinal comparison (`A31`), germline context (`A33`), and
+the declared-prior driver posterior proxy (`A35`). These handlers operate on
+serialized observations and retain explicit states, context scores, measured
+values, observation IDs, and limitations. The posterior is intentionally marked
+as an unvalidated research proxy and requires a declared prior.
+
 Atlas execution has an additional runtime boundary because the current
 publication handler can invoke the public adapters: the mission must set
 `allow_network=True` and explicitly allowlist `SRC-ENSEMBL-REST` and

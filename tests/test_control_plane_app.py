@@ -104,7 +104,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 33)
+        self.assertEqual(app.manifest()["binding_count"], 43)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -667,6 +667,111 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         self.assertEqual(result.state, InvocationState.COMPLETED)
         self.assertEqual(result.review_route.required, True)
         self.assertIn("reclassification", result.response.evidence_id)
+
+    def test_remaining_inference_bindings_execute_with_typed_boundaries(self) -> None:
+        app = ControlPlaneApplication()
+        observation = {
+            "observation_id": "obs-1",
+            "source_id": "fixture-source",
+            "state": "supported",
+            "score": 0.8,
+            "confidence": 0.9,
+            "context_score": 0.9,
+            "payload": {"gene_id": "GENE1", "state_id": "stem_like"},
+        }
+        payloads = {
+            "A24.publish": {
+                "sequence_evidence": {
+                    "variant_id": "v1",
+                    "state": "supported",
+                    "created_hits": [{"motif_id": "motif-1"}],
+                },
+                "candidate_element": {"element_id": "element-1"},
+            },
+            "A25.publish": {
+                "sequence_evidence": {"variant_id": "v1"},
+                "chromatin_evidence": {
+                    "element_id": "element-1",
+                    "observations": [
+                        {
+                            **observation,
+                            "payload": {"delta": 0.2},
+                        }
+                    ],
+                },
+            },
+            "A26.publish": {
+                "contact_evidence": {
+                    "target_id": "GENE1",
+                    "observations": [
+                        {
+                            **observation,
+                            "payload": {"contact_delta": -0.2},
+                        }
+                    ],
+                },
+                "candidate_element": {"element_id": "element-1"},
+            },
+            "A27.publish": {
+                "canonical_variant": {"variant_id": "v1", "chromosome": "7", "start": 100},
+                "candidate_element": {"element_id": "element-1", "link_score": 0.7},
+            },
+            "A28.publish": {
+                "candidate_element": {"element_id": "element-1", "target_genes": ["GENE1"]},
+                "contact_evidence": {"observations": [observation]},
+            },
+            "A29.publish": {
+                "canonical_variant": {"variant_id": "v1", "reference": "A", "alternate": "T"},
+                "functional_evidence": {
+                    "observations": [
+                        {**observation, "payload": {"allele": "ref", "value": 0.2}},
+                        {
+                            **observation,
+                            "observation_id": "obs-2",
+                            "payload": {"allele": "alt", "value": 0.6},
+                        },
+                    ]
+                },
+            },
+            "A30.publish": {
+                "link_evidence": {"observations": [observation]},
+                "cell_state_annotation": {
+                    "state_id": "stem_like",
+                    "gene_id": "GENE1",
+                    "element_id": "element-1",
+                },
+            },
+            "A31.publish": {
+                "origin_assessment": {"variant_id": "v1", "clonality": "clonal_candidate"},
+                "functional_evidence": {
+                    "observations": [
+                        {**observation, "payload": {"timepoint": "T0", "value": 0.2}},
+                        {
+                            **observation,
+                            "observation_id": "obs-2",
+                            "payload": {"timepoint": "T1", "value": 0.5},
+                        },
+                    ]
+                },
+            },
+            "A33.publish": {
+                "origin_assessment": {"variant_id": "v1", "origin": "germline"},
+                "cohort_record": {"inherited_context": True, "observations": [observation]},
+            },
+            "A35.publish": {
+                "causal_lattice": {"hypothesis_id": "hyp-1", "declared_prior": 0.1, "support": 0.8},
+                "evidence_envelope": {"evidence_id": "evidence-1"},
+            },
+        }
+        for index, (tool_id, payload) in enumerate(payloads.items()):
+            with self.subTest(tool_id=tool_id):
+                result = app.executor.execute(_request(tool_id, payload, f"inference-{index}"))
+                self.assertEqual(result.state, InvocationState.COMPLETED)
+                self.assertIsNotNone(result.response)
+        posterior = app.executor.execute(
+            _request("A35.publish", payloads["A35.publish"], "inference-review")
+        )
+        self.assertTrue(posterior.review_route.required)
 
 
 if __name__ == "__main__":
