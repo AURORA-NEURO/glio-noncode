@@ -252,6 +252,29 @@ glio-noncode normalize-regulatory-term term.json --catalog regulatory-ontology.j
 glio-noncode map-disease-term disease.json --catalog disease-mappings.json --output disease-mapped.json
 ```
 
+The Domain 04 reference-governance extensions deepen identity, population,
+snapshot, and permission boundaries:
+
+- `GeneAliasVersionResolver` resolves declared gene IDs, symbols, aliases,
+  assemblies, and versions while retaining exact match bases and one-to-many
+  results. Free-text functional descriptions are not identity evidence.
+- `PopulationFrequencyAdapter` preserves population and ancestry scope,
+  allele counts, homozygote counts, genome build, source versions, and either
+  declared or AC/AN-derived frequency. It is not a clinical classification.
+- `ReferenceSnapshotManager` builds sorted, content-addressed manifests of
+  reference resources and compares snapshots by checksum and source version.
+  It does not fetch or validate resource bytes.
+- `LicenseUseRestrictionRegistry` evaluates explicit allowed/prohibited uses,
+  attribution, redistribution, commercial terms, expiry, and conflicts.
+  Missing permission blocks use rather than granting it.
+
+```powershell
+glio-noncode resolve-gene-alias gene-queries.json --catalog gene-catalog.json --assembly GRCh38 --output gene-resolution.json
+glio-noncode adapt-population-frequency frequencies.json --genome-build GRCh38 --output frequencies-adapted.json
+glio-noncode build-reference-snapshot resources.json --snapshot-id ref-2026-08 --assembly GRCh38 --source-id local-reference --output snapshot.json
+glio-noncode evaluate-license-use resources.json --restrictions licenses.json --requested-use research --output license-evaluation.json
+```
+
 ## Domain 05 regulatory atlases
 
 The atlas extension parses ENCODE SCREEN-style cCRE records and supports

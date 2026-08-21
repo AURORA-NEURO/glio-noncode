@@ -101,6 +101,12 @@ from .methylation_beta import (
 )
 from .mission_runtime import MissionPlanBuilder, MissionRequest
 from .models import CaseManifest, ReferenceContext, VariantIdentity
+from .reference_alpha import (
+    GeneAliasVersionResolver,
+    LicenseUseRestrictionRegistry,
+    PopulationFrequencyAdapter,
+    ReferenceSnapshotManager,
+)
 from .reference_beta import (
     DiseaseOntologyMapper,
     GencodeTranscriptAdapter,
@@ -616,6 +622,48 @@ def build_parser() -> argparse.ArgumentParser:
     disease_term.add_argument("--source-version", default="unspecified")
     disease_term.add_argument("--format", choices=("tsv", "csv", "json"), default=None)
     disease_term.add_argument("--output", default=None)
+
+    gene_alias = subparsers.add_parser(
+        "resolve-gene-alias",
+        help="resolve gene identifiers, symbols, aliases, and declared versions",
+    )
+    gene_alias.add_argument("input", type=str)
+    gene_alias.add_argument("--catalog", required=True)
+    gene_alias.add_argument("--assembly", default=None)
+    gene_alias.add_argument("--output", default=None)
+
+    population_frequency = subparsers.add_parser(
+        "adapt-population-frequency",
+        help="adapt population-frequency rows with count derivation and source receipts",
+    )
+    population_frequency.add_argument("input", type=str)
+    population_frequency.add_argument("--genome-build", default=None)
+    population_frequency.add_argument("--variant-id", default=None)
+    population_frequency.add_argument("--output", default=None)
+
+    snapshot = subparsers.add_parser(
+        "build-reference-snapshot",
+        help="build a content-addressed reference resource manifest",
+    )
+    snapshot.add_argument("input", type=str)
+    snapshot.add_argument("--snapshot-id", required=True)
+    snapshot.add_argument("--assembly", required=True)
+    snapshot.add_argument("--source-id", required=True)
+    snapshot.add_argument("--source-version", default="unspecified")
+    snapshot.add_argument("--expected-manifest-hash", default=None)
+    snapshot.add_argument("--output", default=None)
+
+    license_use = subparsers.add_parser(
+        "evaluate-license-use",
+        help="evaluate requested use against explicit resource license restrictions",
+    )
+    license_use.add_argument("input", type=str)
+    license_use.add_argument("--restrictions", required=True)
+    license_use.add_argument("--requested-use", required=True)
+    license_use.add_argument("--redistribution", action="store_true")
+    license_use.add_argument("--commercial", action="store_true")
+    license_use.add_argument("--as-of", default=None)
+    license_use.add_argument("--output", default=None)
 
     citations = subparsers.add_parser(
         "parse-citations", help="parse a versioned citation manifest with quarantine accounting"
@@ -1671,6 +1719,46 @@ def main(argv: list[str] | None = None) -> int:
             )
             result = mapper.map(_read_json(args.input), catalog=catalog)
             _write_json({"catalog": catalog.to_dict(), "mapping": result.to_dict()}, args.output)
+            return 0
+        if args.command == "resolve-gene-alias":
+            catalog = _read_rows(args.catalog, "records", "genes", "catalog")
+            queries = _read_rows(args.input, "queries", "records")
+            result = GeneAliasVersionResolver().resolve(
+                queries,
+                catalog,
+                assembly=args.assembly,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "adapt-population-frequency":
+            result = PopulationFrequencyAdapter().adapt(
+                _read_rows(args.input, "records", "frequencies", "observations"),
+                genome_build=args.genome_build,
+                variant_id=args.variant_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "build-reference-snapshot":
+            result = ReferenceSnapshotManager().build(
+                _read_rows(args.input, "resources", "records"),
+                snapshot_id=args.snapshot_id,
+                assembly=args.assembly,
+                source_id=args.source_id,
+                source_version=args.source_version,
+                expected_manifest_hash=args.expected_manifest_hash,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-license-use":
+            result = LicenseUseRestrictionRegistry().evaluate(
+                _read_rows(args.input, "resources", "records"),
+                _read_rows(args.restrictions, "restrictions", "records"),
+                requested_use=args.requested_use,
+                redistribution=args.redistribution,
+                commercial=args.commercial,
+                as_of=args.as_of,
+            )
+            _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "parse-citations":
             input_path = Path(args.input)

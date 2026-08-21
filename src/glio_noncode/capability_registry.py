@@ -854,6 +854,70 @@ def default_capability_registry() -> CapabilityRegistry:
                     "clinical diagnosis and live ontology retrieval is not claimed."
                 ),
             },
+            "GNC-D04-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_alpha.GeneAliasVersionResolver",
+                    "glio_noncode.reference_alpha.GeneAliasResolutionReport",
+                ),
+                "test_modules": (
+                    "tests.test_reference_alpha",
+                    "tests.test_reference_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Declared gene IDs, symbols, aliases, assemblies, and versions resolve with "
+                    "exact match bases and ambiguity; free-text functional descriptions and "
+                    "canonical external equivalence remain outside the adapter."
+                ),
+            },
+            "GNC-D04-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_alpha.PopulationFrequencyAdapter",
+                    "glio_noncode.reference_alpha.PopulationFrequencyReport",
+                ),
+                "test_modules": (
+                    "tests.test_reference_alpha",
+                    "tests.test_reference_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Population rows retain ancestry, population, AC/AN counts, derived or "
+                    "declared frequency, genome build, source versions, and conflicting rows; "
+                    "frequency is not a clinical classification."
+                ),
+            },
+            "GNC-D04-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_alpha.ReferenceSnapshotManager",
+                    "glio_noncode.reference_alpha.ReferenceSnapshot",
+                ),
+                "test_modules": (
+                    "tests.test_reference_alpha",
+                    "tests.test_reference_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Reference resources form sorted content-addressed manifests with checksums, "
+                    "versions, sizes, licenses, expected-hash checks, and snapshot comparison; "
+                    "resource bytes are not fetched or validated here."
+                ),
+            },
+            "GNC-D04-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_alpha.LicenseUseRestrictionRegistry",
+                    "glio_noncode.reference_alpha.LicenseEvaluationReport",
+                ),
+                "test_modules": (
+                    "tests.test_reference_alpha",
+                    "tests.test_reference_alpha_cli",
+                ),
+                "evidence_note": (
+                    "Declared allowed/prohibited uses, attribution, redistribution, commercial "
+                    "terms, expiry, missing restrictions, and conflicts produce bounded use "
+                    "decisions; absent permission blocks rather than grants use."
+                ),
+            },
             "GNC-D05-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.atlas_extensions.CcreTrackParser",),
