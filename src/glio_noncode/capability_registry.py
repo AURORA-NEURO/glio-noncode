@@ -1372,6 +1372,50 @@ def default_capability_registry() -> CapabilityRegistry:
                     "negative-control limitations."
                 ),
             },
+            "GNC-D12-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.cohort_beta.RegulatoryRecurrenceTester",),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "evidence_note": (
+                    "Regulatory recurrence deduplicates variant/sample observations, applies "
+                    "exact context and callable gates, identifies thresholded recurrent variants "
+                    "and local hotspots, and retains source lineage; enrichment calibration and "
+                    "cohort transport remain."
+                ),
+            },
+            "GNC-D12-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.cohort_beta.RegionalBurdenTester",),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "evidence_note": (
+                    "Regional burden uses explicit callable bases, exact-context overlap, variant "
+                    "deduplication, and a declared background comparator with burden and excess "
+                    "receipts; it does not emit a p-value or significance claim."
+                ),
+            },
+            "GNC-D12-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.cohort_beta.FunctionalConvergenceTester",),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "evidence_note": (
+                    "Functional convergence aggregates declared feature support by distinct "
+                    "variant, contrasts observed and control pools, retains leading ties and "
+                    "direction counts, and reports comparator absence explicitly."
+                ),
+            },
+            "GNC-D12-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_beta.PathwayRegulonConvergenceTester",
+                ),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "evidence_note": (
+                    "Pathway and regulon convergence aggregates gene-set membership, preserves "
+                    "pathway/regulon namespace, comparator contrast, leading-set ties, and "
+                    "opposing activation/repression directions as contradictory; gene-set "
+                    "definitions and transport require external validation."
+                ),
+            },
             "GNC-D13-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.validation_planning.EvidenceGapAnalyzer",),

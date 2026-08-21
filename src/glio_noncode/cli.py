@@ -34,6 +34,17 @@ from .cell_context_beta import (
     IdhMutantLineageStatePrior,
 )
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
+from .cohort_beta import (
+    FunctionalConvergenceParser,
+    FunctionalConvergenceTester,
+    PathwayRegulonConvergenceTester,
+    PathwayRegulonParser,
+    RegionalBurdenParser,
+    RegionalBurdenTester,
+    RegulatoryRecurrenceParser,
+    RegulatoryRecurrenceTester,
+    SetKind,
+)
 from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
 from .control_plane import ClaimCeiling, MissionContext, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
@@ -911,6 +922,89 @@ def build_parser() -> argparse.ArgumentParser:
     counterfactual.add_argument("--ambiguity-tolerance", type=float, default=0.20)
     counterfactual.add_argument("--output", default=None)
 
+    recurrence_parse = subparsers.add_parser(
+        "parse-regulatory-recurrence",
+        help="parse context-qualified recurrence observations with row quarantine",
+    )
+    recurrence_parse.add_argument("input", type=str)
+    recurrence_parse.add_argument("--source-id", default=None)
+    recurrence_parse.add_argument("--source-version", default="unspecified")
+    recurrence_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    recurrence_parse.add_argument("--output", default=None)
+
+    regional_parse = subparsers.add_parser(
+        "parse-regional-burden",
+        help="parse a regional burden JSON bundle with region and observation quarantine",
+    )
+    regional_parse.add_argument("input", type=str)
+    regional_parse.add_argument("--source-id", default=None)
+    regional_parse.add_argument("--source-version", default="unspecified")
+    regional_parse.add_argument("--output", default=None)
+
+    recurrence_test = subparsers.add_parser(
+        "test-regulatory-recurrence",
+        help="test exact-context regulatory recurrence and local hotspots",
+    )
+    recurrence_test.add_argument("input", type=str)
+    recurrence_test.add_argument("--context-key", required=True)
+    recurrence_test.add_argument("--target-region-id", default=None)
+    recurrence_test.add_argument("--minimum-recurrent-samples", type=int, default=2)
+    recurrence_test.add_argument("--hotspot-window-bp", type=int, default=50)
+    recurrence_test.add_argument("--minimum-hotspot-variants", type=int, default=2)
+    recurrence_test.add_argument("--minimum-hotspot-samples", type=int, default=2)
+    recurrence_test.add_argument("--output", default=None)
+
+    regional_test = subparsers.add_parser(
+        "test-regional-burden",
+        help="compare exact-context regional burden with callable-space background",
+    )
+    regional_test.add_argument("input", type=str)
+    regional_test.add_argument("--region-id", required=True)
+    regional_test.add_argument("--context-key", required=True)
+    regional_test.add_argument("--background-rate", type=float, default=None)
+    regional_test.add_argument("--output", default=None)
+
+    functional_parse = subparsers.add_parser(
+        "parse-functional-convergence",
+        help="parse functional feature observations with row quarantine",
+    )
+    functional_parse.add_argument("input", type=str)
+    functional_parse.add_argument("--source-id", default=None)
+    functional_parse.add_argument("--source-version", default="unspecified")
+    functional_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    functional_parse.add_argument("--output", default=None)
+
+    functional_test = subparsers.add_parser(
+        "test-functional-convergence",
+        help="test exact-context functional feature convergence",
+    )
+    functional_test.add_argument("input", type=str)
+    functional_test.add_argument("--context-key", required=True)
+    functional_test.add_argument("--minimum-observed-variants", type=int, default=1)
+    functional_test.add_argument("--ambiguity-margin", type=float, default=0.05)
+    functional_test.add_argument("--output", default=None)
+
+    pathway_parse = subparsers.add_parser(
+        "parse-pathway-regulon",
+        help="parse pathway or regulon membership observations",
+    )
+    pathway_parse.add_argument("input", type=str)
+    pathway_parse.add_argument("--source-id", default=None)
+    pathway_parse.add_argument("--source-version", default="unspecified")
+    pathway_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    pathway_parse.add_argument("--output", default=None)
+
+    pathway_test = subparsers.add_parser(
+        "test-pathway-regulon-convergence",
+        help="test exact-context pathway or regulon convergence",
+    )
+    pathway_test.add_argument("input", type=str)
+    pathway_test.add_argument("--context-key", required=True)
+    pathway_test.add_argument("--set-kind", choices=[item.value for item in SetKind], default=None)
+    pathway_test.add_argument("--minimum-genes", type=int, default=2)
+    pathway_test.add_argument("--ambiguity-margin", type=float, default=0.05)
+    pathway_test.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -1653,6 +1747,90 @@ def main(argv: list[str] | None = None) -> int:
                 model_id=args.model_id,
                 model_version=args.model_version,
                 ambiguity_tolerance=args.ambiguity_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-regulatory-recurrence":
+            input_path = Path(args.input)
+            result = RegulatoryRecurrenceParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-regional-burden":
+            input_path = Path(args.input)
+            result = RegionalBurdenParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "test-regulatory-recurrence":
+            payload = _read_json(args.input)
+            result = RegulatoryRecurrenceTester().test(
+                payload.get("records", payload.get("observations", ())),
+                context_key=args.context_key,
+                target_region_id=args.target_region_id,
+                minimum_recurrent_samples=args.minimum_recurrent_samples,
+                hotspot_window_bp=args.hotspot_window_bp,
+                minimum_hotspot_variants=args.minimum_hotspot_variants,
+                minimum_hotspot_samples=args.minimum_hotspot_samples,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "test-regional-burden":
+            payload = _read_json(args.input)
+            result = RegionalBurdenTester().test(
+                payload.get("regions", ()),
+                payload.get("observations", payload.get("records", ())),
+                region_id=args.region_id,
+                context_key=args.context_key,
+                background_rate=args.background_rate,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-functional-convergence":
+            input_path = Path(args.input)
+            result = FunctionalConvergenceParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "test-functional-convergence":
+            payload = _read_json(args.input)
+            result = FunctionalConvergenceTester().test(
+                payload.get("observations", payload.get("records", ())),
+                context_key=args.context_key,
+                minimum_observed_variants=args.minimum_observed_variants,
+                ambiguity_margin=args.ambiguity_margin,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-pathway-regulon":
+            input_path = Path(args.input)
+            result = PathwayRegulonParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "test-pathway-regulon-convergence":
+            payload = _read_json(args.input)
+            result = PathwayRegulonConvergenceTester().test(
+                payload.get("observations", payload.get("records", ())),
+                context_key=args.context_key,
+                set_kind=args.set_kind,
+                minimum_genes=args.minimum_genes,
+                ambiguity_margin=args.ambiguity_margin,
             )
             _write_json(result.to_dict(), args.output)
             return 0

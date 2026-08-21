@@ -504,6 +504,34 @@ distances, source IDs, cutoff criteria, partial/absent states, and exact-context
 out-of-domain behavior. These are negative-control constructions for research,
 not causal null proofs, clinical risk estimates, or treatment evidence.
 
+The Domain 12 scientific-beta extensions add four convergence surfaces:
+
+- `RegulatoryRecurrenceTester` deduplicates variant and sample observations,
+  applies callable and exact-context gates, identifies recurrence in distinct
+  samples, and clusters nearby distinct variants into thresholded hotspots.
+- `RegionalBurdenTester` reports callable-base burden, a declared background
+  comparator, expected count, and excess ratio for one exact-context region.
+  Missing comparator data remains partial, and the result is not a significance
+  test.
+- `FunctionalConvergenceTester` aggregates declared feature support by variant,
+  contrasts observed and control pools, retains leading-feature ties, and keeps
+  feature direction counts and source lineage.
+- `PathwayRegulonConvergenceTester` aggregates gene-set membership for pathway
+  and regulon namespaces, reports observed/control contrasts and gene coverage,
+  and marks opposing activation/repression evidence contradictory.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode parse-regulatory-recurrence recurrence.tsv --output recurrence.json
+glio-noncode test-regulatory-recurrence recurrence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output recurrence-test.json
+glio-noncode test-regional-burden regional-burden.json --region-id reg-1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --background-rate 0.001 --output regional-burden-test.json
+glio-noncode parse-functional-convergence functional.tsv --output functional.json
+glio-noncode test-functional-convergence functional.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output functional-test.json
+glio-noncode parse-pathway-regulon pathway-regulon.json --output pathway-regulon-parsed.json
+glio-noncode test-pathway-regulon-convergence pathway-regulon.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --set-kind pathway --output pathway-test.json
+```
+
 The query boundary is:
 
 ```powershell
