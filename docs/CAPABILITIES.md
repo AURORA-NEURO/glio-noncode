@@ -129,6 +129,31 @@ fingerprint conflicts while abstaining on incomplete contamination evidence.
 These are local partial capabilities until locked canonical fixtures and
 external calibration benchmarks are available.
 
+The Domain 03 scientific-beta extensions add four conservative measurement
+surfaces:
+
+- `SomaticGermlineOriginClassifier` keeps tumor/normal presence, allele
+  fractions, normal read evidence, and declared population frequency as
+  separate channels. Conflicting channels remain uncertain.
+- `MosaicismPosteriorEstimator` measures repeated low-fraction observations
+  across distinct tissues and exposes calibration metadata. Without a declared
+  calibration identifier, its posterior-shaped value is explicitly uncalibrated.
+- `CancerCellFractionEstimator` uses purity, total copy number, alternate copy
+  number, and VAF in a transparent model. Raw values outside the model range
+  are retained and marked partial rather than clamped silently.
+- `SubcloneAssigner` creates relative within-sample CCF clusters and keeps
+  distance-to-cluster and boundary ambiguity. It does not infer phylogeny,
+  mutation order, or named biological clones.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode classify-origin origin-observations.json --output origin.json
+glio-noncode estimate-mosaicism tissue-observations.json --output mosaicism.json
+glio-noncode estimate-ccf ccf-input.json --output ccf.json
+glio-noncode assign-subclones ccf-estimates.json --output subclones.json
+```
+
 ## Domain 04 reference coordinates
 
 The reference plane resolves assembly aliases separately from mapping

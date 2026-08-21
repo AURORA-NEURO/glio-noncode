@@ -539,6 +539,53 @@ def default_capability_registry() -> CapabilityRegistry:
                     "external benchmark calibration is not claimed."
                 ),
             },
+            "GNC-D03-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_beta.SomaticGermlineOriginClassifier",
+                ),
+                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "evidence_note": (
+                    "Tumor/normal presence, allele fractions, normal read absence, and declared "
+                    "population-frequency evidence are retained as separate origin channels; "
+                    "conflicts remain uncertain and no clinical germline/somatic diagnosis is made."
+                ),
+            },
+            "GNC-D03-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_beta.MosaicismPosteriorEstimator",
+                ),
+                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "evidence_note": (
+                    "Repeated low-fraction observations across tissue IDs produce a reproducible "
+                    "posterior-shaped estimate with contamination penalties and calibration "
+                    "metadata; uncalibrated output is explicitly labeled."
+                ),
+            },
+            "GNC-D03-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_beta.CancerCellFractionEstimator",
+                ),
+                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "evidence_note": (
+                    "Purity, total CN, alternate CN, VAF, and optional depth intervals are kept in "
+                    "a transparent CCF model; raw estimates outside [0,1] are retained without "
+                    "silent clamping."
+                ),
+            },
+            "GNC-D03-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.specimen_beta.SubcloneAssigner",),
+                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "evidence_note": (
+                    "Within-sample relative CCF clusters retain cluster means, assignment "
+                    "distance, and boundary ambiguity; subclone IDs do not claim phylogeny, "
+                    "mutation order, "
+                    "or named biological clones."
+                ),
+            },
             "GNC-D04-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.reference_registry.ReferenceRegistry",),

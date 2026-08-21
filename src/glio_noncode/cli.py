@@ -40,6 +40,12 @@ from .sequence_adapters import (
     SequenceContextEncoder,
     SequenceFoundationModelAdapter,
 )
+from .specimen_beta import (
+    CancerCellFractionEstimator,
+    MosaicismPosteriorEstimator,
+    SomaticGermlineOriginClassifier,
+    SubcloneAssigner,
+)
 from .specimen_context import PurityPloidyImporter
 from .structural_beta import (
     ChromothripsisPatternDetector,
@@ -314,6 +320,45 @@ def build_parser() -> argparse.ArgumentParser:
     purity.add_argument("--source-id", default=None)
     purity.add_argument("--format", choices=("tsv", "json"), default=None)
     purity.add_argument("--output", default=None)
+
+    origin = subparsers.add_parser(
+        "classify-origin",
+        help="classify somatic/germline origin from declared tumor and normal observations",
+    )
+    origin.add_argument("input", type=str)
+    origin.add_argument("--variant-id", default=None)
+    origin.add_argument("--minimum-tumor-alt-fraction", type=float, default=0.05)
+    origin.add_argument("--normal-presence-fraction", type=float, default=0.02)
+    origin.add_argument("--output", default=None)
+
+    mosaic = subparsers.add_parser(
+        "estimate-mosaicism",
+        help="estimate repeated low-fraction mosaicism evidence across tissues",
+    )
+    mosaic.add_argument("input", type=str)
+    mosaic.add_argument("--prior", type=float, default=0.10)
+    mosaic.add_argument("--calibration-id", default=None)
+    mosaic.add_argument("--low-fraction-max", type=float, default=0.35)
+    mosaic.add_argument("--minimum-tissues", type=int, default=2)
+    mosaic.add_argument("--contamination-threshold", type=float, default=0.05)
+    mosaic.add_argument("--output", default=None)
+
+    ccf = subparsers.add_parser(
+        "estimate-ccf",
+        help="estimate cancer-cell fraction from purity, copy number, and VAF",
+    )
+    ccf.add_argument("input", type=str)
+    ccf.add_argument("--normal-copy-number", type=float, default=2.0)
+    ccf.add_argument("--output", default=None)
+
+    subclones = subparsers.add_parser(
+        "assign-subclones",
+        help="assign relative CCF clusters within sample scope",
+    )
+    subclones.add_argument("input", type=str)
+    subclones.add_argument("--max-ccf-distance", type=float, default=0.15)
+    subclones.add_argument("--boundary-ambiguity", type=float, default=0.02)
+    subclones.add_argument("--output", default=None)
 
     ccre = subparsers.add_parser(
         "parse-ccre", help="parse an ENCODE SCREEN-style cCRE track"
@@ -682,6 +727,41 @@ def main(argv: list[str] | None = None) -> int:
                 input_path.read_text(encoding="utf-8"),
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "classify-origin":
+            result = SomaticGermlineOriginClassifier().classify(
+                _read_rows(args.input, "records", "observations"),
+                variant_id=args.variant_id,
+                minimum_tumor_alt_fraction=args.minimum_tumor_alt_fraction,
+                normal_presence_fraction=args.normal_presence_fraction,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "estimate-mosaicism":
+            result = MosaicismPosteriorEstimator().estimate(
+                _read_rows(args.input, "records", "observations"),
+                prior=args.prior,
+                calibration_id=args.calibration_id,
+                low_fraction_max=args.low_fraction_max,
+                minimum_tissues=args.minimum_tissues,
+                contamination_threshold=args.contamination_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "estimate-ccf":
+            result = CancerCellFractionEstimator().estimate(
+                _read_rows(args.input, "records", "observations"),
+                normal_copy_number=args.normal_copy_number,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "assign-subclones":
+            result = SubcloneAssigner().assign(
+                _read_rows(args.input, "records", "estimates"),
+                max_ccf_distance=args.max_ccf_distance,
+                boundary_ambiguity=args.boundary_ambiguity,
             )
             _write_json(result.to_dict(), args.output)
             return 0
