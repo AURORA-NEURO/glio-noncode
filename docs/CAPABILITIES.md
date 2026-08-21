@@ -75,6 +75,18 @@ coercing unresolved data:
   window to enumerate equivalent placements in homopolymers and short repeats.
   Reference mismatches, unsupported classes, and window limits abstain; global
   repeat equivalence is not claimed.
+- `VariantEquivalenceResolver` compares normalized build, contig, interval,
+  allele, and kind keys across source records and supports explicit aliases.
+  Same-key records remain separate, and competing keys or out-of-scope context
+  remain visible.
+- `DuplicateAliasReconciler` groups duplicate normalized identities and emits
+  explicit alias-collision groups without selecting a preferred source record.
+- `BatchSampleIdentityChecker` checks declared batch, sample, and subject
+  mappings, retaining missing fields, cross-subject sample conflicts, source
+  versions, and line-addressable issues. It does not authenticate a specimen.
+- `ChainOfCustodyCapture` records artifact event order, predecessor links,
+  input/output hash continuity, per-artifact digests, and broken-chain issues.
+  The receipt is not a signature or institutional custody attestation.
 
 The beta command boundaries are:
 
@@ -83,6 +95,10 @@ glio-noncode normalize-categorical variant.json --catalog categories.tsv --outpu
 glio-noncode build-annotation annotation.json --context-key "GRCh38|glioma|adult|unknown|unknown|unknown" --output annotation.json
 glio-noncode decompose-multiallelic multiallelic.json --output alleles.json
 glio-noncode normalize-repeat repeat.json --output repeat.json
+glio-noncode resolve-variant-equivalence variants.json --query legacy-v1 --output equivalence.json
+glio-noncode reconcile-variant-aliases variants.json --output reconciliation.json
+glio-noncode check-batch-sample-identity samples.json --require-subject --output sample-identity.json
+glio-noncode capture-chain-of-custody custody-events.json --output custody.json
 ```
 
 ## Domain 02 structural beta extensions

@@ -70,6 +70,12 @@ from .evidence_lifecycle import (
     VersionedEvidenceClaim,
     VersionedEvidenceGraphConstructor,
 )
+from .identity_beta import (
+    BatchSampleIdentityChecker,
+    ChainOfCustodyCapture,
+    DuplicateAliasReconciler,
+    VariantEquivalenceResolver,
+)
 from .intake import IntakeFormat, VariantIntake
 from .lifecycle_beta import (
     EvidenceTierAdjudicator,
@@ -521,6 +527,40 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
     subparsers.add_parser("capabilities", help="print the 256-capability implementation ledger")
     subparsers.add_parser("references", help="print the reference assembly registry")
+
+    equivalence = subparsers.add_parser(
+        "resolve-variant-equivalence",
+        help="resolve a variant identity or explicit alias across source records",
+    )
+    equivalence.add_argument("input", type=str)
+    equivalence.add_argument("--query", required=True)
+    equivalence.add_argument("--genome-build", default=None)
+    equivalence.add_argument("--context-key", default=None)
+    equivalence.add_argument("--output", default=None)
+
+    reconciliation = subparsers.add_parser(
+        "reconcile-variant-aliases",
+        help="reconcile duplicate normalized identities and alias collisions",
+    )
+    reconciliation.add_argument("input", type=str)
+    reconciliation.add_argument("--output", default=None)
+
+    sample_identity = subparsers.add_parser(
+        "check-batch-sample-identity",
+        help="check declared batch, sample, and subject identity mappings",
+    )
+    sample_identity.add_argument("input", type=str)
+    sample_identity.add_argument("--require-subject", action="store_true")
+    sample_identity.add_argument("--allow-missing-batch", action="store_true")
+    sample_identity.add_argument("--allow-missing-sample", action="store_true")
+    sample_identity.add_argument("--output", default=None)
+
+    custody = subparsers.add_parser(
+        "capture-chain-of-custody",
+        help="capture artifact custody events and validate chain continuity",
+    )
+    custody.add_argument("input", type=str)
+    custody.add_argument("--output", default=None)
 
     gencode = subparsers.add_parser(
         "parse-gencode",
@@ -1463,6 +1503,41 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "references":
             _write_json(default_reference_registry().manifest(), None)
+            return 0
+        if args.command == "resolve-variant-equivalence":
+            payload = _read_json(args.input)
+            records = payload.get("records", payload.get("variants", ()))
+            result = VariantEquivalenceResolver().resolve(
+                records,
+                args.query,
+                genome_build=args.genome_build,
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "reconcile-variant-aliases":
+            payload = _read_json(args.input)
+            result = DuplicateAliasReconciler().reconcile(
+                payload.get("records", payload.get("variants", ()))
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "check-batch-sample-identity":
+            payload = _read_json(args.input)
+            result = BatchSampleIdentityChecker().check(
+                payload.get("observations", payload.get("records", ())),
+                require_batch=not args.allow_missing_batch,
+                require_sample=not args.allow_missing_sample,
+                require_subject=args.require_subject,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "capture-chain-of-custody":
+            payload = _read_json(args.input)
+            result = ChainOfCustodyCapture().capture(
+                payload.get("events", payload.get("records", ()))
+            )
+            _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "parse-gencode":
             input_path = Path(args.input)

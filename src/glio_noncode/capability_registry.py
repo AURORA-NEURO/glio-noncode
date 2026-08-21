@@ -406,6 +406,60 @@ def default_capability_registry() -> CapabilityRegistry:
                     "repeat truth sets, RefGet equivalence, and structural normalization remain."
                 ),
             },
+            "GNC-D01-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.identity_beta.VariantEquivalenceResolver",
+                    "glio_noncode.identity_beta.VariantIdentityRecord",
+                ),
+                "test_modules": ("tests.test_identity_beta", "tests.test_identity_beta_cli"),
+                "evidence_note": (
+                    "Equivalence resolution normalizes build, contig, interval, allele, and "
+                    "variant kind, supports explicit aliases, preserves all source records, "
+                    "and returns out-of-domain and competing-key states; RefGet-backed truth "
+                    "sets and broad structural equivalence remain."
+                ),
+            },
+            "GNC-D01-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.identity_beta.DuplicateAliasReconciler",
+                    "glio_noncode.identity_beta.AliasReconciliationReport",
+                ),
+                "test_modules": ("tests.test_identity_beta", "tests.test_identity_beta_cli"),
+                "evidence_note": (
+                    "Duplicate normalized identities and explicit alias collisions are grouped "
+                    "without choosing a preferred source record; ambiguous aliases, source IDs, "
+                    "and ungrouped records remain visible for review."
+                ),
+            },
+            "GNC-D01-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.identity_beta.BatchSampleIdentityChecker",
+                    "glio_noncode.identity_beta.SampleIdentityResult",
+                ),
+                "test_modules": ("tests.test_identity_beta", "tests.test_identity_beta_cli"),
+                "evidence_note": (
+                    "Batch, sample, and subject mappings retain source versions, missing fields, "
+                    "cross-subject sample conflicts, batch/sample summaries, and line-addressable "
+                    "issues without asserting biological authentication."
+                ),
+            },
+            "GNC-D01-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.identity_beta.ChainOfCustodyCapture",
+                    "glio_noncode.identity_beta.CustodyCaptureResult",
+                ),
+                "test_modules": ("tests.test_identity_beta", "tests.test_identity_beta_cli"),
+                "evidence_note": (
+                    "Custody capture records artifact event order, predecessor links, input/output "
+                    "hash continuity, per-artifact digests, cross-artifact links, and broken-chain "
+                    "issues; signatures, institutional custody systems, and consent enforcement "
+                    "remain."
+                ),
+            },
             "GNC-D02-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
