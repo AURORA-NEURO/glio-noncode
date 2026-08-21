@@ -883,6 +883,69 @@ def default_capability_registry() -> CapabilityRegistry:
                     "not inferred from signal alone."
                 ),
             },
+            "GNC-D07-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.methylation_beta.MethylationRecordParser",
+                    "glio_noncode.methylation_beta.MethylationContextRetriever",
+                ),
+                "test_modules": (
+                    "tests.test_methylation_beta",
+                    "tests.test_methylation_beta_cli",
+                ),
+                "evidence_note": (
+                    "One-based or BED-like methylation records preserve beta values, coverage, "
+                    "assay/sample/replicate metadata, source versions, raw hashes, exact context "
+                    "queries, replicate spread, and out-of-domain context; external assay fixtures "
+                    "and calibration remain."
+                ),
+            },
+            "GNC-D07-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.methylation_beta.CpGCreationLossAnalyzer",
+                ),
+                "test_modules": (
+                    "tests.test_methylation_beta",
+                    "tests.test_methylation_beta_cli",
+                ),
+                "evidence_note": (
+                    "Equal-length allele windows yield coordinate-safe CpG creation/loss "
+                    "events and optionally attach exact methylation records; "
+                    "length-changing windows abstain and "
+                    "sequence changes are not treated as functional effects."
+                ),
+            },
+            "GNC-D07-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.methylation_beta.MethylationSensitiveMotifAnalyzer",
+                ),
+                "test_modules": (
+                    "tests.test_methylation_beta",
+                    "tests.test_methylation_beta_cli",
+                ),
+                "evidence_note": (
+                    "Declared IUPAC motif hits retain zero-based sensitive offsets, strand, exact "
+                    "methylation beta measurements, missingness, disagreement, source versions, "
+                    "and context; binding or regulatory effect is not inferred."
+                ),
+            },
+            "GNC-D07-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.methylation_beta.IdhHypermethylationContextModel",
+                ),
+                "test_modules": (
+                    "tests.test_methylation_beta",
+                    "tests.test_methylation_beta_cli",
+                ),
+                "evidence_note": (
+                    "Versioned IDH-mutant versus IDH-wildtype panel summaries expose thresholded "
+                    "hypermethylation, coverage-weighted beta, comparator delta, source versions, "
+                    "and minimum-site abstention; this is not a diagnostic classifier."
+                ),
+            },
             "GNC-D08-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

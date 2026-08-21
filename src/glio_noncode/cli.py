@@ -34,6 +34,14 @@ from .evidence_lifecycle import (
 )
 from .intake import IntakeFormat, VariantIntake
 from .link_graph import GeneFeatureParser
+from .methylation_beta import (
+    CpGCreationLossAnalyzer,
+    IdhHypermethylationContextModel,
+    MethylationContextRetriever,
+    MethylationRecordParser,
+    MethylationSensitiveMotifAnalyzer,
+    MethylationSensitiveMotifDefinition,
+)
 from .mission_runtime import MissionPlanBuilder, MissionRequest
 from .models import CaseManifest, ReferenceContext, VariantIdentity
 from .reference_beta import (
@@ -191,6 +199,30 @@ def _grammar_interactions(rows: Any) -> tuple[GrammarInteraction, ...]:
         for row in rows
         if isinstance(row, Mapping)
     )
+
+
+def _methylation_motifs(rows: Any) -> tuple[MethylationSensitiveMotifDefinition, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("methylation-sensitive motifs must be a list")
+    definitions: list[MethylationSensitiveMotifDefinition] = []
+    for row in rows:
+        if not isinstance(row, Mapping):
+            raise ValueError("methylation-sensitive motif rows must be objects")
+        definitions.append(
+            MethylationSensitiveMotifDefinition(
+                motif_id=str(row.get("motif_id", "")),
+                name=str(row.get("name", row.get("motif_id", ""))),
+                consensus=str(row.get("consensus", "")),
+                source_id=str(row.get("source_id", "motif-input")),
+                source_version=str(row.get("source_version", "unspecified")),
+                sensitive_positions=tuple(int(item) for item in row.get("sensitive_positions", ())),
+                threshold=float(row.get("threshold", 1.0)),
+                methylated_threshold=float(row.get("methylated_threshold", 0.50)),
+                strand_aware=bool(row.get("strand_aware", True)),
+                attributes=dict(row.get("attributes", {})),
+            )
+        )
+    return tuple(definitions)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -584,6 +616,75 @@ def build_parser() -> argparse.ArgumentParser:
     cooperative_grammar.add_argument("--context-key", default=None)
     cooperative_grammar.add_argument("--baseline", type=float, default=0.0)
     cooperative_grammar.add_argument("--output", default=None)
+
+    methylation_parse = subparsers.add_parser(
+        "parse-methylation",
+        help="parse one-based or BED-like methylation records with source receipts",
+    )
+    methylation_parse.add_argument("input", type=str)
+    methylation_parse.add_argument("--source-id", default=None)
+    methylation_parse.add_argument("--source-version", default="unspecified")
+    methylation_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    methylation_parse.add_argument(
+        "--coordinate-system", choices=("one_based", "bed"), default="one_based"
+    )
+    methylation_parse.add_argument("--output", default=None)
+
+    methylation_query = subparsers.add_parser(
+        "query-methylation-context",
+        help="retrieve methylation records for an exact context and interval",
+    )
+    methylation_query.add_argument("input", type=str)
+    methylation_query.add_argument("--chromosome", required=True)
+    methylation_query.add_argument("--start", type=int, required=True)
+    methylation_query.add_argument("--end", type=int, required=True)
+    methylation_query.add_argument("--context-key", required=True)
+    methylation_query.add_argument("--source-id", default=None)
+    methylation_query.add_argument("--source-version", default="unspecified")
+    methylation_query.add_argument("--format", choices=("tsv", "json"), default=None)
+    methylation_query.add_argument(
+        "--coordinate-system", choices=("one_based", "bed"), default="one_based"
+    )
+    methylation_query.add_argument("--beta-spread-tolerance", type=float, default=0.20)
+    methylation_query.add_argument("--output", default=None)
+
+    cpg = subparsers.add_parser(
+        "analyze-cpg-change",
+        help="detect allele-specific CpG creation or loss with optional methylation context",
+    )
+    cpg.add_argument("input", type=str)
+    cpg.add_argument("--variant-id", default=None)
+    cpg.add_argument("--window-start", type=int, default=None)
+    cpg.add_argument("--chromosome", default=None)
+    cpg.add_argument("--context-key", default=None)
+    cpg.add_argument("--methylated-threshold", type=float, default=0.50)
+    cpg.add_argument("--output", default=None)
+
+    methylation_motifs = subparsers.add_parser(
+        "analyze-methylation-motifs",
+        help="annotate declared motif hits with exact methylation-sensitive positions",
+    )
+    methylation_motifs.add_argument("input", type=str)
+    methylation_motifs.add_argument("--sequence-id", default=None)
+    methylation_motifs.add_argument("--window-start", type=int, default=None)
+    methylation_motifs.add_argument("--chromosome", default=None)
+    methylation_motifs.add_argument("--context-key", default=None)
+    methylation_motifs.add_argument("--methylation-spread-tolerance", type=float, default=0.20)
+    methylation_motifs.add_argument("--output", default=None)
+
+    idh_methylation = subparsers.add_parser(
+        "model-idh-hypermethylation",
+        help="model a declared IDH-state methylation panel against a comparator",
+    )
+    idh_methylation.add_argument("input", type=str)
+    idh_methylation.add_argument("--model-id", required=True)
+    idh_methylation.add_argument("--model-version", required=True)
+    idh_methylation.add_argument("--context-key", required=True)
+    idh_methylation.add_argument("--molecular-state", default="IDH-mutant")
+    idh_methylation.add_argument("--comparator-state", default="IDH-wildtype")
+    idh_methylation.add_argument("--methylated-threshold", type=float, default=0.70)
+    idh_methylation.add_argument("--minimum-sites", type=int, default=3)
+    idh_methylation.add_argument("--output", default=None)
 
     context = subparsers.add_parser(
         "parse-context",
@@ -1066,6 +1167,87 @@ def main(argv: list[str] | None = None) -> int:
                 input_format=args.format,
                 coordinate_system=args.coordinate_system,
                 spread_tolerance=args.spread_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-methylation":
+            input_path = Path(args.input)
+            result = MethylationRecordParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                coordinate_system=args.coordinate_system,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "query-methylation-context":
+            input_path = Path(args.input)
+            batch = MethylationRecordParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+                coordinate_system=args.coordinate_system,
+            )
+            result = MethylationContextRetriever(batch.records).query(
+                args.chromosome,
+                args.start,
+                args.end,
+                context_key=args.context_key,
+                beta_spread_tolerance=args.beta_spread_tolerance,
+            )
+            _write_json({"catalog": batch.to_dict(), "query": result.to_dict()}, args.output)
+            return 0
+        if args.command == "analyze-cpg-change":
+            payload = _read_json(args.input)
+            result = CpGCreationLossAnalyzer().analyze(
+                str(payload.get("reference_sequence", "")),
+                str(payload.get("alternate_sequence", "")),
+                variant_id=args.variant_id or str(payload.get("variant_id", Path(args.input).stem)),
+                window_start=(
+                    args.window_start
+                    if args.window_start is not None
+                    else int(payload.get("window_start", 1))
+                ),
+                chromosome=args.chromosome or str(payload.get("chromosome", "unspecified")),
+                context_key=args.context_key or payload.get("context_key"),
+                methylation_records=payload.get("methylation_records", payload.get("records", ())),
+                methylated_threshold=args.methylated_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "analyze-methylation-motifs":
+            payload = _read_json(args.input)
+            result = MethylationSensitiveMotifAnalyzer().analyze(
+                str(payload.get("sequence", "")),
+                sequence_id=args.sequence_id
+                or str(payload.get("sequence_id", Path(args.input).stem)),
+                motifs=_methylation_motifs(payload.get("motifs", ())),
+                methylation_records=payload.get("methylation_records", payload.get("records", ())),
+                window_start=(
+                    args.window_start
+                    if args.window_start is not None
+                    else int(payload.get("window_start", 1))
+                ),
+                chromosome=args.chromosome or str(payload.get("chromosome", "unspecified")),
+                context_key=args.context_key or payload.get("context_key"),
+                methylation_spread_tolerance=args.methylation_spread_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "model-idh-hypermethylation":
+            payload = _read_json(args.input)
+            result = IdhHypermethylationContextModel().assess(
+                payload.get("target_records", payload.get("records", ())),
+                context_key=args.context_key,
+                molecular_state=args.molecular_state,
+                comparator_records=payload.get("comparator_records", ()),
+                comparator_state=args.comparator_state,
+                model_id=args.model_id,
+                model_version=args.model_version,
+                methylated_threshold=args.methylated_threshold,
+                minimum_sites=args.minimum_sites,
             )
             _write_json(result.to_dict(), args.output)
             return 0

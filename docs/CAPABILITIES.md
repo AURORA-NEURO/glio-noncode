@@ -268,6 +268,35 @@ The command-line boundary is:
 glio-noncode parse-chromatin accessibility.tsv --track-kind atac --output accessibility.json
 ```
 
+The Domain 07 scientific-beta extensions make methylation context explicit:
+
+- `MethylationRecordParser` and `MethylationContextRetriever` preserve
+  one-based or BED-like coordinates, beta values, coverage, assay/sample and
+  replicate metadata, source versions, raw hashes, exact context keys, and
+  replicate disagreement. Records from another context are reported as
+  out-of-domain rather than borrowed.
+- `CpGCreationLossAnalyzer` compares equal-length allele windows and emits
+  reference-only or alternate-only CpG dinucleotides with genomic coordinates.
+  It can attach exact measured methylation when supplied; length-changing
+  windows are explicitly out of domain for this coordinate-safe beta operation.
+- `MethylationSensitiveMotifAnalyzer` evaluates declared IUPAC motif hits and
+  reports beta values at zero-based sensitive motif offsets, retaining missing
+  and ambiguous methylation states without imputing neighbors.
+- `IdhHypermethylationContextModel` summarizes a declared IDH-mutant panel
+  against an IDH-wildtype comparator with minimum-site gates, coverage-weighted
+  beta, panel threshold, and comparator delta. The output is descriptive
+  context evidence, not a diagnostic or genome-wide epigenetic classifier.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode parse-methylation methylation.tsv --output methylation.json
+glio-noncode query-methylation-context methylation.tsv --chromosome 7 --start 100 --end 200 --context-key "GRCh38|glioma|adult|stem_like|tumor|unknown" --output methylation-query.json
+glio-noncode analyze-cpg-change cpg-window.json --output cpg-changes.json
+glio-noncode analyze-methylation-motifs methylation-motifs.json --output methylation-motifs.json
+glio-noncode model-idh-hypermethylation idh-panel.json --model-id idh-panel --model-version 2026.1 --context-key "GRCh38|glioma|adult|stem_like|tumor|unknown" --output idh-context.json
+```
+
 ## Domain 08 cell state, disease class, and territory
 
 The biological-context plane parses subject-scoped disease ontology, age-route,
