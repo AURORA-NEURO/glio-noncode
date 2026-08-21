@@ -554,6 +554,70 @@ def default_capability_registry() -> CapabilityRegistry:
                     "use nearest-gene proximity as a substitute for linking evidence."
                 ),
             },
+            "GNC-D02-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_haplotype.PhasedHaplotypeAssembler",
+                    "glio_noncode.structural_haplotype.HaplotypeAssemblyReport",
+                ),
+                "test_modules": (
+                    "tests.test_structural_haplotype",
+                    "tests.test_structural_haplotype_cli",
+                ),
+                "evidence_note": (
+                    "Explicitly phased genotype records become ordered haplotype paths with "
+                    "allele calls, phase completeness, source hashes, and retained unphased "
+                    "observations; read-backed phasing and sequence reconstruction remain."
+                ),
+            },
+            "GNC-D02-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_haplotype.AlleleAwareSvRepresenter",
+                    "glio_noncode.structural_haplotype.AlleleAwareStructuralEvent",
+                ),
+                "test_modules": (
+                    "tests.test_structural_haplotype",
+                    "tests.test_structural_haplotype_cli",
+                ),
+                "evidence_note": (
+                    "Structural observations retain allele index, genotype dosage, zygosity, "
+                    "copy number, support, and contradictory coordinates; molecule-level "
+                    "allele assignment and caller truth-set validation remain."
+                ),
+            },
+            "GNC-D02-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_haplotype.PangenomeGraphProjector",
+                    "glio_noncode.structural_haplotype.GraphProjectionReport",
+                ),
+                "test_modules": (
+                    "tests.test_structural_haplotype",
+                    "tests.test_structural_haplotype_cli",
+                ),
+                "evidence_note": (
+                    "Coordinate-bounded queries project onto supplied graph nodes and paths "
+                    "with exact, contained, spanning, and ambiguous mappings; graph sequence "
+                    "homology and population-scale path validation remain."
+                ),
+            },
+            "GNC-D02-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.structural_haplotype.RepeatMobileElementAnnotator",
+                    "glio_noncode.structural_haplotype.RepeatMobileAnnotationReport",
+                ),
+                "test_modules": (
+                    "tests.test_structural_haplotype",
+                    "tests.test_structural_haplotype_cli",
+                ),
+                "evidence_note": (
+                    "Indexed repeat intervals retain family, class, subfamily, strand, mobile "
+                    "status, overlap fraction, and source versions; annotation completeness "
+                    "and sequence-derived transposition interpretation remain."
+                ),
+            },
             "GNC-D03-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.specimen_context.SpecimenOntologyMapper",),

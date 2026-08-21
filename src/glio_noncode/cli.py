@@ -139,6 +139,12 @@ from .structural_beta import (
     FocalAmplificationBoundaryMapper,
 )
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
+from .structural_haplotype import (
+    AlleleAwareSvRepresenter,
+    PangenomeGraphProjector,
+    PhasedHaplotypeAssembler,
+    RepeatMobileElementAnnotator,
+)
 from .topology_beta import (
     ActivityByContactScorer,
     EnhancerPromoterContactScorer,
@@ -774,6 +780,45 @@ def build_parser() -> argparse.ArgumentParser:
     hijack.add_argument("--context-key", required=True)
     hijack.add_argument("--minimum-evidence-channels", type=int, default=2)
     hijack.add_argument("--output", default=None)
+
+    haplotype = subparsers.add_parser(
+        "assemble-haplotype",
+        help="assemble explicitly phased genotype records into retained haplotype paths",
+    )
+    haplotype.add_argument("input", type=str)
+    haplotype.add_argument("--context-key", default=None)
+    haplotype.add_argument("--max-haplotypes", type=int, default=8)
+    haplotype.add_argument("--output", default=None)
+
+    allele_sv = subparsers.add_parser(
+        "represent-allele-aware-sv",
+        help="represent structural events with explicit allele dosage and phase metadata",
+    )
+    allele_sv.add_argument("input", type=str)
+    allele_sv.add_argument("--context-key", default=None)
+    allele_sv.add_argument("--output", default=None)
+
+    pangenome = subparsers.add_parser(
+        "project-pangenome",
+        help="project interval records onto supplied pangenome graph nodes and paths",
+    )
+    pangenome.add_argument("input", type=str)
+    pangenome.add_argument("--nodes", required=True)
+    pangenome.add_argument("--context-key", default=None)
+    pangenome.add_argument("--max-candidates-per-query", type=int, default=32)
+    pangenome.add_argument("--output", default=None)
+
+    repeat_mobile = subparsers.add_parser(
+        "annotate-repeat-mobile",
+        help="annotate structural intervals with indexed repeat and mobile-element features",
+    )
+    repeat_mobile.add_argument("input", type=str)
+    repeat_mobile.add_argument("--annotations", required=True)
+    repeat_mobile.add_argument("--context-key", default=None)
+    repeat_mobile.add_argument("--min-overlap-fraction", type=float, default=0.0)
+    repeat_mobile.add_argument("--flank-bp", type=int, default=0)
+    repeat_mobile.add_argument("--mobile-only", action="store_true")
+    repeat_mobile.add_argument("--output", default=None)
 
     purity = subparsers.add_parser(
         "purity-ploidy", help="import purity and ploidy measurements with source receipts"
@@ -1828,6 +1873,41 @@ def main(argv: list[str] | None = None) -> int:
                 _read_rows(args.input, "records", "evidence", "links"),
                 context_key=args.context_key,
                 minimum_evidence_channels=args.minimum_evidence_channels,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "assemble-haplotype":
+            result = PhasedHaplotypeAssembler().assemble(
+                _read_rows(args.input, "records", "observations", "variants"),
+                context_key=args.context_key,
+                max_haplotypes=args.max_haplotypes,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "represent-allele-aware-sv":
+            result = AlleleAwareSvRepresenter().represent(
+                _read_rows(args.input, "records", "observations", "events"),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "project-pangenome":
+            result = PangenomeGraphProjector().project(
+                _read_rows(args.input, "records", "queries", "variants", "events"),
+                _read_rows(args.nodes, "nodes", "records"),
+                context_key=args.context_key,
+                max_candidates_per_query=args.max_candidates_per_query,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "annotate-repeat-mobile":
+            result = RepeatMobileElementAnnotator().annotate(
+                _read_rows(args.input, "records", "queries", "variants", "events"),
+                _read_rows(args.annotations, "annotations", "records", "features"),
+                context_key=args.context_key,
+                min_overlap_fraction=args.min_overlap_fraction,
+                flank_bp=args.flank_bp,
+                include_non_mobile=not args.mobile_only,
             )
             _write_json(result.to_dict(), args.output)
             return 0

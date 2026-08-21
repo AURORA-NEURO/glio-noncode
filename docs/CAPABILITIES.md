@@ -131,6 +131,31 @@ glio-noncode detect-ecdna structural-evidence.json --output ecdna.json
 glio-noncode detect-enhancer-hijacking links.json --context-key "GRCh38|glioma|adult|unknown|unknown|unknown" --output hijacking.json
 ```
 
+The Domain 02 phased and graph extensions deepen structural representation:
+
+- `PhasedHaplotypeAssembler` creates ordered paths only from explicit phased
+  genotype fields. It retains phase sets, allele calls, source hashes, missing
+  alleles, and unphased observations; it does not infer read-backed phase or
+  reconstruct sequence.
+- `AlleleAwareSvRepresenter` retains structural event coordinates per allele,
+  genotype dosage, zygosity, copy number, support, and contradictory caller
+  records. It does not collapse allele-specific events into a single event.
+- `PangenomeGraphProjector` maps bounded intervals to supplied graph nodes and
+  paths with exact, contained, spanning, overlapping, and unmapped states.
+  Multiple paths remain visible, and coordinate overlap is not sequence
+  homology.
+- `RepeatMobileElementAnnotator` uses an indexed, source-versioned interval
+  catalogue to return repeat family, class, subfamily, strand, mobile status,
+  overlap fraction, and no-hit queries. It does not derive transposition from
+  sequence or claim annotation completeness.
+
+```powershell
+glio-noncode assemble-haplotype phased-variants.json --context-key "GRCh38|glioma|adult|unknown|unknown|unknown" --output haplotypes.json
+glio-noncode represent-allele-aware-sv structural-events.json --output allele-aware.json
+glio-noncode project-pangenome projection-queries.json --nodes graph-nodes.json --output graph-projection.json
+glio-noncode annotate-repeat-mobile structural-events.json --annotations repeats.json --mobile-only --output repeat-annotations.json
+```
+
 Every future capability wave must add implementation modules, fixtures,
 negative or abstention cases, and review-facing evidence before its ledger
 state is advanced.
