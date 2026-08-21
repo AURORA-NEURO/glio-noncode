@@ -237,6 +237,46 @@ class CliApiTests(unittest.TestCase):
             self.assertEqual(payload["genes"][0]["gene_id"], "g1")
             self.assertEqual(payload["genes"][0]["start"], 200)
 
+    def test_factor_graph_command_writes_replayable_graph(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "factors.json"
+            output = Path(directory) / "graph.json"
+            source.write_text(
+                json.dumps(
+                    {
+                        "factors": [
+                            {
+                                "factor_id": "f1",
+                                "edge_id": "edge-1",
+                                "factor_type": "link",
+                                "source_id": "source-1",
+                                "source_version": "v1",
+                                "state": "supported",
+                                "support": 0.8,
+                                "uncertainty": 0.2,
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "factor-graph",
+                        str(source),
+                        "--context-key",
+                        "GRCh38|glioma|adult|stem_like|unknown|unknown",
+                        "--output",
+                        str(output),
+                    ]
+                ),
+                0,
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["state"], "supported")
+            self.assertEqual(payload["active_factor_ids"], ["f1"])
+
     def test_sequence_adapter_commands_write_typed_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             sequence_output = Path(directory) / "sequence.json"

@@ -11,6 +11,7 @@ from typing import Any
 from .api import create_server
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
+from .causal_reasoning import FactorGraphConstructor, FactorObservation
 from .cell_context import ContextObservationParser
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
 from .control_plane import default_control_plane_registry
@@ -209,6 +210,14 @@ def build_parser() -> argparse.ArgumentParser:
     genes.add_argument("--genome-build", default="GRCh38")
     genes.add_argument("--output", default=None)
 
+    factor_graph = subparsers.add_parser(
+        "factor-graph", help="construct a replayable factor graph from JSON factors"
+    )
+    factor_graph.add_argument("input", type=str)
+    factor_graph.add_argument("--context-key", required=True)
+    factor_graph.add_argument("--graph-id", default="factor-graph")
+    factor_graph.add_argument("--output", default=None)
+
     encode_sequence = subparsers.add_parser(
         "encode-sequence", help="emit deterministic sequence context features"
     )
@@ -376,6 +385,24 @@ def main(argv: list[str] | None = None) -> int:
                 source_id=args.source_id or input_path.stem,
                 input_format=args.format,
                 default_genome_build=args.genome_build,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "factor-graph":
+            payload = json.loads(Path(args.input).read_text(encoding="utf-8"))
+            rows = payload.get("factors", payload) if isinstance(payload, dict) else payload
+            if not isinstance(rows, list):
+                raise ValueError("factor graph JSON must contain a factors list")
+            factors = tuple(
+                FactorObservation.from_mapping(
+                    row,
+                    fallback_id=f"{Path(args.input).stem}:{index}",
+                    context_key=args.context_key,
+                )
+                for index, row in enumerate(rows, start=1)
+            )
+            result = FactorGraphConstructor().construct(
+                factors, context_key=args.context_key, graph_id=args.graph_id
             )
             _write_json(result.to_dict(), args.output)
             return 0

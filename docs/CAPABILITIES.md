@@ -186,3 +186,25 @@ The gene-source boundary is:
 ```powershell
 glio-noncode parse-genes genes.tsv --output genes.json
 ```
+
+## Domain 11 causal evidence structures
+
+The causal-evidence plane builds immutable factor-graph snapshots with parent
+lineage, supersession history, active-factor views, orphan diagnostics,
+contradictory-edge detection, and deterministic replay. Superseded factors are
+never erased from history. A typed `RegulatoryCausalHypothesis` records its
+factor graph, missing evidence, prior/likelihood proxies, and contradiction
+state.
+
+Context-conditioned priors use exact context profiles and bounded feature
+contributions; missing or out-of-support features abstain. Measurement
+likelihoods group dependent channels before aggregation and retain missing or
+contradictory measurements. Both are explicitly proxies, not calibrated
+probabilities, causal effects, diagnoses, prognoses, treatment recommendations,
+or actionability claims.
+
+The replayable factor boundary is:
+
+```powershell
+glio-noncode factor-graph factors.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output graph.json
+```

@@ -11,6 +11,13 @@ from .atlas_context import ContextEvidenceBuilder, ContextObservation
 from .atlas_extensions import CcreAtlasAdapter, CcreAtlasProfile, CcreTrackParser
 from .bcf import BcfDocument, BcfReader
 from .capability_registry import CapabilityRegistry, default_capability_registry
+from .causal_reasoning import (
+    ContextConditionedPriorModel,
+    ContextPriorProfile,
+    FactorGraphConstructor,
+    MeasurementLikelihoodModel,
+    TypedHypothesisObjectBuilder,
+)
 from .cell_context import (
     AdultPediatricRouter,
     CellStateContextAssembler,
@@ -169,6 +176,11 @@ __all__ = [
     "EnhancerGeneConsensusLinker",
     "GeneFeatureParser",
     "NearestGeneBaseline",
+    "ContextConditionedPriorModel",
+    "ContextPriorProfile",
+    "FactorGraphConstructor",
+    "MeasurementLikelihoodModel",
+    "TypedHypothesisObjectBuilder",
     "OutOfDomainDetector",
     "UncertaintyPropagator",
     "NormalizationReport",

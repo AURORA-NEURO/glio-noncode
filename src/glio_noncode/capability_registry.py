@@ -760,5 +760,53 @@ def default_capability_registry() -> CapabilityRegistry:
                     "consensus is not a causal or clinical conclusion."
                 ),
             },
+            "GNC-D11-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_reasoning.TypedHypothesisObjectBuilder",
+                ),
+                "test_modules": ("tests.test_causal_reasoning",),
+                "evidence_note": (
+                    "Typed RegulatoryCausalHypothesis objects retain factor lineage, prior and "
+                    "likelihood proxies, missing evidence, contradictions, and research-use "
+                    "limitations; external task calibration and OOD evaluation remain."
+                ),
+            },
+            "GNC-D11-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_reasoning.FactorGraphConstructor",
+                ),
+                "test_modules": ("tests.test_causal_reasoning",),
+                "evidence_note": (
+                    "Immutable factor graph snapshots preserve parent lineage, supersession, "
+                    "orphan diagnostics, contradiction edges, active views, and deterministic "
+                    "replay; migration fixtures remain."
+                ),
+            },
+            "GNC-D11-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_reasoning.ContextConditionedPriorModel",
+                ),
+                "test_modules": ("tests.test_causal_reasoning",),
+                "evidence_note": (
+                    "Exact-context prior profiles expose bounded feature contributions, missing "
+                    "features, out-of-range support, and a non-probabilistic prior score; external "
+                    "calibration and transport evaluation remain."
+                ),
+            },
+            "GNC-D11-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_reasoning.MeasurementLikelihoodModel",
+                ),
+                "test_modules": ("tests.test_causal_reasoning",),
+                "evidence_note": (
+                    "Measurement channels are grouped for dependence-aware aggregation with "
+                    "missing, contradictory, and context-mismatched states; the output remains "
+                    "a likelihood proxy rather than a calibrated clinical probability."
+                ),
+            },
         }
     )
