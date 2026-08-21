@@ -552,6 +552,32 @@ length, and missing inventory remain blocked or abstained. Construct generation
 does not establish expression, effect size, assay success, safety, or causal
 validation; expert review and institutional approvals remain required.
 
+The Domain 13 scientific-beta extensions add intervention and allele-specific
+design packages:
+
+- `CRISPRiDesignPlanner` and `CRISPRaDesignPlanner` generate deterministic,
+  context-gated guide candidates with declared overlap, PAM, heuristic
+  on-target, specificity, off-target, control, readout, and budget receipts.
+- `BaseEditingDesignPlanner` restricts candidates to declared single-base edit
+  substitutions and editing windows, retaining unsupported chemistry and
+  bystander-edit blockers.
+- `PrimeEditingDesignPlanner` adds explicit PBS, RTT, edit-length, and flank
+  gates. These sequences are design placeholders and require editor-specific
+  validation.
+- `AlleleSpecificReporterPlanner` keeps reference and alternate constructs
+  paired under the same context, control, readout, and construct-budget
+  contract. A reporter package is not an endogenous causal claim.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode plan-crispri validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --max-guides 20 --output crispri.json
+glio-noncode plan-crispra validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --max-guides 20 --output crispra.json
+glio-noncode plan-base-editing validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --max-guides 20 --output base-editing.json
+glio-noncode plan-prime-editing validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --max-guides 20 --output prime-editing.json
+glio-noncode plan-allele-specific-reporter validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --max-guides 2 --output allele-reporter.json
+```
+
 ## Domain 14 evidence lifecycle
 
 The evidence-lifecycle plane resolves versioned citation manifests and retains

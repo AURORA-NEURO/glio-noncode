@@ -1456,6 +1456,52 @@ def default_capability_registry() -> CapabilityRegistry:
                     "context mismatch or construct-budget overflow without claiming assay efficacy."
                 ),
             },
+            "GNC-D13-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.validation_beta.CRISPRiDesignPlanner",),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "evidence_note": (
+                    "CRISPRi design packages generate context-gated guide candidates with declared "
+                    "overlap, heuristic score, specificity, PAM, control, readout, and budget "
+                    "receipts; guide efficacy and off-target validation remain external."
+                ),
+            },
+            "GNC-D13-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_beta.BaseEditingDesignPlanner",
+                ),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "evidence_note": (
+                    "Base-editing planning checks single-base substitution compatibility and a "
+                    "declared editing window while retaining candidate guides, edit payload, "
+                    "bystander warnings, controls, and blocked unsupported chemistry."
+                ),
+            },
+            "GNC-D13-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_beta.PrimeEditingDesignPlanner",
+                ),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "evidence_note": (
+                    "Prime-editing packages generate declared guide, PBS, RTT, and edit payload "
+                    "placeholders with flank and edit-length gates; pegRNA efficacy, nicking, "
+                    "off-target, and bystander validation remain required."
+                ),
+            },
+            "GNC-D13-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_beta.AlleleSpecificReporterPlanner",
+                ),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "evidence_note": (
+                    "Allele-specific reporter packages keep reference and alternate constructs "
+                    "paired under exact context, controls, readouts, and construct budgets; "
+                    "reporter activity does not establish endogenous causality or clinical effect."
+                ),
+            },
             "GNC-D14-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

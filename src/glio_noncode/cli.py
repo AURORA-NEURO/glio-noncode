@@ -124,6 +124,16 @@ from .topology_context import (
     TadBoundaryParser,
     TopologyAssay,
 )
+from .validation_beta import (
+    AlleleSpecificReporterPlanner,
+    BaseEditingDesignPlanner,
+    CRISPRaDesignPlanner,
+    CRISPRiDesignPlanner,
+    GuideDesignConstraints,
+    PerturbationMode,
+    PrimeEditingDesignPlanner,
+    ValidationBetaTarget,
+)
 from .variant_beta import (
     CategoricalCatalogParser,
     CatVRSNormalizer,
@@ -260,6 +270,39 @@ def _methylation_motifs(rows: Any) -> tuple[MethylationSensitiveMotifDefinition,
             )
         )
     return tuple(definitions)
+
+
+def _validation_beta_targets(rows: Any) -> tuple[ValidationBetaTarget, ...]:
+    if not isinstance(rows, list):
+        raise ValueError("validation beta input must contain a targets list")
+    return tuple(ValidationBetaTarget.from_mapping(row) for row in rows)
+
+
+def _guide_constraints(
+    payload: Mapping[str, Any],
+    *,
+    mode: PerturbationMode,
+    context_key: str,
+    design_id: str | None,
+    guide_length: int | None,
+    max_guides: int | None,
+    require_pam: bool,
+    pam_pattern: str | None,
+) -> GuideDesignConstraints:
+    raw = dict(payload.get("constraints", {}))
+    raw["context_key"] = context_key
+    raw["mode"] = mode.value
+    if design_id is not None:
+        raw["design_id"] = design_id
+    if guide_length is not None:
+        raw["guide_length"] = guide_length
+    if max_guides is not None:
+        raw["max_guides"] = max_guides
+    if require_pam:
+        raw["require_pam"] = True
+    if pam_pattern is not None:
+        raw["pam_pattern"] = pam_pattern
+    return GuideDesignConstraints.from_mapping(raw, context_key=context_key, mode=mode)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1004,6 +1047,23 @@ def build_parser() -> argparse.ArgumentParser:
     pathway_test.add_argument("--minimum-genes", type=int, default=2)
     pathway_test.add_argument("--ambiguity-margin", type=float, default=0.05)
     pathway_test.add_argument("--output", default=None)
+
+    for command, help_text in (
+        ("plan-crispri", "plan context-qualified CRISPRi guides"),
+        ("plan-crispra", "plan context-qualified CRISPRa guides"),
+        ("plan-base-editing", "plan context-qualified base-editing guides"),
+        ("plan-prime-editing", "plan context-qualified prime-editing guides"),
+        ("plan-allele-specific-reporter", "plan matched reference/alternate reporter constructs"),
+    ):
+        validation = subparsers.add_parser(command, help=help_text)
+        validation.add_argument("input", type=str)
+        validation.add_argument("--context-key", required=True)
+        validation.add_argument("--design-id", default=None)
+        validation.add_argument("--guide-length", type=int, default=None)
+        validation.add_argument("--max-guides", type=int, default=None)
+        validation.add_argument("--require-pam", action="store_true")
+        validation.add_argument("--pam-pattern", default=None)
+        validation.add_argument("--output", default=None)
 
     context = subparsers.add_parser(
         "parse-context",
@@ -1832,6 +1892,44 @@ def main(argv: list[str] | None = None) -> int:
                 minimum_genes=args.minimum_genes,
                 ambiguity_margin=args.ambiguity_margin,
             )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in {
+            "plan-crispri",
+            "plan-crispra",
+            "plan-base-editing",
+            "plan-prime-editing",
+            "plan-allele-specific-reporter",
+        }:
+            payload = _read_json(args.input)
+            mode = {
+                "plan-crispri": PerturbationMode.CRISPRI,
+                "plan-crispra": PerturbationMode.CRISPRA,
+                "plan-base-editing": PerturbationMode.BASE_EDITING,
+                "plan-prime-editing": PerturbationMode.PRIME_EDITING,
+                "plan-allele-specific-reporter": PerturbationMode.ALLELE_SPECIFIC_REPORTER,
+            }[args.command]
+            constraints = _guide_constraints(
+                payload,
+                mode=mode,
+                context_key=args.context_key,
+                design_id=args.design_id,
+                guide_length=args.guide_length,
+                max_guides=args.max_guides,
+                require_pam=args.require_pam,
+                pam_pattern=args.pam_pattern,
+            )
+            targets = _validation_beta_targets(payload.get("targets", ()))
+            if mode == PerturbationMode.CRISPRI:
+                result = CRISPRiDesignPlanner().plan(targets, constraints)
+            elif mode == PerturbationMode.CRISPRA:
+                result = CRISPRaDesignPlanner().plan(targets, constraints)
+            elif mode == PerturbationMode.BASE_EDITING:
+                result = BaseEditingDesignPlanner().plan(targets, constraints)
+            elif mode == PerturbationMode.PRIME_EDITING:
+                result = PrimeEditingDesignPlanner().plan(targets, constraints)
+            else:
+                result = AlleleSpecificReporterPlanner().plan(targets, constraints)
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command in {"scan-motif-disruption", "scan-motif-creation"}:
