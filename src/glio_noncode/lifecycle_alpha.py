@@ -1538,7 +1538,7 @@ def _coerce_graph(value: EvidenceGraphSnapshot | Mapping[str, Any]) -> EvidenceG
     citations_raw = value.get("citations", ())
     claims = tuple(
         VersionedEvidenceClaim.from_mapping(
-            item,
+            dict(item) | {"created_at": item.get("created_at", "unspecified")},
             fallback_id=f"claim-{index}",
             context_key=context_key,
         )
@@ -1546,7 +1546,7 @@ def _coerce_graph(value: EvidenceGraphSnapshot | Mapping[str, Any]) -> EvidenceG
     )
     citations = tuple(
         EvidenceCitation.from_mapping(
-            item,
+            dict(item) | {"retrieved_at": item.get("retrieved_at", "unspecified")},
             fallback_source_id=f"source-{index}",
             fallback_version="unspecified",
             fallback_row_number=index,
