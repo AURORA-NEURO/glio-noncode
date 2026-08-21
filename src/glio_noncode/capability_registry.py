@@ -350,60 +350,88 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D01-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": ("glio_noncode.variant_normalization.VRSNormalizer",),
-                "test_modules": ("tests.test_d01_capabilities",),
+                "test_modules": (
+                    "tests.test_d01_capabilities",
+                    "tests.test_variation_fixture_eval",
+                    "tests.test_variation_fixture_cli",
+                ),
                 "evidence_note": (
                     "VRS-shaped Allele output, sequence-digest provenance, trimming, and "
-                    "ambiguity abstention are implemented; full RefGet-backed equivalence "
-                    "truth sets remain to be built."
+                    "ambiguity abstention pass a public aggregate fixture with a symbolic "
+                    "breakend review control; full RefGet-backed equivalence truth sets remain "
+                    "a separate external validation gate."
                 ),
             },
             "GNC-D01-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.variant_beta.CategoricalCatalogParser",
                     "glio_noncode.variant_beta.CatVRSNormalizer",
                 ),
-                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "test_modules": (
+                    "tests.test_variant_beta",
+                    "tests.test_variant_beta_cli",
+                    "tests.test_variation_fixture_eval",
+                    "tests.test_variation_fixture_cli",
+                ),
                 "evidence_note": (
                     "Versioned JSON/TSV/CSV categorical catalogs retain malformed rows and "
                     "support exact declared category, alias, ontology-term, and member-ID "
-                    "matching; label-only scientific inference and external Cat-VRS schema "
-                    "validation remain out of scope."
+                    "matching in a public aggregate fixture; label-only scientific inference "
+                    "and external Cat-VRS schema validation remain separate gates."
                 ),
             },
             "GNC-D01-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.variant_beta.AnnotationStatement",
                     "glio_noncode.variant_beta.VAAnnotationEnvelopeBuilder",
                 ),
-                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "test_modules": (
+                    "tests.test_variant_beta",
+                    "tests.test_variant_beta_cli",
+                    "tests.test_variation_fixture_eval",
+                    "tests.test_variation_fixture_cli",
+                ),
                 "evidence_note": (
                     "Statement/evidence envelopes retain provenance, context, subject scope, "
                     "missing references, and contradictory supported values without averaging; "
+                    "a public aggregate source receipt and context-mismatch control pass; "
                     "external VA-Spec profile/schema validation remains a release gate."
                 ),
             },
             "GNC-D01-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": ("glio_noncode.variant_beta.MultiAllelicDecomposer",),
-                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "test_modules": (
+                    "tests.test_variant_beta",
+                    "tests.test_variant_beta_cli",
+                    "tests.test_variation_fixture_eval",
+                    "tests.test_variation_fixture_cli",
+                ),
                 "evidence_note": (
                     "Literal alternate alleles become indexed child identities with parent raw "
                     "hashes, source versions, and allele-specific genotype projections; symbolic "
-                    "structural forms abstain and phasing is never inferred."
+                    "structural forms abstain and phasing is never inferred in the public "
+                    "aggregate fixture."
                 ),
             },
             "GNC-D01-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": ("glio_noncode.variant_beta.RepeatAwareNormalizer",),
-                "test_modules": ("tests.test_variant_beta", "tests.test_variant_beta_cli"),
+                "test_modules": (
+                    "tests.test_variant_beta",
+                    "tests.test_variant_beta_cli",
+                    "tests.test_variation_fixture_eval",
+                    "tests.test_variation_fixture_cli",
+                ),
                 "evidence_note": (
                     "Literal SNVs and indels are replayed against a supplied local reference "
-                    "window to enumerate equivalent placements and expose ambiguity; global "
-                    "repeat truth sets, RefGet equivalence, and structural normalization remain."
+                    "window to enumerate equivalent placements and expose ambiguity; the "
+                    "fixture also proves reference-mismatch abstention. Global repeat truth "
+                    "sets, RefGet equivalence, and structural normalization remain separate."
                 ),
             },
             "GNC-D01-C09": {

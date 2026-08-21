@@ -1,0 +1,288 @@
+{
+  "fixture_id": "variation-public-aggregate-001",
+  "fixture_version": "variation-evidence-v1",
+  "provenance": {
+    "source_class": "public aggregate variation identifiers",
+    "license": "NCBI public database terms",
+    "patient_level_data": false,
+    "numeric_values": "bounded reference-window and reproducibility measurements only",
+    "evidence_boundary": "public aggregate identity and deterministic software receipts only; no biological or clinical claim"
+  },
+  "context": {
+    "genome_build": "GRCh38",
+    "disease_class": "diffuse_glioma",
+    "age_group": "adult",
+    "cell_state": "malignant_oligodendrocyte_like",
+    "territory": "tumor_core",
+    "treatment_phase": "pre_treatment"
+  },
+  "source_receipts": [
+    {
+      "source_id": "ncbi-clinvar-rs121913502",
+      "source_url": "https://www.ncbi.nlm.nih.gov/clinvar/RCV000292094.7/",
+      "source_version": "ClinVar release referenced by RCV000292094.7",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_aggregate": true,
+      "patient_level_data": false,
+      "license": "NCBI public database terms"
+    },
+    {
+      "source_id": "ncbi-grch38-reference-assembly",
+      "source_url": "https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.40/",
+      "source_version": "GRCh38.p14",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_aggregate": true,
+      "patient_level_data": false,
+      "license": "NCBI public database terms"
+    }
+  ],
+  "records": [
+    {
+      "record_id": "dbsnp:rs121913502:vrs",
+      "kind": "vrs",
+      "operation": "vrs-normalization",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "dbsnp:rs121913502",
+      "expected_state": "supported",
+      "payload": {
+        "variant_id": "dbsnp:rs121913502",
+        "chromosome": "15",
+        "start": 90088702,
+        "reference": "C",
+        "alternate": "T",
+        "annotations": {
+          "public_database": "dbSNP",
+          "external_identifier": "rs121913502",
+          "record_scope": "aggregate_identifier_only"
+        }
+      }
+    },
+    {
+      "record_id": "categorical:rs121913502",
+      "kind": "categorical",
+      "operation": "categorical-normalization",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "dbsnp:rs121913502",
+      "expected_state": "supported",
+      "payload": {
+        "source_version": "ClinVar release referenced by RCV000292094.7",
+        "catalog": [
+          {
+            "category_id": "CAT-PUBLIC-AGGREGATE-01",
+            "label": "public aggregate allele record",
+            "definition": "Declared membership used to exercise categorical variation matching",
+            "member_variation_ids": ["dbsnp:rs121913502"],
+            "rules": {"membership": "declared_identifier_only"},
+            "aliases": ["aggregate-allele-record"],
+            "ontology_terms": ["public_variation_identifier"],
+            "source_id": "ncbi-clinvar-rs121913502",
+            "source_version": "ClinVar release referenced by RCV000292094.7",
+            "created_at": "2026-08-20T00:00:00+00:00"
+          }
+        ],
+        "query": {
+          "id": "dbsnp:rs121913502"
+        }
+      }
+    },
+    {
+      "record_id": "annotation:rs121913502",
+      "kind": "annotation",
+      "operation": "annotation-envelope",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "dbsnp:rs121913502",
+      "expected_state": "supported",
+      "payload": {
+        "annotation_id": "annotation:dbsnp:rs121913502",
+        "subject": {
+          "id": "dbsnp:rs121913502",
+          "type": "Allele"
+        },
+        "statements": [
+          {
+            "id": "statement:public-index-presence",
+            "subject_id": "dbsnp:rs121913502",
+            "predicate": "public_index_presence",
+            "object": "declared_public_aggregate_record",
+            "object_type": "controlled_fixture_term",
+            "evidence_ids": ["evidence:ncbi-clinvar-rs121913502"],
+            "method_id": "method:source-receipt-match",
+            "summary": "Public source receipt declares the aggregate identifier"
+          }
+        ],
+        "evidence_lines": [
+          {
+            "id": "evidence:ncbi-clinvar-rs121913502",
+            "evidence_type": "public_source_receipt",
+            "source_id": "ncbi-clinvar-rs121913502",
+            "source_version": "ClinVar release referenced by RCV000292094.7",
+            "raw_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+            "state": "supported",
+            "summary": "NCBI ClinVar record is used as an aggregate identifier receipt"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "multiallelic:rs121913502",
+      "kind": "multiallelic",
+      "operation": "multiallelic-decomposition",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "dbsnp:rs121913502",
+      "expected_state": "supported",
+      "payload": {
+        "variant_id": "dbsnp:rs121913502:multiallelic",
+        "chromosome": "15",
+        "position": 90088702,
+        "reference": "C",
+        "alternates": ["T", "A"],
+        "genotype": "1/2",
+        "origin": "uncertain",
+        "source_version": "ClinVar release referenced by RCV000292094.7"
+      }
+    },
+    {
+      "record_id": "repeat-window:public-reference-01",
+      "kind": "repeat",
+      "operation": "repeat-aware-normalization",
+      "source_id": "ncbi-grch38-reference-assembly",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "reference-window-repeat-01",
+      "expected_state": "ambiguous",
+      "payload": {
+        "variant": {
+          "variant_id": "reference-window-repeat-01",
+          "chromosome": "15",
+          "start": 90088705,
+          "reference": "C",
+          "alternate": "CC"
+        },
+        "reference_sequence": "CCCCCC",
+        "reference_start": 90088702,
+        "max_shift_bp": 4
+      }
+    }
+  ],
+  "negative_controls": [
+    {
+      "control_id": "vrs-symbolic-breakend",
+      "kind": "vrs",
+      "operation": "vrs-normalization",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "public_identifier": "control:vrs-symbolic-breakend",
+      "expected_state": "abstained",
+      "payload": {
+        "notation": "15:90088702:BND:16:100",
+        "variant_id": "control:vrs-symbolic-breakend"
+      }
+    },
+    {
+      "control_id": "categorical-label-only",
+      "kind": "categorical",
+      "operation": "categorical-normalization",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "public_identifier": "control:categorical-label-only",
+      "expected_state": "abstained",
+      "required_issue_codes": ["category_not_resolved"],
+      "payload": {
+        "catalog": [
+          {
+            "category_id": "CAT-PUBLIC-AGGREGATE-01",
+            "label": "public aggregate allele record",
+            "definition": "Declared membership used to exercise categorical variation matching",
+            "member_variation_ids": ["dbsnp:rs121913502"],
+            "rules": {"membership": "declared_identifier_only"},
+            "source_id": "ncbi-clinvar-rs121913502",
+            "source_version": "ClinVar release referenced by RCV000292094.7",
+            "created_at": "2026-08-20T00:00:00+00:00"
+          }
+        ],
+        "query": {
+          "label": "scientific-looking label without declared membership"
+        }
+      }
+    },
+    {
+      "control_id": "annotation-context-mismatch",
+      "kind": "annotation",
+      "operation": "annotation-envelope",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "public_identifier": "control:annotation-context-mismatch",
+      "expected_state": "out_of_domain",
+      "payload": {
+        "annotation_id": "control:annotation-context-mismatch",
+        "subject": {
+          "id": "dbsnp:rs121913502",
+          "type": "Allele"
+        },
+        "statements": [
+          {
+            "id": "control:wrong-context-statement",
+            "subject_id": "dbsnp:rs121913502",
+            "predicate": "public_index_presence",
+            "object": "declared_public_aggregate_record",
+            "object_type": "controlled_fixture_term",
+            "context_key": "GRCh38|diffuse_glioma|adult|different_cell_state|tumor_core|pre_treatment",
+            "evidence_ids": ["control:context-evidence"],
+            "method_id": "method:source-receipt-match",
+            "summary": "Control statement intentionally uses another context"
+          }
+        ],
+        "evidence_lines": [
+          {
+            "id": "control:context-evidence",
+            "evidence_type": "public_source_receipt",
+            "source_id": "ncbi-clinvar-rs121913502",
+            "source_version": "ClinVar release referenced by RCV000292094.7",
+            "raw_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+            "state": "supported",
+            "summary": "Control evidence receipt"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "multiallelic-symbolic",
+      "kind": "multiallelic",
+      "operation": "multiallelic-decomposition",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "public_identifier": "control:multiallelic-symbolic",
+      "expected_state": "abstained",
+      "required_issue_codes": ["invalid_alternate"],
+      "payload": {
+        "variant_id": "control:multiallelic-symbolic",
+        "chromosome": "15",
+        "position": 90088702,
+        "reference": "C",
+        "alternates": ["<DEL>"],
+        "genotype": "0/1"
+      }
+    },
+    {
+      "control_id": "repeat-reference-mismatch",
+      "kind": "repeat",
+      "operation": "repeat-aware-normalization",
+      "source_id": "ncbi-grch38-reference-assembly",
+      "public_identifier": "control:repeat-reference-mismatch",
+      "expected_state": "abstained",
+      "required_issue_codes": ["reference_mismatch"],
+      "payload": {
+        "variant": {
+          "variant_id": "control:repeat-reference-mismatch",
+          "chromosome": "15",
+          "start": 90088705,
+          "reference": "T",
+          "alternate": "TT"
+        },
+        "reference_sequence": "CCCCCC",
+        "reference_start": 90088702,
+        "max_shift_bp": 4
+      }
+    }
+  ],
+  "expected_negative_control_count": 5
+}

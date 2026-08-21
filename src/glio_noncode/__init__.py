@@ -424,6 +424,14 @@ from .frontier_public_data import (
     SourceReceipt,
     audit_public_fixture,
 )
+from .frontier_quality_gate import (
+    FrontierQualityGate,
+    FrontierQualityGateReport,
+    QualityGateCheck,
+    QualityGateState,
+    evaluate_frontier_quality_gate,
+    evaluate_frontier_scenarios_from_mapping,
+)
 from .frontier_release_alpha import (
     AccessibilityFinding,
     AccessibilityHumanFactorsLayer,
@@ -515,14 +523,6 @@ from .frontier_scenario_matrix import (
     FrontierScenarioResult,
     ScenarioExpectation,
     evaluate_frontier_scenarios,
-)
-from .frontier_quality_gate import (
-    FrontierQualityGate,
-    FrontierQualityGateReport,
-    QualityGateCheck,
-    QualityGateState,
-    evaluate_frontier_quality_gate,
-    evaluate_frontier_scenarios_from_mapping,
 )
 from .identity_beta import (
     AliasReconciliationReport,
@@ -1006,6 +1006,57 @@ from .variant_beta import (
     VariantBetaIssue,
 )
 from .variant_normalization import NormalizationReport, VRSNormalizer
+from .variation_bundle import (
+    VariationBundleEntry,
+    VariationBundleFormat,
+    VariationEvidenceBundle,
+    VariationEvidenceBundleBuilder,
+    build_variation_evidence_bundle,
+)
+from .variation_contracts import (
+    VariationContractFamily,
+    VariationContractRegistry,
+    VariationOperationContract,
+    default_variation_contract_registry,
+)
+from .variation_fixture_eval import (
+    VariationFixtureCheck,
+    VariationFixtureEvaluationReport,
+    VariationFixtureEvaluator,
+    evaluate_variation_fixture,
+)
+from .variation_public_data import (
+    VARIATION_FIXTURE_SCHEMA_VERSION,
+    VariationDataAuditReport,
+    VariationDataIssue,
+    VariationDataState,
+    VariationFixtureCatalog,
+    VariationFixtureRecord,
+    VariationRecordKind,
+    VariationSourceReceipt,
+    audit_variation_fixture,
+)
+from .variation_quality_gate import (
+    VariationQualityCheck,
+    VariationQualityGate,
+    VariationQualityGateReport,
+    evaluate_variation_quality_gate,
+)
+from .variation_replay import (
+    VariationReplayCaseReceipt,
+    VariationReplayExpectation,
+    VariationReplayReport,
+    VariationReplayRunner,
+    replay_variation_fixtures,
+)
+from .variation_scenario_matrix import (
+    VariationScenario,
+    VariationScenarioClass,
+    VariationScenarioMatrix,
+    VariationScenarioMatrixReport,
+    VariationScenarioResult,
+    evaluate_variation_scenarios,
+)
 from .workspace import (
     CaseWorkspaceBuilder,
     CohortWorkspaceBuilder,
@@ -1641,6 +1692,43 @@ __all__ = [
     "VAAnnotationEnvelope",
     "VAAnnotationEnvelopeBuilder",
     "VariantBetaIssue",
+    "VARIATION_FIXTURE_SCHEMA_VERSION",
+    "VariationContractFamily",
+    "VariationContractRegistry",
+    "VariationBundleEntry",
+    "VariationBundleFormat",
+    "VariationEvidenceBundle",
+    "VariationEvidenceBundleBuilder",
+    "VariationDataAuditReport",
+    "VariationDataIssue",
+    "VariationDataState",
+    "VariationFixtureCatalog",
+    "VariationFixtureCheck",
+    "VariationFixtureEvaluationReport",
+    "VariationFixtureEvaluator",
+    "VariationFixtureRecord",
+    "VariationQualityCheck",
+    "VariationQualityGate",
+    "VariationQualityGateReport",
+    "VariationOperationContract",
+    "VariationRecordKind",
+    "VariationReplayCaseReceipt",
+    "VariationReplayExpectation",
+    "VariationReplayReport",
+    "VariationReplayRunner",
+    "VariationSourceReceipt",
+    "VariationScenario",
+    "VariationScenarioClass",
+    "VariationScenarioMatrix",
+    "VariationScenarioMatrixReport",
+    "VariationScenarioResult",
+    "audit_variation_fixture",
+    "build_variation_evidence_bundle",
+    "default_variation_contract_registry",
+    "evaluate_variation_fixture",
+    "evaluate_variation_quality_gate",
+    "evaluate_variation_scenarios",
+    "replay_variation_fixtures",
     "GuideDesigner",
     "NegativeControlBuilder",
     "PowerPlanner",

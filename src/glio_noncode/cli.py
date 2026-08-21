@@ -120,9 +120,9 @@ from .frontier_release_alpha import (
     RELEASE_FRONTIER_OPERATIONS,
     run_release_frontier_operation,
 )
-from .frontier_scenario_matrix import evaluate_frontier_scenarios
 from .frontier_release_hardening import HARDENING_OPERATIONS, run_hardening_operation
 from .frontier_replay import replay_frontier_fixtures
+from .frontier_scenario_matrix import evaluate_frontier_scenarios
 from .identity_beta import (
     BatchSampleIdentityChecker,
     ChainOfCustodyCapture,
@@ -285,6 +285,13 @@ from .variant_beta import (
     VAAnnotationEnvelopeBuilder,
 )
 from .variant_normalization import VRSNormalizer
+from .variation_bundle import VariationBundleFormat, VariationEvidenceBundleBuilder
+from .variation_contracts import default_variation_contract_registry
+from .variation_fixture_eval import evaluate_variation_fixture
+from .variation_public_data import audit_variation_fixture
+from .variation_quality_gate import evaluate_variation_quality_gate
+from .variation_replay import replay_variation_fixtures
+from .variation_scenario_matrix import evaluate_variation_scenarios
 from .workflow import ResourceEnvelope
 from .workspace import (
     CaseWorkspaceBuilder,
@@ -999,6 +1006,58 @@ def build_parser() -> argparse.ArgumentParser:
     repeat.add_argument("--max-shift-bp", type=int, default=50)
     repeat.add_argument("--genome-build", default="GRCh38")
     repeat.add_argument("--output", default=None)
+
+    variation_fixture = subparsers.add_parser(
+        "evaluate-variation-fixture",
+        help="evaluate the public aggregate fixture across five Domain 01 variation adapters",
+    )
+    variation_fixture.add_argument("input", type=str)
+    variation_fixture.add_argument("--output", default=None)
+
+    variation_data = subparsers.add_parser(
+        "audit-variation-data",
+        help="audit public aggregate variation records, source receipts, and exact context",
+    )
+    variation_data.add_argument("input", type=str)
+    variation_data.add_argument("--output", default=None)
+
+    variation_replay = subparsers.add_parser(
+        "replay-variation-fixtures",
+        help="replay one or more variation fixtures with identity and context controls",
+    )
+    variation_replay.add_argument("inputs", nargs="+", type=str)
+    variation_replay.add_argument("--required-context-key", default=None)
+    variation_replay.add_argument("--output", default=None)
+
+    variation_quality = subparsers.add_parser(
+        "variation-quality-gate",
+        help="reconcile Domain 01 variation fixture, data, and replay evidence",
+    )
+    variation_quality.add_argument("input", type=str)
+    variation_quality.add_argument("--output", default=None)
+    variation_scenarios = subparsers.add_parser(
+        "evaluate-variation-scenarios",
+        help="run independent positive and review state-transition scenarios",
+    )
+    variation_scenarios.add_argument("input", type=str)
+    variation_scenarios.add_argument("--output", default=None)
+    variation_contracts = subparsers.add_parser(
+        "variation-contracts",
+        help="print the five-operation Domain 01 variation contract registry",
+    )
+    variation_contracts.add_argument("--output", default=None)
+    variation_bundle = subparsers.add_parser(
+        "build-variation-bundle",
+        help="build a compact JSON, CSV, or Markdown variation evidence bundle",
+    )
+    variation_bundle.add_argument("input", type=str)
+    variation_bundle.add_argument("--output", required=True)
+    variation_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in VariationBundleFormat],
+        default=VariationBundleFormat.JSON.value,
+    )
+    variation_bundle.add_argument("--bundle-id", default=None)
 
     sv_consensus = subparsers.add_parser(
         "sv-consensus", help="import and reconcile multi-caller structural observations"
@@ -2726,6 +2785,40 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(result.to_dict(), args.output)
             return 0
+        if args.command == "evaluate-variation-fixture":
+            report = evaluate_variation_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-variation-data":
+            report = audit_variation_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-variation-fixtures":
+            report = replay_variation_fixtures(
+                args.inputs,
+                required_context_key=args.required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "variation-quality-gate":
+            report = evaluate_variation_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-variation-scenarios":
+            report = evaluate_variation_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "variation-contracts":
+            _write_json(default_variation_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-variation-bundle":
+            bundle = VariationEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+            )
+            return 0 if bundle.accepted else 2
         if args.command == "sv-consensus":
             input_path = Path(args.input)
             batch = SVConsensusImporter(breakpoint_tolerance=args.breakpoint_tolerance).parse_text(

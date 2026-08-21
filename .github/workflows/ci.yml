@@ -42,3 +42,17 @@ jobs:
         run: python -m glio_noncode evaluate-frontier-scenarios examples/frontier-glioma-case.json --output /tmp/glio-frontier-scenarios.json
       - name: Frontier quality gate
         run: python -m glio_noncode frontier-quality-gate examples/frontier-glioma-case.json --output /tmp/glio-frontier-quality.json
+      - name: Variation data boundary audit
+        run: python -m glio_noncode audit-variation-data examples/variation-public-aggregate.json --output /tmp/glio-variation-data.json
+      - name: Variation fixture evaluation
+        run: python -m glio_noncode evaluate-variation-fixture examples/variation-public-aggregate.json --output /tmp/glio-variation-fixture.json
+      - name: Variation replay integrity
+        run: python -m glio_noncode replay-variation-fixtures examples/variation-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-variation-replay.json
+      - name: Variation quality gate
+        run: python -m glio_noncode variation-quality-gate examples/variation-public-aggregate.json --output /tmp/glio-variation-quality.json
+      - name: Variation scenario matrix
+        run: python -m glio_noncode evaluate-variation-scenarios examples/variation-public-aggregate.json --output /tmp/glio-variation-scenarios.json
+      - name: Variation operation contracts
+        run: python -m glio_noncode variation-contracts --output /tmp/glio-variation-contracts.json
+      - name: Variation evidence bundle
+        run: python -m glio_noncode build-variation-bundle examples/variation-public-aggregate.json --output /tmp/glio-variation-bundle.json

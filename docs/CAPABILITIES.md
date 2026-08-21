@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 16 capabilities have deterministic fixture-backed
-verification and 240 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 24 capabilities have deterministic fixture-backed
+verification and 232 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -135,9 +135,10 @@ glio-noncode build-reference-bundle references.json --output reference-bundle.js
 glio-noncode gate-reference-release release-checks.json --output release-decision.json
 ```
 
-The same frontier wave extends the atlas, sequence, chromatin, and cell-state
-boundaries through Domains 05-08. The ledger now reports 224 of 256
-capabilities started (87.5%); 32 remain planned.
+The same frontier wave extended the atlas, sequence, chromatin, and cell-state
+boundaries through Domains 05-08. Those modules remain part of the current
+256-capability ledger, with the individual capability records retaining their
+own partial or verified status.
 
 Domain 05 includes an insulator/boundary atlas, independent-source regulatory
 hotspot aggregation, evidence-tier adjudication, and versioned atlas snapshot
@@ -174,9 +175,9 @@ These modules are descriptive and research-use only. They do not claim that a
 hotspot is causal, that a sequence model is calibrated, that an imputed assay
 is measured, or that a mapped cell state is clinically definitive.
 
-The D09-D12 frontier completes the next four inference domains and brings the
-ledger to 240 of 256 capabilities started (93.75%); 16 remain planned. The
-topology layer models ecDNA contacts, compartment switches, uncertainty-aware
+The D09-D12 frontier established the next four inference domains in the
+256-capability ledger. The topology layer models ecDNA contacts, compartment
+switches, uncertainty-aware
 signal transport, and 3D publication. The link layer corrects dependence,
 ranks target genes, calibrates and abstains, and publishes source-bound links.
 The causal layer decomposes posteriors, ranks regulatory-driver hypotheses,
@@ -210,8 +211,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 16 D13-D16 controls are now verified against the
-checked-in frontier fixture, while 240 capabilities remain partial. Partial
+capabilities started (100%); 24 controls are now verified against the checked-in
+Domain 01 and D13-D16 fixtures, while 232 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -349,6 +350,35 @@ glio-noncode reconcile-variant-aliases variants.json --output reconciliation.jso
 glio-noncode check-batch-sample-identity samples.json --require-subject --output sample-identity.json
 glio-noncode capture-chain-of-custody custody-events.json --output custody.json
 ```
+
+The checked-in public aggregate variation fixture exercises the five deeper
+Domain 01 adapters together. It uses NCBI ClinVar and GRCh38 assembly receipts,
+public identifiers, a fixed local reference window, and no patient-level data.
+The fixture proves supported VRS-shaped normalization, declared categorical
+membership, provenance-complete annotation envelopes, lossless two-allele
+decomposition, and repeat ambiguity without silent placement selection. Five
+negative controls prove symbolic abstention, label-only categorical abstention,
+annotation context rejection, symbolic multi-allelic rejection, and reference
+mismatch rejection.
+
+Run its independent data, operation, replay, and combined gates:
+
+```powershell
+glio-noncode audit-variation-data examples/variation-public-aggregate.json --output variation-data.json
+glio-noncode evaluate-variation-fixture examples/variation-public-aggregate.json --output variation-fixture.json
+glio-noncode replay-variation-fixtures examples/variation-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output variation-replay.json
+glio-noncode evaluate-variation-scenarios examples/variation-public-aggregate.json --output variation-scenarios.json
+glio-noncode variation-contracts --output variation-contracts.json
+glio-noncode variation-quality-gate examples/variation-public-aggregate.json --output variation-quality.json
+```
+
+The combined variation gate requires 29 fixture checks, five positive record
+kinds, five negative controls, an independent ten-scenario state matrix, a
+five-operation contract registry, exact source/context consistency, deterministic
+content addresses, and a restricted-output boundary. Verified here means the
+local public aggregate software contract passes; external RefGet equivalence,
+Cat-VRS schema validation, VA-Spec interchange validation, global repeat truth
+sets, and structural normalization remain separate validation work.
 
 ## Domain 02 structural beta extensions
 
