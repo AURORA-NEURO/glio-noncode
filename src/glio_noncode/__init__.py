@@ -836,6 +836,91 @@ from .reference_alpha import (
     ReferenceSnapshotManager,
     SnapshotComparison,
 )
+from .reference_annotation_bundle import (
+    ReferenceAnnotationBundle,
+    ReferenceAnnotationBundleBuilder,
+    ReferenceAnnotationBundleEntry,
+    ReferenceAnnotationBundleFormat,
+)
+from .reference_annotation_contracts import (
+    ReferenceAnnotationContract,
+    ReferenceAnnotationContractRegistry,
+    default_reference_annotation_contracts,
+)
+from .reference_annotation_fixture_eval import (
+    ReferenceAnnotationCheck,
+    ReferenceAnnotationEvaluationReport,
+    ReferenceAnnotationExecutionReceipt,
+    evaluate_reference_annotation_fixture,
+    evaluate_reference_annotation_fixture_file,
+)
+from .reference_annotation_lineage import (
+    ReferenceAnnotationEdgeKind,
+    ReferenceAnnotationLineageAudit,
+    ReferenceAnnotationLineageEdge,
+    ReferenceAnnotationLineageGraph,
+    ReferenceAnnotationLineageNode,
+    ReferenceAnnotationNodeKind,
+    build_reference_annotation_lineage,
+)
+from .reference_annotation_public_data import (
+    REFERENCE_ANNOTATION_CONTEXT_KEY,
+    REFERENCE_ANNOTATION_CONTROL_COUNT,
+    REFERENCE_ANNOTATION_EVIDENCE_BOUNDARY,
+    REFERENCE_ANNOTATION_FIXTURE_VERSION,
+    REFERENCE_ANNOTATION_POSITIVE_COUNT,
+    REFERENCE_ANNOTATION_SOURCE_COUNT,
+    ReferenceAnnotationDataAudit,
+    ReferenceAnnotationDataCheck,
+    ReferenceAnnotationFixture,
+    ReferenceAnnotationFixtureCatalog,
+    ReferenceAnnotationOperation,
+    ReferenceAnnotationRecord,
+    ReferenceAnnotationRole,
+    ReferenceAnnotationSourceReceipt,
+    audit_reference_annotation_data,
+    build_reference_annotation_catalog,
+    default_reference_annotation_fixture,
+    load_reference_annotation_fixture,
+)
+from .reference_annotation_quality_gate import (
+    ReferenceAnnotationQualityCheck,
+    ReferenceAnnotationQualityGateReport,
+    evaluate_reference_annotation_quality_gate,
+)
+from .reference_annotation_reconciliation import (
+    ReferenceAnnotationReconciliationCheck,
+    ReferenceAnnotationReconciliationReport,
+    reconcile_reference_annotation_views,
+)
+from .reference_annotation_release import (
+    ReferenceAnnotationReleaseCheck,
+    ReferenceAnnotationReleaseManifest,
+    ReferenceAnnotationReleaseState,
+    build_reference_annotation_release_manifest,
+    verify_reference_annotation_release_manifest,
+    write_reference_annotation_release_manifest,
+)
+from .reference_annotation_replay import (
+    ReferenceAnnotationReplayCheck,
+    ReferenceAnnotationReplayExpectation,
+    ReferenceAnnotationReplayReport,
+    build_reference_annotation_expectation,
+    replay_reference_annotation_evaluation,
+)
+from .reference_annotation_runtime import (
+    ReferenceAnnotationRuntimeReport,
+    ReferenceAnnotationRuntimeRequest,
+    ReferenceAnnotationRuntimeStage,
+    ReferenceAnnotationStageReceipt,
+    run_reference_annotation_pipeline,
+    run_reference_annotation_pipeline_file,
+)
+from .reference_annotation_scenario_matrix import (
+    ReferenceAnnotationScenarioMatrix,
+    ReferenceAnnotationScenarioResult,
+    evaluate_reference_annotation_scenarios,
+)
 from .reference_beta import (
     DiseaseMappingResult,
     DiseaseOntologyCatalog,
@@ -857,12 +942,6 @@ from .reference_beta import (
     TranscriptRecord,
     TranscriptResolution,
 )
-from .reference_extensions import (
-    LiftoverAmbiguityScorer,
-    LiftoverChainManager,
-    PangenomeCoordinateMapper,
-)
-from .reference_registry import ReferenceProjector, default_reference_registry
 from .reference_coordinate_bundle import (
     ReferenceCoordinateBundleBuilder,
     ReferenceCoordinateBundleEntry,
@@ -877,8 +956,8 @@ from .reference_coordinate_contracts import (
     default_reference_coordinate_contracts,
 )
 from .reference_coordinate_fixture_eval import (
-    ReferenceCoordinateExecutionCheck,
     ReferenceCoordinateEvaluationReport,
+    ReferenceCoordinateExecutionCheck,
     ReferenceCoordinateFixtureEvaluator,
     ReferenceCoordinateOperationReceipt,
     evaluate_reference_coordinate_fixture,
@@ -938,6 +1017,12 @@ from .reference_coordinate_scenario_matrix import (
     ReferenceCoordinateScenarioResult,
     evaluate_reference_coordinate_scenarios,
 )
+from .reference_extensions import (
+    LiftoverAmbiguityScorer,
+    LiftoverChainManager,
+    PangenomeCoordinateMapper,
+)
+from .reference_registry import ReferenceProjector, default_reference_registry
 from .regulatory_tracks import RegulatoryFeature, RegulatoryTrackBatch, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .sequence_adapters import (
@@ -2957,6 +3042,69 @@ __all__ = [
     "PowerPlanner",
     "ValidationValuePlanner",
     "default_reference_registry",
+    "REFERENCE_ANNOTATION_CONTEXT_KEY",
+    "REFERENCE_ANNOTATION_CONTROL_COUNT",
+    "REFERENCE_ANNOTATION_EVIDENCE_BOUNDARY",
+    "REFERENCE_ANNOTATION_FIXTURE_VERSION",
+    "REFERENCE_ANNOTATION_POSITIVE_COUNT",
+    "REFERENCE_ANNOTATION_SOURCE_COUNT",
+    "ReferenceAnnotationBundle",
+    "ReferenceAnnotationBundleBuilder",
+    "ReferenceAnnotationBundleEntry",
+    "ReferenceAnnotationBundleFormat",
+    "ReferenceAnnotationCheck",
+    "ReferenceAnnotationContract",
+    "ReferenceAnnotationContractRegistry",
+    "ReferenceAnnotationDataAudit",
+    "ReferenceAnnotationDataCheck",
+    "ReferenceAnnotationEdgeKind",
+    "ReferenceAnnotationEvaluationReport",
+    "ReferenceAnnotationExecutionReceipt",
+    "ReferenceAnnotationFixture",
+    "ReferenceAnnotationFixtureCatalog",
+    "ReferenceAnnotationLineageAudit",
+    "ReferenceAnnotationLineageEdge",
+    "ReferenceAnnotationLineageGraph",
+    "ReferenceAnnotationLineageNode",
+    "ReferenceAnnotationNodeKind",
+    "ReferenceAnnotationOperation",
+    "ReferenceAnnotationQualityCheck",
+    "ReferenceAnnotationQualityGateReport",
+    "ReferenceAnnotationRecord",
+    "ReferenceAnnotationReconciliationCheck",
+    "ReferenceAnnotationReconciliationReport",
+    "ReferenceAnnotationReplayCheck",
+    "ReferenceAnnotationReplayExpectation",
+    "ReferenceAnnotationReplayReport",
+    "ReferenceAnnotationReleaseCheck",
+    "ReferenceAnnotationReleaseManifest",
+    "ReferenceAnnotationReleaseState",
+    "ReferenceAnnotationRole",
+    "ReferenceAnnotationRuntimeReport",
+    "ReferenceAnnotationRuntimeRequest",
+    "ReferenceAnnotationRuntimeStage",
+    "ReferenceAnnotationScenarioMatrix",
+    "ReferenceAnnotationScenarioResult",
+    "ReferenceAnnotationSourceReceipt",
+    "ReferenceAnnotationStageReceipt",
+    "audit_reference_annotation_data",
+    "build_reference_annotation_catalog",
+    "build_reference_annotation_expectation",
+    "build_reference_annotation_lineage",
+    "default_reference_annotation_contracts",
+    "default_reference_annotation_fixture",
+    "evaluate_reference_annotation_fixture",
+    "evaluate_reference_annotation_fixture_file",
+    "evaluate_reference_annotation_quality_gate",
+    "evaluate_reference_annotation_scenarios",
+    "load_reference_annotation_fixture",
+    "reconcile_reference_annotation_views",
+    "replay_reference_annotation_evaluation",
+    "build_reference_annotation_release_manifest",
+    "verify_reference_annotation_release_manifest",
+    "write_reference_annotation_release_manifest",
+    "run_reference_annotation_pipeline",
+    "run_reference_annotation_pipeline_file",
     "REFERENCE_COORDINATE_CONTEXT_KEY",
     "REFERENCE_COORDINATE_CONTROL_COUNT",
     "REFERENCE_COORDINATE_EXPECTED_CONTROLS",

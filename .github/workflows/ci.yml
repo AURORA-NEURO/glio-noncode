@@ -254,3 +254,25 @@ jobs:
         run: python -m glio_noncode reference-coordinate-reconciliation examples/reference-coordinate-public-aggregate.json --output /tmp/glio-reference-coordinate-reconciliation.json
       - name: Reference coordinate pipeline integration
         run: python -m glio_noncode run-reference-coordinate-pipeline examples/reference-coordinate-pipeline-accepted.json --output /tmp/glio-reference-coordinate-pipeline.json
+      - name: Reference annotation data boundary audit
+        run: python -m glio_noncode audit-reference-annotation-data examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-data.json
+      - name: Reference annotation fixture evaluation
+        run: python -m glio_noncode evaluate-reference-annotation-fixture examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-fixture.json
+      - name: Reference annotation replay integrity
+        run: python -m glio_noncode replay-reference-annotation-fixtures examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-replay.json
+      - name: Reference annotation quality gate
+        run: python -m glio_noncode reference-annotation-quality-gate examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-quality.json
+      - name: Reference annotation scenario matrix
+        run: python -m glio_noncode evaluate-reference-annotation-scenarios examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-scenarios.json
+      - name: Reference annotation operation contracts
+        run: python -m glio_noncode reference-annotation-contracts --output /tmp/glio-reference-annotation-contracts.json
+      - name: Reference annotation evidence bundle
+        run: python -m glio_noncode build-reference-annotation-bundle examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-bundle.json --accepted-only
+      - name: Reference annotation lineage graph
+        run: python -m glio_noncode reference-annotation-lineage examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-lineage.json
+      - name: Reference annotation receipt reconciliation
+        run: python -m glio_noncode reference-annotation-reconciliation examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-reconciliation.json
+      - name: Reference annotation pipeline integration
+        run: python -m glio_noncode run-reference-annotation-pipeline examples/reference-annotation-pipeline-accepted.json --output /tmp/glio-reference-annotation-pipeline.json
+      - name: Reference annotation release manifest
+        run: python -m glio_noncode build-reference-annotation-release examples/reference-annotation-public-aggregate.json --output /tmp/glio-reference-annotation-release.json

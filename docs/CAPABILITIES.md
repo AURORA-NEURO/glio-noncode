@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 68 capabilities have deterministic fixture-backed
-verification and 188 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 26.56% of the 256-capability
+capabilities started (100%); 72 capabilities have deterministic fixture-backed
+verification and 184 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 28.12% of the 256-capability
 catalog; MVP implementation coverage is 25.00%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -335,6 +335,31 @@ glio-noncode reference-coordinate-reconciliation examples/reference-coordinate-p
 glio-noncode run-reference-coordinate-pipeline examples/reference-coordinate-pipeline-accepted.json --output reference-coordinate-pipeline.json
 ```
 
+The C05-C08 annotation slice verifies the GENCODE, MANE, Relation Ontology,
+and Mondo-shaped boundaries with five public source receipts, four positive
+records, and twelve controls. The accepted fixture emits 120 execution checks,
+12 replay checks, 16 scenario transitions, 17 reconciliation checks, a
+38-node/59-edge lineage graph, a 23-check quality gate, a four-entry accepted
+bundle, and an independently verified publication manifest. Receipts exclude
+input text and preserve ambiguity or abstention rather than selecting rows.
+See `docs/REFERENCE_ANNOTATION_EVIDENCE_GATE.md` and
+`docs/REFERENCE_ANNOTATION_RELEASE_FORMAT.md` for the full schema and change
+rules.
+
+```powershell
+glio-noncode audit-reference-annotation-data examples/reference-annotation-public-aggregate.json --output reference-annotation-data.json
+glio-noncode evaluate-reference-annotation-fixture examples/reference-annotation-public-aggregate.json --output reference-annotation-fixture.json
+glio-noncode replay-reference-annotation-fixtures examples/reference-annotation-public-aggregate.json --output reference-annotation-replay.json
+glio-noncode reference-annotation-quality-gate examples/reference-annotation-public-aggregate.json --output reference-annotation-quality.json
+glio-noncode evaluate-reference-annotation-scenarios examples/reference-annotation-public-aggregate.json --output reference-annotation-scenarios.json
+glio-noncode reference-annotation-contracts --output reference-annotation-contracts.json
+glio-noncode build-reference-annotation-bundle examples/reference-annotation-public-aggregate.json --output reference-annotation-bundle.json --accepted-only
+glio-noncode reference-annotation-lineage examples/reference-annotation-public-aggregate.json --output reference-annotation-lineage.json
+glio-noncode reference-annotation-reconciliation examples/reference-annotation-public-aggregate.json --output reference-annotation-reconciliation.json
+glio-noncode run-reference-annotation-pipeline examples/reference-annotation-pipeline-accepted.json --output reference-annotation-pipeline.json
+glio-noncode build-reference-annotation-release examples/reference-annotation-public-aggregate.json --output reference-annotation-release.json
+```
+
 The same frontier wave extended the atlas, sequence, chromatin, and cell-state
 boundaries through Domains 05-08. Those modules remain part of the current
 256-capability ledger, with the individual capability records retaining their
@@ -411,8 +436,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 68 controls are verified against the checked-in
-aggregate fixtures, while 188 capabilities remain partial. Partial
+capabilities started (100%); 72 controls are verified against the checked-in
+aggregate fixtures, while 184 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -989,7 +1014,10 @@ the complete underlying reference resources. C01-C04 changes must preserve
 source closure, exact context, candidate retention, content addresses, and
 non-publishing review controls.
 
-The Domain 04 scientific-beta adapters add versioned annotation governance:
+The Domain 04 scientific-beta adapters add versioned annotation governance.
+The C05-C08 evidence plane now verifies these adapters through the public
+aggregate fixture, replay, bundle, graph, reconciliation, quality, and release
+layers:
 
 - `GencodeTranscriptAdapter` parses GTF/JSON transcript snapshots, splits
   versioned Ensembl identifiers, retains attributes and coordinates, and

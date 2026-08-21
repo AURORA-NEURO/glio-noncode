@@ -1572,45 +1572,86 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D04-C05": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.reference_beta.GencodeTranscriptAdapter",),
-                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_beta.GencodeTranscriptAdapter",
+                    "glio_noncode.reference_annotation_public_data.default_reference_annotation_fixture",
+                    "glio_noncode.reference_annotation_fixture_eval.evaluate_reference_annotation_fixture",
+                    "glio_noncode.reference_annotation_release.build_reference_annotation_release_manifest",
+                ),
+                "test_modules": (
+                    "tests.test_reference_beta",
+                    "tests.test_reference_annotation_public_data",
+                    "tests.test_reference_annotation_fixture_eval",
+                    "tests.test_reference_annotation_release",
+                ),
                 "evidence_note": (
                     "GENCODE-like GTF/JSON transcript records preserve transcript version, gene "
                     "identity, assembly, coordinates, attributes, source version, and malformed "
-                    "rows; full release-specific schema conformance remains."
+                    "rows. Five public source receipts, four record scenarios, sanitized "
+                    "receipts, replay, lineage, reconciliation, and release checks verify "
+                    "exact resolution and ambiguity without claiming a vendored release."
                 ),
             },
             "GNC-D04-C06": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.reference_beta.ManeTranscriptAdapter",),
-                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_beta.ManeTranscriptAdapter",
+                    "glio_noncode.reference_annotation_fixture_eval.evaluate_reference_annotation_fixture",
+                    "glio_noncode.reference_annotation_quality_gate.evaluate_reference_annotation_quality_gate",
+                    "glio_noncode.reference_annotation_runtime.run_reference_annotation_pipeline",
+                ),
+                "test_modules": (
+                    "tests.test_reference_beta",
+                    "tests.test_reference_annotation_fixture_eval",
+                    "tests.test_reference_annotation_runtime",
+                ),
                 "evidence_note": (
                     "MANE Select/Plus Clinical TSV, CSV, and JSON records preserve RefSeq/Ensembl "
-                    "cross-identifiers, status, assembly coordinates, and one-to-many resolution; "
-                    "release snapshot validation remains."
+                    "cross-identifiers, status, assembly coordinates, and one-to-many resolution. "
+                    "Positive, competing, missing-identifier, and unknown-query controls are "
+                    "replayed through a 120-check evaluator and publication boundary."
                 ),
             },
             "GNC-D04-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.reference_beta.RegulatoryOntologyAdapter",
+                    "glio_noncode.reference_annotation_contracts.default_reference_annotation_contracts",
+                    "glio_noncode.reference_annotation_scenario_matrix.evaluate_reference_annotation_scenarios",
+                    "glio_noncode.reference_annotation_reconciliation.reconcile_reference_annotation_views",
                 ),
-                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "test_modules": (
+                    "tests.test_reference_beta",
+                    "tests.test_reference_annotation_contracts_replay",
+                    "tests.test_reference_annotation_quality_bundle",
+                ),
                 "evidence_note": (
                     "Declared regulatory term catalogs preserve namespace, definitions, parents, "
-                    "aliases, and source hashes; matching is exact/declared and ambiguous aliases "
-                    "are not silently selected."
+                    "aliases, and source hashes. Exact IDs, unknown labels, duplicate IDs, and "
+                    "shared aliases are covered by explicit controls; ambiguity is retained in "
+                    "the bundle, graph, and reconciliation views."
                 ),
             },
             "GNC-D04-C08": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.reference_beta.DiseaseOntologyMapper",),
-                "test_modules": ("tests.test_reference_beta", "tests.test_reference_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.reference_beta.DiseaseOntologyMapper",
+                    "glio_noncode.reference_annotation_bundle.ReferenceAnnotationBundleBuilder",
+                    "glio_noncode.reference_annotation_lineage.build_reference_annotation_lineage",
+                    "glio_noncode.reference_annotation_release.verify_reference_annotation_release_manifest",
+                ),
+                "test_modules": (
+                    "tests.test_reference_beta",
+                    "tests.test_reference_annotation_quality_bundle",
+                    "tests.test_reference_annotation_release",
+                    "tests.test_reference_annotation_cli",
+                ),
                 "evidence_note": (
                     "Disease ontology mapping catalogs retain source terms, target namespaces, "
-                    "relationships, versions, and one-to-many targets; mapped identity is not a "
-                    "clinical diagnosis and live ontology retrieval is not claimed."
+                    "relationships, versions, and one-to-many targets. Exact mapping, multiple "
+                    "target, unknown ID, and unknown label controls feed a 38-node/59-edge graph "
+                    "and an independently addressed release manifest."
                 ),
             },
             "GNC-D04-C09": {

@@ -205,6 +205,26 @@ from .reference_beta import (
     RegulatoryOntologyAdapter,
 )
 from .reference_registry import default_reference_registry
+from .reference_annotation_bundle import (
+    ReferenceAnnotationBundleBuilder,
+    ReferenceAnnotationBundleFormat,
+)
+from .reference_annotation_contracts import default_reference_annotation_contracts
+from .reference_annotation_fixture_eval import evaluate_reference_annotation_fixture
+from .reference_annotation_lineage import build_reference_annotation_lineage
+from .reference_annotation_public_data import (
+    audit_reference_annotation_data,
+    load_reference_annotation_fixture,
+)
+from .reference_annotation_quality_gate import evaluate_reference_annotation_quality_gate
+from .reference_annotation_reconciliation import reconcile_reference_annotation_views
+from .reference_annotation_replay import replay_reference_annotation_evaluation
+from .reference_annotation_release import (
+    build_reference_annotation_release_manifest,
+    write_reference_annotation_release_manifest,
+)
+from .reference_annotation_runtime import run_reference_annotation_pipeline_file
+from .reference_annotation_scenario_matrix import evaluate_reference_annotation_scenarios
 from .reference_coordinate_bundle import (
     ReferenceCoordinateBundleBuilder,
     ReferenceCoordinateBundleFormat,
@@ -2180,6 +2200,92 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reference_coordinate_pipeline.add_argument("input", type=str)
     reference_coordinate_pipeline.add_argument("--output", default=None)
+
+    reference_annotation_fixture = subparsers.add_parser(
+        "evaluate-reference-annotation-fixture",
+        help="evaluate the public aggregate fixture across Domain 04 C05-C08 annotation operations",
+    )
+    reference_annotation_fixture.add_argument("input", type=str)
+    reference_annotation_fixture.add_argument("--output", default=None)
+
+    reference_annotation_data = subparsers.add_parser(
+        "audit-reference-annotation-data",
+        help="audit public C05-C08 transcript and ontology source boundaries",
+    )
+    reference_annotation_data.add_argument("input", type=str)
+    reference_annotation_data.add_argument("--output", default=None)
+
+    reference_annotation_replay = subparsers.add_parser(
+        "replay-reference-annotation-fixtures",
+        help="replay C05-C08 annotation fixtures with identity, context, and evidence floors",
+    )
+    reference_annotation_replay.add_argument("input", type=str)
+    reference_annotation_replay.add_argument("--output", default=None)
+
+    reference_annotation_quality = subparsers.add_parser(
+        "reference-annotation-quality-gate",
+        help="reconcile C05-C08 public data, fixture, scenarios, contracts, graph, and bundle evidence",
+    )
+    reference_annotation_quality.add_argument("input", type=str)
+    reference_annotation_quality.add_argument("--output", default=None)
+
+    reference_annotation_scenarios = subparsers.add_parser(
+        "evaluate-reference-annotation-scenarios",
+        help="run C05-C08 annotation positive and review state scenarios",
+    )
+    reference_annotation_scenarios.add_argument("input", type=str)
+    reference_annotation_scenarios.add_argument("--output", default=None)
+
+    reference_annotation_contracts = subparsers.add_parser(
+        "reference-annotation-contracts",
+        help="print the four-operation Domain 04 reference-annotation contract registry",
+    )
+    reference_annotation_contracts.add_argument("--output", default=None)
+
+    reference_annotation_bundle = subparsers.add_parser(
+        "build-reference-annotation-bundle",
+        help="build a JSON, CSV, or Markdown C05-C08 annotation evidence bundle",
+    )
+    reference_annotation_bundle.add_argument("input", type=str)
+    reference_annotation_bundle.add_argument("--output", required=True)
+    reference_annotation_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in ReferenceAnnotationBundleFormat],
+        default=ReferenceAnnotationBundleFormat.JSON.value,
+    )
+    reference_annotation_bundle.add_argument(
+        "--accepted-only",
+        action="store_true",
+        help="include only supported positive operation receipts",
+    )
+
+    reference_annotation_graph = subparsers.add_parser(
+        "reference-annotation-lineage",
+        help="build and audit the sanitized C05-C08 annotation source-to-result graph",
+    )
+    reference_annotation_graph.add_argument("input", type=str)
+    reference_annotation_graph.add_argument("--output", default=None)
+
+    reference_annotation_reconciliation = subparsers.add_parser(
+        "reference-annotation-reconciliation",
+        help="reconcile C05-C08 fixture records with annotation receipts, bundle, and graph",
+    )
+    reference_annotation_reconciliation.add_argument("input", type=str)
+    reference_annotation_reconciliation.add_argument("--output", default=None)
+
+    reference_annotation_pipeline = subparsers.add_parser(
+        "run-reference-annotation-pipeline",
+        help="run C05 GENCODE, C06 MANE, C07 regulatory, and C08 disease stages",
+    )
+    reference_annotation_pipeline.add_argument("input", type=str)
+    reference_annotation_pipeline.add_argument("--output", default=None)
+
+    reference_annotation_release = subparsers.add_parser(
+        "build-reference-annotation-release",
+        help="build and verify the C05-C08 annotation publication manifest",
+    )
+    reference_annotation_release.add_argument("input", type=str)
+    reference_annotation_release.add_argument("--output", required=True)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -4577,6 +4683,72 @@ def main(argv: list[str] | None = None) -> int:
             report = run_reference_coordinate_pipeline(request)
             _write_json(report.to_dict(), args.output)
             return 0 if report.published else 2
+        if args.command == "evaluate-reference-annotation-fixture":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            report = evaluate_reference_annotation_fixture(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "audit-reference-annotation-data":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            report = audit_reference_annotation_data(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-reference-annotation-fixtures":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            report = evaluate_reference_annotation_fixture(fixture)
+            replay = replay_reference_annotation_evaluation(report)
+            _write_json(replay.to_dict(), args.output)
+            return 0 if replay.accepted else 2
+        if args.command == "reference-annotation-quality-gate":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            report = evaluate_reference_annotation_quality_gate(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-reference-annotation-scenarios":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_annotation_fixture(fixture)
+            report = evaluate_reference_annotation_scenarios(fixture, report=evaluation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-annotation-contracts":
+            _write_json(default_reference_annotation_contracts().manifest(), args.output)
+            return 0
+        if args.command == "build-reference-annotation-bundle":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_annotation_fixture(fixture)
+            builder = ReferenceAnnotationBundleBuilder()
+            bundle = builder.build(evaluation, fixture=fixture, accepted_only=args.accepted_only)
+            builder.write(bundle, args.output, format=ReferenceAnnotationBundleFormat(args.format))
+            return 0 if not builder.verify(bundle) else 2
+        if args.command == "reference-annotation-lineage":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_annotation_fixture(fixture)
+            graph = build_reference_annotation_lineage(evaluation, fixture=fixture)
+            payload = graph.to_dict() | {"audit": graph.audit.to_dict(), "accepted": graph.audit.accepted}
+            _write_json(payload, args.output)
+            return 0 if graph.audit.accepted else 2
+        if args.command == "reference-annotation-reconciliation":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_annotation_fixture(fixture)
+            builder = ReferenceAnnotationBundleBuilder()
+            bundle = builder.build(evaluation, fixture=fixture)
+            graph = build_reference_annotation_lineage(evaluation, fixture=fixture)
+            report = reconcile_reference_annotation_views(evaluation, bundle, graph, fixture=fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "run-reference-annotation-pipeline":
+            report = run_reference_annotation_pipeline_file(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
+        if args.command == "build-reference-annotation-release":
+            fixture = load_reference_annotation_fixture(_read_json(args.input))
+            evaluation = evaluate_reference_annotation_fixture(fixture)
+            quality = evaluate_reference_annotation_quality_gate(fixture)
+            replay = replay_reference_annotation_evaluation(evaluation)
+            bundle = ReferenceAnnotationBundleBuilder().build(evaluation, fixture=fixture, accepted_only=True)
+            manifest = build_reference_annotation_release_manifest(evaluation, quality, bundle, replay, fixture=fixture)
+            write_reference_annotation_release_manifest(manifest, args.output)
+            return 0 if manifest.publishable else 2
         if args.command == "classify-origin":
             result = SomaticGermlineOriginClassifier().classify(
                 _read_rows(args.input, "records", "observations"),

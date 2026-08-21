@@ -1,0 +1,7 @@
+{
+  "fixture": "default_reference_annotation_fixture",
+  "fixture_id": "reference-annotation-public-aggregate",
+  "fixture_version": "2026.08.c05-c08.v1",
+  "evidence_boundary": "public_aggregate_non_patient",
+  "description": "Executable public aggregate fixture for GENCODE, MANE, Relation Ontology, and Mondo-shaped annotation boundaries."
+}
