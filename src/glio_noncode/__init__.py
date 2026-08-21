@@ -116,6 +116,22 @@ from .cohort_discovery import (
     LocalBackgroundMutationModel,
     SequenceContextControlMatcher,
 )
+from .control_beta import (
+    BudgetResourceScheduler,
+    BudgetScheduleResult,
+    BudgetWorkItem,
+    ControlBetaState,
+    DeterministicFallbackRouter,
+    FallbackCandidate,
+    FallbackRequest,
+    FallbackRoute,
+    HumanReviewQueueRouter,
+    PolicyClaimAudit,
+    PolicyClaimAuditor,
+    ReviewAssignment,
+    ReviewQueueResult,
+    ReviewWorkItem,
+)
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .evidence_lifecycle import (
@@ -461,6 +477,20 @@ __all__ = [
     "CaseRuntime",
     "ControlPlaneExecutor",
     "ControlPlaneApplication",
+    "BudgetResourceScheduler",
+    "BudgetScheduleResult",
+    "BudgetWorkItem",
+    "ControlBetaState",
+    "DeterministicFallbackRouter",
+    "FallbackCandidate",
+    "FallbackRequest",
+    "FallbackRoute",
+    "HumanReviewQueueRouter",
+    "PolicyClaimAudit",
+    "PolicyClaimAuditor",
+    "ReviewAssignment",
+    "ReviewQueueResult",
+    "ReviewWorkItem",
     "ClaimEvidenceEdgeValidator",
     "CitationResolver",
     "ContradictionDisagreementTracker",

@@ -1744,5 +1744,62 @@ def default_capability_registry() -> CapabilityRegistry:
                     "idempotent replay; process-level deployment hardening remains."
                 ),
             },
+            "GNC-D16-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.control_beta.PolicyClaimAuditor",
+                    "glio_noncode.control_plane.PolicyClaimGate",
+                ),
+                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "evidence_note": (
+                    "Policy audits expose claim ceilings, source allowlist gaps, mutation scope, "
+                    "data scope, sensitive-key paths without raw values, violations, warnings, "
+                    "and policy version before execution; policy-schema expansion and external "
+                    "compliance review remain."
+                ),
+            },
+            "GNC-D16-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.control_beta.BudgetResourceScheduler",
+                    "glio_noncode.control_beta.BudgetScheduleResult",
+                ),
+                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "evidence_note": (
+                    "Batch scheduling orders dependencies deterministically, accounts for CPU, "
+                    "memory, GPU, storage, network, seconds, cost, capacity rejection, and "
+                    "deferred optional work without executing handlers; concurrent runtime "
+                    "telemetry and production quota integration remain."
+                ),
+            },
+            "GNC-D16-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.control_beta.DeterministicFallbackRouter",
+                    "glio_noncode.control_beta.FallbackRoute",
+                ),
+                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "evidence_note": (
+                    "Fallback routing selects only declared eligible alternatives, checks "
+                    "retryable "
+                    "failure, deterministic mode, network permission, required inputs, output "
+                    "contract, and remaining cost, and records every rejected candidate; live "
+                    "provider failover and service-level validation remain."
+                ),
+            },
+            "GNC-D16-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.control_beta.HumanReviewQueueRouter",
+                    "glio_noncode.control_beta.ReviewWorkItem",
+                ),
+                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "evidence_note": (
+                    "Review queues prioritize abstentions, blockers, non-retryable failures, and "
+                    "explicit review reasons with stable ordering, reviewer roles, source IDs, "
+                    "bounded queue size, and omission warnings; reviewer identity, SLA tracking, "
+                    "and signed adjudication remain."
+                ),
+            },
         }
     )

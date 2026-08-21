@@ -46,7 +46,20 @@ from .cohort_beta import (
     SetKind,
 )
 from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
-from .control_plane import ClaimCeiling, MissionContext, default_control_plane_registry
+from .control_beta import (
+    BudgetResourceScheduler,
+    DeterministicFallbackRouter,
+    FallbackRequest,
+    HumanReviewQueueRouter,
+    PolicyClaimAuditor,
+)
+from .control_plane import (
+    ClaimCeiling,
+    InvocationRequest,
+    MissionContext,
+    ProvenanceContext,
+    default_control_plane_registry,
+)
 from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
@@ -149,6 +162,7 @@ from .variant_beta import (
     VAAnnotationEnvelopeBuilder,
 )
 from .variant_normalization import VRSNormalizer
+from .workflow import ResourceEnvelope
 from .workspace import (
     CaseWorkspaceBuilder,
     RegulatoryTrackBrowser,
@@ -240,6 +254,70 @@ def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
         state=WorkspaceState(str(raw["state"])),
         warnings=tuple(str(item) for item in raw.get("warnings", ())),
         content_address=str(raw.get("content_address", "")),
+    )
+
+
+def _invocation_request_from_payload(payload: Mapping[str, Any]) -> InvocationRequest:
+    raw = payload.get("request", payload)
+    if not isinstance(raw, Mapping):
+        raise ValueError("invocation request payload must be an object")
+    mission_raw = raw.get("mission", {})
+    if not isinstance(mission_raw, Mapping):
+        raise ValueError("invocation mission must be an object")
+    provenance_raw = raw.get("provenance", {})
+    if not isinstance(provenance_raw, Mapping):
+        raise ValueError("invocation provenance must be an object")
+    mission = MissionContext(
+        mission_id=str(mission_raw.get("mission_id", "mission-cli")),
+        project_id=str(mission_raw.get("project_id", "glio-noncode")),
+        intended_use=str(mission_raw.get("intended_use", "research-only control audit")),
+        requested_question=str(
+            mission_raw.get("requested_question", "Which declared control path is allowed?")
+        ),
+        claim_ceiling=ClaimCeiling(
+            str(mission_raw.get("claim_ceiling", ClaimCeiling.HYPOTHESIS.value))
+        ),
+        allowed_source_ids=tuple(str(item) for item in mission_raw.get("allowed_source_ids", ())),
+        allowed_data_scopes=tuple(
+            str(item)
+            for item in mission_raw.get("allowed_data_scopes", ("synthetic", "public_reference"))
+        ),
+        allowed_mutations=tuple(
+            str(item)
+            for item in mission_raw.get(
+                "allowed_mutations", ("none", "event_log", "content_addressed_store")
+            )
+        ),
+        allow_network=bool(mission_raw.get("allow_network", False)),
+        private_data_allowed=bool(mission_raw.get("private_data_allowed", False)),
+    )
+    provenance = ProvenanceContext(
+        input_hashes=tuple(
+            str(item) for item in provenance_raw.get("input_hashes", ("sha256:input",))
+        ),
+        source_versions={
+            str(key): str(value) for key, value in provenance_raw.get("source_versions", {}).items()
+        },
+        upstream_event_ids=tuple(
+            str(item) for item in provenance_raw.get("upstream_event_ids", ())
+        ),
+        reference_build=str(provenance_raw.get("reference_build", "GRCh38")),
+        model_digests=tuple(str(item) for item in provenance_raw.get("model_digests", ())),
+        parent_bundle_addresses=tuple(
+            str(item) for item in provenance_raw.get("parent_bundle_addresses", ())
+        ),
+    )
+    input_payload = raw.get("input_payload", raw.get("payload", {}))
+    if not isinstance(input_payload, Mapping):
+        raise ValueError("invocation input_payload must be an object")
+    return InvocationRequest(
+        request_id=str(raw.get("request_id", "request-cli")),
+        mission=mission,
+        agent_id=str(raw.get("agent_id", raw.get("execution_role_id", "A08"))),
+        tool_id=str(raw.get("tool_id", "A08.publish")),
+        input_payload=dict(input_payload),
+        provenance=provenance,
+        idempotency_key=str(raw.get("idempotency_key", "idempotency-cli")),
     )
 
 
@@ -1253,6 +1331,47 @@ def build_parser() -> argparse.ArgumentParser:
     evidence_table.add_argument("--limit", type=int, default=50)
     evidence_table.add_argument("--output", default=None)
 
+    policy_audit = subparsers.add_parser(
+        "audit-policy-claim",
+        help="audit one invocation against claim, source, scope, and privacy policy",
+    )
+    policy_audit.add_argument("input", type=str)
+    policy_audit.add_argument("--output", default=None)
+
+    budget_schedule = subparsers.add_parser(
+        "schedule-budget",
+        help="plan dependency-aware work against declared budgets",
+    )
+    budget_schedule.add_argument("input", type=str)
+    budget_schedule.add_argument("--max-invocations", type=int, default=128)
+    budget_schedule.add_argument("--max-network-requests", type=int, default=32)
+    budget_schedule.add_argument("--max-seconds", type=int, default=3600)
+    budget_schedule.add_argument("--max-cost-units", type=float, default=1000.0)
+    budget_schedule.add_argument("--cpu", type=float, default=8.0)
+    budget_schedule.add_argument("--memory-gb", type=float, default=32.0)
+    budget_schedule.add_argument("--gpu-count", type=int, default=0)
+    budget_schedule.add_argument("--storage-gb", type=float, default=100.0)
+    budget_schedule.add_argument("--network-egress", action="store_true")
+    budget_schedule.add_argument("--schedule-id", default="budget-schedule-cli")
+    budget_schedule.add_argument("--output", default=None)
+
+    fallback_route = subparsers.add_parser(
+        "route-fallback",
+        help="choose a declared deterministic alternate after a retryable failure",
+    )
+    fallback_route.add_argument("input", type=str)
+    fallback_route.add_argument("--output", default=None)
+
+    review_queue = subparsers.add_parser(
+        "queue-human-review",
+        help="route declared outcomes into a bounded human-review queue",
+    )
+    review_queue.add_argument("input", type=str)
+    review_queue.add_argument("--roles", nargs="*", default=())
+    review_queue.add_argument("--max-review-candidates", type=int, default=100)
+    review_queue.add_argument("--queue-id", default="human-review-queue-cli")
+    review_queue.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -2216,6 +2335,60 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
             )
             result = EvidenceTableAndFilters().build(workspace, table_filter)
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "audit-policy-claim":
+            payload = _read_json(args.input)
+            request = _invocation_request_from_payload(payload)
+            registry = default_control_plane_registry()
+            result = PolicyClaimAuditor().audit(
+                request,
+                registry.agent(request.agent_id),
+                registry.tool(request.tool_id),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "schedule-budget":
+            payload = _read_json(args.input)
+            result = BudgetResourceScheduler().schedule(
+                payload.get("items", payload.get("work", ())),
+                max_invocations=args.max_invocations,
+                max_network_requests=args.max_network_requests,
+                max_seconds=args.max_seconds,
+                max_cost_units=args.max_cost_units,
+                capacity=ResourceEnvelope(
+                    cpu=args.cpu,
+                    memory_gb=args.memory_gb,
+                    gpu_count=args.gpu_count,
+                    storage_gb=args.storage_gb,
+                    network_egress=args.network_egress,
+                    max_seconds=args.max_seconds,
+                ),
+                schedule_id=args.schedule_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "route-fallback":
+            payload = _read_json(args.input)
+            request = FallbackRequest.from_mapping(
+                payload.get("request", payload)
+                if isinstance(payload.get("request", payload), Mapping)
+                else payload
+            )
+            result = DeterministicFallbackRouter().route(
+                request,
+                payload.get("candidates", payload.get("alternates", ())),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "queue-human-review":
+            payload = _read_json(args.input)
+            result = HumanReviewQueueRouter().route(
+                payload.get("items", payload.get("outcomes", ())),
+                required_roles=args.roles,
+                max_review_candidates=args.max_review_candidates,
+                queue_id=args.queue_id,
+            )
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command in {"scan-motif-disruption", "scan-motif-creation"}:

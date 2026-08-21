@@ -701,10 +701,31 @@ then applies policy, data-scope, sensitive-key, resource, provenance, event-log,
 typed-output, human-review, and idempotency controls. Unregistered or disallowed
 work is rejected; it is never treated as an abstention-free success.
 
+The Domain 16 scientific-beta control projections deepen those boundaries:
+
+- `PolicyClaimAuditor` produces a pre-execution receipt for claim ceilings,
+  source allowlists, mutation scope, data scope, sensitive-key paths, policy
+  violations, warnings, and policy version without copying sensitive values.
+- `BudgetResourceScheduler` orders dependency-aware work deterministically and
+  accounts for invocation, network, wall-time, cost, CPU, memory, GPU, storage,
+  capacity rejection, and deferred work before execution.
+- `DeterministicFallbackRouter` evaluates only declared alternatives after a
+  retryable failure. It records rejection reasons for repeated operations,
+  missing inputs, network restrictions, nondeterministic candidates, output
+  contract mismatch, and cost limits.
+- `HumanReviewQueueRouter` creates a bounded stable review queue from
+  abstentions, blocked outcomes, non-retryable failures, and explicit reasons.
+  Reviewer roles, blockers, source IDs, priority, and omitted candidates stay
+  visible; queue construction never adjudicates or releases an outcome.
+
 The mission boundary is:
 
 ```powershell
 glio-noncode mission-plan mission.json --output mission-plan.json
+glio-noncode audit-policy-claim control-request.json --output policy-audit.json
+glio-noncode schedule-budget work-items.json --max-cost-units 1000 --output budget-schedule.json
+glio-noncode route-fallback fallback.json --output fallback-route.json
+glio-noncode queue-human-review review-items.json --roles domain_expert statistical_review --output review-queue.json
 ```
 
 This runtime is for bounded research orchestration. It does not authorize a
