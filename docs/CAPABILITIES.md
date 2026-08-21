@@ -139,3 +139,27 @@ The parser boundary is:
 ```powershell
 glio-noncode parse-context context-observations.tsv --output context.json
 ```
+
+## Domain 09 3D topology
+
+The topology plane imports long-form Hi-C and Micro-C contacts and TAD-boundary
+candidates with assay labels, one-based normalized coordinates, source
+versions, raw hashes, replicate/caller metadata, and quarantined malformed
+rows. Contact-pair lookup is order-independent but still requires an exact
+reference context; other-context overlap is not reused.
+
+Matrix QC reports duplicate canonical pairs, zero-signal rows, signal ranges,
+and partial states. Mean/max normalization is available as a transparent
+descriptive transform with explicit limitations; it is not hidden ICE balancing
+or a correction for assay bias. TAD boundary ensembles group calls only within
+a declared tolerance and retain competing clusters. Insulation-score deltas
+retain alternate-minus-reference direction, missingness, replicate count, and
+zero-baseline guards. These are topology observations, not proof of causality,
+enhancer activity, target-gene linkage, or clinical actionability.
+
+The parser boundaries are:
+
+```powershell
+glio-noncode parse-contacts contacts.tsv --assay hi-c --output contacts.json
+glio-noncode parse-boundaries boundaries.tsv --assay micro-c --output boundaries.json
+```

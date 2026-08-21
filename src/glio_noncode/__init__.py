@@ -71,6 +71,17 @@ from .structural_extensions import (
     SVConsensusImporter,
 )
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
+from .topology_context import (
+    ContactMatrixNormalizer,
+    ContactMatrixParser,
+    ContactMatrixQcEvaluator,
+    InsulationScoreDeltaEstimator,
+    InsulationScoreMeasurement,
+    TadBoundaryEnsembleBuilder,
+    TadBoundaryParser,
+    TopologyContactRetriever,
+    TopologyEvidenceBuilder,
+)
 from .uncertainty import OutOfDomainDetector, UncertaintyPropagator
 from .validation_controls import (
     NegativeControlBuilder,
@@ -103,6 +114,15 @@ __all__ = [
     "GliomaStateContext",
     "MalignantMicroenvironmentTerritoryResolver",
     "MolecularClassStateContextualizer",
+    "ContactMatrixNormalizer",
+    "ContactMatrixParser",
+    "ContactMatrixQcEvaluator",
+    "InsulationScoreDeltaEstimator",
+    "InsulationScoreMeasurement",
+    "TadBoundaryEnsembleBuilder",
+    "TadBoundaryParser",
+    "TopologyContactRetriever",
+    "TopologyEvidenceBuilder",
     "AccessibilityDeltaEstimator",
     "AccessibilityMeasurement",
     "ChromatinContextRetriever",

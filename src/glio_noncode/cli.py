@@ -30,6 +30,11 @@ from .sequence_adapters import (
 )
 from .specimen_context import PurityPloidyImporter
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
+from .topology_context import (
+    ContactMatrixParser,
+    TadBoundaryParser,
+    TopologyAssay,
+)
 from .variant_normalization import VRSNormalizer
 
 
@@ -172,6 +177,28 @@ def build_parser() -> argparse.ArgumentParser:
     context.add_argument("--format", choices=("tsv", "json"), default=None)
     context.add_argument("--output", default=None)
 
+    contacts = subparsers.add_parser(
+        "parse-contacts", help="parse a context-qualified Hi-C or Micro-C contact matrix"
+    )
+    contacts.add_argument("input", type=str)
+    contacts.add_argument("--source-id", default=None)
+    contacts.add_argument(
+        "--assay", choices=[item.value for item in TopologyAssay], required=True
+    )
+    contacts.add_argument("--format", choices=("tsv", "json"), default=None)
+    contacts.add_argument("--output", default=None)
+
+    boundaries = subparsers.add_parser(
+        "parse-boundaries", help="parse context-qualified TAD boundary candidates"
+    )
+    boundaries.add_argument("input", type=str)
+    boundaries.add_argument("--source-id", default=None)
+    boundaries.add_argument(
+        "--assay", choices=[item.value for item in TopologyAssay], required=True
+    )
+    boundaries.add_argument("--format", choices=("tsv", "json"), default=None)
+    boundaries.add_argument("--output", default=None)
+
     encode_sequence = subparsers.add_parser(
         "encode-sequence", help="emit deterministic sequence context features"
     )
@@ -308,6 +335,26 @@ def main(argv: list[str] | None = None) -> int:
             result = ContextObservationParser().parse_text(
                 input_path.read_text(encoding="utf-8"),
                 source_id=args.source_id or input_path.stem,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-contacts":
+            input_path = Path(args.input)
+            result = ContactMatrixParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                assay=args.assay,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-boundaries":
+            input_path = Path(args.input)
+            result = TadBoundaryParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                assay=args.assay,
                 input_format=args.format,
             )
             _write_json(result.to_dict(), args.output)

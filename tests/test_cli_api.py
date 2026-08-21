@@ -170,6 +170,57 @@ class CliApiTests(unittest.TestCase):
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["observations"][0]["candidate_id"], "MONDO:001")
 
+    def test_parse_topology_commands_write_source_accounted_batches(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            contacts = Path(directory) / "contacts.tsv"
+            contacts_output = Path(directory) / "contacts.json"
+            boundaries = Path(directory) / "boundaries.tsv"
+            boundaries_output = Path(directory) / "boundaries.json"
+            contacts.write_text(
+                "chrom1\tstart1\tend1\tchrom2\tstart2\tend2\tcount\tcontext\n"
+                "7\t99\t120\t7\t299\t320\t10\tGRCh38|glioma|adult|stem_like|unknown|unknown\n",
+                encoding="utf-8",
+            )
+            boundaries.write_text(
+                "boundary_id\tchromosome\tposition\tscore\tcontext\n"
+                "b1\t7\t1000\t0.8\tGRCh38|glioma|adult|stem_like|unknown|unknown\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "parse-contacts",
+                        str(contacts),
+                        "--assay",
+                        "hi-c",
+                        "--output",
+                        str(contacts_output),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "parse-boundaries",
+                        str(boundaries),
+                        "--assay",
+                        "micro-c",
+                        "--output",
+                        str(boundaries_output),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                json.loads(contacts_output.read_text(encoding="utf-8"))["records"][0]["start_a"],
+                100,
+            )
+            self.assertEqual(
+                json.loads(boundaries_output.read_text(encoding="utf-8"))["observations"][0]["assay"],
+                "micro-c",
+            )
+
     def test_sequence_adapter_commands_write_typed_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             sequence_output = Path(directory) / "sequence.json"

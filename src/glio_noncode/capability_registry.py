@@ -666,5 +666,55 @@ def default_capability_registry() -> CapabilityRegistry:
                     "unsupported malignant or microenvironment identity."
                 ),
             },
+            "GNC-D09-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_context.ContactMatrixParser",
+                    "glio_noncode.topology_context.TadBoundaryParser",
+                ),
+                "test_modules": ("tests.test_topology_context",),
+                "evidence_note": (
+                    "Hi-C and Micro-C long-form contacts and TAD boundary rows preserve assay, "
+                    "source version, raw hashes, coordinate conversion, malformed-row issues, "
+                    "and context keys; locked source conformance fixtures remain."
+                ),
+            },
+            "GNC-D09-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_context.ContactMatrixQcEvaluator",
+                    "glio_noncode.topology_context.ContactMatrixNormalizer",
+                ),
+                "test_modules": ("tests.test_topology_context",),
+                "evidence_note": (
+                    "Contact QC reports duplicates, zero rows, signal summaries, and explicit "
+                    "partial states; mean/max transforms retain provenance and do not claim ICE "
+                    "or assay-bias correction."
+                ),
+            },
+            "GNC-D09-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_context.TadBoundaryEnsembleBuilder",
+                ),
+                "test_modules": ("tests.test_topology_context",),
+                "evidence_note": (
+                    "Tolerance-bounded boundary clusters retain assay identities, competing "
+                    "clusters, agreement, context gating, and ambiguity; external calibration, "
+                    "negative controls, transport, and OOD evaluation remain."
+                ),
+            },
+            "GNC-D09-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_context.InsulationScoreDeltaEstimator",
+                ),
+                "test_modules": ("tests.test_topology_context",),
+                "evidence_note": (
+                    "Reference-to-alternate insulation deltas retain direction, missingness, "
+                    "zero-baseline guards, replicate count, and research-use limitations; "
+                    "external benchmark calibration remains."
+                ),
+            },
         }
     )
