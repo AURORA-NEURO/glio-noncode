@@ -1615,6 +1615,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "product is not a probability or causal regulatory claim."
                 ),
             },
+            "GNC-D09-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_alpha.BoundaryMotifOrientationAnalyzer",
+                    "glio_noncode.topology_alpha.BoundaryMotifOrientationReport",
+                ),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "evidence_note": (
+                    "Boundary-side motif observations preserve orientation, score, source version, "
+                    "convergent/divergent/tandem alternatives, and mixed-orientation ambiguity; "
+                    "orientation is not treated as insulation proof."
+                ),
+            },
+            "GNC-D09-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_alpha.CTCFCohesinDisruptionModel",
+                    "glio_noncode.topology_alpha.CTCFCohesinDisruptionReport",
+                ),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "evidence_note": (
+                    "Reference/alternate CTCF and cohesin channels retain independent deltas, "
+                    "combined descriptive labels, missing channels, state disagreement, contexts, "
+                    "and source hashes without causal interpretation."
+                ),
+            },
+            "GNC-D09-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_alpha.IDHInsulatorDysfunctionModel",
+                    "glio_noncode.topology_alpha.IDHInsulatorDysfunctionReport",
+                ),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "evidence_note": (
+                    "IDH-mutant and IDH-wildtype insulator scores are compared per region with a "
+                    "separate methylation channel, state gates, missingness, source versions, and "
+                    "bounded dysfunction candidates; no mechanistic diagnosis is inferred."
+                ),
+            },
+            "GNC-D09-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_alpha.SVTopologyRewiringSimulator",
+                    "glio_noncode.topology_alpha.SVTopologyRewiringReport",
+                ),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "evidence_note": (
+                    "Declared SV events simulate preserved, lost, gained, and rewired contact-edge "
+                    "sets with affected nodes, contexts, edge receipts, and explicit bookkeeping; "
+                    "the simulation is not a prediction of 3D function."
+                ),
+            },
             "GNC-D10-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.link_graph.CoordinateOverlapLinker",),

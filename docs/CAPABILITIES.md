@@ -575,6 +575,27 @@ glio-noncode score-enhancer-promoter-contact contact-evidence.json --enhancer-id
 glio-noncode score-activity-by-contact activity-contact.json --enhancer-id enh-1 --promoter-id GENE1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id abc-model --model-version 2026.1 --output abc-score.json
 ```
 
+The Domain 09 topology-alpha tranche adds four explicit structural contracts:
+
+- `BoundaryMotifOrientationAnalyzer` compares left/right motif strands and
+  preserves convergent, divergent, tandem, and mixed-orientation labels.
+- `CTCFCohesinDisruptionModel` keeps CTCF and cohesin reference/alternate
+  channels separate before emitting bounded stable, gained, or disrupted
+  descriptive labels.
+- `IDHInsulatorDysfunctionModel` compares IDH-mutant and IDH-wildtype
+  insulator observations by region while retaining methylation as a separate
+  channel.
+- `SVTopologyRewiringSimulator` applies declared SV edge deletions, gains, and
+  rewires to a contact-edge set, preserving every simulated outcome and
+  affected node.
+
+```powershell
+glio-noncode analyze-boundary-motif-orientation boundary-motifs.json --minimum-score 0.5 --output boundary-orientation.json
+glio-noncode model-ctcf-cohesin-disruption ctcf-cohesin.json --disruption-threshold 0.2 --output ctcf-cohesin-model.json
+glio-noncode model-idh-insulator-dysfunction idh-insulators.json --dysfunction-threshold 0.2 --output idh-insulator-model.json
+glio-noncode simulate-sv-topology-rewiring sv-topology.json --output sv-rewiring.json
+```
+
 ## Domain 10 candidate link graph
 
 The link plane produces context-qualified candidate relationships among

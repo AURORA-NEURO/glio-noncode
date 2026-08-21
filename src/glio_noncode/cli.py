@@ -185,6 +185,12 @@ from .structural_haplotype import (
     PhasedHaplotypeAssembler,
     RepeatMobileElementAnnotator,
 )
+from .topology_alpha import (
+    BoundaryMotifOrientationAnalyzer,
+    CTCFCohesinDisruptionModel,
+    IDHInsulatorDysfunctionModel,
+    SVTopologyRewiringSimulator,
+)
 from .topology_beta import (
     ActivityByContactScorer,
     EnhancerPromoterContactScorer,
@@ -1490,6 +1496,41 @@ def build_parser() -> argparse.ArgumentParser:
     abc_score.add_argument("--ambiguity-tolerance", type=float, default=0.50)
     abc_score.add_argument("--output", default=None)
 
+    boundary_motif = subparsers.add_parser(
+        "analyze-boundary-motif-orientation",
+        help="analyze left/right boundary motif orientations",
+    )
+    boundary_motif.add_argument("input", type=str)
+    boundary_motif.add_argument("--context-key", default=None)
+    boundary_motif.add_argument("--minimum-score", type=float, default=0.5)
+    boundary_motif.add_argument("--output", default=None)
+
+    ctcf_cohesin = subparsers.add_parser(
+        "model-ctcf-cohesin-disruption",
+        help="compare reference and alternate CTCF/cohesin evidence",
+    )
+    ctcf_cohesin.add_argument("input", type=str)
+    ctcf_cohesin.add_argument("--context-key", default=None)
+    ctcf_cohesin.add_argument("--disruption-threshold", type=float, default=0.2)
+    ctcf_cohesin.add_argument("--output", default=None)
+
+    idh_insulator = subparsers.add_parser(
+        "model-idh-insulator-dysfunction",
+        help="compare IDH-mutant and IDH-wildtype insulator evidence",
+    )
+    idh_insulator.add_argument("input", type=str)
+    idh_insulator.add_argument("--context-key", default=None)
+    idh_insulator.add_argument("--dysfunction-threshold", type=float, default=0.2)
+    idh_insulator.add_argument("--output", default=None)
+
+    sv_rewire = subparsers.add_parser(
+        "simulate-sv-topology-rewiring",
+        help="simulate declared SV contact-edge deletion and rewiring",
+    )
+    sv_rewire.add_argument("input", type=str)
+    sv_rewire.add_argument("--context-key", default=None)
+    sv_rewire.add_argument("--output", default=None)
+
     activity_contact_link = subparsers.add_parser(
         "parse-activity-contact-link",
         help="parse activity-by-contact variant-element-gene evidence rows",
@@ -2709,6 +2750,39 @@ def main(argv: list[str] | None = None) -> int:
                 contact_scale=args.contact_scale,
                 activity_scale=args.activity_scale,
                 ambiguity_tolerance=args.ambiguity_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "analyze-boundary-motif-orientation":
+            result = BoundaryMotifOrientationAnalyzer().analyze(
+                _read_rows(args.input, "records", "observations", "motifs"),
+                context_key=args.context_key,
+                minimum_score=args.minimum_score,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "model-ctcf-cohesin-disruption":
+            result = CTCFCohesinDisruptionModel().analyze(
+                _read_rows(args.input, "records", "observations", "measurements"),
+                context_key=args.context_key,
+                disruption_threshold=args.disruption_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "model-idh-insulator-dysfunction":
+            result = IDHInsulatorDysfunctionModel().assess(
+                _read_rows(args.input, "records", "observations", "insulators"),
+                context_key=args.context_key,
+                dysfunction_threshold=args.dysfunction_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "simulate-sv-topology-rewiring":
+            payload = _read_json(args.input)
+            result = SVTopologyRewiringSimulator().simulate(
+                payload.get("contacts", payload.get("edges", ())),
+                payload.get("events", payload.get("structural_variants", ())),
+                context_key=args.context_key or payload.get("context_key"),
             )
             _write_json(result.to_dict(), args.output)
             return 0
