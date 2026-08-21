@@ -11,6 +11,15 @@ from .atlas_context import ContextEvidenceBuilder, ContextObservation
 from .atlas_extensions import CcreAtlasAdapter, CcreAtlasProfile, CcreTrackParser
 from .bcf import BcfDocument, BcfReader
 from .capability_registry import CapabilityRegistry, default_capability_registry
+from .cell_context import (
+    AdultPediatricRouter,
+    CellStateContextAssembler,
+    ContextObservationParser,
+    DiseaseOntologyContextualizer,
+    GliomaStateContext,
+    MalignantMicroenvironmentTerritoryResolver,
+    MolecularClassStateContextualizer,
+)
 from .chromatin_context import (
     AccessibilityDeltaEstimator,
     AccessibilityMeasurement,
@@ -87,6 +96,13 @@ __all__ = [
     "ControlPlaneExecutor",
     "ControlPlaneApplication",
     "CapabilityRegistry",
+    "AdultPediatricRouter",
+    "CellStateContextAssembler",
+    "ContextObservationParser",
+    "DiseaseOntologyContextualizer",
+    "GliomaStateContext",
+    "MalignantMicroenvironmentTerritoryResolver",
+    "MolecularClassStateContextualizer",
     "AccessibilityDeltaEstimator",
     "AccessibilityMeasurement",
     "ChromatinContextRetriever",

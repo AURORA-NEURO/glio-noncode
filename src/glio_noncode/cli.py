@@ -11,6 +11,7 @@ from typing import Any
 from .api import create_server
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
+from .cell_context import ContextObservationParser
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
 from .control_plane import default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
@@ -162,6 +163,15 @@ def build_parser() -> argparse.ArgumentParser:
     chromatin.add_argument("--format", choices=("tsv", "json"), default=None)
     chromatin.add_argument("--output", default=None)
 
+    context = subparsers.add_parser(
+        "parse-context",
+        help="parse context-qualified disease, age, molecular, or territory observations",
+    )
+    context.add_argument("input", type=str)
+    context.add_argument("--source-id", default=None)
+    context.add_argument("--format", choices=("tsv", "json"), default=None)
+    context.add_argument("--output", default=None)
+
     encode_sequence = subparsers.add_parser(
         "encode-sequence", help="emit deterministic sequence context features"
     )
@@ -289,6 +299,15 @@ def main(argv: list[str] | None = None) -> int:
                 input_path.read_text(encoding="utf-8"),
                 source_id=args.source_id or input_path.stem,
                 track_kind=args.track_kind,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-context":
+            input_path = Path(args.input)
+            result = ContextObservationParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
                 input_format=args.format,
             )
             _write_json(result.to_dict(), args.output)

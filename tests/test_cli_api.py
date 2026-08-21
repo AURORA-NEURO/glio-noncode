@@ -154,6 +154,22 @@ class CliApiTests(unittest.TestCase):
             self.assertEqual(payload["observations"][0]["track_kind"], "atac")
             self.assertEqual(payload["observations"][0]["start"], 100)
 
+    def test_parse_context_command_writes_observation_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "context.tsv"
+            output = Path(directory) / "context.json"
+            source.write_text(
+                "subject_id\tdimension\tcandidate_id\tcandidate_label\tcontext_key\n"
+                "case-1\tdisease_ontology\tMONDO:001\tglioma\t"
+                "GRCh38|glioma|adult|stem_like|unknown|unknown\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(["parse-context", str(source), "--output", str(output)]), 0
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["observations"][0]["candidate_id"], "MONDO:001")
+
     def test_sequence_adapter_commands_write_typed_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             sequence_output = Path(directory) / "sequence.json"

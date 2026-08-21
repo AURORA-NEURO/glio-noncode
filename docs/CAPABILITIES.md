@@ -116,3 +116,26 @@ The command-line boundary is:
 ```powershell
 glio-noncode parse-chromatin accessibility.tsv --track-kind atac --output accessibility.json
 ```
+
+## Domain 08 cell state, disease class, and territory
+
+The biological-context plane parses subject-scoped disease ontology, age-route,
+molecular-class, molecular-state, and malignant-microenvironment territory
+observations. Each row retains its source version, raw hash, confidence,
+evidence state, and exact `ReferenceContext.key`. Resolvers exclude other
+subjects, report out-of-domain context rather than transporting a taxonomy
+silently, and preserve one-to-many territory candidates as ambiguous.
+
+Adult/pediatric routing uses the declared age group and abstains for unknown or
+unsupported routes. Molecular class and molecular state remain separate
+dimensions, so an observed class cannot fill a missing state. The assembled
+`GliomaStateContext` carries the weakest component state, source IDs, an
+uncertainty summary, and explicit research-use limitations. It does not make a
+clinical diagnosis, prognosis, pathogenicity, treatment, or actionability
+claim.
+
+The parser boundary is:
+
+```powershell
+glio-noncode parse-context context-observations.tsv --output context.json
+```

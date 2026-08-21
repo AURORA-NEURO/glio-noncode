@@ -618,5 +618,53 @@ def default_capability_registry() -> CapabilityRegistry:
                     "not inferred from signal alone."
                 ),
             },
+            "GNC-D08-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context.ContextObservationParser",
+                    "glio_noncode.cell_context.DiseaseOntologyContextualizer",
+                ),
+                "test_modules": ("tests.test_cell_context",),
+                "evidence_note": (
+                    "Disease ontology observations preserve subject IDs, exact context keys, "
+                    "candidate alternatives, source receipts, and context-gated abstention; "
+                    "locked external benchmarks, calibration, transport, and OOD gates remain."
+                ),
+            },
+            "GNC-D08-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.cell_context.AdultPediatricRouter",),
+                "test_modules": ("tests.test_cell_context",),
+                "evidence_note": (
+                    "Adult and pediatric routes are taken from the declared reference context, "
+                    "unknown routes abstain, and conflicting context observations are surfaced; "
+                    "subgroup calibration and transport evaluation remain."
+                ),
+            },
+            "GNC-D08-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context.MolecularClassStateContextualizer",
+                ),
+                "test_modules": ("tests.test_cell_context",),
+                "evidence_note": (
+                    "Molecular class and molecular state are resolved as separate context "
+                    "dimensions with missingness, contradiction, and ambiguity retained; no "
+                    "pathogenicity or treatment claim is made."
+                ),
+            },
+            "GNC-D08-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context.MalignantMicroenvironmentTerritoryResolver",
+                    "glio_noncode.cell_context.CellStateContextAssembler",
+                ),
+                "test_modules": ("tests.test_cell_context",),
+                "evidence_note": (
+                    "Territory candidates expose one-to-many mappings and the assembled "
+                    "GliomaStateContext propagates ambiguity without silently selecting an "
+                    "unsupported malignant or microenvironment identity."
+                ),
+            },
         }
     )
