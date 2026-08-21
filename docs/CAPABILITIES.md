@@ -1,0 +1,59 @@
+# Capability coverage
+
+GLIO-NONCODE is measured against the approved product blueprint, not against
+the number of Python files or agent roles. The checked-in catalog at
+`schemas/capability_catalog.csv` contains:
+
+| Measure | Denominator | Meaning |
+| --- | ---: | --- |
+| Product capabilities | 256 | 16 domains × 16 ordered capabilities |
+| MVP capabilities | 64 | The first four capabilities in each domain |
+| Delivery surfaces | 4 per capability | Core, API, CLI, and review/operations surfaces |
+| Feature instances | 1,024 | 256 capabilities × 4 delivery surfaces |
+| Control-plane roles | 48 | Bounded agent responsibilities |
+| Typed tool contracts | 96 | Two contracts per bounded role |
+
+The 48-role and 96-contract figures describe orchestration coverage. They are
+not a substitute for product implementation coverage. A capability is counted
+as implemented only when the ledger names its modules; it is counted as
+verified only when tests and the stated evidence boundary support that claim.
+The registry reports planned, partial, implemented, and verified counts
+separately so a single percentage cannot hide unfinished work.
+
+Inspect the current ledger locally:
+
+```powershell
+glio-noncode capabilities
+```
+
+## Domain 01 intake boundary
+
+The first vertical slice covers the source boundary for case material:
+
+- VCF, gVCF, TSV, JSON, and binary BCF intake preserve source hashes,
+  headers, typed fields, genotype decisions, deferred symbolic records, and
+  malformed-record issues;
+- BED and narrowPeak coordinates are converted from zero-based half-open to
+  one-based closed intervals, while GFF3 remains one-based closed;
+- regulatory-track rows are converted to context-qualified candidate
+  elements only when their source accounting remains intact; unresolved
+  targets are explicitly marked rather than inferred;
+- supported SNV/indel identities receive a VRS-shaped allele representation;
+  missing reference digests, repeat ambiguity, and unsupported breakend/CNV/
+  haplotype forms remain visible as limitations or abstentions.
+
+These adapters are a research-use boundary. They do not assert clinical
+interpretation, and a VRS-shaped local representation is not presented as a
+RefGet-equivalent digest unless a sequence digest is supplied.
+
+The command-line equivalents are:
+
+```powershell
+glio-noncode intake variants.vcf --output intake.json
+glio-noncode parse-track regulatory.bed --output track.json
+glio-noncode normalize 7:140453136:A>T --genome-build GRCh38
+```
+
+Every future capability wave must add implementation modules, fixtures,
+negative or abstention cases, and review-facing evidence before its ledger
+state is advanced.

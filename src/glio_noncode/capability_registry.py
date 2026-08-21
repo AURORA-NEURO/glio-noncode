@@ -1,0 +1,345 @@
+"""Blueprint-backed capability catalog and implementation coverage ledger.
+
+The catalog is product data, not executable starter code.  It is loaded from
+``schemas/capability_catalog.csv`` and validated against the blueprint's
+256-capability / 16-domain contract.  Coverage is intentionally separate from
+the 48-agent registry: an agent can own a role while many finer-grained
+capabilities remain planned or only partially implemented.
+"""
+
+from __future__ import annotations
+
+import csv
+import sysconfig
+from collections import Counter
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
+from enum import StrEnum
+from pathlib import Path
+from typing import Any
+
+from .errors import ValidationError
+from .serialization import content_hash, jsonable
+
+
+class CapabilityState(StrEnum):
+    """Evidence-backed implementation state for one capability work package."""
+
+    PLANNED = "planned"
+    PARTIAL = "partial"
+    IMPLEMENTED = "implemented"
+    VERIFIED = "verified"
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilitySpec:
+    """One immutable capability row from the approved product blueprint."""
+
+    capability_id: str
+    domain_id: str
+    domain: str
+    layer: str
+    capability_order: int
+    capability: str
+    kind: str
+    primary_agent_id: str
+    release_wave: str
+    mvp_64: bool
+    blueprint_status: str
+
+    def __post_init__(self) -> None:
+        for name in (
+            "capability_id",
+            "domain_id",
+            "domain",
+            "layer",
+            "capability",
+            "kind",
+            "primary_agent_id",
+            "release_wave",
+        ):
+            if not str(getattr(self, name)).strip():
+                raise ValidationError(f"capability {name} is required")
+        if self.capability_order < 1:
+            raise ValidationError("capability_order must be positive")
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilityCoverage:
+    """Coverage counts with an explicit denominator and no hidden exclusions."""
+
+    total_capabilities: int
+    mvp_capabilities: int
+    mvp_implemented: int
+    planned: int
+    partial: int
+    implemented: int
+    verified: int
+    by_domain: Mapping[str, Mapping[str, int]]
+
+    @property
+    def implementation_percent(self) -> float:
+        return round(
+            100.0 * (self.implemented + self.verified) / max(1, self.total_capabilities),
+            2,
+        )
+
+    @property
+    def verified_percent(self) -> float:
+        return round(100.0 * self.verified / max(1, self.total_capabilities), 2)
+
+    @property
+    def mvp_implementation_percent(self) -> float:
+        return round(100.0 * self.mvp_implemented / max(1, self.mvp_capabilities), 2)
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {
+            "implementation_percent": self.implementation_percent,
+            "verified_percent": self.verified_percent,
+            "mvp_implementation_percent": self.mvp_implementation_percent,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilityRecord:
+    """A capability plus the repository evidence used to assign its state."""
+
+    spec: CapabilitySpec
+    state: CapabilityState
+    implementation_modules: tuple[str, ...] = ()
+    test_modules: tuple[str, ...] = ()
+    evidence_note: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "spec": self.spec.to_dict(),
+            "state": self.state.value,
+            "implementation_modules": list(self.implementation_modules),
+            "test_modules": list(self.test_modules),
+            "evidence_note": self.evidence_note,
+        }
+
+
+def _default_catalog_path() -> Path:
+    candidates = (
+        Path(__file__).resolve().parents[2] / "schemas" / "capability_catalog.csv",
+        Path.cwd() / "schemas" / "capability_catalog.csv",
+        Path(sysconfig.get_path("data")) / "schemas" / "capability_catalog.csv",
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
+    raise ValidationError(
+        "capability catalog is not installed; expected schemas/capability_catalog.csv"
+    )
+
+
+def _bool(value: str) -> bool:
+    normalized = value.strip().lower()
+    if normalized not in {"yes", "no"}:
+        raise ValidationError(f"capability mvp_64 must be yes or no, got {value!r}")
+    return normalized == "yes"
+
+
+class CapabilityRegistry:
+    """Load and validate the full capability ledger."""
+
+    def __init__(self, records: Iterable[CapabilityRecord]) -> None:
+        values = tuple(records)
+        self._records = {record.spec.capability_id: record for record in values}
+        if len(self._records) != len(values):
+            raise ValidationError("capability IDs must be unique")
+        self.validate()
+
+    @classmethod
+    def from_csv(cls, path: str | Path | None = None) -> CapabilityRegistry:
+        catalog_path = Path(path) if path is not None else _default_catalog_path()
+        try:
+            with catalog_path.open("r", encoding="utf-8", newline="") as handle:
+                rows = tuple(csv.DictReader(handle))
+        except OSError as exc:
+            raise ValidationError(f"unable to read capability catalog: {catalog_path}") from exc
+        records: list[CapabilityRecord] = []
+        for row in rows:
+            try:
+                spec = CapabilitySpec(
+                    capability_id=str(row["capability_id"]),
+                    domain_id=str(row["domain_id"]),
+                    domain=str(row["domain"]),
+                    layer=str(row["layer"]),
+                    capability_order=int(row["capability_order"]),
+                    capability=str(row["capability"]),
+                    kind=str(row["kind"]),
+                    primary_agent_id=str(row["primary_agent_id"]),
+                    release_wave=str(row["release_wave"]),
+                    mvp_64=_bool(str(row["mvp_64"])),
+                    blueprint_status=str(row["status"]),
+                )
+            except (KeyError, TypeError, ValueError) as exc:
+                raise ValidationError(f"invalid capability row: {row!r}") from exc
+            records.append(CapabilityRecord(spec, CapabilityState.PLANNED))
+        return cls(records)
+
+    def validate(self) -> None:
+        if len(self._records) != 256:
+            raise ValidationError(
+                f"capability catalog requires 256 rows, found {len(self._records)}"
+            )
+        domains = Counter(record.spec.domain_id for record in self._records.values())
+        if len(domains) != 16 or set(domains.values()) != {16}:
+            raise ValidationError(f"capability catalog must contain 16 rows per domain: {domains}")
+        mvp_count = sum(record.spec.mvp_64 for record in self._records.values())
+        if mvp_count != 64:
+            raise ValidationError(f"capability catalog requires 64 MVP rows, found {mvp_count}")
+        for domain_id in domains:
+            orders = sorted(
+                record.spec.capability_order
+                for record in self._records.values()
+                if record.spec.domain_id == domain_id
+            )
+            if orders != list(range(1, 17)):
+                raise ValidationError(f"capability order is not complete for {domain_id}: {orders}")
+
+    def records(self) -> tuple[CapabilityRecord, ...]:
+        return tuple(
+            sorted(
+                self._records.values(),
+                key=lambda record: (record.spec.domain_id, record.spec.capability_order),
+            )
+        )
+
+    def record(self, capability_id: str) -> CapabilityRecord:
+        try:
+            return self._records[capability_id]
+        except KeyError as exc:
+            raise ValidationError(f"unknown capability: {capability_id}") from exc
+
+    def by_domain(self, domain_id: str) -> tuple[CapabilityRecord, ...]:
+        return tuple(record for record in self.records() if record.spec.domain_id == domain_id)
+
+    def mvp(self) -> tuple[CapabilityRecord, ...]:
+        return tuple(record for record in self.records() if record.spec.mvp_64)
+
+    def with_evidence(
+        self,
+        evidence: Mapping[str, Mapping[str, Any]],
+    ) -> CapabilityRegistry:
+        """Return a new ledger with state only where repository evidence is declared."""
+
+        updated: list[CapabilityRecord] = []
+        for record in self.records():
+            raw = evidence.get(record.spec.capability_id)
+            if raw is None:
+                updated.append(record)
+                continue
+            try:
+                state = CapabilityState(str(raw["state"]))
+            except (KeyError, ValueError) as exc:
+                raise ValidationError(
+                    f"invalid implementation state for {record.spec.capability_id}"
+                ) from exc
+            if state in {CapabilityState.IMPLEMENTED, CapabilityState.VERIFIED} and not raw.get(
+                "implementation_modules"
+            ):
+                raise ValidationError(
+                    f"implemented capability {record.spec.capability_id} "
+                    "requires implementation_modules"
+                )
+            updated.append(
+                CapabilityRecord(
+                    spec=record.spec,
+                    state=state,
+                    implementation_modules=tuple(
+                        str(item) for item in raw.get("implementation_modules", ())
+                    ),
+                    test_modules=tuple(str(item) for item in raw.get("test_modules", ())),
+                    evidence_note=str(raw.get("evidence_note", "")),
+                )
+            )
+        return CapabilityRegistry(updated)
+
+    def coverage(self) -> CapabilityCoverage:
+        counts = Counter(record.state.value for record in self._records.values())
+        domain_counts: dict[str, dict[str, int]] = {}
+        for domain_id in sorted({record.spec.domain_id for record in self._records.values()}):
+            domain_counts[domain_id] = dict(
+                Counter(record.state.value for record in self.by_domain(domain_id))
+            )
+        return CapabilityCoverage(
+            total_capabilities=len(self._records),
+            mvp_capabilities=len(self.mvp()),
+            mvp_implemented=sum(
+                record.state in {CapabilityState.IMPLEMENTED, CapabilityState.VERIFIED}
+                for record in self.mvp()
+            ),
+            planned=counts[CapabilityState.PLANNED.value],
+            partial=counts[CapabilityState.PARTIAL.value],
+            implemented=counts[CapabilityState.IMPLEMENTED.value],
+            verified=counts[CapabilityState.VERIFIED.value],
+            by_domain=domain_counts,
+        )
+
+    def manifest(self) -> dict[str, Any]:
+        coverage = self.coverage()
+        return {
+            "catalog_version": "blueprint-2026-08-20",
+            "catalog_hash": content_hash([record.spec.to_dict() for record in self.records()]),
+            "coverage": coverage.to_dict(),
+            "records": [record.to_dict() for record in self.records()],
+        }
+
+
+def default_capability_registry() -> CapabilityRegistry:
+    """Load the checked-in catalog with only repository-backed evidence applied."""
+
+    registry = CapabilityRegistry.from_csv()
+    return registry.with_evidence(
+        {
+            "GNC-D01-C01": {
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.intake.VariantIntake",
+                    "glio_noncode.models.CaseManifest",
+                ),
+                "test_modules": ("tests.test_intake", "tests.test_d01_capabilities"),
+                "evidence_note": (
+                    "VCF/TSV/JSON/BCF fixtures preserve source accounting and can be "
+                    "projected into a CaseManifest; malformed records remain reviewable."
+                ),
+            },
+            "GNC-D01-C02": {
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.intake.VariantIntake",
+                    "glio_noncode.bcf.BcfReader",
+                ),
+                "test_modules": ("tests.test_intake", "tests.test_bcf"),
+                "evidence_note": (
+                    "Binary BCF2 and text gVCF paths have bounded fixtures, genotype "
+                    "handling, and explicit symbolic-record deferral."
+                ),
+            },
+            "GNC-D01-C03": {
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": ("glio_noncode.regulatory_tracks.RegulatoryTrackParser",),
+                "test_modules": ("tests.test_d01_capabilities",),
+                "evidence_note": (
+                    "BED, narrowPeak, GFF3, and JSON interval fixtures preserve source "
+                    "coordinates, attributes, hashes, and quarantined rows."
+                ),
+            },
+            "GNC-D01-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.variant_normalization.VRSNormalizer",),
+                "test_modules": ("tests.test_d01_capabilities",),
+                "evidence_note": (
+                    "VRS-shaped Allele output, sequence-digest provenance, trimming, and "
+                    "ambiguity abstention are implemented; full RefGet-backed equivalence "
+                    "truth sets remain to be built."
+                ),
+            },
+        }
+    )

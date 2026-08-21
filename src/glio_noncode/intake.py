@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
+from .bcf import BcfReader
 from .errors import ValidationError
 from .identity import normalize_chromosome, normalize_variant
 from .models import CaseManifest, ReferenceContext, VariantIdentity
@@ -27,6 +28,8 @@ class IntakeFormat(StrEnum):
     """Supported source encodings."""
 
     VCF = "vcf"
+    GVCF = "gvcf"
+    BCF = "bcf"
     TSV = "tsv"
     JSON = "json"
 
@@ -195,10 +198,16 @@ class _BatchBuilder:
     def defer(self, record: RawVariantRecord) -> None:
         self.deferred_records.append(record)
 
-    def finish(self, text: str, header_lines: Iterable[str]) -> IntakeBatch:
+    def finish(
+        self,
+        text: str,
+        header_lines: Iterable[str],
+        *,
+        input_hash: str | None = None,
+    ) -> IntakeBatch:
         warning_count = sum(issue.severity == IntakeSeverity.WARNING for issue in self.issues)
         error_count = sum(issue.severity == IntakeSeverity.ERROR for issue in self.issues)
-        input_hash = content_hash(text)
+        input_hash = input_hash or content_hash(text)
         header_hash = content_hash(tuple(header_lines))
         receipt_body = {
             "source_id": self.source_id,
@@ -263,9 +272,84 @@ class VariantIntake:
             raise ValidationError("genome_build must not be empty")
         if selected == IntakeFormat.VCF:
             return self._parse_vcf(text, source_id, build, sample_id, include_no_call)
+        if selected == IntakeFormat.GVCF:
+            return self._parse_vcf(
+                text,
+                source_id,
+                build,
+                sample_id,
+                include_no_call,
+                input_format=IntakeFormat.GVCF,
+            )
+        if selected == IntakeFormat.BCF:
+            raise ValidationError("BCF input is binary; call parse_bytes instead of parse_text")
         if selected == IntakeFormat.TSV:
             return self._parse_tsv(text, source_id, build, sample_id)
         return self._parse_json(text, source_id, build, sample_id)
+
+    def parse_bytes(
+        self,
+        data: bytes,
+        *,
+        source_id: str,
+        genome_build: str | None = None,
+        sample_id: str | None = None,
+        include_no_call: bool = False,
+    ) -> IntakeBatch:
+        """Decode a BCF2 byte stream and preserve the same intake contract."""
+
+        if not source_id.strip():
+            raise ValidationError("source_id must not be empty")
+        build = genome_build or self.default_build
+        document = BcfReader().read(data)
+        builder = _BatchBuilder(source_id, IntakeFormat.BCF)
+        header_lines = tuple(document.header_text.splitlines())
+        for record in document.records:
+            builder.note_record()
+            sample: Mapping[str, Any] = {}
+            if record.samples:
+                selected_name = (
+                    sample_id if sample_id in record.samples else next(iter(record.samples))
+                )
+                sample = dict(record.samples[selected_name]) | {"sample_id": selected_name}
+            genotype = sample.get("GT")
+            if genotype is not None and self._is_no_call(genotype) and not include_no_call:
+                builder.issue(
+                    "no_call_genotype",
+                    IntakeSeverity.WARNING,
+                    "BCF record skipped because the selected genotype is a no-call",
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                )
+                continue
+            if genotype is not None and not self._is_non_reference_genotype(genotype):
+                builder.issue(
+                    "reference_genotype",
+                    IntakeSeverity.WARNING,
+                    "BCF record skipped because the selected genotype is reference-only",
+                    line_number=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                )
+                continue
+            for alternate_index, alternate in enumerate(record.alternates, start=1):
+                record_id = record.record_id
+                if len(record.alternates) > 1:
+                    record_id = f"{record_id}:alt{alternate_index}"
+                raw_record = RawVariantRecord(
+                    record_id=record_id,
+                    chromosome=record.chromosome,
+                    position=record.position,
+                    reference=record.reference,
+                    alternate=alternate,
+                    source_line=record.record_index + 1,
+                    raw_hash=record.raw_hash,
+                    info=dict(record.info),
+                    sample=sample,
+                    filter_value=";".join(record.filters),
+                    quality="." if record.quality is None else str(record.quality),
+                )
+                self._add_record(builder, raw_record, build, source_id)
+        return builder.finish(data.hex(), header_lines, input_hash=document.input_hash)
 
     @staticmethod
     def _select_format(text: str, input_format: IntakeFormat | str | None) -> IntakeFormat:
@@ -288,8 +372,10 @@ class VariantIntake:
         build: str,
         sample_id: str | None,
         include_no_call: bool,
+        *,
+        input_format: IntakeFormat = IntakeFormat.VCF,
     ) -> IntakeBatch:
-        builder = _BatchBuilder(source_id, IntakeFormat.VCF)
+        builder = _BatchBuilder(source_id, input_format)
         header_lines: list[str] = []
         header_columns: list[str] | None = None
         selected_sample_index: int | None = None
@@ -373,7 +459,15 @@ class VariantIntake:
                     ),
                 )
                 continue
-            if sample and not self._is_non_reference_genotype(sample.get("GT")) and "GT" in sample:
+            is_gvcf_reference_block = input_format == IntakeFormat.GVCF and (
+                "<NON_REF>" in alternate_text or "END" in info
+            )
+            if (
+                sample
+                and not is_gvcf_reference_block
+                and not self._is_non_reference_genotype(sample.get("GT"))
+                and "GT" in sample
+            ):
                 builder.issue(
                     "reference_genotype",
                     IntakeSeverity.WARNING,

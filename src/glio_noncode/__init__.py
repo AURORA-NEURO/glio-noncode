@@ -8,6 +8,8 @@ first and research-use only.
 from .assay_qc import AssayQCEvaluator
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .atlas_context import ContextEvidenceBuilder, ContextObservation
+from .bcf import BcfDocument, BcfReader
+from .capability_registry import CapabilityRegistry, default_capability_registry
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .inference_extensions import InferenceExtensionSuite
@@ -24,6 +26,7 @@ from .models import (
 )
 from .origin import OriginClonalityAssessor
 from .reference_registry import ReferenceProjector, default_reference_registry
+from .regulatory_tracks import RegulatoryFeature, RegulatoryTrackBatch, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .sequence_inference import MotifDefinition, SequenceInference
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
@@ -33,30 +36,39 @@ from .validation_controls import (
     ValidationValuePlanner,
 )
 from .validation_design import GuideDesigner, PowerPlanner
+from .variant_normalization import NormalizationReport, VRSNormalizer
 
 __all__ = [
     "CaseManifest",
     "AssayQCEvaluator",
     "ContextEvidenceBuilder",
     "ContextObservation",
+    "BcfDocument",
+    "BcfReader",
     "AtlasBundle",
     "AtlasQuery",
     "InferenceExtensionSuite",
     "CaseRuntime",
     "ControlPlaneExecutor",
     "ControlPlaneApplication",
+    "CapabilityRegistry",
     "Dossier",
     "EvidenceClaim",
     "Hypothesis",
     "ReferenceContext",
     "ReconstructionResult",
     "ReferenceProjector",
+    "RegulatoryFeature",
+    "RegulatoryTrackBatch",
+    "RegulatoryTrackParser",
     "MotifDefinition",
     "PublicAtlasRetriever",
     "StructuralReconstructor",
     "SequenceInference",
     "OutOfDomainDetector",
     "UncertaintyPropagator",
+    "NormalizationReport",
+    "VRSNormalizer",
     "GuideDesigner",
     "NegativeControlBuilder",
     "PowerPlanner",
@@ -71,6 +83,7 @@ __all__ = [
     "LifecycleReclassifier",
     "ReviewPacketBuilder",
     "default_control_plane_registry",
+    "default_capability_registry",
 ]
 
 __version__ = "0.1.0"

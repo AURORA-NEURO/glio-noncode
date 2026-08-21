@@ -24,6 +24,7 @@ glio-noncode sources
 glio-noncode registry
 glio-noncode bindings
 glio-noncode references
+glio-noncode capabilities
 ```
 
 The same runtime can be served locally:
@@ -49,10 +50,15 @@ To canonicalize an external variant file before constructing a case manifest:
 glio-noncode intake variants.vcf --source-id cohort-vcf --genome-build GRCh38 --output intake.json
 ```
 
-The intake boundary accepts VCF, TSV, and JSON, expands multiallelic records,
+The intake boundary accepts VCF, gVCF, TSV, JSON, and binary BCF, expands multiallelic records,
 preserves source hashes and sample/INFO fields, skips no-call and reference-only
 genotypes by default, and defers symbolic or breakend alleles to structural
 reconstruction. The bounded role/tool registry is available with `registry`.
+
+The product denominator and evidence-backed implementation ledger are documented
+in [docs/CAPABILITIES.md](docs/CAPABILITIES.md). Regulatory tracks can be
+parsed with `parse-track`, and supported small variants can be normalized with
+`normalize`; both commands preserve explicit limitations and abstentions.
 
 ## Design boundaries
 

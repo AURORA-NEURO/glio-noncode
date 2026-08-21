@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from functools import partial
@@ -89,6 +90,7 @@ from .validation_controls import (
     ValidationValuePlanner,
 )
 from .validation_design import AssayRouter, DesignStatus, GuideDesigner, PowerPlanner
+from .variant_normalization import NormalizationState, VRSNormalizer
 
 
 @dataclass(frozen=True, slots=True)
@@ -621,27 +623,52 @@ class ControlPlaneApplication:
         raise ValidationError(f"unsupported review response type: {kind}")
 
     def _intake(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
-        text = request.input_payload.get("text")
         source_id = request.input_payload.get("source_id")
-        if not isinstance(text, str) or not isinstance(source_id, str):
+        text = request.input_payload.get("text")
+        binary_b64 = request.input_payload.get("bytes_base64")
+        if not isinstance(source_id, str) or (
+            not isinstance(text, str) and not isinstance(binary_b64, str)
+        ):
             return Abstention(
                 "missing_intake_payload",
                 "variant_intake",
-                "Intake requires text and source_id fields.",
-                ("text", "source_id"),
+                "Intake requires text or bytes_base64 together with source_id.",
+                ("text", "bytes_base64", "source_id"),
             )
-        batch = self.intake.parse_text(
-            text,
-            source_id=source_id,
-            input_format=request.input_payload.get("input_format"),
-            genome_build=str(request.input_payload.get("genome_build", self.intake.default_build)),
-            sample_id=(
+        try:
+            sample_id = (
                 str(request.input_payload["sample_id"])
                 if request.input_payload.get("sample_id") is not None
                 else None
-            ),
-            include_no_call=bool(request.input_payload.get("include_no_call", False)),
-        )
+            )
+            build = str(
+                request.input_payload.get("genome_build", self.intake.default_build)
+            )
+            if isinstance(binary_b64, str):
+                data = base64.b64decode(binary_b64, validate=True)
+                batch = self.intake.parse_bytes(
+                    data,
+                    source_id=source_id,
+                    genome_build=build,
+                    sample_id=sample_id,
+                    include_no_call=bool(request.input_payload.get("include_no_call", False)),
+                )
+            else:
+                batch = self.intake.parse_text(
+                    text,
+                    source_id=source_id,
+                    input_format=request.input_payload.get("input_format"),
+                    genome_build=build,
+                    sample_id=sample_id,
+                    include_no_call=bool(request.input_payload.get("include_no_call", False)),
+                )
+        except (TypeError, ValueError, ValidationError) as exc:
+            return Abstention(
+                "invalid_intake_payload",
+                "variant_intake",
+                str(exc),
+                ("text", "bytes_base64", "source_id", "input_format"),
+            )
         return EvidenceEnvelope(
             evidence_id=f"intake:{batch.receipt.content_address}",
             agent_id=request.agent_id,
@@ -668,22 +695,51 @@ class ControlPlaneApplication:
                 "Identity normalization requires a notation field.",
                 ("notation",),
             )
-        variant = parse_variant(
+        report = VRSNormalizer().normalize(
             notation,
             genome_build=str(raw.get("genome_build", "GRCh38")),
-            variant_id=str(raw.get("variant_id")) if raw.get("variant_id") else None,
+            sequence_digest=(
+                str(raw["sequence_digest"]) if raw.get("sequence_digest") is not None else None
+            ),
+            reference_sequence=(
+                str(raw["reference_sequence"])
+                if raw.get("reference_sequence") is not None
+                else None
+            ),
+            reference_start=(
+                int(raw["reference_start"]) if raw.get("reference_start") is not None else None
+            ),
         )
+        if report.state == NormalizationState.INVALID:
+            return Abstention(
+                "invalid_variant_notation",
+                "variant_identity",
+                "; ".join(report.warnings),
+                ("notation",),
+            )
+        state = (
+            EvidenceState.SUPPORTED
+            if report.state == NormalizationState.SUPPORTED
+            else EvidenceState.ABSTAINED
+        )
+        candidate = report.candidates[0] if report.candidates else None
         return EvidenceEnvelope(
-            evidence_id=f"identity:{variant.canonical_key}",
+            evidence_id=f"identity:{report.content_address}",
             agent_id=request.agent_id,
             tool_id=request.tool_id,
-            state=EvidenceState.SUPPORTED,
+            state=state,
             tier=EvidenceTier.COMPUTED,
-            claim_summary=f"Canonical identity normalized for {variant.variant_id}.",
-            payload_hash=content_hash(variant.to_dict()),
-            source_ids=("control-plane-input",),
+            claim_summary=(
+                f"Variant normalization is {report.state.value}; "
+                f"{len(report.candidates)} candidate(s) emitted."
+            ),
+            payload_hash=report.content_address,
+            source_ids=("vrs-normalizer",),
             provenance_digest=request.provenance.digest,
-            confidence=1.0,
+            confidence=1.0 if state == EvidenceState.SUPPORTED else 0.0,
+            limitations=report.warnings
+            + report.ambiguities
+            + (() if candidate is None else candidate.transformation_steps),
         )
 
     def _reference_projection(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:

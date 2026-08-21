@@ -46,6 +46,25 @@ class CliApiTests(unittest.TestCase):
             self.assertEqual(payload["receipt"]["accepted_count"], 1)
             self.assertEqual(payload["variants"][0]["variant_id"], "test-tsv:2")
 
+    def test_capability_track_and_normalize_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            track = Path(directory) / "track.bed"
+            track_output = Path(directory) / "track.json"
+            normalize_output = Path(directory) / "normalize.json"
+            track.write_text("7\t99\t120\treg-1\t800\t+\n", encoding="utf-8")
+            self.assertEqual(
+                main(["parse-track", str(track), "--output", str(track_output)]),
+                0,
+            )
+            track_payload = json.loads(track_output.read_text(encoding="utf-8"))
+            self.assertEqual(track_payload["features"][0]["start"], 100)
+            self.assertEqual(
+                main(["normalize", "7:100:A>T", "--output", str(normalize_output)]),
+                0,
+            )
+            normalize_payload = json.loads(normalize_output.read_text(encoding="utf-8"))
+            self.assertEqual(normalize_payload["state"], "supported")
+
     def test_health_and_evaluate_endpoints(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             server = create_server("127.0.0.1", 0, directory)

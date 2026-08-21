@@ -9,15 +9,18 @@ from pathlib import Path
 from typing import Any
 
 from .api import create_server
+from .capability_registry import default_capability_registry
 from .control_plane import default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
 from .intake import IntakeFormat, VariantIntake
-from .reference_registry import default_reference_registry
 from .models import CaseManifest
+from .reference_registry import default_reference_registry
+from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
 from .schema import schema_document
+from .variant_normalization import VRSNormalizer
 
 
 def _read_json(path: str) -> dict[str, Any]:
@@ -73,6 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("sources", help="print the live public source catalog")
     subparsers.add_parser("registry", help="print the bounded control-plane registry")
     subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
+    subparsers.add_parser("capabilities", help="print the 256-capability implementation ledger")
     subparsers.add_parser("references", help="print the reference assembly registry")
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
@@ -83,6 +87,25 @@ def build_parser() -> argparse.ArgumentParser:
     intake.add_argument("--sample-id", default=None)
     intake.add_argument("--include-no-call", action="store_true")
     intake.add_argument("--output", default=None)
+
+    track = subparsers.add_parser(
+        "parse-track", help="parse a BED, narrowPeak, GFF3, or JSON regulatory track"
+    )
+    track.add_argument("input", type=str)
+    track.add_argument("--source-id", default=None)
+    track.add_argument(
+        "--format", choices=[item.value for item in RegulatoryTrackFormat], default=None
+    )
+    track.add_argument("--genome-build", default="GRCh38")
+    track.add_argument("--output", default=None)
+
+    normalize = subparsers.add_parser("normalize", help="emit a VRS-style normalization report")
+    normalize.add_argument("notation", type=str)
+    normalize.add_argument("--genome-build", default="GRCh38")
+    normalize.add_argument("--sequence-digest", default=None)
+    normalize.add_argument("--reference-sequence", default=None)
+    normalize.add_argument("--reference-start", type=int, default=None)
+    normalize.add_argument("--output", default=None)
     return parser
 
 
@@ -101,21 +124,54 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "bindings":
             _write_json(ControlPlaneApplication().manifest(), None)
             return 0
+        if args.command == "capabilities":
+            _write_json(default_capability_registry().manifest(), None)
+            return 0
         if args.command == "references":
             _write_json(default_reference_registry().manifest(), None)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)
             source_id = args.source_id or input_path.stem
-            batch = VariantIntake(default_build=args.genome_build).parse_text(
+            intake_engine = VariantIntake(default_build=args.genome_build)
+            if args.format == IntakeFormat.BCF.value or input_path.suffix.lower() == ".bcf":
+                batch = intake_engine.parse_bytes(
+                    input_path.read_bytes(),
+                    source_id=source_id,
+                    genome_build=args.genome_build,
+                    sample_id=args.sample_id,
+                    include_no_call=args.include_no_call,
+                )
+            else:
+                batch = intake_engine.parse_text(
+                    input_path.read_text(encoding="utf-8"),
+                    source_id=source_id,
+                    input_format=args.format,
+                    genome_build=args.genome_build,
+                    sample_id=args.sample_id,
+                    include_no_call=args.include_no_call,
+                )
+            _write_json(batch.to_dict(), args.output)
+            return 0
+        if args.command == "parse-track":
+            input_path = Path(args.input)
+            batch = RegulatoryTrackParser().parse_text(
                 input_path.read_text(encoding="utf-8"),
-                source_id=source_id,
-                input_format=args.format,
+                source_id=args.source_id or input_path.stem,
                 genome_build=args.genome_build,
-                sample_id=args.sample_id,
-                include_no_call=args.include_no_call,
+                input_format=args.format,
             )
             _write_json(batch.to_dict(), args.output)
+            return 0
+        if args.command == "normalize":
+            report = VRSNormalizer().normalize(
+                args.notation,
+                genome_build=args.genome_build,
+                sequence_digest=args.sequence_digest,
+                reference_sequence=args.reference_sequence,
+                reference_start=args.reference_start,
+            )
+            _write_json(report.to_dict(), args.output)
             return 0
         if args.command == "evaluate":
             manifest = CaseManifest.from_dict(_read_json(args.manifest))
