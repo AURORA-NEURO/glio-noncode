@@ -516,51 +516,82 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D01-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.ConsentPolicyAttacher",
                     "glio_noncode.frontier_data_alpha.ConsentAttachmentReport",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_intake_public_data",
+                    "tests.test_intake_fixture_eval",
+                    "tests.test_intake_fixture_cli",
+                ),
                 "evidence_note": (
                     "Consent attachments retain policy identity, version, purpose, permitted uses, "
-                    "record context, expiry, active-status gates, and blocked-record receipts."
+                    "record context, expiry, active-status gates, and blocked-record receipts. A "
+                    "public policy/aggregate fixture proves active, withdrawn, and mismatched-context "
+                    "states with source scope and exact-context auditing; institutional consent "
+                    "adjudication remains external."
                 ),
             },
             "GNC-D01-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.InputAnomalyQuarantine",
                     "glio_noncode.frontier_data_alpha.AnomalyQuarantineReport",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_intake_public_data",
+                    "tests.test_intake_fixture_eval",
+                    "tests.test_intake_fixture_cli",
+                ),
                 "evidence_note": (
                     "Duplicate IDs, missing or mismatched context, invalid coordinates, and "
-                    "unsupported sequence bases remain quarantined with structured reasons."
+                    "unsupported sequence bases remain quarantined with structured reasons. A "
+                    "public aggregate fixture proves duplicate-ID and invalid-sequence controls, "
+                    "row retention, source traceability, and deterministic quarantine receipts."
                 ),
             },
             "GNC-D01-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.DataCompletenessScorer",
                     "glio_noncode.frontier_data_alpha.CompletenessReport",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_intake_public_data",
+                    "tests.test_intake_fixture_eval",
+                    "tests.test_intake_fixture_cli",
+                ),
                 "evidence_note": (
                     "Weighted required-field completeness scores preserve present, missing, and "
-                    "invalid fields and make review thresholds explicit."
+                    "invalid fields and make review thresholds explicit. A public aggregate fixture "
+                    "proves accepted coverage, missing-field review, invalid-coordinate review, "
+                    "and a stable weighted score boundary."
                 ),
             },
             "GNC-D01-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.IntakeBundleExporter",
                     "glio_noncode.frontier_data_alpha.IntakeBundle",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_intake_public_data",
+                    "tests.test_intake_fixture_eval",
+                    "tests.test_intake_fixture_cli",
+                    "tests.test_intake_bundle",
+                ),
                 "evidence_note": (
                     "Intake bundles are deterministic, content-addressed, context-bound, and "
-                    "reject blocked or quarantined records when the acceptance gate is enabled."
+                    "reject blocked or quarantined records when the acceptance gate is enabled. A "
+                    "public aggregate fixture proves accepted publication, blocked and cross-context "
+                    "export review, compact JSON/CSV/Markdown rendering, and offline address "
+                    "verification; downstream storage and publication approval remain external."
                 ),
             },
             "GNC-D02-C01": {

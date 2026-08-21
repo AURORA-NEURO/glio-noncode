@@ -1,0 +1,62 @@
+{
+  "request_id": "intake-pipeline-public-batch-001",
+  "bundle_id": "intake-pipeline-public-batch-bundle-001",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "policy_id": "NIH-GDS",
+  "policy_version": "NIH-GDS-policy-current-2026",
+  "purpose": "public aggregate intake pipeline integration check",
+  "permitted_uses": [
+    "research",
+    "quality_audit"
+  ],
+  "policy_source_id": "nih-gds-policy",
+  "source_ids": [
+    "nih-gds-policy",
+    "ncbi-clinvar-rs121913502"
+  ],
+  "required_fields": [
+    "record_id",
+    "context_key",
+    "chromosome",
+    "start",
+    "end",
+    "sequence",
+    "source_id"
+  ],
+  "weights": {
+    "record_id": 1.0,
+    "context_key": 1.0,
+    "chromosome": 1.0,
+    "start": 2.0,
+    "end": 2.0,
+    "sequence": 1.0,
+    "source_id": 1.0
+  },
+  "minimum_score": 0.9,
+  "allowed_bases": "ACGTN",
+  "require_accepted": true,
+  "records": [
+    {
+      "record_id": "pipeline-accepted-clinvar",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "chromosome": "7",
+      "start": 140453136,
+      "end": 140453136,
+      "sequence": "A",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "consent_status": "granted",
+      "consent_expires_at": "2027-12-31"
+    },
+    {
+      "record_id": "pipeline-review-sequence",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "chromosome": "7",
+      "start": 140453137,
+      "end": 140453137,
+      "sequence": "A?",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "consent_status": "granted",
+      "consent_expires_at": "2027-12-31"
+    }
+  ]
+}

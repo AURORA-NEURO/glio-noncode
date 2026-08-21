@@ -70,3 +70,19 @@ jobs:
         run: python -m glio_noncode identity-contracts --output /tmp/glio-identity-contracts.json
       - name: Identity evidence bundle
         run: python -m glio_noncode build-identity-bundle examples/identity-public-aggregate.json --output /tmp/glio-identity-bundle.json
+      - name: Intake data boundary audit
+        run: python -m glio_noncode audit-intake-data examples/intake-public-aggregate.json --output /tmp/glio-intake-data.json
+      - name: Intake fixture evaluation
+        run: python -m glio_noncode evaluate-intake-fixture examples/intake-public-aggregate.json --output /tmp/glio-intake-fixture.json
+      - name: Intake replay integrity
+        run: python -m glio_noncode replay-intake-fixtures examples/intake-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-intake-replay.json
+      - name: Intake quality gate
+        run: python -m glio_noncode intake-quality-gate examples/intake-public-aggregate.json --output /tmp/glio-intake-quality.json
+      - name: Intake scenario matrix
+        run: python -m glio_noncode evaluate-intake-scenarios examples/intake-public-aggregate.json --output /tmp/glio-intake-scenarios.json
+      - name: Intake operation contracts
+        run: python -m glio_noncode intake-contracts --output /tmp/glio-intake-contracts.json
+      - name: Intake evidence bundle
+        run: python -m glio_noncode build-intake-bundle examples/intake-public-aggregate.json --output /tmp/glio-intake-bundle.json
+      - name: Intake pipeline integration
+        run: python -m glio_noncode run-intake-pipeline examples/intake-pipeline-accepted.json --output /tmp/glio-intake-pipeline.json

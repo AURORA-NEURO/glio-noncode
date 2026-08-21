@@ -1,0 +1,437 @@
+{
+  "schema_version": "intake-evidence-v1",
+  "fixture_id": "intake-public-aggregate-001",
+  "fixture_version": "intake-evidence-v1",
+  "context": {
+    "genome_build": "GRCh38",
+    "disease_class": "diffuse_glioma",
+    "age_group": "adult",
+    "cell_state": "malignant_oligodendrocyte_like",
+    "territory": "tumor_core",
+    "treatment_phase": "pre_treatment"
+  },
+  "source_receipts": [
+    {
+      "source_id": "nih-gds-policy",
+      "source_url": "https://www.grants.nih.gov/policy-and-compliance/policy-topics/sharing-policies/gds",
+      "source_version": "NIH-GDS-policy-current-2026",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_aggregate": true,
+      "patient_level_data": false,
+      "license": "public-policy",
+      "source_kind": "public_policy"
+    },
+    {
+      "source_id": "ncbi-clinvar-rs121913502",
+      "source_url": "https://www.ncbi.nlm.nih.gov/clinvar/RCV000292094.7/",
+      "source_version": "RCV000292094.7",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_aggregate": true,
+      "patient_level_data": false,
+      "license": "NCBI-public-database",
+      "source_kind": "public_aggregate"
+    },
+    {
+      "source_id": "ncbi-grch38-reference-assembly",
+      "source_url": "https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.40/",
+      "source_version": "GCF_000001405.40",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_aggregate": true,
+      "patient_level_data": false,
+      "license": "NCBI-reference-assembly",
+      "source_kind": "public_aggregate"
+    },
+    {
+      "source_id": "fixture-validation-controls",
+      "source_url": "https://github.com/AURORA-NEURO/glio-noncode",
+      "source_version": "intake-controls-v1",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_aggregate": true,
+      "patient_level_data": false,
+      "license": "repository-validation-controls",
+      "source_kind": "validation_control"
+    }
+  ],
+  "records": [
+    {
+      "record_id": "consent-clinvar-public-use",
+      "kind": "consent",
+      "operation": "attach-consent-policy",
+      "source_id": "nih-gds-policy",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "NIH-GDS-public-policy",
+      "expected_state": "accepted",
+      "payload": {
+        "policy_id": "NIH-GDS",
+        "policy_version": "NIH-GDS-policy-current-2026",
+        "purpose": "public aggregate intake quality audit",
+        "permitted_uses": [
+          "research",
+          "quality_audit",
+          "reproducibility"
+        ],
+        "records": [
+          {
+            "record_id": "clinvar-rs121913502",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "consent_status": "granted",
+            "consent_expires_at": "2027-12-31",
+            "source_id": "ncbi-clinvar-rs121913502"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "anomaly-clinvar-rs121913502",
+      "kind": "anomaly",
+      "operation": "quarantine-input-anomalies",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "ClinVar:RCV000292094.7",
+      "expected_state": "accepted",
+      "payload": {
+        "allowed_bases": "ACGTN",
+        "records": [
+          {
+            "record_id": "clinvar-rs121913502",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "chromosome": "7",
+            "start": 140453136,
+            "end": 140453136,
+            "sequence": "A",
+            "source_id": "ncbi-clinvar-rs121913502"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "completeness-clinvar-rs121913502",
+      "kind": "completeness",
+      "operation": "score-data-completeness",
+      "source_id": "ncbi-grch38-reference-assembly",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "GRCh38:GCF_000001405.40",
+      "expected_state": "accepted",
+      "payload": {
+        "required_fields": [
+          "record_id",
+          "context_key",
+          "chromosome",
+          "start",
+          "end",
+          "sequence",
+          "source_id"
+        ],
+        "weights": {
+          "record_id": 1.0,
+          "context_key": 1.0,
+          "chromosome": 1.0,
+          "start": 2.0,
+          "end": 2.0,
+          "sequence": 1.0,
+          "source_id": 1.0
+        },
+        "minimum_score": 0.9,
+        "records": [
+          {
+            "record_id": "clinvar-rs121913502",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "chromosome": "7",
+            "start": 140453136,
+            "end": 140453136,
+            "sequence": "A",
+            "source_id": "ncbi-clinvar-rs121913502"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "bundle-clinvar-public-intake",
+      "kind": "bundle",
+      "operation": "export-intake-bundle",
+      "source_id": "ncbi-clinvar-rs121913502",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "intake-public-bundle:RCV000292094.7",
+      "expected_state": "published",
+      "payload": {
+        "bundle_id": "intake-public-aggregate-bundle-001",
+        "source_ids": [
+          "ncbi-clinvar-rs121913502",
+          "ncbi-grch38-reference-assembly"
+        ],
+        "require_accepted": true,
+        "records": [
+          {
+            "record_id": "clinvar-rs121913502",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "state": "accepted",
+            "chromosome": "7",
+            "start": 140453136,
+            "end": 140453136,
+            "sequence": "A",
+            "source_id": "ncbi-clinvar-rs121913502"
+          }
+        ]
+      }
+    }
+  ],
+  "negative_controls": [
+    {
+      "control_id": "consent-withdrawn",
+      "kind": "consent",
+      "operation": "attach-consent-policy",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:withdrawn-policy",
+      "expected_state": "blocked",
+      "required_issue_codes": [
+        "consent_not_active"
+      ],
+      "payload": {
+        "policy_id": "NIH-GDS",
+        "policy_version": "NIH-GDS-policy-current-2026",
+        "purpose": "public aggregate intake quality audit",
+        "permitted_uses": [
+          "research"
+        ],
+        "records": [
+          {
+            "record_id": "control-withdrawn",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "consent_status": "withdrawn",
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "consent-context-mismatch",
+      "kind": "consent",
+      "operation": "attach-consent-policy",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:consent-context",
+      "expected_state": "blocked",
+      "required_issue_codes": [
+        "context_mismatch"
+      ],
+      "payload": {
+        "policy_id": "NIH-GDS",
+        "policy_version": "NIH-GDS-policy-current-2026",
+        "purpose": "public aggregate intake quality audit",
+        "permitted_uses": [
+          "research"
+        ],
+        "records": [
+          {
+            "record_id": "control-context",
+            "context_key": "GRCh37|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "consent_status": "granted",
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "anomaly-duplicate-record",
+      "kind": "anomaly",
+      "operation": "quarantine-input-anomalies",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:duplicate-record",
+      "expected_state": "quarantined",
+      "required_issue_codes": [
+        "duplicate_record_id"
+      ],
+      "payload": {
+        "allowed_bases": "ACGTN",
+        "records": [
+          {
+            "record_id": "duplicate-control",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "start": 140453136,
+            "end": 140453136,
+            "sequence": "A",
+            "source_id": "fixture-validation-controls"
+          },
+          {
+            "record_id": "duplicate-control",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "start": 140453137,
+            "end": 140453137,
+            "sequence": "C",
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "anomaly-invalid-sequence",
+      "kind": "anomaly",
+      "operation": "quarantine-input-anomalies",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:invalid-sequence",
+      "expected_state": "quarantined",
+      "required_issue_codes": [
+        "invalid_sequence"
+      ],
+      "payload": {
+        "allowed_bases": "ACGTN",
+        "records": [
+          {
+            "record_id": "invalid-sequence-control",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "start": 140453136,
+            "end": 140453136,
+            "sequence": "A?",
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "completeness-missing-fields",
+      "kind": "completeness",
+      "operation": "score-data-completeness",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:missing-completeness",
+      "expected_state": "review",
+      "required_issue_codes": [],
+      "payload": {
+        "required_fields": [
+          "record_id",
+          "context_key",
+          "chromosome",
+          "start",
+          "end",
+          "sequence",
+          "source_id"
+        ],
+        "weights": {
+          "record_id": 1.0,
+          "context_key": 1.0,
+          "chromosome": 1.0,
+          "start": 2.0,
+          "end": 2.0,
+          "sequence": 1.0,
+          "source_id": 1.0
+        },
+        "minimum_score": 0.9,
+        "records": [
+          {
+            "record_id": "missing-fields-control",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "start": 140453136,
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "completeness-invalid-coordinate",
+      "kind": "completeness",
+      "operation": "score-data-completeness",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:invalid-completeness-coordinate",
+      "expected_state": "review",
+      "required_issue_codes": [],
+      "payload": {
+        "required_fields": [
+          "record_id",
+          "context_key",
+          "chromosome",
+          "locus_start",
+          "locus_end",
+          "sequence",
+          "source_id"
+        ],
+        "weights": {
+          "record_id": 1.0,
+          "context_key": 1.0,
+          "chromosome": 1.0,
+          "locus_start": 2.0,
+          "locus_end": 2.0,
+          "sequence": 1.0,
+          "source_id": 1.0
+        },
+        "minimum_score": 0.9,
+        "records": [
+          {
+            "record_id": "invalid-completeness-coordinate",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "chromosome": "7",
+            "locus_start": 0,
+            "locus_end": 0,
+            "sequence": "A",
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "bundle-blocked-state",
+      "kind": "bundle",
+      "operation": "export-intake-bundle",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:blocked-bundle",
+      "expected_state": "review",
+      "required_issue_codes": [
+        "validation_error"
+      ],
+      "payload": {
+        "bundle_id": "blocked-bundle-control",
+        "source_ids": [
+          "fixture-validation-controls"
+        ],
+        "require_accepted": true,
+        "records": [
+          {
+            "record_id": "blocked-input",
+            "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "state": "blocked",
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    },
+    {
+      "control_id": "bundle-context-mismatch",
+      "kind": "bundle",
+      "operation": "export-intake-bundle",
+      "source_id": "fixture-validation-controls",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "public_identifier": "control:cross-context-bundle",
+      "expected_state": "review",
+      "required_issue_codes": [
+        "validation_error"
+      ],
+      "payload": {
+        "bundle_id": "cross-context-bundle-control",
+        "source_ids": [
+          "fixture-validation-controls"
+        ],
+        "require_accepted": true,
+        "records": [
+          {
+            "record_id": "cross-context-input",
+            "context_key": "GRCh37|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+            "state": "accepted",
+            "source_id": "fixture-validation-controls"
+          }
+        ]
+      }
+    }
+  ],
+  "expected_negative_control_count": 8,
+  "provenance": {
+    "data_scope": "public_policy_and_aggregate",
+    "patient_level_data": false,
+    "expected_record_count": 4,
+    "expected_control_count": 8,
+    "evidence_boundary": "This fixture verifies policy attachment, row quarantine, field completeness, and deterministic intake packaging. It does not prove consent validity, specimen identity, assay quality, clinical interpretation, or authorization for a real participant record."
+  }
+}

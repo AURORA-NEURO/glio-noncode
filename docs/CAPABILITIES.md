@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 28 capabilities have deterministic fixture-backed
-verification and 228 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 32 capabilities have deterministic fixture-backed
+verification and 224 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -81,6 +81,37 @@ glio-noncode quarantine-input-anomalies intake-records.json --output anomaly-rep
 glio-noncode score-data-completeness completeness.json --output completeness-report.json
 glio-noncode export-intake-bundle accepted-intake.json --output intake-bundle.json
 ```
+
+The C13-C16 slice is verified through the public policy/aggregate fixture at
+`examples/intake-public-aggregate.json`. It supplies one positive record for
+each adapter plus eight review controls covering withdrawn and mismatched
+policy, duplicate and invalid-sequence input, missing and invalid completeness,
+and blocked or cross-context export. The independent evidence gate performs a
+public-source audit, executes 33 fixture checks, replays the exact
+source/context contract, runs 12 state-transition scenarios, validates four
+operation contracts, and emits a compact JSON/CSV/Markdown bundle. See
+`docs/INTAKE_EVIDENCE_GATE.md` and `docs/INTAKE_BUNDLE_FORMAT.md` for the
+complete schema and limitations.
+
+```powershell
+python -m glio_noncode audit-intake-data examples/intake-public-aggregate.json --output intake-data.json
+python -m glio_noncode evaluate-intake-fixture examples/intake-public-aggregate.json --output intake-fixture.json
+python -m glio_noncode replay-intake-fixtures examples/intake-public-aggregate.json --output intake-replay.json
+python -m glio_noncode intake-quality-gate examples/intake-public-aggregate.json --output intake-quality.json
+python -m glio_noncode evaluate-intake-scenarios examples/intake-public-aggregate.json --output intake-scenarios.json
+python -m glio_noncode intake-contracts --output intake-contracts.json
+python -m glio_noncode build-intake-bundle examples/intake-public-aggregate.json --output intake-bundle.json
+python -m glio_noncode run-intake-pipeline examples/intake-pipeline-accepted.json --output intake-pipeline.json
+```
+
+The pipeline command composes C13 policy attachment, C14 anomaly quarantine,
+C15 completeness scoring, and C16 export into one deterministic batch boundary.
+Its report carries a receipt for every stage, separates accepted, review, and
+blocked record IDs, omits raw records from the published receipt, and returns a
+non-zero exit code unless every input row reaches an accepted bundle. The batch
+fixture in `examples/intake-pipeline-batch.json` deliberately demonstrates a
+partial manifest and review state; the accepted fixture is used by CI as the
+success path.
 
 ## Domain 02 structural frontier
 
@@ -211,8 +242,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 28 controls are now verified against the checked-in
-Domain 01 and D13-D16 fixtures, while 228 capabilities remain partial. Partial
+capabilities started (100%); 32 controls are now verified against the checked-in
+Domain 01 and D13-D16 fixtures, while 224 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.

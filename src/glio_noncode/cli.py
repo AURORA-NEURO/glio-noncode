@@ -137,6 +137,14 @@ from .identity_quality_gate import evaluate_identity_quality_gate
 from .identity_replay import IdentityReplayExpectation, replay_identity_fixtures
 from .identity_scenario_matrix import evaluate_identity_scenarios
 from .intake import IntakeFormat, VariantIntake
+from .intake_bundle import IntakeBundleFormat, IntakeEvidenceBundleBuilder
+from .intake_contracts import default_intake_contract_registry
+from .intake_fixture_eval import evaluate_intake_fixture
+from .intake_public_data import IntakeFixtureCatalog, audit_intake_fixture
+from .intake_quality_gate import evaluate_intake_quality_gate
+from .intake_replay import IntakeReplayExpectation, replay_intake_fixtures
+from .intake_runtime import run_intake_pipeline
+from .intake_scenario_matrix import evaluate_intake_scenarios
 from .lifecycle_alpha import (
     BlindedAdjudicationPlan,
     BlindedAdjudicationWorkflow,
@@ -1120,6 +1128,73 @@ def build_parser() -> argparse.ArgumentParser:
         default=IdentityBundleFormat.JSON.value,
     )
     identity_bundle.add_argument("--bundle-id", default=None)
+
+    intake_fixture = subparsers.add_parser(
+        "evaluate-intake-fixture",
+        help="evaluate the public policy and aggregate fixture across four Domain 01 intake adapters",
+    )
+    intake_fixture.add_argument("input", type=str)
+    intake_fixture.add_argument("--output", default=None)
+
+    intake_data = subparsers.add_parser(
+        "audit-intake-data",
+        help="audit public policy and aggregate intake records, source receipts, and exact context",
+    )
+    intake_data.add_argument("input", type=str)
+    intake_data.add_argument("--output", default=None)
+
+    intake_replay = subparsers.add_parser(
+        "replay-intake-fixtures",
+        help="replay intake fixtures with identity, context, source, and evidence-floor controls",
+    )
+    intake_replay.add_argument("inputs", nargs="+", type=str)
+    intake_replay.add_argument("--required-context-key", default=None)
+    intake_replay.add_argument("--output", default=None)
+
+    intake_quality = subparsers.add_parser(
+        "intake-quality-gate",
+        help="reconcile Domain 01 intake fixture, data, replay, scenario, and contract evidence",
+    )
+    intake_quality.add_argument("input", type=str)
+    intake_quality.add_argument("--output", default=None)
+
+    intake_scenarios = subparsers.add_parser(
+        "evaluate-intake-scenarios",
+        help="run independent positive and review state-transition intake scenarios",
+    )
+    intake_scenarios.add_argument("input", type=str)
+    intake_scenarios.add_argument("--output", default=None)
+
+    intake_contracts = subparsers.add_parser(
+        "intake-contracts",
+        help="print the four-operation Domain 01 intake contract registry",
+    )
+    intake_contracts.add_argument("--output", default=None)
+
+    intake_bundle = subparsers.add_parser(
+        "build-intake-bundle",
+        help="build a compact JSON, CSV, or Markdown intake evidence bundle",
+    )
+    intake_bundle.add_argument("input", type=str)
+    intake_bundle.add_argument("--output", required=True)
+    intake_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in IntakeBundleFormat],
+        default=IntakeBundleFormat.JSON.value,
+    )
+    intake_bundle.add_argument("--bundle-id", default=None)
+    intake_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state bundle for inspection instead of requiring the gate",
+    )
+
+    intake_pipeline = subparsers.add_parser(
+        "run-intake-pipeline",
+        help="run policy, anomaly, completeness, and export stages over one intake batch",
+    )
+    intake_pipeline.add_argument("input", type=str)
+    intake_pipeline.add_argument("--output", default=None)
 
     sv_consensus = subparsers.add_parser(
         "sv-consensus", help="import and reconcile multi-caller structural observations"
@@ -2919,6 +2994,56 @@ def main(argv: list[str] | None = None) -> int:
                 bundle_id=args.bundle_id,
             )
             return 0 if bundle.accepted else 2
+        if args.command == "evaluate-intake-fixture":
+            report = evaluate_intake_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-intake-data":
+            report = audit_intake_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-intake-fixtures":
+            first_catalog = IntakeFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = IntakeReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                tuple(sorted(source.source_id for source in first_catalog.sources)),
+                minimum_checks=33,
+                minimum_positive_records=4,
+                minimum_negative_controls=8,
+            )
+            report = replay_intake_fixtures(
+                args.inputs,
+                expectation=expectation,
+                required_context_key=required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "intake-quality-gate":
+            report = evaluate_intake_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-intake-scenarios":
+            report = evaluate_intake_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "intake-contracts":
+            _write_json(default_intake_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-intake-bundle":
+            bundle = IntakeEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+                allow_review=args.allow_review,
+            )
+            return 0 if bundle.accepted else 2
+        if args.command == "run-intake-pipeline":
+            report = run_intake_pipeline(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "sv-consensus":
             input_path = Path(args.input)
             batch = SVConsensusImporter(breakpoint_tolerance=args.breakpoint_tolerance).parse_text(
