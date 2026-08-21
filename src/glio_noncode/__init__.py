@@ -973,11 +973,30 @@ from .structural_beta import (
     StructuralBetaIssue,
     StructuralBetaState,
 )
+from .structural_bundle import (
+    StructuralBundleEntry,
+    StructuralBundleFormat,
+    StructuralEvidenceBundleBuilder,
+    build_structural_evidence_bundle,
+)
+from .structural_bundle import StructuralEvidenceBundle as StructuralDomainEvidenceBundle
+from .structural_contracts import (
+    StructuralContractRegistry,
+    StructuralOperationContract,
+    default_structural_contract_registry,
+)
 from .structural_extensions import (
     ComplexRearrangementResolver,
     CopyNumberSegment,
     CopyNumberSegmentHarmonizer,
     SVConsensusImporter,
+)
+from .structural_fixture_eval import (
+    StructuralExecution,
+    StructuralFixtureCheck,
+    StructuralFixtureEvaluationReport,
+    StructuralOperationReceipt,
+    evaluate_structural_fixture,
 )
 from .structural_haplotype import (
     AlleleAwareRepresentationReport,
@@ -1000,7 +1019,54 @@ from .structural_haplotype import (
     StructuralAlphaIssue,
     StructuralAlphaState,
 )
+from .structural_public_data import (
+    STRUCTURAL_CONTROL_FLOOR,
+    STRUCTURAL_FIXTURE_SCHEMA_VERSION,
+    STRUCTURAL_OPERATION_FLOOR,
+    StructuralDataAuditReport,
+    StructuralFixtureCatalog,
+    StructuralFixtureRecord,
+    StructuralFixtureState,
+    StructuralOperation,
+    StructuralSourceReceipt,
+    audit_structural_fixture,
+)
+from .structural_quality_gate import (
+    StructuralQualityCheck,
+    StructuralQualityGateReport,
+    evaluate_structural_quality_gate,
+)
+from .structural_lineage import (
+    StructuralLineageAudit,
+    StructuralLineageBuilder,
+    StructuralLineageEdge,
+    StructuralLineageGraph,
+    StructuralLineageNode,
+    StructuralLineageNodeKind,
+    StructuralLineageRelation,
+    audit_structural_lineage,
+    build_structural_lineage,
+)
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
+from .structural_replay import (
+    StructuralReplayCase,
+    StructuralReplayExpectation,
+    StructuralReplayReport,
+    replay_structural_fixtures,
+)
+from .structural_runtime import (
+    StructuralPipeline,
+    StructuralPipelineReport,
+    StructuralPipelineRequest,
+    StructuralPipelineState,
+    StructuralStageReceipt,
+    run_structural_pipeline,
+)
+from .structural_scenario_matrix import (
+    StructuralScenarioMatrix,
+    StructuralScenarioResult,
+    evaluate_structural_scenarios,
+)
 from .topology_alpha import (
     BoundaryMotifOrientationAnalyzer,
     BoundaryMotifOrientationObservation,
@@ -1676,6 +1742,54 @@ __all__ = [
     "CopyNumberSegment",
     "CopyNumberSegmentHarmonizer",
     "SVConsensusImporter",
+    "StructuralBundleEntry",
+    "StructuralBundleFormat",
+    "StructuralDomainEvidenceBundle",
+    "StructuralEvidenceBundleBuilder",
+    "build_structural_evidence_bundle",
+    "StructuralContractRegistry",
+    "StructuralOperationContract",
+    "default_structural_contract_registry",
+    "StructuralExecution",
+    "StructuralFixtureCheck",
+    "StructuralFixtureEvaluationReport",
+    "StructuralOperationReceipt",
+    "evaluate_structural_fixture",
+    "STRUCTURAL_CONTROL_FLOOR",
+    "STRUCTURAL_FIXTURE_SCHEMA_VERSION",
+    "STRUCTURAL_OPERATION_FLOOR",
+    "StructuralDataAuditReport",
+    "StructuralFixtureCatalog",
+    "StructuralFixtureRecord",
+    "StructuralFixtureState",
+    "StructuralOperation",
+    "StructuralSourceReceipt",
+    "audit_structural_fixture",
+    "StructuralQualityCheck",
+    "StructuralQualityGateReport",
+    "evaluate_structural_quality_gate",
+    "StructuralLineageAudit",
+    "StructuralLineageBuilder",
+    "StructuralLineageEdge",
+    "StructuralLineageGraph",
+    "StructuralLineageNode",
+    "StructuralLineageNodeKind",
+    "StructuralLineageRelation",
+    "audit_structural_lineage",
+    "build_structural_lineage",
+    "StructuralReplayCase",
+    "StructuralReplayExpectation",
+    "StructuralReplayReport",
+    "replay_structural_fixtures",
+    "StructuralPipeline",
+    "StructuralPipelineReport",
+    "StructuralPipelineRequest",
+    "StructuralPipelineState",
+    "StructuralStageReceipt",
+    "run_structural_pipeline",
+    "StructuralScenarioMatrix",
+    "StructuralScenarioResult",
+    "evaluate_structural_scenarios",
     "SequenceInference",
     "LongContextVariantEffectAdapter",
     "RegulatoryTrackDeltaEnsemble",

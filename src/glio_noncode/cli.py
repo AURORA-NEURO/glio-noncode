@@ -251,13 +251,22 @@ from .structural_beta import (
     ExtrachromosomalDnaCandidateDetector,
     FocalAmplificationBoundaryMapper,
 )
+from .structural_bundle import StructuralBundleFormat, StructuralEvidenceBundleBuilder
+from .structural_contracts import default_structural_contract_registry
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
+from .structural_fixture_eval import evaluate_structural_fixture
 from .structural_haplotype import (
     AlleleAwareSvRepresenter,
     PangenomeGraphProjector,
     PhasedHaplotypeAssembler,
     RepeatMobileElementAnnotator,
 )
+from .structural_lineage import audit_structural_lineage, build_structural_lineage
+from .structural_public_data import StructuralFixtureCatalog, audit_structural_fixture
+from .structural_quality_gate import evaluate_structural_quality_gate
+from .structural_replay import StructuralReplayExpectation, replay_structural_fixtures
+from .structural_runtime import run_structural_pipeline
+from .structural_scenario_matrix import evaluate_structural_scenarios
 from .topology_alpha import (
     BoundaryMotifOrientationAnalyzer,
     CTCFCohesinDisruptionModel,
@@ -1195,6 +1204,80 @@ def build_parser() -> argparse.ArgumentParser:
     )
     intake_pipeline.add_argument("input", type=str)
     intake_pipeline.add_argument("--output", default=None)
+
+    structural_fixture = subparsers.add_parser(
+        "evaluate-structural-fixture",
+        help="evaluate the public aggregate fixture across Domain 02 C01-C04 structural operations",
+    )
+    structural_fixture.add_argument("input", type=str)
+    structural_fixture.add_argument("--output", default=None)
+
+    structural_data = subparsers.add_parser(
+        "audit-structural-data",
+        help="audit public aggregate structural sources, contexts, identities, and payload scope",
+    )
+    structural_data.add_argument("input", type=str)
+    structural_data.add_argument("--output", default=None)
+
+    structural_replay = subparsers.add_parser(
+        "replay-structural-fixtures",
+        help="replay structural fixtures with identity, context, source, and evidence floors",
+    )
+    structural_replay.add_argument("inputs", nargs="+", type=str)
+    structural_replay.add_argument("--required-context-key", default=None)
+    structural_replay.add_argument("--output", default=None)
+
+    structural_quality = subparsers.add_parser(
+        "structural-quality-gate",
+        help="reconcile Domain 02 structural fixture, data, replay, scenario, and contract evidence",
+    )
+    structural_quality.add_argument("input", type=str)
+    structural_quality.add_argument("--output", default=None)
+
+    structural_scenarios = subparsers.add_parser(
+        "evaluate-structural-scenarios",
+        help="run independent positive and review state-transition structural scenarios",
+    )
+    structural_scenarios.add_argument("input", type=str)
+    structural_scenarios.add_argument("--output", default=None)
+
+    structural_contracts = subparsers.add_parser(
+        "structural-contracts",
+        help="print the four-operation Domain 02 structural contract registry",
+    )
+    structural_contracts.add_argument("--output", default=None)
+
+    structural_bundle = subparsers.add_parser(
+        "build-structural-bundle",
+        help="build a compact JSON, CSV, or Markdown structural evidence bundle",
+    )
+    structural_bundle.add_argument("input", type=str)
+    structural_bundle.add_argument("--output", required=True)
+    structural_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in StructuralBundleFormat],
+        default=StructuralBundleFormat.JSON.value,
+    )
+    structural_bundle.add_argument("--bundle-id", default=None)
+    structural_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state bundle for inspection instead of requiring the gate",
+    )
+
+    structural_pipeline = subparsers.add_parser(
+        "run-structural-pipeline",
+        help="run C01 reconstruction, C02 consensus, C03 complex resolution, and C04 harmonization",
+    )
+    structural_pipeline.add_argument("input", type=str)
+    structural_pipeline.add_argument("--output", default=None)
+
+    structural_lineage = subparsers.add_parser(
+        "structural-lineage",
+        help="build and audit a sanitized source-to-result structural lineage graph",
+    )
+    structural_lineage.add_argument("input", type=str)
+    structural_lineage.add_argument("--output", default=None)
 
     sv_consensus = subparsers.add_parser(
         "sv-consensus", help="import and reconcile multi-caller structural observations"
@@ -3044,6 +3127,64 @@ def main(argv: list[str] | None = None) -> int:
             report = run_intake_pipeline(_read_json(args.input))
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "evaluate-structural-fixture":
+            report = evaluate_structural_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-structural-data":
+            catalog = StructuralFixtureCatalog.from_file(args.input)
+            report = audit_structural_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-structural-fixtures":
+            first_catalog = StructuralFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = StructuralReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                first_catalog.source_ids,
+                minimum_checks=30,
+                minimum_positive_records=4,
+                minimum_control_records=8,
+            )
+            report = replay_structural_fixtures(
+                args.inputs,
+                expectation=expectation,
+                required_context_key=required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-quality-gate":
+            report = evaluate_structural_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-structural-scenarios":
+            report = evaluate_structural_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-contracts":
+            _write_json(default_structural_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-structural-bundle":
+            bundle = StructuralEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+                allow_review=args.allow_review,
+            )
+            return 0 if bundle.accepted else 2
+        if args.command == "run-structural-pipeline":
+            report = run_structural_pipeline(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "structural-lineage":
+            graph = build_structural_lineage(args.input)
+            audit = audit_structural_lineage(graph)
+            payload = graph.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
         if args.command == "sv-consensus":
             input_path = Path(args.input)
             batch = SVConsensusImporter(breakpoint_tolerance=args.breakpoint_tolerance).parse_text(

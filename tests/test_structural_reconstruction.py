@@ -85,6 +85,7 @@ class StructuralReconstructionTests(unittest.TestCase):
             {segment.source_variant_ids[0] for segment in haplotypes[0].haplotype_segments},
             {"v1", "v2"},
         )
+        self.assertEqual(result.issues, ())
 
     def test_intake_defers_symbolic_record_for_reconstruction(self) -> None:
         text = "\n".join(

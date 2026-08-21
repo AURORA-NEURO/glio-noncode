@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 32 capabilities have deterministic fixture-backed
-verification and 224 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 36 capabilities have deterministic fixture-backed
+verification and 220 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -135,6 +135,46 @@ glio-noncode propagate-breakpoint-uncertainty breakpoints.json --output breakpoi
 glio-noncode export-structural-evidence structural-evidence.json --output structural-bundle.json
 ```
 
+The Domain 02 C01-C04 structural evidence gate verifies the deeper boundary
+with a public aggregate fixture at
+`examples/structural-public-aggregate.json`:
+
+- `StructuralReconstructor` preserves symbolic intervals, reciprocal breakends,
+  and explicit phased paths. Missing or non-reciprocal mates remain errors.
+- `SVConsensusImporter` retains caller versions, source-line/raw hashes,
+  malformed rows, bounded clusters, and beyond-tolerance disagreement.
+- `ComplexRearrangementResolver` builds shared-locus components and exposes
+  alternative path ambiguity without selecting a canonical rearrangement.
+- `CopyNumberSegmentHarmonizer` sweeps caller boundaries into atomic intervals
+  and keeps caller disagreement visible beside its median view.
+
+The evidence surfaces are independently executable and cross-checked:
+
+```powershell
+python -m glio_noncode audit-structural-data examples/structural-public-aggregate.json --output structural-data.json
+python -m glio_noncode evaluate-structural-fixture examples/structural-public-aggregate.json --output structural-fixture.json
+python -m glio_noncode replay-structural-fixtures examples/structural-public-aggregate.json --output structural-replay.json
+python -m glio_noncode structural-quality-gate examples/structural-public-aggregate.json --output structural-quality.json
+python -m glio_noncode evaluate-structural-scenarios examples/structural-public-aggregate.json --output structural-scenarios.json
+python -m glio_noncode structural-contracts --output structural-contracts.json
+python -m glio_noncode build-structural-bundle examples/structural-public-aggregate.json --output structural-bundle.json
+python -m glio_noncode run-structural-pipeline examples/structural-pipeline-accepted.json --output structural-pipeline.json
+python -m glio_noncode structural-lineage examples/structural-public-aggregate.json --output structural-lineage.json
+```
+
+The fixture contains four positive operation records and eight review controls.
+Its source receipts point to public dbVar clinical/common structural-variation
+collections, a public gnomAD SV v4 release summary, and a public dbVar
+copy-number placement summary. The records are aggregate validation payloads,
+not patient-level data. See `docs/STRUCTURAL_EVIDENCE_GATE.md` and
+`docs/STRUCTURAL_BUNDLE_FORMAT.md` for the exact schema and limitations.
+
+The structural bundle also carries a sanitized source-to-result lineage graph:
+four public source nodes, one fixture node, twelve record nodes, and twelve
+result nodes connected by 36 typed edges. Its graph address is independently
+audited for exact context, source coverage, record/result pairing, and endpoint
+integrity. Raw operation payloads remain outside the compact lineage receipt.
+
 ## Domain 03 specimen frontier
 
 Specimen context is now represented as a linked, reviewable envelope. The
@@ -242,8 +282,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 32 controls are now verified against the checked-in
-Domain 01 and D13-D16 fixtures, while 224 capabilities remain partial. Partial
+capabilities started (100%); 36 controls are now verified against the checked-in
+Domain 01, Domain 02, and D13-D16 fixtures, while 220 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.

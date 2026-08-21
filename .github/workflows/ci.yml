@@ -86,3 +86,21 @@ jobs:
         run: python -m glio_noncode build-intake-bundle examples/intake-public-aggregate.json --output /tmp/glio-intake-bundle.json
       - name: Intake pipeline integration
         run: python -m glio_noncode run-intake-pipeline examples/intake-pipeline-accepted.json --output /tmp/glio-intake-pipeline.json
+      - name: Structural data boundary audit
+        run: python -m glio_noncode audit-structural-data examples/structural-public-aggregate.json --output /tmp/glio-structural-data.json
+      - name: Structural fixture evaluation
+        run: python -m glio_noncode evaluate-structural-fixture examples/structural-public-aggregate.json --output /tmp/glio-structural-fixture.json
+      - name: Structural replay integrity
+        run: python -m glio_noncode replay-structural-fixtures examples/structural-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-structural-replay.json
+      - name: Structural quality gate
+        run: python -m glio_noncode structural-quality-gate examples/structural-public-aggregate.json --output /tmp/glio-structural-quality.json
+      - name: Structural scenario matrix
+        run: python -m glio_noncode evaluate-structural-scenarios examples/structural-public-aggregate.json --output /tmp/glio-structural-scenarios.json
+      - name: Structural operation contracts
+        run: python -m glio_noncode structural-contracts --output /tmp/glio-structural-contracts.json
+      - name: Structural evidence bundle
+        run: python -m glio_noncode build-structural-bundle examples/structural-public-aggregate.json --output /tmp/glio-structural-bundle.json
+      - name: Structural pipeline integration
+        run: python -m glio_noncode run-structural-pipeline examples/structural-pipeline-accepted.json --output /tmp/glio-structural-pipeline.json
+      - name: Structural lineage graph
+        run: python -m glio_noncode structural-lineage examples/structural-public-aggregate.json --output /tmp/glio-structural-lineage.json

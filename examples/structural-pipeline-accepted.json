@@ -1,0 +1,84 @@
+{
+  "request_id": "structural-pipeline-public-accepted-001",
+  "manifest_id": "structural-pipeline-public-manifest-001",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": [
+    "ncbi-dbvar-nstd102",
+    "gnomad-sv-v4",
+    "ncbi-dbvar-nstd75"
+  ],
+  "operations": {
+    "reconstruction": {
+      "source_id": "ncbi-dbvar-nstd102",
+      "records": [
+        {
+          "record_id": "pipeline-del",
+          "chromosome": "7",
+          "position": 140453136,
+          "reference": "N",
+          "alternate": "<DEL>",
+          "info": {"END": "140453500", "SVTYPE": "DEL"},
+          "sample": {"sample_id": "public-aggregate", "GT": "0/1"}
+        },
+        {
+          "record_id": "pipeline-bnd-a",
+          "chromosome": "7",
+          "position": 140454000,
+          "reference": "N",
+          "alternate": "N]8:100000]",
+          "info": {"MATEID": "pipeline-bnd-b", "SVTYPE": "BND"},
+          "sample": {"sample_id": "public-aggregate", "GT": "0/1"}
+        },
+        {
+          "record_id": "pipeline-bnd-b",
+          "chromosome": "8",
+          "position": 100000,
+          "reference": "N",
+          "alternate": "]7:140454000]N",
+          "info": {"MATEID": "pipeline-bnd-a", "SVTYPE": "BND"},
+          "sample": {"sample_id": "public-aggregate", "GT": "0/1"}
+        }
+      ]
+    },
+    "consensus": {
+      "source_id": "gnomad-sv-v4",
+      "input_format": "tsv",
+      "breakpoint_tolerance": 5,
+      "text": "caller_id\tcaller_version\tevent_id\tevent_key\tchrom\tstart\tend\tsvtype\tsupport\npipeline-caller-a\t2.0\tpipeline-a\tpipeline-cluster\t7\t140454000\t140454200\tDEL\t0.91\npipeline-caller-b\t1.8\tpipeline-b\tpipeline-cluster\t7\t140454003\t140454202\tDEL\t0.88\n"
+    },
+    "complex_resolution": {
+      "source_id": "gnomad-sv-v4",
+      "events": [
+        {
+          "event_id": "pipeline-complex-a",
+          "kind": "breakend_pair",
+          "reconstruction_support": 0.9,
+          "uncertainty": 0.1,
+          "breakends": [
+            {"breakend_id": "pipeline-a-left", "chromosome": "7", "position": 140454000, "orientation": "forward", "mate_id": "pipeline-a-right", "allele": "N]8:100000]"},
+            {"breakend_id": "pipeline-a-right", "chromosome": "8", "position": 100000, "orientation": "reverse", "mate_id": "pipeline-a-left", "allele": "]7:140454000]N"}
+          ]
+        },
+        {
+          "event_id": "pipeline-complex-b",
+          "kind": "breakend_pair",
+          "reconstruction_support": 0.8,
+          "uncertainty": 0.2,
+          "breakends": [
+            {"breakend_id": "pipeline-b-left", "chromosome": "7", "position": 140454000, "orientation": "forward", "mate_id": "pipeline-b-right", "allele": "N]9:200000]"},
+            {"breakend_id": "pipeline-b-right", "chromosome": "9", "position": 200000, "orientation": "reverse", "mate_id": "pipeline-b-left", "allele": "]7:140454000]N"}
+          ]
+        }
+      ]
+    },
+    "copy_number": {
+      "source_id": "ncbi-dbvar-nstd75",
+      "value_tolerance": 0.25,
+      "segments": [
+        {"segment_id": "pipeline-cn-a", "caller_id": "pipeline-cn-a", "chromosome": "7", "start": 140453000, "end": 140453100, "copy_number": 2.0, "raw_hash": "sha256:pipeline-cn-a"},
+        {"segment_id": "pipeline-cn-b1", "caller_id": "pipeline-cn-b", "chromosome": "7", "start": 140453000, "end": 140453050, "copy_number": 2.0, "raw_hash": "sha256:pipeline-cn-b1"},
+        {"segment_id": "pipeline-cn-b2", "caller_id": "pipeline-cn-b", "chromosome": "7", "start": 140453051, "end": 140453100, "copy_number": 3.0, "raw_hash": "sha256:pipeline-cn-b2"}
+      ]
+    }
+  }
+}

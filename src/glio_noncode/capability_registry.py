@@ -595,48 +595,78 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D02-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_reconstruction.StructuralReconstructor",
+                    "glio_noncode.structural_fixture_eval.evaluate_structural_fixture",
+                    "glio_noncode.structural_runtime.StructuralPipeline",
                 ),
-                "test_modules": ("tests.test_structural_reconstruction",),
+                "test_modules": (
+                    "tests.test_structural_reconstruction",
+                    "tests.test_structural_fixture_eval",
+                    "tests.test_structural_runtime",
+                ),
                 "evidence_note": (
                     "Breakend pairing, symbolic interval checks, phased segments, and "
-                    "content-addressed reconstruction are implemented; multi-event graph "
-                    "supersession is still being expanded."
+                    "content-addressed reconstruction are exercised through a public aggregate "
+                    "fixture with reciprocal-mate, missing-mate, and non-reciprocal controls; "
+                    "institutional truth-set equivalence remains external."
                 ),
             },
             "GNC-D02-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_extensions.SVConsensusImporter",
+                    "glio_noncode.structural_contracts.StructuralOperationContract",
+                    "glio_noncode.structural_quality_gate.evaluate_structural_quality_gate",
                 ),
-                "test_modules": ("tests.test_structural_extensions",),
+                "test_modules": (
+                    "tests.test_structural_extensions",
+                    "tests.test_structural_fixture_eval",
+                    "tests.test_structural_quality_gate",
+                ),
                 "evidence_note": (
                     "TSV/JSON caller observations retain versions, hashes, malformed rows, "
-                    "and bounded consensus disagreement; external caller conformance is pending."
+                    "and bounded consensus disagreement; positive convergence, malformed-row "
+                    "quarantine, and beyond-tolerance ambiguity are replayed in a public "
+                    "aggregate fixture."
                 ),
             },
             "GNC-D02-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_extensions.ComplexRearrangementResolver",
+                    "glio_noncode.structural_scenario_matrix.evaluate_structural_scenarios",
+                    "glio_noncode.structural_bundle.StructuralEvidenceBundleBuilder",
                 ),
-                "test_modules": ("tests.test_structural_extensions",),
+                "test_modules": (
+                    "tests.test_structural_extensions",
+                    "tests.test_structural_scenario_matrix",
+                    "tests.test_structural_bundle",
+                ),
                 "evidence_note": (
                     "Shared breakpoint components and ambiguity are retained without selecting "
-                    "a canonical rearrangement identity; locked truth-set equivalence remains."
+                    "a canonical rearrangement identity; ambiguous shared-locus output and "
+                    "no-breakpoint review controls are independently exercised and bundled."
                 ),
             },
             "GNC-D02-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.structural_extensions.CopyNumberSegmentHarmonizer",
+                    "glio_noncode.structural_public_data.StructuralFixtureCatalog",
+                    "glio_noncode.structural_replay.replay_structural_fixtures",
                 ),
-                "test_modules": ("tests.test_structural_extensions",),
+                "test_modules": (
+                    "tests.test_structural_extensions",
+                    "tests.test_structural_public_data",
+                    "tests.test_structural_replay",
+                ),
                 "evidence_note": (
                     "Caller segments are split at observed boundaries and median values are "
-                    "reported with disagreement; truth-set and transport evaluation remain."
+                    "reported with disagreement; public placement scope, invalid coordinates, "
+                    "negative values, deterministic replay, and compact bundle addressing are "
+                    "verified while truth-set transport remains external."
                 ),
             },
             "GNC-D02-C05": {

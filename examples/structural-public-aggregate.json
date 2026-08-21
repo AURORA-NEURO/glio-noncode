@@ -1,0 +1,294 @@
+{
+  "fixture_id": "structural-public-aggregate-2026-08-21",
+  "schema_version": "structural-evidence-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "provenance": "public_aggregate_structural_summary",
+  "patient_level": false,
+  "notes": [
+    "Operation payloads are small aggregate validation records anchored to public structural-variation releases.",
+    "Coordinates are used to exercise deterministic mechanics and are not a specimen-level assertion.",
+    "Ambiguous consensus and complex paths remain visible as domain states rather than being promoted to truth."
+  ],
+  "sources": [
+    {
+      "source_id": "ncbi-dbvar-nstd102",
+      "title": "dbVar Clinical Structural Variants",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/human_hub/",
+      "version": "nstd102-public-hub-2026-04-09",
+      "license": "NCBI public database terms",
+      "data_scope": "public aggregate clinical structural-variant summary",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Source receipt for clinical structural-variant coverage and GRCh38 placement scope."
+    },
+    {
+      "source_id": "ncbi-dbvar-nstd186",
+      "title": "dbVar Curated Common Structural Variants",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/common_summary/",
+      "version": "nstd186-public-summary-2026-04-09",
+      "license": "NCBI public database terms",
+      "data_scope": "public aggregate common structural-variant summary",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Source receipt for common-variant frequency and overlap context."
+    },
+    {
+      "source_id": "gnomad-sv-v4",
+      "title": "gnomAD Structural Variants v4",
+      "url": "https://gnomad.broadinstitute.org/news/2023-11-v4-structural-variants/",
+      "version": "gnomAD-SV-v4-2023-11",
+      "license": "gnomAD data use terms",
+      "data_scope": "public aggregate high-quality GRCh38 structural-variant summary",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Source receipt for caller-scale SV classes and resolved alternate structures."
+    },
+    {
+      "source_id": "ncbi-dbvar-nstd75",
+      "title": "dbVar public placement example",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/studies/nstd75/download/",
+      "version": "nstd75-placement-public-2026",
+      "license": "NCBI public database terms",
+      "data_scope": "public aggregate copy-number placement summary",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Source receipt for public placement and copy-number interval mechanics."
+    }
+  ],
+  "positives": [
+    {
+      "record_id": "positive-reconstruction",
+      "operation": "reconstruction",
+      "expected_state": "accepted",
+      "expected_result_state": "eventful",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd102",
+      "expected_counts": {"records": 5, "events": 3, "issues": 0, "errors": 0},
+      "description": "Symbolic deletion, reciprocal breakends, and a phased aggregate path remain typed separately.",
+      "payload": {
+        "records": [
+          {
+            "record_id": "recon-del",
+            "chromosome": "7",
+            "position": 140453136,
+            "reference": "N",
+            "alternate": "<DEL>",
+            "source_line": 101,
+            "raw_hash": "sha256:recon-del-public-summary",
+            "info": {"END": "140453500", "SVTYPE": "DEL"},
+            "sample": {"sample_id": "public-aggregate", "GT": "0/1"}
+          },
+          {
+            "record_id": "recon-bnd-a",
+            "chromosome": "7",
+            "position": 140454000,
+            "reference": "N",
+            "alternate": "N]8:100000]",
+            "source_line": 102,
+            "raw_hash": "sha256:recon-bnd-a-public-summary",
+            "info": {"MATEID": "recon-bnd-b", "SVTYPE": "BND"},
+            "sample": {"sample_id": "public-aggregate", "GT": "0/1"}
+          },
+          {
+            "record_id": "recon-bnd-b",
+            "chromosome": "8",
+            "position": 100000,
+            "reference": "N",
+            "alternate": "]7:140454000]N",
+            "source_line": 103,
+            "raw_hash": "sha256:recon-bnd-b-public-summary",
+            "info": {"MATEID": "recon-bnd-a", "SVTYPE": "BND"},
+            "sample": {"sample_id": "public-aggregate", "GT": "0/1"}
+          },
+          {
+            "record_id": "recon-phase-a",
+            "chromosome": "7",
+            "position": 140450000,
+            "reference": "A",
+            "alternate": "T",
+            "source_line": 104,
+            "raw_hash": "sha256:recon-phase-a-public-summary",
+            "info": {},
+            "sample": {"sample_id": "public-aggregate", "PS": "42", "GT": "0|1"}
+          },
+          {
+            "record_id": "recon-phase-b",
+            "chromosome": "7",
+            "position": 140450050,
+            "reference": "G",
+            "alternate": "C",
+            "source_line": 105,
+            "raw_hash": "sha256:recon-phase-b-public-summary",
+            "info": {},
+            "sample": {"sample_id": "public-aggregate", "PS": "42", "GT": "0|1"}
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-consensus",
+      "operation": "consensus",
+      "expected_state": "accepted",
+      "expected_result_state": "supported",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "expected_counts": {"observations": 2, "consensus": 1, "issues": 0, "errors": 0},
+      "description": "Two caller summaries converge within a declared breakpoint tolerance.",
+      "payload": {
+        "input_format": "tsv",
+        "breakpoint_tolerance": 5,
+        "text": "caller_id\tcaller_version\tevent_id\tevent_key\tchrom\tstart\tend\tsvtype\tsupport\nsvcaller-a\t2.0\tcall-a\tcluster-public-1\t7\t140454000\t140454200\tDEL\t0.91\nsvcaller-b\t1.8\tcall-b\tcluster-public-1\t7\t140454003\t140454202\tDEL\t0.88\n"
+      }
+    },
+    {
+      "record_id": "positive-complex",
+      "operation": "complex_resolution",
+      "expected_state": "accepted",
+      "expected_result_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "expected_counts": {"events": 2, "resolutions": 1, "issues": 0, "paths": 1},
+      "description": "Two event identities share a locus and produce an explicit ambiguous component.",
+      "payload": {
+        "events": [
+          {
+            "event_id": "complex-event-a",
+            "kind": "breakend_pair",
+            "reconstruction_support": 0.92,
+            "uncertainty": 0.08,
+            "breakends": [
+              {"breakend_id": "complex-a-left", "chromosome": "7", "position": 140454000, "orientation": "forward", "mate_id": "complex-a-right", "allele": "N]8:100000]"},
+              {"breakend_id": "complex-a-right", "chromosome": "8", "position": 100000, "orientation": "reverse", "mate_id": "complex-a-left", "allele": "]7:140454000]N"}
+            ]
+          },
+          {
+            "event_id": "complex-event-b",
+            "kind": "breakend_pair",
+            "reconstruction_support": 0.81,
+            "uncertainty": 0.19,
+            "breakends": [
+              {"breakend_id": "complex-b-left", "chromosome": "7", "position": 140454000, "orientation": "forward", "mate_id": "complex-b-right", "allele": "N]9:200000]"},
+              {"breakend_id": "complex-b-right", "chromosome": "9", "position": 200000, "orientation": "reverse", "mate_id": "complex-b-left", "allele": "]7:140454000]N"}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-copy-number",
+      "operation": "copy_number",
+      "expected_state": "accepted",
+      "expected_result_state": "mixed",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd75",
+      "expected_counts": {"input_segments": 3, "output_segments": 2, "issues": 0, "ambiguous_segments": 1},
+      "description": "Overlapping caller intervals are split and retain one disagreement segment.",
+      "payload": {
+        "value_tolerance": 0.25,
+        "segments": [
+          {"segment_id": "cn-a-1", "caller_id": "cncaller-a", "chromosome": "7", "start": 140453000, "end": 140453100, "copy_number": 2.0, "raw_hash": "sha256:cn-a-1", "attributes": {"summary_id": "nssv1605311"}},
+          {"segment_id": "cn-b-1", "caller_id": "cncaller-b", "chromosome": "7", "start": 140453000, "end": 140453050, "copy_number": 2.0, "raw_hash": "sha256:cn-b-1", "attributes": {"summary_id": "nssv1605311"}},
+          {"segment_id": "cn-b-2", "caller_id": "cncaller-b", "chromosome": "7", "start": 140453051, "end": 140453100, "copy_number": 3.0, "raw_hash": "sha256:cn-b-2", "attributes": {"summary_id": "nssv1605311"}}
+        ]
+      }
+    }
+  ],
+  "controls": [
+    {
+      "record_id": "control-reconstruction-missing-mate",
+      "operation": "reconstruction",
+      "expected_state": "review",
+      "expected_result_state": "error",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd102",
+      "required_issue_codes": ["missing_mate_id"],
+      "expected_counts": {"records": 1, "events": 0, "errors": 1},
+      "description": "A breakend without reciprocal mate metadata cannot be reconstructed.",
+      "payload": {"records": [{"record_id": "bad-bnd-no-mate", "chromosome": "7", "position": 140454000, "reference": "N", "alternate": "N]8:100000]", "info": {"SVTYPE": "BND"}, "sample": {"sample_id": "public-aggregate"}}]}
+    },
+    {
+      "record_id": "control-reconstruction-nonreciprocal",
+      "operation": "reconstruction",
+      "expected_state": "review",
+      "expected_result_state": "error",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd102",
+      "required_issue_codes": ["non_reciprocal_mate"],
+      "expected_counts": {"records": 2, "events": 0, "issues": 2, "errors": 2},
+      "description": "One-sided mate references stay in review instead of forming an event.",
+      "payload": {"records": [{"record_id": "bad-bnd-a", "chromosome": "7", "position": 140454000, "reference": "N", "alternate": "N]8:100000]", "info": {"MATEID": "bad-bnd-b", "SVTYPE": "BND"}}, {"record_id": "bad-bnd-b", "chromosome": "8", "position": 100000, "reference": "N", "alternate": "]7:140454000]N", "info": {"MATEID": "other-record", "SVTYPE": "BND"}}]}
+    },
+    {
+      "record_id": "control-consensus-malformed-row",
+      "operation": "consensus",
+      "expected_state": "review",
+      "expected_result_state": "partial",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "required_issue_codes": ["invalid_sv_caller_row"],
+      "expected_counts": {"observations": 1, "consensus": 1, "issues": 1, "errors": 1},
+      "description": "A malformed caller row is quarantined while the valid observation remains inspectable.",
+      "payload": {"input_format": "tsv", "breakpoint_tolerance": 5, "text": "caller_id\tcaller_version\tevent_id\tchrom\tstart\tend\tsvtype\tsupport\nsvcaller-a\t2.0\tvalid\t7\t140454000\t140454200\tDEL\t0.9\nsvcaller-b\t2.0\tbad\t7\tnope\t140454200\tDEL\t0.9\n"}
+    },
+    {
+      "record_id": "control-consensus-disagreement",
+      "operation": "consensus",
+      "expected_state": "review",
+      "expected_result_state": "ambiguous",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "required_issue_codes": [],
+      "expected_counts": {"observations": 2, "consensus": 1, "issues": 0, "errors": 0},
+      "description": "Caller disagreement beyond tolerance is a review state, not a hidden merge.",
+      "payload": {"input_format": "tsv", "breakpoint_tolerance": 5, "text": "caller_id\tcaller_version\tevent_id\tevent_key\tchrom\tstart\tend\tsvtype\tsupport\nsvcaller-a\t2.0\tfar-a\tcluster-public-2\t7\t140454000\t140454200\tDEL\t0.9\nsvcaller-b\t2.0\tfar-b\tcluster-public-2\t7\t140454080\t140454280\tDEL\t0.9\n"}
+    },
+    {
+      "record_id": "control-complex-no-breakpoint",
+      "operation": "complex_resolution",
+      "expected_state": "review",
+      "expected_result_state": "empty",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "required_issue_codes": ["event_without_breakpoints"],
+      "expected_counts": {"events": 1, "resolutions": 0, "issues": 1, "paths": 0},
+      "description": "A phased-only event is not forced into a breakpoint graph.",
+      "payload": {"events": [{"event_id": "complex-no-breakpoint", "kind": "haplotype", "reconstruction_support": 1.0, "uncertainty": 0.0, "breakends": [], "haplotype_segments": [{"segment_id": "phase-only-1", "chromosome": "7", "start": 140450000, "end": 140450001, "phase_set": "42", "allele": "T", "source_variant_ids": ["phase-only-source"]}]}]}
+    },
+    {
+      "record_id": "control-complex-invalid-event",
+      "operation": "complex_resolution",
+      "expected_state": "review",
+      "expected_result_state": "review-issue",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "required_issue_codes": ["validation_error"],
+      "expected_counts": {"issues": 1, "errors": 1},
+      "description": "A breakend with an invalid mate relationship is rejected at the typed boundary.",
+      "payload": {"events": [{"event_id": "complex-invalid", "kind": "breakend_pair", "reconstruction_support": 1.0, "uncertainty": 0.0, "breakends": [{"breakend_id": "only-one", "chromosome": "7", "position": 140454000, "orientation": "forward", "mate_id": "missing", "allele": "N"}]}]}
+    },
+    {
+      "record_id": "control-copy-number-invalid-start",
+      "operation": "copy_number",
+      "expected_state": "review",
+      "expected_result_state": "review-issue",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd75",
+      "required_issue_codes": ["validation_error"],
+      "expected_counts": {"issues": 1, "errors": 1},
+      "description": "Malformed coordinates are rejected before harmonization.",
+      "payload": {"segments": [{"segment_id": "cn-bad-start", "caller_id": "cncaller-a", "chromosome": "7", "start": "nope", "end": 140453100, "copy_number": 2.0, "raw_hash": "sha256:cn-bad-start"}]}
+    },
+    {
+      "record_id": "control-copy-number-negative-value",
+      "operation": "copy_number",
+      "expected_state": "review",
+      "expected_result_state": "review-issue",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-nstd75",
+      "required_issue_codes": ["validation_error"],
+      "expected_counts": {"issues": 1, "errors": 1},
+      "description": "Negative total copy number cannot be harmonized as a structural segment.",
+      "payload": {"segments": [{"segment_id": "cn-negative", "caller_id": "cncaller-b", "chromosome": "7", "start": 140453000, "end": 140453100, "copy_number": -1.0, "raw_hash": "sha256:cn-negative"}]}
+    }
+  ]
+}

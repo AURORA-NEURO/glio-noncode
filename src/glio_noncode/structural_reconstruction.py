@@ -163,6 +163,12 @@ class StructuralReconstructor:
                     issues.append(issue)
                 continue
             if "[" not in alternate and "]" not in alternate:
+                phase_set = record.sample.get("PS") or record.info.get("PS")
+                if phase_set not in {None, "", "."}:
+                    # A phased point allele is consumed by the haplotype path
+                    # below; it is not an unsupported structural record.
+                    handled.add(record.record_id)
+                    continue
                 issues.append(
                     StructuralIssue(
                         "not_structural",
