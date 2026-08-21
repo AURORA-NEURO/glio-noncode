@@ -2039,6 +2039,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "definitions and transport require external validation."
                 ),
             },
+            "GNC-D12-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_alpha.ClonalityTimingIntegrator",
+                    "glio_noncode.cohort_alpha.ClonalityTimingReport",
+                ),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "evidence_note": (
+                    "Clonality and timing integration preserves CCF values, pseudonymous sample "
+                    "IDs, phase labels, timepoint order, source hashes, and missing CCF/timing "
+                    "states; it does not establish clonal evolution."
+                ),
+            },
+            "GNC-D12-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_alpha.PrimaryRecurrenceComparator",
+                    "glio_noncode.cohort_alpha.PrimaryRecurrenceComparatorReport",
+                ),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "evidence_note": (
+                    "Primary/recurrence comparisons retain phase-specific frequencies, sample "
+                    "IDs, treatment-exposure metadata, deltas, thresholds, and partial phase "
+                    "coverage without turning recurrence into prognosis or treatment evidence."
+                ),
+            },
+            "GNC-D12-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_alpha.TreatmentSelectionSignalDetector",
+                    "glio_noncode.cohort_alpha.TreatmentSelectionReport",
+                ),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "evidence_note": (
+                    "Pre/post treatment frequency signals preserve treatment ID, sample and "
+                    "response metadata, phase coverage, effect direction, threshold receipts, "
+                    "and context; they are not resistance, benefit, or response claims."
+                ),
+            },
+            "GNC-D12-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_alpha.CrossCohortReplicationEngine",
+                    "glio_noncode.cohort_alpha.CrossCohortReplicationReport",
+                ),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "evidence_note": (
+                    "Cross-cohort replication retains cohort-specific effects, support, sample "
+                    "counts, direction concordance, heterogeneous sources, and minimum coverage "
+                    "without claiming transportability or generalization."
+                ),
+            },
             "GNC-D13-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.validation_planning.EvidenceGapAnalyzer",),

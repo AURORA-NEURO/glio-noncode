@@ -787,6 +787,31 @@ glio-noncode parse-pathway-regulon pathway-regulon.json --output pathway-regulon
 glio-noncode test-pathway-regulon-convergence pathway-regulon.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --set-kind pathway --output pathway-test.json
 ```
 
+The external-alpha cohort controls add four deeper contracts:
+
+- `ClonalityTimingIntegrator` retains CCF values, pseudonymous sample IDs,
+  phase labels, timepoint ordering, and missingness while emitting bounded
+  clonal/subclonal labels.
+- `PrimaryRecurrenceComparator` compares matching loci across primary,
+  recurrence, and progression phases with explicit sample coverage and delta
+  thresholds.
+- `TreatmentSelectionSignalDetector` compares declared pre-treatment and
+  post-treatment frequencies while preserving treatment, response, sample, and
+  exposure timing metadata.
+- `CrossCohortReplicationEngine` retains cohort-specific effect sizes,
+  support, sample counts, direction concordance, and minimum cohort coverage.
+
+These summaries are descriptive research outputs. They do not establish clonal
+evolution, treatment response or resistance, causal selection, transportability,
+statistical significance, or clinical utility.
+
+```powershell
+glio-noncode integrate-clonality-timing clonality.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --clonal-threshold 0.85 --output clonality-timing.json
+glio-noncode compare-primary-recurrence phases.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --change-threshold 0.2 --output primary-recurrence.json
+glio-noncode detect-treatment-selection treatment-phases.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --change-threshold 0.2 --output treatment-selection.json
+glio-noncode replicate-cross-cohort replication.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-cohorts 2 --minimum-concordance 0.75 --output replication.json
+```
+
 The query boundary is:
 
 ```powershell

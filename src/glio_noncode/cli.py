@@ -60,6 +60,12 @@ from .chromatin_alpha import (
     EpigenomicPurityDeconvolver,
 )
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
+from .cohort_alpha import (
+    ClonalityTimingIntegrator,
+    CrossCohortReplicationEngine,
+    PrimaryRecurrenceComparator,
+    TreatmentSelectionSignalDetector,
+)
 from .cohort_beta import (
     FunctionalConvergenceParser,
     FunctionalConvergenceTester,
@@ -1836,6 +1842,44 @@ def build_parser() -> argparse.ArgumentParser:
     pathway_test.add_argument("--ambiguity-margin", type=float, default=0.05)
     pathway_test.add_argument("--output", default=None)
 
+    clonality = subparsers.add_parser(
+        "integrate-clonality-timing",
+        help="integrate exact-context CCF, specimen phase, and timing observations",
+    )
+    clonality.add_argument("input", type=str)
+    clonality.add_argument("--context-key", required=True)
+    clonality.add_argument("--clonal-threshold", type=float, default=0.85)
+    clonality.add_argument("--subclonal-threshold", type=float, default=0.25)
+    clonality.add_argument("--output", default=None)
+
+    primary_recurrence = subparsers.add_parser(
+        "compare-primary-recurrence",
+        help="compare exact-context primary and recurrence frequencies",
+    )
+    primary_recurrence.add_argument("input", type=str)
+    primary_recurrence.add_argument("--context-key", required=True)
+    primary_recurrence.add_argument("--change-threshold", type=float, default=0.20)
+    primary_recurrence.add_argument("--output", default=None)
+
+    treatment_selection = subparsers.add_parser(
+        "detect-treatment-selection",
+        help="detect descriptive pre/post treatment frequency signals",
+    )
+    treatment_selection.add_argument("input", type=str)
+    treatment_selection.add_argument("--context-key", required=True)
+    treatment_selection.add_argument("--change-threshold", type=float, default=0.20)
+    treatment_selection.add_argument("--output", default=None)
+
+    replication = subparsers.add_parser(
+        "replicate-cross-cohort",
+        help="compare exact-context effects across pseudonymous cohorts",
+    )
+    replication.add_argument("input", type=str)
+    replication.add_argument("--context-key", required=True)
+    replication.add_argument("--minimum-cohorts", type=int, default=2)
+    replication.add_argument("--minimum-concordance", type=float, default=0.75)
+    replication.add_argument("--output", default=None)
+
     for command, help_text in (
         ("plan-crispri", "plan context-qualified CRISPRi guides"),
         ("plan-crispra", "plan context-qualified CRISPRa guides"),
@@ -3193,6 +3237,40 @@ def main(argv: list[str] | None = None) -> int:
                 set_kind=args.set_kind,
                 minimum_genes=args.minimum_genes,
                 ambiguity_margin=args.ambiguity_margin,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "integrate-clonality-timing":
+            result = ClonalityTimingIntegrator().integrate(
+                _read_rows(args.input, "observations", "records", "clonality"),
+                context_key=args.context_key,
+                clonal_threshold=args.clonal_threshold,
+                subclonal_threshold=args.subclonal_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "compare-primary-recurrence":
+            result = PrimaryRecurrenceComparator().compare(
+                _read_rows(args.input, "observations", "records", "phases"),
+                context_key=args.context_key,
+                change_threshold=args.change_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "detect-treatment-selection":
+            result = TreatmentSelectionSignalDetector().detect(
+                _read_rows(args.input, "observations", "records", "selection"),
+                context_key=args.context_key,
+                change_threshold=args.change_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "replicate-cross-cohort":
+            result = CrossCohortReplicationEngine().replicate(
+                _read_rows(args.input, "observations", "records", "replication"),
+                context_key=args.context_key,
+                minimum_cohorts=args.minimum_cohorts,
+                minimum_concordance=args.minimum_concordance,
             )
             _write_json(result.to_dict(), args.output)
             return 0
