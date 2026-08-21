@@ -1,0 +1,321 @@
+"""Compact release projections for Domain 02 C13-C16 evidence."""
+
+from __future__ import annotations
+
+import csv
+import io
+import json
+from collections.abc import Mapping
+from dataclasses import dataclass
+from enum import StrEnum
+from pathlib import Path
+from typing import Any
+
+from .errors import ValidationError
+from .serialization import content_hash, jsonable, require_non_empty
+from .structural_frontier_contracts import default_structural_frontier_contract_registry
+from .structural_frontier_fixture_eval import evaluate_structural_frontier_fixture
+from .structural_frontier_lineage import build_structural_frontier_lineage
+from .structural_frontier_public_data import (
+    StructuralFrontierFixtureCatalog,
+    StructuralFrontierFixtureState,
+)
+from .structural_frontier_quality_gate import evaluate_structural_frontier_quality_gate
+from .structural_frontier_scenario_matrix import evaluate_structural_frontier_scenarios
+
+
+class StructuralFrontierBundleFormat(StrEnum):
+    """Supported compact C13-C16 projections."""
+
+    JSON = "json"
+    CSV = "csv"
+    MARKDOWN = "markdown"
+
+
+@dataclass(frozen=True, slots=True)
+class StructuralFrontierBundleEntry:
+    """One positive or review summary without raw operation payload."""
+
+    entry_id: str
+    entry_class: str
+    capability_id: str
+    operation: str
+    state: str
+    result_state: str
+    structural_identifier: str
+    source_id: str
+    evidence_address: str
+    summary: str
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "entry_id",
+            "entry_class",
+            "capability_id",
+            "operation",
+            "state",
+            "result_state",
+            "structural_identifier",
+            "source_id",
+            "evidence_address",
+            "summary",
+        ):
+            require_non_empty(str(getattr(self, field_name)), field_name)
+        if not self.evidence_address.startswith("sha256:"):
+            raise ValidationError("structural frontier evidence address must be addressed")
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class StructuralFrontierEvidenceBundle:
+    """Quality-gated C13-C16 bundle with stable metadata."""
+
+    bundle_id: str
+    fixture_id: str
+    fixture_version: str
+    context_key: str
+    source_ids: tuple[str, ...]
+    entries: tuple[StructuralFrontierBundleEntry, ...]
+    component_summaries: Mapping[str, Mapping[str, Any]]
+    contract_manifest: Mapping[str, Any]
+    quality_summary: Mapping[str, Any]
+    lineage_address: str
+    content_address: str
+    state: StructuralFrontierFixtureState
+
+    @property
+    def accepted(self) -> bool:
+        return self.state == StructuralFrontierFixtureState.ACCEPTED
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {
+            "accepted": self.accepted,
+            "entry_count": len(self.entries),
+            "positive_entry_count": sum(item.entry_class == "positive" for item in self.entries),
+            "review_entry_count": sum(item.entry_class == "review" for item in self.entries),
+        }
+
+    def render(self, output_format: StructuralFrontierBundleFormat | str) -> str:
+        selected = StructuralFrontierBundleFormat(str(output_format))
+        if selected == StructuralFrontierBundleFormat.JSON:
+            return json.dumps(self.to_dict(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        if selected == StructuralFrontierBundleFormat.CSV:
+            buffer = io.StringIO()
+            fields = (
+                "entry_id",
+                "entry_class",
+                "capability_id",
+                "operation",
+                "state",
+                "result_state",
+                "structural_identifier",
+                "source_id",
+                "evidence_address",
+                "summary",
+            )
+            writer = csv.DictWriter(buffer, fieldnames=fields, lineterminator="\n")
+            writer.writeheader()
+            for entry in self.entries:
+                writer.writerow(entry.to_dict())
+            return buffer.getvalue()
+        lines = [
+            "# Structural frontier evidence bundle",
+            "",
+            f"- Bundle: `{self.bundle_id}`",
+            f"- Fixture: `{self.fixture_id}` ({self.fixture_version})",
+            f"- Context: `{self.context_key}`",
+            f"- State: `{self.state.value}`",
+            f"- Content address: `{self.content_address}`",
+            f"- Entries: {len(self.entries)}",
+            "",
+            "| Entry | Class | Capability | Operation | State | Result | Identifier | Evidence |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        ]
+        for entry in self.entries:
+            lines.append(
+                "| "
+                + " | ".join(
+                    (
+                        entry.entry_id,
+                        entry.entry_class,
+                        entry.capability_id,
+                        entry.operation,
+                        entry.state,
+                        entry.result_state,
+                        entry.structural_identifier,
+                        entry.evidence_address,
+                    )
+                )
+                + " |"
+            )
+        lines.extend(("", "## Boundary", "", str(self.quality_summary.get("evidence_boundary", "")), "", "## Sources", ""))
+        lines.extend(f"- `{source_id}`" for source_id in self.source_ids)
+        return "\n".join(lines) + "\n"
+
+
+class StructuralFrontierEvidenceBundleBuilder:
+    """Build a compact bundle only after the C13-C16 quality gate passes."""
+
+    _capability_by_operation = {
+        "tandem_repeat": "GNC-D02-C13",
+        "compound_haplotype": "GNC-D02-C14",
+        "breakpoint_uncertainty": "GNC-D02-C15",
+        "structural_evidence_export": "GNC-D02-C16",
+    }
+
+    def build(
+        self,
+        path: str | Path,
+        *,
+        bundle_id: str | None = None,
+        allow_review: bool = False,
+    ) -> StructuralFrontierEvidenceBundle:
+        catalog = StructuralFrontierFixtureCatalog.from_file(path)
+        quality = evaluate_structural_frontier_quality_gate(catalog)
+        if not quality.passed and not allow_review:
+            raise ValidationError("structural frontier bundle requires a passing quality gate")
+        evaluation = evaluate_structural_frontier_fixture(catalog)
+        lineage = build_structural_frontier_lineage(catalog, evaluation=evaluation)
+        receipt_by_id = {receipt.record_id: receipt for receipt in evaluation.receipts}
+        entries: list[StructuralFrontierBundleEntry] = []
+        for entry_class, records in (("positive", catalog.positives), ("review", catalog.controls)):
+            for record in records:
+                receipt = receipt_by_id[record.record_id]
+                entries.append(
+                    StructuralFrontierBundleEntry(
+                        entry_id=f"{entry_class}:{record.record_id}",
+                        entry_class=entry_class,
+                        capability_id=self._capability_by_operation[record.operation.value],
+                        operation=record.operation.value,
+                        state=receipt.observed_state.value,
+                        result_state=receipt.observed_result_state,
+                        structural_identifier=record.record_id,
+                        source_id=record.source_id,
+                        evidence_address=receipt.output_address,
+                        summary=receipt.detail,
+                    )
+                )
+        entries.sort(key=lambda item: (item.entry_class, item.capability_id, item.entry_id))
+        scenarios = evaluate_structural_frontier_scenarios(catalog)
+        component_summaries = {
+            "fixture": {
+                "check_count": len(evaluation.checks),
+                "passed_count": sum(check.passed for check in evaluation.checks),
+                "positive_count": len(catalog.positives),
+                "review_control_count": len(catalog.controls),
+            },
+            "scenarios": {
+                "scenario_count": len(scenarios.scenarios),
+                "positive_count": scenarios.positive_count,
+                "review_count": scenarios.review_count,
+                "passed": scenarios.passed,
+            },
+            "quality": {
+                "check_count": len(quality.checks),
+                "passed_count": sum(check.passed for check in quality.checks),
+                "state": quality.state.value,
+            },
+            "lineage": {
+                "node_count": len(lineage.nodes),
+                "edge_count": len(lineage.edges),
+                "state": lineage.state.value,
+                "content_address": lineage.content_address,
+            },
+        }
+        quality_summary = {
+            "state": quality.state.value,
+            "passed": quality.passed,
+            "check_count": len(quality.checks),
+            "failed_check_ids": tuple(check.check_id for check in quality.checks if not check.passed),
+            "evidence_boundary": "public aggregate C13-C16 repeat, haplotype, breakpoint, and structural evidence observations",
+            "quality_address": quality.content_address,
+            "lineage_address": lineage.content_address,
+        }
+        selected_id = require_non_empty(bundle_id or f"{catalog.fixture_id}-bundle", "bundle_id")
+        body = {
+            "bundle_id": selected_id,
+            "fixture_id": catalog.fixture_id,
+            "fixture_version": catalog.schema_version,
+            "context_key": catalog.context_key,
+            "source_ids": catalog.source_ids,
+            "entries": entries,
+            "component_summaries": component_summaries,
+            "contract_manifest": default_structural_frontier_contract_registry().manifest(),
+            "quality_summary": quality_summary,
+            "lineage_address": lineage.content_address,
+            "state": quality.state,
+        }
+        return StructuralFrontierEvidenceBundle(
+            bundle_id=selected_id,
+            fixture_id=catalog.fixture_id,
+            fixture_version=catalog.schema_version,
+            context_key=catalog.context_key,
+            source_ids=catalog.source_ids,
+            entries=tuple(entries),
+            component_summaries=component_summaries,
+            contract_manifest=body["contract_manifest"],
+            quality_summary=quality_summary,
+            lineage_address=lineage.content_address,
+            content_address=content_hash(body),
+            state=quality.state,
+        )
+
+    def write(
+        self,
+        path: str | Path,
+        output: str | Path,
+        *,
+        output_format: StructuralFrontierBundleFormat | str | None = None,
+        bundle_id: str | None = None,
+        allow_review: bool = False,
+    ) -> StructuralFrontierEvidenceBundle:
+        bundle = self.build(path, bundle_id=bundle_id, allow_review=allow_review)
+        output_path = Path(output)
+        output_path.write_text(bundle.render(self._format_for_path(output_path, output_format)), encoding="utf-8")
+        return bundle
+
+    @staticmethod
+    def verify(payload: Mapping[str, Any]) -> bool:
+        """Verify a serialized JSON bundle without trusting convenience fields."""
+
+        if not isinstance(payload, Mapping):
+            return False
+        address = payload.get("content_address")
+        if not isinstance(address, str) or not address.startswith("sha256:"):
+            return False
+        body = dict(payload)
+        for key in ("content_address", "accepted", "entry_count", "positive_entry_count", "review_entry_count"):
+            body.pop(key, None)
+        return address == content_hash(body)
+
+    @staticmethod
+    def _format_for_path(output: Path, output_format: StructuralFrontierBundleFormat | str | None) -> StructuralFrontierBundleFormat:
+        if output_format is not None:
+            return StructuralFrontierBundleFormat(str(output_format))
+        if output.suffix.casefold() == ".csv":
+            return StructuralFrontierBundleFormat.CSV
+        if output.suffix.casefold() in {".md", ".markdown"}:
+            return StructuralFrontierBundleFormat.MARKDOWN
+        return StructuralFrontierBundleFormat.JSON
+
+
+def build_structural_frontier_evidence_bundle(
+    path: str | Path,
+    *,
+    bundle_id: str | None = None,
+    allow_review: bool = False,
+) -> StructuralFrontierEvidenceBundle:
+    """Build a compact C13-C16 evidence bundle."""
+
+    return StructuralFrontierEvidenceBundleBuilder().build(path, bundle_id=bundle_id, allow_review=allow_review)
+
+
+__all__ = [
+    "StructuralFrontierBundleEntry",
+    "StructuralFrontierBundleFormat",
+    "StructuralFrontierEvidenceBundle",
+    "StructuralFrontierEvidenceBundleBuilder",
+    "build_structural_frontier_evidence_bundle",
+]

@@ -916,51 +916,144 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D02-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.TandemRepeatInterpreter",
                     "glio_noncode.frontier_data_alpha.TandemRepeatReport",
+                    "glio_noncode.structural_frontier_public_data",
+                    "glio_noncode.structural_frontier_fixture_eval",
+                    "glio_noncode.structural_frontier_contracts",
+                    "glio_noncode.structural_frontier_replay",
+                    "glio_noncode.structural_frontier_scenario_matrix",
+                    "glio_noncode.structural_frontier_quality_gate",
+                    "glio_noncode.structural_frontier_bundle",
+                    "glio_noncode.structural_frontier_lineage",
+                    "glio_noncode.structural_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_structural_frontier_cli",
+                    "tests.test_structural_frontier_public_data",
+                    "tests.test_structural_frontier_fixture_eval",
+                    "tests.test_structural_frontier_contracts",
+                    "tests.test_structural_frontier_replay",
+                    "tests.test_structural_frontier_scenario_matrix",
+                    "tests.test_structural_frontier_quality_gate",
+                    "tests.test_structural_frontier_bundle",
+                    "tests.test_structural_frontier_lineage",
+                    "tests.test_structural_frontier_runtime",
+                ),
                 "evidence_note": (
                     "Repeat copy deltas preserve motif validation, interval checks, measurement "
-                    "uncertainty, and expansion or contraction classifications."
+                    "uncertainty, and expansion or contraction classifications. The aggregate "
+                    "fixture, twelve-record evaluator, independent scenarios, twenty-check gate, "
+                    "lineage graph, compact bundle, and four-stage runtime all preserve review "
+                    "controls without raw payloads. Sequence-level repeat interpretation remains."
                 ),
             },
             "GNC-D02-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.CompoundHaplotypeEvaluator",
                     "glio_noncode.frontier_data_alpha.HaplotypeEvaluationReport",
+                    "glio_noncode.structural_frontier_public_data",
+                    "glio_noncode.structural_frontier_fixture_eval",
+                    "glio_noncode.structural_frontier_contracts",
+                    "glio_noncode.structural_frontier_replay",
+                    "glio_noncode.structural_frontier_scenario_matrix",
+                    "glio_noncode.structural_frontier_quality_gate",
+                    "glio_noncode.structural_frontier_bundle",
+                    "glio_noncode.structural_frontier_lineage",
+                    "glio_noncode.structural_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_structural_frontier_cli",
+                    "tests.test_structural_frontier_public_data",
+                    "tests.test_structural_frontier_fixture_eval",
+                    "tests.test_structural_frontier_contracts",
+                    "tests.test_structural_frontier_replay",
+                    "tests.test_structural_frontier_scenario_matrix",
+                    "tests.test_structural_frontier_quality_gate",
+                    "tests.test_structural_frontier_bundle",
+                    "tests.test_structural_frontier_lineage",
+                    "tests.test_structural_frontier_runtime",
+                ),
                 "evidence_note": (
                     "Compound haplotypes retain required and observed alleles, missingness, phase "
-                    "state, completeness, and explicit review when phase or identity is unresolved."
+                    "state, completeness, and explicit review when phase or identity is unresolved. "
+                    "Positive and incomplete controls are replayable across exact contexts and "
+                    "sources, with bounded export and runtime state transitions."
                 ),
             },
             "GNC-D02-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.BreakpointUncertaintyPropagator",
                     "glio_noncode.frontier_data_alpha.BreakpointPropagationReport",
+                    "glio_noncode.structural_frontier_public_data",
+                    "glio_noncode.structural_frontier_fixture_eval",
+                    "glio_noncode.structural_frontier_contracts",
+                    "glio_noncode.structural_frontier_replay",
+                    "glio_noncode.structural_frontier_scenario_matrix",
+                    "glio_noncode.structural_frontier_quality_gate",
+                    "glio_noncode.structural_frontier_bundle",
+                    "glio_noncode.structural_frontier_lineage",
+                    "glio_noncode.structural_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_structural_frontier_cli",
+                    "tests.test_structural_frontier_public_data",
+                    "tests.test_structural_frontier_fixture_eval",
+                    "tests.test_structural_frontier_contracts",
+                    "tests.test_structural_frontier_replay",
+                    "tests.test_structural_frontier_scenario_matrix",
+                    "tests.test_structural_frontier_quality_gate",
+                    "tests.test_structural_frontier_bundle",
+                    "tests.test_structural_frontier_lineage",
+                    "tests.test_structural_frontier_runtime",
+                ),
                 "evidence_note": (
                     "Paired breakpoint intervals propagate left and right interval widths into a "
-                    "bounded uncertainty receipt without collapsing confidence into certainty."
+                    "bounded uncertainty receipt without collapsing confidence into certainty. "
+                    "Inverted, low-confidence, and within-uncertainty controls are explicit, and "
+                    "the graph, bundle, replay, and quality surfaces retain their decisions."
                 ),
             },
             "GNC-D02-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.StructuralVariantEvidenceExporter",
                     "glio_noncode.frontier_data_alpha.StructuralEvidenceBundle",
+                    "glio_noncode.structural_frontier_public_data",
+                    "glio_noncode.structural_frontier_fixture_eval",
+                    "glio_noncode.structural_frontier_contracts",
+                    "glio_noncode.structural_frontier_replay",
+                    "glio_noncode.structural_frontier_scenario_matrix",
+                    "glio_noncode.structural_frontier_quality_gate",
+                    "glio_noncode.structural_frontier_bundle",
+                    "glio_noncode.structural_frontier_lineage",
+                    "glio_noncode.structural_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_structural_frontier_cli",
+                    "tests.test_structural_frontier_public_data",
+                    "tests.test_structural_frontier_fixture_eval",
+                    "tests.test_structural_frontier_contracts",
+                    "tests.test_structural_frontier_replay",
+                    "tests.test_structural_frontier_scenario_matrix",
+                    "tests.test_structural_frontier_quality_gate",
+                    "tests.test_structural_frontier_bundle",
+                    "tests.test_structural_frontier_lineage",
+                    "tests.test_structural_frontier_runtime",
+                ),
                 "evidence_note": (
                     "Structural evidence bundles retain required evidence identity, context, source "
-                    "IDs, deterministic ordering, and a content address."
+                    "IDs, deterministic ordering, and a content address. Missing fields and context "
+                    "drift block publication, while JSON, CSV, Markdown, lineage, and runtime "
+                    "surfaces expose sanitized evidence summaries for review."
                 ),
             },
             "GNC-D03-C01": {

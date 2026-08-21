@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 44 capabilities have deterministic fixture-backed
-verification and 212 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 48 capabilities have deterministic fixture-backed
+verification and 208 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -320,8 +320,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 44 controls are now verified against the checked-in
-Domain 01, Domain 02, and D13-D16 fixtures, while 212 capabilities remain partial. Partial
+capabilities started (100%); 48 controls are now verified against the checked-in
+Domain 01, Domain 02, and D13-D16 fixtures, while 208 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.

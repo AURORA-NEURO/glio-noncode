@@ -291,6 +291,27 @@ from .structural_haplotype_replay import (
 )
 from .structural_haplotype_runtime import run_structural_haplotype_pipeline
 from .structural_haplotype_scenario_matrix import evaluate_structural_haplotype_scenarios
+from .structural_frontier_bundle import (
+    StructuralFrontierBundleFormat,
+    StructuralFrontierEvidenceBundleBuilder,
+)
+from .structural_frontier_contracts import default_structural_frontier_contract_registry
+from .structural_frontier_fixture_eval import evaluate_structural_frontier_fixture
+from .structural_frontier_lineage import (
+    audit_structural_frontier_lineage,
+    build_structural_frontier_lineage,
+)
+from .structural_frontier_public_data import (
+    StructuralFrontierFixtureCatalog,
+    audit_structural_frontier_fixture,
+)
+from .structural_frontier_quality_gate import evaluate_structural_frontier_quality_gate
+from .structural_frontier_replay import (
+    StructuralFrontierReplayExpectation,
+    replay_structural_frontier_fixtures,
+)
+from .structural_frontier_runtime import run_structural_frontier_pipeline
+from .structural_frontier_scenario_matrix import evaluate_structural_frontier_scenarios
 from .structural_lineage import audit_structural_lineage, build_structural_lineage
 from .structural_public_data import StructuralFixtureCatalog, audit_structural_fixture
 from .structural_quality_gate import evaluate_structural_quality_gate
@@ -1382,6 +1403,80 @@ def build_parser() -> argparse.ArgumentParser:
     )
     structural_haplotype_pipeline.add_argument("input", type=str)
     structural_haplotype_pipeline.add_argument("--output", default=None)
+
+    structural_frontier_fixture = subparsers.add_parser(
+        "evaluate-structural-frontier-fixture",
+        help="evaluate the public aggregate fixture across Domain 02 C13-C16 frontier operations",
+    )
+    structural_frontier_fixture.add_argument("input", type=str)
+    structural_frontier_fixture.add_argument("--output", default=None)
+
+    structural_frontier_data = subparsers.add_parser(
+        "audit-structural-frontier-data",
+        help="audit public aggregate C13-C16 sources, contexts, identities, and payload scope",
+    )
+    structural_frontier_data.add_argument("input", type=str)
+    structural_frontier_data.add_argument("--output", default=None)
+
+    structural_frontier_replay = subparsers.add_parser(
+        "replay-structural-frontier-fixtures",
+        help="replay C13-C16 fixtures with identity, context, source, and evidence floors",
+    )
+    structural_frontier_replay.add_argument("inputs", nargs="+", type=str)
+    structural_frontier_replay.add_argument("--required-context-key", default=None)
+    structural_frontier_replay.add_argument("--output", default=None)
+
+    structural_frontier_quality = subparsers.add_parser(
+        "structural-frontier-quality-gate",
+        help="reconcile C13-C16 fixture, data, replay, scenario, contract, and lineage evidence",
+    )
+    structural_frontier_quality.add_argument("input", type=str)
+    structural_frontier_quality.add_argument("--output", default=None)
+
+    structural_frontier_scenarios = subparsers.add_parser(
+        "evaluate-structural-frontier-scenarios",
+        help="run independent C13-C16 positive and review state-transition scenarios",
+    )
+    structural_frontier_scenarios.add_argument("input", type=str)
+    structural_frontier_scenarios.add_argument("--output", default=None)
+
+    structural_frontier_contracts = subparsers.add_parser(
+        "structural-frontier-contracts",
+        help="print the four-operation Domain 02 C13-C16 structural frontier contract registry",
+    )
+    structural_frontier_contracts.add_argument("--output", default=None)
+
+    structural_frontier_bundle = subparsers.add_parser(
+        "build-structural-frontier-bundle",
+        help="build a compact JSON, CSV, or Markdown C13-C16 structural frontier evidence bundle",
+    )
+    structural_frontier_bundle.add_argument("input", type=str)
+    structural_frontier_bundle.add_argument("--output", required=True)
+    structural_frontier_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in StructuralFrontierBundleFormat],
+        default=StructuralFrontierBundleFormat.JSON.value,
+    )
+    structural_frontier_bundle.add_argument("--bundle-id", default=None)
+    structural_frontier_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state C13-C16 bundle for inspection instead of requiring the gate",
+    )
+
+    structural_frontier_lineage = subparsers.add_parser(
+        "structural-frontier-lineage",
+        help="build and audit a sanitized C13-C16 source-to-result lineage graph",
+    )
+    structural_frontier_lineage.add_argument("input", type=str)
+    structural_frontier_lineage.add_argument("--output", default=None)
+
+    structural_frontier_pipeline = subparsers.add_parser(
+        "run-structural-frontier-pipeline",
+        help="run tandem-repeat, compound-haplotype, breakpoint, and evidence-export stages",
+    )
+    structural_frontier_pipeline.add_argument("input", type=str)
+    structural_frontier_pipeline.add_argument("--output", default=None)
 
     structural_beta_fixture = subparsers.add_parser(
         "evaluate-structural-beta-fixture",
@@ -3419,6 +3514,64 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if audit.passed else 2
         if args.command == "run-structural-haplotype-pipeline":
             report = run_structural_haplotype_pipeline(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-structural-frontier-fixture":
+            report = evaluate_structural_frontier_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-structural-frontier-data":
+            catalog = StructuralFrontierFixtureCatalog.from_file(args.input)
+            report = audit_structural_frontier_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-structural-frontier-fixtures":
+            first_catalog = StructuralFrontierFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = StructuralFrontierReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                first_catalog.source_ids,
+                minimum_checks=40,
+                minimum_positive_records=4,
+                minimum_control_records=8,
+            )
+            report = replay_structural_frontier_fixtures(
+                args.inputs,
+                expectation=expectation,
+                required_context_key=required_context_key,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-frontier-quality-gate":
+            report = evaluate_structural_frontier_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-structural-frontier-scenarios":
+            report = evaluate_structural_frontier_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-frontier-contracts":
+            _write_json(default_structural_frontier_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-structural-frontier-bundle":
+            bundle = StructuralFrontierEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+                allow_review=args.allow_review,
+            )
+            return 0 if bundle.accepted else 2
+        if args.command == "structural-frontier-lineage":
+            graph = build_structural_frontier_lineage(args.input)
+            audit = audit_structural_frontier_lineage(graph)
+            payload = graph.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "run-structural-frontier-pipeline":
+            report = run_structural_frontier_pipeline(_read_json(args.input))
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "evaluate-structural-beta-fixture":

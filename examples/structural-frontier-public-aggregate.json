@@ -1,0 +1,323 @@
+{
+  "schema_version": "structural-frontier-evidence-v1",
+  "fixture_id": "structural-frontier-public-aggregate-2026-08-21",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "provenance": "public aggregate source receipts with bounded local observations",
+  "patient_level": false,
+  "sources": [
+    {
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "title": "NCBI dbVar FTP File Manifest",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/ftp_manifest/",
+      "version": "report-2026-04-10",
+      "license": "NCBI public database terms",
+      "data_scope": "public aggregate human structural variation",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Assembly and study-indexed structural variation download manifest."
+    },
+    {
+      "source_id": "ncbi-dbvar-study-browser",
+      "title": "NCBI dbVar Study Browser",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/studies/",
+      "version": "study-browser-2026-04",
+      "license": "NCBI public database terms",
+      "data_scope": "public aggregate study and variant-region metadata",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Study-level identifiers and download links frame source identity."
+    },
+    {
+      "source_id": "gnomad-sv-v4",
+      "title": "gnomAD Structural Variants v4",
+      "url": "https://gnomad.broadinstitute.org/news/2023-11-v4-structural-variants/",
+      "version": "v4-public-release",
+      "license": "gnomAD public data use terms",
+      "data_scope": "public aggregate genome structural variant callset description",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Public callset release receipt; no individual-level rows are embedded."
+    },
+    {
+      "source_id": "ncbi-dbvar-human-hub",
+      "title": "NCBI dbVar Human Structural Variation Data Hub",
+      "url": "https://www.ncbi.nlm.nih.gov/dbvar/content/human_hub/",
+      "version": "human-hub-2026-04",
+      "license": "NCBI public database terms",
+      "data_scope": "public aggregate human structural variant tracks",
+      "patient_level": false,
+      "retrieved_at": "2026-08-21",
+      "notes": "Aggregate structural-variant track and allele resource receipt."
+    }
+  ],
+  "positives": [
+    {
+      "record_id": "positive-tandem-repeat",
+      "operation": "tandem_repeat",
+      "expected_result_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "expected_counts": {"observations": 1, "expanded": 1, "contracted": 0},
+      "description": "A public aggregate CAG repeat copy increase exceeds its stated uncertainty.",
+      "payload": {
+        "parameters": {"minimum_motif_length": 3},
+        "records": [
+          {
+            "repeat_id": "nstd200-repeat-0001",
+            "chromosome": "chr9",
+            "start": 1000,
+            "end": 1030,
+            "motif": "CAG",
+            "reference_units": 4,
+            "observed_units": 8,
+            "uncertainty_units": 1,
+            "source_id": "ncbi-dbvar-ftp-manifest"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-compound-haplotype",
+      "operation": "compound_haplotype",
+      "expected_result_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "expected_counts": {"evaluations": 1, "compatible": 1, "review": 0},
+      "description": "A complete declared compound haplotype retains its explicit cis phase label.",
+      "payload": {
+        "parameters": {"minimum_completeness": 1.0},
+        "records": [
+          {
+            "haplotype_id": "nstd162-compound-0001",
+            "variant_ids": ["nstd162-variant-region-0001", "nstd162-variant-region-0002"],
+            "observed_variant_ids": ["nstd162-variant-region-0001", "nstd162-variant-region-0002"],
+            "phase_state": "cis"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-breakpoint-uncertainty",
+      "operation": "breakpoint_uncertainty",
+      "expected_result_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "expected_counts": {"intervals": 1, "high_confidence": 1, "review": 0},
+      "description": "Paired breakpoint intervals propagate a bounded uncertainty receipt at high confidence.",
+      "payload": {
+        "parameters": {"minimum_confidence": 0.7},
+        "records": [
+          {
+            "breakpoint_id": "gnomad-sv-v4-breakpoint-0001",
+            "chromosome": "chr7",
+            "left_min": 55200000,
+            "left_max": 55200005,
+            "right_min": 55201000,
+            "right_max": 55201010,
+            "confidence": 0.92
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-structural-evidence-export",
+      "operation": "structural_evidence_export",
+      "expected_result_state": "published",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-human-hub",
+      "expected_counts": {"evidence": 2, "sources": 2, "published": 1},
+      "description": "Two source-accounted structural evidence observations form a deterministic bundle.",
+      "payload": {
+        "bundle_id": "public-structural-evidence-0001",
+        "evidence": [
+          {
+            "variant_id": "nstd162-variant-region-0001",
+            "evidence_type": "split_read",
+            "source_id": "ncbi-dbvar-human-hub"
+          },
+          {
+            "variant_id": "nstd200-variant-region-0002",
+            "evidence_type": "paired_end",
+            "source_id": "gnomad-sv-v4"
+          }
+        ]
+      }
+    }
+  ],
+  "controls": [
+    {
+      "record_id": "control-tandem-invalid-motif",
+      "operation": "tandem_repeat",
+      "expected_result_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "required_issue_codes": ["invalid_motif"],
+      "expected_counts": {"observations": 1, "expanded": 0, "contracted": 0},
+      "description": "A malformed motif is retained as review evidence rather than classified as expansion.",
+      "payload": {
+        "parameters": {"minimum_motif_length": 3},
+        "records": [
+          {
+            "repeat_id": "control-repeat-invalid-motif",
+            "chromosome": "chr9",
+            "start": 1100,
+            "end": 1120,
+            "motif": "CAX",
+            "reference_units": 4,
+            "observed_units": 8,
+            "uncertainty_units": 1
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-tandem-within-uncertainty",
+      "operation": "tandem_repeat",
+      "expected_result_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-ftp-manifest",
+      "expected_counts": {"observations": 1, "expanded": 0},
+      "description": "A copy increase inside the uncertainty interval is not promoted to expansion.",
+      "payload": {
+        "records": [
+          {
+            "repeat_id": "control-repeat-uncertain",
+            "chromosome": "chr9",
+            "start": 1200,
+            "end": 1230,
+            "motif": "CAG",
+            "reference_units": 6,
+            "observed_units": 7,
+            "uncertainty_units": 2
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-compound-incomplete",
+      "operation": "compound_haplotype",
+      "expected_result_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "required_issue_codes": ["incomplete_haplotype"],
+      "expected_counts": {"evaluations": 1, "compatible": 0, "review": 1},
+      "description": "A missing required variant prevents a complete compound haplotype claim.",
+      "payload": {
+        "parameters": {"minimum_completeness": 0.8},
+        "records": [
+          {
+            "haplotype_id": "control-compound-incomplete",
+            "variant_ids": ["nstd162-variant-region-0001", "nstd162-variant-region-0002"],
+            "observed_variant_ids": ["nstd162-variant-region-0001"],
+            "phase_state": "unknown"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-compound-phase-unknown",
+      "operation": "compound_haplotype",
+      "expected_result_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-study-browser",
+      "expected_counts": {"evaluations": 1, "compatible": 1},
+      "description": "Completeness is accepted while unresolved phase remains explicit as unknown.",
+      "payload": {
+        "records": [
+          {
+            "haplotype_id": "control-compound-unknown-phase",
+            "variant_ids": ["nstd162-variant-region-0001", "nstd162-variant-region-0002"],
+            "observed_variant_ids": ["nstd162-variant-region-0001", "nstd162-variant-region-0002"],
+            "phase_state": "unknown"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-breakpoint-inverted",
+      "operation": "breakpoint_uncertainty",
+      "expected_result_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "required_issue_codes": ["inverted_left_interval"],
+      "expected_counts": {"intervals": 1, "high_confidence": 0, "review": 1},
+      "description": "An inverted left interval is retained with a blocking review reason.",
+      "payload": {
+        "records": [
+          {
+            "breakpoint_id": "control-breakpoint-inverted",
+            "chromosome": "chr7",
+            "left_min": 55200100,
+            "left_max": 55200090,
+            "right_min": 55201100,
+            "right_max": 55201110,
+            "confidence": 0.92
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-breakpoint-low-confidence",
+      "operation": "breakpoint_uncertainty",
+      "expected_result_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "gnomad-sv-v4",
+      "expected_counts": {"intervals": 1, "high_confidence": 0},
+      "description": "A valid interval with low confidence remains review state.",
+      "payload": {
+        "parameters": {"minimum_confidence": 0.7},
+        "records": [
+          {
+            "breakpoint_id": "control-breakpoint-low-confidence",
+            "chromosome": "chr7",
+            "left_min": 55200200,
+            "left_max": 55200205,
+            "right_min": 55201200,
+            "right_max": 55201210,
+            "confidence": 0.42
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-export-missing-field",
+      "operation": "structural_evidence_export",
+      "expected_result_state": "invalid",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-human-hub",
+      "expected_counts": {"evidence": 0, "sources": 0, "published": 0},
+      "description": "Missing source identity blocks export without copying the malformed row.",
+      "payload": {
+        "bundle_id": "control-export-missing-field",
+        "evidence": [
+          {"variant_id": "nstd162-variant-region-0003", "evidence_type": "split_read"}
+        ]
+      }
+    },
+    {
+      "record_id": "control-export-context-drift",
+      "operation": "structural_evidence_export",
+      "expected_result_state": "invalid",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_id": "ncbi-dbvar-human-hub",
+      "expected_counts": {"evidence": 0, "sources": 0, "published": 0},
+      "description": "A row from another build is rejected at the export boundary.",
+      "payload": {
+        "bundle_id": "control-export-context-drift",
+        "evidence": [
+          {
+            "variant_id": "nstd162-variant-region-0004",
+            "evidence_type": "paired_end",
+            "source_id": "ncbi-dbvar-human-hub",
+            "context_key": "GRCh37|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"
+          }
+        ]
+      }
+    }
+  ],
+  "notes": [
+    "Rows are public aggregate evidence examples bounded to one exact six-field context.",
+    "The fixture verifies interpretation and release behavior; it does not establish clinical meaning.",
+    "Raw operation payloads are excluded from evaluation, lineage, and bundle outputs."
+  ]
+}

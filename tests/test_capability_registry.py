@@ -15,10 +15,10 @@ class CapabilityRegistryTests(unittest.TestCase):
         coverage = registry.coverage()
         self.assertEqual(coverage.total_capabilities, 256)
         self.assertEqual(coverage.mvp_capabilities, 64)
-        self.assertEqual(coverage.verified, 44)
-        self.assertEqual(coverage.partial, 212)
+        self.assertEqual(coverage.verified, 48)
+        self.assertEqual(coverage.partial, 208)
         self.assertEqual(coverage.planned, 0)
-        self.assertAlmostEqual(coverage.implementation_percent, 17.19)
+        self.assertAlmostEqual(coverage.implementation_percent, 18.75)
         self.assertAlmostEqual(coverage.mvp_implementation_percent, 12.5)
         self.assertEqual(coverage.started, 256)
         self.assertAlmostEqual(coverage.started_percent, 100.0)
@@ -50,6 +50,10 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertEqual(registry.record("GNC-D02-C10").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D02-C11").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D02-C12").state, CapabilityState.VERIFIED)
+        self.assertEqual(registry.record("GNC-D02-C13").state, CapabilityState.VERIFIED)
+        self.assertEqual(registry.record("GNC-D02-C14").state, CapabilityState.VERIFIED)
+        self.assertEqual(registry.record("GNC-D02-C15").state, CapabilityState.VERIFIED)
+        self.assertEqual(registry.record("GNC-D02-C16").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D03-C05").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D03-C08").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D03-C09").state, CapabilityState.PARTIAL)
@@ -143,7 +147,7 @@ class CapabilityRegistryTests(unittest.TestCase):
         ):
             expected_state = (
                 CapabilityState.VERIFIED
-                if capability_id.split("-")[1] in {"D01", "D13", "D14", "D15", "D16"}
+                if capability_id.split("-")[1] in {"D01", "D02", "D13", "D14", "D15", "D16"}
                 else CapabilityState.PARTIAL
             )
             self.assertEqual(registry.record(capability_id).state, expected_state)

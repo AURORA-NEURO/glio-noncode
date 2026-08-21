@@ -1,0 +1,31 @@
+{
+  "request_id": "structural-frontier-pipeline-review-2026-08-21",
+  "manifest_id": "structural-frontier-pipeline-manifest-review",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": ["ncbi-dbvar-ftp-manifest", "ncbi-dbvar-study-browser", "gnomad-sv-v4", "ncbi-dbvar-human-hub"],
+  "operations": {
+    "tandem_repeat": {
+      "records": [
+        {"repeat_id": "pipeline-review-repeat", "chromosome": "chr9", "start": 1000, "end": 1030, "motif": "CAX", "reference_units": 4, "observed_units": 8, "uncertainty_units": 1, "source_id": "ncbi-dbvar-ftp-manifest"}
+      ]
+    },
+    "compound_haplotype": {
+      "parameters": {"minimum_completeness": 0.8},
+      "records": [
+        {"haplotype_id": "pipeline-review-haplotype", "variant_ids": ["pipeline-sv-1", "pipeline-sv-2"], "observed_variant_ids": ["pipeline-sv-1"], "phase_state": "unknown", "source_id": "ncbi-dbvar-study-browser"}
+      ]
+    },
+    "breakpoint_uncertainty": {
+      "parameters": {"minimum_confidence": 0.7},
+      "records": [
+        {"breakpoint_id": "pipeline-review-breakpoint", "chromosome": "chr7", "left_min": 55200000, "left_max": 55200005, "right_min": 55201000, "right_max": 55201010, "confidence": 0.42, "source_id": "gnomad-sv-v4"}
+      ]
+    },
+    "structural_evidence_export": {
+      "bundle_id": "pipeline-review-export",
+      "evidence": [
+        {"variant_id": "pipeline-review-sv", "evidence_type": "paired_end", "source_id": "gnomad-sv-v4", "context_key": "GRCh37|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment"}
+      ]
+    }
+  }
+}

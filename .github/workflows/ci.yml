@@ -140,3 +140,21 @@ jobs:
         run: python -m glio_noncode structural-haplotype-lineage examples/structural-haplotype-public-aggregate.json --output /tmp/glio-structural-haplotype-lineage.json
       - name: Structural haplotype pipeline integration
         run: python -m glio_noncode run-structural-haplotype-pipeline examples/structural-haplotype-pipeline-accepted.json --output /tmp/glio-structural-haplotype-pipeline.json
+      - name: Structural frontier data boundary audit
+        run: python -m glio_noncode audit-structural-frontier-data examples/structural-frontier-public-aggregate.json --output /tmp/glio-structural-frontier-data.json
+      - name: Structural frontier fixture evaluation
+        run: python -m glio_noncode evaluate-structural-frontier-fixture examples/structural-frontier-public-aggregate.json --output /tmp/glio-structural-frontier-fixture.json
+      - name: Structural frontier replay integrity
+        run: python -m glio_noncode replay-structural-frontier-fixtures examples/structural-frontier-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-structural-frontier-replay.json
+      - name: Structural frontier quality gate
+        run: python -m glio_noncode structural-frontier-quality-gate examples/structural-frontier-public-aggregate.json --output /tmp/glio-structural-frontier-quality.json
+      - name: Structural frontier scenario matrix
+        run: python -m glio_noncode evaluate-structural-frontier-scenarios examples/structural-frontier-public-aggregate.json --output /tmp/glio-structural-frontier-scenarios.json
+      - name: Structural frontier operation contracts
+        run: python -m glio_noncode structural-frontier-contracts --output /tmp/glio-structural-frontier-contracts.json
+      - name: Structural frontier evidence bundle
+        run: python -m glio_noncode build-structural-frontier-bundle examples/structural-frontier-public-aggregate.json --output /tmp/glio-structural-frontier-bundle.json
+      - name: Structural frontier lineage graph
+        run: python -m glio_noncode structural-frontier-lineage examples/structural-frontier-public-aggregate.json --output /tmp/glio-structural-frontier-lineage.json
+      - name: Structural frontier pipeline integration
+        run: python -m glio_noncode run-structural-frontier-pipeline examples/structural-frontier-pipeline-accepted.json --output /tmp/glio-structural-frontier-pipeline.json
