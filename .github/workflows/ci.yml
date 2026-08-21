@@ -56,3 +56,17 @@ jobs:
         run: python -m glio_noncode variation-contracts --output /tmp/glio-variation-contracts.json
       - name: Variation evidence bundle
         run: python -m glio_noncode build-variation-bundle examples/variation-public-aggregate.json --output /tmp/glio-variation-bundle.json
+      - name: Identity data boundary audit
+        run: python -m glio_noncode audit-identity-data examples/identity-public-aggregate.json --output /tmp/glio-identity-data.json
+      - name: Identity fixture evaluation
+        run: python -m glio_noncode evaluate-identity-fixture examples/identity-public-aggregate.json --output /tmp/glio-identity-fixture.json
+      - name: Identity replay integrity
+        run: python -m glio_noncode replay-identity-fixtures examples/identity-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-identity-replay.json
+      - name: Identity quality gate
+        run: python -m glio_noncode identity-quality-gate examples/identity-public-aggregate.json --output /tmp/glio-identity-quality.json
+      - name: Identity scenario matrix
+        run: python -m glio_noncode evaluate-identity-scenarios examples/identity-public-aggregate.json --output /tmp/glio-identity-scenarios.json
+      - name: Identity operation contracts
+        run: python -m glio_noncode identity-contracts --output /tmp/glio-identity-contracts.json
+      - name: Identity evidence bundle
+        run: python -m glio_noncode build-identity-bundle examples/identity-public-aggregate.json --output /tmp/glio-identity-bundle.json

@@ -129,6 +129,13 @@ from .identity_beta import (
     DuplicateAliasReconciler,
     VariantEquivalenceResolver,
 )
+from .identity_bundle import IdentityBundleFormat, IdentityEvidenceBundleBuilder
+from .identity_contracts import default_identity_contract_registry
+from .identity_fixture_eval import evaluate_identity_fixture
+from .identity_public_data import IdentityFixtureCatalog, audit_identity_fixture
+from .identity_quality_gate import evaluate_identity_quality_gate
+from .identity_replay import IdentityReplayExpectation, replay_identity_fixtures
+from .identity_scenario_matrix import evaluate_identity_scenarios
 from .intake import IntakeFormat, VariantIntake
 from .lifecycle_alpha import (
     BlindedAdjudicationPlan,
@@ -1058,6 +1065,61 @@ def build_parser() -> argparse.ArgumentParser:
         default=VariationBundleFormat.JSON.value,
     )
     variation_bundle.add_argument("--bundle-id", default=None)
+
+    identity_fixture = subparsers.add_parser(
+        "evaluate-identity-fixture",
+        help="evaluate the public aggregate fixture across four Domain 01 identity adapters",
+    )
+    identity_fixture.add_argument("input", type=str)
+    identity_fixture.add_argument("--output", default=None)
+
+    identity_data = subparsers.add_parser(
+        "audit-identity-data",
+        help="audit public aggregate identity records, source receipts, and exact context",
+    )
+    identity_data.add_argument("input", type=str)
+    identity_data.add_argument("--output", default=None)
+
+    identity_replay = subparsers.add_parser(
+        "replay-identity-fixtures",
+        help="replay identity fixtures with identity, context, source, and count controls",
+    )
+    identity_replay.add_argument("inputs", nargs="+", type=str)
+    identity_replay.add_argument("--required-context-key", default=None)
+    identity_replay.add_argument("--output", default=None)
+
+    identity_quality = subparsers.add_parser(
+        "identity-quality-gate",
+        help="reconcile Domain 01 identity fixture, data, replay, scenario, and contract evidence",
+    )
+    identity_quality.add_argument("input", type=str)
+    identity_quality.add_argument("--output", default=None)
+
+    identity_scenarios = subparsers.add_parser(
+        "evaluate-identity-scenarios",
+        help="run independent positive and review state-transition identity scenarios",
+    )
+    identity_scenarios.add_argument("input", type=str)
+    identity_scenarios.add_argument("--output", default=None)
+
+    identity_contracts = subparsers.add_parser(
+        "identity-contracts",
+        help="print the four-operation Domain 01 identity contract registry",
+    )
+    identity_contracts.add_argument("--output", default=None)
+
+    identity_bundle = subparsers.add_parser(
+        "build-identity-bundle",
+        help="build a compact JSON, CSV, or Markdown identity evidence bundle",
+    )
+    identity_bundle.add_argument("input", type=str)
+    identity_bundle.add_argument("--output", required=True)
+    identity_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in IdentityBundleFormat],
+        default=IdentityBundleFormat.JSON.value,
+    )
+    identity_bundle.add_argument("--bundle-id", default=None)
 
     sv_consensus = subparsers.add_parser(
         "sv-consensus", help="import and reconcile multi-caller structural observations"
@@ -2813,6 +2875,44 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "build-variation-bundle":
             bundle = VariationEvidenceBundleBuilder().write(
+                args.input,
+                args.output,
+                output_format=args.format,
+                bundle_id=args.bundle_id,
+            )
+            return 0 if bundle.accepted else 2
+        if args.command == "evaluate-identity-fixture":
+            report = evaluate_identity_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-identity-data":
+            report = audit_identity_fixture(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-identity-fixtures":
+            first_catalog = IdentityFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = IdentityReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                tuple(sorted(source.source_id for source in first_catalog.sources)),
+            )
+            report = replay_identity_fixtures(args.inputs, expectation=expectation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "identity-quality-gate":
+            report = evaluate_identity_quality_gate(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-identity-scenarios":
+            report = evaluate_identity_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "identity-contracts":
+            _write_json(default_identity_contract_registry().manifest(), args.output)
+            return 0
+        if args.command == "build-identity-bundle":
+            bundle = IdentityEvidenceBundleBuilder().write(
                 args.input,
                 args.output,
                 output_format=args.format,

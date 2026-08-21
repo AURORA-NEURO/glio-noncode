@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 24 capabilities have deterministic fixture-backed
-verification and 232 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 28 capabilities have deterministic fixture-backed
+verification and 228 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -211,8 +211,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 24 controls are now verified against the checked-in
-Domain 01 and D13-D16 fixtures, while 232 capabilities remain partial. Partial
+capabilities started (100%); 28 controls are now verified against the checked-in
+Domain 01 and D13-D16 fixtures, while 228 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -379,6 +379,50 @@ content addresses, and a restricted-output boundary. Verified here means the
 local public aggregate software contract passes; external RefGet equivalence,
 Cat-VRS schema validation, VA-Spec interchange validation, global repeat truth
 sets, and structural normalization remain separate validation work.
+
+The checked-in public aggregate identity fixture exercises the next four Domain
+01 adapters as one independently auditable slice:
+
+- `VariantEquivalenceResolver` resolves a declared public alias across two
+  normalized source records while preserving source IDs, variants, methods,
+  competing-key visibility, and exact build/context filtering.
+- `DuplicateAliasReconciler` retains duplicate normalized records and explicit
+  alias collisions as separate groups. It never selects a preferred record and
+  turns duplicate input IDs into a validation abstention.
+- `BatchSampleIdentityChecker` proves a complete declared mapping and retains
+  missing fields, cross-subject conflicts, batch/sample summaries, source
+  versions, and stable issue codes without authenticating a specimen.
+- `ChainOfCustodyCapture` proves a three-event artifact chain and exposes
+  predecessor-link gaps, hash continuity gaps, cross-artifact links, event
+  ordering, per-artifact digests, and invalid-timestamp abstention.
+
+The fixture is public aggregate data only. It uses the same exact glioma context
+and public NCBI source receipts as the variation fixture; it does not contain
+patient-level values or claim biological identity, consent, clinical meaning,
+digital signatures, or institutional custody attestation. Eight controls cover
+out-of-domain build, absent query, ambiguous alias, duplicate input ID, a
+cross-subject sample, a missing subject, a broken custody link, and an invalid
+timestamp.
+
+Run the independent identity boundaries and combined gate:
+
+```powershell
+glio-noncode audit-identity-data examples/identity-public-aggregate.json --output identity-data.json
+glio-noncode evaluate-identity-fixture examples/identity-public-aggregate.json --output identity-fixture.json
+glio-noncode replay-identity-fixtures examples/identity-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output identity-replay.json
+glio-noncode evaluate-identity-scenarios examples/identity-public-aggregate.json --output identity-scenarios.json
+glio-noncode identity-contracts --output identity-contracts.json
+glio-noncode identity-quality-gate examples/identity-public-aggregate.json --output identity-quality.json
+glio-noncode build-identity-bundle examples/identity-public-aggregate.json --output identity-bundle.json
+```
+
+The combined identity gate requires 37 fixture checks, four positive operation
+records, eight negative controls, an independent twelve-scenario matrix, a
+four-operation contract registry, exact source/context consistency, replay
+count floors, deterministic content addresses, and a restricted-output
+boundary. Verified here means the local public aggregate software contract
+passes; RefGet-backed identity truth, specimen authentication, consent review,
+signatures, and institutional custody systems remain separate validation work.
 
 ## Domain 02 structural beta extensions
 
