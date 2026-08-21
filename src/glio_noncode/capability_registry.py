@@ -486,5 +486,41 @@ def default_capability_registry() -> CapabilityRegistry:
                     "or absent mappings; truth-set path equivalence remains."
                 ),
             },
+            "GNC-D05-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_extensions.CcreTrackParser",),
+                "test_modules": ("tests.test_atlas_extensions",),
+                "evidence_note": (
+                    "ENCODE SCREEN-style cCRE TSV/JSON records preserve registry class, "
+                    "versions, hashes, BED conversion, and malformed-row quarantine."
+                ),
+            },
+            "GNC-D05-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_extensions.CcreAtlasAdapter",),
+                "test_modules": ("tests.test_atlas_extensions",),
+                "evidence_note": (
+                    "Brain cell-type cCRE queries are context-gated and preserve absent or "
+                    "out-of-domain states; external atlas evaluation is pending."
+                ),
+            },
+            "GNC-D05-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_extensions.CcreAtlasAdapter",),
+                "test_modules": ("tests.test_atlas_extensions",),
+                "evidence_note": (
+                    "Adult glioma cCRE queries retain source IDs and context keys without "
+                    "turning overlap into a mechanistic claim."
+                ),
+            },
+            "GNC-D05-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.atlas_extensions.CcreAtlasAdapter",),
+                "test_modules": ("tests.test_atlas_extensions",),
+                "evidence_note": (
+                    "Pediatric glioma cCRE queries preserve pediatric context boundaries and "
+                    "abstain or report out-of-domain when contexts do not match."
+                ),
+            },
         }
     )

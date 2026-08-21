@@ -75,3 +75,12 @@ evidence. Chain-like tables are imported as explicit equal-length segments;
 liftover scoring reports absent, unique, or competing mappings; and
 pangenome coordinates retain every declared path candidate. The resolver
 never treats a coordinate conversion as proof of sequence equivalence.
+
+## Domain 05 regulatory atlases
+
+The atlas extension parses ENCODE SCREEN-style cCRE records and supports
+brain-cell, adult-glioma, and pediatric-glioma profiles over a bounded local
+snapshot. Queries preserve source versions and raw hashes, gate on declared
+cell state, disease, and age context, and distinguish supported overlap from
+absence, ambiguity, and out-of-domain context. Atlas overlap is an annotation
+observation, not proof of activity or causality.

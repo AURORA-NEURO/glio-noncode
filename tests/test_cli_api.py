@@ -113,6 +113,21 @@ class CliApiTests(unittest.TestCase):
             payload = json.loads(output.read_text(encoding="utf-8"))
             self.assertEqual(payload["records"][0]["purity"], 0.7)
 
+    def test_parse_ccre_command_writes_track_batch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "ccre.tsv"
+            output = Path(directory) / "ccre.json"
+            source.write_text(
+                "chrom\tstart\tend\tccre_id\tregistry_class\n"
+                "7\t99\t120\tEH38E1\tenhancer\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                main(["parse-ccre", str(source), "--output", str(output)]), 0
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(payload["records"][0]["ccre_id"], "EH38E1")
+
     def test_health_and_evaluate_endpoints(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             server = create_server("127.0.0.1", 0, directory)

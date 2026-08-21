@@ -8,6 +8,7 @@ first and research-use only.
 from .assay_qc import AssayQCEvaluator
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .atlas_context import ContextEvidenceBuilder, ContextObservation
+from .atlas_extensions import CcreAtlasAdapter, CcreAtlasProfile, CcreTrackParser
 from .bcf import BcfDocument, BcfReader
 from .capability_registry import CapabilityRegistry, default_capability_registry
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
@@ -58,6 +59,9 @@ from .variant_normalization import NormalizationReport, VRSNormalizer
 __all__ = [
     "CaseManifest",
     "AssayQCEvaluator",
+    "CcreAtlasAdapter",
+    "CcreAtlasProfile",
+    "CcreTrackParser",
     "ContextEvidenceBuilder",
     "ContextObservation",
     "BcfDocument",
