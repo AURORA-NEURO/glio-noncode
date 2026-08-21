@@ -599,6 +599,30 @@ records a deterministic integrity digest and remains review-required. The
 digest is a content-addressed reproducibility aid, not a cryptographic identity
 signature, clinical conclusion, or treatment recommendation.
 
+The Domain 14 scientific-beta extensions add operational evidence views:
+
+- `EvidenceTierAdjudicator` keeps every declared tier and support/against
+  direction, reports the highest tier without deleting lower-tier alternatives,
+  and marks unresolved or contradictory claims for review.
+- `ProvenanceLineageViewer` projects parent claims, supersession history,
+  active state, source versions, citation nodes, and content hashes without
+  mutating the immutable graph.
+- `UncertaintyLedgerBuilder` records measurement, context, provenance,
+  transport, calibration, dependence, and review drivers with conservative
+  per-claim maxima. It is not a calibrated probability.
+- `ReviewerAssignmentRouter` routes active claims to explicit domain,
+  provenance, statistical, assay, computational, and context roles using
+  contradiction, tier, uncertainty, and context blockers.
+
+The beta command boundaries are:
+
+```powershell
+glio-noncode adjudicate-evidence-tier tier-observations.json --context-key "GRCh38|glioma|adult|stem_like|core|untreated" --output tier-adjudication.json
+glio-noncode view-provenance-lineage graph-input.json --claim-id claim-2 --output lineage.json
+glio-noncode build-uncertainty-ledger uncertainty.json --context-key "GRCh38|glioma|adult|stem_like|core|untreated" --output uncertainty-ledger.json
+glio-noncode route-reviewers graph-input.json --roles data_provenance domain_expert --output review-queue.json
+```
+
 The lifecycle boundaries are:
 
 ```powershell

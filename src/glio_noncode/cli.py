@@ -58,6 +58,13 @@ from .evidence_lifecycle import (
     VersionedEvidenceGraphConstructor,
 )
 from .intake import IntakeFormat, VariantIntake
+from .lifecycle_beta import (
+    EvidenceTierAdjudicator,
+    ProvenanceLineageViewer,
+    ReviewerAssignmentRouter,
+    ReviewerRole,
+    UncertaintyLedgerBuilder,
+)
 from .link_graph import GeneFeatureParser
 from .link_graph_beta import (
     ActivityByContactLinkAdapter,
@@ -303,6 +310,36 @@ def _guide_constraints(
     if pam_pattern is not None:
         raw["pam_pattern"] = pam_pattern
     return GuideDesignConstraints.from_mapping(raw, context_key=context_key, mode=mode)
+
+
+def _graph_from_payload(payload: Mapping[str, Any]):
+    context_key = str(payload.get("context_key", ""))
+    if not context_key:
+        raise ValueError("graph input requires context_key")
+    citations = tuple(
+        EvidenceCitation.from_mapping(
+            row,
+            fallback_source_id=str(row.get("source_id", "declared_source")),
+            fallback_version=str(row.get("version", "unspecified")),
+            fallback_row_number=index,
+        )
+        for index, row in enumerate(payload.get("citations", ()), start=1)
+    )
+    claims = tuple(
+        VersionedEvidenceClaim.from_mapping(
+            row,
+            fallback_id=f"graph-cli:{index}",
+            context_key=context_key,
+        )
+        for index, row in enumerate(payload.get("claims", ()), start=1)
+    )
+    return VersionedEvidenceGraphConstructor().construct(
+        claims,
+        citations=citations,
+        graph_id=str(payload.get("graph_id", "evidence-graph-cli")),
+        context_key=context_key,
+        graph_version=int(payload.get("graph_version", 1)),
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1064,6 +1101,44 @@ def build_parser() -> argparse.ArgumentParser:
         validation.add_argument("--require-pam", action="store_true")
         validation.add_argument("--pam-pattern", default=None)
         validation.add_argument("--output", default=None)
+
+    tier_adjudication = subparsers.add_parser(
+        "adjudicate-evidence-tier",
+        help="adjudicate declared evidence tiers without erasing alternatives",
+    )
+    tier_adjudication.add_argument("input", type=str)
+    tier_adjudication.add_argument("--context-key", required=True)
+    tier_adjudication.add_argument("--output", default=None)
+
+    lineage = subparsers.add_parser(
+        "view-provenance-lineage",
+        help="view claim, parent, supersession, source, and citation lineage",
+    )
+    lineage.add_argument("input", type=str)
+    lineage.add_argument("--claim-id", default=None)
+    lineage.add_argument("--active-only", action="store_true")
+    lineage.add_argument("--output", default=None)
+
+    uncertainty = subparsers.add_parser(
+        "build-uncertainty-ledger",
+        help="build a dimension-labeled uncertainty ledger",
+    )
+    uncertainty.add_argument("input", type=str)
+    uncertainty.add_argument("--context-key", required=True)
+    uncertainty.add_argument("--output", default=None)
+
+    reviewer = subparsers.add_parser(
+        "route-reviewers",
+        help="route graph claims to explicit review roles",
+    )
+    reviewer.add_argument("input", type=str)
+    reviewer.add_argument(
+        "--roles",
+        nargs="*",
+        choices=[item.value for item in ReviewerRole],
+        default=(),
+    )
+    reviewer.add_argument("--output", default=None)
 
     context = subparsers.add_parser(
         "parse-context",
@@ -1930,6 +2005,52 @@ def main(argv: list[str] | None = None) -> int:
                 result = PrimeEditingDesignPlanner().plan(targets, constraints)
             else:
                 result = AlleleSpecificReporterPlanner().plan(targets, constraints)
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "adjudicate-evidence-tier":
+            payload = _read_json(args.input)
+            result = EvidenceTierAdjudicator().adjudicate(
+                payload.get("observations", payload.get("records", ())),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "view-provenance-lineage":
+            graph = _graph_from_payload(_read_json(args.input))
+            result = ProvenanceLineageViewer().view(
+                graph,
+                claim_id=args.claim_id,
+                include_superseded=not args.active_only,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "build-uncertainty-ledger":
+            payload = _read_json(args.input)
+            result = UncertaintyLedgerBuilder().build(
+                payload.get("entries", payload.get("observations", payload.get("records", ()))),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "route-reviewers":
+            payload = _read_json(args.input)
+            graph = _graph_from_payload(payload)
+            uncertainty = None
+            if payload.get("uncertainty"):
+                uncertainty = UncertaintyLedgerBuilder().build(
+                    payload["uncertainty"], context_key=graph.context_key
+                )
+            tier_adjudication = None
+            if payload.get("tier_observations"):
+                tier_adjudication = EvidenceTierAdjudicator().adjudicate(
+                    payload["tier_observations"], context_key=graph.context_key
+                )
+            result = ReviewerAssignmentRouter().route(
+                graph,
+                uncertainty=uncertainty,
+                tier_adjudication=tier_adjudication,
+                required_roles=args.roles,
+            )
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command in {"scan-motif-disruption", "scan-motif-creation"}:

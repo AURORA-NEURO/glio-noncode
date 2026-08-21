@@ -1553,6 +1553,48 @@ def default_capability_registry() -> CapabilityRegistry:
                     "adjudication benchmarks and calibrated disagreement metrics remain."
                 ),
             },
+            "GNC-D14-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.lifecycle_beta.EvidenceTierAdjudicator",),
+                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "evidence_note": (
+                    "Evidence-tier adjudication preserves all declared tier observations, source "
+                    "versions, support/against directions, highest-tier summaries, unresolved "
+                    "claims, and exact-context gates; tier validity remains project-specific."
+                ),
+            },
+            "GNC-D14-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.lifecycle_beta.ProvenanceLineageViewer",),
+                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "evidence_note": (
+                    "Provenance lineage views expose parent and supersession relations, active and "
+                    "historical claims, source versions, citation nodes, hashes, and graph context "
+                    "without changing the immutable graph."
+                ),
+            },
+            "GNC-D14-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.lifecycle_beta.UncertaintyLedgerBuilder",),
+                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "evidence_note": (
+                    "Uncertainty ledgers retain dimension-labeled measurement, context, "
+                    "provenance, "
+                    "transport, calibration, dependence, and review drivers with conservative "
+                    "claim summaries; the ledger is not a calibrated probability."
+                ),
+            },
+            "GNC-D14-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.lifecycle_beta.ReviewerAssignmentRouter",),
+                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "evidence_note": (
+                    "Reviewer routing maps active claims to explicit domain, provenance, "
+                    "statistical, "
+                    "assay, computational, and context roles while retaining contradiction, tier, "
+                    "uncertainty, priority, blockers, and research-use boundaries."
+                ),
+            },
             "GNC-D15-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
