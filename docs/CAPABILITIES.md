@@ -648,12 +648,39 @@ single variant and only declared relationships. The regulatory track browser
 turns parsed intervals into source-accounted overlap-searchable records while
 keeping parse issues and the annotation-only limitation visible.
 
+The Domain 15 scientific-beta projections add four deep research surfaces:
+
+- `TopologyViewer` builds a bounded two-anchor topology viewport from
+  loop/stripe observations, promoter-capture contacts, contact scores, and
+  activity-by-contact summaries. Interval focus, exact context, source
+  versions, observation IDs, replicate metadata, deterministic node/edge
+  limits, and out-of-context withholding are retained. The viewport does not
+  convert contact into activity or causality.
+- `CausalChainExplorer` joins sequence-to-element, element-to-gene, and
+  gene-to-state mediator results. It keeps alternative paths, negative
+  evidence, missing mediator kinds, contradictory edges, context mismatch,
+  support, uncertainty, and source receipts visible rather than collapsing
+  them into one chain score.
+- `PosteriorDecompositionViewer` exposes the declared prior, exact-context
+  support components, normalized descriptive shares, calibration status, and
+  an unexplained residual. Components are never invented to reconcile a
+  declared support value, and the result remains a research proxy rather than
+  a calibrated clinical probability.
+- `EvidenceTableAndFilters` provides text, context, channel, tier, state,
+  source, confidence, pagination, and deterministic facet filters over saved
+  workspace records. Partial, ambiguous, and unresolved evidence remains in
+  the table, and filtering never changes the underlying evidence state.
+
 These are research navigation artifacts. They do not infer activity, causality,
 diagnosis, prognosis, actionability, or treatment.
 
 ```powershell
 glio-noncode workspace-case manifest.json --output case-workspace.json
 glio-noncode workspace-track regulatory.bed --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output track-workspace.json
+glio-noncode view-topology topology.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output topology-view.json
+glio-noncode explore-causal-chain causal-results.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output causal-chain.json
+glio-noncode view-posterior-decomposition posterior.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output posterior-view.json
+glio-noncode filter-evidence-table case-workspace.json --channel sequence --min-confidence 0.8 --output evidence-table.json
 ```
 
 ## Domain 16 typed mission runtime

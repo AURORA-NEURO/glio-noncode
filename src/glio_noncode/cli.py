@@ -149,7 +149,23 @@ from .variant_beta import (
     VAAnnotationEnvelopeBuilder,
 )
 from .variant_normalization import VRSNormalizer
-from .workspace import CaseWorkspaceBuilder, RegulatoryTrackBrowser
+from .workspace import (
+    CaseWorkspaceBuilder,
+    RegulatoryTrackBrowser,
+    ResearchWorkspace,
+    WorkspaceKind,
+    WorkspaceRecord,
+    WorkspaceRecordType,
+    WorkspaceSection,
+    WorkspaceState,
+)
+from .workspace_beta import (
+    CausalChainExplorer,
+    EvidenceTableAndFilters,
+    EvidenceTableFilter,
+    PosteriorDecompositionViewer,
+    TopologyViewer,
+)
 
 
 def _read_json(path: str) -> dict[str, Any]:
@@ -180,6 +196,51 @@ def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     if isinstance(payload, list):
         return tuple(payload)
     raise ValueError(f"{path} JSON must be an object or list")
+
+
+def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
+    raw = payload.get("workspace", payload)
+    if not isinstance(raw, Mapping):
+        raise ValueError("workspace payload must be an object")
+    records = tuple(
+        WorkspaceRecord(
+            record_id=str(row["record_id"]),
+            record_type=WorkspaceRecordType(str(row["record_type"])),
+            label=str(row["label"]),
+            context_key=str(row["context_key"]),
+            state=WorkspaceState(str(row["state"])),
+            source_ids=tuple(str(item) for item in row.get("source_ids", ())),
+            chromosome=str(row["chromosome"]) if row.get("chromosome") is not None else None,
+            start=int(row["start"]) if row.get("start") is not None else None,
+            end=int(row["end"]) if row.get("end") is not None else None,
+            tags=tuple(str(item) for item in row.get("tags", ())),
+            fields=dict(row.get("fields", {})),
+            searchable_text=str(row.get("searchable_text", "")),
+            content_address=str(row.get("content_address", "")),
+        )
+        for row in raw.get("records", ())
+    )
+    sections = tuple(
+        WorkspaceSection(
+            section_id=str(row["section_id"]),
+            title=str(row["title"]),
+            record_types=tuple(WorkspaceRecordType(str(item)) for item in row["record_types"]),
+            order=int(row["order"]),
+            accessible_label=str(row["accessible_label"]),
+            description=str(row["description"]),
+        )
+        for row in raw.get("sections", ())
+    )
+    return ResearchWorkspace(
+        workspace_id=str(raw["workspace_id"]),
+        kind=WorkspaceKind(str(raw["kind"])),
+        context_key=str(raw["context_key"]),
+        records=records,
+        sections=sections,
+        state=WorkspaceState(str(raw["state"])),
+        warnings=tuple(str(item) for item in raw.get("warnings", ())),
+        content_address=str(raw.get("content_address", "")),
+    )
 
 
 def _context_from_key(context_key: str) -> ReferenceContext:
@@ -1140,6 +1201,58 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reviewer.add_argument("--output", default=None)
 
+    topology_view = subparsers.add_parser(
+        "view-topology",
+        help="build a bounded exact-context 3D topology viewport",
+    )
+    topology_view.add_argument("input", type=str)
+    topology_view.add_argument("--context-key", required=True)
+    topology_view.add_argument("--focus-chromosome", default=None)
+    topology_view.add_argument("--focus-start", type=int, default=None)
+    topology_view.add_argument("--focus-end", type=int, default=None)
+    topology_view.add_argument("--max-nodes", type=int, default=500)
+    topology_view.add_argument("--max-edges", type=int, default=1000)
+    topology_view.add_argument("--output", default=None)
+
+    causal_chain = subparsers.add_parser(
+        "explore-causal-chain",
+        help="join exact-context sequence-to-state mediator results",
+    )
+    causal_chain.add_argument("input", type=str)
+    causal_chain.add_argument("--context-key", required=True)
+    causal_chain.add_argument("--chain-id", default=None)
+    causal_chain.add_argument("--output", default=None)
+
+    posterior_view = subparsers.add_parser(
+        "view-posterior-decomposition",
+        help="render declared-prior posterior support components and residual",
+    )
+    posterior_view.add_argument("input", type=str)
+    posterior_view.add_argument("--context-key", required=True)
+    posterior_view.add_argument("--residual-tolerance", type=float, default=0.05)
+    posterior_view.add_argument("--output", default=None)
+
+    evidence_table = subparsers.add_parser(
+        "filter-evidence-table",
+        help="filter a serialized workspace evidence table with deterministic facets",
+    )
+    evidence_table.add_argument("input", type=str)
+    evidence_table.add_argument("--context-key", default=None)
+    evidence_table.add_argument("--text", default="")
+    evidence_table.add_argument("--channel", nargs="*", default=())
+    evidence_table.add_argument("--tier", nargs="*", default=())
+    evidence_table.add_argument(
+        "--state",
+        nargs="*",
+        choices=[item.value for item in WorkspaceState],
+        default=(),
+    )
+    evidence_table.add_argument("--source-id", nargs="*", default=())
+    evidence_table.add_argument("--min-confidence", type=float, default=None)
+    evidence_table.add_argument("--offset", type=int, default=0)
+    evidence_table.add_argument("--limit", type=int, default=50)
+    evidence_table.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -2051,6 +2164,58 @@ def main(argv: list[str] | None = None) -> int:
                 tier_adjudication=tier_adjudication,
                 required_roles=args.roles,
             )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "view-topology":
+            payload = _read_json(args.input)
+            result = TopologyViewer().build(
+                context_key=args.context_key,
+                loops=payload.get("loops", payload.get("observations", ())),
+                contacts=payload.get("contacts", ()),
+                contact_scores=payload.get("contact_scores", payload.get("scores", ())),
+                activity_results=payload.get("activity_results", payload.get("activity", ())),
+                focus_chromosome=args.focus_chromosome,
+                focus_start=args.focus_start,
+                focus_end=args.focus_end,
+                max_nodes=args.max_nodes,
+                max_edges=args.max_edges,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "explore-causal-chain":
+            payload = _read_json(args.input)
+            result = CausalChainExplorer().explore(
+                payload.get("results", payload.get("mediators", payload)),
+                context_key=args.context_key,
+                chain_id=args.chain_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "view-posterior-decomposition":
+            payload = _read_json(args.input)
+            result = PosteriorDecompositionViewer().view(
+                payload.get("posterior", payload),
+                payload.get("components", ()),
+                context_key=args.context_key,
+                residual_tolerance=args.residual_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "filter-evidence-table":
+            payload = _read_json(args.input)
+            workspace = _workspace_from_payload(payload)
+            table_filter = EvidenceTableFilter(
+                text=args.text,
+                context_key=args.context_key or workspace.context_key,
+                channels=tuple(args.channel),
+                tiers=tuple(args.tier),
+                states=tuple(WorkspaceState(value) for value in args.state),
+                source_ids=tuple(args.source_id),
+                min_confidence=args.min_confidence,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            result = EvidenceTableAndFilters().build(workspace, table_filter)
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command in {"scan-motif-disruption", "scan-motif-creation"}:

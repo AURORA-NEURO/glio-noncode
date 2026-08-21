@@ -1638,6 +1638,63 @@ def default_capability_registry() -> CapabilityRegistry:
                     "large-track rendering and accessibility tests remain."
                 ),
             },
+            "GNC-D15-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_beta.TopologyViewer",
+                    "glio_noncode.workspace_beta.TopologyViewport",
+                ),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "evidence_note": (
+                    "Topology viewports join loop/stripe anchors, promoter-capture contacts, "
+                    "contact scores, and activity-by-contact summaries with exact context, "
+                    "interval focus, source versions, observation IDs, deterministic bounds, "
+                    "and explicit non-causal limitations; 3D rendering and large-track "
+                    "performance validation remain."
+                ),
+            },
+            "GNC-D15-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_beta.CausalChainExplorer",
+                    "glio_noncode.workspace_beta.CausalChainView",
+                ),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "evidence_note": (
+                    "Causal-chain views join all three mediator kinds, retain alternative paths, "
+                    "negative evidence, source versions, missing mediator kinds, contradiction, "
+                    "and context mismatch; causal calibration, graph-scale interaction, and "
+                    "external validation remain."
+                ),
+            },
+            "GNC-D15-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_beta.PosteriorDecompositionViewer",
+                    "glio_noncode.workspace_beta.PosteriorDecompositionView",
+                ),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "evidence_note": (
+                    "Posterior decomposition views expose declared prior, exact-context support "
+                    "components, normalized descriptive shares, calibration status, and an "
+                    "unexplained residual without inventing missing evidence or clinical "
+                    "probability; calibration and benchmark validation remain."
+                ),
+            },
+            "GNC-D15-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace_beta.EvidenceTableAndFilters",
+                    "glio_noncode.workspace_beta.EvidenceTableFilter",
+                ),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "evidence_note": (
+                    "Evidence tables support exact-context text, channel, tier, state, source, "
+                    "confidence, pagination, and deterministic facets while retaining partial "
+                    "and unresolved evidence rows; multi-user saved filters and accessibility "
+                    "conformance remain."
+                ),
+            },
             "GNC-D16-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.mission_runtime.MissionPlanBuilder",),

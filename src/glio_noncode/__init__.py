@@ -412,6 +412,26 @@ from .workspace import (
     WorkspaceSection,
     WorkspaceState,
 )
+from .workspace_beta import (
+    CausalChainEdge,
+    CausalChainExplorer,
+    CausalChainNode,
+    CausalChainState,
+    CausalChainView,
+    EvidenceTableAndFilters,
+    EvidenceTableFilter,
+    EvidenceTableRow,
+    EvidenceTableView,
+    PosteriorComponent,
+    PosteriorDecompositionView,
+    PosteriorDecompositionViewer,
+    TopologyEdgeKind,
+    TopologyNodeKind,
+    TopologyViewer,
+    TopologyViewport,
+    TopologyViewportEdge,
+    TopologyViewportNode,
+)
 
 __all__ = [
     "CaseManifest",
@@ -778,6 +798,24 @@ __all__ = [
     "WorkspaceRecordType",
     "WorkspaceSection",
     "WorkspaceState",
+    "CausalChainEdge",
+    "CausalChainExplorer",
+    "CausalChainNode",
+    "CausalChainState",
+    "CausalChainView",
+    "EvidenceTableAndFilters",
+    "EvidenceTableFilter",
+    "EvidenceTableRow",
+    "EvidenceTableView",
+    "PosteriorComponent",
+    "PosteriorDecompositionView",
+    "PosteriorDecompositionViewer",
+    "TopologyEdgeKind",
+    "TopologyNodeKind",
+    "TopologyViewer",
+    "TopologyViewport",
+    "TopologyViewportEdge",
+    "TopologyViewportNode",
 ]
 
 __version__ = "0.1.0"
