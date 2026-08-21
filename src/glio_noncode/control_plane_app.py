@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from functools import partial
 from tempfile import TemporaryDirectory
 from typing import Any
 
 from .assay_qc import AssayQCEvaluator, AssayQCObservation, QCStatus
 from .atlas import AtlasQuery, PublicAtlasRetriever
+from .atlas_context import ATLAS_ROLE_CHANNELS, ContextEvidenceBuilder, ContextObservation
 from .benchmarks import BenchmarkExample, BenchmarkRunner
 from .causal import CausalLattice
 from .cohort import CohortObservation, RecurrenceModel
@@ -123,6 +125,7 @@ class ControlPlaneApplication:
         self.lineage = LineageResolver()
         self.origin = OriginClonalityAssessor()
         self.assay_qc = AssayQCEvaluator()
+        self.context_evidence = ContextEvidenceBuilder()
         self.negative_controls = NegativeControlBuilder()
         self.validation_value = ValidationValuePlanner()
         self.benchmarks = BenchmarkRunner()
@@ -202,6 +205,17 @@ class ControlPlaneApplication:
             "atlas.PublicAtlasRetriever",
             "Retrieve bounded public reference observations with source receipts.",
         )
+        for agent_id, channel in ATLAS_ROLE_CHANNELS.items():
+            self._bind(
+                f"{agent_id}.publish",
+                partial(
+                    self._context_atlas,
+                    role_id=agent_id,
+                    expected_channel=channel,
+                ),
+                "atlas_context.ContextEvidenceBuilder",
+                f"Transport {channel} observations only when their declared context is compatible.",
+            )
         self._bind(
             "A23.publish",
             self._sequence,
@@ -739,6 +753,97 @@ class ControlPlaneApplication:
             if normalized in {"false", "no", "0"}:
                 return False
         raise ValidationError("boolean field must be true, false, 1, or 0")
+
+    def _context_atlas(
+        self,
+        request: InvocationRequest,
+        *,
+        role_id: str,
+        expected_channel: str,
+    ) -> EvidenceEnvelope | Abstention:
+        raw = request.input_payload
+        observations_raw = raw.get("observations")
+        context_raw = raw.get("context")
+        if not isinstance(observations_raw, (list, tuple)) or not isinstance(context_raw, Mapping):
+            return Abstention(
+                "missing_context_atlas_inputs",
+                f"{role_id}.context_atlas",
+                "Context atlas execution requires context and observation mappings.",
+                ("context", "observations"),
+            )
+        try:
+            context = ReferenceContext.from_dict(context_raw)
+            observations = tuple(
+                self._context_observation(item, expected_channel) for item in observations_raw
+            )
+            bundle = self.context_evidence.build(
+                variant_id=str(raw["variant_id"]),
+                edge_id=str(raw.get("edge_id", f"{raw['variant_id']}:{role_id}")),
+                case_context=context,
+                observations=observations,
+                minimum_context_score=float(raw.get("minimum_context_score", 0.35)),
+                produced_by=f"{role_id}.context_atlas",
+            )
+        except (TypeError, ValueError, ValidationError, KeyError) as exc:
+            return Abstention(
+                "invalid_context_atlas_inputs",
+                f"{role_id}.context_atlas",
+                str(exc),
+                ("variant_id", "edge_id", "context", "observations"),
+            )
+        supported = sum(claim.state == EvidenceState.SUPPORTED for claim in bundle.claims)
+        if supported:
+            state = EvidenceState.SUPPORTED
+        elif bundle.claims and all(claim.state == EvidenceState.ABSENT for claim in bundle.claims):
+            state = EvidenceState.ABSENT
+        else:
+            state = EvidenceState.ABSTAINED
+        source_ids = tuple(sorted({claim.source_id for claim in bundle.claims}))
+        return EvidenceEnvelope(
+            evidence_id=f"{role_id}:context:{bundle.content_address}",
+            agent_id=request.agent_id,
+            tool_id=request.tool_id,
+            state=state,
+            tier=EvidenceTier.REFERENCE,
+            claim_summary=(
+                f"{role_id} transported {len(bundle.claims)} context observations; "
+                f"{bundle.matched_count} met the context threshold."
+            ),
+            payload_hash=bundle.content_address,
+            source_ids=source_ids,
+            provenance_digest=request.provenance.digest,
+            confidence=round(
+                sum(claim.confidence for claim in bundle.claims) / max(1, len(bundle.claims)),
+                6,
+            ),
+            limitations=bundle.warnings,
+        )
+
+    @staticmethod
+    def _context_observation(raw: object, expected_channel: str) -> ContextObservation:
+        if not isinstance(raw, Mapping):
+            raise ValidationError("each context observation must be a mapping")
+        context_raw = raw.get("context")
+        if not isinstance(context_raw, Mapping):
+            raise ValidationError("each context observation requires a context mapping")
+        channel = str(raw.get("channel", expected_channel))
+        if channel != expected_channel:
+            raise ValidationError(
+                f"observation channel {channel!r} does not match role channel {expected_channel!r}"
+            )
+        return ContextObservation(
+            observation_id=str(raw["observation_id"]),
+            source_id=str(raw["source_id"]),
+            source_version=str(raw["source_version"]),
+            context=ReferenceContext.from_dict(context_raw),
+            channel=channel,
+            state=EvidenceState(str(raw["state"])),
+            tier=EvidenceTier(str(raw["tier"])),
+            score=float(raw["score"]) if raw.get("score") is not None else None,
+            confidence=float(raw["confidence"]),
+            summary=str(raw["summary"]),
+            payload=dict(raw.get("payload", {})),
+        )
 
     def _atlas(self, request: InvocationRequest) -> EvidenceEnvelope | Abstention:
         """Run a public atlas query only under an explicit network allowlist."""

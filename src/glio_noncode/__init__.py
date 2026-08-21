@@ -8,6 +8,7 @@ first and research-use only.
 from .control_plane import ControlPlaneExecutor, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .assay_qc import AssayQCEvaluator
+from .atlas_context import ContextEvidenceBuilder, ContextObservation
 from .atlas import AtlasBundle, AtlasQuery, PublicAtlasRetriever
 from .intake import VariantIndex, VariantIntake
 from .lineage import LineageResolver
@@ -35,6 +36,8 @@ from .structural_reconstruction import ReconstructionResult, StructuralReconstru
 __all__ = [
     "CaseManifest",
     "AssayQCEvaluator",
+    "ContextEvidenceBuilder",
+    "ContextObservation",
     "AtlasBundle",
     "AtlasQuery",
     "CaseRuntime",

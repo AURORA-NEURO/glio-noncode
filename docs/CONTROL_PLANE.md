@@ -120,6 +120,12 @@ uncertainty band, and blockers. A candidate control is always emitted as
 `unsupported` until an assay produces a measurement; selection is never treated
 as a negative result.
 
+Atlas roles `A16`–`A22` share the context-evidence builder. It carries source
+versions, context-match scores, channel identity, and the original observation
+payload into each claim. A supported observation below the declared context
+threshold becomes `out_of_domain` with no score rather than being silently
+transported to the case context.
+
 The data-plane bindings preserve explicit projection status, structural issues,
 lineage cycles and missing parents, origin ambiguity, and missing or failed QC
 metrics. These states are returned as typed evidence or abstentions rather than

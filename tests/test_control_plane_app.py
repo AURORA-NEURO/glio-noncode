@@ -104,7 +104,7 @@ class StubReferenceRetriever:
 class ControlPlaneApplicationTests(unittest.TestCase):
     def test_core_bindings_execute_real_intake_and_identity_handlers(self) -> None:
         app = ControlPlaneApplication()
-        self.assertEqual(app.manifest()["binding_count"], 25)
+        self.assertEqual(app.manifest()["binding_count"], 32)
         vcf = "\n".join(
             (
                 "##fileformat=VCFv4.3",
@@ -320,6 +320,45 @@ class ControlPlaneApplicationTests(unittest.TestCase):
         )
         self.assertEqual(qc.state, InvocationState.COMPLETED)
         self.assertIn("pass=1", qc.response.claim_summary)
+
+        atlas_channels = {
+            "A16": "brain_context",
+            "A17": "glioma_cell_state",
+            "A18": "chromatin",
+            "A19": "methylation",
+            "A20": "contact",
+            "A21": "literature",
+            "A22": "functional",
+        }
+        for index, (agent_id, channel) in enumerate(atlas_channels.items()):
+            atlas = app.executor.execute(
+                _request(
+                    f"{agent_id}.publish",
+                    {
+                        "variant_id": "v1",
+                        "edge_id": f"edge-{agent_id}",
+                        "context": context,
+                        "observations": [
+                            {
+                                "observation_id": f"{agent_id}-obs",
+                                "source_id": "SRC-ENCODE-REST",
+                                "source_version": "encode-2026",
+                                "context": context,
+                                "channel": channel,
+                                "state": "supported",
+                                "tier": "reference",
+                                "score": 0.75,
+                                "confidence": 0.9,
+                                "summary": f"bounded {channel} observation",
+                                "payload": {"fixture": True},
+                            }
+                        ],
+                    },
+                    f"atlas-context-{index}",
+                )
+            )
+            self.assertEqual(atlas.state, InvocationState.COMPLETED)
+            self.assertIn("met the context threshold", atlas.response.claim_summary)
 
     def test_sequence_and_uncertainty_bindings_preserve_typed_boundaries(self) -> None:
         app = ControlPlaneApplication()
