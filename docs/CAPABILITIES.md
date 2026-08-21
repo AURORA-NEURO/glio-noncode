@@ -20,6 +20,13 @@ verified only when tests and the stated evidence boundary support that claim.
 The registry reports planned, partial, implemented, and verified counts
 separately so a single percentage cannot hide unfinished work.
 
+The first frontier expansion wave now adds partial, test-backed coverage for
+all C13-C16 capabilities in Domains 01-04. This moves the repository ledger
+to 208 of 256 capabilities started (81.25%); 48 capabilities remain planned.
+The frontier surfaces are bounded research infrastructure: they retain source
+receipts, uncertainty, policy checks, and review states rather than converting
+missing evidence into a scientific or clinical conclusion.
+
 Inspect the current ledger locally:
 
 ```powershell
@@ -53,6 +60,152 @@ glio-noncode intake variants.vcf --output intake.json
 glio-noncode parse-track regulatory.bed --output track.json
 glio-noncode normalize 7:140453136:A>T --genome-build GRCh38
 ```
+
+The Domain 01 frontier boundary adds four deeper data controls:
+
+- `ConsentPolicyAttacher` binds each intake record to policy ID/version,
+  purpose, permitted uses, consent status, expiry, and exact context. Inactive
+  or mismatched records are blocked with structured reasons.
+- `InputAnomalyQuarantine` retains duplicate IDs, coordinate errors, context
+  mismatches, missing fields, and unsupported bases in a quarantine report;
+  rows are not silently discarded.
+- `DataCompletenessScorer` calculates weighted required-field coverage while
+  separating present, missing, and invalid fields.
+- `IntakeBundleExporter` creates deterministic content-addressed bundles and
+  refuses blocked, quarantined, or review-state rows when acceptance is on.
+
+```powershell
+glio-noncode attach-consent-policy consent.json --output consent-report.json
+glio-noncode quarantine-input-anomalies intake-records.json --output anomaly-report.json
+glio-noncode score-data-completeness completeness.json --output completeness-report.json
+glio-noncode export-intake-bundle accepted-intake.json --output intake-bundle.json
+```
+
+## Domain 02 structural frontier
+
+The structural frontier preserves the uncertainty that is usually lost when
+copy number or breakpoint observations are flattened:
+
+- `TandemRepeatInterpreter` validates motifs and intervals and compares
+  observed and reference copy estimates against explicit uncertainty.
+- `CompoundHaplotypeEvaluator` retains required versus observed alleles,
+  missingness, completeness, and unresolved phase instead of fabricating cis
+  or trans relationships.
+- `BreakpointUncertaintyPropagator` carries both breakpoint intervals into a
+  propagated uncertainty width with a confidence gate.
+- `StructuralVariantEvidenceExporter` emits sorted, context-bound evidence
+  bundles with source IDs and content addresses.
+
+```powershell
+glio-noncode interpret-tandem-repeats repeats.json --output repeats-report.json
+glio-noncode evaluate-compound-haplotypes haplotypes.json --output haplotype-report.json
+glio-noncode propagate-breakpoint-uncertainty breakpoints.json --output breakpoint-report.json
+glio-noncode export-structural-evidence structural-evidence.json --output structural-bundle.json
+```
+
+## Domain 03 specimen frontier
+
+Specimen context is now represented as a linked, reviewable envelope. The
+preanalytic assessor applies declared metric thresholds; the protocol tracker
+retains parent-node and operator relationships; the identity adjudicator
+reports modal agreement, ties, and conflicts; and the context publisher binds
+lineage, quality, and identity receipts before publication.
+
+```powershell
+glio-noncode assess-preanalytic-quality specimen-qc.json --output specimen-qc-report.json
+glio-noncode track-assay-lineage assay-lineage.json --output lineage-report.json
+glio-noncode adjudicate-identity-conflicts identity-observations.json --output identity-report.json
+glio-noncode publish-specimen-context specimen-envelope.json --output specimen-envelope.json
+```
+
+## Domain 04 reference frontier
+
+Reference governance now has explicit provenance, drift, bundle, and release
+boundaries. Source checks compare declared and observed checksums and require
+license/context receipts; annotation drift compares substantive fields while
+ignoring retrieval-only fields; reproducible bundles sort records and retain a
+schema hash; and the release gate denies publication when any required check
+is absent or false.
+
+```powershell
+glio-noncode check-source-provenance source-records.json --output provenance.json
+glio-noncode detect-annotation-drift annotation-delta.json --output drift.json
+glio-noncode build-reference-bundle references.json --output reference-bundle.json
+glio-noncode gate-reference-release release-checks.json --output release-decision.json
+```
+
+The same frontier wave extends the atlas, sequence, chromatin, and cell-state
+boundaries through Domains 05-08. The ledger now reports 224 of 256
+capabilities started (87.5%); 32 remain planned.
+
+Domain 05 includes an insulator/boundary atlas, independent-source regulatory
+hotspot aggregation, evidence-tier adjudication, and versioned atlas snapshot
+publication. Domain 06 includes motif-spacing grammar, declared alternate
+allele saturation, ensemble spread quantification, and model/sequence evidence
+publication. Domain 07 includes confidence-aware context imputation, assay
+coverage gates, cross-assay concordance, and chromatin evidence publication.
+Domain 08 includes cell-state abundance intervals, score/margin reference
+mapping, out-of-domain support checks, and a receipt-bound cell-state context
+envelope.
+
+The frontier command boundary is:
+
+```powershell
+glio-noncode build-insulator-boundary-atlas boundary.json --output boundary-report.json
+glio-noncode build-regulatory-hotspot-atlas hotspots.json --output hotspot-report.json
+glio-noncode adjudicate-atlas-evidence-tier atlas-evidence.json --output tier-report.json
+glio-noncode publish-atlas-snapshot atlas-records.json --output atlas-snapshot.json
+glio-noncode evaluate-enhancer-grammar grammar.json --output grammar-report.json
+glio-noncode simulate-allele-saturation saturation.json --output saturation-report.json
+glio-noncode quantify-ensemble-disagreement ensemble.json --output disagreement-report.json
+glio-noncode publish-sequence-evidence sequence-evidence.json --output sequence-bundle.json
+glio-noncode impute-context-confidence context-imputation.json --output imputation-report.json
+glio-noncode gate-assay-support assay-support.json --output assay-gate.json
+glio-noncode adjudicate-assay-concordance concordance.json --output concordance-report.json
+glio-noncode publish-chromatin-evidence chromatin-evidence.json --output chromatin-bundle.json
+glio-noncode estimate-cell-state-abundance cell-counts.json --output abundance-report.json
+glio-noncode map-single-cell-reference cell-reference-scores.json --output mapping-report.json
+glio-noncode detect-cell-state-ood cell-ood.json --output cell-ood-report.json
+glio-noncode publish-cell-state-context cell-context.json --output cell-context-envelope.json
+```
+
+These modules are descriptive and research-use only. They do not claim that a
+hotspot is causal, that a sequence model is calibrated, that an imputed assay
+is measured, or that a mapped cell state is clinically definitive.
+
+The D09-D12 frontier completes the next four inference domains and brings the
+ledger to 240 of 256 capabilities started (93.75%); 16 remain planned. The
+topology layer models ecDNA contacts, compartment switches, uncertainty-aware
+signal transport, and 3D publication. The link layer corrects dependence,
+ranks target genes, calibrates and abstains, and publishes source-bound links.
+The causal layer decomposes posteriors, ranks regulatory-driver hypotheses,
+selectively abstains, and publishes research-only dossiers. The cohort layer
+stratifies subgroup rates, estimates source/target transportability, aggregates
+privacy-floored federated summaries, and publishes aggregate discovery bundles.
+
+```powershell
+glio-noncode model-ecdna-contacts ecdna-contacts.json --output ecdna-report.json
+glio-noncode estimate-compartment-switch compartments.json --output compartment-report.json
+glio-noncode transport-topology-uncertainty topology-paths.json --output transport-report.json
+glio-noncode publish-3d-evidence topology-evidence.json --output topology-bundle.json
+glio-noncode correct-link-dependence link-evidence.json --output dependence-report.json
+glio-noncode rank-target-genes target-links.json --output gene-rank-report.json
+glio-noncode calibrate-link-abstention link-calibration.json --output calibration-report.json
+glio-noncode publish-link-evidence link-evidence.json --output link-bundle.json
+glio-noncode decompose-posterior posterior-components.json --output posterior-report.json
+glio-noncode infer-regulatory-driver-posterior driver-hypotheses.json --output driver-report.json
+glio-noncode selective-causal-prediction causal-predictions.json --output selective-report.json
+glio-noncode publish-causal-dossier causal-dossier.json --output dossier.json
+glio-noncode stratify-subgroup-fairness cohort-labels.json --output fairness-report.json
+glio-noncode estimate-transportability transportability.json --output transportability-report.json
+glio-noncode analyze-federated-summary federated-summary.json --output federated-report.json
+glio-noncode publish-cohort-discovery cohort-discovery.json --output cohort-bundle.json
+```
+
+These inference surfaces keep dependence correction, calibration error,
+uncertainty, subgroup gaps, feature overlap, privacy floors, and abstentions
+visible. None of them turns an association or posterior score into a clinical
+decision.
 
 The Domain 01 beta extensions deepen the variation contract without silently
 coercing unresolved data:

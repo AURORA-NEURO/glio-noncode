@@ -102,6 +102,15 @@ from .evidence_lifecycle import (
     VersionedEvidenceClaim,
     VersionedEvidenceGraphConstructor,
 )
+from .frontier_context_alpha import (
+    CONTEXT_FRONTIER_OPERATIONS,
+    run_context_frontier_operation,
+)
+from .frontier_data_alpha import FRONTIER_OPERATIONS, run_frontier_operation
+from .frontier_inference_alpha import (
+    INFERENCE_FRONTIER_OPERATIONS,
+    run_inference_frontier_operation,
+)
 from .identity_beta import (
     BatchSampleIdentityChecker,
     ChainOfCustodyCapture,
@@ -1971,6 +1980,14 @@ def build_parser() -> argparse.ArgumentParser:
     power.add_argument("--context-key", required=True)
     power.add_argument("--output", default=None)
 
+    for operation in (
+        FRONTIER_OPERATIONS + CONTEXT_FRONTIER_OPERATIONS + INFERENCE_FRONTIER_OPERATIONS
+    ):
+        frontier = subparsers.add_parser(operation, help=f"run frontier capability: {operation}")
+        frontier.add_argument("input", type=str)
+        frontier.add_argument("--context-key", default=None)
+        frontier.add_argument("--output", default=None)
+
     blinded_plan = subparsers.add_parser(
         "plan-blinded-adjudication",
         help="create masked exact-context evidence adjudication cases",
@@ -3577,6 +3594,30 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "estimate-power-replication":
             result = PowerReplicationEstimator().estimate(
                 _read_rows(args.input, "observations", "records", "power"),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in FRONTIER_OPERATIONS:
+            result = run_frontier_operation(
+                args.command,
+                _read_json(args.input),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in CONTEXT_FRONTIER_OPERATIONS:
+            result = run_context_frontier_operation(
+                args.command,
+                _read_json(args.input),
+                context_key=args.context_key,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in INFERENCE_FRONTIER_OPERATIONS:
+            result = run_inference_frontier_operation(
+                args.command,
+                _read_json(args.input),
                 context_key=args.context_key,
             )
             _write_json(result.to_dict(), args.output)

@@ -460,6 +460,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "remain."
                 ),
             },
+            "GNC-D01-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.ConsentPolicyAttacher",
+                    "glio_noncode.frontier_data_alpha.ConsentAttachmentReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "evidence_note": (
+                    "Consent attachments retain policy identity, version, purpose, permitted uses, "
+                    "record context, expiry, active-status gates, and blocked-record receipts."
+                ),
+            },
+            "GNC-D01-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.InputAnomalyQuarantine",
+                    "glio_noncode.frontier_data_alpha.AnomalyQuarantineReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Duplicate IDs, missing or mismatched context, invalid coordinates, and "
+                    "unsupported sequence bases remain quarantined with structured reasons."
+                ),
+            },
+            "GNC-D01-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.DataCompletenessScorer",
+                    "glio_noncode.frontier_data_alpha.CompletenessReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Weighted required-field completeness scores preserve present, missing, and "
+                    "invalid fields and make review thresholds explicit."
+                ),
+            },
+            "GNC-D01-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.IntakeBundleExporter",
+                    "glio_noncode.frontier_data_alpha.IntakeBundle",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "evidence_note": (
+                    "Intake bundles are deterministic, content-addressed, context-bound, and "
+                    "reject blocked or quarantined records when the acceptance gate is enabled."
+                ),
+            },
             "GNC-D02-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
@@ -618,6 +666,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "and sequence-derived transposition interpretation remain."
                 ),
             },
+            "GNC-D02-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.TandemRepeatInterpreter",
+                    "glio_noncode.frontier_data_alpha.TandemRepeatReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Repeat copy deltas preserve motif validation, interval checks, measurement "
+                    "uncertainty, and expansion or contraction classifications."
+                ),
+            },
+            "GNC-D02-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.CompoundHaplotypeEvaluator",
+                    "glio_noncode.frontier_data_alpha.HaplotypeEvaluationReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Compound haplotypes retain required and observed alleles, missingness, phase "
+                    "state, completeness, and explicit review when phase or identity is unresolved."
+                ),
+            },
+            "GNC-D02-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.BreakpointUncertaintyPropagator",
+                    "glio_noncode.frontier_data_alpha.BreakpointPropagationReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Paired breakpoint intervals propagate left and right interval widths into a "
+                    "bounded uncertainty receipt without collapsing confidence into certainty."
+                ),
+            },
+            "GNC-D02-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.StructuralVariantEvidenceExporter",
+                    "glio_noncode.frontier_data_alpha.StructuralEvidenceBundle",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Structural evidence bundles retain required evidence identity, context, source "
+                    "IDs, deterministic ordering, and a content address."
+                ),
+            },
             "GNC-D03-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.specimen_context.SpecimenOntologyMapper",),
@@ -769,6 +865,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "source versions; response and resistance are not inferred."
                 ),
             },
+            "GNC-D03-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.BiospecimenPreanalyticQualityAssessor",
+                    "glio_noncode.frontier_data_alpha.PreanalyticQualityReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Preanalytic metrics are assessed against explicit min/max thresholds with "
+                    "missing metrics, failed metrics, scores, and review states retained."
+                ),
+            },
+            "GNC-D03-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.AssayLineageProtocolTracker",
+                    "glio_noncode.frontier_data_alpha.ProtocolLineageReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Assay lineage tracks specimen, protocol, operator, parent node, context, and "
+                    "missing-parent conflicts in a deterministic lineage view."
+                ),
+            },
+            "GNC-D03-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.IdentityConflictAdjudicator",
+                    "glio_noncode.frontier_data_alpha.IdentityConflictReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Identity observations produce modal agreement, conflicting identifiers, ties, "
+                    "and an abstaining review state below the declared agreement threshold."
+                ),
+            },
+            "GNC-D03-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.SpecimenContextEnvelopePublisher",
+                    "glio_noncode.frontier_data_alpha.SpecimenContextEnvelope",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "evidence_note": (
+                    "Specimen context envelopes bind specimen IDs, exact context, lineage, quality, "
+                    "and identity receipts before publishing a content address."
+                ),
+            },
             "GNC-D04-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.reference_registry.ReferenceRegistry",),
@@ -918,6 +1062,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "decisions; absent permission blocks rather than grants use."
                 ),
             },
+            "GNC-D04-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.SourceProvenanceChecker",
+                    "glio_noncode.frontier_data_alpha.ProvenanceCheckReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Source checks retain URI, declared and observed checksum, license, context, "
+                    "and review reasons for missing or mismatched provenance."
+                ),
+            },
+            "GNC-D04-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.AnnotationDriftDetector",
+                    "glio_noncode.frontier_data_alpha.AnnotationDriftReport",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "evidence_note": (
+                    "Versioned annotation rows are compared field by field with ignored receipt "
+                    "fields, change scores, new-row drift, and stable-row classifications."
+                ),
+            },
+            "GNC-D04-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.ReproducibleReferenceBundleBuilder",
+                    "glio_noncode.frontier_data_alpha.ReferenceBundle",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha",),
+                "evidence_note": (
+                    "Reference bundles retain sorted records, exact context, schema hash, "
+                    "availability gates, reference IDs, and a reproducible content address."
+                ),
+            },
+            "GNC-D04-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_data_alpha.ReferenceReleaseGate",
+                    "glio_noncode.frontier_data_alpha.ReferenceReleaseDecision",
+                ),
+                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "evidence_note": (
+                    "Reference release decisions apply explicit checksum, schema, license, "
+                    "context, and source checks with deny-by-default missing-check behavior."
+                ),
+            },
             "GNC-D05-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.atlas_extensions.CcreTrackParser",),
@@ -1042,6 +1234,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Ranked enhancer constituents are grouped into proximity-bounded candidate "
                     "intervals with quantile thresholds, target-gene declarations, source hashes, "
                     "and partial activity evidence; candidates are not causal claims."
+                ),
+            },
+            "GNC-D05-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.InsulatorBoundaryAtlas",
+                    "glio_noncode.frontier_context_alpha.BoundaryAtlasReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Boundary intervals retain insulation score, support, orientation, exact "
+                    "context, and interval or support review states."
+                ),
+            },
+            "GNC-D05-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.RegulatoryHotspotAtlas",
+                    "glio_noncode.frontier_context_alpha.HotspotAtlasReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Hotspot aggregation preserves independent sources, evidence types, direction "
+                    "concordance, support count, and insufficient-source review."
+                ),
+            },
+            "GNC-D05-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.AtlasEvidenceTierAdjudicator",
+                    "glio_noncode.frontier_context_alpha.AtlasEvidenceTierReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Atlas evidence tiers are derived from source count, consistency, and "
+                    "reproducibility thresholds with low or missing evidence retained for review."
+                ),
+            },
+            "GNC-D05-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.AtlasSnapshotPublisher",
+                    "glio_noncode.frontier_context_alpha.AtlasSnapshot",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha", "tests.test_frontier_context_alpha_cli"),
+                "evidence_note": (
+                    "Atlas snapshots bind type, version, schema, exact context, record address, "
+                    "and deterministic publication identity."
                 ),
             },
             "GNC-D06-C01": {
@@ -1180,6 +1420,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Declared promoter motif pairs are evaluated by spacing, orientation, weighted "
                     "coverage, source versions, and competing pairs; grammar compatibility is not "
                     "promoter activity or transcription initiation evidence."
+                ),
+            },
+            "GNC-D06-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.EnhancerGrammarModel",
+                    "glio_noncode.frontier_context_alpha.EnhancerGrammarReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Motif-pair grammar evaluates declared spacing rules, motif coverage, compatible "
+                    "pairs, and minimum-coverage review boundaries."
+                ),
+            },
+            "GNC-D06-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.AlleleSaturationSimulator",
+                    "glio_noncode.frontier_context_alpha.AlleleSaturationReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Declared alternate alleles are scored against an explicit reference with "
+                    "effect deltas and uncertainty-aware review states."
+                ),
+            },
+            "GNC-D06-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.EnsembleDisagreementQuantifier",
+                    "glio_noncode.frontier_context_alpha.EnsembleDisagreementReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Ensemble mean, standard deviation, interval, range disagreement, and review "
+                    "thresholds remain explicit for every prediction ID."
+                ),
+            },
+            "GNC-D06-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.SequenceEvidencePublisher",
+                    "glio_noncode.frontier_context_alpha.SequenceEvidenceBundle",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Sequence evidence bundles retain model IDs, sequence IDs, exact context, "
+                    "record address, and publication address."
                 ),
             },
             "GNC-D07-C01": {
@@ -1347,6 +1635,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Declared batch offsets and cell-composition coefficients retain raw signal, "
                     "batch and composition adjustment terms, target composition, missing-parameter "
                     "partial states, and source hashes; corrected values remain descriptive."
+                ),
+            },
+            "GNC-D07-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.ContextImputationWithConfidence",
+                    "glio_noncode.frontier_context_alpha.ContextImputationReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Missing chromatin context values use only declared priors and preserve source, "
+                    "confidence, and low-confidence review states."
+                ),
+            },
+            "GNC-D07-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.AssaySupportCoverageGate",
+                    "glio_noncode.frontier_context_alpha.AssayCoverageReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Assay support gates retain required/observed assay IDs, missing assays, and "
+                    "coverage thresholds before interpretation."
+                ),
+            },
+            "GNC-D07-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.CrossAssayConcordanceAdjudicator",
+                    "glio_noncode.frontier_context_alpha.ConcordanceReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Cross-assay directions are reduced to a declared mode and concordance with "
+                    "insufficient-assay and disagreement review paths."
+                ),
+            },
+            "GNC-D07-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.ChromatinEvidencePublisher",
+                    "glio_noncode.frontier_context_alpha.ChromatinEvidenceBundle",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Chromatin bundles bind feature IDs, assay IDs, exact context, record address, "
+                    "and publication address."
                 ),
             },
             "GNC-D08-C01": {
@@ -1521,6 +1857,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "descriptive evidence rather than response or resistance claims."
                 ),
             },
+            "GNC-D08-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.CellStateAbundanceUncertaintyModel",
+                    "glio_noncode.frontier_context_alpha.CellStateAbundanceReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Cell-state abundance estimates include binomial standard error and bounded "
+                    "intervals with invalid-count review."
+                ),
+            },
+            "GNC-D08-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.SingleCellReferenceMapper",
+                    "glio_noncode.frontier_context_alpha.SingleCellMappingReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Single-cell mappings retain top/second score, margin, minimum-score and "
+                    "ambiguity gates against the supplied reference table."
+                ),
+            },
+            "GNC-D08-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.CellStateOODDetector",
+                    "glio_noncode.frontier_context_alpha.CellStateOODReport",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha", "tests.test_frontier_context_alpha_cli"),
+                "evidence_note": (
+                    "Cell-state OOD checks preserve distance, support score, support boundary, and "
+                    "explicit out-of-domain review findings."
+                ),
+            },
+            "GNC-D08-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_context_alpha.CellStateContextPublisher",
+                    "glio_noncode.frontier_context_alpha.CellStateContextEnvelope",
+                ),
+                "test_modules": ("tests.test_frontier_context_alpha",),
+                "evidence_note": (
+                    "Cell-state context envelopes bind cell IDs, mapping, abundance, OOD receipts, "
+                    "and exact context before publication."
+                ),
+            },
             "GNC-D09-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (
@@ -1667,6 +2051,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "the simulation is not a prediction of 3D function."
                 ),
             },
+            "GNC-D09-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.EcDNARegulatoryContactModel",
+                    "glio_noncode.frontier_inference_alpha.EcDNAContactReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "ecDNA contacts retain element/gene identity, contact score, source count, "
+                    "normalized support, exact context, and review reasons."
+                ),
+            },
+            "GNC-D09-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.CompartmentSwitchEstimator",
+                    "glio_noncode.frontier_inference_alpha.CompartmentSwitchReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Signed compartment scores produce explicit A/B transitions, deltas, confidence, "
+                    "and stable or threshold-review states."
+                ),
+            },
+            "GNC-D09-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.TopologyUncertaintyTransportModel",
+                    "glio_noncode.frontier_inference_alpha.TopologyTransportReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Topology paths transport declared signal while accumulating edge uncertainty "
+                    "and path-contiguity review."
+                ),
+            },
+            "GNC-D09-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.ThreeDEvidencePublisher",
+                    "glio_noncode.frontier_inference_alpha.ThreeDEvidenceBundle",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "3D evidence bundles retain path IDs, assay IDs, exact context, record address, "
+                    "and publication address."
+                ),
+            },
             "GNC-D10-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.link_graph.CoordinateOverlapLinker",),
@@ -1803,6 +2235,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Multi-gene/multi-element graph slices retain every aggregate edge, evidence "
                     "path, alternative gene, node degree, connected component, context gate, and "
                     "threshold receipt without selecting a preferred target."
+                ),
+            },
+            "GNC-D10-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.LinkEvidenceDependenceCorrector",
+                    "glio_noncode.frontier_inference_alpha.DependenceCorrectionReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Dependence groups downweight correlated support and retain raw support, group "
+                    "size, corrected support, and source grouping."
+                ),
+            },
+            "GNC-D10-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.TargetGeneRanker",
+                    "glio_noncode.frontier_inference_alpha.TargetGeneRankReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Target-gene ranking retains component scores, weights, variant/element/gene "
+                    "identity, deterministic ranks, and top-gene mapping."
+                ),
+            },
+            "GNC-D10-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.LinkCalibrationAndAbstention",
+                    "glio_noncode.frontier_inference_alpha.LinkCalibrationReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Link calibration compares optional observations and abstains on uncertainty or "
+                    "calibration error beyond explicit thresholds."
+                ),
+            },
+            "GNC-D10-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.LinkEvidencePublisher",
+                    "glio_noncode.frontier_inference_alpha.LinkEvidenceBundle",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Link evidence publication binds link/source IDs, exact context, record address, "
+                    "and bundle address."
                 ),
             },
             "GNC-D11-C01": {
@@ -1950,6 +2430,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "assay limitations; negative evidence is not proof of absence."
                 ),
             },
+            "GNC-D11-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.PosteriorDecompositionEngine",
+                    "glio_noncode.frontier_inference_alpha.PosteriorDecompositionReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Posterior decomposition retains prior, likelihood, measurement, dependence "
+                    "penalty, raw score, normalized score, and top-hypothesis identity."
+                ),
+            },
+            "GNC-D11-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.RegulatoryDriverHypothesisPosterior",
+                    "glio_noncode.frontier_inference_alpha.DriverPosteriorReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Regulatory-driver posteriors retain evidence IDs, support, priors, normalized "
+                    "posterior, rank, and minimum-support review."
+                ),
+            },
+            "GNC-D11-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.SelectivePredictionAndAbstention",
+                    "glio_noncode.frontier_inference_alpha.SelectivePredictionReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_frontier_inference_alpha_cli"),
+                "evidence_note": (
+                    "Selective prediction applies uncertainty-aware score thresholds and records "
+                    "abstentions rather than forcing weak causal outputs."
+                ),
+            },
+            "GNC-D11-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.CausalDossierPublisher",
+                    "glio_noncode.frontier_inference_alpha.CausalDossier",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Causal dossiers bind hypothesis IDs and evidence addresses with a research-only "
+                    "publication receipt and no causal conclusion upgrade."
+                ),
+            },
             "GNC-D12-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": ("glio_noncode.cohort_discovery.CohortQueryBuilder",),
@@ -2089,6 +2617,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "Cross-cohort replication retains cohort-specific effects, support, sample "
                     "counts, direction concordance, heterogeneous sources, and minimum coverage "
                     "without claiming transportability or generalization."
+                ),
+            },
+            "GNC-D12-C13": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.SubgroupFairnessStratifier",
+                    "glio_noncode.frontier_inference_alpha.FairnessStratificationReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Subgroup rates retain group size, positive count, rate, parity gap, and review "
+                    "thresholds without hiding small strata."
+                ),
+            },
+            "GNC-D12-C14": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.TransportabilityEstimator",
+                    "glio_noncode.frontier_inference_alpha.TransportabilityReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Transportability estimates retain source/target feature sets, overlap, shift "
+                    "score, and feature-gap or shift review."
+                ),
+            },
+            "GNC-D12-C15": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.FederatedSummaryAnalyzer",
+                    "glio_noncode.frontier_inference_alpha.FederatedSummaryReport",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_frontier_inference_alpha_cli"),
+                "evidence_note": (
+                    "Federated summaries aggregate site counts and means while retaining privacy-floor "
+                    "violations and between-site spread without raw cross-site records."
+                ),
+            },
+            "GNC-D12-C16": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.frontier_inference_alpha.CohortDiscoveryPublisher",
+                    "glio_noncode.frontier_inference_alpha.CohortDiscoveryBundle",
+                ),
+                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "evidence_note": (
+                    "Cohort discovery bundles retain aggregate feature IDs, analysis IDs, exact "
+                    "context, record address, and publication address."
                 ),
             },
             "GNC-D13-C01": {

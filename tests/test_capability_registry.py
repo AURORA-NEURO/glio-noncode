@@ -16,12 +16,12 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertEqual(coverage.total_capabilities, 256)
         self.assertEqual(coverage.mvp_capabilities, 64)
         self.assertEqual(coverage.verified, 3)
-        self.assertEqual(coverage.partial, 189)
-        self.assertEqual(coverage.planned, 64)
+        self.assertEqual(coverage.partial, 237)
+        self.assertEqual(coverage.planned, 16)
         self.assertAlmostEqual(coverage.implementation_percent, 1.17)
         self.assertAlmostEqual(coverage.mvp_implementation_percent, 4.69)
-        self.assertEqual(coverage.started, 192)
-        self.assertAlmostEqual(coverage.started_percent, 75.0)
+        self.assertEqual(coverage.started, 240)
+        self.assertAlmostEqual(coverage.started_percent, 93.75)
         self.assertEqual(coverage.mvp_started, 64)
         self.assertAlmostEqual(coverage.to_dict()["mvp_started_percent"], 100.0)
         self.assertEqual(len(registry.by_domain("D01")), 16)
@@ -90,6 +90,33 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertEqual(registry.record("GNC-D16-C09").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D16-C12").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D16-C04").spec.capability, "Agent execution sandbox")
+        for capability_id in (
+            "GNC-D01-C13",
+            "GNC-D01-C16",
+            "GNC-D02-C13",
+            "GNC-D02-C16",
+            "GNC-D03-C13",
+            "GNC-D03-C16",
+            "GNC-D04-C13",
+            "GNC-D04-C16",
+            "GNC-D05-C13",
+            "GNC-D05-C16",
+            "GNC-D06-C13",
+            "GNC-D06-C16",
+            "GNC-D07-C13",
+            "GNC-D07-C16",
+            "GNC-D08-C13",
+            "GNC-D08-C16",
+            "GNC-D09-C13",
+            "GNC-D09-C16",
+            "GNC-D10-C13",
+            "GNC-D10-C16",
+            "GNC-D11-C13",
+            "GNC-D11-C16",
+            "GNC-D12-C13",
+            "GNC-D12-C16",
+        ):
+            self.assertEqual(registry.record(capability_id).state, CapabilityState.PARTIAL)
 
     def test_evidence_updates_only_declared_capabilities(self) -> None:
         registry = CapabilityRegistry.from_csv().with_evidence(
