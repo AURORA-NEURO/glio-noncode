@@ -301,6 +301,29 @@ glio-noncode query-state-atlas state-atlas.json --molecular-state "IDH-mutant" -
 glio-noncode harmonize-histone histone.tsv --output histone.json
 ```
 
+The Domain 05 atlas-alpha tranche deepens track and regulatory-role
+boundaries without merging assay semantics:
+
+- `OpenChromatinTrackHarmonizer` splits ATAC/DNase-style observations at
+  every observed boundary and retains replicate, caller, source, context,
+  signal spread, and ambiguity. Accessibility is not activity.
+- `MethylationTrackHarmonizer` derives fractions from methylated/total counts
+  when available and keeps coverage, replicate spread, zero-coverage partial
+  states, source hashes, and exact context attached to each interval.
+- `EnhancerPromoterSilencerClassifier` evaluates declared role channels and
+  reports multi-role ambiguity, missing channels, and methylation-based
+  silencer candidates without inferring silencing or causality.
+- `SuperEnhancerCandidateAtlas` ranks enhancer constituents, groups selected
+  intervals by chromosome and proximity, preserves declared target genes, and
+  labels candidates partial when activity evidence is absent.
+
+```powershell
+glio-noncode harmonize-open-chromatin atac.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output atac-harmonized.json
+glio-noncode harmonize-methylation methylation.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output methylation-harmonized.json
+glio-noncode classify-regulatory-role regulatory-elements.json --role-threshold 0.5 --output regulatory-roles.json
+glio-noncode build-super-enhancer-atlas enhancers.json --minimum-constituents 3 --merge-gap-bp 100 --output super-enhancer-candidates.json
+```
+
 ## Domain 06 sequence and model adapters
 
 The sequence plane emits deterministic context features separately from

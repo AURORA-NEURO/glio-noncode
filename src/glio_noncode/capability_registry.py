@@ -992,6 +992,58 @@ def default_capability_registry() -> CapabilityRegistry:
                     "the result is not a calibrated activity call."
                 ),
             },
+            "GNC-D05-C09": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_alpha.OpenChromatinTrackHarmonizer",
+                    "glio_noncode.atlas_alpha.OpenChromatinHarmonizationReport",
+                ),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "evidence_note": (
+                    "Open-chromatin observations are split into atomic intervals with replicate "
+                    "and caller identity, source hashes, context gating, signal spread, and "
+                    "ambiguity preserved; accessibility is not promoted to activity or causality."
+                ),
+            },
+            "GNC-D05-C10": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_alpha.MethylationTrackHarmonizer",
+                    "glio_noncode.atlas_alpha.MethylationHarmonizationReport",
+                ),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "evidence_note": (
+                    "Methylation fractions retain methylated and total counts, coverage gaps, "
+                    "replicate disagreement, source hashes, and exact context; silencing is not "
+                    "inferred from methylation alone."
+                ),
+            },
+            "GNC-D05-C11": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_alpha.EnhancerPromoterSilencerClassifier",
+                    "glio_noncode.atlas_alpha.RegulatoryRoleClassificationReport",
+                ),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "evidence_note": (
+                    "Declared promoter, enhancer, silencer, accessibility, methylation, contact, "
+                    "and target-gene channels yield explicit multi-role, missing-channel, and "
+                    "candidate states without collapsing evidence into one activity claim."
+                ),
+            },
+            "GNC-D05-C12": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.atlas_alpha.SuperEnhancerCandidateAtlas",
+                    "glio_noncode.atlas_alpha.SuperEnhancerAtlasReport",
+                ),
+                "test_modules": ("tests.test_atlas_alpha", "tests.test_atlas_alpha_cli"),
+                "evidence_note": (
+                    "Ranked enhancer constituents are grouped into proximity-bounded candidate "
+                    "intervals with quantile thresholds, target-gene declarations, source hashes, "
+                    "and partial activity evidence; candidates are not causal claims."
+                ),
+            },
             "GNC-D06-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

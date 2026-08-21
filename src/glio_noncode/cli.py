@@ -10,6 +10,12 @@ from pathlib import Path
 from typing import Any
 
 from .api import create_server
+from .atlas_alpha import (
+    EnhancerPromoterSilencerClassifier,
+    MethylationTrackHarmonizer,
+    OpenChromatinTrackHarmonizer,
+    SuperEnhancerCandidateAtlas,
+)
 from .atlas_beta import (
     HistoneMarkTrackHarmonizer,
     MolecularAtlasState,
@@ -1006,6 +1012,46 @@ def build_parser() -> argparse.ArgumentParser:
     histone.add_argument("--coordinate-system", choices=("bed", "one_based"), default="bed")
     histone.add_argument("--spread-tolerance", type=float, default=0.25)
     histone.add_argument("--output", default=None)
+
+    open_chromatin = subparsers.add_parser(
+        "harmonize-open-chromatin",
+        help="harmonize context-qualified open-chromatin tracks into observed intervals",
+    )
+    open_chromatin.add_argument("input", type=str)
+    open_chromatin.add_argument("--context-key", default=None)
+    open_chromatin.add_argument("--spread-tolerance", type=float, default=0.25)
+    open_chromatin.add_argument("--minimum-signal", type=float, default=0.0)
+    open_chromatin.add_argument("--output", default=None)
+
+    methylation_harmonizer = subparsers.add_parser(
+        "harmonize-methylation",
+        help="harmonize coverage-aware methylation tracks into observed intervals",
+    )
+    methylation_harmonizer.add_argument("input", type=str)
+    methylation_harmonizer.add_argument("--context-key", default=None)
+    methylation_harmonizer.add_argument("--spread-tolerance", type=float, default=0.25)
+    methylation_harmonizer.add_argument("--output", default=None)
+
+    regulatory_role = subparsers.add_parser(
+        "classify-regulatory-role",
+        help="classify enhancer, promoter, and silencer roles from declared channels",
+    )
+    regulatory_role.add_argument("input", type=str)
+    regulatory_role.add_argument("--context-key", default=None)
+    regulatory_role.add_argument("--role-threshold", type=float, default=0.5)
+    regulatory_role.add_argument("--methylation-silencer-threshold", type=float, default=0.8)
+    regulatory_role.add_argument("--output", default=None)
+
+    super_enhancer = subparsers.add_parser(
+        "build-super-enhancer-atlas",
+        help="build ranked super-enhancer candidate intervals from enhancer records",
+    )
+    super_enhancer.add_argument("input", type=str)
+    super_enhancer.add_argument("--context-key", default=None)
+    super_enhancer.add_argument("--minimum-constituents", type=int, default=2)
+    super_enhancer.add_argument("--merge-gap-bp", type=int, default=0)
+    super_enhancer.add_argument("--rank-quantile", type=float, default=0.8)
+    super_enhancer.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -2166,6 +2212,42 @@ def main(argv: list[str] | None = None) -> int:
                 input_format=args.format,
                 coordinate_system=args.coordinate_system,
                 spread_tolerance=args.spread_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "harmonize-open-chromatin":
+            result = OpenChromatinTrackHarmonizer().harmonize(
+                _read_rows(args.input, "records", "observations", "intervals", "elements"),
+                context_key=args.context_key,
+                spread_tolerance=args.spread_tolerance,
+                minimum_signal=args.minimum_signal,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "harmonize-methylation":
+            result = MethylationTrackHarmonizer().harmonize(
+                _read_rows(args.input, "records", "observations", "intervals"),
+                context_key=args.context_key,
+                spread_tolerance=args.spread_tolerance,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "classify-regulatory-role":
+            result = EnhancerPromoterSilencerClassifier().classify(
+                _read_rows(args.input, "records", "observations", "elements"),
+                context_key=args.context_key,
+                role_threshold=args.role_threshold,
+                methylation_silencer_threshold=args.methylation_silencer_threshold,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "build-super-enhancer-atlas":
+            result = SuperEnhancerCandidateAtlas().build(
+                _read_rows(args.input, "records", "observations", "intervals", "elements"),
+                context_key=args.context_key,
+                minimum_constituents=args.minimum_constituents,
+                merge_gap_bp=args.merge_gap_bp,
+                rank_quantile=args.rank_quantile,
             )
             _write_json(result.to_dict(), args.output)
             return 0
