@@ -994,6 +994,66 @@ def default_capability_registry() -> CapabilityRegistry:
                     "unsupported malignant or microenvironment identity."
                 ),
             },
+            "GNC-D08-C05": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_beta.DevelopmentalLineagePrior",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_beta",
+                    "tests.test_cell_context_beta_cli",
+                ),
+                "evidence_note": (
+                    "Adult/pediatric developmental-lineage priors aggregate exact-context, "
+                    "versioned candidate observations with bounded support, uncertainty, source "
+                    "receipts, ambiguity margins, and explicit non-diagnostic limitations."
+                ),
+            },
+            "GNC-D08-C06": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_beta.GlioblastomaMalignantStatePrior",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_beta",
+                    "tests.test_cell_context_beta_cli",
+                ),
+                "evidence_note": (
+                    "Glioblastoma malignant-state priors require an explicit glioblastoma/GBM "
+                    "disease gate, preserve competing state candidates and contradiction, and do "
+                    "not convert a state prior into a diagnosis."
+                ),
+            },
+            "GNC-D08-C07": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_beta.IdhMutantLineageStatePrior",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_beta",
+                    "tests.test_cell_context_beta_cli",
+                ),
+                "evidence_note": (
+                    "IDH-mutant lineage/state priors require a declared molecular-state gate and "
+                    "retain exact context, evidence tiers, support summaries, uncertainty, and "
+                    "out-of-domain IDH-wildtype requests."
+                ),
+            },
+            "GNC-D08-C08": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context_beta.H3K27AlteredDevelopmentalStatePrior",
+                ),
+                "test_modules": (
+                    "tests.test_cell_context_beta",
+                    "tests.test_cell_context_beta_cli",
+                ),
+                "evidence_note": (
+                    "H3K27-altered developmental-state priors preserve declared state gates, "
+                    "candidate alternatives, source versions, ambiguity, and bounded research-use "
+                    "limitations without inferring developmental identity clinically."
+                ),
+            },
             "GNC-D09-C01": {
                 "state": CapabilityState.PARTIAL.value,
                 "implementation_modules": (

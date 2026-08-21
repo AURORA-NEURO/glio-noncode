@@ -320,6 +320,32 @@ The parser boundary is:
 glio-noncode parse-context context-observations.tsv --output context.json
 ```
 
+The Domain 08 scientific-beta extensions add bounded context priors:
+
+- `DevelopmentalLineagePrior` aggregates versioned developmental-lineage
+  observations only for the declared glioma age routes, preserving candidate
+  alternatives, source/evidence tiers, uncertainty, and ambiguity margins.
+- `GlioblastomaMalignantStatePrior` has an explicit glioblastoma/GBM disease
+  gate before summarizing stem-like, cycling, mesenchymal-like, hypoxic, or
+  related malignant-state candidates.
+- `IdhMutantLineageStatePrior` and
+  `H3K27AlteredDevelopmentalStatePrior` require their declared molecular-state
+  gates, so IDH-wildtype or unsupported-state observations are not silently
+  transported into another prior family.
+
+All four emit bounded support summaries, not calibrated probabilities. Missing
+observations, exact-context mismatches, contradictory rows, and close
+candidate scores remain visible as abstained, out-of-domain, contradictory, or
+ambiguous states. The beta command boundaries are:
+
+```powershell
+glio-noncode parse-context-prior lineage-prior.tsv --output lineage-prior.json
+glio-noncode estimate-developmental-lineage-prior lineage-prior.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output lineage-result.json
+glio-noncode estimate-glioblastoma-state-prior gbm-prior.json --context-key "GRCh38|glioblastoma|adult|stem_like|core|unknown" --output gbm-result.json
+glio-noncode estimate-idh-lineage-prior idh-prior.json --context-key "GRCh38|glioma|adult|proneural|core|unknown" --molecular-state "IDH-mutant" --output idh-result.json
+glio-noncode estimate-h3k27-developmental-prior h3-prior.json --context-key "GRCh38|glioma|pediatric|stem_like|midline|unknown" --molecular-state "H3K27-altered" --output h3-result.json
+```
+
 ## Domain 09 3D topology
 
 The topology plane imports long-form Hi-C and Micro-C contacts and TAD-boundary

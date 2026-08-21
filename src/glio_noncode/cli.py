@@ -19,6 +19,13 @@ from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
 from .causal_reasoning import FactorGraphConstructor, FactorObservation
 from .cell_context import ContextObservationParser
+from .cell_context_beta import (
+    ContextPriorObservationParser,
+    DevelopmentalLineagePrior,
+    GlioblastomaMalignantStatePrior,
+    H3K27AlteredDevelopmentalStatePrior,
+    IdhMutantLineageStatePrior,
+)
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
 from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
 from .control_plane import ClaimCeiling, MissionContext, default_control_plane_registry
@@ -686,6 +693,70 @@ def build_parser() -> argparse.ArgumentParser:
     idh_methylation.add_argument("--minimum-sites", type=int, default=3)
     idh_methylation.add_argument("--output", default=None)
 
+    prior_parse = subparsers.add_parser(
+        "parse-context-prior",
+        help="parse versioned lineage or malignant-state prior observations",
+    )
+    prior_parse.add_argument("input", type=str)
+    prior_parse.add_argument("--source-id", default=None)
+    prior_parse.add_argument("--source-version", default="unspecified")
+    prior_parse.add_argument("--format", choices=("tsv", "json"), default=None)
+    prior_parse.add_argument("--output", default=None)
+
+    developmental_prior = subparsers.add_parser(
+        "estimate-developmental-lineage-prior",
+        help="estimate a context-gated developmental-lineage research prior",
+    )
+    developmental_prior.add_argument("input", type=str)
+    developmental_prior.add_argument("--context-key", required=True)
+    developmental_prior.add_argument("--subject-id", default=None)
+    developmental_prior.add_argument("--model-id", default="developmental-lineage-prior")
+    developmental_prior.add_argument("--model-version", default="beta-1")
+    developmental_prior.add_argument("--minimum-evidence", type=int, default=1)
+    developmental_prior.add_argument("--ambiguity-margin", type=float, default=0.15)
+    developmental_prior.add_argument("--output", default=None)
+
+    gbm_prior = subparsers.add_parser(
+        "estimate-glioblastoma-state-prior",
+        help="estimate a glioblastoma malignant-state research prior",
+    )
+    gbm_prior.add_argument("input", type=str)
+    gbm_prior.add_argument("--context-key", required=True)
+    gbm_prior.add_argument("--subject-id", default=None)
+    gbm_prior.add_argument("--model-id", default="glioblastoma-malignant-state-prior")
+    gbm_prior.add_argument("--model-version", default="beta-1")
+    gbm_prior.add_argument("--minimum-evidence", type=int, default=1)
+    gbm_prior.add_argument("--ambiguity-margin", type=float, default=0.15)
+    gbm_prior.add_argument("--output", default=None)
+
+    idh_prior = subparsers.add_parser(
+        "estimate-idh-lineage-prior",
+        help="estimate an IDH-mutant lineage-state research prior",
+    )
+    idh_prior.add_argument("input", type=str)
+    idh_prior.add_argument("--context-key", required=True)
+    idh_prior.add_argument("--molecular-state", required=True)
+    idh_prior.add_argument("--subject-id", default=None)
+    idh_prior.add_argument("--model-id", default="idh-mutant-lineage-state-prior")
+    idh_prior.add_argument("--model-version", default="beta-1")
+    idh_prior.add_argument("--minimum-evidence", type=int, default=1)
+    idh_prior.add_argument("--ambiguity-margin", type=float, default=0.15)
+    idh_prior.add_argument("--output", default=None)
+
+    h3_prior = subparsers.add_parser(
+        "estimate-h3k27-developmental-prior",
+        help="estimate an H3K27-altered developmental-state research prior",
+    )
+    h3_prior.add_argument("input", type=str)
+    h3_prior.add_argument("--context-key", required=True)
+    h3_prior.add_argument("--molecular-state", required=True)
+    h3_prior.add_argument("--subject-id", default=None)
+    h3_prior.add_argument("--model-id", default="h3k27-altered-developmental-state-prior")
+    h3_prior.add_argument("--model-version", default="beta-1")
+    h3_prior.add_argument("--minimum-evidence", type=int, default=1)
+    h3_prior.add_argument("--ambiguity-margin", type=float, default=0.15)
+    h3_prior.add_argument("--output", default=None)
+
     context = subparsers.add_parser(
         "parse-context",
         help="parse context-qualified disease, age, molecular, or territory observations",
@@ -1249,6 +1320,53 @@ def main(argv: list[str] | None = None) -> int:
                 methylated_threshold=args.methylated_threshold,
                 minimum_sites=args.minimum_sites,
             )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "parse-context-prior":
+            input_path = Path(args.input)
+            result = ContextPriorObservationParser().parse_text(
+                input_path.read_text(encoding="utf-8"),
+                source_id=args.source_id or input_path.stem,
+                source_version=args.source_version,
+                input_format=args.format,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in {
+            "estimate-developmental-lineage-prior",
+            "estimate-glioblastoma-state-prior",
+            "estimate-idh-lineage-prior",
+            "estimate-h3k27-developmental-prior",
+        }:
+            payload = _read_json(args.input)
+            context = _context_from_key(args.context_key)
+            observations = payload.get("observations", payload.get("records", ()))
+            subject_id = args.subject_id or str(payload.get("subject_id", "unspecified"))
+            common = {
+                "subject_id": subject_id,
+                "model_id": args.model_id,
+                "model_version": args.model_version,
+                "minimum_evidence": args.minimum_evidence,
+                "ambiguity_margin": args.ambiguity_margin,
+            }
+            if args.command == "estimate-developmental-lineage-prior":
+                result = DevelopmentalLineagePrior().estimate(context, observations, **common)
+            elif args.command == "estimate-glioblastoma-state-prior":
+                result = GlioblastomaMalignantStatePrior().estimate(context, observations, **common)
+            elif args.command == "estimate-idh-lineage-prior":
+                result = IdhMutantLineageStatePrior().estimate(
+                    context,
+                    observations,
+                    declared_molecular_state=args.molecular_state,
+                    **common,
+                )
+            else:
+                result = H3K27AlteredDevelopmentalStatePrior().estimate(
+                    context,
+                    observations,
+                    declared_molecular_state=args.molecular_state,
+                    **common,
+                )
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command in {"scan-motif-disruption", "scan-motif-creation"}:
