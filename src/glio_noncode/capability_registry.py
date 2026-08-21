@@ -1406,51 +1406,86 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D03-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.BiospecimenPreanalyticQualityAssessor",
                     "glio_noncode.frontier_data_alpha.PreanalyticQualityReport",
+                    "glio_noncode.specimen_preanalytic_public_data.SpecimenPreanalyticFixtureCatalog",
+                    "glio_noncode.specimen_preanalytic_fixture_eval.evaluate_specimen_preanalytic_fixture",
+                    "glio_noncode.specimen_preanalytic_quality_gate.evaluate_specimen_preanalytic_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_specimen_preanalytic_public_data",
+                    "tests.test_specimen_preanalytic_fixture_eval",
+                    "tests.test_specimen_preanalytic_quality_bundle",
+                ),
                 "evidence_note": (
                     "Preanalytic metrics are assessed against explicit min/max thresholds with "
-                    "missing metrics, failed metrics, scores, and review states retained."
+                    "missing metrics, failed metrics, scores, and review states retained. The "
+                    "public aggregate plane adds source receipts, 131 fixture checks, replay, "
+                    "scenario, reconciliation, bundle, lineage, and runtime evidence."
                 ),
             },
             "GNC-D03-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.AssayLineageProtocolTracker",
                     "glio_noncode.frontier_data_alpha.ProtocolLineageReport",
+                    "glio_noncode.specimen_preanalytic_lineage.SpecimenPreanalyticLineageGraph",
+                    "glio_noncode.specimen_preanalytic_contracts.SpecimenPreanalyticOperationContract",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_specimen_preanalytic_lineage",
+                    "tests.test_specimen_preanalytic_contracts_replay",
+                ),
                 "evidence_note": (
                     "Assay lineage tracks specimen, protocol, operator, parent node, context, and "
-                    "missing-parent conflicts in a deterministic lineage view."
+                    "missing-parent conflicts in a deterministic lineage view. The release graph "
+                    "contains public roots, twelve fixture records, twelve sanitized results, "
+                    "typed containment edges, and address reconciliation."
                 ),
             },
             "GNC-D03-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.IdentityConflictAdjudicator",
                     "glio_noncode.frontier_data_alpha.IdentityConflictReport",
+                    "glio_noncode.specimen_preanalytic_replay.SpecimenPreanalyticReplayReport",
+                    "glio_noncode.specimen_preanalytic_scenario_matrix.SpecimenPreanalyticScenarioReport",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_specimen_preanalytic_fixture_eval",
+                    "tests.test_specimen_preanalytic_contracts_replay",
+                ),
                 "evidence_note": (
                     "Identity observations produce modal agreement, conflicting identifiers, ties, "
-                    "and an abstaining review state below the declared agreement threshold."
+                    "and an abstaining review state below the declared agreement threshold. The "
+                    "aggregate fixture retains identity-tie and conflict controls without "
+                    "authenticating a specimen."
                 ),
             },
             "GNC-D03-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.SpecimenContextEnvelopePublisher",
                     "glio_noncode.frontier_data_alpha.SpecimenContextEnvelope",
+                    "glio_noncode.specimen_preanalytic_bundle.SpecimenPreanalyticEvidenceBundleBuilder",
+                    "glio_noncode.specimen_preanalytic_runtime.run_specimen_preanalytic_pipeline",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha", "tests.test_frontier_data_alpha_cli"),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_frontier_data_alpha_cli",
+                    "tests.test_specimen_preanalytic_quality_bundle",
+                    "tests.test_specimen_preanalytic_runtime",
+                ),
                 "evidence_note": (
                     "Specimen context envelopes bind specimen IDs, exact context, lineage, quality, "
-                    "and identity receipts before publishing a content address."
+                    "and identity receipts before publishing a content address. The public plane "
+                    "adds missing-receipt controls, JSON/CSV/Markdown bundles, a four-stage runtime, "
+                    "and a 25-check integrated release gate."
                 ),
             },
             "GNC-D04-C01": {

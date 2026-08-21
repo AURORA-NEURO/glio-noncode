@@ -1170,6 +1170,79 @@ from .specimen_lineage_scenario_matrix import (
     SpecimenLineageScenarioResult,
     evaluate_specimen_lineage_scenarios,
 )
+from .specimen_preanalytic_bundle import (
+    SpecimenPreanalyticBundleEntry,
+    SpecimenPreanalyticBundleFormat,
+    SpecimenPreanalyticEvidenceBundle,
+    SpecimenPreanalyticEvidenceBundleBuilder,
+)
+from .specimen_preanalytic_contracts import (
+    SpecimenPreanalyticContractRegistry,
+    SpecimenPreanalyticOperationContract,
+    default_specimen_preanalytic_contracts,
+    specimen_preanalytic_contract_manifest,
+)
+from .specimen_preanalytic_fixture_eval import (
+    SpecimenPreanalyticEvaluationReport,
+    SpecimenPreanalyticExecutionCheck,
+    SpecimenPreanalyticReceipt,
+    evaluate_specimen_preanalytic_fixture,
+)
+from .specimen_preanalytic_lineage import (
+    SpecimenPreanalyticLineageAudit,
+    SpecimenPreanalyticLineageCheck,
+    SpecimenPreanalyticLineageEdge,
+    SpecimenPreanalyticLineageGraph,
+    SpecimenPreanalyticLineageNode,
+    audit_specimen_preanalytic_lineage,
+    build_specimen_preanalytic_lineage,
+)
+from .specimen_preanalytic_public_data import (
+    EXPECTED_CONTEXT_KEY,
+    EXPECTED_CONTROL_COUNT,
+    EXPECTED_POSITIVE_COUNT,
+    SPECIMEN_PREANALYTIC_FIXTURE_VERSION,
+    SpecimenPreanalyticDataAudit,
+    SpecimenPreanalyticDataCheck,
+    SpecimenPreanalyticFixtureCatalog,
+    SpecimenPreanalyticOperation,
+    SpecimenPreanalyticRecord,
+    SpecimenPreanalyticRole,
+    SpecimenPreanalyticSourceReceipt,
+    audit_specimen_preanalytic_data,
+)
+from .specimen_preanalytic_quality_gate import (
+    SpecimenPreanalyticQualityCheck,
+    SpecimenPreanalyticQualityGateReport,
+    evaluate_specimen_preanalytic_quality_gate,
+)
+from .specimen_preanalytic_reconciliation import (
+    SpecimenPreanalyticReceiptIndex,
+    SpecimenPreanalyticReceiptIndexEntry,
+    SpecimenPreanalyticReconciliationCheck,
+    SpecimenPreanalyticReconciliationReport,
+    audit_specimen_preanalytic_receipt_index,
+    build_specimen_preanalytic_receipt_index,
+)
+from .specimen_preanalytic_replay import (
+    SpecimenPreanalyticReplayEntry,
+    SpecimenPreanalyticReplayExpectation,
+    SpecimenPreanalyticReplayReport,
+    default_specimen_preanalytic_expectation,
+    replay_specimen_preanalytic_file,
+    replay_specimen_preanalytic_fixture,
+)
+from .specimen_preanalytic_runtime import (
+    SpecimenPreanalyticPipelineReport,
+    SpecimenPreanalyticPipelineRequest,
+    SpecimenPreanalyticStageReceipt,
+    run_specimen_preanalytic_pipeline,
+)
+from .specimen_preanalytic_scenario_matrix import (
+    SpecimenPreanalyticScenarioReport,
+    SpecimenPreanalyticScenarioResult,
+    evaluate_specimen_preanalytic_scenarios,
+)
 from .structural_beta import (
     ChromothripsisDetectionReport,
     ChromothripsisPattern,
@@ -1277,6 +1350,72 @@ from .structural_fixture_eval import (
     StructuralOperationReceipt,
     evaluate_structural_fixture,
 )
+from .structural_frontier_bundle import (
+    StructuralFrontierBundleEntry,
+    StructuralFrontierBundleFormat,
+    StructuralFrontierEvidenceBundle,
+    StructuralFrontierEvidenceBundleBuilder,
+    build_structural_frontier_evidence_bundle,
+)
+from .structural_frontier_contracts import (
+    StructuralFrontierContractRegistry,
+    StructuralFrontierOperationContract,
+    default_structural_frontier_contract_registry,
+)
+from .structural_frontier_fixture_eval import (
+    StructuralFrontierExecution,
+    StructuralFrontierFixtureCheck,
+    StructuralFrontierFixtureEvaluationReport,
+    StructuralFrontierOperationReceipt,
+    evaluate_structural_frontier_fixture,
+)
+from .structural_frontier_lineage import (
+    StructuralFrontierLineageAudit,
+    StructuralFrontierLineageBuilder,
+    StructuralFrontierLineageEdge,
+    StructuralFrontierLineageGraph,
+    StructuralFrontierLineageNode,
+    StructuralFrontierLineageNodeKind,
+    StructuralFrontierLineageRelation,
+    audit_structural_frontier_lineage,
+    build_structural_frontier_lineage,
+)
+from .structural_frontier_public_data import (
+    STRUCTURAL_FRONTIER_CONTROL_FLOOR,
+    STRUCTURAL_FRONTIER_FIXTURE_SCHEMA_VERSION,
+    STRUCTURAL_FRONTIER_OPERATION_FLOOR,
+    StructuralFrontierDataAuditReport,
+    StructuralFrontierFixtureCatalog,
+    StructuralFrontierFixtureRecord,
+    StructuralFrontierFixtureState,
+    StructuralFrontierOperation,
+    StructuralFrontierSourceReceipt,
+    audit_structural_frontier_fixture,
+)
+from .structural_frontier_quality_gate import (
+    StructuralFrontierQualityCheck,
+    StructuralFrontierQualityGateReport,
+    evaluate_structural_frontier_quality_gate,
+)
+from .structural_frontier_replay import (
+    StructuralFrontierReplayCase,
+    StructuralFrontierReplayExpectation,
+    StructuralFrontierReplayReport,
+    replay_structural_frontier_fixtures,
+)
+from .structural_frontier_runtime import (
+    StructuralFrontierPipeline,
+    StructuralFrontierPipelineReport,
+    StructuralFrontierPipelineRequest,
+    StructuralFrontierPipelineState,
+    StructuralFrontierStageReceipt,
+    run_structural_frontier_pipeline,
+)
+from .structural_frontier_scenario_matrix import (
+    StructuralFrontierScenarioMatrix,
+    StructuralFrontierScenarioResult,
+    evaluate_structural_frontier_scenarios,
+)
 from .structural_haplotype import (
     AlleleAwareRepresentationReport,
     AlleleAwareStructuralEvent,
@@ -1363,71 +1502,16 @@ from .structural_haplotype_scenario_matrix import (
     StructuralHaplotypeScenarioResult,
     evaluate_structural_haplotype_scenarios,
 )
-from .structural_frontier_bundle import (
-    StructuralFrontierBundleEntry,
-    StructuralFrontierBundleFormat,
-    StructuralFrontierEvidenceBundle,
-    StructuralFrontierEvidenceBundleBuilder,
-    build_structural_frontier_evidence_bundle,
-)
-from .structural_frontier_contracts import (
-    StructuralFrontierContractRegistry,
-    StructuralFrontierOperationContract,
-    default_structural_frontier_contract_registry,
-)
-from .structural_frontier_fixture_eval import (
-    StructuralFrontierExecution,
-    StructuralFrontierFixtureCheck,
-    StructuralFrontierFixtureEvaluationReport,
-    StructuralFrontierOperationReceipt,
-    evaluate_structural_frontier_fixture,
-)
-from .structural_frontier_lineage import (
-    StructuralFrontierLineageAudit,
-    StructuralFrontierLineageBuilder,
-    StructuralFrontierLineageEdge,
-    StructuralFrontierLineageGraph,
-    StructuralFrontierLineageNode,
-    StructuralFrontierLineageNodeKind,
-    StructuralFrontierLineageRelation,
-    audit_structural_frontier_lineage,
-    build_structural_frontier_lineage,
-)
-from .structural_frontier_public_data import (
-    STRUCTURAL_FRONTIER_CONTROL_FLOOR,
-    STRUCTURAL_FRONTIER_FIXTURE_SCHEMA_VERSION,
-    STRUCTURAL_FRONTIER_OPERATION_FLOOR,
-    StructuralFrontierDataAuditReport,
-    StructuralFrontierFixtureCatalog,
-    StructuralFrontierFixtureRecord,
-    StructuralFrontierFixtureState,
-    StructuralFrontierOperation,
-    StructuralFrontierSourceReceipt,
-    audit_structural_frontier_fixture,
-)
-from .structural_frontier_quality_gate import (
-    StructuralFrontierQualityCheck,
-    StructuralFrontierQualityGateReport,
-    evaluate_structural_frontier_quality_gate,
-)
-from .structural_frontier_replay import (
-    StructuralFrontierReplayCase,
-    StructuralFrontierReplayExpectation,
-    StructuralFrontierReplayReport,
-    replay_structural_frontier_fixtures,
-)
-from .structural_frontier_runtime import (
-    StructuralFrontierPipeline,
-    StructuralFrontierPipelineReport,
-    StructuralFrontierPipelineRequest,
-    StructuralFrontierPipelineState,
-    StructuralFrontierStageReceipt,
-    run_structural_frontier_pipeline,
-)
-from .structural_frontier_scenario_matrix import (
-    StructuralFrontierScenarioMatrix,
-    StructuralFrontierScenarioResult,
-    evaluate_structural_frontier_scenarios,
+from .structural_lineage import (
+    StructuralLineageAudit,
+    StructuralLineageBuilder,
+    StructuralLineageEdge,
+    StructuralLineageGraph,
+    StructuralLineageNode,
+    StructuralLineageNodeKind,
+    StructuralLineageRelation,
+    audit_structural_lineage,
+    build_structural_lineage,
 )
 from .structural_public_data import (
     STRUCTURAL_CONTROL_FLOOR,
@@ -1445,17 +1529,6 @@ from .structural_quality_gate import (
     StructuralQualityCheck,
     StructuralQualityGateReport,
     evaluate_structural_quality_gate,
-)
-from .structural_lineage import (
-    StructuralLineageAudit,
-    StructuralLineageBuilder,
-    StructuralLineageEdge,
-    StructuralLineageGraph,
-    StructuralLineageNode,
-    StructuralLineageNodeKind,
-    StructuralLineageRelation,
-    audit_structural_lineage,
-    build_structural_lineage,
 )
 from .structural_reconstruction import ReconstructionResult, StructuralReconstructor
 from .structural_replay import (
@@ -2513,6 +2586,59 @@ __all__ = [
     "SpecimenLineageScenarioReport",
     "SpecimenLineageScenarioResult",
     "evaluate_specimen_lineage_scenarios",
+    "SpecimenPreanalyticBundleEntry",
+    "SpecimenPreanalyticBundleFormat",
+    "SpecimenPreanalyticEvidenceBundle",
+    "SpecimenPreanalyticEvidenceBundleBuilder",
+    "SpecimenPreanalyticContractRegistry",
+    "SpecimenPreanalyticOperationContract",
+    "default_specimen_preanalytic_contracts",
+    "specimen_preanalytic_contract_manifest",
+    "SpecimenPreanalyticEvaluationReport",
+    "SpecimenPreanalyticExecutionCheck",
+    "SpecimenPreanalyticReceipt",
+    "evaluate_specimen_preanalytic_fixture",
+    "SpecimenPreanalyticLineageAudit",
+    "SpecimenPreanalyticLineageCheck",
+    "SpecimenPreanalyticLineageEdge",
+    "SpecimenPreanalyticLineageGraph",
+    "SpecimenPreanalyticLineageNode",
+    "audit_specimen_preanalytic_lineage",
+    "build_specimen_preanalytic_lineage",
+    "EXPECTED_CONTEXT_KEY",
+    "EXPECTED_CONTROL_COUNT",
+    "EXPECTED_POSITIVE_COUNT",
+    "SPECIMEN_PREANALYTIC_FIXTURE_VERSION",
+    "SpecimenPreanalyticDataAudit",
+    "SpecimenPreanalyticDataCheck",
+    "SpecimenPreanalyticFixtureCatalog",
+    "SpecimenPreanalyticOperation",
+    "SpecimenPreanalyticRecord",
+    "SpecimenPreanalyticRole",
+    "SpecimenPreanalyticSourceReceipt",
+    "audit_specimen_preanalytic_data",
+    "SpecimenPreanalyticQualityCheck",
+    "SpecimenPreanalyticQualityGateReport",
+    "evaluate_specimen_preanalytic_quality_gate",
+    "SpecimenPreanalyticReceiptIndex",
+    "SpecimenPreanalyticReceiptIndexEntry",
+    "SpecimenPreanalyticReconciliationCheck",
+    "SpecimenPreanalyticReconciliationReport",
+    "audit_specimen_preanalytic_receipt_index",
+    "build_specimen_preanalytic_receipt_index",
+    "SpecimenPreanalyticReplayEntry",
+    "SpecimenPreanalyticReplayExpectation",
+    "SpecimenPreanalyticReplayReport",
+    "default_specimen_preanalytic_expectation",
+    "replay_specimen_preanalytic_file",
+    "replay_specimen_preanalytic_fixture",
+    "SpecimenPreanalyticPipelineReport",
+    "SpecimenPreanalyticPipelineRequest",
+    "SpecimenPreanalyticStageReceipt",
+    "run_specimen_preanalytic_pipeline",
+    "SpecimenPreanalyticScenarioReport",
+    "SpecimenPreanalyticScenarioResult",
+    "evaluate_specimen_preanalytic_scenarios",
     "CancerCellFractionBatch",
     "CancerCellFractionEstimate",
     "CancerCellFractionEstimator",

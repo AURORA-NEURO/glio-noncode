@@ -318,6 +318,34 @@ from .specimen_lineage_runtime import (
     specimen_lineage_pipeline_request_from_file,
 )
 from .specimen_lineage_scenario_matrix import evaluate_specimen_lineage_scenarios
+from .specimen_preanalytic_bundle import (
+    SpecimenPreanalyticBundleFormat,
+    SpecimenPreanalyticEvidenceBundleBuilder,
+)
+from .specimen_preanalytic_contracts import default_specimen_preanalytic_contracts
+from .specimen_preanalytic_fixture_eval import evaluate_specimen_preanalytic_fixture
+from .specimen_preanalytic_lineage import (
+    audit_specimen_preanalytic_lineage,
+    build_specimen_preanalytic_lineage,
+)
+from .specimen_preanalytic_public_data import (
+    SpecimenPreanalyticFixtureCatalog,
+    audit_specimen_preanalytic_data,
+)
+from .specimen_preanalytic_quality_gate import evaluate_specimen_preanalytic_quality_gate
+from .specimen_preanalytic_reconciliation import (
+    audit_specimen_preanalytic_receipt_index,
+    build_specimen_preanalytic_receipt_index,
+)
+from .specimen_preanalytic_replay import (
+    SpecimenPreanalyticReplayExpectation,
+    replay_specimen_preanalytic_file,
+)
+from .specimen_preanalytic_runtime import (
+    SpecimenPreanalyticPipelineRequest,
+    run_specimen_preanalytic_pipeline,
+)
+from .specimen_preanalytic_scenario_matrix import evaluate_specimen_preanalytic_scenarios
 from .structural_beta import (
     ChromothripsisPatternDetector,
     EnhancerHijackingCandidateDetector,
@@ -337,6 +365,27 @@ from .structural_bundle import StructuralBundleFormat, StructuralEvidenceBundleB
 from .structural_contracts import default_structural_contract_registry
 from .structural_extensions import CopyNumberSegmentHarmonizer, SVConsensusImporter
 from .structural_fixture_eval import evaluate_structural_fixture
+from .structural_frontier_bundle import (
+    StructuralFrontierBundleFormat,
+    StructuralFrontierEvidenceBundleBuilder,
+)
+from .structural_frontier_contracts import default_structural_frontier_contract_registry
+from .structural_frontier_fixture_eval import evaluate_structural_frontier_fixture
+from .structural_frontier_lineage import (
+    audit_structural_frontier_lineage,
+    build_structural_frontier_lineage,
+)
+from .structural_frontier_public_data import (
+    StructuralFrontierFixtureCatalog,
+    audit_structural_frontier_fixture,
+)
+from .structural_frontier_quality_gate import evaluate_structural_frontier_quality_gate
+from .structural_frontier_replay import (
+    StructuralFrontierReplayExpectation,
+    replay_structural_frontier_fixtures,
+)
+from .structural_frontier_runtime import run_structural_frontier_pipeline
+from .structural_frontier_scenario_matrix import evaluate_structural_frontier_scenarios
 from .structural_haplotype import (
     AlleleAwareSvRepresenter,
     PangenomeGraphProjector,
@@ -364,27 +413,6 @@ from .structural_haplotype_replay import (
 )
 from .structural_haplotype_runtime import run_structural_haplotype_pipeline
 from .structural_haplotype_scenario_matrix import evaluate_structural_haplotype_scenarios
-from .structural_frontier_bundle import (
-    StructuralFrontierBundleFormat,
-    StructuralFrontierEvidenceBundleBuilder,
-)
-from .structural_frontier_contracts import default_structural_frontier_contract_registry
-from .structural_frontier_fixture_eval import evaluate_structural_frontier_fixture
-from .structural_frontier_lineage import (
-    audit_structural_frontier_lineage,
-    build_structural_frontier_lineage,
-)
-from .structural_frontier_public_data import (
-    StructuralFrontierFixtureCatalog,
-    audit_structural_frontier_fixture,
-)
-from .structural_frontier_quality_gate import evaluate_structural_frontier_quality_gate
-from .structural_frontier_replay import (
-    StructuralFrontierReplayExpectation,
-    replay_structural_frontier_fixtures,
-)
-from .structural_frontier_runtime import run_structural_frontier_pipeline
-from .structural_frontier_scenario_matrix import evaluate_structural_frontier_scenarios
 from .structural_lineage import audit_structural_lineage, build_structural_lineage
 from .structural_public_data import StructuralFixtureCatalog, audit_structural_fixture
 from .structural_quality_gate import evaluate_structural_quality_gate
@@ -1959,6 +1987,90 @@ def build_parser() -> argparse.ArgumentParser:
     )
     specimen_lineage_pipeline.add_argument("input", type=str)
     specimen_lineage_pipeline.add_argument("--output", default=None)
+
+    specimen_preanalytic_fixture = subparsers.add_parser(
+        "evaluate-specimen-preanalytic-fixture",
+        help="evaluate the public aggregate fixture across Domain 03 C13-C16 specimen operations",
+    )
+    specimen_preanalytic_fixture.add_argument("input", type=str)
+    specimen_preanalytic_fixture.add_argument("--output", default=None)
+
+    specimen_preanalytic_data = subparsers.add_parser(
+        "audit-specimen-preanalytic-data",
+        help="audit public aggregate C13-C16 source, context, role, and payload boundaries",
+    )
+    specimen_preanalytic_data.add_argument("input", type=str)
+    specimen_preanalytic_data.add_argument("--output", default=None)
+
+    specimen_preanalytic_replay = subparsers.add_parser(
+        "replay-specimen-preanalytic-fixtures",
+        help="replay C13-C16 specimen fixtures with identity, context, and evidence floors",
+    )
+    specimen_preanalytic_replay.add_argument("inputs", nargs="+", type=str)
+    specimen_preanalytic_replay.add_argument("--required-context-key", default=None)
+    specimen_preanalytic_replay.add_argument("--output", default=None)
+
+    specimen_preanalytic_quality = subparsers.add_parser(
+        "specimen-preanalytic-quality-gate",
+        help=(
+            "reconcile C13-C16 specimen data, fixture, scenario, contract, graph, "
+            "bundle, and runtime evidence"
+        ),
+    )
+    specimen_preanalytic_quality.add_argument("input", type=str)
+    specimen_preanalytic_quality.add_argument("--output", default=None)
+
+    specimen_preanalytic_scenarios = subparsers.add_parser(
+        "evaluate-specimen-preanalytic-scenarios",
+        help="run C13-C16 specimen positive and review state scenarios",
+    )
+    specimen_preanalytic_scenarios.add_argument("input", type=str)
+    specimen_preanalytic_scenarios.add_argument("--output", default=None)
+
+    specimen_preanalytic_contracts = subparsers.add_parser(
+        "specimen-preanalytic-contracts",
+        help="print the four-operation Domain 03 C13-C16 specimen contract registry",
+    )
+    specimen_preanalytic_contracts.add_argument("--output", default=None)
+
+    specimen_preanalytic_bundle = subparsers.add_parser(
+        "build-specimen-preanalytic-bundle",
+        help="build a compact JSON, CSV, or Markdown C13-C16 specimen evidence bundle",
+    )
+    specimen_preanalytic_bundle.add_argument("input", type=str)
+    specimen_preanalytic_bundle.add_argument("--output", required=True)
+    specimen_preanalytic_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in SpecimenPreanalyticBundleFormat],
+        default=SpecimenPreanalyticBundleFormat.JSON.value,
+    )
+    specimen_preanalytic_bundle.add_argument("--bundle-id", default=None)
+    specimen_preanalytic_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state C13-C16 bundle for inspection",
+    )
+
+    specimen_preanalytic_graph = subparsers.add_parser(
+        "specimen-preanalytic-lineage",
+        help="build and audit a sanitized C13-C16 specimen source-to-result graph",
+    )
+    specimen_preanalytic_graph.add_argument("input", type=str)
+    specimen_preanalytic_graph.add_argument("--output", default=None)
+
+    specimen_preanalytic_reconciliation = subparsers.add_parser(
+        "specimen-preanalytic-reconciliation",
+        help="reconcile C13-C16 fixture records with sanitized execution receipts",
+    )
+    specimen_preanalytic_reconciliation.add_argument("input", type=str)
+    specimen_preanalytic_reconciliation.add_argument("--output", default=None)
+
+    specimen_preanalytic_pipeline = subparsers.add_parser(
+        "run-specimen-preanalytic-pipeline",
+        help="run C13 quality, C14 lineage, C15 identity, and C16 publication stages",
+    )
+    specimen_preanalytic_pipeline.add_argument("input", type=str)
+    specimen_preanalytic_pipeline.add_argument("--output", default=None)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -4227,6 +4339,74 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "run-specimen-lineage-pipeline":
             request = specimen_lineage_pipeline_request_from_file(args.input)
             report = run_specimen_lineage_pipeline(request)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
+        if args.command == "evaluate-specimen-preanalytic-fixture":
+            catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.input)
+            report = evaluate_specimen_preanalytic_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-specimen-preanalytic-data":
+            catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.input)
+            report = audit_specimen_preanalytic_data(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "replay-specimen-preanalytic-fixtures":
+            first_catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = SpecimenPreanalyticReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                minimum_receipts=12,
+                minimum_checks=120,
+                positive_count=4,
+                control_count=8,
+            )
+            report = replay_specimen_preanalytic_file(args.inputs[0], expectation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-preanalytic-quality-gate":
+            catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.input)
+            report = evaluate_specimen_preanalytic_quality_gate(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-specimen-preanalytic-scenarios":
+            catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.input)
+            report = evaluate_specimen_preanalytic_scenarios(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-preanalytic-contracts":
+            _write_json(default_specimen_preanalytic_contracts().to_dict(), args.output)
+            return 0
+        if args.command == "build-specimen-preanalytic-bundle":
+            catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.input)
+            builder = SpecimenPreanalyticEvidenceBundleBuilder()
+            bundle = builder.build(
+                catalog,
+                bundle_id=args.bundle_id or "specimen-preanalytic-c13-c16",
+                allow_review=args.allow_review,
+            )
+            builder.write(bundle, args.output, format=SpecimenPreanalyticBundleFormat(args.format))
+            return 0 if builder.verify(bundle) else 2
+        if args.command == "specimen-preanalytic-lineage":
+            catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.input)
+            graph = build_specimen_preanalytic_lineage(catalog)
+            audit = audit_specimen_preanalytic_lineage(graph)
+            payload = graph.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "specimen-preanalytic-reconciliation":
+            catalog = SpecimenPreanalyticFixtureCatalog.from_file(args.input)
+            index = build_specimen_preanalytic_receipt_index(catalog)
+            audit = audit_specimen_preanalytic_receipt_index(catalog, index)
+            payload = index.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "run-specimen-preanalytic-pipeline":
+            request, catalog = SpecimenPreanalyticPipelineRequest.from_file(args.input)
+            report = run_specimen_preanalytic_pipeline(request, catalog)
             _write_json(report.to_dict(), args.output)
             return 0 if report.published else 2
         if args.command == "classify-origin":

@@ -22,9 +22,11 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 60 capabilities have deterministic fixture-backed
-verification and 196 remain partial. The frontier surfaces are bounded research
-infrastructure: they retain source receipts, uncertainty, policy checks, and
+capabilities started (100%); 64 capabilities have deterministic fixture-backed
+verification and 192 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 25.00% of the 256-capability
+catalog; MVP implementation coverage remains 18.75%. The surfaces retain
+source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
 
@@ -386,9 +388,9 @@ visible. None of them turns an association or posterior score into a clinical
 decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
-partial, test-backed implementations. The ledger reports 256 of 256
-capabilities started (100%); 52 controls are now verified against the checked-in
-Domain 01, Domain 02, Domain 03 C01-C04, and D13-D16 fixtures, while 204 capabilities remain partial. Partial
+partial, test-backed implementations. The current ledger reports 256 of 256
+capabilities started (100%); 64 controls are verified against the checked-in
+aggregate fixtures, while 192 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -884,6 +886,53 @@ glio-noncode link-longitudinal-specimens specimens.json --output longitudinal.js
 glio-noncode map-primary-recurrence specimens.json --output phase-map.json
 glio-noncode contextualize-treatment specimens.json --exposures treatments.json --output treatment-context.json
 ```
+
+### Domain 03 C13-C16 preanalytic and context release gate
+
+The C13-C16 specimen capabilities now have their own aggregate evidence plane.
+It wraps the preanalytic quality, assay protocol lineage, identity conflict,
+and specimen-context envelope adapters with a public source manifest, an exact
+six-part context key, twelve aggregate fixture records, and explicit
+positive/review controls. The fixture is shaped by public GDC and NCI
+biospecimen documentation; it is synthetic aggregate validation material and
+does not copy patient-level rows.
+
+The four operations are:
+
+- C13 `BiospecimenPreanalyticQualityAssessor`: applies declared ischemia,
+  storage-temperature, and RNA-integrity thresholds while retaining missing and
+  failed metrics, scores, source IDs, and review issue codes.
+- C14 `AssayLineageProtocolTracker`: retains specimen, protocol, assay,
+  operator, start-time, parent-node, root, duplicate-node, and missing-parent
+  relationships in a deterministic graph view.
+- C15 `IdentityConflictAdjudicator`: computes modal agreement and preserves
+  ties and conflicting observations as review results. It does not authenticate
+  a specimen or select a preferred source identity below the threshold.
+- C16 `SpecimenContextEnvelopePublisher`: binds specimen IDs and the three
+  constituent receipt addresses into a publication envelope. Missing or
+  context-drifted receipts remain review and do not publish.
+
+```powershell
+python -m glio_noncode audit-specimen-preanalytic-data examples/specimen-preanalytic-public-aggregate.json --output preanalytic-data.json
+python -m glio_noncode evaluate-specimen-preanalytic-fixture examples/specimen-preanalytic-public-aggregate.json --output preanalytic-fixture.json
+python -m glio_noncode replay-specimen-preanalytic-fixtures examples/specimen-preanalytic-public-aggregate.json --output preanalytic-replay.json
+python -m glio_noncode specimen-preanalytic-quality-gate examples/specimen-preanalytic-public-aggregate.json --output preanalytic-quality.json
+python -m glio_noncode evaluate-specimen-preanalytic-scenarios examples/specimen-preanalytic-public-aggregate.json --output preanalytic-scenarios.json
+python -m glio_noncode specimen-preanalytic-contracts --output preanalytic-contracts.json
+python -m glio_noncode build-specimen-preanalytic-bundle examples/specimen-preanalytic-public-aggregate.json --output preanalytic-bundle.json
+python -m glio_noncode specimen-preanalytic-lineage examples/specimen-preanalytic-public-aggregate.json --output preanalytic-lineage.json
+python -m glio_noncode specimen-preanalytic-reconciliation examples/specimen-preanalytic-public-aggregate.json --output preanalytic-reconciliation.json
+python -m glio_noncode run-specimen-preanalytic-pipeline examples/specimen-preanalytic-pipeline-accepted.json --output preanalytic-pipeline.json
+```
+
+The accepted path executes 131 fixture checks, 16 receipt-index checks, 25
+quality-gate checks, twelve state-transition scenarios, four operation
+contracts, a 29-node/28-edge typed graph, a twelve-entry sanitized bundle,
+and four conserved runtime stages. The review fixture retains a missing
+identity receipt and returns a non-publishing runtime state. See
+`docs/SPECIMEN_PREANALYTIC_EVIDENCE_GATE.md` and
+`docs/SPECIMEN_PREANALYTIC_BUNDLE_FORMAT.md` for the full schema, source
+boundary, change rules, and release checks.
 
 ## Domain 04 reference coordinates
 

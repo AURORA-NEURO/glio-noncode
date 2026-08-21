@@ -1,0 +1,241 @@
+{
+  "fixture_id": "specimen-preanalytic-public-aggregate-v1",
+  "fixture_version": "specimen-preanalytic-public-aggregate-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_receipts": [
+    {
+      "source_id": "nci-biospecimen-best-practices",
+      "title": "NCI Best Practices for Biospecimen Resources",
+      "uri": "https://dctd.cancer.gov/data-tools-biospecimens/biospecimens-biobanks/resources/best-practices/best-practices-2016",
+      "scope": "warm and cold ischemia, preservation, processing, and storage variables",
+      "patient_level": false,
+      "accessed_on": "2026-08-21"
+    },
+    {
+      "source_id": "gdc-biospecimen-data-model",
+      "title": "GDC Biospecimen Data",
+      "uri": "https://docs.gdc.cancer.gov/Encyclopedia/pages/Biospecimen_Data/",
+      "scope": "sample, portion, analyte, aliquot, and processing relationships",
+      "patient_level": false,
+      "accessed_on": "2026-08-21"
+    },
+    {
+      "source_id": "gdc-biospecimen-submission",
+      "title": "GDC Data Submission Walkthrough",
+      "uri": "https://docs.gdc.cancer.gov/Data_Submission_Portal/Users_Guide/Data_Submission_Walkthrough/",
+      "scope": "tissue type, tumor descriptor, specimen type, and preservation vocabulary",
+      "patient_level": false,
+      "accessed_on": "2026-08-21"
+    },
+    {
+      "source_id": "nci-bbrb-quality-control",
+      "title": "NCI Biospecimen Quality Assurance and Control",
+      "uri": "https://biospecimens.cancer.gov/bestpractices/to/qac.asp",
+      "scope": "recording personnel, dates, times, collection, processing, storage, and transport controls",
+      "patient_level": false,
+      "accessed_on": "2026-08-21"
+    }
+  ],
+  "records": [
+    {
+      "record_id": "positive-preanalytic-quality",
+      "operation": "preanalytic_quality",
+      "role": "positive",
+      "expected_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["nci-biospecimen-best-practices", "nci-bbrb-quality-control"],
+      "expected_issue_codes": [],
+      "payload": {
+        "specimen_id": "cohort-specimen-qc-01",
+        "ischemia_minutes": 15,
+        "storage_temperature_c": -80,
+        "rna_integrity": 0.92
+      }
+    },
+    {
+      "record_id": "control-preanalytic-ischemia",
+      "operation": "preanalytic_quality",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["nci-biospecimen-best-practices"],
+      "expected_issue_codes": ["preanalytic_threshold_failed"],
+      "payload": {
+        "specimen_id": "cohort-specimen-qc-02",
+        "ischemia_minutes": 90,
+        "storage_temperature_c": -80,
+        "rna_integrity": 0.88
+      }
+    },
+    {
+      "record_id": "control-preanalytic-missing-rna",
+      "operation": "preanalytic_quality",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["nci-biospecimen-best-practices", "nci-bbrb-quality-control"],
+      "expected_issue_codes": ["missing_quality_metric", "preanalytic_threshold_failed"],
+      "payload": {
+        "specimen_id": "cohort-specimen-qc-03",
+        "ischemia_minutes": 20,
+        "storage_temperature_c": -80
+      }
+    },
+    {
+      "record_id": "positive-assay-lineage",
+      "operation": "assay_lineage",
+      "role": "positive",
+      "expected_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model", "nci-bbrb-quality-control"],
+      "expected_issue_codes": [],
+      "payload": {
+        "node_id": "cohort-assay-node-01",
+        "specimen_id": "cohort-specimen-qc-01",
+        "protocol_id": "protocol-rna-extraction-01",
+        "assay": "RNA-seq",
+        "operator_id": "operator-cohort-a",
+        "started_at": "2026-08-20T10:00:00Z"
+      }
+    },
+    {
+      "record_id": "control-assay-missing-parent",
+      "operation": "assay_lineage",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model"],
+      "expected_issue_codes": ["missing_parent_node"],
+      "payload": {
+        "nodes": [
+          {
+            "node_id": "cohort-assay-node-02",
+            "specimen_id": "cohort-specimen-qc-02",
+            "protocol_id": "protocol-rna-extraction-02",
+            "parent_node_id": "cohort-assay-node-missing",
+            "assay": "RNA-seq",
+            "operator_id": "operator-cohort-b",
+            "started_at": "2026-08-20T10:05:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-assay-duplicate-node",
+      "operation": "assay_lineage",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model", "nci-bbrb-quality-control"],
+      "expected_issue_codes": ["duplicate_lineage_node"],
+      "payload": {
+        "nodes": [
+          {
+            "node_id": "cohort-assay-node-dup",
+            "specimen_id": "cohort-specimen-qc-02",
+            "protocol_id": "protocol-rna-extraction-02",
+            "assay": "RNA-seq",
+            "operator_id": "operator-cohort-b",
+            "started_at": "2026-08-20T10:05:00Z"
+          },
+          {
+            "node_id": "cohort-assay-node-dup",
+            "specimen_id": "cohort-specimen-qc-02",
+            "protocol_id": "protocol-rna-extraction-02-repeated",
+            "assay": "RNA-seq",
+            "operator_id": "operator-cohort-c",
+            "started_at": "2026-08-20T10:06:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-identity-adjudication",
+      "operation": "identity_adjudication",
+      "role": "positive",
+      "expected_state": "accepted",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model", "gdc-biospecimen-submission"],
+      "expected_issue_codes": [],
+      "payload": {
+        "specimen_id": "cohort-specimen-qc-01",
+        "observed_identities": ["cohort-case-a", "cohort-case-a", "cohort-case-a"],
+        "minimum_agreement": 0.8
+      }
+    },
+    {
+      "record_id": "control-identity-tie",
+      "operation": "identity_adjudication",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model"],
+      "expected_issue_codes": ["identity_tie"],
+      "payload": {
+        "specimen_id": "cohort-specimen-qc-02",
+        "observed_identities": ["cohort-case-b", "cohort-case-c"]
+      }
+    },
+    {
+      "record_id": "control-identity-conflict",
+      "operation": "identity_adjudication",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model", "gdc-biospecimen-submission"],
+      "expected_issue_codes": ["identity_conflict"],
+      "payload": {
+        "specimen_id": "cohort-specimen-qc-03",
+        "observed_identities": ["cohort-case-d", "cohort-case-d", "cohort-case-e"]
+      }
+    },
+    {
+      "record_id": "positive-context-envelope",
+      "operation": "context_envelope",
+      "role": "positive",
+      "expected_state": "published",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model", "gdc-biospecimen-submission", "nci-bbrb-quality-control"],
+      "expected_issue_codes": [],
+      "payload": {
+        "envelope_id": "cohort-context-envelope-01",
+        "specimen_ids": ["cohort-specimen-qc-01"],
+        "lineage_address": "sha256:lineage-positive-01",
+        "quality_address": "sha256:quality-positive-01",
+        "identity_address": "sha256:identity-positive-01"
+      }
+    },
+    {
+      "record_id": "control-context-missing-identity",
+      "operation": "context_envelope",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model"],
+      "expected_issue_codes": ["missing_identity_address"],
+      "payload": {
+        "envelope_id": "cohort-context-envelope-02",
+        "specimen_ids": ["cohort-specimen-qc-02"],
+        "lineage_address": "sha256:lineage-review-02",
+        "quality_address": "sha256:quality-review-02"
+      }
+    },
+    {
+      "record_id": "control-context-drift",
+      "operation": "context_envelope",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model", "gdc-biospecimen-submission"],
+      "expected_issue_codes": ["envelope_context_mismatch"],
+      "payload": {
+        "envelope_id": "cohort-context-envelope-03",
+        "context_key": "GRCh38|diffuse_glioma|adult|stem_like|tumor_core|pre_treatment",
+        "specimen_ids": ["cohort-specimen-qc-03"],
+        "lineage_address": "sha256:lineage-review-03",
+        "quality_address": "sha256:quality-review-03",
+        "identity_address": "sha256:identity-review-03"
+      }
+    }
+  ]
+}

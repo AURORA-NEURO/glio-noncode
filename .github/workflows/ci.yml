@@ -214,3 +214,23 @@ jobs:
         run: python -m glio_noncode specimen-lineage-reconciliation examples/specimen-lineage-public-aggregate.json --output /tmp/glio-specimen-lineage-reconciliation.json
       - name: Specimen lineage pipeline integration
         run: python -m glio_noncode run-specimen-lineage-pipeline examples/specimen-lineage-pipeline-accepted.json --output /tmp/glio-specimen-lineage-pipeline.json
+      - name: Specimen preanalytic data boundary audit
+        run: python -m glio_noncode audit-specimen-preanalytic-data examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-data.json
+      - name: Specimen preanalytic fixture evaluation
+        run: python -m glio_noncode evaluate-specimen-preanalytic-fixture examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-fixture.json
+      - name: Specimen preanalytic replay integrity
+        run: python -m glio_noncode replay-specimen-preanalytic-fixtures examples/specimen-preanalytic-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-specimen-preanalytic-replay.json
+      - name: Specimen preanalytic quality gate
+        run: python -m glio_noncode specimen-preanalytic-quality-gate examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-quality.json
+      - name: Specimen preanalytic scenario matrix
+        run: python -m glio_noncode evaluate-specimen-preanalytic-scenarios examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-scenarios.json
+      - name: Specimen preanalytic operation contracts
+        run: python -m glio_noncode specimen-preanalytic-contracts --output /tmp/glio-specimen-preanalytic-contracts.json
+      - name: Specimen preanalytic evidence bundle
+        run: python -m glio_noncode build-specimen-preanalytic-bundle examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-bundle.json
+      - name: Specimen preanalytic lineage graph
+        run: python -m glio_noncode specimen-preanalytic-lineage examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-lineage.json
+      - name: Specimen preanalytic receipt reconciliation
+        run: python -m glio_noncode specimen-preanalytic-reconciliation examples/specimen-preanalytic-public-aggregate.json --output /tmp/glio-specimen-preanalytic-reconciliation.json
+      - name: Specimen preanalytic pipeline integration
+        run: python -m glio_noncode run-specimen-preanalytic-pipeline examples/specimen-preanalytic-pipeline-accepted.json --output /tmp/glio-specimen-preanalytic-pipeline.json

@@ -1,0 +1,32 @@
+{
+  "fixture_id": "specimen-preanalytic-review-fixture-v1",
+  "fixture_version": "specimen-preanalytic-public-aggregate-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_receipts": [
+    {
+      "source_id": "gdc-biospecimen-data-model",
+      "title": "GDC Biospecimen Data",
+      "uri": "https://docs.gdc.cancer.gov/Encyclopedia/pages/Biospecimen_Data/",
+      "scope": "review-only fixture source",
+      "patient_level": false,
+      "accessed_on": "2026-08-21"
+    }
+  ],
+  "records": [
+    {
+      "record_id": "review-only-missing-identity",
+      "operation": "context_envelope",
+      "role": "control",
+      "expected_state": "review",
+      "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+      "source_ids": ["gdc-biospecimen-data-model"],
+      "expected_issue_codes": ["missing_identity_address"],
+      "payload": {
+        "envelope_id": "review-only-envelope",
+        "specimen_ids": ["cohort-specimen-qc-review"],
+        "lineage_address": "sha256:review-lineage",
+        "quality_address": "sha256:review-quality"
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "request_id": "specimen-preanalytic-release-review",
+  "fixture_path": "specimen-preanalytic-review-fixture.json",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "publish_mode": "accepted_only"
+}
