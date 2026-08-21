@@ -1,0 +1,370 @@
+{
+  "schema_version": "specimen-beta-frontier-evidence-v1",
+  "fixture_id": "specimen-beta-frontier-public-aggregate-v1",
+  "aggregate_only": true,
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "sources": [
+    {
+      "source_id": "ncbi-clinvar-classification",
+      "label": "NCBI ClinVar classification representation",
+      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/clinsig/",
+      "release": "documentation",
+      "scope": "germline, somatic clinical-impact, and somatic oncogenicity classification vocabulary",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "receipt_role": "classification vocabulary",
+        "fixture_payload": "synthetic aggregate observations"
+      }
+    },
+    {
+      "source_id": "ncbi-clinvar-submission",
+      "label": "NCBI ClinVar submission instructions",
+      "url": "https://www.ncbi.nlm.nih.gov/clinvar/docs/spreadsheet/",
+      "release": "documentation",
+      "scope": "allele origin, aggregate observations, case-level observation boundary, and evidence fields",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "receipt_role": "observation vocabulary",
+        "fixture_payload": "synthetic aggregate observations"
+      }
+    },
+    {
+      "source_id": "gdc-vcf-format",
+      "label": "GDC VCF file format",
+      "url": "https://docs.gdc.cancer.gov/Data/File_Formats/VCF_Format/",
+      "release": "documentation",
+      "scope": "tumor/normal sample labels, FORMAT measurements, depth, and alternate-read fields",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "receipt_role": "variant observation structure",
+        "fixture_payload": "synthetic aggregate observations"
+      }
+    },
+    {
+      "source_id": "gdc-wgs-cnv",
+      "label": "GDC DNA sequencing pipeline documentation",
+      "url": "https://docs.gdc.cancer.gov/Data/Bioinformatics_Pipelines/DNA_Seq_WGS/",
+      "release": "documentation",
+      "scope": "copy-number segment and variant-calling workflow vocabulary",
+      "aggregate_only": true,
+      "patient_level": false,
+      "attributes": {
+        "receipt_role": "copy-number and variant workflow structure",
+        "fixture_payload": "synthetic aggregate observations"
+      }
+    }
+  ],
+  "positives": [
+    {
+      "record_id": "positive-origin-separated",
+      "operation": "origin",
+      "source_ids": ["ncbi-clinvar-classification", "ncbi-clinvar-submission"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {
+        "classifications": 2,
+        "somatic": 1,
+        "germline": 1,
+        "uncertain": 0,
+        "issues": 0
+      },
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-somatic-001",
+            "observation_id": "origin-tumor-001",
+            "relationship": "tumor",
+            "tumor_vaf": 0.42,
+            "normal_vaf": 0.0,
+            "present_in_normal": false,
+            "normal_alt_reads": 0,
+            "normal_depth": 120,
+            "source_id": "ncbi-clinvar-submission"
+          },
+          {
+            "variant_id": "agg-v-germline-001",
+            "observation_id": "origin-normal-001",
+            "relationship": "normal",
+            "normal_vaf": 0.48,
+            "present_in_normal": true,
+            "population_frequency": 0.0008,
+            "source_id": "ncbi-clinvar-submission"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-mosaic-recurrence",
+      "operation": "mosaicism",
+      "source_ids": ["ncbi-clinvar-submission", "gdc-vcf-format"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {
+        "estimates": 1,
+        "supporting_tissues": 3,
+        "low_fraction_observations": 3,
+        "contamination_flags": 0,
+        "issues": 0
+      },
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-mosaic-001",
+            "observation_id": "mosaic-blood-001",
+            "tissue_id": "aggregate-blood",
+            "relationship": "normal",
+            "vaf": 0.09,
+            "source_id": "gdc-vcf-format"
+          },
+          {
+            "variant_id": "agg-v-mosaic-001",
+            "observation_id": "mosaic-skin-001",
+            "tissue_id": "aggregate-skin",
+            "relationship": "normal",
+            "vaf": 0.12,
+            "source_id": "gdc-vcf-format"
+          },
+          {
+            "variant_id": "agg-v-mosaic-001",
+            "observation_id": "mosaic-buccal-001",
+            "tissue_id": "aggregate-buccal",
+            "relationship": "normal",
+            "vaf": 0.07,
+            "source_id": "gdc-vcf-format"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-ccf-purity-copy-number",
+      "operation": "cancer_cell_fraction",
+      "source_ids": ["gdc-vcf-format", "gdc-wgs-cnv"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {
+        "estimates": 2,
+        "supported": 2,
+        "partial": 0,
+        "abstained": 0,
+        "issues": 0
+      },
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-clonal-001",
+            "sample_id": "aggregate-tumor-a",
+            "purity": 0.62,
+            "vaf": 0.31,
+            "total_copy_number": 2,
+            "alternate_copy_number": 1,
+            "depth": 240,
+            "alt_reads": 74,
+            "source_id": "gdc-wgs-cnv"
+          },
+          {
+            "variant_id": "agg-v-subclonal-001",
+            "sample_id": "aggregate-tumor-a",
+            "purity": 0.70,
+            "vaf": 0.175,
+            "total_copy_number": 3,
+            "alternate_copy_number": 1,
+            "depth": 200,
+            "alt_reads": 35,
+            "source_id": "gdc-wgs-cnv"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "positive-relative-subclones",
+      "operation": "subclone",
+      "source_ids": ["gdc-wgs-cnv"],
+      "expected_fixture_state": "accepted",
+      "expected_result_state": "supported",
+      "expected_issue_codes": [],
+      "expected_counts": {
+        "assignments": 5,
+        "clusters": 2,
+        "ambiguous": 0,
+        "issues": 0
+      },
+      "payload": {
+        "records": [
+          {"sample_id": "aggregate-tumor-a", "variant_id": "agg-v1", "ccf": 0.82},
+          {"sample_id": "aggregate-tumor-a", "variant_id": "agg-v2", "ccf": 0.76},
+          {"sample_id": "aggregate-tumor-a", "variant_id": "agg-v3", "ccf": 0.35},
+          {"sample_id": "aggregate-tumor-a", "variant_id": "agg-v4", "ccf": 0.32},
+          {"sample_id": "aggregate-tumor-a", "variant_id": "agg-v5", "ccf": 0.30}
+        ]
+      }
+    }
+  ],
+  "controls": [
+    {
+      "record_id": "control-origin-conflicting-presence",
+      "operation": "origin",
+      "source_ids": ["ncbi-clinvar-classification"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "ambiguous",
+      "expected_issue_codes": [],
+      "expected_counts": {"classifications": 1, "somatic": 0, "germline": 0, "uncertain": 1, "issues": 0},
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-conflict-001",
+            "observation_id": "origin-conflict-001",
+            "relationship": "tumor",
+            "tumor_vaf": 0.40,
+            "normal_vaf": 0.30,
+            "present_in_normal": true,
+            "source_id": "ncbi-clinvar-classification"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-origin-invalid-fraction",
+      "operation": "origin",
+      "source_ids": ["ncbi-clinvar-submission"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "abstained",
+      "expected_issue_codes": ["invalid_origin_fraction"],
+      "expected_counts": {"classifications": 0, "somatic": 0, "germline": 0, "uncertain": 0, "issues": 1},
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-invalid-origin-001",
+            "observation_id": "origin-invalid-001",
+            "relationship": "tumor",
+            "tumor_vaf": "not-a-fraction",
+            "source_id": "ncbi-clinvar-submission"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-mosaic-single-tissue",
+      "operation": "mosaicism",
+      "source_ids": ["gdc-vcf-format"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": [],
+      "expected_counts": {"estimates": 1, "supporting_tissues": 1, "low_fraction_observations": 1, "contamination_flags": 0, "issues": 0},
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-single-tissue-001",
+            "observation_id": "mosaic-single-001",
+            "tissue_id": "aggregate-blood",
+            "relationship": "normal",
+            "vaf": 0.10,
+            "source_id": "gdc-vcf-format"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-mosaic-contamination",
+      "operation": "mosaicism",
+      "source_ids": ["gdc-vcf-format"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": [],
+      "expected_counts": {"estimates": 1, "supporting_tissues": 1, "low_fraction_observations": 1, "contamination_flags": 1, "issues": 0},
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-contaminated-001",
+            "observation_id": "mosaic-contaminated-001",
+            "tissue_id": "aggregate-blood",
+            "relationship": "normal",
+            "vaf": 0.09,
+            "contamination_fraction": 0.12,
+            "source_id": "gdc-vcf-format"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-ccf-out-of-range",
+      "operation": "cancer_cell_fraction",
+      "source_ids": ["gdc-wgs-cnv"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": [],
+      "expected_counts": {"estimates": 1, "supported": 0, "partial": 1, "abstained": 0, "issues": 0},
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-ccf-range-001",
+            "sample_id": "aggregate-tumor-b",
+            "purity": 0.30,
+            "vaf": 0.40,
+            "total_copy_number": 8,
+            "alternate_copy_number": 1,
+            "source_id": "gdc-wgs-cnv"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-ccf-zero-purity",
+      "operation": "cancer_cell_fraction",
+      "source_ids": ["gdc-wgs-cnv"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": [],
+      "expected_counts": {"estimates": 1, "supported": 0, "partial": 0, "abstained": 1, "issues": 0},
+      "payload": {
+        "records": [
+          {
+            "variant_id": "agg-v-ccf-zero-001",
+            "sample_id": "aggregate-tumor-b",
+            "purity": 0,
+            "vaf": 0.20,
+            "total_copy_number": 2,
+            "alternate_copy_number": 1,
+            "source_id": "gdc-wgs-cnv"
+          }
+        ]
+      }
+    },
+    {
+      "record_id": "control-subclone-boundary",
+      "operation": "subclone",
+      "source_ids": ["gdc-wgs-cnv"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "ambiguous",
+      "expected_issue_codes": [],
+      "expected_counts": {"assignments": 2, "clusters": 1, "ambiguous": 2, "issues": 0},
+      "parameters": {"max_ccf_distance": 0.15, "boundary_ambiguity": 0.09},
+      "payload": {
+        "records": [
+          {"sample_id": "aggregate-tumor-c", "variant_id": "agg-v-boundary-1", "ccf": 0.80},
+          {"sample_id": "aggregate-tumor-c", "variant_id": "agg-v-boundary-2", "ccf": 0.66}
+        ]
+      }
+    },
+    {
+      "record_id": "control-subclone-invalid-row",
+      "operation": "subclone",
+      "source_ids": ["gdc-wgs-cnv"],
+      "expected_fixture_state": "review",
+      "expected_result_state": "partial",
+      "expected_issue_codes": ["invalid_subclone_record"],
+      "expected_counts": {"assignments": 1, "clusters": 1, "ambiguous": 0, "issues": 1},
+      "payload": {
+        "records": [
+          {"sample_id": "aggregate-tumor-d", "variant_id": "agg-v-valid-001", "ccf": 0.80},
+          {"sample_id": "aggregate-tumor-d", "variant_id": "agg-v-invalid-001", "ccf": 1.50}
+        ]
+      }
+    }
+  ]
+}

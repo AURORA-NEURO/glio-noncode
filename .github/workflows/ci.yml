@@ -176,3 +176,21 @@ jobs:
         run: python -m glio_noncode specimen-frontier-lineage examples/specimen-frontier-public-aggregate.json --output /tmp/glio-specimen-frontier-lineage.json
       - name: Specimen frontier pipeline integration
         run: python -m glio_noncode run-specimen-frontier-pipeline examples/specimen-frontier-pipeline-accepted.json --output /tmp/glio-specimen-frontier-pipeline.json
+      - name: Specimen beta frontier data boundary audit
+        run: python -m glio_noncode audit-specimen-beta-frontier-data examples/specimen-beta-frontier-public-aggregate.json --output /tmp/glio-specimen-beta-frontier-data.json
+      - name: Specimen beta frontier fixture evaluation
+        run: python -m glio_noncode evaluate-specimen-beta-frontier-fixture examples/specimen-beta-frontier-public-aggregate.json --output /tmp/glio-specimen-beta-frontier-fixture.json
+      - name: Specimen beta frontier replay integrity
+        run: python -m glio_noncode replay-specimen-beta-frontier-fixtures examples/specimen-beta-frontier-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output /tmp/glio-specimen-beta-frontier-replay.json
+      - name: Specimen beta frontier quality gate
+        run: python -m glio_noncode specimen-beta-frontier-quality-gate examples/specimen-beta-frontier-public-aggregate.json --output /tmp/glio-specimen-beta-frontier-quality.json
+      - name: Specimen beta frontier scenario matrix
+        run: python -m glio_noncode evaluate-specimen-beta-frontier-scenarios examples/specimen-beta-frontier-public-aggregate.json --output /tmp/glio-specimen-beta-frontier-scenarios.json
+      - name: Specimen beta frontier operation contracts
+        run: python -m glio_noncode specimen-beta-frontier-contracts --output /tmp/glio-specimen-beta-frontier-contracts.json
+      - name: Specimen beta frontier evidence bundle
+        run: python -m glio_noncode build-specimen-beta-frontier-bundle examples/specimen-beta-frontier-public-aggregate.json --output /tmp/glio-specimen-beta-frontier-bundle.json
+      - name: Specimen beta frontier lineage graph
+        run: python -m glio_noncode specimen-beta-frontier-lineage examples/specimen-beta-frontier-public-aggregate.json --output /tmp/glio-specimen-beta-frontier-lineage.json
+      - name: Specimen beta frontier pipeline integration
+        run: python -m glio_noncode run-specimen-beta-frontier-pipeline examples/specimen-beta-frontier-pipeline-accepted.json --output /tmp/glio-specimen-beta-frontier-pipeline.json

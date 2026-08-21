@@ -22,8 +22,8 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 52 capabilities have deterministic fixture-backed
-verification and 204 remain partial. The frontier surfaces are bounded research
+capabilities started (100%); 56 capabilities have deterministic fixture-backed
+verification and 200 remain partial. The frontier surfaces are bounded research
 infrastructure: they retain source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -755,6 +755,57 @@ glio-noncode estimate-mosaicism tissue-observations.json --output mosaicism.json
 glio-noncode estimate-ccf ccf-input.json --output ccf.json
 glio-noncode assign-subclones ccf-estimates.json --output subclones.json
 ```
+
+### Domain 03 C05-C08 aggregate evidence gate
+
+The four beta adapters now have an independent aggregate evidence plane at
+`examples/specimen-beta-frontier-public-aggregate.json`. It uses public
+ClinVar classification and submission documentation plus GDC VCF and DNA
+sequencing documentation as metadata-shaped source receipts. The checked-in
+records are synthetic aggregate validation payloads; the receipts define
+source vocabulary and scope rather than claiming that the source pages contain
+these rows.
+
+The four verified operations are:
+
+- C05 origin classification: tumor and normal observations remain separate;
+  population-frequency evidence is retained as its own channel, and conflicts
+  remain uncertain.
+- C06 mosaicism evidence: repeated low-fraction observations are grouped by
+  distinct aggregate tissues; contamination flags reduce the evidence surface,
+  and uncalibrated posterior-shaped values remain labeled as uncalibrated.
+- C07 cancer-cell fraction: purity, VAF, total copy number, alternate copy
+  number, and optional depth intervals are retained; out-of-range raw values
+  are not silently clamped.
+- C08 relative subclones: CCF observations are clustered within sample scope;
+  distance and boundary ambiguity remain visible, and cluster IDs make no
+  biological ancestry claim.
+
+The evidence gate contains four accepted positive records and eight review
+controls. It executes 72 fixture checks, a 12-scenario matrix, four operation
+contracts, 21 quality checks, a 29-node/36-edge lineage graph, a 12-entry
+sanitized bundle, and a four-stage runtime. The controls cover conflicting
+origin evidence, malformed fractions, single-tissue and contaminated
+mosaicism, out-of-range and zero-purity CCF, boundary clustering, and invalid
+CCF rows.
+
+```powershell
+python -m glio_noncode audit-specimen-beta-frontier-data examples/specimen-beta-frontier-public-aggregate.json --output beta-data.json
+python -m glio_noncode evaluate-specimen-beta-frontier-fixture examples/specimen-beta-frontier-public-aggregate.json --output beta-fixture.json
+python -m glio_noncode replay-specimen-beta-frontier-fixtures examples/specimen-beta-frontier-public-aggregate.json --required-context-key "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment" --output beta-replay.json
+python -m glio_noncode specimen-beta-frontier-quality-gate examples/specimen-beta-frontier-public-aggregate.json --output beta-quality.json
+python -m glio_noncode evaluate-specimen-beta-frontier-scenarios examples/specimen-beta-frontier-public-aggregate.json --output beta-scenarios.json
+python -m glio_noncode specimen-beta-frontier-contracts --output beta-contracts.json
+python -m glio_noncode build-specimen-beta-frontier-bundle examples/specimen-beta-frontier-public-aggregate.json --output beta-bundle.json
+python -m glio_noncode specimen-beta-frontier-lineage examples/specimen-beta-frontier-public-aggregate.json --output beta-lineage.json
+python -m glio_noncode run-specimen-beta-frontier-pipeline examples/specimen-beta-frontier-pipeline-accepted.json --output beta-pipeline.json
+```
+
+The accepted pipeline reaches `published`; the review pipeline retains stage
+review states and does not publish. Review bundles require explicit opt-in.
+The complete source boundary, issue taxonomy, replay rules, and bundle schema
+are documented in `docs/SPECIMEN_BETA_FRONTIER_EVIDENCE_GATE.md` and
+`docs/SPECIMEN_BETA_FRONTIER_BUNDLE_FORMAT.md`.
 
 The Domain 03 longitudinal and exposure extensions deepen specimen context:
 

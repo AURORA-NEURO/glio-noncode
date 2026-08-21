@@ -1185,50 +1185,135 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D03-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_beta.SomaticGermlineOriginClassifier",
+                    "glio_noncode.specimen_beta_frontier_public_data.SpecimenBetaFrontierFixtureCatalog",
+                    "glio_noncode.specimen_beta_frontier_fixture_eval.SpecimenBetaFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_beta_frontier_contracts.SpecimenBetaFrontierContractRegistry",
+                    "glio_noncode.specimen_beta_frontier_replay.replay_specimen_beta_frontier_fixtures",
+                    "glio_noncode.specimen_beta_frontier_quality_gate.SpecimenBetaFrontierQualityGate",
+                    "glio_noncode.specimen_beta_frontier_bundle.SpecimenBetaFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_beta_frontier_lineage.build_specimen_beta_frontier_lineage",
+                    "glio_noncode.specimen_beta_frontier_runtime.run_specimen_beta_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "test_modules": (
+                    "tests.test_specimen_beta",
+                    "tests.test_specimen_beta_cli",
+                    "tests.test_specimen_beta_frontier_public_data",
+                    "tests.test_specimen_beta_frontier_fixture_eval",
+                    "tests.test_specimen_beta_frontier_contracts",
+                    "tests.test_specimen_beta_frontier_replay",
+                    "tests.test_specimen_beta_frontier_quality_gate",
+                    "tests.test_specimen_beta_frontier_bundle",
+                    "tests.test_specimen_beta_frontier_lineage",
+                    "tests.test_specimen_beta_frontier_runtime",
+                    "tests.test_specimen_beta_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Tumor/normal presence, allele fractions, normal read absence, and declared "
-                    "population-frequency evidence are retained as separate origin channels; "
-                    "conflicts remain uncertain and no clinical germline/somatic diagnosis is made."
+                    "Aggregate variant observations retain separate tumor and normal channels, "
+                    "ClinVar-shaped allele-origin vocabulary, deterministic addresses, "
+                    "conflict controls, replay, bundle, lineage, and runtime evidence; "
+                    "the result remains a research classification."
                 ),
             },
             "GNC-D03-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_beta.MosaicismPosteriorEstimator",
+                    "glio_noncode.specimen_beta_frontier_public_data.SpecimenBetaFrontierFixtureCatalog",
+                    "glio_noncode.specimen_beta_frontier_fixture_eval.SpecimenBetaFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_beta_frontier_contracts.SpecimenBetaFrontierContractRegistry",
+                    "glio_noncode.specimen_beta_frontier_replay.replay_specimen_beta_frontier_fixtures",
+                    "glio_noncode.specimen_beta_frontier_quality_gate.SpecimenBetaFrontierQualityGate",
+                    "glio_noncode.specimen_beta_frontier_bundle.SpecimenBetaFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_beta_frontier_lineage.build_specimen_beta_frontier_lineage",
+                    "glio_noncode.specimen_beta_frontier_runtime.run_specimen_beta_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "test_modules": (
+                    "tests.test_specimen_beta",
+                    "tests.test_specimen_beta_cli",
+                    "tests.test_specimen_beta_frontier_public_data",
+                    "tests.test_specimen_beta_frontier_fixture_eval",
+                    "tests.test_specimen_beta_frontier_contracts",
+                    "tests.test_specimen_beta_frontier_replay",
+                    "tests.test_specimen_beta_frontier_quality_gate",
+                    "tests.test_specimen_beta_frontier_bundle",
+                    "tests.test_specimen_beta_frontier_lineage",
+                    "tests.test_specimen_beta_frontier_runtime",
+                    "tests.test_specimen_beta_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Repeated low-fraction observations across tissue IDs produce a reproducible "
-                    "posterior-shaped estimate with contamination penalties and calibration "
-                    "metadata; uncalibrated output is explicitly labeled."
+                    "Repeated aggregate low-fraction tissue observations produce a deterministic "
+                    "posterior-shaped estimate with contamination flags, calibration metadata, "
+                    "replay, quality, bundle, lineage, and pipeline controls; uncalibrated "
+                    "outputs remain explicitly uncalibrated."
                 ),
             },
             "GNC-D03-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.specimen_beta.CancerCellFractionEstimator",
+                    "glio_noncode.specimen_beta_frontier_public_data.SpecimenBetaFrontierFixtureCatalog",
+                    "glio_noncode.specimen_beta_frontier_fixture_eval.SpecimenBetaFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_beta_frontier_contracts.SpecimenBetaFrontierContractRegistry",
+                    "glio_noncode.specimen_beta_frontier_replay.replay_specimen_beta_frontier_fixtures",
+                    "glio_noncode.specimen_beta_frontier_quality_gate.SpecimenBetaFrontierQualityGate",
+                    "glio_noncode.specimen_beta_frontier_bundle.SpecimenBetaFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_beta_frontier_lineage.build_specimen_beta_frontier_lineage",
+                    "glio_noncode.specimen_beta_frontier_runtime.run_specimen_beta_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "test_modules": (
+                    "tests.test_specimen_beta",
+                    "tests.test_specimen_beta_cli",
+                    "tests.test_specimen_beta_frontier_public_data",
+                    "tests.test_specimen_beta_frontier_fixture_eval",
+                    "tests.test_specimen_beta_frontier_contracts",
+                    "tests.test_specimen_beta_frontier_replay",
+                    "tests.test_specimen_beta_frontier_quality_gate",
+                    "tests.test_specimen_beta_frontier_bundle",
+                    "tests.test_specimen_beta_frontier_lineage",
+                    "tests.test_specimen_beta_frontier_runtime",
+                    "tests.test_specimen_beta_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Purity, total CN, alternate CN, VAF, and optional depth intervals are kept in "
-                    "a transparent CCF model; raw estimates outside [0,1] are retained without "
-                    "silent clamping."
+                    "Aggregate GDC-shaped VCF and copy-number observations preserve purity, "
+                    "total CN, alternate CN, VAF, depth intervals, raw out-of-range values, "
+                    "deterministic addresses, and review controls through replay, bundle, "
+                    "lineage, and runtime gates."
                 ),
             },
             "GNC-D03-C08": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.specimen_beta.SubcloneAssigner",),
-                "test_modules": ("tests.test_specimen_beta", "tests.test_specimen_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.specimen_beta.SubcloneAssigner",
+                    "glio_noncode.specimen_beta_frontier_public_data.SpecimenBetaFrontierFixtureCatalog",
+                    "glio_noncode.specimen_beta_frontier_fixture_eval.SpecimenBetaFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_beta_frontier_contracts.SpecimenBetaFrontierContractRegistry",
+                    "glio_noncode.specimen_beta_frontier_replay.replay_specimen_beta_frontier_fixtures",
+                    "glio_noncode.specimen_beta_frontier_quality_gate.SpecimenBetaFrontierQualityGate",
+                    "glio_noncode.specimen_beta_frontier_bundle.SpecimenBetaFrontierEvidenceBundleBuilder",
+                    "glio_noncode.specimen_beta_frontier_lineage.build_specimen_beta_frontier_lineage",
+                    "glio_noncode.specimen_beta_frontier_runtime.run_specimen_beta_frontier_pipeline",
+                ),
+                "test_modules": (
+                    "tests.test_specimen_beta",
+                    "tests.test_specimen_beta_cli",
+                    "tests.test_specimen_beta_frontier_public_data",
+                    "tests.test_specimen_beta_frontier_fixture_eval",
+                    "tests.test_specimen_beta_frontier_contracts",
+                    "tests.test_specimen_beta_frontier_replay",
+                    "tests.test_specimen_beta_frontier_quality_gate",
+                    "tests.test_specimen_beta_frontier_bundle",
+                    "tests.test_specimen_beta_frontier_lineage",
+                    "tests.test_specimen_beta_frontier_runtime",
+                    "tests.test_specimen_beta_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Within-sample relative CCF clusters retain cluster means, assignment "
-                    "distance, and boundary ambiguity; subclone IDs do not claim phylogeny, "
-                    "mutation order, "
-                    "or named biological clones."
+                    "Relative within-sample CCF clusters retain cluster means, assignment "
+                    "distance, invalid-row quarantine, boundary ambiguity, deterministic "
+                    "addresses, replay, bundle, lineage, and runtime evidence; cluster IDs "
+                    "do not claim phylogeny or named biological clones."
                 ),
             },
             "GNC-D03-C09": {

@@ -1,0 +1,65 @@
+{
+  "pipeline_id": "specimen-beta-frontier-pipeline-accepted-v1",
+  "context_key": "GRCh38|diffuse_glioma|adult|malignant_oligodendrocyte_like|tumor_core|pre_treatment",
+  "source_ids": [
+    "gdc-vcf-format",
+    "gdc-wgs-cnv",
+    "ncbi-clinvar-classification",
+    "ncbi-clinvar-submission"
+  ],
+  "operations": {
+    "origin": {
+      "records": [
+        {
+          "variant_id": "pipeline-origin-001",
+          "observation_id": "pipeline-origin-tumor",
+          "relationship": "tumor",
+          "tumor_vaf": 0.38,
+          "present_in_normal": false,
+          "normal_alt_reads": 0,
+          "normal_depth": 100
+        }
+      ]
+    },
+    "mosaicism": {
+      "records": [
+        {
+          "variant_id": "pipeline-mosaic-001",
+          "observation_id": "pipeline-mosaic-blood",
+          "tissue_id": "aggregate-blood",
+          "relationship": "normal",
+          "vaf": 0.08
+        },
+        {
+          "variant_id": "pipeline-mosaic-001",
+          "observation_id": "pipeline-mosaic-skin",
+          "tissue_id": "aggregate-skin",
+          "relationship": "normal",
+          "vaf": 0.11
+        }
+      ]
+    },
+    "cancer_cell_fraction": {
+      "records": [
+        {
+          "variant_id": "pipeline-ccf-001",
+          "sample_id": "aggregate-tumor-a",
+          "purity": 0.60,
+          "vaf": 0.30,
+          "total_copy_number": 2,
+          "alternate_copy_number": 1,
+          "depth": 200,
+          "alt_reads": 60
+        }
+      ]
+    },
+    "subclone": {
+      "records": [
+        {"sample_id": "aggregate-tumor-a", "variant_id": "pipeline-v1", "ccf": 0.82},
+        {"sample_id": "aggregate-tumor-a", "variant_id": "pipeline-v2", "ccf": 0.76},
+        {"sample_id": "aggregate-tumor-a", "variant_id": "pipeline-v3", "ccf": 0.34},
+        {"sample_id": "aggregate-tumor-a", "variant_id": "pipeline-v4", "ccf": 0.30}
+      ]
+    }
+  }
+}

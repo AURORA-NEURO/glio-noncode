@@ -238,6 +238,30 @@ from .specimen_beta import (
     SomaticGermlineOriginClassifier,
     SubcloneAssigner,
 )
+from .specimen_beta_frontier_bundle import (
+    SpecimenBetaFrontierBundleFormat,
+    SpecimenBetaFrontierEvidenceBundleBuilder,
+)
+from .specimen_beta_frontier_contracts import default_specimen_beta_frontier_contracts
+from .specimen_beta_frontier_fixture_eval import evaluate_specimen_beta_frontier_fixture
+from .specimen_beta_frontier_lineage import (
+    audit_specimen_beta_frontier_lineage,
+    build_specimen_beta_frontier_lineage,
+)
+from .specimen_beta_frontier_public_data import (
+    SpecimenBetaFrontierFixtureCatalog,
+    audit_specimen_beta_frontier_fixture,
+)
+from .specimen_beta_frontier_quality_gate import evaluate_specimen_beta_frontier_quality_gate
+from .specimen_beta_frontier_replay import (
+    SpecimenBetaFrontierReplayExpectation,
+    replay_specimen_beta_frontier_fixtures,
+)
+from .specimen_beta_frontier_runtime import (
+    run_specimen_beta_frontier_pipeline,
+    specimen_beta_frontier_pipeline_request_from_file,
+)
+from .specimen_beta_frontier_scenario_matrix import evaluate_specimen_beta_frontier_scenarios
 from .specimen_context import PurityPloidyImporter
 from .specimen_frontier_bundle import (
     SpecimenFrontierBundleFormat,
@@ -1752,6 +1776,80 @@ def build_parser() -> argparse.ArgumentParser:
     )
     specimen_frontier_pipeline.add_argument("input", type=str)
     specimen_frontier_pipeline.add_argument("--output", default=None)
+
+    specimen_beta_frontier_fixture = subparsers.add_parser(
+        "evaluate-specimen-beta-frontier-fixture",
+        help="evaluate the public aggregate fixture across Domain 03 C05-C08 variant operations",
+    )
+    specimen_beta_frontier_fixture.add_argument("input", type=str)
+    specimen_beta_frontier_fixture.add_argument("--output", default=None)
+
+    specimen_beta_frontier_data = subparsers.add_parser(
+        "audit-specimen-beta-frontier-data",
+        help="audit public aggregate C05-C08 sources, contexts, identities, and payload scope",
+    )
+    specimen_beta_frontier_data.add_argument("input", type=str)
+    specimen_beta_frontier_data.add_argument("--output", default=None)
+
+    specimen_beta_frontier_replay = subparsers.add_parser(
+        "replay-specimen-beta-frontier-fixtures",
+        help="replay C05-C08 fixtures with identity, context, source, and evidence floors",
+    )
+    specimen_beta_frontier_replay.add_argument("inputs", nargs="+", type=str)
+    specimen_beta_frontier_replay.add_argument("--required-context-key", default=None)
+    specimen_beta_frontier_replay.add_argument("--output", default=None)
+
+    specimen_beta_frontier_quality = subparsers.add_parser(
+        "specimen-beta-frontier-quality-gate",
+        help="reconcile C05-C08 fixture, data, replay, scenario, contract, and lineage evidence",
+    )
+    specimen_beta_frontier_quality.add_argument("input", type=str)
+    specimen_beta_frontier_quality.add_argument("--output", default=None)
+
+    specimen_beta_frontier_scenarios = subparsers.add_parser(
+        "evaluate-specimen-beta-frontier-scenarios",
+        help="run independent C05-C08 positive and review state-transition scenarios",
+    )
+    specimen_beta_frontier_scenarios.add_argument("input", type=str)
+    specimen_beta_frontier_scenarios.add_argument("--output", default=None)
+
+    specimen_beta_frontier_contracts = subparsers.add_parser(
+        "specimen-beta-frontier-contracts",
+        help="print the four-operation Domain 03 C05-C08 variant contract registry",
+    )
+    specimen_beta_frontier_contracts.add_argument("--output", default=None)
+
+    specimen_beta_frontier_bundle = subparsers.add_parser(
+        "build-specimen-beta-frontier-bundle",
+        help="build a compact JSON, CSV, or Markdown C05-C08 variant evidence bundle",
+    )
+    specimen_beta_frontier_bundle.add_argument("input", type=str)
+    specimen_beta_frontier_bundle.add_argument("--output", required=True)
+    specimen_beta_frontier_bundle.add_argument(
+        "--format",
+        choices=[item.value for item in SpecimenBetaFrontierBundleFormat],
+        default=SpecimenBetaFrontierBundleFormat.JSON.value,
+    )
+    specimen_beta_frontier_bundle.add_argument("--bundle-id", default=None)
+    specimen_beta_frontier_bundle.add_argument(
+        "--allow-review",
+        action="store_true",
+        help="write a review-state C05-C08 bundle for inspection instead of requiring the gate",
+    )
+
+    specimen_beta_frontier_lineage = subparsers.add_parser(
+        "specimen-beta-frontier-lineage",
+        help="build and audit a sanitized C05-C08 source-to-result lineage graph",
+    )
+    specimen_beta_frontier_lineage.add_argument("input", type=str)
+    specimen_beta_frontier_lineage.add_argument("--output", default=None)
+
+    specimen_beta_frontier_pipeline = subparsers.add_parser(
+        "run-specimen-beta-frontier-pipeline",
+        help="run origin, mosaicism, CCF, and relative subclone stages",
+    )
+    specimen_beta_frontier_pipeline.add_argument("input", type=str)
+    specimen_beta_frontier_pipeline.add_argument("--output", default=None)
 
     origin = subparsers.add_parser(
         "classify-origin",
@@ -3887,6 +3985,72 @@ def main(argv: list[str] | None = None) -> int:
             report = run_specimen_frontier_pipeline(_read_json(args.input))
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "evaluate-specimen-beta-frontier-fixture":
+            catalog = SpecimenBetaFrontierFixtureCatalog.from_file(args.input)
+            report = evaluate_specimen_beta_frontier_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "audit-specimen-beta-frontier-data":
+            catalog = SpecimenBetaFrontierFixtureCatalog.from_file(args.input)
+            report = audit_specimen_beta_frontier_fixture(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-specimen-beta-frontier-fixtures":
+            first_catalog = SpecimenBetaFrontierFixtureCatalog.from_file(args.inputs[0])
+            required_context_key = args.required_context_key or first_catalog.context_key
+            expectation = SpecimenBetaFrontierReplayExpectation(
+                first_catalog.fixture_id,
+                required_context_key,
+                first_catalog.source_ids,
+                minimum_checks=72,
+                minimum_positive_records=4,
+                minimum_control_records=8,
+            )
+            report = replay_specimen_beta_frontier_fixtures(
+                args.inputs,
+                expectation=expectation,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-beta-frontier-quality-gate":
+            catalog = SpecimenBetaFrontierFixtureCatalog.from_file(args.input)
+            report = evaluate_specimen_beta_frontier_quality_gate(catalog)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "evaluate-specimen-beta-frontier-scenarios":
+            report = evaluate_specimen_beta_frontier_scenarios(args.input)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "specimen-beta-frontier-contracts":
+            _write_json(default_specimen_beta_frontier_contracts().to_dict(), args.output)
+            return 0
+        if args.command == "build-specimen-beta-frontier-bundle":
+            catalog = SpecimenBetaFrontierFixtureCatalog.from_file(args.input)
+            builder = SpecimenBetaFrontierEvidenceBundleBuilder()
+            bundle = builder.build(
+                catalog,
+                bundle_id=args.bundle_id or "specimen-beta-frontier-c05-c08",
+                allow_review=args.allow_review,
+            )
+            builder.write(
+                bundle,
+                args.output,
+                format=SpecimenBetaFrontierBundleFormat(args.format),
+            )
+            return 0 if builder.verify(bundle) else 2
+        if args.command == "specimen-beta-frontier-lineage":
+            catalog = SpecimenBetaFrontierFixtureCatalog.from_file(args.input)
+            graph = build_specimen_beta_frontier_lineage(catalog)
+            audit = audit_specimen_beta_frontier_lineage(graph)
+            payload = graph.to_dict()
+            payload["audit"] = audit.to_dict()
+            _write_json(payload, args.output)
+            return 0 if audit.passed else 2
+        if args.command == "run-specimen-beta-frontier-pipeline":
+            request = specimen_beta_frontier_pipeline_request_from_file(args.input)
+            report = run_specimen_beta_frontier_pipeline(request)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.published else 2
         if args.command == "classify-origin":
             result = SomaticGermlineOriginClassifier().classify(
                 _read_rows(args.input, "records", "observations"),
