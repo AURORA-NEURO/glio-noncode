@@ -993,5 +993,54 @@ def default_capability_registry() -> CapabilityRegistry:
                     "large-track rendering and accessibility tests remain."
                 ),
             },
+            "GNC-D16-C01": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.mission_runtime.MissionPlanBuilder",),
+                "test_modules": ("tests.test_mission_runtime",),
+                "evidence_note": (
+                    "Mission plans expand declared dependencies, claim ceilings, review "
+                    "requirements, and registry provenance into a replayable decision; "
+                    "adaptive planning benchmarks "
+                    "and production policy review remain."
+                ),
+            },
+            "GNC-D16-C02": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.mission_runtime.MissionPlanBuilder",
+                    "glio_noncode.workflow.WorkflowCompiler",
+                ),
+                "test_modules": ("tests.test_mission_runtime", "tests.test_workflow"),
+                "evidence_note": (
+                    "Mission plans compile dependency-safe workflows with resource summaries and "
+                    "nondeterminism/network warnings; scheduling performance and migration "
+                    "fixtures "
+                    "remain."
+                ),
+            },
+            "GNC-D16-C03": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": ("glio_noncode.mission_runtime.TypedToolRegistry",),
+                "test_modules": ("tests.test_mission_runtime", "tests.test_control_plane"),
+                "evidence_note": (
+                    "The typed registry exposes owner-checked input/output contracts, safety "
+                    "class, sources, mutation scope, determinism, and review requirements for "
+                    "all 96 tools; "
+                    "external contract consumers and version migration remain."
+                ),
+            },
+            "GNC-D16-C04": {
+                "state": CapabilityState.PARTIAL.value,
+                "implementation_modules": (
+                    "glio_noncode.mission_runtime.ExecutionSandbox",
+                    "glio_noncode.control_plane.ControlPlaneExecutor",
+                ),
+                "test_modules": ("tests.test_mission_runtime", "tests.test_control_plane"),
+                "evidence_note": (
+                    "Sandbox execution requires registered allowlisted handlers, local/network "
+                    "isolation, policy admission, resource scheduling, provenance, event IDs, and "
+                    "idempotent replay; process-level deployment hardening remains."
+                ),
+            },
         }
     )

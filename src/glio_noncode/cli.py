@@ -15,7 +15,7 @@ from .causal_reasoning import FactorGraphConstructor, FactorObservation
 from .cell_context import ContextObservationParser
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
 from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
-from .control_plane import default_control_plane_registry
+from .control_plane import ClaimCeiling, MissionContext, default_control_plane_registry
 from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
 from .errors import GlioError
@@ -28,6 +28,7 @@ from .evidence_lifecycle import (
 )
 from .intake import IntakeFormat, VariantIntake
 from .link_graph import GeneFeatureParser
+from .mission_runtime import MissionPlanBuilder, MissionRequest
 from .models import CaseManifest, ReferenceContext, VariantIdentity
 from .reference_registry import default_reference_registry
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
@@ -139,6 +140,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     workspace_track.add_argument("--genome-build", default="GRCh38")
     workspace_track.add_argument("--output", default=None)
+
+    mission_plan = subparsers.add_parser(
+        "mission-plan", help="expand a mission request into a typed plan and compiled workflow"
+    )
+    mission_plan.add_argument("input", type=str)
+    mission_plan.add_argument("--output", default=None)
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
     intake.add_argument("input", type=str)
@@ -359,6 +366,37 @@ def main(argv: list[str] | None = None) -> int:
             )
             workspace = RegulatoryTrackBrowser().build(batch, context_key=args.context_key)
             _write_json(workspace.to_dict(), args.output)
+            return 0
+        if args.command == "mission-plan":
+            payload = _read_json(args.input)
+            raw = dict(payload.get("mission", payload))
+            mission = MissionContext(
+                mission_id=str(raw.get("mission_id", "mission-cli")),
+                project_id=str(raw.get("project_id", "glio-noncode")),
+                intended_use=str(raw.get("intended_use", "research hypothesis exploration")),
+                requested_question=str(raw.get("requested_question", "bounded research question")),
+                claim_ceiling=ClaimCeiling(
+                    str(raw.get("claim_ceiling", ClaimCeiling.HYPOTHESIS.value))
+                ),
+                allowed_source_ids=tuple(str(item) for item in raw.get("allowed_source_ids", ())),
+                allowed_data_scopes=tuple(
+                    str(item)
+                    for item in raw.get("allowed_data_scopes", ("synthetic", "public_reference"))
+                ),
+                allowed_mutations=tuple(
+                    str(item) for item in raw.get(
+                        "allowed_mutations", ("none", "event_log", "content_addressed_store")
+                    )
+                ),
+            )
+            request = MissionRequest(
+                mission=mission,
+                requested_agent_ids=tuple(
+                    str(item) for item in payload.get("requested_agent_ids", ())
+                ),
+                workflow_id=str(payload.get("workflow_id", "mission-cli-workflow")),
+            )
+            _write_json(MissionPlanBuilder().plan(request).to_dict(), args.output)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)

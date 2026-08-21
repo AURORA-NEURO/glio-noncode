@@ -410,6 +410,29 @@ class CliApiTests(unittest.TestCase):
                 len(json.loads(track_output.read_text(encoding="utf-8"))["records"]), 1
             )
 
+    def test_mission_plan_command_writes_dependency_safe_plan(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "mission.json"
+            output = Path(directory) / "mission-plan.json"
+            source.write_text(
+                json.dumps(
+                    {
+                        "mission": {
+                            "mission_id": "mission-cli",
+                            "project_id": "glio-noncode",
+                            "intended_use": "research hypothesis exploration",
+                            "requested_question": "Which observations require review?",
+                        },
+                        "requested_agent_ids": ["A02"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(main(["mission-plan", str(source), "--output", str(output)]), 0)
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertIn("A01", payload["selected_agent_ids"])
+            self.assertEqual(payload["workflow"]["steps"][0]["step_id"], "ingest")
+
     def test_cohort_query_command_writes_context_selection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "cohort.json"

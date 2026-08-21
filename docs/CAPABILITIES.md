@@ -297,3 +297,31 @@ diagnosis, prognosis, actionability, or treatment.
 glio-noncode workspace-case manifest.json --output case-workspace.json
 glio-noncode workspace-track regulatory.bed --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output track-workspace.json
 ```
+
+## Domain 16 typed mission runtime
+
+The mission runtime combines the declared control-plane registry with workflow
+compilation. A mission request names its research boundary and requested roles;
+planning expands only declared dependencies, checks claim ceilings and review
+requirements, and records a registry content address. Workflow compilation
+returns a topological order, aggregate resource envelope, and explicit
+network/nondeterminism warnings. An empty request abstains without compiling
+hidden work.
+
+The typed tool facade exposes owner-checked input/output contracts, safety
+class, deterministic flag, network sources, mutation scope, and review
+requirements. The execution sandbox adds a local/network isolation contract
+and requires a registered handler for every invocation. The underlying executor
+then applies policy, data-scope, sensitive-key, resource, provenance, event-log,
+typed-output, human-review, and idempotency controls. Unregistered or disallowed
+work is rejected; it is never treated as an abstention-free success.
+
+The mission boundary is:
+
+```powershell
+glio-noncode mission-plan mission.json --output mission-plan.json
+```
+
+This runtime is for bounded research orchestration. It does not authorize a
+clinical claim, treatment decision, or release beyond the existing review and
+research-use policy.
