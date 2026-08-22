@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 160 capabilities have deterministic fixture-backed
-verification and 96 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 62.50% of the 256-capability
+capabilities started (100%); 164 capabilities have deterministic fixture-backed
+verification and 92 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 64.06% of the 256-capability
 catalog; MVP implementation coverage is 56.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 160 capabilities are verified against the checked-in
-aggregate fixtures, while 96 capabilities remain partial. Partial
+capabilities started (100%); 164 capabilities are verified against the checked-in
+aggregate fixtures, while 92 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1658,6 +1658,40 @@ glio-noncode methylation-frontier-schema --output methylation-frontier-schema.js
 glio-noncode methylation-frontier-sources --output methylation-frontier-sources.json
 glio-noncode methylation-frontier-replay --output methylation-frontier-replay.json
 glio-noncode run-methylation-frontier-pipeline --output methylation-frontier-pipeline.json
+```
+
+### Domain 07 C09-C12 chromatin-alpha frontier evidence gate
+
+The Domain 07 C09-C12 tranche binds chromatin-alpha primitives to its own
+closed public aggregate fixture. It contains four positive rows and twelve
+controls across chromatin interval segmentation, allele-specific chromatin,
+epigenomic purity context, and batch/cell-composition correction. The five
+source receipts retain public URLs, releases, scopes, exact context, and
+content addresses. Foreign context, mixed replicate directions, invalid rows,
+out-of-range marker estimates, and missing correction terms remain explicit
+partial, ambiguous, or out-of-domain states.
+
+The release plane covers typed contracts, schema and public-boundary checks,
+expected-path reconciliation, operation metrics, source lineage, release and
+review policy, a ten-stage runtime, content-addressed bundle and artifact
+receipts, a sanitized review view, prioritized queue, structured trace,
+accessibility and compliance checks, invariants, replay comparison, scenario
+and validation matrices, thresholds, a runbook, and deterministic exports.
+Chromatin labels and deltas remain descriptive evidence; purity and corrected
+signals are research-use summaries, not clinical or causal conclusions.
+
+The bounded aggregate command surface is:
+
+```powershell
+glio-noncode chromatin-alpha-frontier-fixture --output chromatin-alpha-fixture.json
+glio-noncode chromatin-alpha-frontier-data --output chromatin-alpha-data.json
+glio-noncode chromatin-alpha-frontier-evaluate --output chromatin-alpha-evaluation.json
+glio-noncode chromatin-alpha-frontier-quality --output chromatin-alpha-quality.json
+glio-noncode chromatin-alpha-frontier-contracts --output chromatin-alpha-contracts.json
+glio-noncode chromatin-alpha-frontier-schema --output chromatin-alpha-schema.json
+glio-noncode chromatin-alpha-frontier-sources --output chromatin-alpha-sources.json
+glio-noncode chromatin-alpha-frontier-replay --output chromatin-alpha-replay.json
+glio-noncode run-chromatin-alpha-frontier-pipeline --output chromatin-alpha-pipeline.json
 ```
 
 The Domain 07 chromatin-alpha tranche adds assay-control depth:

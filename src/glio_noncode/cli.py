@@ -293,6 +293,7 @@ from .sequence_grammar_frontier_cli import (
 )
 from .sequence_grammar_frontier_public_data import load_sequence_grammar_fixture
 from .sequence_regulation_frontier_cli import run_sequence_regulation_operation
+from .chromatin_alpha_frontier_cli import run_chromatin_alpha_frontier_operation
 from .methylation_frontier_cli import run_methylation_frontier_operation
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
@@ -4552,6 +4553,25 @@ def build_parser() -> argparse.ArgumentParser:
             help="inspect the Domain 06 C09-C12 public aggregate plane",
         )
         sequence_regulation_parser.add_argument("--output", default=None)
+
+    for chromatin_alpha_frontier_command in (
+        "chromatin-alpha-frontier-fixture",
+        "chromatin-alpha-frontier-data",
+        "chromatin-alpha-frontier-evaluate",
+        "chromatin-alpha-frontier-replay",
+        "chromatin-alpha-frontier-quality",
+        "chromatin-alpha-frontier-contracts",
+        "chromatin-alpha-frontier-adapters",
+        "chromatin-alpha-frontier-catalog",
+        "chromatin-alpha-frontier-schema",
+        "chromatin-alpha-frontier-sources",
+        "run-chromatin-alpha-frontier-pipeline",
+    ):
+        chromatin_alpha_frontier_parser = subparsers.add_parser(
+            chromatin_alpha_frontier_command,
+            help="inspect the Domain 07 C09-C12 public aggregate chromatin plane",
+        )
+        chromatin_alpha_frontier_parser.add_argument("--output", default=None)
 
     for methylation_frontier_command in (
         "methylation-frontier-fixture",
@@ -10462,6 +10482,21 @@ def main(argv: list[str] | None = None) -> int:
             "run-sequence-regulation-pipeline",
         }:
             _write_json(run_sequence_regulation_operation(args.command), args.output)
+            return 0
+        if args.command in {
+            "chromatin-alpha-frontier-fixture",
+            "chromatin-alpha-frontier-data",
+            "chromatin-alpha-frontier-evaluate",
+            "chromatin-alpha-frontier-replay",
+            "chromatin-alpha-frontier-quality",
+            "chromatin-alpha-frontier-contracts",
+            "chromatin-alpha-frontier-adapters",
+            "chromatin-alpha-frontier-catalog",
+            "chromatin-alpha-frontier-schema",
+            "chromatin-alpha-frontier-sources",
+            "run-chromatin-alpha-frontier-pipeline",
+        }:
+            _write_json(run_chromatin_alpha_frontier_operation(args.command), args.output)
             return 0
         if args.command in {
             "methylation-frontier-fixture",

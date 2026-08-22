@@ -2500,55 +2500,68 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D07-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_alpha.ChromatinStateSegmentationAdapter",
                     "glio_noncode.chromatin_alpha.ChromatinSegmentationReport",
+                    "glio_noncode.chromatin_alpha_frontier_public_data.default_chromatin_alpha_frontier_fixture",
+                    "glio_noncode.chromatin_alpha_frontier_pipeline.run_chromatin_alpha_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
                 "evidence_note": (
                     "Context-qualified chromatin intervals are split at observed boundaries and "
                     "assigned transparent open/intermediate/closed labels with replicate support, "
-                    "signal spread, source hashes, and mixed-state ambiguity retained."
+                    "signal spread, source hashes, and mixed-state ambiguity retained. The public "
+                    "C09-C12 tranche adds aggregate controls, lineage, replay, policy, and release gates."
                 ),
             },
             "GNC-D07-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_alpha.AlleleSpecificChromatinAnalyzer",
                     "glio_noncode.chromatin_alpha.AlleleSpecificChromatinReport",
+                    "glio_noncode.chromatin_alpha_frontier_adapters.execute_chromatin_alpha_frontier_record",
+                    "glio_noncode.chromatin_alpha_frontier_quality_gate.build_chromatin_alpha_frontier_quality",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
                 "evidence_note": (
                     "Reference/alternate chromatin signals are summarized per variant and assay "
                     "with replicate-aware deltas, directions, missingness, mixed-direction states, "
-                    "context gates, and source hashes; deltas are not causal effects."
+                    "context gates, and source hashes; deltas are not causal effects. Positive and "
+                    "control paths now verify supported, mixed, foreign-context, and malformed states."
                 ),
             },
             "GNC-D07-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_alpha.EpigenomicPurityDeconvolver",
                     "glio_noncode.chromatin_alpha.EpigenomicPurityReport",
+                    "glio_noncode.chromatin_alpha_frontier_views.build_chromatin_alpha_frontier_view",
+                    "glio_noncode.chromatin_alpha_frontier_replay.replay_chromatin_alpha_frontier",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
                 "evidence_note": (
                     "Declared tumor/normal epigenomic reference markers produce bounded mixture "
                     "estimates with marker denominators, clipping visibility, spread, minimum-site "
-                    "gates, and context/source provenance; this is not a clinical purity call."
+                    "gates, and context/source provenance; this is not a clinical purity call. The "
+                    "aggregate view retains marker counts, estimates, spread, review decisions, and receipts."
                 ),
             },
             "GNC-D07-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_alpha.BatchCellCompositionCorrector",
                     "glio_noncode.chromatin_alpha.BatchCompositionCorrectionReport",
+                    "glio_noncode.chromatin_alpha_frontier_runtime.run_chromatin_alpha_frontier_runtime",
+                    "glio_noncode.chromatin_alpha_frontier_release.build_chromatin_alpha_frontier_release",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli"),
+                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
                 "evidence_note": (
                     "Declared batch offsets and cell-composition coefficients retain raw signal, "
                     "batch and composition adjustment terms, target composition, missing-parameter "
-                    "partial states, and source hashes; corrected values remain descriptive."
+                    "partial states, and source hashes; corrected values remain descriptive. The "
+                    "release plane adds source registry, quality gate, review queue, validation matrix, "
+                    "and content-addressed results."
                 ),
             },
             "GNC-D07-C13": {
