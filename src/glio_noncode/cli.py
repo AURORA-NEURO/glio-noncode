@@ -878,6 +878,10 @@ from .topology_context_frontier_cli import (
     TOPOLOGY_CONTEXT_FRONTIER_COMMANDS,
     run_topology_context_frontier_operation,
 )
+from .topology_beta_frontier_cli import (
+    TOPOLOGY_BETA_FRONTIER_COMMANDS,
+    run_topology_beta_frontier_operation,
+)
 from .topology_frontier_contracts import default_topology_frontier_contracts
 from .topology_frontier_exports import (
     export_topology_frontier_metrics_csv,
@@ -4651,6 +4655,13 @@ def build_parser() -> argparse.ArgumentParser:
             help="inspect the Domain 09 C01-C04 public aggregate topology plane",
         )
         topology_context_frontier_parser.add_argument("--output", default=None)
+
+    for topology_beta_frontier_command in TOPOLOGY_BETA_FRONTIER_COMMANDS:
+        topology_beta_frontier_parser = subparsers.add_parser(
+            topology_beta_frontier_command,
+            help="inspect the Domain 09 C05-C08 public aggregate topology plane",
+        )
+        topology_beta_frontier_parser.add_argument("--output", default=None)
 
     methylation_parse = subparsers.add_parser(
         "parse-methylation",
@@ -10598,6 +10609,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command in TOPOLOGY_CONTEXT_FRONTIER_COMMANDS:
             _write_json(run_topology_context_frontier_operation(args.command), args.output)
+            return 0
+        if args.command in TOPOLOGY_BETA_FRONTIER_COMMANDS:
+            _write_json(run_topology_beta_frontier_operation(args.command), args.output)
             return 0
         if args.command == "parse-context":
             input_path = Path(args.input)

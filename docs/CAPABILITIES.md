@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 184 capabilities have deterministic fixture-backed
-verification and 72 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 71.88% of the 256-capability
+capabilities started (100%); 188 capabilities have deterministic fixture-backed
+verification and 68 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 73.44% of the 256-capability
 catalog; MVP implementation coverage is 75.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -2193,6 +2193,39 @@ glio-noncode parse-promoter-capture promoter-capture.json --coordinate-system on
 glio-noncode score-enhancer-promoter-contact contact-evidence.json --enhancer-id enh-1 --promoter-id GENE1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output contact-score.json
 glio-noncode score-activity-by-contact activity-contact.json --enhancer-id enh-1 --promoter-id GENE1 --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --model-id abc-model --model-version 2026.1 --output abc-score.json
 ```
+
+### Domain 09 C05-C08 topology beta release slice
+
+The C05-C08 slice closes the four beta operations as one deterministic public
+aggregate package. Every operation has one positive record and three controls,
+four source receipts, context-gated replay, state and issue reconciliation,
+content addresses, review rows, release artifacts, and a twelve-stage pipeline.
+
+- Loop and stripe fixtures preserve two-anchor coordinates, feature kind,
+  signal, resolution, replicate IDs, caller metadata, source versions, and
+  row-level parser issues. Missing metadata is partial; divergent signals are
+  ambiguous; foreign context is out of domain.
+- Promoter-capture fixtures preserve promoter identity, target-element identity,
+  bait IDs, coordinates, signal, resolution, replicate IDs, and source receipts.
+- Enhancer-promoter scoring retains all exact-context observations, median
+  signal, spread, bounded normalization, source versions, and explicit absent
+  or foreign-context states.
+- Activity-by-contact retains contact and activity components separately,
+  model/version receipts, missingness, component disagreement, and the bounded
+  descriptive product. It is not a probability or causal conclusion.
+
+The aggregate package can be replayed and inspected with:
+
+```powershell
+glio-noncode topology-beta-frontier-fixture --output topology-beta-fixture.json
+glio-noncode topology-beta-frontier-evaluate --output topology-beta-evaluation.json
+glio-noncode topology-beta-frontier-review --output topology-beta-review.json
+glio-noncode topology-beta-frontier-pipeline --output topology-beta-pipeline.json
+```
+
+The closed fixture contains 16 records, 4 source receipts, 4 positive paths,
+12 control paths, 12 accepted pipeline stages, 20 release artifacts, and a
+replay receipt whose expected and observed evaluation addresses match.
 
 The Domain 09 topology-alpha tranche adds four explicit structural contracts:
 

@@ -3077,47 +3077,86 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D09-C05": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.topology_beta.LoopStripeAdapter",),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_beta.LoopStripeAdapter",
+                    "glio_noncode.topology_beta_frontier_adapters.TopologyBetaFrontierAdapterRegistry",
+                    "glio_noncode.topology_beta_frontier_public_data.default_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_fixture_eval.evaluate_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_pipeline.run_topology_beta_frontier_pipeline",
+                    "glio_noncode.topology_beta_frontier_contracts.build_topology_beta_frontier_contracts",
+                    "glio_noncode.topology_beta_frontier_quality_gate.build_topology_beta_frontier_quality",
+                    "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
+                ),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
                 "evidence_note": (
                     "Loop and stripe adapters preserve two-anchor coordinates, feature kind, "
                     "signal, resolution, replicate/caller metadata, source versions, hashes, and "
-                    "malformed-row quarantine; external schema conformance remains."
+                    "malformed-row quarantine; the closed aggregate fixture verifies supported, "
+                    "partial, ambiguous, and foreign-context paths with contract, lineage, "
+                    "quality, replay, and release receipts."
                 ),
             },
             "GNC-D09-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_beta.PromoterCaptureContactAdapter",
+                    "glio_noncode.topology_beta_frontier_adapters.TopologyBetaFrontierAdapterRegistry",
+                    "glio_noncode.topology_beta_frontier_public_data.default_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_fixture_eval.evaluate_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_pipeline.run_topology_beta_frontier_pipeline",
+                    "glio_noncode.topology_beta_frontier_contracts.build_topology_beta_frontier_contracts",
+                    "glio_noncode.topology_beta_frontier_quality_gate.build_topology_beta_frontier_quality",
+                    "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
                 "evidence_note": (
                     "Promoter-capture adapters retain promoter and target-element identity, bait, "
                     "coordinates, signal, context, source versions, hashes, and parser issues; "
-                    "locked external fixtures remain."
+                    "the closed aggregate fixture verifies supported, partial, ambiguous, and "
+                    "foreign-context paths with source, schema, lineage, policy, and release "
+                    "receipts."
                 ),
             },
             "GNC-D09-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_beta.EnhancerPromoterContactScorer",
+                    "glio_noncode.topology_beta_frontier_adapters.TopologyBetaFrontierAdapterRegistry",
+                    "glio_noncode.topology_beta_frontier_public_data.default_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_fixture_eval.evaluate_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_pipeline.run_topology_beta_frontier_pipeline",
+                    "glio_noncode.topology_beta_frontier_policy.evaluate_topology_beta_frontier_policy",
+                    "glio_noncode.topology_beta_frontier_provenance.build_topology_beta_frontier_provenance",
+                    "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
                 "evidence_note": (
                     "Exact-context enhancer-promoter contact scoring retains every observation, "
                     "replicate spread, source versions, bounded signal normalization, and "
-                    "out-of-domain context; calibration and negative controls remain."
+                    "out-of-domain context; the aggregate fixture verifies ambiguity, missingness, "
+                    "foreign context, bounded normalization, source lineage, review policy, and "
+                    "replay closure."
                 ),
             },
             "GNC-D09-C08": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.topology_beta.ActivityByContactScorer",),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.topology_beta.ActivityByContactScorer",
+                    "glio_noncode.topology_beta_frontier_adapters.TopologyBetaFrontierAdapterRegistry",
+                    "glio_noncode.topology_beta_frontier_public_data.default_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_fixture_eval.evaluate_topology_beta_frontier_fixture",
+                    "glio_noncode.topology_beta_frontier_pipeline.run_topology_beta_frontier_pipeline",
+                    "glio_noncode.topology_beta_frontier_policy.evaluate_topology_beta_frontier_policy",
+                    "glio_noncode.topology_beta_frontier_runtime.run_topology_beta_frontier_runtime",
+                    "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
+                ),
+                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
                 "evidence_note": (
                     "Activity-by-contact combines exact-context activity and contact components "
                     "with model/version receipts, missingness, ambiguity, and source lineage; the "
-                    "product is not a probability or causal regulatory claim."
+                    "closed aggregate fixture verifies component disagreement, missing activity, "
+                    "foreign context, policy, runtime limits, and release closure."
                 ),
             },
             "GNC-D09-C09": {

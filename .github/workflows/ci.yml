@@ -834,3 +834,11 @@ jobs:
         run: python -m glio_noncode topology-context-frontier-export --output /tmp/glio-topology-context-export.json && python -m glio_noncode topology-context-frontier-review --output /tmp/glio-topology-context-review.json
       - name: Topology context frontier end-to-end pipeline
         run: python -m glio_noncode run-topology-context-frontier-pipeline --output /tmp/glio-topology-context-pipeline.json
+      - name: Topology beta frontier fixture and contracts
+        run: python -m glio_noncode topology-beta-frontier-fixture --output /tmp/glio-topology-beta-fixture.json && python -m glio_noncode topology-beta-frontier-contracts --output /tmp/glio-topology-beta-contracts.json && python -m glio_noncode topology-beta-frontier-schema --output /tmp/glio-topology-beta-schema.json
+      - name: Topology beta frontier evaluation and review
+        run: python -m glio_noncode topology-beta-frontier-evaluate --output /tmp/glio-topology-beta-evaluation.json && python -m glio_noncode topology-beta-frontier-review --output /tmp/glio-topology-beta-review.json && python -m glio_noncode topology-beta-frontier-metrics --output /tmp/glio-topology-beta-metrics.json
+      - name: Topology beta frontier end-to-end pipeline
+        run: python -m glio_noncode topology-beta-frontier-pipeline --output /tmp/glio-topology-beta-pipeline.json
+      - name: Topology beta frontier focused tests
+        run: pytest -q tests/test_topology_beta_frontier.py
