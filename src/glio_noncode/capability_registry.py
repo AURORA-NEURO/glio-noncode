@@ -2663,51 +2663,69 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D08-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context.ContextObservationParser",
                     "glio_noncode.cell_context.DiseaseOntologyContextualizer",
+                    "glio_noncode.cell_context_frontier_disease.profile_disease_context_resolution",
+                    "glio_noncode.cell_context_frontier_public_data.default_cell_context_frontier_fixture",
+                    "glio_noncode.cell_context_frontier_pipeline.run_cell_context_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_cell_context",),
+                "test_modules": ("tests.test_cell_context", "tests.test_cell_context_frontier"),
                 "evidence_note": (
                     "Disease ontology observations preserve subject IDs, exact context keys, "
                     "candidate alternatives, source receipts, and context-gated abstention; "
-                    "locked external benchmarks, calibration, transport, and OOD gates remain."
+                    "the public aggregate C01-C04 plane adds depth scoring, source closure, "
+                    "replay, review, and release checks while external calibration remains."
                 ),
             },
             "GNC-D08-C02": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.cell_context.AdultPediatricRouter",),
-                "test_modules": ("tests.test_cell_context",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.cell_context.AdultPediatricRouter",
+                    "glio_noncode.cell_context_frontier_age.profile_age_route_resolution",
+                    "glio_noncode.cell_context_frontier_review_queue.build_cell_context_frontier_review_queue",
+                ),
+                "test_modules": ("tests.test_cell_context", "tests.test_cell_context_frontier"),
                 "evidence_note": (
                     "Adult and pediatric routes are taken from the declared reference context, "
-                    "unknown routes abstain, and conflicting context observations are surfaced; "
-                    "subgroup calibration and transport evaluation remain."
+                    "unknown routes abstain, and conflicting context observations are surfaced. "
+                    "The public aggregate plane verifies conflict routing, refusal, review, and "
+                    "bounded release behavior while subgroup transport evaluation remains."
                 ),
             },
             "GNC-D08-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context.MolecularClassStateContextualizer",
+                    "glio_noncode.cell_context_frontier_molecular.profile_molecular_context_resolution",
+                    "glio_noncode.cell_context_frontier_depth.audit_cell_context_frontier_depth",
                 ),
-                "test_modules": ("tests.test_cell_context",),
+                "test_modules": ("tests.test_cell_context", "tests.test_cell_context_frontier"),
                 "evidence_note": (
                     "Molecular class and molecular state are resolved as separate context "
-                    "dimensions with missingness, contradiction, and ambiguity retained; no "
-                    "pathogenicity or treatment claim is made."
+                    "dimensions with missingness, contradiction, and ambiguity retained. The "
+                    "aggregate tranche adds state matrices, uncertainty depth, source receipts, "
+                    "review routing, and deterministic replay; no pathogenicity or treatment "
+                    "claim is made."
                 ),
             },
             "GNC-D08-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context.MalignantMicroenvironmentTerritoryResolver",
                     "glio_noncode.cell_context.CellStateContextAssembler",
+                    "glio_noncode.cell_context_frontier_territory.profile_territory_context_resolution",
+                    "glio_noncode.cell_context_frontier_integrity.evaluate_cell_context_frontier_integrity",
+                    "glio_noncode.cell_context_frontier_pipeline.run_cell_context_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_cell_context",),
+                "test_modules": ("tests.test_cell_context", "tests.test_cell_context_frontier"),
                 "evidence_note": (
                     "Territory candidates expose one-to-many mappings and the assembled "
                     "GliomaStateContext propagates ambiguity without silently selecting an "
-                    "unsupported malignant or microenvironment identity."
+                    "unsupported malignant or microenvironment identity. The aggregate release "
+                    "adds assembly depth, weakest-component integrity, review queue, and export "
+                    "receipts."
                 ),
             },
             "GNC-D08-C05": {

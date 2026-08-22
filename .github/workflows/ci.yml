@@ -796,3 +796,11 @@ jobs:
         run: python -m glio_noncode chromatin-context-frontier-evaluate --output /tmp/glio-chromatin-context-evaluation.json && python -m glio_noncode chromatin-context-frontier-quality --output /tmp/glio-chromatin-context-quality.json && python -m glio_noncode chromatin-context-frontier-replay --output /tmp/glio-chromatin-context-replay.json
       - name: Chromatin context frontier end-to-end pipeline
         run: python -m glio_noncode run-chromatin-context-frontier-pipeline --output /tmp/glio-chromatin-context-pipeline.json
+      - name: Cell context frontier fixture and audit
+        run: python -m glio_noncode cell-context-frontier-fixture --output /tmp/glio-cell-context-fixture.json && python -m glio_noncode cell-context-frontier-data --output /tmp/glio-cell-context-data.json
+      - name: Cell context frontier contracts and schema
+        run: python -m glio_noncode cell-context-frontier-contracts --output /tmp/glio-cell-context-contracts.json && python -m glio_noncode cell-context-frontier-schema --output /tmp/glio-cell-context-schema.json && python -m glio_noncode cell-context-frontier-sources --output /tmp/glio-cell-context-sources.json
+      - name: Cell context frontier evaluation and quality
+        run: python -m glio_noncode cell-context-frontier-evaluate --output /tmp/glio-cell-context-evaluation.json && python -m glio_noncode cell-context-frontier-quality --output /tmp/glio-cell-context-quality.json && python -m glio_noncode cell-context-frontier-replay --output /tmp/glio-cell-context-replay.json
+      - name: Cell context frontier end-to-end pipeline
+        run: python -m glio_noncode run-cell-context-frontier-pipeline --output /tmp/glio-cell-context-pipeline.json

@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 168 capabilities have deterministic fixture-backed
-verification and 88 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 65.62% of the 256-capability
-catalog; MVP implementation coverage is 62.50%. The surfaces retain
+capabilities started (100%); 172 capabilities have deterministic fixture-backed
+verification and 84 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 67.19% of the 256-capability
+catalog; MVP implementation coverage is 68.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 168 capabilities are verified against the checked-in
-aggregate fixtures, while 88 capabilities remain partial. Partial
+capabilities started (100%); 172 capabilities are verified against the checked-in
+aggregate fixtures, while 84 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1876,6 +1876,53 @@ glio-noncode estimate-core-margin-prior core-margin.json --ambiguity-tolerance 0
 glio-noncode estimate-recurrence-state-prior recurrence-states.json --ambiguity-margin 0.1 --output recurrence-prior.json
 glio-noncode estimate-treatment-induced-state-prior treatment-states.json --induction-threshold 0.1 --output treatment-state-prior.json
 ```
+
+### Domain 08 C01-C04 cell-context frontier evidence gate
+
+The Domain 08 C01-C04 tranche binds disease ontology context, adult/pediatric
+routing, molecular class/state resolution, and territory-aware context assembly
+to a closed public aggregate fixture. It contains four positive records and
+twelve controls across the four operations, with five source receipts and an
+exact `ReferenceContext.key`. Malformed taxonomy rows, multiple candidates,
+age conflicts, missing molecular dimensions, and foreign-context observations
+remain visible as partial, ambiguous, contradictory, abstained, or
+out-of-domain states.
+
+The release plane adds typed contracts, schema and aggregate-boundary checks,
+source lineage and registry, expected-path reconciliation, policy decisions,
+operation metrics, a four-operation depth ledger, accessibility and integrity
+reports, review-safe rows, a prioritized queue, ten runtime stages, structured
+trace events, deterministic replay, scenario and validation matrices,
+thresholds, a runbook, content-addressed bundle and artifact inventory, and
+JSON/CSV exports. Disease terms, age routes, molecular dimensions, and
+territory labels are descriptive research context. No diagnosis, prognosis,
+pathogenicity, treatment, or actionability claim is inferred.
+
+The bounded aggregate command surface is:
+
+```powershell
+glio-noncode cell-context-frontier-fixture --output cell-context-fixture.json
+glio-noncode cell-context-frontier-data --output cell-context-data.json
+glio-noncode cell-context-frontier-evaluate --output cell-context-evaluation.json
+glio-noncode cell-context-frontier-quality --output cell-context-quality.json
+glio-noncode cell-context-frontier-contracts --output cell-context-contracts.json
+glio-noncode cell-context-frontier-adapters --output cell-context-adapters.json
+glio-noncode cell-context-frontier-schema --output cell-context-schema.json
+glio-noncode cell-context-frontier-sources --output cell-context-sources.json
+glio-noncode cell-context-frontier-replay --output cell-context-replay.json
+glio-noncode run-cell-context-frontier-pipeline --output cell-context-pipeline.json
+```
+
+The C01-C04 depth surface proves the following boundaries:
+
+- `DiseaseOntologyContextualizer` retains exact-context candidate alternatives,
+  source IDs, evidence IDs, confidence, and ambiguity margins.
+- `AdultPediatricRouter` takes the declared route, exposes conflicting
+  evidence, and abstains rather than guessing when age is unknown.
+- `MolecularClassStateContextualizer` keeps molecular class and molecular state
+  independent, retaining missingness, contradiction, and uncertainty.
+- `CellStateContextAssembler` propagates the weakest dimension and exposes
+  one-to-many territory candidates without silently selecting a label.
 
 ### Domain 08 C13-C16 cell-state frontier evidence gate
 

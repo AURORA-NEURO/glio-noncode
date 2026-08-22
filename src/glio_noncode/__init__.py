@@ -404,6 +404,203 @@ from .chromatin_context import (
     ChromatinTrackParser,
     H3K27acActivityEstimator,
 )
+from .cell_context_frontier_accessibility import (
+    CellContextFrontierAccessibilityReport,
+    CellContextFrontierOperationAccessibility,
+    evaluate_cell_context_frontier_accessibility,
+)
+from .cell_context_frontier_adapters import (
+    CellContextFrontierAdapterRegistry,
+    CellContextFrontierAdapterResult,
+    CellContextFrontierAdapterSpec,
+    build_cell_context_frontier_adapters,
+    execute_cell_context_frontier_record,
+)
+from .cell_context_frontier_age import (
+    CellContextFrontierAgeDepthReport,
+    CellContextFrontierAgeRouteObservation,
+    profile_age_route_resolution,
+)
+from .cell_context_frontier_artifacts import (
+    CellContextFrontierArtifact,
+    CellContextFrontierArtifactInventory,
+    build_cell_context_frontier_artifacts,
+)
+from .cell_context_frontier_bundle import (
+    CellContextFrontierBundle,
+    CellContextFrontierBundleMember,
+    build_cell_context_frontier_bundle,
+)
+from .cell_context_frontier_catalog import (
+    CellContextFrontierCatalog,
+    CellContextFrontierCatalogEntry,
+    build_cell_context_frontier_catalog,
+)
+from .cell_context_frontier_checks import (
+    CellContextFrontierInvariant,
+    CellContextFrontierInvariantReport,
+    run_cell_context_frontier_invariants,
+)
+from .cell_context_frontier_cli import CELL_CONTEXT_FRONTIER_COMMANDS, run_cell_context_frontier_operation
+from .cell_context_frontier_compliance import (
+    CellContextFrontierBoundaryCheck,
+    CellContextFrontierBoundaryReport,
+    evaluate_cell_context_frontier_boundary,
+)
+from .cell_context_frontier_contracts import (
+    CellContextFrontierContract,
+    CellContextFrontierContractReport,
+    build_cell_context_frontier_contracts,
+)
+from .cell_context_frontier_depth import (
+    CellContextFrontierDepthDimension,
+    CellContextFrontierDepthReport,
+    audit_cell_context_frontier_depth,
+)
+from .cell_context_frontier_disease import (
+    CellContextFrontierDiseaseCandidate,
+    CellContextFrontierDiseaseDepthReport,
+    profile_disease_context_resolution,
+)
+from .cell_context_frontier_exports import (
+    export_cell_context_frontier_manifest,
+    export_cell_context_frontier_review_csv,
+)
+from .cell_context_frontier_fixture_eval import (
+    CellContextFrontierEvaluation,
+    CellContextFrontierEvaluationRow,
+    evaluate_cell_context_frontier_fixture,
+)
+from .cell_context_frontier_integrity import (
+    CellContextFrontierIntegrityCheck,
+    CellContextFrontierIntegrityReport,
+    evaluate_cell_context_frontier_integrity,
+)
+from .cell_context_frontier_lineage import (
+    CellContextFrontierLineage,
+    CellContextFrontierLineageEdge,
+    build_cell_context_frontier_lineage,
+)
+from .cell_context_frontier_metrics import (
+    CellContextFrontierMetric,
+    CellContextFrontierMetrics,
+    build_cell_context_frontier_metrics,
+)
+from .cell_context_frontier_molecular import (
+    CellContextFrontierMolecularDepthReport,
+    CellContextFrontierMolecularDimension,
+    profile_molecular_context_resolution,
+)
+from .cell_context_frontier_observability import (
+    CellContextFrontierObservabilityReport,
+    CellContextFrontierTraceEvent,
+    build_cell_context_frontier_trace,
+)
+from .cell_context_frontier_pipeline import (
+    CellContextFrontierPipelineReport,
+    run_cell_context_frontier_pipeline,
+)
+from .cell_context_frontier_policy import (
+    CellContextFrontierPolicyDecision,
+    CellContextFrontierPolicyReport,
+    evaluate_cell_context_frontier_policy,
+)
+from .cell_context_frontier_public_data import (
+    CELL_CONTEXT_FRONTIER_BOUNDARY,
+    CELL_CONTEXT_FRONTIER_CONTEXT_KEY,
+    CELL_CONTEXT_FRONTIER_CONTROL_COUNT,
+    CELL_CONTEXT_FRONTIER_FIXTURE_VERSION,
+    CELL_CONTEXT_FRONTIER_FOREIGN_CONTEXT_KEY,
+    CELL_CONTEXT_FRONTIER_POSITIVE_COUNT,
+    CELL_CONTEXT_FRONTIER_SOURCE_COUNT,
+    CellContextFrontierDataAudit,
+    CellContextFrontierDataCheck,
+    CellContextFrontierExpectedState,
+    CellContextFrontierFixture,
+    CellContextFrontierOperation,
+    CellContextFrontierRecord,
+    CellContextFrontierRole,
+    CellContextFrontierSourceReceipt,
+    audit_cell_context_frontier_data,
+    default_cell_context_frontier_fixture,
+)
+from .cell_context_frontier_quality_gate import (
+    CellContextFrontierQualityCheck,
+    CellContextFrontierQualityReport,
+    build_cell_context_frontier_quality,
+)
+from .cell_context_frontier_reconciliation import (
+    CellContextFrontierReconciliation,
+    CellContextFrontierReconciliationItem,
+    reconcile_cell_context_frontier,
+)
+from .cell_context_frontier_release import (
+    CellContextFrontierReleaseManifest,
+    build_cell_context_frontier_release,
+)
+from .cell_context_frontier_replay import (
+    CellContextFrontierReplayReceipt,
+    replay_cell_context_frontier,
+)
+from .cell_context_frontier_reports import (
+    CellContextFrontierReport,
+    CellContextFrontierReportSection,
+    build_cell_context_frontier_report,
+)
+from .cell_context_frontier_review_queue import (
+    CellContextFrontierQueueItem,
+    CellContextFrontierReviewQueue,
+    build_cell_context_frontier_review_queue,
+)
+from .cell_context_frontier_runbook import (
+    CellContextFrontierRunbook,
+    CellContextFrontierRunbookStep,
+    default_cell_context_frontier_runbook,
+)
+from .cell_context_frontier_runtime import (
+    CellContextFrontierRuntimeOptions,
+    CellContextFrontierRuntimeReport,
+    CellContextFrontierStage,
+    run_cell_context_frontier_runtime,
+)
+from .cell_context_frontier_scenario_matrix import (
+    CellContextFrontierScenario,
+    CellContextFrontierScenarioMatrix,
+    CellContextFrontierScenarioResult,
+    build_cell_context_frontier_scenario_matrix,
+    evaluate_cell_context_frontier_scenarios,
+)
+from .cell_context_frontier_schema import (
+    CellContextFrontierSchemaCheck,
+    CellContextFrontierSchemaReport,
+    validate_cell_context_frontier_schema,
+)
+from .cell_context_frontier_source_registry import (
+    CellContextFrontierSourceEntry,
+    CellContextFrontierSourceRegistry,
+    build_cell_context_frontier_source_registry,
+)
+from .cell_context_frontier_territory import (
+    CellContextFrontierTerritoryCandidate,
+    CellContextFrontierTerritoryDepthReport,
+    profile_territory_context_resolution,
+)
+from .cell_context_frontier_thresholds import (
+    CellContextFrontierThreshold,
+    CellContextFrontierThresholdReport,
+    build_cell_context_frontier_threshold_report,
+)
+from .cell_context_frontier_validation_matrix import (
+    CellContextFrontierValidationCell,
+    CellContextFrontierValidationReport,
+    build_cell_context_frontier_validation_matrix,
+    validate_cell_context_frontier_matrix,
+)
+from .cell_context_frontier_views import (
+    CellContextFrontierReviewRow,
+    CellContextFrontierReviewView,
+    build_cell_context_frontier_view,
+)
 from .chromatin_context_frontier_adapters import (
     ChromatinContextFrontierAdapterRegistry,
     ChromatinContextFrontierAdapterResult,
@@ -9290,6 +9487,134 @@ __all__ += [
     "run_chromatin_context_frontier_runtime",
     "validate_chromatin_context_frontier_matrix",
     "validate_chromatin_context_frontier_schema",
+]
+
+__all__ += [
+    "CELL_CONTEXT_FRONTIER_BOUNDARY",
+    "CELL_CONTEXT_FRONTIER_CONTEXT_KEY",
+    "CELL_CONTEXT_FRONTIER_COMMANDS",
+    "CELL_CONTEXT_FRONTIER_CONTROL_COUNT",
+    "CELL_CONTEXT_FRONTIER_FIXTURE_VERSION",
+    "CELL_CONTEXT_FRONTIER_FOREIGN_CONTEXT_KEY",
+    "CELL_CONTEXT_FRONTIER_POSITIVE_COUNT",
+    "CELL_CONTEXT_FRONTIER_SOURCE_COUNT",
+    "CellContextFrontierAccessibilityReport",
+    "CellContextFrontierAdapterRegistry",
+    "CellContextFrontierAdapterResult",
+    "CellContextFrontierAdapterSpec",
+    "CellContextFrontierAgeDepthReport",
+    "CellContextFrontierAgeRouteObservation",
+    "CellContextFrontierArtifact",
+    "CellContextFrontierArtifactInventory",
+    "CellContextFrontierBoundaryCheck",
+    "CellContextFrontierBoundaryReport",
+    "CellContextFrontierBundle",
+    "CellContextFrontierBundleMember",
+    "CellContextFrontierCatalog",
+    "CellContextFrontierCatalogEntry",
+    "CellContextFrontierContract",
+    "CellContextFrontierContractReport",
+    "CellContextFrontierDataAudit",
+    "CellContextFrontierDataCheck",
+    "CellContextFrontierDepthDimension",
+    "CellContextFrontierDepthReport",
+    "CellContextFrontierDiseaseCandidate",
+    "CellContextFrontierDiseaseDepthReport",
+    "CellContextFrontierEvaluation",
+    "CellContextFrontierEvaluationRow",
+    "CellContextFrontierExpectedState",
+    "CellContextFrontierFixture",
+    "CellContextFrontierIntegrityCheck",
+    "CellContextFrontierIntegrityReport",
+    "CellContextFrontierInvariant",
+    "CellContextFrontierInvariantReport",
+    "CellContextFrontierLineage",
+    "CellContextFrontierLineageEdge",
+    "CellContextFrontierMetric",
+    "CellContextFrontierMetrics",
+    "CellContextFrontierMolecularDepthReport",
+    "CellContextFrontierMolecularDimension",
+    "CellContextFrontierObservabilityReport",
+    "CellContextFrontierOperation",
+    "CellContextFrontierOperationAccessibility",
+    "CellContextFrontierPipelineReport",
+    "CellContextFrontierPolicyDecision",
+    "CellContextFrontierPolicyReport",
+    "CellContextFrontierQualityCheck",
+    "CellContextFrontierQualityReport",
+    "CellContextFrontierQueueItem",
+    "CellContextFrontierReconciliation",
+    "CellContextFrontierReconciliationItem",
+    "CellContextFrontierRecord",
+    "CellContextFrontierReleaseManifest",
+    "CellContextFrontierReplayReceipt",
+    "CellContextFrontierReport",
+    "CellContextFrontierReportSection",
+    "CellContextFrontierReviewQueue",
+    "CellContextFrontierReviewRow",
+    "CellContextFrontierReviewView",
+    "CellContextFrontierRole",
+    "CellContextFrontierRunbook",
+    "CellContextFrontierRunbookStep",
+    "CellContextFrontierRuntimeOptions",
+    "CellContextFrontierRuntimeReport",
+    "CellContextFrontierScenario",
+    "CellContextFrontierScenarioMatrix",
+    "CellContextFrontierScenarioResult",
+    "CellContextFrontierSchemaCheck",
+    "CellContextFrontierSchemaReport",
+    "CellContextFrontierSourceEntry",
+    "CellContextFrontierSourceReceipt",
+    "CellContextFrontierSourceRegistry",
+    "CellContextFrontierStage",
+    "CellContextFrontierTerritoryCandidate",
+    "CellContextFrontierTerritoryDepthReport",
+    "CellContextFrontierThreshold",
+    "CellContextFrontierThresholdReport",
+    "CellContextFrontierTraceEvent",
+    "CellContextFrontierValidationCell",
+    "CellContextFrontierValidationReport",
+    "audit_cell_context_frontier_data",
+    "audit_cell_context_frontier_depth",
+    "build_cell_context_frontier_adapters",
+    "build_cell_context_frontier_artifacts",
+    "build_cell_context_frontier_bundle",
+    "build_cell_context_frontier_catalog",
+    "build_cell_context_frontier_contracts",
+    "build_cell_context_frontier_metrics",
+    "build_cell_context_frontier_quality",
+    "build_cell_context_frontier_release",
+    "build_cell_context_frontier_report",
+    "build_cell_context_frontier_review_queue",
+    "build_cell_context_frontier_scenario_matrix",
+    "build_cell_context_frontier_source_registry",
+    "build_cell_context_frontier_threshold_report",
+    "build_cell_context_frontier_trace",
+    "build_cell_context_frontier_validation_matrix",
+    "build_cell_context_frontier_view",
+    "default_cell_context_frontier_fixture",
+    "default_cell_context_frontier_runbook",
+    "evaluate_cell_context_frontier_accessibility",
+    "evaluate_cell_context_frontier_boundary",
+    "evaluate_cell_context_frontier_fixture",
+    "evaluate_cell_context_frontier_integrity",
+    "evaluate_cell_context_frontier_policy",
+    "evaluate_cell_context_frontier_scenarios",
+    "execute_cell_context_frontier_record",
+    "export_cell_context_frontier_manifest",
+    "export_cell_context_frontier_review_csv",
+    "profile_age_route_resolution",
+    "profile_disease_context_resolution",
+    "profile_molecular_context_resolution",
+    "profile_territory_context_resolution",
+    "reconcile_cell_context_frontier",
+    "replay_cell_context_frontier",
+    "run_cell_context_frontier_invariants",
+    "run_cell_context_frontier_operation",
+    "run_cell_context_frontier_pipeline",
+    "run_cell_context_frontier_runtime",
+    "validate_cell_context_frontier_matrix",
+    "validate_cell_context_frontier_schema",
 ]
 
 __version__ = "0.1.0"
