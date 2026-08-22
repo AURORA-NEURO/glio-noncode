@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 108 capabilities have deterministic fixture-backed
-verification and 148 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 42.19% of the 256-capability
+capabilities started (100%); 112 capabilities have deterministic fixture-backed
+verification and 144 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 43.75% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -1819,6 +1819,45 @@ glio-noncode link-3d-contacts contact-links.json --context-key "GRCh38|glioma|ad
 glio-noncode model-promoter-tethering tethering.json --minimum-score 0.35 --minimum-components 2 --output tethering-model.json
 glio-noncode build-multi-gene-element-graph link-evidence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-support 0.2 --output multi-gene-graph.json
 ```
+
+### Domain 10 C13-C16 link frontier evidence gate
+
+The Domain 10 C13-C16 tranche hardens the link-evidence plane over one exact
+GRCh38 glioma context. It keeps correlated support, target alternatives,
+calibration error, abstention, source receipts, lineage, replay, and release
+limitations visible. Candidate links remain descriptive research evidence and
+are not causal, clinical, pathogenicity, or actionability conclusions.
+
+- C13 `link_dependence_correction` groups correlated paths and downweights
+  duplicate support while retaining raw support, group size, and zero-support
+  controls.
+- C14 `target_gene_ranking` ranks declared component scores deterministically,
+  retaining alternative genes and review state for zero-support candidates.
+- C15 `link_calibration_abstention` applies explicit uncertainty and calibration
+  thresholds and exposes high-error and empty-input controls.
+- C16 `link_evidence_publication` binds link IDs, source IDs, exact context,
+  content addresses, sanitized exports, and a release manifest.
+
+The fixture contains 4 positive records, 12 controls, 5 public source receipts,
+120 evaluation checks, 20 schema checks, 12 quality checks, 51 operation-depth
+checks, 4 operation metrics, 9 runtime stages, content-addressed lineage,
+reconciliation items, and a review queue. The bounded commands are:
+
+```powershell
+glio-noncode audit-link-frontier-data --output link-data.json
+glio-noncode evaluate-link-frontier-fixture --output link-evaluation.json
+glio-noncode replay-link-frontier --output link-replay.json
+glio-noncode link-frontier-quality-gate --output link-quality.json
+glio-noncode link-frontier-depth-audit --output link-depth.json
+glio-noncode evaluate-link-frontier-scenarios --output link-scenarios.json
+glio-noncode link-frontier-schema --output link-schema.json
+glio-noncode run-link-frontier-pipeline --run-id link-ci --output link-pipeline.json
+glio-noncode build-link-frontier-release --run-id link-ci --output link-release.json
+```
+
+The detailed gate, schema, and operator references are maintained in
+`docs/LINK_FRONTIER_EVIDENCE_GATE.md`, `docs/LINK_FRONTIER_SCHEMA.md`, and
+`docs/LINK_FRONTIER_OPERATIONS.md`.
 
 ## Domain 11 causal evidence structures
 

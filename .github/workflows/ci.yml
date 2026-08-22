@@ -444,3 +444,37 @@ jobs:
         run: python -m glio_noncode topology-frontier-review-view --output /tmp/glio-topology-frontier-view.json
       - name: Topology frontier runtime trace
         run: python -m glio_noncode topology-frontier-trace --run-id topology-frontier-ci --output /tmp/glio-topology-frontier-trace.json
+      - name: Link frontier data boundary audit
+        run: python -m glio_noncode audit-link-frontier-data --output /tmp/glio-link-frontier-data.json
+      - name: Link frontier fixture evaluation
+        run: python -m glio_noncode evaluate-link-frontier-fixture --output /tmp/glio-link-frontier-fixture.json
+      - name: Link frontier replay integrity
+        run: python -m glio_noncode replay-link-frontier --output /tmp/glio-link-frontier-replay.json
+      - name: Link frontier quality gate
+        run: python -m glio_noncode link-frontier-quality-gate --output /tmp/glio-link-frontier-quality.json
+      - name: Link frontier scenario matrix
+        run: python -m glio_noncode evaluate-link-frontier-scenarios --output /tmp/glio-link-frontier-scenarios.json
+      - name: Link frontier operation contracts
+        run: python -m glio_noncode link-frontier-contracts --output /tmp/glio-link-frontier-contracts.json
+      - name: Link frontier schema validation
+        run: python -m glio_noncode link-frontier-schema --output /tmp/glio-link-frontier-schema.json
+      - name: Link frontier policy evaluation
+        run: python -m glio_noncode link-frontier-policy --output /tmp/glio-link-frontier-policy.json
+      - name: Link frontier metrics
+        run: python -m glio_noncode link-frontier-metrics --output /tmp/glio-link-frontier-metrics.json
+      - name: Link frontier evidence bundle
+        run: python -m glio_noncode build-link-frontier-bundle --output /tmp/glio-link-frontier-bundle.json
+      - name: Link frontier lineage graph
+        run: python -m glio_noncode link-frontier-lineage --output /tmp/glio-link-frontier-lineage.json
+      - name: Link frontier receipt reconciliation
+        run: python -m glio_noncode link-frontier-reconciliation --output /tmp/glio-link-frontier-reconciliation.json
+      - name: Link frontier pipeline integration
+        run: python -m glio_noncode run-link-frontier-pipeline --run-id link-frontier-ci --output /tmp/glio-link-frontier-pipeline.json
+      - name: Link frontier release manifest
+        run: python -m glio_noncode build-link-frontier-release --run-id link-frontier-ci --release-id link-frontier-ci --output /tmp/glio-link-frontier-release.json
+      - name: Link frontier review view
+        run: python -m glio_noncode link-frontier-review-view --output /tmp/glio-link-frontier-view.json
+      - name: Link frontier runtime trace
+        run: python -m glio_noncode link-frontier-trace --run-id link-frontier-ci --output /tmp/glio-link-frontier-trace.json
+      - name: Link frontier operation depth audit
+        run: python -m glio_noncode link-frontier-depth-audit --output /tmp/glio-link-frontier-depth.json

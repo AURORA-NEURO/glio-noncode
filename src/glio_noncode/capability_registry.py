@@ -3125,51 +3125,64 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D10-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.LinkEvidenceDependenceCorrector",
-                    "glio_noncode.frontier_inference_alpha.DependenceCorrectionReport",
+                    "glio_noncode.link_frontier_fixture_eval",
+                    "glio_noncode.link_frontier_depth",
+                    "glio_noncode.link_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence"),
                 "evidence_note": (
-                    "Dependence groups downweight correlated support and retain raw support, group "
-                    "size, corrected support, and source grouping."
+                    "Public aggregate dependence groups downweight correlated link support and retain "
+                    "raw support, group size, corrected support, source receipts, controls, replay, "
+                    "and release-gate evidence."
                 ),
             },
             "GNC-D10-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.TargetGeneRanker",
-                    "glio_noncode.frontier_inference_alpha.TargetGeneRankReport",
+                    "glio_noncode.link_frontier_fixture_eval",
+                    "glio_noncode.link_frontier_depth",
+                    "glio_noncode.link_frontier_views",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence"),
                 "evidence_note": (
-                    "Target-gene ranking retains component scores, weights, variant/element/gene "
-                    "identity, deterministic ranks, and top-gene mapping."
+                    "Public aggregate target-gene ranking retains component scores, weights, "
+                    "variant/element/gene identity, deterministic ranks, alternatives, controls, "
+                    "and review exports without selecting a clinical target."
                 ),
             },
             "GNC-D10-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.LinkCalibrationAndAbstention",
-                    "glio_noncode.frontier_inference_alpha.LinkCalibrationReport",
+                    "glio_noncode.link_frontier_scenario_matrix",
+                    "glio_noncode.link_frontier_replay",
+                    "glio_noncode.link_frontier_depth",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence"),
                 "evidence_note": (
-                    "Link calibration compares optional observations and abstains on uncertainty or "
-                    "calibration error beyond explicit thresholds."
+                    "Public aggregate calibration compares optional observations, declares thresholds, "
+                    "abstains on uncertainty or calibration error, and is covered by adversarial "
+                    "scenarios, replay, and quality checks."
                 ),
             },
             "GNC-D10-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.LinkEvidencePublisher",
-                    "glio_noncode.frontier_inference_alpha.LinkEvidenceBundle",
+                    "glio_noncode.link_frontier_public_data",
+                    "glio_noncode.link_frontier_release",
+                    "glio_noncode.link_frontier_exports",
+                    "glio_noncode.link_frontier_depth",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence_cli"),
                 "evidence_note": (
-                    "Link evidence publication binds link/source IDs, exact context, record address, "
-                    "and bundle address."
+                    "Public aggregate link publication binds link/source IDs, exact context, source "
+                    "receipts, record and bundle addresses, sanitized review exports, and a release "
+                    "manifest with explicit limitations."
                 ),
             },
             "GNC-D11-C01": {

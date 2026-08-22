@@ -85,6 +85,40 @@ from .cell_context_beta import (
     H3K27AlteredDevelopmentalStatePrior,
     IdhMutantLineageStatePrior,
 )
+from .cell_state_frontier_contracts import default_cell_state_frontier_contracts
+from .cell_state_frontier_exports import (
+    export_cell_state_frontier_metrics_csv,
+    export_cell_state_frontier_receipts_csv,
+    export_cell_state_frontier_review_csv,
+    render_cell_state_frontier_review_markdown,
+)
+from .cell_state_frontier_fixture_eval import evaluate_cell_state_frontier_fixture
+from .cell_state_frontier_lineage import build_cell_state_frontier_lineage
+from .cell_state_frontier_metrics import compute_cell_state_frontier_metrics
+from .cell_state_frontier_observability import build_cell_state_frontier_trace
+from .cell_state_frontier_policy import evaluate_cell_state_frontier_policy
+from .cell_state_frontier_public_data import (
+    audit_cell_state_frontier_data,
+    default_cell_state_frontier_fixture,
+    load_cell_state_frontier_fixture,
+)
+from .cell_state_frontier_quality_gate import run_cell_state_frontier_quality_gate
+from .cell_state_frontier_reconciliation import reconcile_cell_state_frontier
+from .cell_state_frontier_release import build_cell_state_frontier_release
+from .cell_state_frontier_replay import replay_cell_state_frontier_evaluation
+from .cell_state_frontier_runtime import (
+    CellStateFrontierRuntimeOptions,
+    run_cell_state_frontier_pipeline,
+)
+from .cell_state_frontier_scenario_matrix import evaluate_cell_state_frontier_scenarios
+from .cell_state_frontier_schema import (
+    cell_state_frontier_schema_manifest,
+    validate_cell_state_frontier_schema,
+)
+from .cell_state_frontier_views import (
+    build_cell_state_frontier_view,
+    cell_state_frontier_review_summary,
+)
 from .chromatin_alpha import (
     AlleleSpecificChromatinAnalyzer,
     BatchCellCompositionCorrector,
@@ -125,40 +159,6 @@ from .chromatin_frontier_schema import (
 from .chromatin_frontier_views import (
     build_chromatin_frontier_view,
     chromatin_frontier_review_summary,
-)
-from .cell_state_frontier_contracts import default_cell_state_frontier_contracts
-from .cell_state_frontier_exports import (
-    export_cell_state_frontier_metrics_csv,
-    export_cell_state_frontier_receipts_csv,
-    export_cell_state_frontier_review_csv,
-    render_cell_state_frontier_review_markdown,
-)
-from .cell_state_frontier_fixture_eval import evaluate_cell_state_frontier_fixture
-from .cell_state_frontier_lineage import build_cell_state_frontier_lineage
-from .cell_state_frontier_metrics import compute_cell_state_frontier_metrics
-from .cell_state_frontier_observability import build_cell_state_frontier_trace
-from .cell_state_frontier_policy import evaluate_cell_state_frontier_policy
-from .cell_state_frontier_public_data import (
-    audit_cell_state_frontier_data,
-    default_cell_state_frontier_fixture,
-    load_cell_state_frontier_fixture,
-)
-from .cell_state_frontier_quality_gate import run_cell_state_frontier_quality_gate
-from .cell_state_frontier_reconciliation import reconcile_cell_state_frontier
-from .cell_state_frontier_release import build_cell_state_frontier_release
-from .cell_state_frontier_replay import replay_cell_state_frontier_evaluation
-from .cell_state_frontier_runtime import (
-    CellStateFrontierRuntimeOptions,
-    run_cell_state_frontier_pipeline,
-)
-from .cell_state_frontier_scenario_matrix import evaluate_cell_state_frontier_scenarios
-from .cell_state_frontier_schema import (
-    cell_state_frontier_schema_manifest,
-    validate_cell_state_frontier_schema,
-)
-from .cell_state_frontier_views import (
-    build_cell_state_frontier_view,
-    cell_state_frontier_review_summary,
 )
 from .cohort_alpha import (
     ClonalityTimingIntegrator,
@@ -285,6 +285,33 @@ from .lifecycle_beta import (
     ReviewerRole,
     UncertaintyLedgerBuilder,
 )
+from .link_frontier_bundle import build_link_frontier_bundle
+from .link_frontier_contracts import default_link_frontier_contracts
+from .link_frontier_depth import run_link_frontier_depth_audit
+from .link_frontier_exports import (
+    export_link_frontier_metrics_csv,
+    export_link_frontier_receipts_csv,
+    export_link_frontier_review_csv,
+    render_link_frontier_review_markdown,
+)
+from .link_frontier_fixture_eval import evaluate_link_frontier_fixture
+from .link_frontier_lineage import build_link_frontier_lineage
+from .link_frontier_metrics import compute_link_frontier_metrics
+from .link_frontier_observability import build_link_frontier_trace
+from .link_frontier_policy import evaluate_link_frontier_policy
+from .link_frontier_public_data import (
+    audit_link_frontier_data,
+    default_link_frontier_fixture,
+    load_link_frontier_fixture,
+)
+from .link_frontier_quality_gate import run_link_frontier_quality_gate
+from .link_frontier_reconciliation import reconcile_link_frontier
+from .link_frontier_release import build_link_frontier_release
+from .link_frontier_replay import replay_link_frontier_evaluation
+from .link_frontier_runtime import run_link_frontier_pipeline
+from .link_frontier_scenario_matrix import evaluate_link_frontier_scenarios
+from .link_frontier_schema import default_link_frontier_schemas, validate_link_frontier_schema
+from .link_frontier_views import build_link_frontier_view, link_frontier_review_summary
 from .link_graph import GeneFeatureParser
 from .link_graph_alpha import (
     ContactAssayKind,
@@ -721,9 +748,15 @@ from .topology_frontier_quality_gate import run_topology_frontier_quality_gate
 from .topology_frontier_reconciliation import reconcile_topology_frontier
 from .topology_frontier_release import build_topology_frontier_release
 from .topology_frontier_replay import replay_topology_frontier_evaluation
-from .topology_frontier_runtime import TopologyFrontierRuntimeOptions, run_topology_frontier_pipeline
+from .topology_frontier_runtime import (
+    TopologyFrontierRuntimeOptions,
+    run_topology_frontier_pipeline,
+)
 from .topology_frontier_scenario_matrix import evaluate_topology_frontier_scenarios
-from .topology_frontier_schema import default_topology_frontier_schemas, validate_topology_frontier_schema
+from .topology_frontier_schema import (
+    default_topology_frontier_schemas,
+    validate_topology_frontier_schema,
+)
 from .topology_frontier_views import build_topology_frontier_view, topology_frontier_review_summary
 from .validation_alpha import (
     ControlsRandomizationPlanner,
@@ -859,6 +892,12 @@ def _read_topology_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_topology_frontier_fixture(path) if path else default_topology_frontier_fixture()
+
+
+def _read_link_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_link_frontier_fixture(path) if path else default_link_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -3868,6 +3907,136 @@ def build_parser() -> argparse.ArgumentParser:
     )
     topology_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
     topology_frontier_metrics_csv.add_argument("--output", default=None)
+
+    link_frontier_evaluate = subparsers.add_parser(
+        "evaluate-link-frontier-fixture",
+        help="evaluate the public Domain 10 C13-C16 link fixture and controls",
+    )
+    link_frontier_evaluate.add_argument("input", nargs="?", default=None)
+    link_frontier_evaluate.add_argument("--output", default=None)
+    link_frontier_audit = subparsers.add_parser(
+        "audit-link-frontier-data",
+        help="audit Domain 10 C13-C16 source receipts and aggregate boundaries",
+    )
+    link_frontier_audit.add_argument("input", nargs="?", default=None)
+    link_frontier_audit.add_argument("--output", default=None)
+    link_frontier_replay = subparsers.add_parser(
+        "replay-link-frontier",
+        help="replay Domain 10 C13-C16 states and receipt addresses",
+    )
+    link_frontier_replay.add_argument("input", nargs="?", default=None)
+    link_frontier_replay.add_argument("--output", default=None)
+    link_frontier_quality = subparsers.add_parser(
+        "link-frontier-quality-gate",
+        help="run the complete Domain 10 C13-C16 quality gate",
+    )
+    link_frontier_quality.add_argument("input", nargs="?", default=None)
+    link_frontier_quality.add_argument("--output", default=None)
+    link_frontier_scenarios = subparsers.add_parser(
+        "evaluate-link-frontier-scenarios",
+        help="evaluate Domain 10 C13-C16 positive and negative controls",
+    )
+    link_frontier_scenarios.add_argument("input", nargs="?", default=None)
+    link_frontier_scenarios.add_argument("--output", default=None)
+    link_frontier_policy = subparsers.add_parser(
+        "link-frontier-policy",
+        help="evaluate Domain 10 C13-C16 interpretation and state policy",
+    )
+    link_frontier_policy.add_argument("input", nargs="?", default=None)
+    link_frontier_policy.add_argument("--output", default=None)
+    link_frontier_contracts = subparsers.add_parser(
+        "link-frontier-contracts",
+        help="emit typed Domain 10 C13-C16 contracts",
+    )
+    link_frontier_contracts.add_argument("--output", default=None)
+    link_frontier_schema = subparsers.add_parser(
+        "link-frontier-schema",
+        help="emit or validate Domain 10 C13-C16 schemas",
+    )
+    link_frontier_schema.add_argument("input", nargs="?", default=None)
+    link_frontier_schema.add_argument("--output", default=None)
+    link_frontier_metrics = subparsers.add_parser(
+        "link-frontier-metrics",
+        help="emit Domain 10 C13-C16 operation metrics",
+    )
+    link_frontier_metrics.add_argument("input", nargs="?", default=None)
+    link_frontier_metrics.add_argument("--output", default=None)
+    link_frontier_bundle = subparsers.add_parser(
+        "build-link-frontier-bundle",
+        help="build the serialized Domain 10 C13-C16 bundle",
+    )
+    link_frontier_bundle.add_argument("input", nargs="?", default=None)
+    link_frontier_bundle.add_argument("--output", default=None)
+    link_frontier_lineage = subparsers.add_parser(
+        "link-frontier-lineage",
+        help="emit Domain 10 C13-C16 source-to-receipt lineage",
+    )
+    link_frontier_lineage.add_argument("input", nargs="?", default=None)
+    link_frontier_lineage.add_argument("--output", default=None)
+    link_frontier_reconciliation = subparsers.add_parser(
+        "link-frontier-reconciliation",
+        help="reconcile Domain 10 C13-C16 expected and observed states",
+    )
+    link_frontier_reconciliation.add_argument("input", nargs="?", default=None)
+    link_frontier_reconciliation.add_argument("--output", default=None)
+    link_frontier_pipeline = subparsers.add_parser(
+        "run-link-frontier-pipeline",
+        help="run the Domain 10 C13-C16 quality-gated pipeline",
+    )
+    link_frontier_pipeline.add_argument("input", nargs="?", default=None)
+    link_frontier_pipeline.add_argument("--run-id", default="link-frontier-cli")
+    link_frontier_pipeline.add_argument("--output", default=None)
+    link_frontier_release = subparsers.add_parser(
+        "build-link-frontier-release",
+        help="build a Domain 10 C13-C16 release manifest",
+    )
+    link_frontier_release.add_argument("input", nargs="?", default=None)
+    link_frontier_release.add_argument("--run-id", default="link-frontier-release")
+    link_frontier_release.add_argument("--release-id", default="link-frontier-release-v1")
+    link_frontier_release.add_argument("--output", default=None)
+    link_frontier_view = subparsers.add_parser(
+        "link-frontier-review-view",
+        help="emit the sanitized Domain 10 review queue and source matrix",
+    )
+    link_frontier_view.add_argument("input", nargs="?", default=None)
+    link_frontier_view.add_argument("--output", default=None)
+    link_frontier_trace = subparsers.add_parser(
+        "link-frontier-trace",
+        help="emit the nine-stage Domain 10 runtime trace",
+    )
+    link_frontier_trace.add_argument("input", nargs="?", default=None)
+    link_frontier_trace.add_argument("--run-id", default="link-frontier-trace")
+    link_frontier_trace.add_argument("--output", default=None)
+    link_frontier_receipts_csv = subparsers.add_parser(
+        "export-link-frontier-receipts-csv",
+        help="export sanitized Domain 10 receipts as CSV",
+    )
+    link_frontier_receipts_csv.add_argument("input", nargs="?", default=None)
+    link_frontier_receipts_csv.add_argument("--output", default=None)
+    link_frontier_review_csv = subparsers.add_parser(
+        "export-link-frontier-review-csv",
+        help="export the Domain 10 review queue as CSV",
+    )
+    link_frontier_review_csv.add_argument("input", nargs="?", default=None)
+    link_frontier_review_csv.add_argument("--output", default=None)
+    link_frontier_review_md = subparsers.add_parser(
+        "export-link-frontier-review-markdown",
+        help="export the Domain 10 review queue as Markdown",
+    )
+    link_frontier_review_md.add_argument("input", nargs="?", default=None)
+    link_frontier_review_md.add_argument("--output", default=None)
+    link_frontier_metrics_csv = subparsers.add_parser(
+        "export-link-frontier-metrics-csv",
+        help="export Domain 10 operation metrics as CSV",
+    )
+    link_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
+    link_frontier_metrics_csv.add_argument("--output", default=None)
+    link_frontier_depth = subparsers.add_parser(
+        "link-frontier-depth-audit",
+        help="run operation-specific Domain 10 depth invariants",
+    )
+    link_frontier_depth.add_argument("input", nargs="?", default=None)
+    link_frontier_depth.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -7266,6 +7435,103 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "export-cell-state-frontier-metrics-csv":
             fixture = _read_cell_state_frontier_fixture(args.input)
             _write_text(export_cell_state_frontier_metrics_csv(compute_cell_state_frontier_metrics(evaluate_cell_state_frontier_fixture(fixture))), args.output)
+            return 0
+        if args.command == "evaluate-link-frontier-fixture":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(evaluate_link_frontier_fixture(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "audit-link-frontier-data":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(audit_link_frontier_data(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "replay-link-frontier":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            _write_json(replay_link_frontier_evaluation(fixture, first=evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "link-frontier-quality-gate":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(run_link_frontier_quality_gate(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-link-frontier-scenarios":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(evaluate_link_frontier_scenarios(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "link-frontier-policy":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            _write_json(evaluate_link_frontier_policy(fixture, evaluation=evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "link-frontier-contracts":
+            _write_json(default_link_frontier_contracts().manifest(), args.output)
+            return 0
+        if args.command == "link-frontier-schema":
+            fixture = _read_link_frontier_fixture(args.input)
+            schemas = default_link_frontier_schemas()
+            _write_json({"schemas": [item.to_dict() for item in schemas], "validation": validate_link_frontier_schema(fixture).to_dict()}, args.output)
+            return 0
+        if args.command == "link-frontier-metrics":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(compute_link_frontier_metrics(fixture, evaluate_link_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "build-link-frontier-bundle":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            lineage = build_link_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_link_frontier(fixture, evaluation)
+            policy = evaluate_link_frontier_policy(fixture, evaluation=evaluation)
+            metrics = compute_link_frontier_metrics(fixture, evaluation)
+            _write_json(build_link_frontier_bundle(fixture, evaluation, reconciliation, lineage, metrics, policy).to_dict(), args.output)
+            return 0
+        if args.command == "link-frontier-lineage":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            _write_json(build_link_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "link-frontier-reconciliation":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            _write_json(reconcile_link_frontier(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "run-link-frontier-pipeline":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(run_link_frontier_pipeline(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "build-link-frontier-release":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(build_link_frontier_release(fixture, release_id=args.release_id).to_dict(), args.output)
+            return 0
+        if args.command == "link-frontier-review-view":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            view = build_link_frontier_view(fixture, evaluation)
+            _write_json(view.to_dict() | {"summary": link_frontier_review_summary(view)}, args.output)
+            return 0
+        if args.command == "link-frontier-trace":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(build_link_frontier_trace(run_link_frontier_pipeline(fixture), run_id=args.run_id).to_dict(), args.output)
+            return 0
+        if args.command == "export-link-frontier-receipts-csv":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_text(export_link_frontier_receipts_csv(evaluate_link_frontier_fixture(fixture)), args.output)
+            return 0
+        if args.command == "export-link-frontier-review-csv":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            _write_text(export_link_frontier_review_csv(build_link_frontier_view(fixture, evaluation)), args.output)
+            return 0
+        if args.command == "export-link-frontier-review-markdown":
+            fixture = _read_link_frontier_fixture(args.input)
+            evaluation = evaluate_link_frontier_fixture(fixture)
+            _write_text(render_link_frontier_review_markdown(build_link_frontier_view(fixture, evaluation)), args.output)
+            return 0
+        if args.command == "export-link-frontier-metrics-csv":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_text(export_link_frontier_metrics_csv(compute_link_frontier_metrics(fixture, evaluate_link_frontier_fixture(fixture))), args.output)
+            return 0
+        if args.command == "link-frontier-depth-audit":
+            fixture = _read_link_frontier_fixture(args.input)
+            _write_json(run_link_frontier_depth_audit(fixture).to_dict(), args.output)
             return 0
         if args.command == "evaluate-topology-frontier-fixture":
             fixture = _read_topology_frontier_fixture(args.input)
