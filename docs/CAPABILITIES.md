@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 148 capabilities have deterministic fixture-backed
-verification and 108 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 57.81% of the 256-capability
+capabilities started (100%); 152 capabilities have deterministic fixture-backed
+verification and 104 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 59.38% of the 256-capability
 catalog; MVP implementation coverage is 56.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 148 capabilities are verified against the checked-in
-aggregate fixtures, while 108 capabilities remain partial. Partial
+capabilities started (100%); 152 capabilities are verified against the checked-in
+aggregate fixtures, while 104 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1458,6 +1458,40 @@ glio-noncode sequence-effect-data-audit --output sequence-effect-data.json
 glio-noncode sequence-effect-evaluate --output sequence-effect-evaluation.json
 glio-noncode sequence-effect-quality-gate --output sequence-effect-quality.json
 glio-noncode sequence-effect-pipeline --run-id d06-c01-c04-local --output sequence-effect-pipeline.json
+```
+
+### Domain 06 C05-C08 sequence grammar frontier
+
+The next four Domain 06 capabilities now have a complete public aggregate
+evidence plane around motif losses, motif gains, spacing/orientation rules, and
+weighted cooperative interactions. The fixture contains four positive records,
+twelve controls, four public source receipts, exact context, and the same
+`public_aggregate_non_patient` boundary used by the sequence domain.
+
+- C05 `motif_disruption` compares reference and alternate windows, retains every
+  reference-only hit, records strand/source/version/hash data, and keeps invalid
+  alphabets, empty windows, and empty catalogs explicit.
+- C06 `motif_creation` retains alternate-only hits with the same provenance and
+  makes catalog and sequence insufficiency visible as abstention rather than a
+  negative biological finding.
+- C07 `motif_spacing_grammar` evaluates every declared pair against spacing and
+  orientation rules; unmatched rules and invalid intervals remain review paths.
+- C08 `cooperative_tf_grammar` retains per-interaction contributions, required
+  interaction gaps, model version, sequence hash, and the explicit limitation
+  that a weighted score is not a probability.
+
+The frontier executes 96 fixture checks, 25 quality checks, ten invariants,
+twelve scenarios, six threshold profiles, four validation rows, ten runtime
+stages, twelve review entries, a nine-artifact inventory, source lineage,
+replay, policy, accessibility, boundary, CSV/Markdown exports, and a complete
+release pipeline.
+
+```powershell
+glio-noncode sequence-grammar-data-audit --output sequence-grammar-data.json
+glio-noncode sequence-grammar-evaluate --output sequence-grammar-evaluation.json
+glio-noncode sequence-grammar-quality-gate --output sequence-grammar-quality.json
+glio-noncode sequence-grammar-pipeline --run-id d06-c05-c08-local --output sequence-grammar-pipeline.json
+glio-noncode export-sequence-grammar-review-csv --output sequence-grammar-review.csv
 ```
 
 ### Domain 06 C13-C16 sequence frontier evidence gate

@@ -2157,9 +2157,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D06-C05": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.sequence_beta.MotifDisruptionScanner",),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_beta.MotifDisruptionScanner",
+                    "glio_noncode.sequence_grammar_frontier_public_data",
+                    "glio_noncode.sequence_grammar_frontier_adapters",
+                    "glio_noncode.sequence_grammar_frontier_pipeline",
+                ),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
                 "evidence_note": (
                     "Declared IUPAC motif disruption scans compare reference and alternate local "
                     "windows, preserve strand, source version, sequence hashes, context, and "
@@ -2167,9 +2172,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D06-C06": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.sequence_beta.MotifCreationScanner",),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_beta.MotifCreationScanner",
+                    "glio_noncode.sequence_grammar_frontier_public_data",
+                    "glio_noncode.sequence_grammar_frontier_adapters",
+                    "glio_noncode.sequence_grammar_frontier_pipeline",
+                ),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
                 "evidence_note": (
                     "Declared motif creation scans retain alternate-only hits, reference/alternate "
                     "window hashes, IUPAC source versions, strand, context, and explicit non-claim "
@@ -2177,11 +2187,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D06-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_beta.MotifSpacingGrammarAnalyzer",
+                    "glio_noncode.sequence_grammar_frontier_public_data",
+                    "glio_noncode.sequence_grammar_frontier_adapters",
+                    "glio_noncode.sequence_grammar_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
                 "evidence_note": (
                     "Spacing and orientation rules retain every compatible motif pair, unmatched "
                     "rules, context, and ambiguity states; compatibility is not treated as proof "
@@ -2189,9 +2202,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D06-C08": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.sequence_beta.CooperativeTFGrammarModel",),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.sequence_beta.CooperativeTFGrammarModel",
+                    "glio_noncode.sequence_grammar_frontier_public_data",
+                    "glio_noncode.sequence_grammar_frontier_adapters",
+                    "glio_noncode.sequence_grammar_frontier_pipeline",
+                ),
+                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
                 "evidence_note": (
                     "Versioned cooperative grammar interactions produce a reproducible descriptive "
                     "score with per-interaction contributions and required-missing states; the "

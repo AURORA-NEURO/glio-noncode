@@ -744,3 +744,21 @@ jobs:
         run: python -m glio_noncode sequence-effect-adapters --output /tmp/glio-sequence-effect-adapters.json && python -m glio_noncode sequence-effect-scenarios --output /tmp/glio-sequence-effect-scenarios.json && python -m glio_noncode sequence-effect-thresholds --output /tmp/glio-sequence-effect-thresholds.json && python -m glio_noncode sequence-effect-validation --output /tmp/glio-sequence-effect-validation.json && python -m glio_noncode sequence-effect-runbook --output /tmp/glio-sequence-effect-runbook.json
       - name: Sequence effect frontier end-to-end pipeline
         run: python -m glio_noncode sequence-effect-pipeline --run-id ci-sequence-effect --output /tmp/glio-sequence-effect-pipeline.json
+      - name: Sequence grammar frontier data and contracts
+        run: python -m glio_noncode sequence-grammar-data-audit --output /tmp/glio-sequence-grammar-data.json && python -m glio_noncode sequence-grammar-contracts --output /tmp/glio-sequence-grammar-contracts.json && python -m glio_noncode sequence-grammar-schema --output /tmp/glio-sequence-grammar-schema.json
+      - name: Sequence grammar frontier evaluation and replay
+        run: python -m glio_noncode sequence-grammar-evaluate --output /tmp/glio-sequence-grammar-evaluation.json && python -m glio_noncode sequence-grammar-replay --output /tmp/glio-sequence-grammar-replay.json
+      - name: Sequence grammar frontier quality and runtime
+        run: python -m glio_noncode sequence-grammar-quality-gate --output /tmp/glio-sequence-grammar-quality.json && python -m glio_noncode sequence-grammar-runtime --output /tmp/glio-sequence-grammar-runtime.json
+      - name: Sequence grammar frontier metrics lineage and policy
+        run: python -m glio_noncode sequence-grammar-metrics --output /tmp/glio-sequence-grammar-metrics.json && python -m glio_noncode sequence-grammar-lineage --output /tmp/glio-sequence-grammar-lineage.json && python -m glio_noncode sequence-grammar-policy --output /tmp/glio-sequence-grammar-policy.json
+      - name: Sequence grammar frontier release bundle artifacts
+        run: python -m glio_noncode sequence-grammar-release --output /tmp/glio-sequence-grammar-release.json && python -m glio_noncode sequence-grammar-bundle --output /tmp/glio-sequence-grammar-bundle.json && python -m glio_noncode sequence-grammar-artifacts --output /tmp/glio-sequence-grammar-artifacts.json
+      - name: Sequence grammar frontier review and CSV
+        run: python -m glio_noncode sequence-grammar-view --output /tmp/glio-sequence-grammar-view.json && python -m glio_noncode sequence-grammar-review-queue --output /tmp/glio-sequence-grammar-queue.json && python -m glio_noncode export-sequence-grammar-review-csv --output /tmp/glio-sequence-grammar-review.csv
+      - name: Sequence grammar frontier boundaries and invariants
+        run: python -m glio_noncode sequence-grammar-accessibility --output /tmp/glio-sequence-grammar-accessibility.json && python -m glio_noncode sequence-grammar-compliance --output /tmp/glio-sequence-grammar-boundary.json && python -m glio_noncode sequence-grammar-invariants --output /tmp/glio-sequence-grammar-invariants.json
+      - name: Sequence grammar frontier planning manifests
+        run: python -m glio_noncode sequence-grammar-adapters --output /tmp/glio-sequence-grammar-adapters.json && python -m glio_noncode sequence-grammar-scenarios --output /tmp/glio-sequence-grammar-scenarios.json && python -m glio_noncode sequence-grammar-thresholds --output /tmp/glio-sequence-grammar-thresholds.json && python -m glio_noncode sequence-grammar-validation --output /tmp/glio-sequence-grammar-validation.json && python -m glio_noncode sequence-grammar-runbook --output /tmp/glio-sequence-grammar-runbook.json
+      - name: Sequence grammar frontier end-to-end pipeline
+        run: python -m glio_noncode sequence-grammar-pipeline --run-id ci-sequence-grammar --output /tmp/glio-sequence-grammar-pipeline.json

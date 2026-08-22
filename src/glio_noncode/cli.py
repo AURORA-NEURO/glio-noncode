@@ -212,7 +212,11 @@ from .evidence_lifecycle_frontier_lineage import build_evidence_lifecycle_lineag
 from .evidence_lifecycle_frontier_metrics import measure_evidence_lifecycle
 from .evidence_lifecycle_frontier_observability import observe_evidence_lifecycle
 from .evidence_lifecycle_frontier_policy import default_evidence_lifecycle_policy
-from .evidence_lifecycle_frontier_public_data import audit_evidence_lifecycle_data, default_evidence_lifecycle_fixture, load_evidence_lifecycle_fixture
+from .evidence_lifecycle_frontier_public_data import (
+    audit_evidence_lifecycle_data,
+    default_evidence_lifecycle_fixture,
+    load_evidence_lifecycle_fixture,
+)
 from .evidence_lifecycle_frontier_quality_gate import evaluate_evidence_lifecycle_quality
 from .evidence_lifecycle_frontier_reconciliation import reconcile_evidence_lifecycle
 from .evidence_lifecycle_frontier_release import build_evidence_lifecycle_release_manifest
@@ -233,7 +237,11 @@ from .workspace_frontier_lineage import build_workspace_frontier_lineage
 from .workspace_frontier_metrics import measure_workspace_frontier
 from .workspace_frontier_observability import observe_workspace_frontier
 from .workspace_frontier_policy import default_workspace_frontier_policy
-from .workspace_frontier_public_data import audit_workspace_frontier_data, default_workspace_frontier_fixture, load_workspace_frontier_fixture
+from .workspace_frontier_public_data import (
+    audit_workspace_frontier_data,
+    default_workspace_frontier_fixture,
+    load_workspace_frontier_fixture,
+)
 from .workspace_frontier_quality_gate import evaluate_workspace_frontier_quality
 from .workspace_frontier_reconciliation import reconcile_workspace_frontier
 from .workspace_frontier_release import build_workspace_frontier_release_manifest
@@ -256,7 +264,11 @@ from .workspace_beta_frontier_lineage import build_beta_frontier_lineage
 from .workspace_beta_frontier_metrics import measure_beta_frontier
 from .workspace_beta_frontier_observability import observe_beta_frontier
 from .workspace_beta_frontier_policy import default_beta_frontier_policy
-from .workspace_beta_frontier_public_data import audit_beta_frontier_data, default_beta_frontier_fixture, load_beta_frontier_fixture
+from .workspace_beta_frontier_public_data import (
+    audit_beta_frontier_data,
+    default_beta_frontier_fixture,
+    load_beta_frontier_fixture,
+)
 from .workspace_beta_frontier_quality_gate import evaluate_beta_frontier_quality
 from .workspace_beta_frontier_reconciliation import reconcile_beta_frontier
 from .workspace_beta_frontier_release import build_beta_frontier_release_manifest
@@ -265,10 +277,21 @@ from .workspace_beta_frontier_review_queue import build_beta_frontier_review_que
 from .workspace_beta_frontier_runtime import run_beta_frontier_runtime
 from .workspace_gamma_frontier_cli import GAMMA_FRONTIER_COMMANDS, run_gamma_frontier_operation
 from .workspace_gamma_frontier_public_data import load_gamma_frontier_fixture
-from .reference_release_frontier_cli import REFERENCE_RELEASE_COMMANDS, run_reference_release_operation
+from .reference_release_frontier_cli import (
+    REFERENCE_RELEASE_COMMANDS,
+    run_reference_release_operation,
+)
 from .reference_release_frontier_public_data import load_reference_release_fixture
-from .sequence_effect_frontier_cli import SEQUENCE_EFFECT_FRONTIER_COMMANDS, run_sequence_effect_operation
+from .sequence_effect_frontier_cli import (
+    SEQUENCE_EFFECT_FRONTIER_COMMANDS,
+    run_sequence_effect_operation,
+)
 from .sequence_effect_frontier_public_data import load_sequence_effect_fixture
+from .sequence_grammar_frontier_cli import (
+    SEQUENCE_GRAMMAR_FRONTIER_COMMANDS,
+    run_sequence_grammar_operation,
+)
+from .sequence_grammar_frontier_public_data import load_sequence_grammar_fixture
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
 from .workspace_beta_frontier_thresholds import build_beta_frontier_threshold_report
@@ -391,7 +414,11 @@ from .causal_frontier_fixture_eval import evaluate_causal_frontier_fixture
 from .causal_frontier_lineage import build_causal_frontier_lineage
 from .causal_frontier_metrics import measure_causal_frontier
 from .causal_frontier_policy import default_causal_frontier_policy
-from .causal_frontier_public_data import audit_causal_frontier_data, default_causal_frontier_fixture, load_causal_frontier_fixture
+from .causal_frontier_public_data import (
+    audit_causal_frontier_data,
+    default_causal_frontier_fixture,
+    load_causal_frontier_fixture,
+)
 from .causal_frontier_quality_gate import evaluate_causal_frontier_quality
 from .causal_frontier_reconciliation import reconcile_causal_frontier
 from .causal_frontier_release import build_causal_frontier_release_manifest
@@ -407,7 +434,11 @@ from .cohort_frontier_fixture_eval import evaluate_cohort_frontier_fixture
 from .cohort_frontier_lineage import build_cohort_frontier_lineage
 from .cohort_frontier_metrics import measure_cohort_frontier
 from .cohort_frontier_policy import default_cohort_frontier_policy
-from .cohort_frontier_public_data import audit_cohort_frontier_data, default_cohort_frontier_fixture, load_cohort_frontier_fixture
+from .cohort_frontier_public_data import (
+    audit_cohort_frontier_data,
+    default_cohort_frontier_fixture,
+    load_cohort_frontier_fixture,
+)
 from .cohort_frontier_quality_gate import evaluate_cohort_frontier_quality
 from .cohort_frontier_reconciliation import reconcile_cohort_frontier
 from .cohort_frontier_release import build_cohort_frontier_release_manifest
@@ -878,7 +909,10 @@ from .validation_beta import (
     PrimeEditingDesignPlanner,
     ValidationBetaTarget,
 )
-from .validation_frontier_artifacts import ValidationFrontierArtifactKind, build_validation_frontier_artifact_inventory
+from .validation_frontier_artifacts import (
+    ValidationFrontierArtifactKind,
+    build_validation_frontier_artifact_inventory,
+)
 from .validation_frontier_bundle import assemble_validation_frontier_bundle
 from .validation_frontier_contracts import default_validation_frontier_contracts
 from .validation_frontier_depth import audit_validation_frontier_depth
@@ -888,7 +922,11 @@ from .validation_frontier_lineage import build_validation_frontier_lineage
 from .validation_frontier_metrics import measure_validation_frontier
 from .validation_frontier_observability import observe_validation_frontier
 from .validation_frontier_policy import default_validation_frontier_policy
-from .validation_frontier_public_data import audit_validation_frontier_data, default_validation_frontier_fixture, load_validation_frontier_fixture
+from .validation_frontier_public_data import (
+    audit_validation_frontier_data,
+    default_validation_frontier_fixture,
+    load_validation_frontier_fixture,
+)
 from .validation_frontier_quality_gate import evaluate_validation_frontier_quality
 from .validation_frontier_reconciliation import reconcile_validation_frontier
 from .validation_frontier_release import build_validation_frontier_release_manifest
@@ -4311,10 +4349,14 @@ def build_parser() -> argparse.ArgumentParser:
         if command_name != "evidence-lifecycle-contracts":
             command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
-    evidence_lifecycle_bundle = subparsers.add_parser("evidence-lifecycle-bundle", help="assemble the Domain 14 lifecycle review bundle")
+    evidence_lifecycle_bundle = subparsers.add_parser(
+        "evidence-lifecycle-bundle", help="assemble the Domain 14 lifecycle review bundle"
+    )
     evidence_lifecycle_bundle.add_argument("input", nargs="?", default=None)
     evidence_lifecycle_bundle.add_argument("--output", default=None)
-    evidence_lifecycle_csv = subparsers.add_parser("export-evidence-lifecycle-review-csv", help="export Domain 14 lifecycle review rows as CSV")
+    evidence_lifecycle_csv = subparsers.add_parser(
+        "export-evidence-lifecycle-review-csv", help="export Domain 14 lifecycle review rows as CSV"
+    )
     evidence_lifecycle_csv.add_argument("input", nargs="?", default=None)
     evidence_lifecycle_csv.add_argument("--output", default=None)
 
@@ -4345,7 +4387,9 @@ def build_parser() -> argparse.ArgumentParser:
         if command_name not in {"workspace-frontier-contracts", "workspace-frontier-adapters"}:
             command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
-    workspace_frontier_csv = subparsers.add_parser("export-workspace-frontier-review-csv", help="export Domain 15 workspace review rows as CSV")
+    workspace_frontier_csv = subparsers.add_parser(
+        "export-workspace-frontier-review-csv", help="export Domain 15 workspace review rows as CSV"
+    )
     workspace_frontier_csv.add_argument("input", nargs="?", default=None)
     workspace_frontier_csv.add_argument("--output", default=None)
 
@@ -4376,24 +4420,41 @@ def build_parser() -> argparse.ArgumentParser:
         if command_name not in {"beta-frontier-contracts", "beta-frontier-adapters"}:
             command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
-    beta_frontier_csv = subparsers.add_parser("export-beta-frontier-review-csv", help="export Domain 15 C05-C08 projection review rows as CSV")
+    beta_frontier_csv = subparsers.add_parser(
+        "export-beta-frontier-review-csv",
+        help="export Domain 15 C05-C08 projection review rows as CSV",
+    )
     beta_frontier_csv.add_argument("input", nargs="?", default=None)
     beta_frontier_csv.add_argument("--output", default=None)
 
     for command_name in GAMMA_FRONTIER_COMMANDS:
-        command_parser = subparsers.add_parser(command_name, help="run the Domain 15 C09-C12 collaboration frontier")
+        command_parser = subparsers.add_parser(
+            command_name, help="run the Domain 15 C09-C12 collaboration frontier"
+        )
         command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
 
     for command_name in REFERENCE_RELEASE_COMMANDS:
-        command_parser = subparsers.add_parser(command_name, help="run the Domain 04 C13-C16 reference release frontier")
+        command_parser = subparsers.add_parser(
+            command_name, help="run the Domain 04 C13-C16 reference release frontier"
+        )
         command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
 
     for command_name in SEQUENCE_EFFECT_FRONTIER_COMMANDS:
-        command_parser = subparsers.add_parser(command_name, help="run the Domain 06 C01-C04 sequence effect frontier")
+        command_parser = subparsers.add_parser(
+            command_name, help="run the Domain 06 C01-C04 sequence effect frontier"
+        )
         command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--run-id", default="sequence-effect-cli")
+        command_parser.add_argument("--output", default=None)
+
+    for command_name in SEQUENCE_GRAMMAR_FRONTIER_COMMANDS:
+        command_parser = subparsers.add_parser(
+            command_name, help="run the Domain 06 C05-C08 sequence grammar frontier"
+        )
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--run-id", default="sequence-grammar-cli")
         command_parser.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
@@ -7713,7 +7774,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "replay-cell-state-frontier":
             fixture = _read_cell_state_frontier_fixture(args.input)
             evaluation = evaluate_cell_state_frontier_fixture(fixture)
-            _write_json(replay_cell_state_frontier_evaluation(evaluation, fixture=fixture).to_dict(), args.output)
+            _write_json(
+                replay_cell_state_frontier_evaluation(evaluation, fixture=fixture).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cell-state-frontier-quality-gate":
             fixture = _read_cell_state_frontier_fixture(args.input)
@@ -7721,12 +7785,19 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "evaluate-cell-state-frontier-scenarios":
             fixture = _read_cell_state_frontier_fixture(args.input)
-            _write_json(evaluate_cell_state_frontier_scenarios(evaluate_cell_state_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                evaluate_cell_state_frontier_scenarios(
+                    evaluate_cell_state_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cell-state-frontier-policy":
             fixture = _read_cell_state_frontier_fixture(args.input)
             evaluation = evaluate_cell_state_frontier_fixture(fixture)
-            _write_json(evaluate_cell_state_frontier_policy(fixture, evaluation).to_dict(), args.output)
+            _write_json(
+                evaluate_cell_state_frontier_policy(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "cell-state-frontier-contracts":
             _write_json(default_cell_state_frontier_contracts().manifest(), args.output)
@@ -7734,11 +7805,22 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "cell-state-frontier-schema":
             fixture = _read_cell_state_frontier_fixture(args.input)
             evaluation = evaluate_cell_state_frontier_fixture(fixture)
-            _write_json(cell_state_frontier_schema_manifest() | {"validation": validate_cell_state_frontier_schema(fixture, evaluation).to_dict()}, args.output)
+            _write_json(
+                cell_state_frontier_schema_manifest()
+                | {
+                    "validation": validate_cell_state_frontier_schema(fixture, evaluation).to_dict()
+                },
+                args.output,
+            )
             return 0
         if args.command == "cell-state-frontier-metrics":
             fixture = _read_cell_state_frontier_fixture(args.input)
-            _write_json(compute_cell_state_frontier_metrics(evaluate_cell_state_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                compute_cell_state_frontier_metrics(
+                    evaluate_cell_state_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "build-cell-state-frontier-bundle":
             fixture = _read_cell_state_frontier_fixture(args.input)
@@ -7747,7 +7829,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "cell-state-frontier-lineage":
             fixture = _read_cell_state_frontier_fixture(args.input)
             evaluation = evaluate_cell_state_frontier_fixture(fixture)
-            _write_json(build_cell_state_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            _write_json(
+                build_cell_state_frontier_lineage(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "cell-state-frontier-reconciliation":
             fixture = _read_cell_state_frontier_fixture(args.input)
@@ -7756,43 +7840,77 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "run-cell-state-frontier-pipeline":
             fixture = _read_cell_state_frontier_fixture(args.input)
-            options = CellStateFrontierRuntimeOptions(run_id=args.run_id, fail_on_review=args.fail_on_review, requested_context_key=args.context_key)
-            _write_json(run_cell_state_frontier_pipeline(options, fixture=fixture).to_dict(), args.output)
+            options = CellStateFrontierRuntimeOptions(
+                run_id=args.run_id,
+                fail_on_review=args.fail_on_review,
+                requested_context_key=args.context_key,
+            )
+            _write_json(
+                run_cell_state_frontier_pipeline(options, fixture=fixture).to_dict(), args.output
+            )
             return 0
         if args.command == "build-cell-state-frontier-release":
             fixture = _read_cell_state_frontier_fixture(args.input)
             quality = run_cell_state_frontier_quality_gate(fixture)
-            runtime = run_cell_state_frontier_pipeline(CellStateFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture)
+            runtime = run_cell_state_frontier_pipeline(
+                CellStateFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
             _write_json(build_cell_state_frontier_release(quality, runtime).to_dict(), args.output)
             return 0
         if args.command == "cell-state-frontier-review-view":
             fixture = _read_cell_state_frontier_fixture(args.input)
             evaluation = evaluate_cell_state_frontier_fixture(fixture)
             view = build_cell_state_frontier_view(fixture, evaluation)
-            _write_json(view.to_dict() | {"summary": cell_state_frontier_review_summary(view)}, args.output)
+            _write_json(
+                view.to_dict() | {"summary": cell_state_frontier_review_summary(view)}, args.output
+            )
             return 0
         if args.command == "cell-state-frontier-trace":
             fixture = _read_cell_state_frontier_fixture(args.input)
-            runtime = run_cell_state_frontier_pipeline(CellStateFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture)
+            runtime = run_cell_state_frontier_pipeline(
+                CellStateFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
             _write_json(build_cell_state_frontier_trace(runtime).to_dict(), args.output)
             return 0
         if args.command == "export-cell-state-frontier-receipts-csv":
             fixture = _read_cell_state_frontier_fixture(args.input)
-            _write_text(export_cell_state_frontier_receipts_csv(evaluate_cell_state_frontier_fixture(fixture)), args.output)
+            _write_text(
+                export_cell_state_frontier_receipts_csv(
+                    evaluate_cell_state_frontier_fixture(fixture)
+                ),
+                args.output,
+            )
             return 0
         if args.command == "export-cell-state-frontier-review-csv":
             fixture = _read_cell_state_frontier_fixture(args.input)
             evaluation = evaluate_cell_state_frontier_fixture(fixture)
-            _write_text(export_cell_state_frontier_review_csv(build_cell_state_frontier_view(fixture, evaluation)), args.output)
+            _write_text(
+                export_cell_state_frontier_review_csv(
+                    build_cell_state_frontier_view(fixture, evaluation)
+                ),
+                args.output,
+            )
             return 0
         if args.command == "export-cell-state-frontier-review-markdown":
             fixture = _read_cell_state_frontier_fixture(args.input)
             evaluation = evaluate_cell_state_frontier_fixture(fixture)
-            _write_text(render_cell_state_frontier_review_markdown(build_cell_state_frontier_view(fixture, evaluation)), args.output)
+            _write_text(
+                render_cell_state_frontier_review_markdown(
+                    build_cell_state_frontier_view(fixture, evaluation)
+                ),
+                args.output,
+            )
             return 0
         if args.command == "export-cell-state-frontier-metrics-csv":
             fixture = _read_cell_state_frontier_fixture(args.input)
-            _write_text(export_cell_state_frontier_metrics_csv(compute_cell_state_frontier_metrics(evaluate_cell_state_frontier_fixture(fixture))), args.output)
+            _write_text(
+                export_cell_state_frontier_metrics_csv(
+                    compute_cell_state_frontier_metrics(
+                        evaluate_cell_state_frontier_fixture(fixture)
+                    )
+                ),
+                args.output,
+            )
             return 0
         if args.command == "evaluate-link-frontier-fixture":
             fixture = _read_link_frontier_fixture(args.input)
@@ -7805,7 +7923,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "replay-link-frontier":
             fixture = _read_link_frontier_fixture(args.input)
             evaluation = evaluate_link_frontier_fixture(fixture)
-            _write_json(replay_link_frontier_evaluation(fixture, first=evaluation).to_dict(), args.output)
+            _write_json(
+                replay_link_frontier_evaluation(fixture, first=evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "link-frontier-quality-gate":
             fixture = _read_link_frontier_fixture(args.input)
@@ -7818,7 +7938,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "link-frontier-policy":
             fixture = _read_link_frontier_fixture(args.input)
             evaluation = evaluate_link_frontier_fixture(fixture)
-            _write_json(evaluate_link_frontier_policy(fixture, evaluation=evaluation).to_dict(), args.output)
+            _write_json(
+                evaluate_link_frontier_policy(fixture, evaluation=evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "link-frontier-contracts":
             _write_json(default_link_frontier_contracts().manifest(), args.output)
@@ -7826,11 +7948,22 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "link-frontier-schema":
             fixture = _read_link_frontier_fixture(args.input)
             schemas = default_link_frontier_schemas()
-            _write_json({"schemas": [item.to_dict() for item in schemas], "validation": validate_link_frontier_schema(fixture).to_dict()}, args.output)
+            _write_json(
+                {
+                    "schemas": [item.to_dict() for item in schemas],
+                    "validation": validate_link_frontier_schema(fixture).to_dict(),
+                },
+                args.output,
+            )
             return 0
         if args.command == "link-frontier-metrics":
             fixture = _read_link_frontier_fixture(args.input)
-            _write_json(compute_link_frontier_metrics(fixture, evaluate_link_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                compute_link_frontier_metrics(
+                    fixture, evaluate_link_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "build-link-frontier-bundle":
             fixture = _read_link_frontier_fixture(args.input)
@@ -7839,7 +7972,12 @@ def main(argv: list[str] | None = None) -> int:
             reconciliation = reconcile_link_frontier(fixture, evaluation)
             policy = evaluate_link_frontier_policy(fixture, evaluation=evaluation)
             metrics = compute_link_frontier_metrics(fixture, evaluation)
-            _write_json(build_link_frontier_bundle(fixture, evaluation, reconciliation, lineage, metrics, policy).to_dict(), args.output)
+            _write_json(
+                build_link_frontier_bundle(
+                    fixture, evaluation, reconciliation, lineage, metrics, policy
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "link-frontier-lineage":
             fixture = _read_link_frontier_fixture(args.input)
@@ -7857,42 +7995,69 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "build-link-frontier-release":
             fixture = _read_link_frontier_fixture(args.input)
-            _write_json(build_link_frontier_release(fixture, release_id=args.release_id).to_dict(), args.output)
+            _write_json(
+                build_link_frontier_release(fixture, release_id=args.release_id).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "link-frontier-review-view":
             fixture = _read_link_frontier_fixture(args.input)
             evaluation = evaluate_link_frontier_fixture(fixture)
             view = build_link_frontier_view(fixture, evaluation)
-            _write_json(view.to_dict() | {"summary": link_frontier_review_summary(view)}, args.output)
+            _write_json(
+                view.to_dict() | {"summary": link_frontier_review_summary(view)}, args.output
+            )
             return 0
         if args.command == "link-frontier-trace":
             fixture = _read_link_frontier_fixture(args.input)
-            _write_json(build_link_frontier_trace(run_link_frontier_pipeline(fixture), run_id=args.run_id).to_dict(), args.output)
+            _write_json(
+                build_link_frontier_trace(
+                    run_link_frontier_pipeline(fixture), run_id=args.run_id
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "export-link-frontier-receipts-csv":
             fixture = _read_link_frontier_fixture(args.input)
-            _write_text(export_link_frontier_receipts_csv(evaluate_link_frontier_fixture(fixture)), args.output)
+            _write_text(
+                export_link_frontier_receipts_csv(evaluate_link_frontier_fixture(fixture)),
+                args.output,
+            )
             return 0
         if args.command == "export-link-frontier-review-csv":
             fixture = _read_link_frontier_fixture(args.input)
             evaluation = evaluate_link_frontier_fixture(fixture)
-            _write_text(export_link_frontier_review_csv(build_link_frontier_view(fixture, evaluation)), args.output)
+            _write_text(
+                export_link_frontier_review_csv(build_link_frontier_view(fixture, evaluation)),
+                args.output,
+            )
             return 0
         if args.command == "export-link-frontier-review-markdown":
             fixture = _read_link_frontier_fixture(args.input)
             evaluation = evaluate_link_frontier_fixture(fixture)
-            _write_text(render_link_frontier_review_markdown(build_link_frontier_view(fixture, evaluation)), args.output)
+            _write_text(
+                render_link_frontier_review_markdown(build_link_frontier_view(fixture, evaluation)),
+                args.output,
+            )
             return 0
         if args.command == "export-link-frontier-metrics-csv":
             fixture = _read_link_frontier_fixture(args.input)
-            _write_text(export_link_frontier_metrics_csv(compute_link_frontier_metrics(fixture, evaluate_link_frontier_fixture(fixture))), args.output)
+            _write_text(
+                export_link_frontier_metrics_csv(
+                    compute_link_frontier_metrics(fixture, evaluate_link_frontier_fixture(fixture))
+                ),
+                args.output,
+            )
             return 0
         if args.command == "link-frontier-depth-audit":
             fixture = _read_link_frontier_fixture(args.input)
             _write_json(run_link_frontier_depth_audit(fixture).to_dict(), args.output)
             return 0
         if args.command == "causal-frontier-data-audit":
-            _write_json(audit_causal_frontier_data(_read_causal_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                audit_causal_frontier_data(_read_causal_frontier_fixture(args.input)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-contracts":
             _write_json(default_causal_frontier_contracts().manifest(), args.output)
@@ -7901,14 +8066,25 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(default_causal_frontier_schema().to_dict(), args.output)
             return 0
         if args.command == "causal-frontier-evaluate":
-            _write_json(evaluate_causal_frontier_fixture(_read_causal_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                evaluate_causal_frontier_fixture(
+                    _read_causal_frontier_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-replay":
-            _write_json(replay_causal_frontier(_read_causal_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                replay_causal_frontier(_read_causal_frontier_fixture(args.input)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-metrics":
             fixture = _read_causal_frontier_fixture(args.input)
-            _write_json(measure_causal_frontier(evaluate_causal_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                measure_causal_frontier(evaluate_causal_frontier_fixture(fixture)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-lineage":
             fixture = _read_causal_frontier_fixture(args.input)
@@ -7919,7 +8095,16 @@ def main(argv: list[str] | None = None) -> int:
             fixture = _read_causal_frontier_fixture(args.input)
             contracts = default_causal_frontier_contracts()
             evaluation = evaluate_causal_frontier_fixture(fixture)
-            _write_json({"policy": default_causal_frontier_policy(contracts).to_dict(), "decisions": [item.to_dict() for item in default_causal_frontier_policy(contracts).decide(evaluation)]}, args.output)
+            _write_json(
+                {
+                    "policy": default_causal_frontier_policy(contracts).to_dict(),
+                    "decisions": [
+                        item.to_dict()
+                        for item in default_causal_frontier_policy(contracts).decide(evaluation)
+                    ],
+                },
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-quality-gate":
             fixture = _read_causal_frontier_fixture(args.input)
@@ -7929,10 +8114,20 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_causal_frontier_policy(contracts)
             lineage = build_causal_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_causal_frontier(fixture, evaluation, policy)
-            _write_json(evaluate_causal_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation).to_dict(), args.output)
+            _write_json(
+                evaluate_causal_frontier_quality(
+                    fixture, evaluation, contracts, schema, lineage, reconciliation
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-runtime":
-            _write_json(run_causal_frontier_runtime(_read_causal_frontier_fixture(args.input), run_id="causal-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_causal_frontier_runtime(
+                    _read_causal_frontier_fixture(args.input), run_id="causal-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-release":
             fixture = _read_causal_frontier_fixture(args.input)
@@ -7943,9 +8138,14 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_causal_frontier_policy(contracts)
             lineage = build_causal_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_causal_frontier(fixture, evaluation, policy)
-            gate = evaluate_causal_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation)
+            gate = evaluate_causal_frontier_quality(
+                fixture, evaluation, contracts, schema, lineage, reconciliation
+            )
             replay = replay_causal_frontier(fixture, replay_id="causal-frontier-release-replay")
-            _write_json(build_causal_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(), args.output)
+            _write_json(
+                build_causal_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "causal-frontier-depth-audit":
             _write_json(audit_causal_frontier_depth().to_dict(), args.output)
@@ -7958,13 +8158,34 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_causal_frontier_policy(contracts)
             lineage = build_causal_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_causal_frontier(fixture, evaluation, policy)
-            gate = evaluate_causal_frontier_quality(fixture, evaluation, contracts, default_causal_frontier_schema(), lineage, reconciliation)
+            gate = evaluate_causal_frontier_quality(
+                fixture,
+                evaluation,
+                contracts,
+                default_causal_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
             runtime = run_causal_frontier_runtime(fixture, run_id="causal-frontier-csv")
-            release = build_causal_frontier_release_manifest(runtime.bundle, gate, replay_causal_frontier(fixture, replay_id="causal-frontier-csv-replay"))
-            _write_text(export_causal_frontier_review_csv(build_causal_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)), args.output)
+            release = build_causal_frontier_release_manifest(
+                runtime.bundle,
+                gate,
+                replay_causal_frontier(fixture, replay_id="causal-frontier-csv-replay"),
+            )
+            _write_text(
+                export_causal_frontier_review_csv(
+                    build_causal_frontier_review_view(
+                        fixture, evaluation, metrics, policy.decide(evaluation), release
+                    )
+                ),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-data-audit":
-            _write_json(audit_cohort_frontier_data(_read_cohort_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                audit_cohort_frontier_data(_read_cohort_frontier_fixture(args.input)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-contracts":
             _write_json(default_cohort_frontier_contracts().manifest(), args.output)
@@ -7973,14 +8194,28 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(default_cohort_frontier_schema().to_dict(), args.output)
             return 0
         if args.command == "cohort-frontier-evaluate":
-            _write_json(evaluate_cohort_frontier_fixture(_read_cohort_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                evaluate_cohort_frontier_fixture(
+                    _read_cohort_frontier_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-replay":
-            _write_json(replay_cohort_frontier(_read_cohort_frontier_fixture(args.input), replay_id="cohort-frontier-cli-replay").to_dict(), args.output)
+            _write_json(
+                replay_cohort_frontier(
+                    _read_cohort_frontier_fixture(args.input),
+                    replay_id="cohort-frontier-cli-replay",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-metrics":
             fixture = _read_cohort_frontier_fixture(args.input)
-            _write_json(measure_cohort_frontier(evaluate_cohort_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                measure_cohort_frontier(evaluate_cohort_frontier_fixture(fixture)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-lineage":
             fixture = _read_cohort_frontier_fixture(args.input)
@@ -7992,7 +8227,13 @@ def main(argv: list[str] | None = None) -> int:
             contracts = default_cohort_frontier_contracts()
             evaluation = evaluate_cohort_frontier_fixture(fixture)
             policy = default_cohort_frontier_policy(contracts)
-            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            _write_json(
+                {
+                    "policy": policy.to_dict(),
+                    "decisions": [item.to_dict() for item in policy.decide(evaluation)],
+                },
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-quality-gate":
             fixture = _read_cohort_frontier_fixture(args.input)
@@ -8002,10 +8243,20 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_cohort_frontier_policy(contracts)
             lineage = build_cohort_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
-            _write_json(evaluate_cohort_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation).to_dict(), args.output)
+            _write_json(
+                evaluate_cohort_frontier_quality(
+                    fixture, evaluation, contracts, schema, lineage, reconciliation
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-runtime":
-            _write_json(run_cohort_frontier_runtime(_read_cohort_frontier_fixture(args.input), run_id="cohort-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_cohort_frontier_runtime(
+                    _read_cohort_frontier_fixture(args.input), run_id="cohort-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-bundle":
             fixture = _read_cohort_frontier_fixture(args.input)
@@ -8015,7 +8266,12 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_cohort_frontier_policy(contracts)
             lineage = build_cohort_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
-            _write_json(assemble_cohort_frontier_bundle(fixture, evaluation, metrics, lineage, reconciliation, policy).to_dict(), args.output)
+            _write_json(
+                assemble_cohort_frontier_bundle(
+                    fixture, evaluation, metrics, lineage, reconciliation, policy
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-release":
             fixture = _read_cohort_frontier_fixture(args.input)
@@ -8026,9 +8282,14 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_cohort_frontier_policy(contracts)
             lineage = build_cohort_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
-            gate = evaluate_cohort_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation)
+            gate = evaluate_cohort_frontier_quality(
+                fixture, evaluation, contracts, schema, lineage, reconciliation
+            )
             replay = replay_cohort_frontier(fixture, replay_id="cohort-frontier-release-replay")
-            _write_json(build_cohort_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(), args.output)
+            _write_json(
+                build_cohort_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "cohort-frontier-depth-audit":
             _write_json(audit_cohort_frontier_depth().to_dict(), args.output)
@@ -8041,14 +8302,32 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_cohort_frontier_policy(contracts)
             lineage = build_cohort_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
-            gate = evaluate_cohort_frontier_quality(fixture, evaluation, contracts, default_cohort_frontier_schema(), lineage, reconciliation)
+            gate = evaluate_cohort_frontier_quality(
+                fixture,
+                evaluation,
+                contracts,
+                default_cohort_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
             runtime = run_cohort_frontier_runtime(fixture, run_id="cohort-frontier-csv")
-            release = build_cohort_frontier_release_manifest(runtime.bundle, gate, replay_cohort_frontier(fixture, replay_id="cohort-frontier-csv-replay"))
-            view = build_cohort_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)
+            release = build_cohort_frontier_release_manifest(
+                runtime.bundle,
+                gate,
+                replay_cohort_frontier(fixture, replay_id="cohort-frontier-csv-replay"),
+            )
+            view = build_cohort_frontier_review_view(
+                fixture, evaluation, metrics, policy.decide(evaluation), release
+            )
             _write_text(export_cohort_frontier_review_csv(view), args.output)
             return 0
         if args.command == "evidence-lifecycle-data-audit":
-            _write_json(audit_evidence_lifecycle_data(_read_evidence_lifecycle_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                audit_evidence_lifecycle_data(
+                    _read_evidence_lifecycle_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-contracts":
             _write_json(default_evidence_lifecycle_contracts().manifest(), args.output)
@@ -8057,25 +8336,47 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(default_evidence_lifecycle_schema().to_dict(), args.output)
             return 0
         if args.command == "evidence-lifecycle-evaluate":
-            _write_json(evaluate_evidence_lifecycle_fixture(_read_evidence_lifecycle_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                evaluate_evidence_lifecycle_fixture(
+                    _read_evidence_lifecycle_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-replay":
-            _write_json(replay_evidence_lifecycle(_read_evidence_lifecycle_fixture(args.input), replay_id="evidence-lifecycle-cli-replay").to_dict(), args.output)
+            _write_json(
+                replay_evidence_lifecycle(
+                    _read_evidence_lifecycle_fixture(args.input),
+                    replay_id="evidence-lifecycle-cli-replay",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-metrics":
             fixture = _read_evidence_lifecycle_fixture(args.input)
-            _write_json(measure_evidence_lifecycle(evaluate_evidence_lifecycle_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                measure_evidence_lifecycle(evaluate_evidence_lifecycle_fixture(fixture)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-lineage":
             fixture = _read_evidence_lifecycle_fixture(args.input)
             evaluation = evaluate_evidence_lifecycle_fixture(fixture)
-            _write_json(build_evidence_lifecycle_lineage(fixture, evaluation).to_dict(), args.output)
+            _write_json(
+                build_evidence_lifecycle_lineage(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "evidence-lifecycle-policy":
             fixture = _read_evidence_lifecycle_fixture(args.input)
             evaluation = evaluate_evidence_lifecycle_fixture(fixture)
             policy = default_evidence_lifecycle_policy()
-            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            _write_json(
+                {
+                    "policy": policy.to_dict(),
+                    "decisions": [item.to_dict() for item in policy.decide(evaluation)],
+                },
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-quality-gate":
             fixture = _read_evidence_lifecycle_fixture(args.input)
@@ -8085,15 +8386,32 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_evidence_lifecycle_policy()
             lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
             reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
-            _write_json(evaluate_evidence_lifecycle_quality(fixture, evaluation, contracts, schema, lineage, reconciliation).to_dict(), args.output)
+            _write_json(
+                evaluate_evidence_lifecycle_quality(
+                    fixture, evaluation, contracts, schema, lineage, reconciliation
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-runtime":
-            _write_json(run_evidence_lifecycle_runtime(_read_evidence_lifecycle_fixture(args.input), run_id="evidence-lifecycle-cli").to_dict(), args.output)
+            _write_json(
+                run_evidence_lifecycle_runtime(
+                    _read_evidence_lifecycle_fixture(args.input), run_id="evidence-lifecycle-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-observability":
             fixture = _read_evidence_lifecycle_fixture(args.input)
-            runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-observability")
-            _write_json(observe_evidence_lifecycle(runtime, evaluate_evidence_lifecycle_fixture(fixture)).to_dict(), args.output)
+            runtime = run_evidence_lifecycle_runtime(
+                fixture, run_id="evidence-lifecycle-observability"
+            )
+            _write_json(
+                observe_evidence_lifecycle(
+                    runtime, evaluate_evidence_lifecycle_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-artifacts":
             fixture = _read_evidence_lifecycle_fixture(args.input)
@@ -8103,11 +8421,27 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_evidence_lifecycle_policy()
             lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
             reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
-            gate = evaluate_evidence_lifecycle_quality(fixture, evaluation, contracts, default_evidence_lifecycle_schema(), lineage, reconciliation)
+            gate = evaluate_evidence_lifecycle_quality(
+                fixture,
+                evaluation,
+                contracts,
+                default_evidence_lifecycle_schema(),
+                lineage,
+                reconciliation,
+            )
             runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-artifacts")
             bundle = runtime.bundle
-            release = build_evidence_lifecycle_release_manifest(bundle, gate, replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-artifacts-replay"))
-            _write_json(build_evidence_lifecycle_artifact_inventory(fixture, evaluation, metrics, gate, runtime, release, bundle).to_dict(), args.output)
+            release = build_evidence_lifecycle_release_manifest(
+                bundle,
+                gate,
+                replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-artifacts-replay"),
+            )
+            _write_json(
+                build_evidence_lifecycle_artifact_inventory(
+                    fixture, evaluation, metrics, gate, runtime, release, bundle
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-bundle":
             fixture = _read_evidence_lifecycle_fixture(args.input)
@@ -8116,7 +8450,12 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_evidence_lifecycle_policy()
             lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
             reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
-            _write_json(assemble_evidence_lifecycle_bundle(fixture, evaluation, metrics, lineage, reconciliation, policy).to_dict(), args.output)
+            _write_json(
+                assemble_evidence_lifecycle_bundle(
+                    fixture, evaluation, metrics, lineage, reconciliation, policy
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-release":
             fixture = _read_evidence_lifecycle_fixture(args.input)
@@ -8126,14 +8465,35 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_evidence_lifecycle_policy()
             lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
             reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
-            gate = evaluate_evidence_lifecycle_quality(fixture, evaluation, contracts, default_evidence_lifecycle_schema(), lineage, reconciliation)
-            _write_json(build_evidence_lifecycle_release_manifest(runtime.bundle, gate, replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-release-replay")).to_dict(), args.output)
+            gate = evaluate_evidence_lifecycle_quality(
+                fixture,
+                evaluation,
+                contracts,
+                default_evidence_lifecycle_schema(),
+                lineage,
+                reconciliation,
+            )
+            _write_json(
+                build_evidence_lifecycle_release_manifest(
+                    runtime.bundle,
+                    gate,
+                    replay_evidence_lifecycle(
+                        fixture, replay_id="evidence-lifecycle-release-replay"
+                    ),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-review-queue":
             fixture = _read_evidence_lifecycle_fixture(args.input)
             evaluation = evaluate_evidence_lifecycle_fixture(fixture)
             policy = default_evidence_lifecycle_policy()
-            _write_json(build_evidence_lifecycle_review_queue(fixture, evaluation, policy.decide(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_evidence_lifecycle_review_queue(
+                    fixture, evaluation, policy.decide(evaluation)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-lifecycle-depth-audit":
             _write_json(audit_evidence_lifecycle_depth().to_dict(), args.output)
@@ -8145,14 +8505,32 @@ def main(argv: list[str] | None = None) -> int:
             metrics = measure_evidence_lifecycle(evaluation)
             lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
             reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
-            gate = evaluate_evidence_lifecycle_quality(fixture, evaluation, default_evidence_lifecycle_contracts(), default_evidence_lifecycle_schema(), lineage, reconciliation)
+            gate = evaluate_evidence_lifecycle_quality(
+                fixture,
+                evaluation,
+                default_evidence_lifecycle_contracts(),
+                default_evidence_lifecycle_schema(),
+                lineage,
+                reconciliation,
+            )
             runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-csv")
-            release = build_evidence_lifecycle_release_manifest(runtime.bundle, gate, replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-csv-replay"))
-            view = build_evidence_lifecycle_review_view(fixture, evaluation, policy.decide(evaluation), release)
+            release = build_evidence_lifecycle_release_manifest(
+                runtime.bundle,
+                gate,
+                replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-csv-replay"),
+            )
+            view = build_evidence_lifecycle_review_view(
+                fixture, evaluation, policy.decide(evaluation), release
+            )
             _write_text(export_evidence_lifecycle_review_csv(view), args.output)
             return 0
         if args.command == "workspace-frontier-data-audit":
-            _write_json(audit_workspace_frontier_data(_read_workspace_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                audit_workspace_frontier_data(
+                    _read_workspace_frontier_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-contracts":
             _write_json(default_workspace_frontier_contracts().to_dict(), args.output)
@@ -8161,25 +8539,47 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(default_workspace_frontier_schema().to_dict(), args.output)
             return 0
         if args.command == "workspace-frontier-evaluate":
-            _write_json(evaluate_workspace_frontier_fixture(_read_workspace_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                evaluate_workspace_frontier_fixture(
+                    _read_workspace_frontier_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-replay":
-            _write_json(replay_workspace_frontier(_read_workspace_frontier_fixture(args.input), replay_id="workspace-frontier-cli-replay").to_dict(), args.output)
+            _write_json(
+                replay_workspace_frontier(
+                    _read_workspace_frontier_fixture(args.input),
+                    replay_id="workspace-frontier-cli-replay",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-metrics":
             fixture = _read_workspace_frontier_fixture(args.input)
-            _write_json(measure_workspace_frontier(evaluate_workspace_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                measure_workspace_frontier(evaluate_workspace_frontier_fixture(fixture)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-lineage":
             fixture = _read_workspace_frontier_fixture(args.input)
             evaluation = evaluate_workspace_frontier_fixture(fixture)
-            _write_json(build_workspace_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            _write_json(
+                build_workspace_frontier_lineage(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "workspace-frontier-policy":
             fixture = _read_workspace_frontier_fixture(args.input)
             evaluation = evaluate_workspace_frontier_fixture(fixture)
             policy = default_workspace_frontier_policy()
-            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            _write_json(
+                {
+                    "policy": policy.to_dict(),
+                    "decisions": [item.to_dict() for item in policy.decide(evaluation)],
+                },
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-quality-gate":
             fixture = _read_workspace_frontier_fixture(args.input)
@@ -8187,15 +8587,34 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_workspace_frontier_policy()
             lineage = build_workspace_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
-            _write_json(evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation).to_dict(), args.output)
+            _write_json(
+                evaluate_workspace_frontier_quality(
+                    fixture,
+                    evaluation,
+                    default_workspace_frontier_contracts(),
+                    default_workspace_frontier_schema(),
+                    lineage,
+                    reconciliation,
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-runtime":
-            _write_json(run_workspace_frontier_runtime(_read_workspace_frontier_fixture(args.input), run_id="workspace-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_workspace_frontier_runtime(
+                    _read_workspace_frontier_fixture(args.input), run_id="workspace-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-observability":
             fixture = _read_workspace_frontier_fixture(args.input)
-            runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-observability")
-            _write_json(observe_workspace_frontier(runtime, runtime.evaluation).to_dict(), args.output)
+            runtime = run_workspace_frontier_runtime(
+                fixture, run_id="workspace-frontier-observability"
+            )
+            _write_json(
+                observe_workspace_frontier(runtime, runtime.evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "workspace-frontier-artifacts":
             fixture = _read_workspace_frontier_fixture(args.input)
@@ -8204,10 +8623,34 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_workspace_frontier_policy()
             lineage = build_workspace_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
-            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
+            quality = evaluate_workspace_frontier_quality(
+                fixture,
+                evaluation,
+                default_workspace_frontier_contracts(),
+                default_workspace_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
             runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-artifacts")
-            release = build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-artifacts-replay"), runtime)
-            _write_json(build_workspace_frontier_artifact_inventory(fixture.fixture_id, fixture.content_address, evaluation, metrics, quality, runtime, runtime.bundle, release).to_dict(), args.output)
+            release = build_workspace_frontier_release_manifest(
+                runtime.bundle,
+                quality,
+                replay_workspace_frontier(fixture, replay_id="workspace-frontier-artifacts-replay"),
+                runtime,
+            )
+            _write_json(
+                build_workspace_frontier_artifact_inventory(
+                    fixture.fixture_id,
+                    fixture.content_address,
+                    evaluation,
+                    metrics,
+                    quality,
+                    runtime,
+                    runtime.bundle,
+                    release,
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-bundle":
             fixture = _read_workspace_frontier_fixture(args.input)
@@ -8215,7 +8658,12 @@ def main(argv: list[str] | None = None) -> int:
             metrics = measure_workspace_frontier(evaluation)
             policy = default_workspace_frontier_policy()
             reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
-            _write_json(assemble_workspace_frontier_bundle(fixture, evaluation, metrics, reconciliation).to_dict(), args.output)
+            _write_json(
+                assemble_workspace_frontier_bundle(
+                    fixture, evaluation, metrics, reconciliation
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-release":
             fixture = _read_workspace_frontier_fixture(args.input)
@@ -8224,8 +8672,25 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_workspace_frontier_policy()
             lineage = build_workspace_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
-            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
-            _write_json(build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-release-replay"), runtime).to_dict(), args.output)
+            quality = evaluate_workspace_frontier_quality(
+                fixture,
+                evaluation,
+                default_workspace_frontier_contracts(),
+                default_workspace_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
+            _write_json(
+                build_workspace_frontier_release_manifest(
+                    runtime.bundle,
+                    quality,
+                    replay_workspace_frontier(
+                        fixture, replay_id="workspace-frontier-release-replay"
+                    ),
+                    runtime,
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-review-queue":
             fixture = _read_workspace_frontier_fixture(args.input)
@@ -8234,10 +8699,29 @@ def main(argv: list[str] | None = None) -> int:
             runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-review")
             lineage = build_workspace_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
-            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
-            release = build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-review-replay"), runtime)
-            view = build_workspace_frontier_review_view(fixture, evaluation, policy.decide(evaluation), release)
-            _write_json(build_workspace_frontier_review_queue(fixture, evaluation, policy.decide(evaluation), view, release).to_dict(), args.output)
+            quality = evaluate_workspace_frontier_quality(
+                fixture,
+                evaluation,
+                default_workspace_frontier_contracts(),
+                default_workspace_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
+            release = build_workspace_frontier_release_manifest(
+                runtime.bundle,
+                quality,
+                replay_workspace_frontier(fixture, replay_id="workspace-frontier-review-replay"),
+                runtime,
+            )
+            view = build_workspace_frontier_review_view(
+                fixture, evaluation, policy.decide(evaluation), release
+            )
+            _write_json(
+                build_workspace_frontier_review_queue(
+                    fixture, evaluation, policy.decide(evaluation), view, release
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workspace-frontier-depth-audit":
             _write_json(audit_workspace_frontier_depth().to_dict(), args.output)
@@ -8253,7 +8737,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "workspace-frontier-invariants":
             fixture = _read_workspace_frontier_fixture(args.input)
-            _write_json(workspace_frontier_invariants_from_execution(fixture, evaluate_workspace_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                workspace_frontier_invariants_from_execution(
+                    fixture, evaluate_workspace_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "export-workspace-frontier-review-csv":
             fixture = _read_workspace_frontier_fixture(args.input)
@@ -8262,13 +8751,30 @@ def main(argv: list[str] | None = None) -> int:
             runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-csv")
             lineage = build_workspace_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
-            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
-            release = build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-csv-replay"), runtime)
-            view = build_workspace_frontier_review_view(fixture, evaluation, policy.decide(evaluation), release)
+            quality = evaluate_workspace_frontier_quality(
+                fixture,
+                evaluation,
+                default_workspace_frontier_contracts(),
+                default_workspace_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
+            release = build_workspace_frontier_release_manifest(
+                runtime.bundle,
+                quality,
+                replay_workspace_frontier(fixture, replay_id="workspace-frontier-csv-replay"),
+                runtime,
+            )
+            view = build_workspace_frontier_review_view(
+                fixture, evaluation, policy.decide(evaluation), release
+            )
             _write_text(export_workspace_frontier_review_csv(view), args.output)
             return 0
         if args.command == "beta-frontier-data-audit":
-            _write_json(audit_beta_frontier_data(_read_beta_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                audit_beta_frontier_data(_read_beta_frontier_fixture(args.input)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-contracts":
             _write_json(default_beta_frontier_contracts().to_dict(), args.output)
@@ -8277,14 +8783,25 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(default_beta_frontier_schema().to_dict(), args.output)
             return 0
         if args.command == "beta-frontier-evaluate":
-            _write_json(evaluate_beta_frontier_fixture(_read_beta_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                evaluate_beta_frontier_fixture(_read_beta_frontier_fixture(args.input)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-replay":
-            _write_json(replay_beta_frontier(_read_beta_frontier_fixture(args.input), replay_id="beta-frontier-cli-replay").to_dict(), args.output)
+            _write_json(
+                replay_beta_frontier(
+                    _read_beta_frontier_fixture(args.input), replay_id="beta-frontier-cli-replay"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-metrics":
             fixture = _read_beta_frontier_fixture(args.input)
-            _write_json(measure_beta_frontier(evaluate_beta_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                measure_beta_frontier(evaluate_beta_frontier_fixture(fixture)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-lineage":
             fixture = _read_beta_frontier_fixture(args.input)
@@ -8295,7 +8812,13 @@ def main(argv: list[str] | None = None) -> int:
             fixture = _read_beta_frontier_fixture(args.input)
             evaluation = evaluate_beta_frontier_fixture(fixture)
             policy = default_beta_frontier_policy()
-            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            _write_json(
+                {
+                    "policy": policy.to_dict(),
+                    "decisions": [item.to_dict() for item in policy.decide(evaluation)],
+                },
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-quality-gate":
             fixture = _read_beta_frontier_fixture(args.input)
@@ -8303,10 +8826,25 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_beta_frontier_policy()
             lineage = build_beta_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_beta_frontier(fixture, evaluation, policy)
-            _write_json(evaluate_beta_frontier_quality(fixture, evaluation, default_beta_frontier_contracts(), default_beta_frontier_schema(), lineage, reconciliation).to_dict(), args.output)
+            _write_json(
+                evaluate_beta_frontier_quality(
+                    fixture,
+                    evaluation,
+                    default_beta_frontier_contracts(),
+                    default_beta_frontier_schema(),
+                    lineage,
+                    reconciliation,
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-runtime":
-            _write_json(run_beta_frontier_runtime(_read_beta_frontier_fixture(args.input), run_id="beta-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_beta_frontier_runtime(
+                    _read_beta_frontier_fixture(args.input), run_id="beta-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-observability":
             fixture = _read_beta_frontier_fixture(args.input)
@@ -8316,8 +8854,25 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "beta-frontier-artifacts":
             fixture = _read_beta_frontier_fixture(args.input)
             runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-artifacts")
-            release = build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay_beta_frontier(fixture, replay_id="beta-frontier-artifacts-replay"), runtime)
-            _write_json(build_beta_frontier_artifact_inventory(fixture.fixture_id, fixture.content_address, runtime.evaluation, runtime.metrics, runtime.quality, runtime, runtime.bundle, release).to_dict(), args.output)
+            release = build_beta_frontier_release_manifest(
+                runtime.bundle,
+                runtime.quality,
+                replay_beta_frontier(fixture, replay_id="beta-frontier-artifacts-replay"),
+                runtime,
+            )
+            _write_json(
+                build_beta_frontier_artifact_inventory(
+                    fixture.fixture_id,
+                    fixture.content_address,
+                    runtime.evaluation,
+                    runtime.metrics,
+                    runtime.quality,
+                    runtime,
+                    runtime.bundle,
+                    release,
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-bundle":
             fixture = _read_beta_frontier_fixture(args.input)
@@ -8325,22 +8880,41 @@ def main(argv: list[str] | None = None) -> int:
             metrics = measure_beta_frontier(evaluation)
             policy = default_beta_frontier_policy()
             reconciliation = reconcile_beta_frontier(fixture, evaluation, policy)
-            _write_json(assemble_beta_frontier_bundle(fixture, evaluation, metrics, reconciliation).to_dict(), args.output)
+            _write_json(
+                assemble_beta_frontier_bundle(
+                    fixture, evaluation, metrics, reconciliation
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-release":
             fixture = _read_beta_frontier_fixture(args.input)
             runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-release")
             replay = replay_beta_frontier(fixture, replay_id="beta-frontier-release-replay")
-            _write_json(build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay, runtime).to_dict(), args.output)
+            _write_json(
+                build_beta_frontier_release_manifest(
+                    runtime.bundle, runtime.quality, replay, runtime
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-review-queue":
             fixture = _read_beta_frontier_fixture(args.input)
             runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-review")
             replay = replay_beta_frontier(fixture, replay_id="beta-frontier-review-replay")
-            release = build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay, runtime)
+            release = build_beta_frontier_release_manifest(
+                runtime.bundle, runtime.quality, replay, runtime
+            )
             policy = default_beta_frontier_policy()
-            view = build_beta_frontier_review_view(fixture, runtime.evaluation, policy.decide(runtime.evaluation), release)
-            _write_json(build_beta_frontier_review_queue(fixture, runtime.evaluation, policy.decide(runtime.evaluation), view, release).to_dict(), args.output)
+            view = build_beta_frontier_review_view(
+                fixture, runtime.evaluation, policy.decide(runtime.evaluation), release
+            )
+            _write_json(
+                build_beta_frontier_review_queue(
+                    fixture, runtime.evaluation, policy.decide(runtime.evaluation), view, release
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "beta-frontier-depth-audit":
             _write_json(audit_beta_frontier_depth().to_dict(), args.output)
@@ -8356,19 +8930,30 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "beta-frontier-invariants":
             fixture = _read_beta_frontier_fixture(args.input)
-            _write_json(beta_frontier_invariants_from_execution(fixture, evaluate_beta_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                beta_frontier_invariants_from_execution(
+                    fixture, evaluate_beta_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "export-beta-frontier-review-csv":
             fixture = _read_beta_frontier_fixture(args.input)
             runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-csv")
             replay = replay_beta_frontier(fixture, replay_id="beta-frontier-csv-replay")
-            release = build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay, runtime)
+            release = build_beta_frontier_release_manifest(
+                runtime.bundle, runtime.quality, replay, runtime
+            )
             policy = default_beta_frontier_policy()
-            view = build_beta_frontier_review_view(fixture, runtime.evaluation, policy.decide(runtime.evaluation), release)
+            view = build_beta_frontier_review_view(
+                fixture, runtime.evaluation, policy.decide(runtime.evaluation), release
+            )
             _write_text(export_beta_frontier_review_csv(view), args.output)
             return 0
         if args.command in GAMMA_FRONTIER_COMMANDS:
-            result = run_gamma_frontier_operation(args.command, load_gamma_frontier_fixture(args.input))
+            result = run_gamma_frontier_operation(
+                args.command, load_gamma_frontier_fixture(args.input)
+            )
             if isinstance(result, str):
                 _write_text(result, args.output)
             elif hasattr(result, "to_dict"):
@@ -8396,8 +8981,23 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(result, args.output)
             return 0
+        if args.command in SEQUENCE_GRAMMAR_FRONTIER_COMMANDS:
+            fixture = load_sequence_grammar_fixture(args.input) if args.input else None
+            result = run_sequence_grammar_operation(args.command, fixture, run_id=args.run_id)
+            if isinstance(result, str):
+                _write_text(result, args.output)
+            elif hasattr(result, "to_dict"):
+                _write_json(result.to_dict(), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
         if args.command == "validation-frontier-data-audit":
-            _write_json(audit_validation_frontier_data(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                audit_validation_frontier_data(
+                    _read_validation_frontier_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-contracts":
             _write_json(default_validation_frontier_contracts().manifest(), args.output)
@@ -8406,26 +9006,50 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(default_validation_frontier_schema().to_dict(), args.output)
             return 0
         if args.command == "validation-frontier-evaluate":
-            _write_json(evaluate_validation_frontier_fixture(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)
+            _write_json(
+                evaluate_validation_frontier_fixture(
+                    _read_validation_frontier_fixture(args.input)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-replay":
-            _write_json(replay_validation_frontier(_read_validation_frontier_fixture(args.input), replay_id="validation-frontier-cli-replay").to_dict(), args.output)
+            _write_json(
+                replay_validation_frontier(
+                    _read_validation_frontier_fixture(args.input),
+                    replay_id="validation-frontier-cli-replay",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-metrics":
             fixture = _read_validation_frontier_fixture(args.input)
-            _write_json(measure_validation_frontier(evaluate_validation_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                measure_validation_frontier(
+                    evaluate_validation_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-lineage":
             fixture = _read_validation_frontier_fixture(args.input)
             evaluation = evaluate_validation_frontier_fixture(fixture)
-            _write_json(build_validation_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            _write_json(
+                build_validation_frontier_lineage(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "validation-frontier-policy":
             fixture = _read_validation_frontier_fixture(args.input)
             contracts = default_validation_frontier_contracts()
             evaluation = evaluate_validation_frontier_fixture(fixture)
             policy = default_validation_frontier_policy(contracts)
-            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            _write_json(
+                {
+                    "policy": policy.to_dict(),
+                    "decisions": [item.to_dict() for item in policy.decide(evaluation)],
+                },
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-quality-gate":
             fixture = _read_validation_frontier_fixture(args.input)
@@ -8435,15 +9059,32 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_validation_frontier_policy(contracts)
             lineage = build_validation_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
-            _write_json(evaluate_validation_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation).to_dict(), args.output)
+            _write_json(
+                evaluate_validation_frontier_quality(
+                    fixture, evaluation, contracts, schema, lineage, reconciliation
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-runtime":
-            _write_json(run_validation_frontier_runtime(_read_validation_frontier_fixture(args.input), run_id="validation-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_validation_frontier_runtime(
+                    _read_validation_frontier_fixture(args.input), run_id="validation-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-observability":
             fixture = _read_validation_frontier_fixture(args.input)
-            runtime = run_validation_frontier_runtime(fixture, run_id="validation-frontier-observability")
-            _write_json(observe_validation_frontier(runtime, evaluate_validation_frontier_fixture(fixture)).to_dict(), args.output)
+            runtime = run_validation_frontier_runtime(
+                fixture, run_id="validation-frontier-observability"
+            )
+            _write_json(
+                observe_validation_frontier(
+                    runtime, evaluate_validation_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-artifacts":
             fixture = _read_validation_frontier_fixture(args.input)
@@ -8453,10 +9094,30 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_validation_frontier_policy(contracts)
             lineage = build_validation_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
-            gate = evaluate_validation_frontier_quality(fixture, evaluation, contracts, default_validation_frontier_schema(), lineage, reconciliation)
-            runtime = run_validation_frontier_runtime(fixture, run_id="validation-frontier-artifacts")
-            release = build_validation_frontier_release_manifest(runtime.bundle, gate, replay_validation_frontier(fixture, replay_id="validation-frontier-artifacts-replay"))
-            _write_json(build_validation_frontier_artifact_inventory(fixture, evaluation, metrics, lineage, gate, runtime, release).to_dict(), args.output)
+            gate = evaluate_validation_frontier_quality(
+                fixture,
+                evaluation,
+                contracts,
+                default_validation_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
+            runtime = run_validation_frontier_runtime(
+                fixture, run_id="validation-frontier-artifacts"
+            )
+            release = build_validation_frontier_release_manifest(
+                runtime.bundle,
+                gate,
+                replay_validation_frontier(
+                    fixture, replay_id="validation-frontier-artifacts-replay"
+                ),
+            )
+            _write_json(
+                build_validation_frontier_artifact_inventory(
+                    fixture, evaluation, metrics, lineage, gate, runtime, release
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-bundle":
             fixture = _read_validation_frontier_fixture(args.input)
@@ -8466,7 +9127,12 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_validation_frontier_policy(contracts)
             lineage = build_validation_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
-            _write_json(assemble_validation_frontier_bundle(fixture, evaluation, metrics, lineage, reconciliation, policy).to_dict(), args.output)
+            _write_json(
+                assemble_validation_frontier_bundle(
+                    fixture, evaluation, metrics, lineage, reconciliation, policy
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-release":
             fixture = _read_validation_frontier_fixture(args.input)
@@ -8476,16 +9142,33 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_validation_frontier_policy(contracts)
             lineage = build_validation_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
-            gate = evaluate_validation_frontier_quality(fixture, evaluation, contracts, default_validation_frontier_schema(), lineage, reconciliation)
-            replay = replay_validation_frontier(fixture, replay_id="validation-frontier-release-replay")
-            _write_json(build_validation_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(), args.output)
+            gate = evaluate_validation_frontier_quality(
+                fixture,
+                evaluation,
+                contracts,
+                default_validation_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
+            replay = replay_validation_frontier(
+                fixture, replay_id="validation-frontier-release-replay"
+            )
+            _write_json(
+                build_validation_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-review-queue":
             fixture = _read_validation_frontier_fixture(args.input)
             contracts = default_validation_frontier_contracts()
             evaluation = evaluate_validation_frontier_fixture(fixture)
             policy = default_validation_frontier_policy(contracts)
-            _write_json(build_validation_frontier_review_queue(fixture, evaluation, policy.decide(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_validation_frontier_review_queue(
+                    fixture, evaluation, policy.decide(evaluation)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-frontier-depth-audit":
             _write_json(audit_validation_frontier_depth().to_dict(), args.output)
@@ -8498,10 +9181,23 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_validation_frontier_policy(contracts)
             lineage = build_validation_frontier_lineage(fixture, evaluation)
             reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
-            gate = evaluate_validation_frontier_quality(fixture, evaluation, contracts, default_validation_frontier_schema(), lineage, reconciliation)
+            gate = evaluate_validation_frontier_quality(
+                fixture,
+                evaluation,
+                contracts,
+                default_validation_frontier_schema(),
+                lineage,
+                reconciliation,
+            )
             runtime = run_validation_frontier_runtime(fixture, run_id="validation-frontier-csv")
-            release = build_validation_frontier_release_manifest(runtime.bundle, gate, replay_validation_frontier(fixture, replay_id="validation-frontier-csv-replay"))
-            view = build_validation_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)
+            release = build_validation_frontier_release_manifest(
+                runtime.bundle,
+                gate,
+                replay_validation_frontier(fixture, replay_id="validation-frontier-csv-replay"),
+            )
+            view = build_validation_frontier_review_view(
+                fixture, evaluation, metrics, policy.decide(evaluation), release
+            )
             _write_text(export_validation_frontier_review_csv(view), args.output)
             return 0
         if args.command == "evaluate-topology-frontier-fixture":
@@ -8515,7 +9211,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "replay-topology-frontier":
             fixture = _read_topology_frontier_fixture(args.input)
             evaluation = evaluate_topology_frontier_fixture(fixture)
-            _write_json(replay_topology_frontier_evaluation(evaluation, fixture=fixture).to_dict(), args.output)
+            _write_json(
+                replay_topology_frontier_evaluation(evaluation, fixture=fixture).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "topology-frontier-quality-gate":
             fixture = _read_topology_frontier_fixture(args.input)
@@ -8524,12 +9223,17 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "evaluate-topology-frontier-scenarios":
             fixture = _read_topology_frontier_fixture(args.input)
             evaluation = evaluate_topology_frontier_fixture(fixture)
-            _write_json(evaluate_topology_frontier_scenarios(evaluation, fixture=fixture).to_dict(), args.output)
+            _write_json(
+                evaluate_topology_frontier_scenarios(evaluation, fixture=fixture).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "topology-frontier-policy":
             fixture = _read_topology_frontier_fixture(args.input)
             evaluation = evaluate_topology_frontier_fixture(fixture)
-            _write_json(evaluate_topology_frontier_policy(fixture, evaluation).to_dict(), args.output)
+            _write_json(
+                evaluate_topology_frontier_policy(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "topology-frontier-contracts":
             _write_json(default_topology_frontier_contracts().manifest(), args.output)
@@ -8538,11 +9242,24 @@ def main(argv: list[str] | None = None) -> int:
             fixture = _read_topology_frontier_fixture(args.input)
             evaluation = evaluate_topology_frontier_fixture(fixture)
             schemas = default_topology_frontier_schemas()
-            _write_json({"schemas": [item.to_dict() for item in schemas], "validation": validate_topology_frontier_schema(evaluation, schemas=schemas).to_dict()}, args.output)
+            _write_json(
+                {
+                    "schemas": [item.to_dict() for item in schemas],
+                    "validation": validate_topology_frontier_schema(
+                        evaluation, schemas=schemas
+                    ).to_dict(),
+                },
+                args.output,
+            )
             return 0
         if args.command == "topology-frontier-metrics":
             fixture = _read_topology_frontier_fixture(args.input)
-            _write_json(compute_topology_frontier_metrics(evaluate_topology_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                compute_topology_frontier_metrics(
+                    evaluate_topology_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "build-topology-frontier-bundle":
             fixture = _read_topology_frontier_fixture(args.input)
@@ -8560,41 +9277,73 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "run-topology-frontier-pipeline":
             fixture = _read_topology_frontier_fixture(args.input)
-            _write_json(run_topology_frontier_pipeline(TopologyFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture).to_dict(), args.output)
+            _write_json(
+                run_topology_frontier_pipeline(
+                    TopologyFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "build-topology-frontier-release":
             fixture = _read_topology_frontier_fixture(args.input)
             quality = run_topology_frontier_quality_gate(fixture)
-            _write_json(build_topology_frontier_release(quality, run_id=args.run_id, release_id=args.release_id).to_dict(), args.output)
+            _write_json(
+                build_topology_frontier_release(
+                    quality, run_id=args.run_id, release_id=args.release_id
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "topology-frontier-review-view":
             fixture = _read_topology_frontier_fixture(args.input)
             evaluation = evaluate_topology_frontier_fixture(fixture)
             view = build_topology_frontier_view(fixture, evaluation)
-            _write_json(view.to_dict() | {"summary": topology_frontier_review_summary(view)}, args.output)
+            _write_json(
+                view.to_dict() | {"summary": topology_frontier_review_summary(view)}, args.output
+            )
             return 0
         if args.command == "topology-frontier-trace":
             fixture = _read_topology_frontier_fixture(args.input)
-            runtime = run_topology_frontier_pipeline(TopologyFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture)
+            runtime = run_topology_frontier_pipeline(
+                TopologyFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
             _write_json(build_topology_frontier_trace(runtime).to_dict(), args.output)
             return 0
         if args.command == "export-topology-frontier-receipts-csv":
             fixture = _read_topology_frontier_fixture(args.input)
-            _write_text(export_topology_frontier_receipts_csv(evaluate_topology_frontier_fixture(fixture)), args.output)
+            _write_text(
+                export_topology_frontier_receipts_csv(evaluate_topology_frontier_fixture(fixture)),
+                args.output,
+            )
             return 0
         if args.command == "export-topology-frontier-review-csv":
             fixture = _read_topology_frontier_fixture(args.input)
             evaluation = evaluate_topology_frontier_fixture(fixture)
-            _write_text(export_topology_frontier_review_csv(build_topology_frontier_view(fixture, evaluation)), args.output)
+            _write_text(
+                export_topology_frontier_review_csv(
+                    build_topology_frontier_view(fixture, evaluation)
+                ),
+                args.output,
+            )
             return 0
         if args.command == "export-topology-frontier-review-markdown":
             fixture = _read_topology_frontier_fixture(args.input)
             evaluation = evaluate_topology_frontier_fixture(fixture)
-            _write_text(render_topology_frontier_review_markdown(build_topology_frontier_view(fixture, evaluation)), args.output)
+            _write_text(
+                render_topology_frontier_review_markdown(
+                    build_topology_frontier_view(fixture, evaluation)
+                ),
+                args.output,
+            )
             return 0
         if args.command == "export-topology-frontier-metrics-csv":
             fixture = _read_topology_frontier_fixture(args.input)
-            _write_text(export_topology_frontier_metrics_csv(compute_topology_frontier_metrics(evaluate_topology_frontier_fixture(fixture))), args.output)
+            _write_text(
+                export_topology_frontier_metrics_csv(
+                    compute_topology_frontier_metrics(evaluate_topology_frontier_fixture(fixture))
+                ),
+                args.output,
+            )
             return 0
         if args.command == "parse-methylation":
             input_path = Path(args.input)
