@@ -92,6 +92,40 @@ from .chromatin_alpha import (
     EpigenomicPurityDeconvolver,
 )
 from .chromatin_context import ChromatinTrackKind, ChromatinTrackParser
+from .chromatin_frontier_contracts import default_chromatin_frontier_contracts
+from .chromatin_frontier_exports import (
+    export_chromatin_frontier_metrics_csv,
+    export_chromatin_frontier_receipts_csv,
+    export_chromatin_frontier_review_csv,
+    render_chromatin_frontier_review_markdown,
+)
+from .chromatin_frontier_fixture_eval import evaluate_chromatin_frontier_fixture
+from .chromatin_frontier_lineage import build_chromatin_frontier_lineage
+from .chromatin_frontier_metrics import compute_chromatin_frontier_metrics
+from .chromatin_frontier_observability import build_chromatin_frontier_trace
+from .chromatin_frontier_policy import evaluate_chromatin_frontier_policy
+from .chromatin_frontier_public_data import (
+    audit_chromatin_frontier_data,
+    default_chromatin_frontier_fixture,
+    load_chromatin_frontier_fixture,
+)
+from .chromatin_frontier_quality_gate import run_chromatin_frontier_quality_gate
+from .chromatin_frontier_reconciliation import reconcile_chromatin_frontier
+from .chromatin_frontier_release import build_chromatin_frontier_release
+from .chromatin_frontier_replay import replay_chromatin_frontier_evaluation
+from .chromatin_frontier_runtime import (
+    ChromatinFrontierRuntimeOptions,
+    run_chromatin_frontier_pipeline,
+)
+from .chromatin_frontier_scenario_matrix import evaluate_chromatin_frontier_scenarios
+from .chromatin_frontier_schema import (
+    chromatin_frontier_schema_manifest,
+    validate_chromatin_frontier_schema,
+)
+from .chromatin_frontier_views import (
+    build_chromatin_frontier_view,
+    chromatin_frontier_review_summary,
+)
 from .cohort_alpha import (
     ClonalityTimingIntegrator,
     CrossCohortReplicationEngine,
@@ -748,6 +782,12 @@ def _read_sequence_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_sequence_frontier_fixture(path) if path else default_sequence_frontier_fixture()
+
+
+def _read_chromatin_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_chromatin_frontier_fixture(path) if path else default_chromatin_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -3364,6 +3404,150 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sequence_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
     sequence_frontier_metrics_csv.add_argument("--output", default=None)
+
+    chromatin_frontier_evaluate = subparsers.add_parser(
+        "evaluate-chromatin-frontier-fixture",
+        help="evaluate the public Domain 07 C13-C16 fixture and controls",
+    )
+    chromatin_frontier_evaluate.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_evaluate.add_argument("--output", default=None)
+
+    chromatin_frontier_audit = subparsers.add_parser(
+        "audit-chromatin-frontier-data",
+        help="audit Domain 07 C13-C16 source receipts and aggregate boundaries",
+    )
+    chromatin_frontier_audit.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_audit.add_argument("--output", default=None)
+
+    chromatin_frontier_replay = subparsers.add_parser(
+        "replay-chromatin-frontier",
+        help="replay Domain 07 C13-C16 states and receipt addresses",
+    )
+    chromatin_frontier_replay.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_replay.add_argument("--output", default=None)
+
+    chromatin_frontier_quality = subparsers.add_parser(
+        "chromatin-frontier-quality-gate",
+        help="run the complete Domain 07 C13-C16 quality gate",
+    )
+    chromatin_frontier_quality.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_quality.add_argument("--output", default=None)
+
+    chromatin_frontier_scenarios = subparsers.add_parser(
+        "evaluate-chromatin-frontier-scenarios",
+        help="evaluate Domain 07 C13-C16 positive and negative controls",
+    )
+    chromatin_frontier_scenarios.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_scenarios.add_argument("--output", default=None)
+
+    chromatin_frontier_policy = subparsers.add_parser(
+        "chromatin-frontier-policy",
+        help="evaluate Domain 07 C13-C16 interpretation and state policy",
+    )
+    chromatin_frontier_policy.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_policy.add_argument("--output", default=None)
+
+    chromatin_frontier_contracts = subparsers.add_parser(
+        "chromatin-frontier-contracts",
+        help="emit typed Domain 07 C13-C16 contracts",
+    )
+    chromatin_frontier_contracts.add_argument("--output", default=None)
+
+    chromatin_frontier_schema = subparsers.add_parser(
+        "chromatin-frontier-schema",
+        help="emit or validate Domain 07 C13-C16 schemas",
+    )
+    chromatin_frontier_schema.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_schema.add_argument("--output", default=None)
+
+    chromatin_frontier_metrics = subparsers.add_parser(
+        "chromatin-frontier-metrics",
+        help="emit Domain 07 C13-C16 operation metrics",
+    )
+    chromatin_frontier_metrics.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_metrics.add_argument("--output", default=None)
+
+    chromatin_frontier_bundle = subparsers.add_parser(
+        "build-chromatin-frontier-bundle",
+        help="build the serialized Domain 07 C13-C16 bundle",
+    )
+    chromatin_frontier_bundle.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_bundle.add_argument("--output", default=None)
+
+    chromatin_frontier_lineage = subparsers.add_parser(
+        "chromatin-frontier-lineage",
+        help="emit Domain 07 C13-C16 source-to-receipt lineage",
+    )
+    chromatin_frontier_lineage.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_lineage.add_argument("--output", default=None)
+
+    chromatin_frontier_reconciliation = subparsers.add_parser(
+        "chromatin-frontier-reconciliation",
+        help="reconcile Domain 07 C13-C16 expected and observed states",
+    )
+    chromatin_frontier_reconciliation.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_reconciliation.add_argument("--output", default=None)
+
+    chromatin_frontier_pipeline = subparsers.add_parser(
+        "run-chromatin-frontier-pipeline",
+        help="run the Domain 07 C13-C16 quality-gated pipeline",
+    )
+    chromatin_frontier_pipeline.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_pipeline.add_argument("--run-id", default="chromatin-frontier-cli")
+    chromatin_frontier_pipeline.add_argument("--context-key", default=None)
+    chromatin_frontier_pipeline.add_argument("--fail-on-review", action="store_true")
+    chromatin_frontier_pipeline.add_argument("--output", default=None)
+
+    chromatin_frontier_release = subparsers.add_parser(
+        "build-chromatin-frontier-release",
+        help="build a Domain 07 C13-C16 release manifest",
+    )
+    chromatin_frontier_release.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_release.add_argument("--run-id", default="chromatin-frontier-release")
+    chromatin_frontier_release.add_argument("--output", default=None)
+
+    chromatin_frontier_view = subparsers.add_parser(
+        "chromatin-frontier-review-view",
+        help="emit the sanitized Domain 07 review queue and source matrix",
+    )
+    chromatin_frontier_view.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_view.add_argument("--output", default=None)
+
+    chromatin_frontier_trace = subparsers.add_parser(
+        "chromatin-frontier-trace",
+        help="emit the nine-stage Domain 07 runtime trace",
+    )
+    chromatin_frontier_trace.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_trace.add_argument("--run-id", default="chromatin-frontier-trace")
+    chromatin_frontier_trace.add_argument("--output", default=None)
+
+    chromatin_frontier_receipts_csv = subparsers.add_parser(
+        "export-chromatin-frontier-receipts-csv",
+        help="export sanitized Domain 07 receipts as CSV",
+    )
+    chromatin_frontier_receipts_csv.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_receipts_csv.add_argument("--output", default=None)
+
+    chromatin_frontier_review_csv = subparsers.add_parser(
+        "export-chromatin-frontier-review-csv",
+        help="export the Domain 07 review queue as CSV",
+    )
+    chromatin_frontier_review_csv.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_review_csv.add_argument("--output", default=None)
+
+    chromatin_frontier_review_md = subparsers.add_parser(
+        "export-chromatin-frontier-review-markdown",
+        help="export the Domain 07 review queue as Markdown",
+    )
+    chromatin_frontier_review_md.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_review_md.add_argument("--output", default=None)
+
+    chromatin_frontier_metrics_csv = subparsers.add_parser(
+        "export-chromatin-frontier-metrics-csv",
+        help="export Domain 07 operation metrics as CSV",
+    )
+    chromatin_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
+    chromatin_frontier_metrics_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -6417,7 +6601,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "sequence-frontier-policy":
             fixture = _read_sequence_frontier_fixture(args.input)
             evaluation = evaluate_sequence_frontier_fixture(fixture)
-            _write_json(evaluate_sequence_frontier_policy(fixture, evaluation).to_dict(), args.output)
+            _write_json(
+                evaluate_sequence_frontier_policy(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "sequence-frontier-contracts":
             _write_json(default_sequence_frontier_contracts().manifest(), args.output)
@@ -6461,7 +6647,9 @@ def main(argv: list[str] | None = None) -> int:
                 fail_on_review=args.fail_on_review,
                 requested_context_key=args.context_key,
             )
-            _write_json(run_sequence_frontier_pipeline(options, fixture=fixture).to_dict(), args.output)
+            _write_json(
+                run_sequence_frontier_pipeline(options, fixture=fixture).to_dict(), args.output
+            )
             return 0
         if args.command == "build-sequence-frontier-release":
             fixture = _read_sequence_frontier_fixture(args.input)
@@ -6489,9 +6677,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "export-sequence-frontier-receipts-csv":
             fixture = _read_sequence_frontier_fixture(args.input)
             _write_text(
-                export_sequence_frontier_receipts_csv(
-                    evaluate_sequence_frontier_fixture(fixture)
-                ),
+                export_sequence_frontier_receipts_csv(evaluate_sequence_frontier_fixture(fixture)),
                 args.output,
             )
             return 0
@@ -6499,7 +6685,9 @@ def main(argv: list[str] | None = None) -> int:
             fixture = _read_sequence_frontier_fixture(args.input)
             evaluation = evaluate_sequence_frontier_fixture(fixture)
             _write_text(
-                export_sequence_frontier_review_csv(build_sequence_frontier_view(fixture, evaluation)),
+                export_sequence_frontier_review_csv(
+                    build_sequence_frontier_view(fixture, evaluation)
+                ),
                 args.output,
             )
             return 0
@@ -6517,9 +6705,152 @@ def main(argv: list[str] | None = None) -> int:
             fixture = _read_sequence_frontier_fixture(args.input)
             _write_text(
                 export_sequence_frontier_metrics_csv(
-                    compute_sequence_frontier_metrics(
-                        evaluate_sequence_frontier_fixture(fixture)
-                    )
+                    compute_sequence_frontier_metrics(evaluate_sequence_frontier_fixture(fixture))
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "evaluate-chromatin-frontier-fixture":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_json(evaluate_chromatin_frontier_fixture(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "audit-chromatin-frontier-data":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_json(audit_chromatin_frontier_data(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "replay-chromatin-frontier":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            _write_json(
+                replay_chromatin_frontier_evaluation(evaluation, fixture=fixture).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "chromatin-frontier-quality-gate":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_json(run_chromatin_frontier_quality_gate(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-chromatin-frontier-scenarios":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_json(
+                evaluate_chromatin_frontier_scenarios(
+                    evaluate_chromatin_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "chromatin-frontier-policy":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            _write_json(
+                evaluate_chromatin_frontier_policy(fixture, evaluation).to_dict(), args.output
+            )
+            return 0
+        if args.command == "chromatin-frontier-contracts":
+            _write_json(default_chromatin_frontier_contracts().manifest(), args.output)
+            return 0
+        if args.command == "chromatin-frontier-schema":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            _write_json(
+                chromatin_frontier_schema_manifest()
+                | {"validation": validate_chromatin_frontier_schema(fixture, evaluation).to_dict()},
+                args.output,
+            )
+            return 0
+        if args.command == "chromatin-frontier-metrics":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_json(
+                compute_chromatin_frontier_metrics(
+                    evaluate_chromatin_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
+            return 0
+        if args.command == "build-chromatin-frontier-bundle":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_json(run_chromatin_frontier_quality_gate(fixture).bundle.to_dict(), args.output)
+            return 0
+        if args.command == "chromatin-frontier-lineage":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            _write_json(
+                build_chromatin_frontier_lineage(fixture, evaluation).to_dict(), args.output
+            )
+            return 0
+        if args.command == "chromatin-frontier-reconciliation":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            _write_json(reconcile_chromatin_frontier(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "run-chromatin-frontier-pipeline":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            options = ChromatinFrontierRuntimeOptions(
+                run_id=args.run_id,
+                fail_on_review=args.fail_on_review,
+                requested_context_key=args.context_key,
+            )
+            _write_json(
+                run_chromatin_frontier_pipeline(options, fixture=fixture).to_dict(), args.output
+            )
+            return 0
+        if args.command == "build-chromatin-frontier-release":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            quality = run_chromatin_frontier_quality_gate(fixture)
+            runtime = run_chromatin_frontier_pipeline(
+                ChromatinFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_chromatin_frontier_release(quality, runtime).to_dict(), args.output)
+            return 0
+        if args.command == "chromatin-frontier-review-view":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            view = build_chromatin_frontier_view(fixture, evaluation)
+            _write_json(
+                view.to_dict() | {"summary": chromatin_frontier_review_summary(view)}, args.output
+            )
+            return 0
+        if args.command == "chromatin-frontier-trace":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            runtime = run_chromatin_frontier_pipeline(
+                ChromatinFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture
+            )
+            _write_json(build_chromatin_frontier_trace(runtime).to_dict(), args.output)
+            return 0
+        if args.command == "export-chromatin-frontier-receipts-csv":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_text(
+                export_chromatin_frontier_receipts_csv(
+                    evaluate_chromatin_frontier_fixture(fixture)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-chromatin-frontier-review-csv":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            _write_text(
+                export_chromatin_frontier_review_csv(
+                    build_chromatin_frontier_view(fixture, evaluation)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-chromatin-frontier-review-markdown":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            evaluation = evaluate_chromatin_frontier_fixture(fixture)
+            _write_text(
+                render_chromatin_frontier_review_markdown(
+                    build_chromatin_frontier_view(fixture, evaluation)
+                ),
+                args.output,
+            )
+            return 0
+        if args.command == "export-chromatin-frontier-metrics-csv":
+            fixture = _read_chromatin_frontier_fixture(args.input)
+            _write_text(
+                export_chromatin_frontier_metrics_csv(
+                    compute_chromatin_frontier_metrics(evaluate_chromatin_frontier_fixture(fixture))
                 ),
                 args.output,
             )

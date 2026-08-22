@@ -2460,51 +2460,87 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D07-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.ContextImputationWithConfidence",
                     "glio_noncode.frontier_context_alpha.ContextImputationReport",
+                    "glio_noncode.chromatin_frontier_public_data.default_chromatin_frontier_fixture",
+                    "glio_noncode.chromatin_frontier_fixture_eval.evaluate_chromatin_frontier_fixture",
+                    "glio_noncode.chromatin_frontier_quality_gate.run_chromatin_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_chromatin_frontier_evidence",
+                    "tests.test_chromatin_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Missing chromatin context values use only declared priors and preserve source, "
-                    "confidence, and low-confidence review states."
+                    "confidence, and low-confidence review states. The public aggregate fixture "
+                    "adds interval segmentation, replicate controls, source closure, schema "
+                    "validation, replay, lineage, reconciliation, and release quality checks."
                 ),
             },
             "GNC-D07-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.AssaySupportCoverageGate",
                     "glio_noncode.frontier_context_alpha.AssayCoverageReport",
+                    "glio_noncode.chromatin_frontier_fixture_eval.evaluate_chromatin_frontier_fixture",
+                    "glio_noncode.chromatin_frontier_policy.evaluate_chromatin_frontier_policy",
+                    "glio_noncode.chromatin_frontier_schema.validate_chromatin_frontier_schema",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_chromatin_frontier_evidence",
+                    "tests.test_chromatin_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Assay support gates retain required/observed assay IDs, missing assays, and "
-                    "coverage thresholds before interpretation."
+                    "coverage thresholds before interpretation. Allele-specific chromatin "
+                    "comparisons retain replicate deltas and mixed-direction review states."
                 ),
             },
             "GNC-D07-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.CrossAssayConcordanceAdjudicator",
                     "glio_noncode.frontier_context_alpha.ConcordanceReport",
+                    "glio_noncode.chromatin_frontier_fixture_eval.evaluate_chromatin_frontier_fixture",
+                    "glio_noncode.chromatin_frontier_metrics.compute_chromatin_frontier_metrics",
+                    "glio_noncode.chromatin_frontier_views.build_chromatin_frontier_view",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_chromatin_frontier_evidence",
+                    "tests.test_chromatin_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Cross-assay directions are reduced to a declared mode and concordance with "
-                    "insufficient-assay and disagreement review paths."
+                    "insufficient-assay and disagreement review paths. Epigenomic purity retains "
+                    "marker-level bounded estimates, spread, denominator abstention, and export "
+                    "metrics without a clinical purity claim."
                 ),
             },
             "GNC-D07-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.ChromatinEvidencePublisher",
                     "glio_noncode.frontier_context_alpha.ChromatinEvidenceBundle",
+                    "glio_noncode.chromatin_frontier_bundle.build_chromatin_frontier_bundle",
+                    "glio_noncode.chromatin_frontier_runtime.run_chromatin_frontier_pipeline",
+                    "glio_noncode.chromatin_frontier_release.build_chromatin_frontier_release",
+                    "glio_noncode.chromatin_frontier_exports.export_chromatin_frontier_receipts_csv",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_context_alpha",
+                    "tests.test_chromatin_frontier_evidence",
+                    "tests.test_chromatin_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Chromatin bundles bind feature IDs, assay IDs, exact context, record address, "
-                    "and publication address."
+                    "and publication address. The release path adds batch/composition correction "
+                    "terms, review views, nine-stage trace, source lineage, reconciliation, "
+                    "sanitized exports, replay, and a deterministic release manifest."
                 ),
             },
             "GNC-D08-C01": {

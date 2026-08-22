@@ -348,3 +348,35 @@ jobs:
         run: python -m glio_noncode run-molecular-atlas-pipeline examples/molecular-atlas-pipeline-accepted.json --output /tmp/glio-molecular-atlas-pipeline.json
       - name: Molecular atlas release manifest
         run: python -m glio_noncode build-molecular-atlas-release examples/molecular-atlas-public-aggregate.json --output /tmp/glio-molecular-atlas-release.json
+      - name: Chromatin frontier data boundary audit
+        run: python -m glio_noncode audit-chromatin-frontier-data --output /tmp/glio-chromatin-frontier-data.json
+      - name: Chromatin frontier fixture evaluation
+        run: python -m glio_noncode evaluate-chromatin-frontier-fixture --output /tmp/glio-chromatin-frontier-fixture.json
+      - name: Chromatin frontier replay integrity
+        run: python -m glio_noncode replay-chromatin-frontier --output /tmp/glio-chromatin-frontier-replay.json
+      - name: Chromatin frontier quality gate
+        run: python -m glio_noncode chromatin-frontier-quality-gate --output /tmp/glio-chromatin-frontier-quality.json
+      - name: Chromatin frontier scenario matrix
+        run: python -m glio_noncode evaluate-chromatin-frontier-scenarios --output /tmp/glio-chromatin-frontier-scenarios.json
+      - name: Chromatin frontier operation contracts
+        run: python -m glio_noncode chromatin-frontier-contracts --output /tmp/glio-chromatin-frontier-contracts.json
+      - name: Chromatin frontier schema validation
+        run: python -m glio_noncode chromatin-frontier-schema --output /tmp/glio-chromatin-frontier-schema.json
+      - name: Chromatin frontier policy evaluation
+        run: python -m glio_noncode chromatin-frontier-policy --output /tmp/glio-chromatin-frontier-policy.json
+      - name: Chromatin frontier metrics
+        run: python -m glio_noncode chromatin-frontier-metrics --output /tmp/glio-chromatin-frontier-metrics.json
+      - name: Chromatin frontier evidence bundle
+        run: python -m glio_noncode build-chromatin-frontier-bundle --output /tmp/glio-chromatin-frontier-bundle.json
+      - name: Chromatin frontier lineage graph
+        run: python -m glio_noncode chromatin-frontier-lineage --output /tmp/glio-chromatin-frontier-lineage.json
+      - name: Chromatin frontier receipt reconciliation
+        run: python -m glio_noncode chromatin-frontier-reconciliation --output /tmp/glio-chromatin-frontier-reconciliation.json
+      - name: Chromatin frontier pipeline integration
+        run: python -m glio_noncode run-chromatin-frontier-pipeline --run-id chromatin-frontier-ci --output /tmp/glio-chromatin-frontier-pipeline.json
+      - name: Chromatin frontier release manifest
+        run: python -m glio_noncode build-chromatin-frontier-release --run-id chromatin-frontier-ci --output /tmp/glio-chromatin-frontier-release.json
+      - name: Chromatin frontier review view
+        run: python -m glio_noncode chromatin-frontier-review-view --output /tmp/glio-chromatin-frontier-view.json
+      - name: Chromatin frontier runtime trace
+        run: python -m glio_noncode chromatin-frontier-trace --run-id chromatin-frontier-ci --output /tmp/glio-chromatin-frontier-trace.json

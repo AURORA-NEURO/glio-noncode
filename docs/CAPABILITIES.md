@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 96 capabilities have deterministic fixture-backed
-verification and 160 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 37.50% of the 256-capability
+capabilities started (100%); 100 capabilities have deterministic fixture-backed
+verification and 156 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 39.06% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 96 controls are verified against the checked-in
-aggregate fixtures, while 160 capabilities remain partial. Partial
+capabilities started (100%); 100 controls are verified against the checked-in
+aggregate fixtures, while 156 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1496,6 +1496,50 @@ glio-noncode analyze-allele-specific-chromatin allele-chromatin.json --ambiguity
 glio-noncode deconvolve-epigenomic-purity purity-markers.json --minimum-markers 3 --output epigenomic-purity.json
 glio-noncode correct-batch-cell-composition corrected-signals.json --output batch-corrected.json
 ```
+
+### Domain 07 C13-C16 chromatin frontier evidence gate
+
+The Domain 07 C13-C16 tranche wraps the chromatin-alpha adapters in a public
+aggregate evidence plane. The checked-in fixture contains four positive records,
+twelve controls, five public source receipts, exact
+`GRCh38|glioma|adult|stem_like|tumor|unknown` context, and a
+`public_aggregate_non_patient` boundary. Raw assay rows are retained only in the
+fixture input payload; execution receipts expose typed counts, state labels,
+issue codes, and content addresses without raw input text.
+
+- C13 `chromatin_segmentation` splits overlapping accessibility intervals at all
+  observed boundaries, preserves replicate and sample support, and distinguishes
+  supported, ambiguous, partial, and out-of-domain outcomes.
+- C14 `allele_specific_chromatin` compares reference and alternate signal by
+  variant and assay, retains each replicate delta and direction, and leaves
+  mixed directions ambiguous rather than averaging disagreement away.
+- C15 `epigenomic_purity` computes bounded marker-level mixture estimates from
+  declared observed, tumor-reference, and normal-reference signals. Out-of-range
+  values are visible, zero denominators remain partial or abstained, and the
+  aggregate is not a clinical purity call.
+- C16 `batch_composition_correction` retains raw signal, batch adjustment,
+  composition adjustment, target composition, corrected signal, and missing or
+  invalid covariate states. Corrections remain descriptive assay normalization.
+
+The evidence plane emits 120 deterministic evaluation checks, 23 schema checks,
+12 review rows, four out-of-domain controls, four operation metrics, a nine-stage
+trace, source-to-receipt lineage, expected-versus-observed reconciliation,
+replay expectations, a 12-check quality gate, and a content-addressed release
+manifest. The same typed evaluator runs positive and control records so review
+states cannot be promoted silently.
+
+```powershell
+glio-noncode evaluate-chromatin-frontier-fixture --output chromatin-frontier-evaluation.json
+glio-noncode chromatin-frontier-quality-gate --output chromatin-frontier-quality.json
+glio-noncode run-chromatin-frontier-pipeline --run-id d07-local --output chromatin-frontier-run.json
+glio-noncode build-chromatin-frontier-release --run-id d07-release --output chromatin-frontier-release.json
+glio-noncode export-chromatin-frontier-review-markdown --output chromatin-frontier-review.md
+```
+
+See `docs/CHROMATIN_FRONTIER_EVIDENCE_GATE.md`,
+`docs/CHROMATIN_FRONTIER_RELEASE_FORMAT.md`, and
+`docs/CHROMATIN_FRONTIER_SCHEMA.md` for source boundaries, state transitions,
+receipt fields, schema restrictions, release checks, and sanitized outputs.
 
 ## Domain 08 cell state, disease class, and territory
 
