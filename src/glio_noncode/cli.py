@@ -294,6 +294,7 @@ from .sequence_grammar_frontier_cli import (
 from .sequence_grammar_frontier_public_data import load_sequence_grammar_fixture
 from .sequence_regulation_frontier_cli import run_sequence_regulation_operation
 from .chromatin_alpha_frontier_cli import run_chromatin_alpha_frontier_operation
+from .chromatin_context_frontier_cli import run_chromatin_context_frontier_operation
 from .methylation_frontier_cli import run_methylation_frontier_operation
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
@@ -4591,6 +4592,24 @@ def build_parser() -> argparse.ArgumentParser:
             help="inspect the Domain 07 C05-C08 public aggregate methylation plane",
         )
         methylation_frontier_parser.add_argument("--output", default=None)
+
+    for chromatin_context_frontier_command in (
+        "chromatin-context-frontier-fixture",
+        "chromatin-context-frontier-data",
+        "chromatin-context-frontier-evaluate",
+        "chromatin-context-frontier-replay",
+        "chromatin-context-frontier-quality",
+        "chromatin-context-frontier-contracts",
+        "chromatin-context-frontier-adapters",
+        "chromatin-context-frontier-schema",
+        "chromatin-context-frontier-sources",
+        "run-chromatin-context-frontier-pipeline",
+    ):
+        chromatin_context_frontier_parser = subparsers.add_parser(
+            chromatin_context_frontier_command,
+            help="inspect the Domain 07 C01-C04 public aggregate context plane",
+        )
+        chromatin_context_frontier_parser.add_argument("--output", default=None)
 
     methylation_parse = subparsers.add_parser(
         "parse-methylation",
@@ -10512,6 +10531,20 @@ def main(argv: list[str] | None = None) -> int:
             "run-methylation-frontier-pipeline",
         }:
             _write_json(run_methylation_frontier_operation(args.command), args.output)
+            return 0
+        if args.command in {
+            "chromatin-context-frontier-fixture",
+            "chromatin-context-frontier-data",
+            "chromatin-context-frontier-evaluate",
+            "chromatin-context-frontier-replay",
+            "chromatin-context-frontier-quality",
+            "chromatin-context-frontier-contracts",
+            "chromatin-context-frontier-adapters",
+            "chromatin-context-frontier-schema",
+            "chromatin-context-frontier-sources",
+            "run-chromatin-context-frontier-pipeline",
+        }:
+            _write_json(run_chromatin_context_frontier_operation(args.command), args.output)
             return 0
         if args.command == "parse-context":
             input_path = Path(args.input)

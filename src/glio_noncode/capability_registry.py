@@ -2368,55 +2368,69 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D07-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_context.ChromatinTrackParser",
                     "glio_noncode.chromatin_context.ChromatinContextRetriever",
+                    "glio_noncode.chromatin_context_frontier_public_data.default_chromatin_context_frontier_fixture",
+                    "glio_noncode.chromatin_context_frontier_adapters.execute_chromatin_context_frontier_record",
+                    "glio_noncode.chromatin_context_frontier_pipeline.run_chromatin_context_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_chromatin_context",),
+                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
                 "evidence_note": (
                     "ATAC and DNase BED-like TSV/JSON observations retain coordinates, assay kind, "
                     "replicate IDs, source checksums, context keys, and malformed-row quarantine; "
-                    "external schema fixtures and source anomaly evaluation remain."
+                    "the public aggregate C01-C04 plane adds schema, source, replay, review, and "
+                    "release checks while external source anomaly evaluation remains."
                 ),
             },
             "GNC-D07-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_context.AccessibilityDeltaEstimator",
+                    "glio_noncode.chromatin_context_frontier_adapters.execute_chromatin_context_frontier_record",
+                    "glio_noncode.chromatin_context_frontier_metrics.build_chromatin_context_frontier_metrics",
+                    "glio_noncode.chromatin_context_frontier_quality_gate.build_chromatin_context_frontier_quality",
                 ),
-                "test_modules": ("tests.test_chromatin_context",),
+                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
                 "evidence_note": (
                     "Measured ATAC/DNase reference-to-alternate deltas expose relative "
-                    "normalization "
-                    "guards and abstain on missing measurements; external calibration, transport, "
-                    "and out-of-distribution benchmarks remain."
+                    "normalization guards and abstain on missing measurements; the public "
+                    "aggregate plane verifies zero-baseline, missingness, context refusal, and "
+                    "release receipts while external calibration remains."
                 ),
             },
             "GNC-D07-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_context.ChromatinTrackParser",
                     "glio_noncode.chromatin_context.ChromatinContextRetriever",
+                    "glio_noncode.chromatin_context_frontier_public_data.default_chromatin_context_frontier_fixture",
+                    "glio_noncode.chromatin_context_frontier_views.build_chromatin_context_frontier_view",
+                    "glio_noncode.chromatin_context_frontier_review_queue.build_chromatin_context_frontier_review_queue",
                 ),
-                "test_modules": ("tests.test_chromatin_context",),
+                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
                 "evidence_note": (
                     "Histone track observations preserve mark metadata, replicate spread, context "
-                    "gating, and ambiguity; canonical source schemas and cross-assay calibration "
-                    "remain."
+                    "gating, and ambiguity; the public aggregate plane adds source registry, "
+                    "review routing, deterministic replay, and explicit cross-assay limits."
                 ),
             },
             "GNC-D07-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.chromatin_context.H3K27acActivityEstimator",
+                    "glio_noncode.chromatin_context_frontier_adapters.execute_chromatin_context_frontier_record",
+                    "glio_noncode.chromatin_context_frontier_reports.build_chromatin_context_frontier_report",
+                    "glio_noncode.chromatin_context_frontier_exports.export_chromatin_context_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_chromatin_context",),
+                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
                 "evidence_note": (
                     "H3K27ac observations are summarized with replicate-aware ambiguity and "
-                    "explicit limitations; enhancer activity, target-gene linkage, and assay "
-                    "calibration are "
-                    "not inferred from signal alone."
+                    "explicit limitations; the public aggregate plane verifies activity "
+                    "observation, abstention, refusal, review, and export boundaries. Enhancer "
+                    "activity, target-gene linkage, and assay calibration are not inferred from "
+                    "signal alone."
                 ),
             },
             "GNC-D07-C05": {

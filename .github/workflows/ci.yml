@@ -788,3 +788,11 @@ jobs:
         run: python -m glio_noncode chromatin-alpha-frontier-evaluate --output /tmp/glio-chromatin-alpha-evaluation.json && python -m glio_noncode chromatin-alpha-frontier-quality --output /tmp/glio-chromatin-alpha-quality.json && python -m glio_noncode chromatin-alpha-frontier-replay --output /tmp/glio-chromatin-alpha-replay.json
       - name: Chromatin alpha frontier end-to-end pipeline
         run: python -m glio_noncode run-chromatin-alpha-frontier-pipeline --output /tmp/glio-chromatin-alpha-pipeline.json
+      - name: Chromatin context frontier fixture and audit
+        run: python -m glio_noncode chromatin-context-frontier-fixture --output /tmp/glio-chromatin-context-fixture.json && python -m glio_noncode chromatin-context-frontier-data --output /tmp/glio-chromatin-context-data.json
+      - name: Chromatin context frontier contracts and schema
+        run: python -m glio_noncode chromatin-context-frontier-contracts --output /tmp/glio-chromatin-context-contracts.json && python -m glio_noncode chromatin-context-frontier-schema --output /tmp/glio-chromatin-context-schema.json && python -m glio_noncode chromatin-context-frontier-sources --output /tmp/glio-chromatin-context-sources.json
+      - name: Chromatin context frontier evaluation and quality
+        run: python -m glio_noncode chromatin-context-frontier-evaluate --output /tmp/glio-chromatin-context-evaluation.json && python -m glio_noncode chromatin-context-frontier-quality --output /tmp/glio-chromatin-context-quality.json && python -m glio_noncode chromatin-context-frontier-replay --output /tmp/glio-chromatin-context-replay.json
+      - name: Chromatin context frontier end-to-end pipeline
+        run: python -m glio_noncode run-chromatin-context-frontier-pipeline --output /tmp/glio-chromatin-context-pipeline.json

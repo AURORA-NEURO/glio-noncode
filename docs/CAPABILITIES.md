@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 164 capabilities have deterministic fixture-backed
-verification and 92 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 64.06% of the 256-capability
-catalog; MVP implementation coverage is 56.25%. The surfaces retain
+capabilities started (100%); 168 capabilities have deterministic fixture-backed
+verification and 88 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 65.62% of the 256-capability
+catalog; MVP implementation coverage is 62.50%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 164 capabilities are verified against the checked-in
-aggregate fixtures, while 92 capabilities remain partial. Partial
+capabilities started (100%); 168 capabilities are verified against the checked-in
+aggregate fixtures, while 88 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1627,6 +1627,53 @@ glio-noncode analyze-cpg-change cpg-window.json --output cpg-changes.json
 glio-noncode analyze-methylation-motifs methylation-motifs.json --output methylation-motifs.json
 glio-noncode model-idh-hypermethylation idh-panel.json --model-id idh-panel --model-version 2026.1 --context-key "GRCh38|glioma|adult|stem_like|tumor|unknown" --output idh-context.json
 ```
+
+### Domain 07 C01-C04 chromatin-context frontier evidence gate
+
+The Domain 07 C01-C04 tranche now binds the core chromatin context primitives
+to a closed public aggregate fixture. It contains four positive records and
+twelve controls across ATAC/DNase track retrieval, accessibility deltas,
+histone mark context, and H3K27ac activity observations. Five source receipts
+retain public URLs, release labels, scope, exact context, and content
+addresses. Coordinates are normalized, malformed rows are quarantined,
+replicate spread remains visible, missing measurements abstain, and foreign
+context is refused.
+
+The release plane adds typed contracts, schema and aggregate-boundary checks,
+source lineage and registry, expected-path reconciliation, policy decisions,
+metrics, review-safe projections, a prioritized queue, structured runtime
+events, deterministic replay, invariants, scenario and validation matrices,
+thresholds, a runbook, content-addressed bundle and artifact inventory, and
+JSON/CSV exports. H3K27ac and accessibility signals remain descriptive assay
+observations. Enhancer function, target linkage, causal effect, and external
+transport are not inferred from signal alone.
+
+The bounded aggregate command surface is:
+
+```powershell
+glio-noncode chromatin-context-frontier-fixture --output chromatin-context-fixture.json
+glio-noncode chromatin-context-frontier-data --output chromatin-context-data.json
+glio-noncode chromatin-context-frontier-evaluate --output chromatin-context-evaluation.json
+glio-noncode chromatin-context-frontier-quality --output chromatin-context-quality.json
+glio-noncode chromatin-context-frontier-contracts --output chromatin-context-contracts.json
+glio-noncode chromatin-context-frontier-schema --output chromatin-context-schema.json
+glio-noncode chromatin-context-frontier-sources --output chromatin-context-sources.json
+glio-noncode chromatin-context-frontier-replay --output chromatin-context-replay.json
+glio-noncode run-chromatin-context-frontier-pipeline --output chromatin-context-pipeline.json
+```
+
+The C01-C04 surface proves the following boundaries:
+
+- `ChromatinTrackParser` converts BED-like coordinates and JSON observations,
+  retaining source version, raw row hash, replicate, mark, and context.
+- `ChromatinContextRetriever` gates by assay kind, interval overlap, and exact
+  context. One match is supported, multiple matches are ambiguous, and a
+  foreign-context overlap is out of domain.
+- `AccessibilityDeltaEstimator` reports absolute and relative measured deltas,
+  blocks relative normalization at a zero baseline, and abstains on missing
+  reference or alternate signal.
+- `H3K27acActivityEstimator` reports replicate-aware signal while retaining the
+  limitation that a track observation is not enhancer or target-gene truth.
 
 ### Domain 07 C05-C08 methylation frontier evidence gate
 

@@ -404,6 +404,163 @@ from .chromatin_context import (
     ChromatinTrackParser,
     H3K27acActivityEstimator,
 )
+from .chromatin_context_frontier_adapters import (
+    ChromatinContextFrontierAdapterRegistry,
+    ChromatinContextFrontierAdapterResult,
+    ChromatinContextFrontierAdapterSpec,
+    build_chromatin_context_frontier_adapters,
+    execute_chromatin_context_frontier_record,
+)
+from .chromatin_context_frontier_artifacts import (
+    ChromatinContextFrontierArtifact,
+    ChromatinContextFrontierArtifactInventory,
+    build_chromatin_context_frontier_artifacts,
+)
+from .chromatin_context_frontier_bundle import (
+    ChromatinContextFrontierBundle,
+    ChromatinContextFrontierBundleMember,
+    build_chromatin_context_frontier_bundle,
+)
+from .chromatin_context_frontier_checks import (
+    ChromatinContextFrontierInvariant,
+    ChromatinContextFrontierInvariantReport,
+    run_chromatin_context_frontier_invariants,
+)
+from .chromatin_context_frontier_cli import run_chromatin_context_frontier_operation
+from .chromatin_context_frontier_compliance import (
+    ChromatinContextFrontierBoundaryCheck,
+    ChromatinContextFrontierBoundaryReport,
+    evaluate_chromatin_context_frontier_boundary,
+)
+from .chromatin_context_frontier_contracts import (
+    ChromatinContextFrontierContract,
+    ChromatinContextFrontierContractReport,
+    build_chromatin_context_frontier_contracts,
+)
+from .chromatin_context_frontier_exports import (
+    export_chromatin_context_frontier_manifest,
+    export_chromatin_context_frontier_review_csv,
+)
+from .chromatin_context_frontier_fixture_eval import (
+    ChromatinContextFrontierEvaluation,
+    ChromatinContextFrontierEvaluationRow,
+    evaluate_chromatin_context_frontier_fixture,
+)
+from .chromatin_context_frontier_lineage import (
+    ChromatinContextFrontierLineage,
+    ChromatinContextFrontierLineageEdge,
+    build_chromatin_context_frontier_lineage,
+)
+from .chromatin_context_frontier_metrics import (
+    ChromatinContextFrontierMetric,
+    ChromatinContextFrontierMetrics,
+    build_chromatin_context_frontier_metrics,
+)
+from .chromatin_context_frontier_observability import (
+    ChromatinContextFrontierObservabilityReport,
+    ChromatinContextFrontierTraceEvent,
+    build_chromatin_context_frontier_trace,
+)
+from .chromatin_context_frontier_pipeline import (
+    ChromatinContextFrontierPipelineReport,
+    run_chromatin_context_frontier_pipeline,
+)
+from .chromatin_context_frontier_policy import (
+    ChromatinContextFrontierPolicyDecision,
+    ChromatinContextFrontierPolicyReport,
+    evaluate_chromatin_context_frontier_policy,
+)
+from .chromatin_context_frontier_public_data import (
+    CHROMATIN_CONTEXT_FRONTIER_BOUNDARY,
+    CHROMATIN_CONTEXT_FRONTIER_CONTEXT_KEY,
+    CHROMATIN_CONTEXT_FRONTIER_CONTROL_COUNT,
+    CHROMATIN_CONTEXT_FRONTIER_FIXTURE_VERSION,
+    CHROMATIN_CONTEXT_FRONTIER_FOREIGN_CONTEXT_KEY,
+    CHROMATIN_CONTEXT_FRONTIER_POSITIVE_COUNT,
+    CHROMATIN_CONTEXT_FRONTIER_SOURCE_COUNT,
+    ChromatinContextFrontierDataAudit,
+    ChromatinContextFrontierDataCheck,
+    ChromatinContextFrontierExpectedState,
+    ChromatinContextFrontierFixture,
+    ChromatinContextFrontierOperation,
+    ChromatinContextFrontierRecord,
+    ChromatinContextFrontierRole,
+    ChromatinContextFrontierSourceReceipt,
+    audit_chromatin_context_frontier_data,
+    default_chromatin_context_frontier_fixture,
+)
+from .chromatin_context_frontier_quality_gate import (
+    ChromatinContextFrontierQualityCheck,
+    ChromatinContextFrontierQualityReport,
+    build_chromatin_context_frontier_quality,
+)
+from .chromatin_context_frontier_reconciliation import (
+    ChromatinContextFrontierReconciliation,
+    ChromatinContextFrontierReconciliationItem,
+    reconcile_chromatin_context_frontier,
+)
+from .chromatin_context_frontier_release import (
+    ChromatinContextFrontierReleaseManifest,
+    build_chromatin_context_frontier_release,
+)
+from .chromatin_context_frontier_replay import (
+    ChromatinContextFrontierReplayReceipt,
+    replay_chromatin_context_frontier,
+)
+from .chromatin_context_frontier_reports import (
+    ChromatinContextFrontierReport,
+    ChromatinContextFrontierReportSection,
+    build_chromatin_context_frontier_report,
+)
+from .chromatin_context_frontier_review_queue import (
+    ChromatinContextFrontierQueueItem,
+    ChromatinContextFrontierReviewQueue,
+    build_chromatin_context_frontier_review_queue,
+)
+from .chromatin_context_frontier_runbook import (
+    ChromatinContextFrontierRunbook,
+    ChromatinContextFrontierRunbookStep,
+    default_chromatin_context_frontier_runbook,
+)
+from .chromatin_context_frontier_runtime import (
+    ChromatinContextFrontierRuntimeOptions,
+    ChromatinContextFrontierRuntimeReport,
+    ChromatinContextFrontierStage,
+    run_chromatin_context_frontier_runtime,
+)
+from .chromatin_context_frontier_scenario_matrix import (
+    ChromatinContextFrontierScenario,
+    ChromatinContextFrontierScenarioMatrix,
+    ChromatinContextFrontierScenarioResult,
+    build_chromatin_context_frontier_scenario_matrix,
+    evaluate_chromatin_context_frontier_scenarios,
+)
+from .chromatin_context_frontier_schema import (
+    ChromatinContextFrontierSchemaCheck,
+    ChromatinContextFrontierSchemaReport,
+    validate_chromatin_context_frontier_schema,
+)
+from .chromatin_context_frontier_source_registry import (
+    ChromatinContextFrontierSourceEntry,
+    ChromatinContextFrontierSourceRegistry,
+    build_chromatin_context_frontier_source_registry,
+)
+from .chromatin_context_frontier_thresholds import (
+    ChromatinContextFrontierThreshold,
+    ChromatinContextFrontierThresholdReport,
+    build_chromatin_context_frontier_threshold_report,
+)
+from .chromatin_context_frontier_validation_matrix import (
+    ChromatinContextFrontierValidationCell,
+    ChromatinContextFrontierValidationReport,
+    build_chromatin_context_frontier_validation_matrix,
+    validate_chromatin_context_frontier_matrix,
+)
+from .chromatin_context_frontier_views import (
+    ChromatinContextFrontierReviewRow,
+    ChromatinContextFrontierReviewView,
+    build_chromatin_context_frontier_view,
+)
 from .chromatin_frontier_bundle import ChromatinFrontierBundle, build_chromatin_frontier_bundle
 from .chromatin_frontier_contracts import (
     ChromatinFrontierContract,
@@ -9029,6 +9186,110 @@ __all__ += [
     "validate_chromatin_alpha_frontier_matrix",
     "validate_chromatin_alpha_frontier_schema",
     "verify_chromatin_alpha_frontier_lineage",
+]
+
+__all__ += [
+    "CHROMATIN_CONTEXT_FRONTIER_BOUNDARY",
+    "CHROMATIN_CONTEXT_FRONTIER_CONTEXT_KEY",
+    "CHROMATIN_CONTEXT_FRONTIER_CONTROL_COUNT",
+    "CHROMATIN_CONTEXT_FRONTIER_FIXTURE_VERSION",
+    "CHROMATIN_CONTEXT_FRONTIER_FOREIGN_CONTEXT_KEY",
+    "CHROMATIN_CONTEXT_FRONTIER_POSITIVE_COUNT",
+    "CHROMATIN_CONTEXT_FRONTIER_SOURCE_COUNT",
+    "ChromatinContextFrontierAdapterRegistry",
+    "ChromatinContextFrontierAdapterResult",
+    "ChromatinContextFrontierAdapterSpec",
+    "ChromatinContextFrontierArtifact",
+    "ChromatinContextFrontierArtifactInventory",
+    "ChromatinContextFrontierBoundaryCheck",
+    "ChromatinContextFrontierBoundaryReport",
+    "ChromatinContextFrontierBundle",
+    "ChromatinContextFrontierBundleMember",
+    "ChromatinContextFrontierContract",
+    "ChromatinContextFrontierContractReport",
+    "ChromatinContextFrontierDataAudit",
+    "ChromatinContextFrontierDataCheck",
+    "ChromatinContextFrontierEvaluation",
+    "ChromatinContextFrontierEvaluationRow",
+    "ChromatinContextFrontierExpectedState",
+    "ChromatinContextFrontierFixture",
+    "ChromatinContextFrontierInvariant",
+    "ChromatinContextFrontierInvariantReport",
+    "ChromatinContextFrontierLineage",
+    "ChromatinContextFrontierLineageEdge",
+    "ChromatinContextFrontierMetric",
+    "ChromatinContextFrontierMetrics",
+    "ChromatinContextFrontierObservabilityReport",
+    "ChromatinContextFrontierOperation",
+    "ChromatinContextFrontierPipelineReport",
+    "ChromatinContextFrontierPolicyDecision",
+    "ChromatinContextFrontierPolicyReport",
+    "ChromatinContextFrontierQualityCheck",
+    "ChromatinContextFrontierQualityReport",
+    "ChromatinContextFrontierQueueItem",
+    "ChromatinContextFrontierReconciliation",
+    "ChromatinContextFrontierReconciliationItem",
+    "ChromatinContextFrontierRecord",
+    "ChromatinContextFrontierReleaseManifest",
+    "ChromatinContextFrontierReplayReceipt",
+    "ChromatinContextFrontierReport",
+    "ChromatinContextFrontierReportSection",
+    "ChromatinContextFrontierReviewQueue",
+    "ChromatinContextFrontierReviewRow",
+    "ChromatinContextFrontierReviewView",
+    "ChromatinContextFrontierRole",
+    "ChromatinContextFrontierRunbook",
+    "ChromatinContextFrontierRunbookStep",
+    "ChromatinContextFrontierRuntimeOptions",
+    "ChromatinContextFrontierRuntimeReport",
+    "ChromatinContextFrontierScenario",
+    "ChromatinContextFrontierScenarioMatrix",
+    "ChromatinContextFrontierScenarioResult",
+    "ChromatinContextFrontierSchemaCheck",
+    "ChromatinContextFrontierSchemaReport",
+    "ChromatinContextFrontierSourceEntry",
+    "ChromatinContextFrontierSourceReceipt",
+    "ChromatinContextFrontierSourceRegistry",
+    "ChromatinContextFrontierStage",
+    "ChromatinContextFrontierThreshold",
+    "ChromatinContextFrontierThresholdReport",
+    "ChromatinContextFrontierTraceEvent",
+    "ChromatinContextFrontierValidationCell",
+    "ChromatinContextFrontierValidationReport",
+    "audit_chromatin_context_frontier_data",
+    "build_chromatin_context_frontier_adapters",
+    "build_chromatin_context_frontier_artifacts",
+    "build_chromatin_context_frontier_bundle",
+    "build_chromatin_context_frontier_contracts",
+    "build_chromatin_context_frontier_lineage",
+    "build_chromatin_context_frontier_metrics",
+    "build_chromatin_context_frontier_quality",
+    "build_chromatin_context_frontier_release",
+    "build_chromatin_context_frontier_report",
+    "build_chromatin_context_frontier_review_queue",
+    "build_chromatin_context_frontier_scenario_matrix",
+    "build_chromatin_context_frontier_source_registry",
+    "build_chromatin_context_frontier_threshold_report",
+    "build_chromatin_context_frontier_trace",
+    "build_chromatin_context_frontier_validation_matrix",
+    "build_chromatin_context_frontier_view",
+    "default_chromatin_context_frontier_fixture",
+    "default_chromatin_context_frontier_runbook",
+    "evaluate_chromatin_context_frontier_boundary",
+    "evaluate_chromatin_context_frontier_fixture",
+    "evaluate_chromatin_context_frontier_policy",
+    "evaluate_chromatin_context_frontier_scenarios",
+    "execute_chromatin_context_frontier_record",
+    "export_chromatin_context_frontier_manifest",
+    "export_chromatin_context_frontier_review_csv",
+    "reconcile_chromatin_context_frontier",
+    "replay_chromatin_context_frontier",
+    "run_chromatin_context_frontier_invariants",
+    "run_chromatin_context_frontier_operation",
+    "run_chromatin_context_frontier_pipeline",
+    "run_chromatin_context_frontier_runtime",
+    "validate_chromatin_context_frontier_matrix",
+    "validate_chromatin_context_frontier_schema",
 ]
 
 __version__ = "0.1.0"
