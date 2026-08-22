@@ -470,6 +470,10 @@ from .causal_foundation_frontier_views import (
     build_causal_foundation_frontier_review_view,
     build_causal_foundation_frontier_summary_view,
 )
+from .causal_beta_frontier_exports import export_causal_beta_frontier_json, export_causal_beta_frontier_review_csv, export_causal_beta_frontier_review_markdown
+from .causal_beta_frontier_public_data import audit_causal_beta_frontier_data, default_causal_beta_frontier_fixture
+from .causal_beta_frontier_runtime import run_causal_beta_frontier_runtime
+from .causal_beta_frontier_views import build_causal_beta_frontier_summary_view
 from .cohort_frontier_bundle import assemble_cohort_frontier_bundle
 from .cohort_frontier_contracts import default_cohort_frontier_contracts
 from .cohort_frontier_depth import audit_cohort_frontier_depth
@@ -1140,6 +1144,14 @@ def _read_causal_foundation_frontier_fixture(path: str | None):
     if path:
         raise ValueError("custom causal foundation fixture loading is not enabled; use the pinned public aggregate")
     return default_causal_foundation_frontier_fixture()
+
+
+def _read_causal_beta_frontier_fixture(path: str | None):
+    """Return the pinned Domain 11 C05-C08 aggregate fixture."""
+
+    if path:
+        raise ValueError("custom causal beta fixture loading is not enabled; use the pinned public aggregate")
+    return default_causal_beta_frontier_fixture()
 
 
 def _read_cohort_frontier_fixture(path: str | None):
@@ -4361,6 +4373,41 @@ def build_parser() -> argparse.ArgumentParser:
         ("export-causal-foundation-frontier-review-csv", "export Domain 11 C01-C04 review rows as CSV"),
         ("export-causal-foundation-frontier-review-markdown", "export Domain 11 C01-C04 review rows as Markdown"),
         ("export-causal-foundation-frontier-json", "export Domain 11 C01-C04 release payload as JSON"),
+    ):
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+
+    causal_beta_frontier_commands = (
+        ("causal-beta-frontier-data-audit", "audit Domain 11 C05-C08 public aggregate receipts"),
+        ("causal-beta-frontier-contracts", "emit Domain 11 C05-C08 operation contracts"),
+        ("causal-beta-frontier-schema", "emit Domain 11 C05-C08 record schema"),
+        ("causal-beta-frontier-evaluate", "evaluate Domain 11 C05-C08 positive and control rows"),
+        ("causal-beta-frontier-replay", "replay Domain 11 C05-C08 deterministic receipts"),
+        ("causal-beta-frontier-metrics", "emit Domain 11 C05-C08 operation metrics"),
+        ("causal-beta-frontier-policy", "emit Domain 11 C05-C08 bounded dispositions"),
+        ("causal-beta-frontier-review", "emit Domain 11 C05-C08 review queue"),
+        ("causal-beta-frontier-quality-gate", "run Domain 11 C05-C08 quality checks"),
+        ("causal-beta-frontier-runtime", "run Domain 11 C05-C08 release rehearsal"),
+        ("causal-beta-frontier-release", "build Domain 11 C05-C08 release manifest"),
+        ("causal-beta-frontier-depth-audit", "run Domain 11 C05-C08 depth audit"),
+        ("causal-beta-frontier-integrity", "run Domain 11 C05-C08 integrity checks"),
+        ("causal-beta-frontier-scenarios", "emit Domain 11 C05-C08 scenario matrix"),
+        ("causal-beta-frontier-validation-matrix", "emit Domain 11 C05-C08 validation matrix"),
+        ("causal-beta-frontier-operational", "emit Domain 11 C05-C08 operational matrix"),
+        ("causal-beta-frontier-boundary", "emit Domain 11 C05-C08 claim boundary"),
+        ("causal-beta-frontier-summary", "emit Domain 11 C05-C08 summary view"),
+        ("causal-beta-frontier-assurance", "emit Domain 11 C05-C08 assurance statement"),
+        ("causal-beta-frontier-runbook", "emit Domain 11 C05-C08 executable runbook"),
+    )
+    for command_name, command_help in causal_beta_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    for command_name, command_help in (
+        ("export-causal-beta-frontier-review-csv", "export Domain 11 C05-C08 review rows as CSV"),
+        ("export-causal-beta-frontier-review-markdown", "export Domain 11 C05-C08 review rows as Markdown"),
+        ("export-causal-beta-frontier-json", "export Domain 11 C05-C08 release payload as JSON"),
     ):
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("input", nargs="?", default=None)
@@ -8483,6 +8530,78 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.command == "export-causal-foundation-frontier-json":
                 _write_text(causal_foundation_frontier_export_json(runtime), args.output)
+                return 0
+        if args.command.startswith("causal-beta-frontier") or args.command.startswith("export-causal-beta-frontier"):
+            fixture = _read_causal_beta_frontier_fixture(args.input)
+            if args.command == "causal-beta-frontier-data-audit":
+                _write_json(audit_causal_beta_frontier_data(fixture).to_dict(), args.output)
+                return 0
+            runtime = run_causal_beta_frontier_runtime(fixture, run_id="causal-beta-frontier-cli")
+            if args.command == "causal-beta-frontier-runtime":
+                _write_json(runtime.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-contracts":
+                _write_json(runtime.contracts.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-schema":
+                _write_json(runtime.schema.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-evaluate":
+                _write_json(runtime.evaluation.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-replay":
+                _write_json(runtime.replay.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-metrics":
+                _write_json(runtime.metrics.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-policy":
+                _write_json({"policy": runtime.policy.to_dict(), "decisions": [item.to_dict() for item in runtime.decisions]}, args.output)
+                return 0
+            if args.command == "causal-beta-frontier-review":
+                _write_json(runtime.review.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-quality-gate":
+                _write_json(runtime.gate.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-release":
+                _write_json(runtime.release.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-depth-audit":
+                _write_json(runtime.depth.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-integrity":
+                _write_json(runtime.integrity.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-scenarios":
+                _write_json(runtime.scenario.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-validation-matrix":
+                _write_json(runtime.validation.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-operational":
+                _write_json(runtime.operational.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-boundary":
+                _write_json(runtime.boundary.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-summary":
+                _write_json(build_causal_beta_frontier_summary_view(fixture, runtime.metrics, runtime.review, runtime.accepted).to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-assurance":
+                _write_json(runtime.assurance.to_dict(), args.output)
+                return 0
+            if args.command == "causal-beta-frontier-runbook":
+                _write_json(runtime.runbook.to_dict(), args.output)
+                return 0
+            if args.command == "export-causal-beta-frontier-review-csv":
+                _write_text(export_causal_beta_frontier_review_csv(runtime.review_view), args.output)
+                return 0
+            if args.command == "export-causal-beta-frontier-review-markdown":
+                _write_text(export_causal_beta_frontier_review_markdown(runtime.review_view), args.output)
+                return 0
+            if args.command == "export-causal-beta-frontier-json":
+                _write_text(export_causal_beta_frontier_json(runtime.exports), args.output)
                 return 0
         if args.command == "cohort-frontier-data-audit":
             _write_json(

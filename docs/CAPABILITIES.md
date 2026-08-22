@@ -2697,6 +2697,43 @@ allele comparison explicit:
   retains replicate ambiguity, and carries model/version receipts. The delta
   is descriptive and is not proof of causality or clinical effect.
 
+The C05-C08 public aggregate frontier now provides the deeper release plane for
+these four primitives. It is pinned to a 16-row, 5-source fixture with one
+positive and three controls per operation: independent-source minimums,
+directional or negative-control conflict, replicate ambiguity, missing alternate
+alleles, and foreign-context quarantine. Every row has a stable receipt, typed
+payload, expected state floor, issue-code floor, adapter result, lineage edge,
+provenance node, policy disposition, operational action, and review status.
+
+The release rehearsal runs 27 ordered stages and produces 16 content-addressed
+artifacts. The additional planes include schema and contract reports, exact
+metrics, integrity checks, scenario and validation matrices, deterministic
+replay, operational cells, explicit allowed and excluded uses, CSV/Markdown/JSON
+exports, and a compact assurance statement. Four supported positive rows are
+retained for bounded aggregate method review; incomplete rows remain in review,
+while contradictory, ambiguous, and foreign-context controls cannot be promoted.
+
+The C05-C08 command surface is:
+
+```powershell
+glio-noncode causal-beta-frontier-data-audit --output beta-data.json
+glio-noncode causal-beta-frontier-evaluate --output beta-evaluation.json
+glio-noncode causal-beta-frontier-quality-gate --output beta-quality.json
+glio-noncode causal-beta-frontier-runtime --output beta-runtime.json
+glio-noncode causal-beta-frontier-release --output beta-release.json
+glio-noncode causal-beta-frontier-integrity --output beta-integrity.json
+glio-noncode causal-beta-frontier-operational --output beta-operational.json
+glio-noncode causal-beta-frontier-boundary --output beta-boundary.json
+glio-noncode export-causal-beta-frontier-review-csv --output beta-review.csv
+glio-noncode export-causal-beta-frontier-review-markdown --output beta-review.md
+glio-noncode export-causal-beta-frontier-json --output beta-exports.json
+```
+
+The C05-C08 surface remains limited to public aggregate method validation,
+reproducibility testing, research triage, and evidence review. It excludes
+patient-level inference, diagnosis, treatment selection, individual risk
+scoring, and clinical decision support.
+
 The beta command boundaries are:
 
 ```powershell

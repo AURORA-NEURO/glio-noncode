@@ -532,6 +532,48 @@ jobs:
         run: python -m glio_noncode causal-foundation-frontier-validation-matrix --output /tmp/glio-causal-foundation-validation.json
       - name: Causal foundation review CSV
         run: python -m glio_noncode export-causal-foundation-frontier-review-csv --output /tmp/glio-causal-foundation-review.csv
+      - name: Causal beta data boundary audit
+        run: python -m glio_noncode causal-beta-frontier-data-audit --output /tmp/glio-causal-beta-data.json
+      - name: Causal beta contracts
+        run: python -m glio_noncode causal-beta-frontier-contracts --output /tmp/glio-causal-beta-contracts.json
+      - name: Causal beta schema
+        run: python -m glio_noncode causal-beta-frontier-schema --output /tmp/glio-causal-beta-schema.json
+      - name: Causal beta fixture evaluation
+        run: python -m glio_noncode causal-beta-frontier-evaluate --output /tmp/glio-causal-beta-evaluation.json
+      - name: Causal beta replay
+        run: python -m glio_noncode causal-beta-frontier-replay --output /tmp/glio-causal-beta-replay.json
+      - name: Causal beta metrics
+        run: python -m glio_noncode causal-beta-frontier-metrics --output /tmp/glio-causal-beta-metrics.json
+      - name: Causal beta review queue
+        run: python -m glio_noncode causal-beta-frontier-review --output /tmp/glio-causal-beta-review.json
+      - name: Causal beta quality gate
+        run: python -m glio_noncode causal-beta-frontier-quality-gate --output /tmp/glio-causal-beta-quality.json
+      - name: Causal beta runtime rehearsal
+        run: python -m glio_noncode causal-beta-frontier-runtime --output /tmp/glio-causal-beta-runtime.json
+      - name: Causal beta release manifest
+        run: python -m glio_noncode causal-beta-frontier-release --output /tmp/glio-causal-beta-release.json
+      - name: Causal beta depth audit
+        run: python -m glio_noncode causal-beta-frontier-depth-audit --output /tmp/glio-causal-beta-depth.json
+      - name: Causal beta integrity
+        run: python -m glio_noncode causal-beta-frontier-integrity --output /tmp/glio-causal-beta-integrity.json
+      - name: Causal beta scenario matrix
+        run: python -m glio_noncode causal-beta-frontier-scenarios --output /tmp/glio-causal-beta-scenarios.json
+      - name: Causal beta validation matrix
+        run: python -m glio_noncode causal-beta-frontier-validation-matrix --output /tmp/glio-causal-beta-validation.json
+      - name: Causal beta operational matrix
+        run: python -m glio_noncode causal-beta-frontier-operational --output /tmp/glio-causal-beta-operational.json
+      - name: Causal beta claim boundary
+        run: python -m glio_noncode causal-beta-frontier-boundary --output /tmp/glio-causal-beta-boundary.json
+      - name: Causal beta assurance
+        run: python -m glio_noncode causal-beta-frontier-assurance --output /tmp/glio-causal-beta-assurance.json
+      - name: Causal beta runbook
+        run: python -m glio_noncode causal-beta-frontier-runbook --output /tmp/glio-causal-beta-runbook.json
+      - name: Causal beta review CSV
+        run: python -m glio_noncode export-causal-beta-frontier-review-csv --output /tmp/glio-causal-beta-review.csv
+      - name: Causal beta review Markdown
+        run: python -m glio_noncode export-causal-beta-frontier-review-markdown --output /tmp/glio-causal-beta-review.md
+      - name: Causal beta export bundle
+        run: python -m glio_noncode export-causal-beta-frontier-json --output /tmp/glio-causal-beta-exports.json
       - name: Cohort frontier data boundary audit
         run: python -m glio_noncode cohort-frontier-data-audit --output /tmp/glio-cohort-frontier-data.json
       - name: Cohort frontier operation contracts

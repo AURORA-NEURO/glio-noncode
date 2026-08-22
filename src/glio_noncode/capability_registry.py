@@ -3659,50 +3659,97 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D11-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.causal_beta.SequenceToElementCausalMediator",
+                    "glio_noncode.causal_beta_frontier_public_data",
+                    "glio_noncode.causal_beta_frontier_adapters",
+                    "glio_noncode.causal_beta_frontier_fixture_eval",
+                    "glio_noncode.causal_beta_frontier_contracts",
+                    "glio_noncode.causal_beta_frontier_schema",
+                    "glio_noncode.causal_beta_frontier_quality_gate",
+                    "glio_noncode.causal_beta_frontier_runtime",
+                    "glio_noncode.causal_beta_frontier_release",
+                    "glio_noncode.causal_beta_frontier_exports",
+                    "glio_noncode.causal_beta_frontier_claim_boundary",
                 ),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_depth", "tests.test_causal_beta_frontier_cli"),
                 "evidence_note": (
-                    "Sequence-to-element mediator evidence is parsed with row-level quarantine, "
-                    "exact-context gates, independent-source minimums, sensitivity receipts, "
-                    "negative controls, and contradiction retention; causal calibration and "
-                    "external validation remain."
+                    "Sequence-to-element mediator evidence is replayed through a public aggregate "
+                    "fixture with positive, minimum-source, directional-conflict, and foreign-context "
+                    "controls. Contracts, schema, metrics, lineage, provenance, policy, review, "
+                    "quality, release, exports, and explicit claim boundaries are verified; causal "
+                    "calibration and external validation remain."
                 ),
             },
             "GNC-D11-C06": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.causal_beta.ElementToGeneCausalMediator",),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_beta.ElementToGeneCausalMediator",
+                    "glio_noncode.causal_beta_frontier_public_data",
+                    "glio_noncode.causal_beta_frontier_adapters",
+                    "glio_noncode.causal_beta_frontier_fixture_eval",
+                    "glio_noncode.causal_beta_frontier_lineage",
+                    "glio_noncode.causal_beta_frontier_provenance",
+                    "glio_noncode.causal_beta_frontier_integrity",
+                    "glio_noncode.causal_beta_frontier_operational",
+                    "glio_noncode.causal_beta_frontier_runtime",
+                    "glio_noncode.causal_beta_frontier_release",
+                ),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_operational"),
                 "evidence_note": (
-                    "Element-to-gene mediator paths retain exact context, source/version "
-                    "lineage, directional disagreement, independent-source support, and "
-                    "bounded sensitivity; a supported path is not a causal or clinical claim."
+                    "Element-to-gene paths retain exact context, source/version lineage, directional "
+                    "disagreement, independent-source support, deterministic replay, and bounded "
+                    "operational dispositions. The public fixture verifies positive, incomplete, "
+                    "conflicting, foreign-context, release, and excluded-use behavior; a supported "
+                    "path is not a causal or clinical claim."
                 ),
             },
             "GNC-D11-C07": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.causal_beta.GeneToStateCausalMediator",),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_beta.GeneToStateCausalMediator",
+                    "glio_noncode.causal_beta_frontier_public_data",
+                    "glio_noncode.causal_beta_frontier_adapters",
+                    "glio_noncode.causal_beta_frontier_fixture_eval",
+                    "glio_noncode.causal_beta_frontier_metrics",
+                    "glio_noncode.causal_beta_frontier_policy",
+                    "glio_noncode.causal_beta_frontier_review",
+                    "glio_noncode.causal_beta_frontier_quality_gate",
+                    "glio_noncode.causal_beta_frontier_runtime",
+                    "glio_noncode.causal_beta_frontier_assurance",
+                ),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_depth"),
                 "evidence_note": (
-                    "Gene-to-state mediator evidence preserves state-specific context, "
-                    "negative evidence, source disagreement, uncertainty, model receipts, "
-                    "and explicit abstention/out-of-domain behavior; state effects require "
-                    "perturbation and transport validation."
+                    "Gene-to-state evidence preserves state-specific context, negative evidence, "
+                    "source disagreement, uncertainty, model receipts, explicit abstention and "
+                    "out-of-domain behavior. Public aggregate controls verify negative-control "
+                    "conflict, release blocking, review coverage, and the non-clinical claim "
+                    "boundary; state effects require perturbation and transport validation."
                 ),
             },
             "GNC-D11-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.causal_beta.CounterfactualAlleleStateSimulator",
+                    "glio_noncode.causal_beta_frontier_public_data",
+                    "glio_noncode.causal_beta_frontier_adapters",
+                    "glio_noncode.causal_beta_frontier_fixture_eval",
+                    "glio_noncode.causal_beta_frontier_scenario_matrix",
+                    "glio_noncode.causal_beta_frontier_validation_matrix",
+                    "glio_noncode.causal_beta_frontier_replay",
+                    "glio_noncode.causal_beta_frontier_runtime",
+                    "glio_noncode.causal_beta_frontier_release",
+                    "glio_noncode.causal_beta_frontier_exports",
                 ),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli"),
+                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_depth", "tests.test_causal_beta_frontier_cli"),
                 "evidence_note": (
                     "Reference/alternate allele-state comparisons report exact-context values, "
-                    "replicate ambiguity, allele coverage, and alternate-minus-reference "
-                    "deltas with model/version lineage; the output is descriptive and does "
-                    "not establish causality or clinical effect."
+                    "replicate ambiguity, allele coverage, and alternate-minus-reference deltas "
+                    "with model/version lineage. Positive, missing-alternate, ambiguity, and "
+                    "foreign-context controls are replayed through policy, review, release, and "
+                    "export checks; the output is descriptive and does not establish causality "
+                    "or clinical effect."
                 ),
             },
             "GNC-D11-C09": {
