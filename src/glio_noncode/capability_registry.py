@@ -3003,53 +3003,77 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D09-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_context.ContactMatrixParser",
                     "glio_noncode.topology_context.TadBoundaryParser",
+                    "glio_noncode.topology_context_frontier_public_data.TopologyContextFrontierFixture",
+                    "glio_noncode.topology_context_frontier_adapters.execute_topology_context_frontier_record",
+                    "glio_noncode.topology_context_frontier_fixture_eval.evaluate_topology_context_frontier_fixture",
+                    "glio_noncode.topology_context_frontier_candidate_depth.audit_topology_context_frontier_candidates",
+                    "glio_noncode.topology_context_frontier_provenance.build_topology_context_frontier_provenance",
+                    "glio_noncode.topology_context_frontier_pipeline.run_topology_context_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_topology_context",),
+                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
                 "evidence_note": (
                     "Hi-C and Micro-C long-form contacts and TAD boundary rows preserve assay, "
                     "source version, raw hashes, coordinate conversion, malformed-row issues, "
-                    "and context keys; locked source conformance fixtures remain."
+                    "and context keys; aggregate positive, ambiguity, foreign-context, replay, "
+                    "quality, and release fixtures are deterministic."
                 ),
             },
             "GNC-D09-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_context.ContactMatrixQcEvaluator",
                     "glio_noncode.topology_context.ContactMatrixNormalizer",
+                    "glio_noncode.topology_context_frontier_metrics.build_topology_context_frontier_metrics",
+                    "glio_noncode.topology_context_frontier_schema.validate_topology_context_frontier_schema",
+                    "glio_noncode.topology_context_frontier_quality_gate.build_topology_context_frontier_quality",
+                    "glio_noncode.topology_context_frontier_replay.replay_topology_context_frontier",
                 ),
-                "test_modules": ("tests.test_topology_context",),
+                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
                 "evidence_note": (
                     "Contact QC reports duplicates, zero rows, signal summaries, and explicit "
                     "partial states; mean/max transforms retain provenance and do not claim ICE "
-                    "or assay-bias correction."
+                    "or assay-bias correction. The public matrix controls cover empty, foreign, "
+                    "duplicate, zero-signal, normalization, and release states."
                 ),
             },
             "GNC-D09-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_context.TadBoundaryEnsembleBuilder",
+                    "glio_noncode.topology_context_frontier_delta_depth.audit_topology_context_frontier_deltas",
+                    "glio_noncode.topology_context_frontier_lineage.build_topology_context_frontier_lineage",
+                    "glio_noncode.topology_context_frontier_review_queue.build_topology_context_frontier_review_queue",
+                    "glio_noncode.topology_context_frontier_views.build_topology_context_frontier_view",
                 ),
-                "test_modules": ("tests.test_topology_context",),
+                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
                 "evidence_note": (
                     "Tolerance-bounded boundary clusters retain assay identities, competing "
                     "clusters, agreement, context gating, and ambiguity; external calibration, "
-                    "negative controls, transport, and OOD evaluation remain."
+                    "negative controls, transport, and OOD evaluation remain separate while "
+                    "the aggregate fixture verifies positive, partial, ambiguous, and foreign paths."
                 ),
             },
             "GNC-D09-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_context.InsulationScoreDeltaEstimator",
+                    "glio_noncode.topology_context_frontier_policy.evaluate_topology_context_frontier_policy",
+                    "glio_noncode.topology_context_frontier_integrity.evaluate_topology_context_frontier_integrity",
+                    "glio_noncode.topology_context_frontier_compliance.evaluate_topology_context_frontier_boundary",
+                    "glio_noncode.topology_context_frontier_bundle.build_topology_context_frontier_bundle",
+                    "glio_noncode.topology_context_frontier_artifacts.build_topology_context_frontier_artifacts",
                 ),
-                "test_modules": ("tests.test_topology_context",),
+                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
                 "evidence_note": (
                     "Reference-to-alternate insulation deltas retain direction, missingness, "
                     "zero-baseline guards, replicate count, and research-use limitations; "
-                    "external benchmark calibration remains."
+                    "external benchmark calibration remains. The public release adds invalid, "
+                    "missing, foreign-context, direction, lineage, policy, bundle, and artifact "
+                    "receipts."
                 ),
             },
             "GNC-D09-C05": {

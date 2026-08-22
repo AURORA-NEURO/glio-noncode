@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 180 capabilities have deterministic fixture-backed
-verification and 76 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 70.31% of the 256-capability
-catalog; MVP implementation coverage is 68.75%. The surfaces retain
+capabilities started (100%); 184 capabilities have deterministic fixture-backed
+verification and 72 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 71.88% of the 256-capability
+catalog; MVP implementation coverage is 75.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 180 capabilities are verified against the checked-in
-aggregate fixtures, while 76 capabilities remain partial. Partial
+capabilities started (100%); 184 capabilities are verified against the checked-in
+aggregate fixtures, while 72 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -2090,6 +2090,82 @@ The parser boundaries are:
 ```powershell
 glio-noncode parse-contacts contacts.tsv --assay hi-c --output contacts.json
 glio-noncode parse-boundaries boundaries.tsv --assay micro-c --output boundaries.json
+```
+
+### Domain 09 C01-C04 topology context evidence gate
+
+The Domain 09 C01-C04 tranche binds contact import, matrix QC, boundary
+ensembles, and insulation deltas to a closed public aggregate fixture. It has
+one positive path and three controls per operation, sixteen records total, four
+public source receipts, and one exact GRCh38 glioma adult stem-like core
+context. Payloads contain no subject-level identifiers.
+
+- C01 `contact_import` parses Hi-C and Micro-C-shaped long-form rows, converts
+  coordinates through the existing parser, retrieves exact assay/context pairs,
+  and preserves supported, partial, ambiguous, and foreign-context states.
+- C02 `matrix_qc` reports duplicate canonical pairs, zero signals, signal
+  ranges, mean/max normalization, empty input, and foreign-context exclusion.
+- C03 `boundary_ensemble` clusters caller and assay observations within a
+  declared tolerance and retains single-assay, multi-assay, competing-cluster,
+  malformed, and foreign-context evidence.
+- C04 `insulation_delta` retains alternate-minus-reference direction,
+  relative-delta missingness, replicate count, zero-baseline behavior, invalid
+  scores, and foreign-context controls.
+
+The release layer adds typed contracts, schema checks, source closure, fixture
+evaluation, replay receipts, metrics, policy decisions, reconciliation,
+quality gates, boundary checks, integrity invariants, depth audits, candidate
+and delta audits, validation matrices, scenarios, accessibility, review
+queues, views, reports, runbook steps, bundles, artifact inventories, and a
+twelve-stage runtime. The provenance graph explicitly closes source receipts
+to record envelopes and result addresses, including one-to-many source reuse.
+Every result remains descriptive topology evidence; the
+package makes no causal, clinical, enhancer, or target-gene conclusion.
+
+The stored receipt surfaces are deliberately separable: parser issues remain
+on the adapter result, QC fields remain beside normalized values, boundary
+clusters retain observation IDs and assay IDs, and insulation measurements
+retain raw hashes and replicate counts. A downstream review can therefore
+inspect the exact evidence boundary without reconstructing source rows from a
+single summary score.
+
+The negative controls are also operation-specific. Contact ambiguity comes
+from multiple exact-context matches; matrix partialness comes from duplicate
+or zero-signal rows; boundary ambiguity comes from equally supported distant
+clusters; and insulation abstention comes from a missing baseline score. A
+foreign-context control is retained for each surface so transport is never
+silently assumed. The resulting review queue has twelve non-supported rows,
+while the accepted release still carries all sixteen result addresses.
+
+The runtime ordering is fixed: data and contracts are checked before source
+closure; evaluation feeds schema, metrics, lineage, provenance, policy, and
+reconciliation; quality precedes boundary, integrity, depth, validation,
+accessibility, review, and release; and the final inventory records every
+bundle member and result address. This ordering makes a failed control visible
+at the stage where it first becomes relevant and keeps later artifacts from
+appearing to validate a missing input.
+
+The command facade exposes the same bounded outputs used by the pipeline:
+fixture JSON, data audit, evaluation, replay, quality, contracts, adapters,
+schema, sources, export, review, and the full runtime. Each command is
+deterministic for the checked-in aggregate fixture, writes no private rows,
+and preserves enough receipt information for a reviewer to compare runs.
+
+The complete command surface is:
+
+```powershell
+glio-noncode topology-context-frontier-fixture --output topology-fixture.json
+glio-noncode topology-context-frontier-data --output topology-data.json
+glio-noncode topology-context-frontier-evaluate --output topology-evaluation.json
+glio-noncode topology-context-frontier-replay --output topology-replay.json
+glio-noncode topology-context-frontier-quality --output topology-quality.json
+glio-noncode topology-context-frontier-contracts --output topology-contracts.json
+glio-noncode topology-context-frontier-adapters --output topology-adapters.json
+glio-noncode topology-context-frontier-schema --output topology-schema.json
+glio-noncode topology-context-frontier-sources --output topology-sources.json
+glio-noncode topology-context-frontier-export --output topology-export.json
+glio-noncode topology-context-frontier-review --output topology-review.json
+glio-noncode run-topology-context-frontier-pipeline --output topology-pipeline.json
 ```
 
 The Domain 09 scientific-beta extensions add topology-specific adapters and

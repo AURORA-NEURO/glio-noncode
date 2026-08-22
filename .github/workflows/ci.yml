@@ -824,3 +824,13 @@ jobs:
         run: python -m glio_noncode cell-context-alpha-frontier-export --output /tmp/glio-cell-context-alpha-export.json && python -m glio_noncode cell-context-alpha-frontier-review --output /tmp/glio-cell-context-alpha-review.json
       - name: Cell context alpha frontier end-to-end pipeline
         run: python -m glio_noncode run-cell-context-alpha-frontier-pipeline --output /tmp/glio-cell-context-alpha-pipeline.json
+      - name: Topology context frontier fixture and audit
+        run: python -m glio_noncode topology-context-frontier-fixture --output /tmp/glio-topology-context-fixture.json && python -m glio_noncode topology-context-frontier-data --output /tmp/glio-topology-context-data.json
+      - name: Topology context frontier contracts and schema
+        run: python -m glio_noncode topology-context-frontier-contracts --output /tmp/glio-topology-context-contracts.json && python -m glio_noncode topology-context-frontier-schema --output /tmp/glio-topology-context-schema.json && python -m glio_noncode topology-context-frontier-sources --output /tmp/glio-topology-context-sources.json
+      - name: Topology context frontier evaluation and quality
+        run: python -m glio_noncode topology-context-frontier-evaluate --output /tmp/glio-topology-context-evaluation.json && python -m glio_noncode topology-context-frontier-quality --output /tmp/glio-topology-context-quality.json && python -m glio_noncode topology-context-frontier-replay --output /tmp/glio-topology-context-replay.json
+      - name: Topology context frontier review exports
+        run: python -m glio_noncode topology-context-frontier-export --output /tmp/glio-topology-context-export.json && python -m glio_noncode topology-context-frontier-review --output /tmp/glio-topology-context-review.json
+      - name: Topology context frontier end-to-end pipeline
+        run: python -m glio_noncode run-topology-context-frontier-pipeline --output /tmp/glio-topology-context-pipeline.json
