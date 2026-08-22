@@ -804,3 +804,13 @@ jobs:
         run: python -m glio_noncode cell-context-frontier-evaluate --output /tmp/glio-cell-context-evaluation.json && python -m glio_noncode cell-context-frontier-quality --output /tmp/glio-cell-context-quality.json && python -m glio_noncode cell-context-frontier-replay --output /tmp/glio-cell-context-replay.json
       - name: Cell context frontier end-to-end pipeline
         run: python -m glio_noncode run-cell-context-frontier-pipeline --output /tmp/glio-cell-context-pipeline.json
+      - name: Cell context beta frontier fixture and audit
+        run: python -m glio_noncode cell-context-beta-frontier-fixture --output /tmp/glio-cell-context-beta-fixture.json && python -m glio_noncode cell-context-beta-frontier-data --output /tmp/glio-cell-context-beta-data.json
+      - name: Cell context beta frontier contracts and schema
+        run: python -m glio_noncode cell-context-beta-frontier-contracts --output /tmp/glio-cell-context-beta-contracts.json && python -m glio_noncode cell-context-beta-frontier-schema --output /tmp/glio-cell-context-beta-schema.json && python -m glio_noncode cell-context-beta-frontier-sources --output /tmp/glio-cell-context-beta-sources.json
+      - name: Cell context beta frontier evaluation and quality
+        run: python -m glio_noncode cell-context-beta-frontier-evaluate --output /tmp/glio-cell-context-beta-evaluation.json && python -m glio_noncode cell-context-beta-frontier-quality --output /tmp/glio-cell-context-beta-quality.json && python -m glio_noncode cell-context-beta-frontier-replay --output /tmp/glio-cell-context-beta-replay.json
+      - name: Cell context beta frontier review exports
+        run: python -m glio_noncode cell-context-beta-frontier-export --output /tmp/glio-cell-context-beta-export.json && python -m glio_noncode cell-context-beta-frontier-review --output /tmp/glio-cell-context-beta-review.json
+      - name: Cell context beta frontier end-to-end pipeline
+        run: python -m glio_noncode run-cell-context-beta-frontier-pipeline --output /tmp/glio-cell-context-beta-pipeline.json

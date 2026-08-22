@@ -2729,13 +2729,23 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D08-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_beta.DevelopmentalLineagePrior",
+                    "glio_noncode.cell_context_beta_frontier_public_data",
+                    "glio_noncode.cell_context_beta_frontier_adapters",
+                    "glio_noncode.cell_context_beta_frontier_fixture_eval",
+                    "glio_noncode.cell_context_beta_frontier_contracts",
+                    "glio_noncode.cell_context_beta_frontier_schema",
+                    "glio_noncode.cell_context_beta_frontier_metrics",
+                    "glio_noncode.cell_context_beta_frontier_policy",
+                    "glio_noncode.cell_context_beta_frontier_quality_gate",
+                    "glio_noncode.cell_context_beta_frontier_pipeline",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_beta",
                     "tests.test_cell_context_beta_cli",
+                    "tests.test_cell_context_beta_frontier",
                 ),
                 "evidence_note": (
                     "Adult/pediatric developmental-lineage priors aggregate exact-context, "
@@ -2744,13 +2754,23 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D08-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_beta.GlioblastomaMalignantStatePrior",
+                    "glio_noncode.cell_context_beta_frontier_gate_depth",
+                    "glio_noncode.cell_context_beta_frontier_candidate_depth",
+                    "glio_noncode.cell_context_beta_frontier_depth",
+                    "glio_noncode.cell_context_beta_frontier_lineage",
+                    "glio_noncode.cell_context_beta_frontier_reconciliation",
+                    "glio_noncode.cell_context_beta_frontier_release",
+                    "glio_noncode.cell_context_beta_frontier_bundle",
+                    "glio_noncode.cell_context_beta_frontier_artifacts",
+                    "glio_noncode.cell_context_beta_frontier_runtime",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_beta",
                     "tests.test_cell_context_beta_cli",
+                    "tests.test_cell_context_beta_frontier",
                 ),
                 "evidence_note": (
                     "Glioblastoma malignant-state priors require an explicit glioblastoma/GBM "
@@ -2759,13 +2779,23 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D08-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_beta.IdhMutantLineageStatePrior",
+                    "glio_noncode.cell_context_beta_frontier_public_data",
+                    "glio_noncode.cell_context_beta_frontier_source_registry",
+                    "glio_noncode.cell_context_beta_frontier_observability",
+                    "glio_noncode.cell_context_beta_frontier_replay",
+                    "glio_noncode.cell_context_beta_frontier_exports",
+                    "glio_noncode.cell_context_beta_frontier_views",
+                    "glio_noncode.cell_context_beta_frontier_review_queue",
+                    "glio_noncode.cell_context_beta_frontier_reports",
+                    "glio_noncode.cell_context_beta_frontier_runbook",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_beta",
                     "tests.test_cell_context_beta_cli",
+                    "tests.test_cell_context_beta_frontier",
                 ),
                 "evidence_note": (
                     "IDH-mutant lineage/state priors require a declared molecular-state gate and "
@@ -2774,13 +2804,24 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D08-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_beta.H3K27AlteredDevelopmentalStatePrior",
+                    "glio_noncode.cell_context_beta_frontier_compliance",
+                    "glio_noncode.cell_context_beta_frontier_checks",
+                    "glio_noncode.cell_context_beta_frontier_thresholds",
+                    "glio_noncode.cell_context_beta_frontier_validation_matrix",
+                    "glio_noncode.cell_context_beta_frontier_scenario_matrix",
+                    "glio_noncode.cell_context_beta_frontier_accessibility",
+                    "glio_noncode.cell_context_beta_frontier_integrity",
+                    "glio_noncode.cell_context_beta_frontier_catalog",
+                    "glio_noncode.cell_context_beta_frontier_cli",
+                    "glio_noncode.cell_context_beta_frontier_pipeline",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_beta",
                     "tests.test_cell_context_beta_cli",
+                    "tests.test_cell_context_beta_frontier",
                 ),
                 "evidence_note": (
                     "H3K27-altered developmental-state priors preserve declared state gates, "

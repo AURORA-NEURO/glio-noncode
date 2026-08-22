@@ -296,6 +296,10 @@ from .sequence_regulation_frontier_cli import run_sequence_regulation_operation
 from .chromatin_alpha_frontier_cli import run_chromatin_alpha_frontier_operation
 from .chromatin_context_frontier_cli import run_chromatin_context_frontier_operation
 from .cell_context_frontier_cli import CELL_CONTEXT_FRONTIER_COMMANDS, run_cell_context_frontier_operation
+from .cell_context_beta_frontier_cli import (
+    CELL_CONTEXT_BETA_FRONTIER_COMMANDS,
+    run_cell_context_beta_frontier_operation,
+)
 from .methylation_frontier_cli import run_methylation_frontier_operation
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
@@ -4618,6 +4622,13 @@ def build_parser() -> argparse.ArgumentParser:
             help="inspect the Domain 08 C01-C04 public aggregate context plane",
         )
         cell_context_frontier_parser.add_argument("--output", default=None)
+
+    for cell_context_beta_frontier_command in CELL_CONTEXT_BETA_FRONTIER_COMMANDS:
+        cell_context_beta_frontier_parser = subparsers.add_parser(
+            cell_context_beta_frontier_command,
+            help="inspect the Domain 08 C05-C08 public aggregate prior plane",
+        )
+        cell_context_beta_frontier_parser.add_argument("--output", default=None)
 
     methylation_parse = subparsers.add_parser(
         "parse-methylation",
@@ -10556,6 +10567,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command in CELL_CONTEXT_FRONTIER_COMMANDS:
             _write_json(run_cell_context_frontier_operation(args.command), args.output)
+            return 0
+        if args.command in CELL_CONTEXT_BETA_FRONTIER_COMMANDS:
+            _write_json(run_cell_context_beta_frontier_operation(args.command), args.output)
             return 0
         if args.command == "parse-context":
             input_path = Path(args.input)

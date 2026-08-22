@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 172 capabilities have deterministic fixture-backed
-verification and 84 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 67.19% of the 256-capability
+capabilities started (100%); 176 capabilities have deterministic fixture-backed
+verification and 80 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 68.75% of the 256-capability
 catalog; MVP implementation coverage is 68.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 172 capabilities are verified against the checked-in
-aggregate fixtures, while 84 capabilities remain partial. Partial
+capabilities started (100%); 176 capabilities are verified against the checked-in
+aggregate fixtures, while 80 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1923,6 +1923,58 @@ The C01-C04 depth surface proves the following boundaries:
   independent, retaining missingness, contradiction, and uncertainty.
 - `CellStateContextAssembler` propagates the weakest dimension and exposes
   one-to-many territory candidates without silently selecting a label.
+
+### Domain 08 C05-C08 beta context-prior evidence gate
+
+The Domain 08 C05-C08 tranche binds the four scientific-beta context priors to
+a fresh public aggregate fixture. It contains one positive path and three
+controls for each operation: developmental-lineage context, glioblastoma
+malignant-state context, IDH-mutant lineage-state context, and H3K27-altered
+developmental-state context. The fixture has sixteen records, four public
+source receipts, four target context families, and no subject-level payload
+keys.
+
+The adapter layer parses versioned observations, preserves source versions and
+candidate evidence, and maps parser quarantine to a partial state without
+discarding usable rows. The four control families prove that close candidates
+remain ambiguous, wrong disease or molecular gates remain out of domain, and
+bounded uncertainty is retained beside every selected or unselected candidate.
+The release surface does not produce a diagnosis, prognosis, treatment claim,
+or calibrated probability.
+
+The complete command surface is:
+
+```powershell
+glio-noncode cell-context-beta-frontier-fixture --output beta-fixture.json
+glio-noncode cell-context-beta-frontier-data --output beta-data.json
+glio-noncode cell-context-beta-frontier-evaluate --output beta-evaluation.json
+glio-noncode cell-context-beta-frontier-quality --output beta-quality.json
+glio-noncode cell-context-beta-frontier-contracts --output beta-contracts.json
+glio-noncode cell-context-beta-frontier-adapters --output beta-adapters.json
+glio-noncode cell-context-beta-frontier-schema --output beta-schema.json
+glio-noncode cell-context-beta-frontier-sources --output beta-sources.json
+glio-noncode cell-context-beta-frontier-replay --output beta-replay.json
+glio-noncode cell-context-beta-frontier-export --output beta-export.json
+glio-noncode cell-context-beta-frontier-review --output beta-review.json
+glio-noncode run-cell-context-beta-frontier-pipeline --output beta-pipeline.json
+```
+
+The C05-C08 depth surface proves the following boundaries:
+
+- `DevelopmentalLineagePrior` runs adult and pediatric route families with
+  exact-context candidates, support summaries, ambiguity margins, and parser
+  issue receipts.
+- `GlioblastomaMalignantStatePrior` requires an explicit GBM disease gate and
+  preserves malignant-state alternatives without turning a state prior into a
+  disease label.
+- `IdhMutantLineageStatePrior` requires an IDH-mutant declaration and refuses
+  IDH-wildtype transport while retaining source versions and evidence tiers.
+- `H3K27AlteredDevelopmentalStatePrior` requires an H3K27-altered declaration,
+  retains developmental alternatives, and keeps pediatric midline context
+  distinct from other molecular routes.
+- The public release adds candidate, gate, uncertainty, integrity, source,
+  replay, policy, queue, bundle, artifact, report, accessibility, and runtime
+  surfaces with a twelve-stage accepted pipeline.
 
 ### Domain 08 C13-C16 cell-state frontier evidence gate
 

@@ -601,6 +601,195 @@ from .cell_context_frontier_views import (
     CellContextFrontierReviewView,
     build_cell_context_frontier_view,
 )
+from .cell_context_beta_frontier_accessibility import (
+    CellContextBetaFrontierAccessibilityReport,
+    CellContextBetaFrontierOperationAccessibility,
+    evaluate_cell_context_beta_frontier_accessibility,
+)
+from .cell_context_beta_frontier_adapters import (
+    CellContextBetaFrontierAdapterRegistry,
+    CellContextBetaFrontierAdapterResult,
+    CellContextBetaFrontierAdapterSpec,
+    build_cell_context_beta_frontier_adapters,
+    execute_cell_context_beta_frontier_record,
+)
+from .cell_context_beta_frontier_artifacts import (
+    CellContextBetaFrontierArtifact,
+    CellContextBetaFrontierArtifactInventory,
+    build_cell_context_beta_frontier_artifacts,
+)
+from .cell_context_beta_frontier_bundle import (
+    CellContextBetaFrontierBundle,
+    CellContextBetaFrontierBundleMember,
+    build_cell_context_beta_frontier_bundle,
+)
+from .cell_context_beta_frontier_candidate_depth import (
+    CellContextBetaFrontierCandidateDepthReport,
+    CellContextBetaFrontierCandidateObservation,
+    audit_cell_context_beta_frontier_candidates,
+)
+from .cell_context_beta_frontier_catalog import (
+    CellContextBetaFrontierCatalog,
+    CellContextBetaFrontierCatalogEntry,
+    build_cell_context_beta_frontier_catalog,
+)
+from .cell_context_beta_frontier_checks import (
+    CellContextBetaFrontierInvariant,
+    CellContextBetaFrontierInvariantReport,
+    run_cell_context_beta_frontier_invariants,
+)
+from .cell_context_beta_frontier_cli import (
+    CELL_CONTEXT_BETA_FRONTIER_COMMANDS,
+    run_cell_context_beta_frontier_operation,
+)
+from .cell_context_beta_frontier_compliance import (
+    CellContextBetaFrontierBoundaryCheck,
+    CellContextBetaFrontierBoundaryReport,
+    evaluate_cell_context_beta_frontier_boundary,
+)
+from .cell_context_beta_frontier_contracts import (
+    CellContextBetaFrontierContract,
+    CellContextBetaFrontierContractReport,
+    build_cell_context_beta_frontier_contracts,
+)
+from .cell_context_beta_frontier_depth import (
+    CellContextBetaFrontierDepthDimension,
+    CellContextBetaFrontierDepthReport,
+    audit_cell_context_beta_frontier_depth,
+)
+from .cell_context_beta_frontier_exports import (
+    export_cell_context_beta_frontier_manifest,
+    export_cell_context_beta_frontier_review_csv,
+    render_cell_context_beta_frontier_review_markdown,
+)
+from .cell_context_beta_frontier_fixture_eval import (
+    CellContextBetaFrontierEvaluation,
+    CellContextBetaFrontierEvaluationRow,
+    evaluate_cell_context_beta_frontier_fixture,
+)
+from .cell_context_beta_frontier_gate_depth import (
+    CellContextBetaFrontierGateDepthReport,
+    CellContextBetaFrontierGateObservation,
+    audit_cell_context_beta_frontier_gates,
+)
+from .cell_context_beta_frontier_integrity import (
+    CellContextBetaFrontierIntegrityCheck,
+    CellContextBetaFrontierIntegrityReport,
+    evaluate_cell_context_beta_frontier_integrity,
+)
+from .cell_context_beta_frontier_lineage import (
+    CellContextBetaFrontierLineage,
+    CellContextBetaFrontierLineageEdge,
+    build_cell_context_beta_frontier_lineage,
+)
+from .cell_context_beta_frontier_metrics import (
+    CellContextBetaFrontierMetric,
+    CellContextBetaFrontierMetrics,
+    build_cell_context_beta_frontier_metrics,
+)
+from .cell_context_beta_frontier_observability import (
+    CellContextBetaFrontierObservabilityReport,
+    CellContextBetaFrontierTraceEvent,
+    build_cell_context_beta_frontier_trace,
+)
+from .cell_context_beta_frontier_pipeline import (
+    CellContextBetaFrontierPipelineReport,
+    CellContextBetaFrontierStage,
+    run_cell_context_beta_frontier_pipeline,
+)
+from .cell_context_beta_frontier_policy import (
+    CellContextBetaFrontierPolicyDecision,
+    CellContextBetaFrontierPolicyReport,
+    evaluate_cell_context_beta_frontier_policy,
+)
+from .cell_context_beta_frontier_public_data import (
+    CELL_CONTEXT_BETA_FRONTIER_BOUNDARY,
+    CELL_CONTEXT_BETA_FRONTIER_CONTEXT_KEY,
+    CELL_CONTEXT_BETA_FRONTIER_FIXTURE_VERSION,
+    CELL_CONTEXT_BETA_FRONTIER_GBM_CONTEXT_KEY,
+    CELL_CONTEXT_BETA_FRONTIER_H3_CONTEXT_KEY,
+    CELL_CONTEXT_BETA_FRONTIER_IDH_CONTEXT_KEY,
+    CellContextBetaFrontierDataAudit,
+    CellContextBetaFrontierDataCheck,
+    CellContextBetaFrontierExpectedState,
+    CellContextBetaFrontierFixture,
+    CellContextBetaFrontierOperation,
+    CellContextBetaFrontierRecord,
+    CellContextBetaFrontierRole,
+    CellContextBetaFrontierSourceReceipt,
+    audit_cell_context_beta_frontier_data,
+    default_cell_context_beta_frontier_fixture,
+)
+from .cell_context_beta_frontier_quality_gate import (
+    CellContextBetaFrontierQualityCheck,
+    CellContextBetaFrontierQualityReport,
+    build_cell_context_beta_frontier_quality,
+)
+from .cell_context_beta_frontier_reconciliation import (
+    CellContextBetaFrontierReconciliation,
+    CellContextBetaFrontierReconciliationItem,
+    reconcile_cell_context_beta_frontier,
+)
+from .cell_context_beta_frontier_release import (
+    CellContextBetaFrontierReleaseManifest,
+    build_cell_context_beta_frontier_release,
+)
+from .cell_context_beta_frontier_replay import (
+    CellContextBetaFrontierReplayReceipt,
+    replay_cell_context_beta_frontier,
+    replay_cell_context_beta_frontier_evaluation,
+)
+from .cell_context_beta_frontier_reports import (
+    CellContextBetaFrontierReport,
+    CellContextBetaFrontierReportSection,
+    build_cell_context_beta_frontier_report,
+)
+from .cell_context_beta_frontier_review_queue import (
+    CellContextBetaFrontierQueueItem,
+    CellContextBetaFrontierReviewQueue,
+    build_cell_context_beta_frontier_review_queue,
+)
+from .cell_context_beta_frontier_runbook import (
+    CellContextBetaFrontierRunbook,
+    CellContextBetaFrontierRunbookStep,
+    default_cell_context_beta_frontier_runbook,
+)
+from .cell_context_beta_frontier_runtime import (
+    CellContextBetaFrontierRuntimeOptions,
+    run_cell_context_beta_frontier_runtime,
+)
+from .cell_context_beta_frontier_schema import (
+    CellContextBetaFrontierSchemaCheck,
+    CellContextBetaFrontierSchemaReport,
+    validate_cell_context_beta_frontier_schema,
+)
+from .cell_context_beta_frontier_scenario_matrix import (
+    CellContextBetaFrontierScenario,
+    CellContextBetaFrontierScenarioMatrix,
+    build_cell_context_beta_frontier_scenario_matrix,
+    evaluate_cell_context_beta_frontier_scenarios,
+)
+from .cell_context_beta_frontier_source_registry import (
+    CellContextBetaFrontierSourceEntry,
+    CellContextBetaFrontierSourceRegistry,
+    build_cell_context_beta_frontier_source_registry,
+)
+from .cell_context_beta_frontier_thresholds import (
+    CellContextBetaFrontierThreshold,
+    CellContextBetaFrontierThresholdReport,
+    build_cell_context_beta_frontier_threshold_report,
+)
+from .cell_context_beta_frontier_validation_matrix import (
+    CellContextBetaFrontierValidationCell,
+    CellContextBetaFrontierValidationReport,
+    build_cell_context_beta_frontier_validation_matrix,
+    validate_cell_context_beta_frontier_matrix,
+)
+from .cell_context_beta_frontier_views import (
+    CellContextBetaFrontierReviewRow,
+    CellContextBetaFrontierReviewView,
+    build_cell_context_beta_frontier_view,
+)
 from .chromatin_context_frontier_adapters import (
     ChromatinContextFrontierAdapterRegistry,
     ChromatinContextFrontierAdapterResult,
@@ -9615,6 +9804,125 @@ __all__ += [
     "run_cell_context_frontier_runtime",
     "validate_cell_context_frontier_matrix",
     "validate_cell_context_frontier_schema",
+    "CellContextBetaFrontierAccessibilityReport",
+    "CellContextBetaFrontierAdapterRegistry",
+    "CellContextBetaFrontierAdapterResult",
+    "CellContextBetaFrontierAdapterSpec",
+    "CellContextBetaFrontierArtifact",
+    "CellContextBetaFrontierArtifactInventory",
+    "CellContextBetaFrontierBoundaryCheck",
+    "CellContextBetaFrontierBoundaryReport",
+    "CellContextBetaFrontierBundle",
+    "CellContextBetaFrontierBundleMember",
+    "CellContextBetaFrontierCandidateDepthReport",
+    "CellContextBetaFrontierCandidateObservation",
+    "CellContextBetaFrontierCatalog",
+    "CellContextBetaFrontierCatalogEntry",
+    "CellContextBetaFrontierContract",
+    "CellContextBetaFrontierContractReport",
+    "CellContextBetaFrontierDataAudit",
+    "CellContextBetaFrontierDataCheck",
+    "CellContextBetaFrontierDepthDimension",
+    "CellContextBetaFrontierDepthReport",
+    "CellContextBetaFrontierEvaluation",
+    "CellContextBetaFrontierEvaluationRow",
+    "CellContextBetaFrontierExpectedState",
+    "CellContextBetaFrontierFixture",
+    "CellContextBetaFrontierGateDepthReport",
+    "CellContextBetaFrontierGateObservation",
+    "CellContextBetaFrontierIntegrityCheck",
+    "CellContextBetaFrontierIntegrityReport",
+    "CellContextBetaFrontierInvariant",
+    "CellContextBetaFrontierInvariantReport",
+    "CellContextBetaFrontierLineage",
+    "CellContextBetaFrontierLineageEdge",
+    "CellContextBetaFrontierMetric",
+    "CellContextBetaFrontierMetrics",
+    "CellContextBetaFrontierObservabilityReport",
+    "CellContextBetaFrontierOperation",
+    "CellContextBetaFrontierOperationAccessibility",
+    "CellContextBetaFrontierPipelineReport",
+    "CellContextBetaFrontierPolicyDecision",
+    "CellContextBetaFrontierPolicyReport",
+    "CellContextBetaFrontierQualityCheck",
+    "CellContextBetaFrontierQualityReport",
+    "CellContextBetaFrontierQueueItem",
+    "CellContextBetaFrontierReconciliation",
+    "CellContextBetaFrontierReconciliationItem",
+    "CellContextBetaFrontierRecord",
+    "CellContextBetaFrontierReleaseManifest",
+    "CellContextBetaFrontierReplayReceipt",
+    "CellContextBetaFrontierReport",
+    "CellContextBetaFrontierReportSection",
+    "CellContextBetaFrontierReviewQueue",
+    "CellContextBetaFrontierReviewRow",
+    "CellContextBetaFrontierReviewView",
+    "CellContextBetaFrontierRole",
+    "CellContextBetaFrontierRunbook",
+    "CellContextBetaFrontierRunbookStep",
+    "CellContextBetaFrontierRuntimeOptions",
+    "CellContextBetaFrontierScenario",
+    "CellContextBetaFrontierScenarioMatrix",
+    "CellContextBetaFrontierSchemaCheck",
+    "CellContextBetaFrontierSchemaReport",
+    "CellContextBetaFrontierSourceEntry",
+    "CellContextBetaFrontierSourceReceipt",
+    "CellContextBetaFrontierSourceRegistry",
+    "CellContextBetaFrontierStage",
+    "CellContextBetaFrontierThreshold",
+    "CellContextBetaFrontierThresholdReport",
+    "CellContextBetaFrontierTraceEvent",
+    "CellContextBetaFrontierValidationCell",
+    "CellContextBetaFrontierValidationReport",
+    "audit_cell_context_beta_frontier_accessibility",
+    "audit_cell_context_beta_frontier_candidates",
+    "audit_cell_context_beta_frontier_data",
+    "audit_cell_context_beta_frontier_depth",
+    "audit_cell_context_beta_frontier_gates",
+    "build_cell_context_beta_frontier_adapters",
+    "build_cell_context_beta_frontier_artifacts",
+    "build_cell_context_beta_frontier_bundle",
+    "build_cell_context_beta_frontier_catalog",
+    "build_cell_context_beta_frontier_contracts",
+    "build_cell_context_beta_frontier_lineage",
+    "build_cell_context_beta_frontier_metrics",
+    "build_cell_context_beta_frontier_quality",
+    "build_cell_context_beta_frontier_release",
+    "build_cell_context_beta_frontier_report",
+    "build_cell_context_beta_frontier_review_queue",
+    "build_cell_context_beta_frontier_scenario_matrix",
+    "build_cell_context_beta_frontier_source_registry",
+    "build_cell_context_beta_frontier_threshold_report",
+    "build_cell_context_beta_frontier_trace",
+    "build_cell_context_beta_frontier_validation_matrix",
+    "build_cell_context_beta_frontier_view",
+    "default_cell_context_beta_frontier_fixture",
+    "default_cell_context_beta_frontier_runbook",
+    "evaluate_cell_context_beta_frontier_accessibility",
+    "evaluate_cell_context_beta_frontier_boundary",
+    "evaluate_cell_context_beta_frontier_fixture",
+    "evaluate_cell_context_beta_frontier_integrity",
+    "evaluate_cell_context_beta_frontier_policy",
+    "evaluate_cell_context_beta_frontier_scenarios",
+    "execute_cell_context_beta_frontier_record",
+    "export_cell_context_beta_frontier_manifest",
+    "export_cell_context_beta_frontier_review_csv",
+    "reconcile_cell_context_beta_frontier",
+    "replay_cell_context_beta_frontier",
+    "replay_cell_context_beta_frontier_evaluation",
+    "run_cell_context_beta_frontier_invariants",
+    "run_cell_context_beta_frontier_operation",
+    "run_cell_context_beta_frontier_pipeline",
+    "run_cell_context_beta_frontier_runtime",
+    "validate_cell_context_beta_frontier_matrix",
+    "validate_cell_context_beta_frontier_schema",
+    "CELL_CONTEXT_BETA_FRONTIER_COMMANDS",
+    "CELL_CONTEXT_BETA_FRONTIER_BOUNDARY",
+    "CELL_CONTEXT_BETA_FRONTIER_CONTEXT_KEY",
+    "CELL_CONTEXT_BETA_FRONTIER_FIXTURE_VERSION",
+    "CELL_CONTEXT_BETA_FRONTIER_GBM_CONTEXT_KEY",
+    "CELL_CONTEXT_BETA_FRONTIER_H3_CONTEXT_KEY",
+    "CELL_CONTEXT_BETA_FRONTIER_IDH_CONTEXT_KEY",
 ]
 
 __version__ = "0.1.0"
