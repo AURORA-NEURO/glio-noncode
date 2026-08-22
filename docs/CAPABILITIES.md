@@ -2466,6 +2466,42 @@ glio-noncode model-promoter-tethering tethering.json --minimum-score 0.35 --mini
 glio-noncode build-multi-gene-element-graph link-evidence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-support 0.2 --output multi-gene-graph.json
 ```
 
+### Domain 10 C01-C04 link-graph foundation depth
+
+The C01-C04 foundation tranche closes the first four candidate-link
+operations over a fresh public aggregate fixture. It contains 16 records,
+four records per operation, four positive records, twelve controls, and five
+versioned source receipts. Every row is replayed through the existing typed
+primitives and retains expected state, issue codes, measurements, evidence
+IDs, context, and content addresses.
+
+- C01 `coordinate_overlap` covers supported overlap, multiple-overlap
+  ambiguity, no-overlap absence, and context mismatch.
+- C02 `nearest_gene` covers supported proximity, distance ties, bounded-window
+  abstention, and context mismatch.
+- C03 `ccre_assignment` covers supported assignment, multiple cCRE ambiguity,
+  absent cCRE, and context mismatch.
+- C04 `enhancer_gene_consensus` covers multi-method support, single-method
+  partial state, contradictory evidence, and context mismatch.
+
+The assurance surface adds operation contracts, receipt ledgers, normalized
+records, stable field projections, benchmark cases, comparison cells,
+regression sentinels, conformance rules, named invariants, resource budgets,
+decision traces, provenance matrices, risk controls, quality dashboards, and
+release readiness. The ordered workflow has six passing stages and remains a
+public aggregate research boundary.
+
+```powershell
+glio-noncode link-graph-foundation-frontier-fixture --output link-foundation-fixture.json
+glio-noncode link-graph-foundation-frontier-evaluate --output link-foundation-evaluation.json
+glio-noncode link-graph-foundation-frontier-contracts --output link-foundation-contracts.json
+glio-noncode link-graph-foundation-frontier-schema --output link-foundation-schema.json
+glio-noncode link-graph-foundation-frontier-metrics --output link-foundation-metrics.json
+glio-noncode link-graph-foundation-frontier-review --output link-foundation-review.json
+glio-noncode link-graph-foundation-frontier-release --output link-foundation-release.json
+glio-noncode link-graph-foundation-frontier-summary
+```
+
 ### Domain 10 C09-C12 link-graph alpha depth
 
 The C09-C12 alpha tranche binds the four existing link primitives to one

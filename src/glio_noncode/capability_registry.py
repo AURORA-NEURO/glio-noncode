@@ -3302,45 +3302,59 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D10-C01": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.link_graph.CoordinateOverlapLinker",),
-                "test_modules": ("tests.test_link_graph",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph.CoordinateOverlapLinker",
+                    "glio_noncode.link_graph_foundation_frontier_adapters",
+                    "glio_noncode.link_graph_foundation_frontier_pipeline",
+                ),
+                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
                 "evidence_note": (
-                    "Coordinate-overlap candidates require exact element context and preserve "
-                    "source IDs, alternatives, out-of-domain overlap, and baseline limitations; "
-                    "external benchmark, calibration, transport, and OOD evaluation remain."
+                    "Sixteen public aggregate records and five source receipts replay coordinate "
+                    "overlap with supported, ambiguous, absent, and out-of-domain controls; "
+                    "benchmark, conformance, projection, regression, and release checks pass."
                 ),
             },
             "GNC-D10-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.link_graph.GeneFeatureParser",
                     "glio_noncode.link_graph.NearestGeneBaseline",
+                    "glio_noncode.link_graph_foundation_frontier_adapters",
+                    "glio_noncode.link_graph_foundation_frontier_regression",
                 ),
-                "test_modules": ("tests.test_link_graph",),
+                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
                 "evidence_note": (
-                    "Gene intervals preserve coordinate conversion, source checksums, malformed "
-                    "rows, nearest distance, ties, and distance-window abstention; nearest-gene "
-                    "assignment is not presented as a mechanism."
+                    "Public aggregate nearest-gene rows preserve distance ties, bounded-window "
+                    "abstention, context controls, receipt coverage, and deterministic replay; "
+                    "nearest proximity remains a bounded baseline."
                 ),
             },
             "GNC-D10-C03": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.link_graph.CcreElementAssigner",),
-                "test_modules": ("tests.test_link_graph",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph.CcreElementAssigner",
+                    "glio_noncode.link_graph_foundation_frontier_contracts",
+                    "glio_noncode.link_graph_foundation_frontier_quality_dashboard",
+                ),
+                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
                 "evidence_note": (
-                    "cCRE assignments retain every context-matched overlapping element and report "
-                    "one-to-many ambiguity or context transport without silently selecting an ID."
+                    "cCRE aggregate assignment covers positive, multiple-element, absent, and "
+                    "context-mismatch rows with schema, source, invariant, and acceptance checks."
                 ),
             },
             "GNC-D10-C04": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.link_graph.EnhancerGeneConsensusLinker",),
-                "test_modules": ("tests.test_link_graph",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph.EnhancerGeneConsensusLinker",
+                    "glio_noncode.link_graph_foundation_frontier_decision_trace",
+                    "glio_noncode.link_graph_foundation_frontier_release_readiness",
+                ),
+                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
                 "evidence_note": (
-                    "Enhancer-gene consensus retains method-specific evidence, confidence-weighted "
-                    "support, alternatives, single-method partial status, and contradictions; "
-                    "consensus is not a causal or clinical conclusion."
+                    "Consensus aggregate records retain method-specific evidence, single-method "
+                    "partial status, contradiction visibility, decision traces, risk controls, "
+                    "and release readiness without causal interpretation."
                 ),
             },
             "GNC-D10-C05": {
