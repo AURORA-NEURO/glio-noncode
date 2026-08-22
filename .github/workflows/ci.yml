@@ -866,3 +866,11 @@ jobs:
         run: python -m glio_noncode link-graph-foundation-frontier-release --output /tmp/glio-link-foundation-release.json && python -m glio_noncode link-graph-foundation-frontier-summary --output /tmp/glio-link-foundation-summary.json
       - name: Link graph foundation frontier focused tests
         run: pytest -q tests/test_link_graph_foundation_frontier.py
+      - name: Link graph beta frontier fixture and contracts
+        run: python -m glio_noncode link-graph-beta-frontier-fixture --output /tmp/glio-link-beta-fixture.json && python -m glio_noncode link-graph-beta-frontier-contracts --output /tmp/glio-link-beta-contracts.json && python -m glio_noncode link-graph-beta-frontier-schema --output /tmp/glio-link-beta-schema.json
+      - name: Link graph beta frontier evaluation and review
+        run: python -m glio_noncode link-graph-beta-frontier-evaluate --output /tmp/glio-link-beta-evaluation.json && python -m glio_noncode link-graph-beta-frontier-metrics --output /tmp/glio-link-beta-metrics.json && python -m glio_noncode link-graph-beta-frontier-review --output /tmp/glio-link-beta-review.json
+      - name: Link graph beta frontier release and summary
+        run: python -m glio_noncode link-graph-beta-frontier-release --output /tmp/glio-link-beta-release.json && python -m glio_noncode link-graph-beta-frontier-summary --output /tmp/glio-link-beta-summary.json
+      - name: Link graph beta frontier focused tests
+        run: pytest -q tests/test_link_graph_beta_frontier.py tests/test_link_graph_beta_frontier_depth.py tests/test_link_graph_beta_frontier_integration.py tests/test_link_graph_beta_frontier_operational_matrix.py tests/test_link_graph_beta_frontier_operational_matrix_contracts.py

@@ -2502,6 +2502,50 @@ glio-noncode link-graph-foundation-frontier-release --output link-foundation-rel
 glio-noncode link-graph-foundation-frontier-summary
 ```
 
+### Domain 10 C05-C08 link-graph beta depth
+
+The C05-C08 beta tranche extends the link graph over a fresh public aggregate
+fixture with four independently replayable operations: activity-by-contact,
+coaccessibility, molecular QTL, and allele-specific link evidence. The fixture
+contains 16 records, one positive and three controls per operation, four source
+receipts, a declared GRCh38 glioma stem-like context, and four foreign-context
+controls. No row is patient-level and no result is a causal, clinical, or
+preferred-target conclusion.
+
+- C05 `activity_by_contact` preserves activity, contact, replicate, support,
+  source, and exact-context measurements while retaining single-method and
+  replicate controls.
+- C06 `coaccessibility` preserves path identity and alternative-gene evidence
+  while retaining missing-evidence, alternative-gene, and context-mismatch
+  controls.
+- C07 `molecular_qtl` preserves effect and q-value measurements with a bounded
+  support transform and explicit weak-q-value and missing-evidence controls.
+- C08 `allele_specific` preserves gain/loss direction and retains direction
+  conflicts as contradictory evidence rather than collapsing them.
+
+The beta depth plane is organized as a 12-stage executable pipeline: data
+audit, contracts, sources, typed evaluation, schema, metrics, lineage, quality,
+validation, review, release, and artifacts. Independent modules provide
+adapters, source checks, normalization, projections, comparisons, budgets,
+receipts, policy, decision traces, controls, failures, invariants, scenario
+catalogs, validation orchestration, audit history, traceability, report
+rendering, and bounded runtime output. The complete fixture replays with 16 of
+16 state matches and 16 of 16 issue matches before release readiness is
+calculated. A 96-cell operational matrix cross-checks six dimensions for every
+record and keeps the context, state, issue, receipt, and measurement boundaries
+queryable as one deterministic export.
+
+```powershell
+glio-noncode link-graph-beta-frontier-fixture --output link-beta-fixture.json
+glio-noncode link-graph-beta-frontier-evaluate --output link-beta-evaluation.json
+glio-noncode link-graph-beta-frontier-contracts --output link-beta-contracts.json
+glio-noncode link-graph-beta-frontier-schema --output link-beta-schema.json
+glio-noncode link-graph-beta-frontier-metrics --output link-beta-metrics.json
+glio-noncode link-graph-beta-frontier-review --output link-beta-review.json
+glio-noncode link-graph-beta-frontier-release --output link-beta-release.json
+glio-noncode link-graph-beta-frontier-summary
+```
+
 ### Domain 10 C09-C12 link-graph alpha depth
 
 The C09-C12 alpha tranche binds the four existing link primitives to one

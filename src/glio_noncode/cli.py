@@ -894,6 +894,10 @@ from .link_graph_foundation_frontier_cli import (
     LINK_GRAPH_FOUNDATION_FRONTIER_COMMANDS,
     run_link_graph_foundation_frontier_operation,
 )
+from .link_graph_beta_frontier_cli import (
+    LINK_GRAPH_BETA_FRONTIER_COMMANDS,
+    run_link_graph_beta_frontier_operation,
+)
 from .topology_frontier_contracts import default_topology_frontier_contracts
 from .topology_frontier_exports import (
     export_topology_frontier_metrics_csv,
@@ -4695,6 +4699,13 @@ def build_parser() -> argparse.ArgumentParser:
             help="inspect the Domain 10 C01-C04 public aggregate link plane",
         )
         link_graph_foundation_frontier_parser.add_argument("--output", default=None)
+
+    for link_graph_beta_frontier_command in LINK_GRAPH_BETA_FRONTIER_COMMANDS:
+        link_graph_beta_frontier_parser = subparsers.add_parser(
+            link_graph_beta_frontier_command,
+            help="inspect the Domain 10 C05-C08 public aggregate link plane",
+        )
+        link_graph_beta_frontier_parser.add_argument("--output", default=None)
 
     methylation_parse = subparsers.add_parser(
         "parse-methylation",
@@ -10654,6 +10665,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command in LINK_GRAPH_FOUNDATION_FRONTIER_COMMANDS:
             _write_json(run_link_graph_foundation_frontier_operation(args.command), args.output)
+            return 0
+        if args.command in LINK_GRAPH_BETA_FRONTIER_COMMANDS:
+            _write_json(run_link_graph_beta_frontier_operation(args.command), args.output)
             return 0
         if args.command == "parse-context":
             input_path = Path(args.input)

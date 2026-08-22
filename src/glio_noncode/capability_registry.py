@@ -3358,47 +3358,75 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D10-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.link_graph_beta.ActivityByContactLinkAdapter",
+                    "glio_noncode.link_graph_beta_frontier_adapters.execute_link_graph_beta_frontier_record",
+                    "glio_noncode.link_graph_beta_frontier_pipeline.run_link_graph_beta_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "test_modules": (
+                    "tests.test_link_graph_beta_frontier",
+                    "tests.test_link_graph_beta_frontier_depth",
+                    "tests.test_link_graph_beta_frontier_integration",
+                ),
                 "evidence_note": (
-                    "Activity-by-contact link records preserve activity and contact components, "
-                    "declared scales, variant-element-gene identity, confidence, context, source "
-                    "versions, hashes, and malformed-row quarantine."
+                    "Activity-by-contact records now replay through a closed public aggregate fixture "
+                    "with component measurements, context controls, receipts, lineage, and release "
+                    "artifacts; single-method support remains partial."
                 ),
             },
             "GNC-D10-C06": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.link_graph_beta.CoaccessibilityLinker",),
-                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_beta.CoaccessibilityLinker",
+                    "glio_noncode.link_graph_beta_frontier_adapters.execute_link_graph_beta_frontier_record",
+                    "glio_noncode.link_graph_beta_frontier_schema.validate_link_graph_beta_frontier_schema",
+                ),
+                "test_modules": (
+                    "tests.test_link_graph_beta_frontier",
+                    "tests.test_link_graph_beta_frontier_depth",
+                    "tests.test_link_graph_beta_frontier_integration",
+                ),
                 "evidence_note": (
-                    "Coaccessibility paths become exact-context candidate graph edges with method "
-                    "identity, evidence IDs, source versions, alternatives, and single-method "
-                    "partial state; calibration and negative controls remain."
+                    "Coaccessibility paths are evaluated with alternative-gene, missing-evidence, "
+                    "and foreign-context controls while preserving exact-context graph state, "
+                    "operation metrics, review entries, and replay receipts."
                 ),
             },
             "GNC-D10-C07": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.link_graph_beta.MolecularQtlLinker",),
-                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.link_graph_beta.MolecularQtlLinker",
+                    "glio_noncode.link_graph_beta_frontier_metrics.build_link_graph_beta_frontier_metrics",
+                    "glio_noncode.link_graph_beta_frontier_quality_gate.build_link_graph_beta_frontier_quality",
+                ),
+                "test_modules": (
+                    "tests.test_link_graph_beta_frontier",
+                    "tests.test_link_graph_beta_frontier_depth",
+                    "tests.test_link_graph_beta_frontier_integration",
+                ),
                 "evidence_note": (
-                    "Molecular-QTL evidence retains effect and p/q-value metadata while applying a "
-                    "declared bounded support transform and exact-context graph gate; support is "
-                    "not a causal or clinical claim."
+                    "Molecular-QTL evidence retains effect and q-value measurements, exposes weak "
+                    "q-value and missing-evidence controls, applies the declared bounded support "
+                    "transform, and remains a non-causal aggregate research result."
                 ),
             },
             "GNC-D10-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.link_graph_beta.AlleleSpecificLinkEvidenceIntegrator",
+                    "glio_noncode.link_graph_beta_frontier_policy.evaluate_link_graph_beta_frontier_policy",
+                    "glio_noncode.link_graph_beta_frontier_release.build_link_graph_beta_frontier_release",
                 ),
-                "test_modules": ("tests.test_link_graph_beta", "tests.test_link_graph_beta_cli"),
+                "test_modules": (
+                    "tests.test_link_graph_beta_frontier",
+                    "tests.test_link_graph_beta_frontier_depth",
+                    "tests.test_link_graph_beta_frontier_integration",
+                ),
                 "evidence_note": (
-                    "Allele-specific link paths preserve gain/loss direction, method identity, "
-                    "context, evidence lineage, and direction conflicts; contradictory candidates "
-                    "are not averaged into a selected gene."
+                    "Allele-specific paths preserve gain/loss direction, retain contradiction and "
+                    "missingness controls, and carry policy, lineage, review, artifact, and release "
+                    "evidence without selecting a preferred gene."
                 ),
             },
             "GNC-D10-C09": {
