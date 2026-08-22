@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 192 capabilities have deterministic fixture-backed
-verification and 64 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 75.0% of the 256-capability
+capabilities started (100%); 196 capabilities have deterministic fixture-backed
+verification and 60 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 76.56% of the 256-capability
 catalog; MVP implementation coverage is 75.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -2464,6 +2464,40 @@ glio-noncode parse-3d-contact-links contacts.tsv --source-id hic-atlas --assay-k
 glio-noncode link-3d-contacts contact-links.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --variant-id v1 --output contact-candidates.json
 glio-noncode model-promoter-tethering tethering.json --minimum-score 0.35 --minimum-components 2 --output tethering-model.json
 glio-noncode build-multi-gene-element-graph link-evidence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-support 0.2 --output multi-gene-graph.json
+```
+
+### Domain 10 C09-C12 link-graph alpha depth
+
+The C09-C12 alpha tranche binds the four existing link primitives to one
+closed, public aggregate fixture. It contains 16 records: one positive and
+three controls for each operation, plus five versioned source receipts. Every
+record replays through the typed adapter registry and receives a content
+address, state, issue codes, measurements, and evidence IDs.
+
+- C09 `crispr_perturbation` retains perturbation direction, weak support,
+  opposing-direction contradiction, and context mismatch.
+- C10 `contact_3d` retains normalized contact, assay kind, resolution, weak
+  contact, alternative genes, and context mismatch.
+- C11 `promoter_tethering` retains distance and component accounting while
+  exposing missing-component abstention, tied candidates, and foreign context.
+- C12 `multi_gene_graph` retains edge paths, alternatives, node degree,
+  connected components, single-evidence partial state, and contradiction.
+
+The supporting assurance plane includes contracts, source registry, schema,
+metrics, lineage, provenance, policy, reconciliation, quality gates, depth
+audits, candidate accounting, deltas, validation and scenario matrices,
+accessibility, integrity, review queue, release bundle, artifacts,
+observability, replay, control catalog, failure catalog, scorecard, and
+operator runbook. The pipeline has 12 passing stages and does not select a
+preferred gene or convert a candidate edge into a mechanism claim.
+
+```powershell
+glio-noncode link-graph-alpha-frontier-fixture --output link-alpha-fixture.json
+glio-noncode link-graph-alpha-frontier-evaluate --output link-alpha-evaluation.json
+glio-noncode link-graph-alpha-frontier-metrics --output link-alpha-metrics.json
+glio-noncode link-graph-alpha-frontier-review --output link-alpha-review.json
+glio-noncode link-graph-alpha-frontier-release --output link-alpha-release.json
+glio-noncode link-graph-alpha-frontier-summary
 ```
 
 ### Domain 10 C13-C16 link frontier evidence gate

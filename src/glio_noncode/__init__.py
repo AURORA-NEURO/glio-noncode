@@ -6140,6 +6140,78 @@ from .topology_frontier_views import (
     filter_topology_frontier_review_queue,
     topology_frontier_review_summary,
 )
+from .link_graph_alpha_frontier_adapters import (
+    LinkGraphAlphaFrontierAdapterRegistry,
+    LinkGraphAlphaFrontierAdapterResult,
+    LinkGraphAlphaFrontierAdapterSpec,
+    build_link_graph_alpha_frontier_adapters,
+    execute_link_graph_alpha_frontier_record,
+)
+from .link_graph_alpha_frontier_assurance import (
+    LinkGraphAlphaFrontierAssuranceReport,
+    build_link_graph_alpha_frontier_assurance,
+)
+from .link_graph_alpha_frontier_contracts import (
+    LinkGraphAlphaFrontierContract,
+    LinkGraphAlphaFrontierContractReport,
+    build_link_graph_alpha_frontier_contracts,
+)
+from .link_graph_alpha_frontier_fixture_eval import (
+    LinkGraphAlphaFrontierEvaluation,
+    LinkGraphAlphaFrontierEvaluationRow,
+    evaluate_link_graph_alpha_frontier_fixture,
+)
+from .link_graph_alpha_frontier_metrics import (
+    LinkGraphAlphaFrontierMetrics,
+    LinkGraphAlphaFrontierOperationMetric,
+    build_link_graph_alpha_frontier_metrics,
+)
+from .link_graph_alpha_frontier_pipeline import (
+    LinkGraphAlphaFrontierPipelineReport,
+    LinkGraphAlphaFrontierStage,
+    run_link_graph_alpha_frontier_pipeline,
+)
+from .link_graph_alpha_frontier_policy import (
+    LinkGraphAlphaFrontierDisposition,
+    LinkGraphAlphaFrontierPolicyDecision,
+    LinkGraphAlphaFrontierPolicyReport,
+    LinkGraphAlphaFrontierPolicyRule,
+    default_link_graph_alpha_frontier_policy_rules,
+    evaluate_link_graph_alpha_frontier_policy,
+)
+from .link_graph_alpha_frontier_public_data import (
+    LINK_GRAPH_ALPHA_FRONTIER_BOUNDARY,
+    LINK_GRAPH_ALPHA_FRONTIER_CONTEXT_KEY,
+    LINK_GRAPH_ALPHA_FRONTIER_FIXTURE_VERSION,
+    LINK_GRAPH_ALPHA_FRONTIER_FOREIGN_CONTEXT_KEY,
+    LinkGraphAlphaFrontierDataAudit,
+    LinkGraphAlphaFrontierFixture,
+    LinkGraphAlphaFrontierOperation,
+    LinkGraphAlphaFrontierRecord,
+    LinkGraphAlphaFrontierRole,
+    LinkGraphAlphaFrontierSource,
+    audit_link_graph_alpha_frontier_data,
+    default_link_graph_alpha_frontier_fixture,
+    fixture_json as link_graph_alpha_frontier_fixture_json,
+)
+from .link_graph_alpha_frontier_quality_gate import (
+    LinkGraphAlphaFrontierQualityCheck,
+    LinkGraphAlphaFrontierQualityReport,
+    build_link_graph_alpha_frontier_quality,
+)
+from .link_graph_alpha_frontier_release import (
+    LinkGraphAlphaFrontierReleaseManifest,
+    build_link_graph_alpha_frontier_release,
+)
+from .link_graph_alpha_frontier_runtime import (
+    LinkGraphAlphaFrontierRuntimeOptions,
+    LinkGraphAlphaFrontierRuntimeResult,
+    run_link_graph_alpha_frontier_runtime,
+)
+from .link_graph_alpha_frontier_cli import (
+    LINK_GRAPH_ALPHA_FRONTIER_COMMANDS,
+    run_link_graph_alpha_frontier_operation,
+)
 from .uncertainty import OutOfDomainDetector, UncertaintyPropagator
 from .validation_alpha import (
     ControlAssignment,
@@ -11680,5 +11752,56 @@ __all__.extend(
         "validate_topology_alpha_frontier_schema",
     ]
 )
+
+__all__ += [
+    "LINK_GRAPH_ALPHA_FRONTIER_BOUNDARY",
+    "LINK_GRAPH_ALPHA_FRONTIER_CONTEXT_KEY",
+    "LINK_GRAPH_ALPHA_FRONTIER_FIXTURE_VERSION",
+    "LINK_GRAPH_ALPHA_FRONTIER_FOREIGN_CONTEXT_KEY",
+    "LINK_GRAPH_ALPHA_FRONTIER_COMMANDS",
+    "LinkGraphAlphaFrontierAdapterRegistry",
+    "LinkGraphAlphaFrontierAdapterResult",
+    "LinkGraphAlphaFrontierAdapterSpec",
+    "LinkGraphAlphaFrontierAssuranceReport",
+    "LinkGraphAlphaFrontierContract",
+    "LinkGraphAlphaFrontierContractReport",
+    "LinkGraphAlphaFrontierDataAudit",
+    "LinkGraphAlphaFrontierDisposition",
+    "LinkGraphAlphaFrontierEvaluation",
+    "LinkGraphAlphaFrontierEvaluationRow",
+    "LinkGraphAlphaFrontierFixture",
+    "LinkGraphAlphaFrontierMetrics",
+    "LinkGraphAlphaFrontierOperation",
+    "LinkGraphAlphaFrontierOperationMetric",
+    "LinkGraphAlphaFrontierPipelineReport",
+    "LinkGraphAlphaFrontierPolicyDecision",
+    "LinkGraphAlphaFrontierPolicyReport",
+    "LinkGraphAlphaFrontierPolicyRule",
+    "LinkGraphAlphaFrontierQualityCheck",
+    "LinkGraphAlphaFrontierQualityReport",
+    "LinkGraphAlphaFrontierRecord",
+    "LinkGraphAlphaFrontierReleaseManifest",
+    "LinkGraphAlphaFrontierRole",
+    "LinkGraphAlphaFrontierRuntimeOptions",
+    "LinkGraphAlphaFrontierRuntimeResult",
+    "LinkGraphAlphaFrontierSource",
+    "LinkGraphAlphaFrontierStage",
+    "audit_link_graph_alpha_frontier_data",
+    "build_link_graph_alpha_frontier_adapters",
+    "build_link_graph_alpha_frontier_assurance",
+    "build_link_graph_alpha_frontier_contracts",
+    "build_link_graph_alpha_frontier_metrics",
+    "build_link_graph_alpha_frontier_quality",
+    "build_link_graph_alpha_frontier_release",
+    "default_link_graph_alpha_frontier_fixture",
+    "default_link_graph_alpha_frontier_policy_rules",
+    "evaluate_link_graph_alpha_frontier_fixture",
+    "evaluate_link_graph_alpha_frontier_policy",
+    "execute_link_graph_alpha_frontier_record",
+    "link_graph_alpha_frontier_fixture_json",
+    "run_link_graph_alpha_frontier_operation",
+    "run_link_graph_alpha_frontier_pipeline",
+    "run_link_graph_alpha_frontier_runtime",
+]
 
 __version__ = "0.1.0"

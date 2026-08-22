@@ -3388,55 +3388,71 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D10-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.link_graph_alpha.CRISPRPerturbationLinkAdapter",
                     "glio_noncode.link_graph_alpha.CRISPRPerturbationLinker",
+                    "glio_noncode.link_graph_alpha_frontier_public_data.default_link_graph_alpha_frontier_fixture",
+                    "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
+                    "glio_noncode.link_graph_alpha_frontier_pipeline.run_link_graph_alpha_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
                 "evidence_note": (
                     "CRISPR perturbation paths retain mode, direction, effect size, scale, guide "
                     "and replicate metadata, exact context, source hashes, and opposing-direction "
-                    "contradiction; perturbation evidence is not a causal claim."
+                    "contradiction; the aggregate fixture adds positive, weak, foreign-context, "
+                    "and replay controls with source closure and release checks."
                 ),
             },
             "GNC-D10-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.link_graph_alpha.ThreeDContactLinkAdapter",
                     "glio_noncode.link_graph_alpha.ThreeDContactLinker",
+                    "glio_noncode.link_graph_alpha_frontier_public_data.default_link_graph_alpha_frontier_fixture",
+                    "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
+                    "glio_noncode.link_graph_alpha_frontier_metrics.build_link_graph_alpha_frontier_metrics",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
                 "evidence_note": (
                     "3D contact paths preserve assay kind, raw and normalized signal, scale, "
                     "resolution, replicate identity, exact context, and source receipts before "
-                    "candidate edges are emitted; contact is not treated as regulation."
+                    "candidate edges are emitted; the aggregate fixture retains weak contact, "
+                    "alternative-gene, foreign-context, and single-assay controls."
                 ),
             },
             "GNC-D10-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.link_graph_alpha.PromoterTetheringModel",
                     "glio_noncode.link_graph_alpha.PromoterTetheringReport",
+                    "glio_noncode.link_graph_alpha_frontier_public_data.default_link_graph_alpha_frontier_fixture",
+                    "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
+                    "glio_noncode.link_graph_alpha_frontier_review_queue.build_link_graph_alpha_frontier_review_queue",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
                 "evidence_note": (
                     "Promoter-tethering baselines expose distance prior, contact, promoter, "
                     "element, and overlap components with thresholds, alternatives, abstention, "
-                    "and calibration limitations; no tethering mechanism is inferred."
+                    "and calibration limitations; the fixture verifies missing components, ties, "
+                    "foreign context, and bounded release handling."
                 ),
             },
             "GNC-D10-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.link_graph_alpha.MultiGeneElementGraphBuilder",
                     "glio_noncode.link_graph_alpha.MultiGeneElementGraph",
+                    "glio_noncode.link_graph_alpha_frontier_public_data.default_link_graph_alpha_frontier_fixture",
+                    "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
+                    "glio_noncode.link_graph_alpha_frontier_provenance.build_link_graph_alpha_frontier_provenance",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli"),
+                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
                 "evidence_note": (
                     "Multi-gene/multi-element graph slices retain every aggregate edge, evidence "
                     "path, alternative gene, node degree, connected component, context gate, and "
-                    "threshold receipt without selecting a preferred target."
+                    "threshold receipt without selecting a preferred target; graph controls add "
+                    "single-evidence, contradiction, context, lineage, and package checks."
                 ),
             },
             "GNC-D10-C13": {
