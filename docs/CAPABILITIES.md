@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 152 capabilities have deterministic fixture-backed
-verification and 104 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 59.38% of the 256-capability
+capabilities started (100%); 156 capabilities have deterministic fixture-backed
+verification and 100 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 60.94% of the 256-capability
 catalog; MVP implementation coverage is 56.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 152 capabilities are verified against the checked-in
-aggregate fixtures, while 104 capabilities remain partial. Partial
+capabilities started (100%); 156 capabilities are verified against the checked-in
+aggregate fixtures, while 100 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1492,6 +1492,47 @@ glio-noncode sequence-grammar-evaluate --output sequence-grammar-evaluation.json
 glio-noncode sequence-grammar-quality-gate --output sequence-grammar-quality.json
 glio-noncode sequence-grammar-pipeline --run-id d06-c05-c08-local --output sequence-grammar-pipeline.json
 glio-noncode export-sequence-grammar-review-csv --output sequence-grammar-review.csv
+```
+
+### Domain 06 C09-C12 sequence regulation frontier
+
+The C09-C12 tranche now has a complete aggregate evidence plane around
+nucleosome sequence propensity, splice-regulatory motif paths, UTR elements and
+bounded upstream patterns, and core-promoter grammar. It uses four public source
+receipts, a fixed context, four positive records, twelve controls, and the same
+`public_aggregate_non_patient` boundary. Every operation runs through a typed
+adapter, an expected-state comparison, policy routing, quality checks, and a
+content-addressed release surface.
+
+- C09 `nucleosome_propensity` retains phase-aware dinucleotide features,
+  GC-balance, length state, ambiguity state, context mismatch, and a bounded
+  sequence-only score. The score is not calibrated occupancy.
+- C10 `splice_regulation` retains reference and alternate motif hits,
+  created/disrupted sets, source versions, strand data, invalid alphabet
+  controls, and no-change abstention. It does not infer splice consequence.
+- C11 `utr_regulation` separates 5-prime and 3-prime elements, retains allele
+  deltas and bounded upstream start/stop patterns, and keeps ambiguity and
+  invalid-region paths visible. It does not infer binding, translation,
+  stability, or expression.
+- C12 `promoter_grammar` evaluates declared motif pairs by spacing, orientation,
+  and weighted coverage while preserving unmatched rules and competing pairs.
+  Compatibility is not promoter activity or transcription initiation evidence.
+
+The frontier evaluates 16 record paths, 25 quality checks, ten runtime stages,
+12 review items, 19 content-addressed report surfaces, four operation contracts,
+four adapter specifications, source lineage, replay, accessibility, boundary,
+scenario, threshold, validation, release, and bundle reports. Positive cases
+remain releasable only when their expected paths match; controls stay visible in
+review rather than being silently discarded.
+
+```powershell
+glio-noncode sequence-regulation-fixture --output sequence-regulation-fixture.json
+glio-noncode sequence-regulation-data --output sequence-regulation-data.json
+glio-noncode sequence-regulation-evaluate --output sequence-regulation-evaluation.json
+glio-noncode sequence-regulation-quality --output sequence-regulation-quality.json
+glio-ncode sequence-regulation-contracts --output sequence-regulation-contracts.json
+glio-noncode sequence-regulation-replay --output sequence-regulation-replay.json
+glio-noncode run-sequence-regulation-pipeline --output sequence-regulation-pipeline.json
 ```
 
 ### Domain 06 C13-C16 sequence frontier evidence gate

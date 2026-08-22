@@ -2217,55 +2217,70 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D06-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_alpha.NucleosomeSequencePropensityModel",
                     "glio_noncode.sequence_alpha.NucleosomePropensityReport",
+                    "glio_noncode.sequence_regulation_frontier_public_data.default_sequence_regulation_fixture",
+                    "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
+                    "glio_noncode.sequence_regulation_frontier_pipeline.run_sequence_regulation_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
                 "evidence_note": (
-                    "The nucleosome contract calculates phase-aware sequence features with GC "
-                    "balance, length and ambiguity states, and source hashes; the result is a "
-                    "transparent index rather than calibrated occupancy."
+                    "The aggregate tranche runs phase-aware sequence features through source "
+                    "receipts, positive and control records, context gates, staged quality "
+                    "checks, replay, and release packaging; the result remains a transparent "
+                    "index rather than calibrated occupancy."
                 ),
             },
             "GNC-D06-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_alpha.SpliceRegulatoryNoncodingScanner",
                     "glio_noncode.sequence_alpha.SpliceRegulatoryScanReport",
+                    "glio_noncode.sequence_regulation_frontier_public_data.default_sequence_regulation_fixture",
+                    "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
+                    "glio_noncode.sequence_regulation_frontier_quality_gate.build_sequence_regulation_quality",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
                 "evidence_note": (
-                    "Declared splice-regulatory motifs are scanned on reference and optional "
-                    "alternate noncoding windows with IUPAC scores, strand, source versions, "
-                    "created/disrupted hits, and context gating; no splice consequence is inferred."
+                    "Declared splice motifs are scanned on aggregate reference and alternate "
+                    "windows with source receipts, created and disrupted paths, context controls, "
+                    "replay checks, and release evidence; no splice consequence is inferred."
                 ),
             },
             "GNC-D06-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_alpha.UtrRegulatoryScanner",
                     "glio_noncode.sequence_alpha.UtrRegulatoryScanReport",
+                    "glio_noncode.sequence_regulation_frontier_public_data.default_sequence_regulation_fixture",
+                    "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
+                    "glio_noncode.sequence_regulation_frontier_views.build_sequence_regulation_view",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
                 "evidence_note": (
-                    "5-prime and 3-prime UTR motif hits and bounded upstream start/stop patterns "
-                    "retain region, allele delta, source versions, and ambiguity; hits are not RNA "
-                    "binding, translation, stability, or expression predictions."
+                    "5-prime and 3-prime UTR observations and bounded upstream patterns are "
+                    "wrapped with aggregate receipts, positive and control paths, ambiguity "
+                    "states, review routing, and serialized views; hits are not binding, "
+                    "translation, stability, or expression predictions."
                 ),
             },
             "GNC-D06-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_alpha.PromoterCoreGrammarModel",
                     "glio_noncode.sequence_alpha.PromoterCoreGrammarReport",
+                    "glio_noncode.sequence_regulation_frontier_public_data.default_sequence_regulation_fixture",
+                    "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
+                    "glio_noncode.sequence_regulation_frontier_release.build_sequence_regulation_release",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli"),
+                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
                 "evidence_note": (
                     "Declared promoter motif pairs are evaluated by spacing, orientation, weighted "
-                    "coverage, source versions, and competing pairs; grammar compatibility is not "
-                    "promoter activity or transcription initiation evidence."
+                    "coverage, source receipts, competing-pair controls, lineage, replay, and "
+                    "release gates; grammar compatibility is not promoter activity or initiation "
+                    "evidence."
                 ),
             },
             "GNC-D06-C13": {

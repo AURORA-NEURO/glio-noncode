@@ -762,3 +762,13 @@ jobs:
         run: python -m glio_noncode sequence-grammar-adapters --output /tmp/glio-sequence-grammar-adapters.json && python -m glio_noncode sequence-grammar-scenarios --output /tmp/glio-sequence-grammar-scenarios.json && python -m glio_noncode sequence-grammar-thresholds --output /tmp/glio-sequence-grammar-thresholds.json && python -m glio_noncode sequence-grammar-validation --output /tmp/glio-sequence-grammar-validation.json && python -m glio_noncode sequence-grammar-runbook --output /tmp/glio-sequence-grammar-runbook.json
       - name: Sequence grammar frontier end-to-end pipeline
         run: python -m glio_noncode sequence-grammar-pipeline --run-id ci-sequence-grammar --output /tmp/glio-sequence-grammar-pipeline.json
+      - name: Sequence regulation frontier fixture
+        run: python -m glio_noncode sequence-regulation-fixture --output /tmp/glio-sequence-regulation-fixture.json
+      - name: Sequence regulation frontier data and evaluation
+        run: python -m glio_noncode sequence-regulation-data --output /tmp/glio-sequence-regulation-data.json && python -m glio_noncode sequence-regulation-evaluate --output /tmp/glio-sequence-regulation-evaluation.json
+      - name: Sequence regulation frontier contracts and adapters
+        run: python -m glio_noncode sequence-regulation-contracts --output /tmp/glio-sequence-regulation-contracts.json && python -m glio_noncode sequence-regulation-adapters --output /tmp/glio-sequence-regulation-adapters.json && python -m glio_noncode sequence-regulation-catalog --output /tmp/glio-sequence-regulation-catalog.json
+      - name: Sequence regulation frontier quality and replay
+        run: python -m glio_noncode sequence-regulation-quality --output /tmp/glio-sequence-regulation-quality.json && python -m glio_noncode sequence-regulation-replay --output /tmp/glio-sequence-regulation-replay.json
+      - name: Sequence regulation frontier end-to-end pipeline
+        run: python -m glio_noncode run-sequence-regulation-pipeline --output /tmp/glio-sequence-regulation-pipeline.json

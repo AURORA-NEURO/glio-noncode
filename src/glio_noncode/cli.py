@@ -292,6 +292,7 @@ from .sequence_grammar_frontier_cli import (
     run_sequence_grammar_operation,
 )
 from .sequence_grammar_frontier_public_data import load_sequence_grammar_fixture
+from .sequence_regulation_frontier_cli import run_sequence_regulation_operation
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
 from .workspace_beta_frontier_thresholds import build_beta_frontier_threshold_report
@@ -4533,6 +4534,23 @@ def build_parser() -> argparse.ArgumentParser:
     promoter_alpha.add_argument("--context-key", default=None)
     promoter_alpha.add_argument("--minimum-coverage", type=float, default=0.5)
     promoter_alpha.add_argument("--output", default=None)
+
+    for sequence_regulation_command in (
+        "sequence-regulation-fixture",
+        "sequence-regulation-data",
+        "sequence-regulation-evaluate",
+        "sequence-regulation-replay",
+        "sequence-regulation-quality",
+        "sequence-regulation-contracts",
+        "sequence-regulation-adapters",
+        "sequence-regulation-catalog",
+        "run-sequence-regulation-pipeline",
+    ):
+        sequence_regulation_parser = subparsers.add_parser(
+            sequence_regulation_command,
+            help="inspect the Domain 06 C09-C12 public aggregate plane",
+        )
+        sequence_regulation_parser.add_argument("--output", default=None)
 
     methylation_parse = subparsers.add_parser(
         "parse-methylation",
@@ -10411,6 +10429,19 @@ def main(argv: list[str] | None = None) -> int:
                 minimum_coverage=args.minimum_coverage,
             )
             _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command in {
+            "sequence-regulation-fixture",
+            "sequence-regulation-data",
+            "sequence-regulation-evaluate",
+            "sequence-regulation-replay",
+            "sequence-regulation-quality",
+            "sequence-regulation-contracts",
+            "sequence-regulation-adapters",
+            "sequence-regulation-catalog",
+            "run-sequence-regulation-pipeline",
+        }:
+            _write_json(run_sequence_regulation_operation(args.command), args.output)
             return 0
         if args.command == "parse-context":
             input_path = Path(args.input)
