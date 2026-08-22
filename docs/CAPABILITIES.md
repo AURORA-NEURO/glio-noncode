@@ -2776,6 +2776,91 @@ glio-noncode correct-evidence-dependence dependence.json --context-key "GRCh38|g
 glio-noncode integrate-negative-evidence negative-evidence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-negative-controls 1 --output negative-integrated.json
 ```
 
+### Domain 11 C09-C12 frontier depth build
+
+The C09-C12 tranche closes the four external-alpha controls as one
+content-addressed release surface. A fresh public aggregate fixture is pinned
+to version `2026.08.d11-c09-c12.v1` with five HTTPS source receipts, sixteen
+rows, four positive paths, twelve controls, four foreign-context controls, and
+the boundary `public_aggregate_non_patient`. The fixture covers source
+omission sensitivity, addressed/missing/unresolved confounders, dependent and
+contradictory paths, measured-negative evidence, positive/negative conflict,
+and exact-context quarantine.
+
+Each row is replayed through the real alpha primitive, then normalized into a
+typed result with expected state, observed state, issue codes, output envelope,
+and content address. The release runtime has 31 ordered stages:
+
+1. public data audit;
+2. adapter registry;
+3. fixture replay;
+4. capability contracts;
+5. schema closure;
+6. operation metrics;
+7. source-to-result lineage;
+8. provenance graph;
+9. address and graph integrity;
+10. implementation-depth audit;
+11. bounded policy;
+12. row decisions;
+13. expected/observed reconciliation;
+14. review queue;
+15. control-coverage inventory;
+16. per-row decision traces;
+17. faceted projections;
+18. cross-plane diagnostics;
+19. scenario matrix;
+20. validation matrix;
+21. quality gate;
+22. release bundle;
+23. release manifest;
+24. artifact inventory;
+25. deterministic replay;
+26. operational action matrix;
+27. allowed/excluded claim boundary;
+28. stable review view;
+29. canonical exports;
+30. assurance statement;
+31. executable runbook.
+
+The C09-C12 command surface is:
+
+```powershell
+glio-noncode causal-alpha-frontier-data-audit --output alpha-data.json
+glio-noncode causal-alpha-frontier-contracts --output alpha-contracts.json
+glio-noncode causal-alpha-frontier-schema --output alpha-schema.json
+glio-noncode causal-alpha-frontier-evaluate --output alpha-evaluation.json
+glio-noncode causal-alpha-frontier-replay --output alpha-replay.json
+glio-noncode causal-alpha-frontier-metrics --output alpha-metrics.json
+glio-noncode causal-alpha-frontier-lineage --output alpha-lineage.json
+glio-noncode causal-alpha-frontier-provenance --output alpha-provenance.json
+glio-noncode causal-alpha-frontier-policy --output alpha-policy.json
+glio-noncode causal-alpha-frontier-review --output alpha-review.json
+glio-noncode causal-alpha-frontier-quality-gate --output alpha-quality.json
+glio-noncode causal-alpha-frontier-runtime --output alpha-runtime.json
+glio-noncode causal-alpha-frontier-release --output alpha-release.json
+glio-noncode causal-alpha-frontier-artifacts --output alpha-artifacts.json
+glio-noncode causal-alpha-frontier-depth-audit --output alpha-depth.json
+glio-noncode causal-alpha-frontier-integrity --output alpha-integrity.json
+glio-noncode causal-alpha-frontier-scenarios --output alpha-scenarios.json
+glio-noncode causal-alpha-frontier-validation-matrix --output alpha-validation.json
+glio-noncode causal-alpha-frontier-operational --output alpha-operational.json
+glio-noncode causal-alpha-frontier-boundary --output alpha-boundary.json
+glio-noncode causal-alpha-frontier-assurance --output alpha-assurance.json
+glio-noncode causal-alpha-frontier-runbook --output alpha-runbook.json
+glio-noncode export-causal-alpha-frontier-review-csv --output alpha-review.csv
+glio-noncode export-causal-alpha-frontier-review-markdown --output alpha-review.md
+glio-noncode export-causal-alpha-frontier-json --output alpha-exports.json
+```
+
+The operational matrix allows three exact-context descriptive rows, routes
+nine partial/contradictory/measured-negative rows to review, and quarantines
+four foreign-context rows. The release manifest and assurance layer exclude
+causal identification, clinical diagnosis, treatment recommendation,
+prognosis, and patient care. Negative evidence remains assay-bound, declared
+dependence grouping remains a bounded proxy, and checklist completion does not
+prove the absence of unmeasured confounding.
+
 ## Domain 11 causal frontier evidence
 
 Domain 11 now verifies the four causal-evidence capabilities with a bounded,

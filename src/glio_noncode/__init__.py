@@ -426,6 +426,40 @@ from .causal_beta_frontier_scenario_matrix import CausalBetaFrontierScenario, Ca
 from .causal_beta_frontier_schema import CausalBetaFrontierField, CausalBetaFrontierSchemaReport, default_causal_beta_frontier_fields, validate_causal_beta_frontier_schema
 from .causal_beta_frontier_validation_matrix import CausalBetaFrontierMatrixCell, CausalBetaFrontierValidationMatrix, build_causal_beta_frontier_validation_matrix
 from .causal_beta_frontier_views import CausalBetaFrontierReviewRow, CausalBetaFrontierReviewView, CausalBetaFrontierSummaryView, build_causal_beta_frontier_review_view, build_causal_beta_frontier_summary_view
+from .causal_alpha_frontier_adapters import CausalAlphaFrontierAdapter, CausalAlphaFrontierAdapterRegistry, CausalAlphaFrontierEvaluation, CausalAlphaFrontierEvaluationResult, build_causal_alpha_frontier_adapters, evaluate_causal_alpha_frontier_fixture
+from .causal_alpha_frontier_artifacts import CausalAlphaFrontierArtifact, CausalAlphaFrontierArtifactInventory, CausalAlphaFrontierArtifactKind, build_causal_alpha_frontier_artifact_inventory
+from .causal_alpha_frontier_assurance import CausalAlphaFrontierAssurance, build_causal_alpha_frontier_assurance
+from .causal_alpha_frontier_bundle import CausalAlphaFrontierReleaseBundle, assemble_causal_alpha_frontier_bundle
+from .causal_alpha_frontier_claim_boundary import CausalAlphaFrontierClaimBoundaryReport, build_causal_alpha_frontier_claim_boundary
+from .causal_alpha_frontier_contracts import CausalAlphaFrontierContract, CausalAlphaFrontierContractReport, build_causal_alpha_frontier_contracts
+from .causal_alpha_frontier_controls import CausalAlphaFrontierControlClass, CausalAlphaFrontierControlCoverage, CausalAlphaFrontierControlCoverageRow, build_causal_alpha_frontier_control_coverage
+from .causal_alpha_frontier_depth import CausalAlphaFrontierDepthAudit, audit_causal_alpha_frontier_depth
+from .causal_alpha_frontier_diagnostics import CausalAlphaFrontierDiagnosticFinding, CausalAlphaFrontierDiagnosticReport, CausalAlphaFrontierDiagnosticSeverity, build_causal_alpha_frontier_diagnostics
+from .causal_alpha_frontier_exports import CausalAlphaFrontierExportEnvelope, CausalAlphaFrontierExportInventory, build_causal_alpha_frontier_exports
+from .causal_alpha_frontier_fixture_eval import CausalAlphaFrontierFixtureEvaluation, CausalAlphaFrontierOperationSummary, evaluate_causal_alpha_frontier_fixture_deep
+from .causal_alpha_frontier_integrity import CausalAlphaFrontierIntegrityReport, evaluate_causal_alpha_frontier_integrity
+from .causal_alpha_frontier_lineage import CausalAlphaFrontierLineage, CausalAlphaFrontierLineageNode, build_causal_alpha_frontier_lineage
+from .causal_alpha_frontier_metrics import CausalAlphaFrontierMetrics, CausalAlphaFrontierOperationMetric, build_causal_alpha_frontier_metrics
+from .causal_alpha_frontier_observability import CausalAlphaFrontierEvent, CausalAlphaFrontierObservabilityReport, build_causal_alpha_frontier_observability
+from .causal_alpha_frontier_operational import CausalAlphaFrontierOperationalCell, CausalAlphaFrontierOperationalMatrix, build_causal_alpha_frontier_operational_matrix
+from .causal_alpha_frontier_policy import CausalAlphaFrontierDecision, CausalAlphaFrontierDisposition, CausalAlphaFrontierPolicy, default_causal_alpha_frontier_policy
+from .causal_alpha_frontier_provenance import CausalAlphaFrontierProvenanceGraph, CausalAlphaFrontierProvenanceNode, build_causal_alpha_frontier_provenance
+from .causal_alpha_frontier_projections import CausalAlphaFrontierProjectionFacet, CausalAlphaFrontierProjectionReport, build_causal_alpha_frontier_projections
+from .causal_alpha_frontier_public_data import CAUSAL_ALPHA_FRONTIER_BOUNDARY, CAUSAL_ALPHA_FRONTIER_CONTEXT_KEY, CAUSAL_ALPHA_FRONTIER_FIXTURE_VERSION, CAUSAL_ALPHA_FRONTIER_FOREIGN_CONTEXT_KEY, CausalAlphaFrontierDataAudit, CausalAlphaFrontierFixture, CausalAlphaFrontierOperation, CausalAlphaFrontierRecord, CausalAlphaFrontierRole, CausalAlphaFrontierSource, audit_causal_alpha_frontier_data, default_causal_alpha_frontier_fixture
+from .causal_alpha_frontier_quality_gate import CausalAlphaFrontierQualityGate, evaluate_causal_alpha_frontier_quality
+from .causal_alpha_frontier_query import CausalAlphaFrontierQueryResult, query_causal_alpha_frontier
+from .causal_alpha_frontier_reconciliation import CausalAlphaFrontierReconciliation, reconcile_causal_alpha_frontier
+from .causal_alpha_frontier_release import CausalAlphaFrontierReleaseCheck, CausalAlphaFrontierReleaseManifest, CausalAlphaFrontierReleaseState, build_causal_alpha_frontier_release_manifest
+from .causal_alpha_frontier_replay import CausalAlphaFrontierReplayReceipt, replay_causal_alpha_frontier
+from .causal_alpha_frontier_report import causal_alpha_frontier_report
+from .causal_alpha_frontier_review import CausalAlphaFrontierReviewItem, CausalAlphaFrontierReviewQueue, build_causal_alpha_frontier_review_queue
+from .causal_alpha_frontier_runbook import CausalAlphaFrontierRunbook, CausalAlphaFrontierRunbookStep, build_causal_alpha_frontier_runbook, runbook_is_executable
+from .causal_alpha_frontier_runtime import CausalAlphaFrontierRuntimeReport, CausalAlphaFrontierRuntimeStage, run_causal_alpha_frontier_runtime
+from .causal_alpha_frontier_scenario_matrix import CausalAlphaFrontierScenario, CausalAlphaFrontierScenarioMatrix, build_causal_alpha_frontier_scenario_matrix
+from .causal_alpha_frontier_schema import CausalAlphaFrontierSchemaReport, validate_causal_alpha_frontier_schema
+from .causal_alpha_frontier_validation_matrix import CausalAlphaFrontierValidationCell, CausalAlphaFrontierValidationMatrix, build_causal_alpha_frontier_validation_matrix
+from .causal_alpha_frontier_traces import CausalAlphaFrontierDecisionTrace, CausalAlphaFrontierTraceLedger, CausalAlphaFrontierTraceStep, build_causal_alpha_frontier_trace_ledger
+from .causal_alpha_frontier_views import CausalAlphaFrontierReviewView, CausalAlphaFrontierReviewViewRow, build_causal_alpha_frontier_review_view
 from .cell_context import (
     AdultPediatricRouter,
     CellStateContextAssembler,
@@ -12555,3 +12589,115 @@ __all__ += [
 ]
 
 __version__ = "0.1.0"
+
+__all__ += [
+    "CAUSAL_ALPHA_FRONTIER_BOUNDARY",
+    "CAUSAL_ALPHA_FRONTIER_CONTEXT_KEY",
+    "CAUSAL_ALPHA_FRONTIER_FIXTURE_VERSION",
+    "CAUSAL_ALPHA_FRONTIER_FOREIGN_CONTEXT_KEY",
+    "CausalAlphaFrontierAdapter",
+    "CausalAlphaFrontierAdapterRegistry",
+    "CausalAlphaFrontierArtifact",
+    "CausalAlphaFrontierArtifactInventory",
+    "CausalAlphaFrontierArtifactKind",
+    "CausalAlphaFrontierAssurance",
+    "CausalAlphaFrontierClaimBoundaryReport",
+    "CausalAlphaFrontierContract",
+    "CausalAlphaFrontierContractReport",
+    "CausalAlphaFrontierControlClass",
+    "CausalAlphaFrontierControlCoverage",
+    "CausalAlphaFrontierControlCoverageRow",
+    "CausalAlphaFrontierDataAudit",
+    "CausalAlphaFrontierDecision",
+    "CausalAlphaFrontierDecisionTrace",
+    "CausalAlphaFrontierDepthAudit",
+    "CausalAlphaFrontierDiagnosticFinding",
+    "CausalAlphaFrontierDiagnosticReport",
+    "CausalAlphaFrontierDiagnosticSeverity",
+    "CausalAlphaFrontierDisposition",
+    "CausalAlphaFrontierEvaluation",
+    "CausalAlphaFrontierEvaluationResult",
+    "CausalAlphaFrontierEvent",
+    "CausalAlphaFrontierExportEnvelope",
+    "CausalAlphaFrontierExportInventory",
+    "CausalAlphaFrontierFixture",
+    "CausalAlphaFrontierFixtureEvaluation",
+    "CausalAlphaFrontierIntegrityReport",
+    "CausalAlphaFrontierLineage",
+    "CausalAlphaFrontierLineageNode",
+    "CausalAlphaFrontierMetrics",
+    "CausalAlphaFrontierObservabilityReport",
+    "CausalAlphaFrontierOperation",
+    "CausalAlphaFrontierOperationMetric",
+    "CausalAlphaFrontierOperationSummary",
+    "CausalAlphaFrontierOperationalCell",
+    "CausalAlphaFrontierOperationalMatrix",
+    "CausalAlphaFrontierPolicy",
+    "CausalAlphaFrontierProvenanceGraph",
+    "CausalAlphaFrontierProvenanceNode",
+    "CausalAlphaFrontierProjectionFacet",
+    "CausalAlphaFrontierProjectionReport",
+    "CausalAlphaFrontierQualityGate",
+    "CausalAlphaFrontierQueryResult",
+    "CausalAlphaFrontierRecord",
+    "CausalAlphaFrontierReconciliation",
+    "CausalAlphaFrontierReleaseBundle",
+    "CausalAlphaFrontierReleaseCheck",
+    "CausalAlphaFrontierReleaseManifest",
+    "CausalAlphaFrontierReleaseState",
+    "CausalAlphaFrontierReplayReceipt",
+    "CausalAlphaFrontierReviewItem",
+    "CausalAlphaFrontierReviewQueue",
+    "CausalAlphaFrontierReviewView",
+    "CausalAlphaFrontierReviewViewRow",
+    "CausalAlphaFrontierRole",
+    "CausalAlphaFrontierRunbook",
+    "CausalAlphaFrontierRunbookStep",
+    "CausalAlphaFrontierRuntimeReport",
+    "CausalAlphaFrontierRuntimeStage",
+    "CausalAlphaFrontierScenario",
+    "CausalAlphaFrontierScenarioMatrix",
+    "CausalAlphaFrontierSchemaReport",
+    "CausalAlphaFrontierSource",
+    "CausalAlphaFrontierTraceLedger",
+    "CausalAlphaFrontierTraceStep",
+    "CausalAlphaFrontierValidationCell",
+    "CausalAlphaFrontierValidationMatrix",
+    "assemble_causal_alpha_frontier_bundle",
+    "audit_causal_alpha_frontier_data",
+    "audit_causal_alpha_frontier_depth",
+    "build_causal_alpha_frontier_adapters",
+    "build_causal_alpha_frontier_artifact_inventory",
+    "build_causal_alpha_frontier_assurance",
+    "build_causal_alpha_frontier_claim_boundary",
+    "build_causal_alpha_frontier_contracts",
+    "build_causal_alpha_frontier_control_coverage",
+    "build_causal_alpha_frontier_diagnostics",
+    "build_causal_alpha_frontier_exports",
+    "build_causal_alpha_frontier_lineage",
+    "build_causal_alpha_frontier_metrics",
+    "build_causal_alpha_frontier_observability",
+    "build_causal_alpha_frontier_operational_matrix",
+    "build_causal_alpha_frontier_provenance",
+    "build_causal_alpha_frontier_projections",
+    "build_causal_alpha_frontier_release_manifest",
+    "build_causal_alpha_frontier_review_queue",
+    "build_causal_alpha_frontier_review_view",
+    "build_causal_alpha_frontier_runbook",
+    "build_causal_alpha_frontier_scenario_matrix",
+    "build_causal_alpha_frontier_trace_ledger",
+    "build_causal_alpha_frontier_validation_matrix",
+    "causal_alpha_frontier_report",
+    "default_causal_alpha_frontier_fixture",
+    "default_causal_alpha_frontier_policy",
+    "evaluate_causal_alpha_frontier_fixture",
+    "evaluate_causal_alpha_frontier_fixture_deep",
+    "evaluate_causal_alpha_frontier_integrity",
+    "evaluate_causal_alpha_frontier_quality",
+    "query_causal_alpha_frontier",
+    "reconcile_causal_alpha_frontier",
+    "replay_causal_alpha_frontier",
+    "run_causal_alpha_frontier_runtime",
+    "runbook_is_executable",
+    "validate_causal_alpha_frontier_schema",
+]

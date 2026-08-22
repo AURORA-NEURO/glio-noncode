@@ -3753,55 +3753,69 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D11-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
+                    "glio_noncode.causal_alpha_frontier_public_data",
+                    "glio_noncode.causal_alpha_frontier_runtime",
                     "glio_noncode.causal_alpha.MediationSensitivityAnalyzer",
                     "glio_noncode.causal_alpha.MediationSensitivityResult",
                 ),
-                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_depth", "tests.test_causal_alpha_frontier_cli"),
                 "evidence_note": (
-                    "Leave-one-source-out mediation sensitivity retains base and rerun states, "
-                    "source influence deltas, evidence IDs, model versions, and robustness "
-                    "tolerance; sensitivity is not causal identification."
+                    "The public aggregate C09-C12 fixture replays positive, single-source, "
+                    "fragile, and foreign-context mediation cases through source omission, "
+                    "lineage, policy, review, release, replay, and export gates; sensitivity "
+                    "is not causal identification."
                 ),
             },
             "GNC-D11-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
+                    "glio_noncode.causal_alpha_frontier_public_data",
+                    "glio_noncode.causal_alpha_frontier_runtime",
                     "glio_noncode.causal_alpha.ConfoundingChecklistAdjudicator",
                     "glio_noncode.causal_alpha.ConfoundingAdjudicationReport",
                 ),
-                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_depth", "tests.test_causal_alpha_frontier_cli"),
                 "evidence_note": (
-                    "Confounding checklists retain addressed, unresolved, missing, and not "
-                    "applicable items with severity, adjustment methods, source lineage, and "
-                    "exact-context gates; completion does not prove no unmeasured confounding."
+                    "The public aggregate C09-C12 fixture retains addressed, unresolved, "
+                    "missing, not-applicable, and foreign-context checklist cases with "
+                    "severity, adjustment methods, source lineage, exact-context gates, "
+                    "replay, release, and export evidence; completion does not prove no "
+                    "unmeasured confounding."
                 ),
             },
             "GNC-D11-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
+                    "glio_noncode.causal_alpha_frontier_public_data",
+                    "glio_noncode.causal_alpha_frontier_runtime",
                     "glio_noncode.causal_alpha.EvidenceDependenceCorrector",
                     "glio_noncode.causal_alpha.DependenceCorrectionReport",
                 ),
-                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_operational", "tests.test_causal_alpha_frontier_cli"),
                 "evidence_note": (
-                    "Declared dependence groups select one representative path per group while "
-                    "retaining duplicate IDs, method families, uncertainty, independent-group "
-                    "counts, and contradictions; corrected support is a bounded proxy."
+                    "The public aggregate C09-C12 fixture selects one representative path per "
+                    "declared group while retaining duplicate IDs, method families, uncertainty, "
+                    "independent-group counts, contradictions, foreign controls, lineage, "
+                    "policy, replay, and release evidence; corrected support is a bounded proxy."
                 ),
             },
             "GNC-D11-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
+                    "glio_noncode.causal_alpha_frontier_public_data",
+                    "glio_noncode.causal_alpha_frontier_runtime",
                     "glio_noncode.causal_alpha.NegativeEvidenceIntegrator",
                     "glio_noncode.causal_alpha.NegativeEvidenceIntegrationReport",
                 ),
-                "test_modules": ("tests.test_causal_alpha", "tests.test_causal_alpha_cli"),
+                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_operational", "tests.test_causal_alpha_frontier_cli"),
                 "evidence_note": (
-                    "Positive paths, negative controls, measured-negative states, coverage, and "
-                    "positive/negative contradiction remain separate with exact context and "
-                    "assay limitations; negative evidence is not proof of absence."
+                    "The public aggregate C09-C12 fixture separates positive paths, negative "
+                    "controls, measured-negative states, coverage, and positive/negative "
+                    "contradictions with exact context, assay limitations, source lineage, "
+                    "review, release, replay, and export gates; negative evidence is not proof "
+                    "of absence."
                 ),
             },
             "GNC-D11-C13": {
