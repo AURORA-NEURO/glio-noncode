@@ -15,10 +15,10 @@ class CapabilityRegistryTests(unittest.TestCase):
         coverage = registry.coverage()
         self.assertEqual(coverage.total_capabilities, 256)
         self.assertEqual(coverage.mvp_capabilities, 64)
-        self.assertEqual(coverage.verified, 140)
-        self.assertEqual(coverage.partial, 116)
+        self.assertEqual(coverage.verified, 144)
+        self.assertEqual(coverage.partial, 112)
         self.assertEqual(coverage.planned, 0)
-        self.assertAlmostEqual(coverage.implementation_percent, 54.69)
+        self.assertAlmostEqual(coverage.implementation_percent, 56.25)
         self.assertAlmostEqual(coverage.mvp_implementation_percent, 50.0)
         self.assertEqual(coverage.started, 256)
         self.assertAlmostEqual(coverage.started_percent, 100.0)
@@ -182,7 +182,7 @@ class CapabilityRegistryTests(unittest.TestCase):
             expected_state = (
                 CapabilityState.VERIFIED
                 if capability_id.split("-")[1]
-                in {"D01", "D02", "D03", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13", "D14", "D15", "D16"}
+                in {"D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13", "D14", "D15", "D16"}
                 else CapabilityState.PARTIAL
             )
             self.assertEqual(registry.record(capability_id).state, expected_state)

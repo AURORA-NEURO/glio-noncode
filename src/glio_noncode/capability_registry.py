@@ -1739,57 +1739,87 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D04-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.SourceProvenanceChecker",
                     "glio_noncode.frontier_data_alpha.ProvenanceCheckReport",
+                    "glio_noncode.reference_release_frontier_public_data",
+                    "glio_noncode.reference_release_frontier_fixture_eval",
+                    "glio_noncode.reference_release_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_reference_release_frontier",
+                    "tests.test_reference_release_frontier_cli",
+                ),
                 "evidence_note": (
-                    "Source checks retain URI, declared and observed checksum, license, context, "
-                    "and review reasons for missing or mismatched provenance."
+                    "The public C13-C16 aggregate runs matched and mismatched source receipts "
+                    "through 23 data checks, 48 execution checks, replay, lineage, policy, "
+                    "quality, and CLI surfaces; URI, checksum, license, context, and review "
+                    "reasons remain visible."
                 ),
             },
             "GNC-D04-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.AnnotationDriftDetector",
                     "glio_noncode.frontier_data_alpha.AnnotationDriftReport",
+                    "glio_noncode.reference_release_frontier_fixture_eval",
+                    "glio_noncode.reference_release_frontier_projection_assertions",
+                    "glio_noncode.reference_release_frontier_replay",
                 ),
                 "test_modules": (
                     "tests.test_frontier_data_alpha",
                     "tests.test_frontier_data_alpha_cli",
+                    "tests.test_reference_release_frontier",
                 ),
                 "evidence_note": (
                     "Versioned annotation rows are compared field by field with ignored receipt "
-                    "fields, change scores, new-row drift, and stable-row classifications."
+                    "fields, change scores, new-row drift, stable-row controls, independent "
+                    "projections, replay, and redacted release views."
                 ),
             },
             "GNC-D04-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.ReproducibleReferenceBundleBuilder",
                     "glio_noncode.frontier_data_alpha.ReferenceBundle",
+                    "glio_noncode.reference_release_frontier_bundle",
+                    "glio_noncode.reference_release_frontier_artifacts",
+                    "glio_noncode.reference_release_frontier_views",
                 ),
-                "test_modules": ("tests.test_frontier_data_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_data_alpha",
+                    "tests.test_reference_release_frontier",
+                ),
                 "evidence_note": (
                     "Reference bundles retain sorted records, exact context, schema hash, "
-                    "availability gates, reference IDs, and a reproducible content address."
+                    "availability gates, reference IDs, and reproducible addresses; the "
+                    "accepted bundle, artifact inventory, review view, and CSV/JSON exports "
+                    "are independently verified."
                 ),
             },
             "GNC-D04-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.ReferenceReleaseGate",
                     "glio_noncode.frontier_data_alpha.ReferenceReleaseDecision",
+                    "glio_noncode.reference_release_frontier_policy",
+                    "glio_noncode.reference_release_frontier_release",
+                    "glio_noncode.reference_release_frontier_runtime",
+                    "glio_noncode.reference_release_frontier_pipeline",
                 ),
                 "test_modules": (
                     "tests.test_frontier_data_alpha",
                     "tests.test_frontier_data_alpha_cli",
+                    "tests.test_reference_release_frontier",
+                    "tests.test_reference_release_frontier_cli",
                 ),
                 "evidence_note": (
                     "Reference release decisions apply explicit checksum, schema, license, "
-                    "context, and source checks with deny-by-default missing-check behavior."
+                    "context, and source checks with deny-by-default missing-check behavior; "
+                    "the nine-stage runtime, ready manifest, review queue, threshold report, "
+                    "and hosted CLI package are functionally exercised."
                 ),
             },
             "GNC-D05-C01": {

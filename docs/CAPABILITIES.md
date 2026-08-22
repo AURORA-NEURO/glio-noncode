@@ -20,11 +20,11 @@ verified only when tests and the stated evidence boundary support that claim.
 The registry reports planned, partial, implemented, and verified counts
 separately so a single percentage cannot hide unfinished work.
 
-The frontier expansion waves add partial, test-backed coverage for all C13-C16
+The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 140 capabilities have deterministic fixture-backed
-verification and 116 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 54.69% of the 256-capability
+capabilities started (100%); 144 capabilities have deterministic fixture-backed
+verification and 112 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 56.25% of the 256-capability
 catalog; MVP implementation coverage is 50.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -404,6 +404,54 @@ The complete schema and release rules are documented in
 `docs/REFERENCE_GOVERNANCE_EVIDENCE_GATE.md` and
 `docs/REFERENCE_GOVERNANCE_RELEASE_FORMAT.md`.
 
+### Domain 04 C13-C16 reference release frontier
+
+The Domain 04 C13-C16 reference release frontier is now verified through a
+separate public aggregate package. It uses five public source receipts and
+sixteen records under the exact context
+`GRCh38|diffuse_glioma|adult|bulk_tumor|reference_plane|baseline`: four positive
+paths and twelve controls, balanced across provenance, annotation drift,
+reproducible bundles, and release gating.
+
+The four operations preserve distinct evidence boundaries:
+
+- C13 checks URI, declared and observed checksum, license, and exact context;
+  missing or mismatched receipts remain `review`.
+- C14 compares versioned annotation rows, ignores retrieval-only receipt
+  fields, and reports substantive changes or new identities as `drift`.
+- C15 sorts available exact-context reference metadata into a schema-hashed,
+  content-addressed bundle; foreign, unavailable, and unidentified rows are
+  `blocked`.
+- C16 applies explicit checksum, schema, license, context, and source checks;
+  a missing or false required check blocks publication.
+
+The package performs 23 data checks, 48 execution checks, 12 replay checks,
+25 quality checks, 12 policy rules, a 111-node/133-edge redacted lineage graph,
+16 reconciliation checks, a nine-stage runtime, an accepted bundle and
+artifact inventory, an eleven-item review queue, accessibility and boundary
+checks, a 16-row scenario matrix, 12 quantitative thresholds, and a four-row
+validation matrix. The accepted outputs contain states, IDs, counts, issue
+codes, and addresses without copying raw operation rows.
+
+```powershell
+python -m glio_noncode reference-release-data-audit
+python -m glio_noncode reference-release-evaluate
+python -m glio_noncode reference-release-replay
+python -m glio_noncode reference-release-quality-gate
+python -m glio_noncode reference-release-runtime
+python -m glio_noncode reference-release-bundle
+python -m glio_noncode reference-release-review-queue
+python -m glio_noncode reference-release-pipeline
+python -m glio_noncode export-reference-release-review-csv
+```
+
+See `docs/REFERENCE_RELEASE_FRONTIER_API.md`,
+`docs/REFERENCE_RELEASE_FRONTIER_DATA_DICTIONARY.md`,
+`docs/REFERENCE_RELEASE_FRONTIER_OPERATIONS.md`,
+`docs/REFERENCE_RELEASE_FRONTIER_RELEASE.md`, and
+`docs/REFERENCE_RELEASE_FRONTIER_VALIDATION.md` for the complete field,
+runtime, release, and verification contract.
+
 The same frontier wave extended the atlas, sequence, chromatin, and cell-state
 boundaries through Domains 05-08. Those modules remain part of the current
 256-capability ledger, with the individual capability records retaining their
@@ -480,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 140 capabilities are verified against the checked-in
-aggregate fixtures, while 116 capabilities remain partial. Partial
+capabilities started (100%); 144 capabilities are verified against the checked-in
+aggregate fixtures, while 112 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.

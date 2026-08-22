@@ -706,3 +706,23 @@ jobs:
         run: python -m glio_noncode gamma-frontier-accessibility --output /tmp/glio-gamma-frontier-accessibility.json && python -m glio_noncode gamma-frontier-compliance --output /tmp/glio-gamma-frontier-boundary.json && python -m glio_noncode gamma-frontier-invariants --output /tmp/glio-gamma-frontier-invariants.json
       - name: Gamma frontier planning manifests
         run: python -m glio_noncode gamma-frontier-adapters --output /tmp/glio-gamma-frontier-adapters.json && python -m glio_noncode gamma-frontier-scenarios --output /tmp/glio-gamma-frontier-scenarios.json && python -m glio_noncode gamma-frontier-thresholds --output /tmp/glio-gamma-frontier-thresholds.json && python -m glio_noncode gamma-frontier-validation --output /tmp/glio-gamma-frontier-validation.json && python -m glio_noncode gamma-frontier-runbook --output /tmp/glio-gamma-frontier-runbook.json
+      - name: Reference release frontier data boundary audit
+        run: python -m glio_noncode reference-release-data-audit --output /tmp/glio-reference-release-data.json
+      - name: Reference release frontier contracts and schema
+        run: python -m glio_noncode reference-release-contracts --output /tmp/glio-reference-release-contracts.json && python -m glio_noncode reference-release-schema --output /tmp/glio-reference-release-schema.json
+      - name: Reference release frontier evaluation and replay
+        run: python -m glio_noncode reference-release-evaluate --output /tmp/glio-reference-release-evaluation.json && python -m glio_noncode reference-release-replay --output /tmp/glio-reference-release-replay.json
+      - name: Reference release frontier runtime and quality
+        run: python -m glio_noncode reference-release-quality-gate --output /tmp/glio-reference-release-quality.json && python -m glio_noncode reference-release-runtime --output /tmp/glio-reference-release-runtime.json
+      - name: Reference release frontier metrics lineage and policy
+        run: python -m glio_noncode reference-release-metrics --output /tmp/glio-reference-release-metrics.json && python -m glio_noncode reference-release-lineage --output /tmp/glio-reference-release-lineage.json && python -m glio_noncode reference-release-policy --output /tmp/glio-reference-release-policy.json
+      - name: Reference release frontier package outputs
+        run: python -m glio_noncode reference-release-release --output /tmp/glio-reference-release-manifest.json && python -m glio_noncode reference-release-bundle --output /tmp/glio-reference-release-bundle.json && python -m glio_noncode reference-release-artifacts --output /tmp/glio-reference-release-artifacts.json
+      - name: Reference release frontier review and CSV
+        run: python -m glio_noncode reference-release-review-view --output /tmp/glio-reference-release-view.json && python -m glio_noncode reference-release-review-queue --output /tmp/glio-reference-release-queue.json && python -m glio_noncode export-reference-release-review-csv --output /tmp/glio-reference-release-review.csv
+      - name: Reference release frontier boundaries and invariants
+        run: python -m glio_noncode reference-release-accessibility --output /tmp/glio-reference-release-accessibility.json && python -m glio_noncode reference-release-compliance --output /tmp/glio-reference-release-boundary.json && python -m glio_noncode reference-release-invariants --output /tmp/glio-reference-release-invariants.json
+      - name: Reference release frontier planning manifests
+        run: python -m glio_noncode reference-release-adapters --output /tmp/glio-reference-release-adapters.json && python -m glio_noncode reference-release-scenarios --output /tmp/glio-reference-release-scenarios.json && python -m glio_noncode reference-release-thresholds --output /tmp/glio-reference-release-thresholds.json && python -m glio_noncode reference-release-validation --output /tmp/glio-reference-release-validation.json && python -m glio_noncode reference-release-runbook --output /tmp/glio-reference-release-runbook.json
+      - name: Reference release frontier end-to-end pipeline
+        run: python -m glio_noncode reference-release-pipeline --output /tmp/glio-reference-release-pipeline.json
