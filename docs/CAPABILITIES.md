@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 188 capabilities have deterministic fixture-backed
-verification and 68 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 73.44% of the 256-capability
+capabilities started (100%); 192 capabilities have deterministic fixture-backed
+verification and 64 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 75.0% of the 256-capability
 catalog; MVP implementation coverage is 75.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -2247,6 +2247,117 @@ glio-noncode model-ctcf-cohesin-disruption ctcf-cohesin.json --disruption-thresh
 glio-noncode model-idh-insulator-dysfunction idh-insulators.json --dysfunction-threshold 0.2 --output idh-insulator-model.json
 glio-noncode simulate-sv-topology-rewiring sv-topology.json --output sv-rewiring.json
 ```
+
+### Domain 09 C09-C12 topology alpha evidence gate
+
+The C09-C12 alpha package turns the four structural primitives into a closed,
+fixture-backed public aggregate release surface. Each operation has one
+positive record and three controls. Controls retain partial fields, mixed motif
+orientations, channel disagreement, invalid molecular vocabulary, missing edge
+edits, and foreign context instead of collapsing them into support.
+
+- The boundary motif adapter preserves left/right orientation labels, median
+  score, observation identity, source version, and mixed-orientation review.
+- The CTCF/cohesin adapter retains independent channel deltas and combined
+  descriptive labels while keeping absent channels visible.
+- The IDH/insulator adapter compares mutant and wildtype state rows while
+  retaining methylation as a separate measurement channel.
+- The SV adapter simulates declared contact-edge loss, gain, preservation, and
+  rewiring with affected nodes and explicit edge receipts.
+
+The deeper assurance layer includes operation conformance, source receipt
+checks, evidence cells, claim boundaries, typed failure definitions, query and
+inspection views, deterministic regression checks, ordered stage ledgers,
+governance decisions, package manifests, release notes, bounded runtime limits,
+and sanitized exports. The extended assurance report adds a locked data
+dictionary, state-transition rules, operation scorecards, independent lineage
+and checksum audits, positive/control comparisons, deterministic partitions,
+typed next actions, append-only stage audit logging, resource ceilings, a
+release gate, canonical serialization, a validation report, and an operator
+handbook. The pipeline contains 16 records, 4 source receipts, 12 review items,
+20 artifacts, and 12 passing stages.
+
+Run the complete alpha surface locally:
+
+```powershell
+glio-noncode topology-alpha-frontier-fixture --output topology-alpha-fixture.json
+glio-noncode topology-alpha-frontier-evaluate --output topology-alpha-evaluation.json
+glio-noncode topology-alpha-frontier-contracts --output topology-alpha-contracts.json
+glio-noncode topology-alpha-frontier-schema --output topology-alpha-schema.json
+glio-noncode topology-alpha-frontier-metrics --output topology-alpha-metrics.json
+glio-noncode topology-alpha-frontier-review --output topology-alpha-review.json
+glio-noncode topology-alpha-frontier-release --output topology-alpha-release.json
+glio-noncode topology-alpha-frontier-summary --output topology-alpha-summary.json
+```
+
+The package is descriptive public aggregate infrastructure. Orientation,
+channel deltas, IDH comparisons, and contact-edge simulations do not establish
+mechanism, probability, patient-level findings, or treatment effect.
+
+The alpha verification matrix is intentionally explicit:
+
+| Surface | C09 | C10 | C11 | C12 |
+| --- | --- | --- | --- | --- |
+| Primitive adapter | motif orientation | CTCF/cohesin delta | IDH/insulator state | SV edge simulation |
+| Positive path | convergent pair | dual-channel disruption | mutant/wildtype pair | deletion/gain/rewire |
+| Partial control | one-sided motif | missing cohesin | mutant-only or invalid row | missing or unresolved edits |
+| Ambiguity control | mixed orientations | opposing channels | retained state uncertainty | explicit review state |
+| Context control | foreign context | foreign context | foreign context | foreign context |
+| Receipt fields | observation IDs | variant IDs | region IDs | SV IDs and edges |
+| Primary review | orientation proof | channel agreement | vocabulary and methylation | edge closure |
+| Release limit | score threshold | delta threshold | dysfunction threshold | bounded edit set |
+
+The shared execution contract is the same for every column: load only the
+closed public aggregate fixture, resolve the operation-specific adapter, retain
+the primitive state and issue codes, attach source and result addresses, compare
+the result to expected controls, and route every non-supported path to review.
+The source registry verifies four aggregate receipts. The evidence matrix maps
+all 16 records to source, result, issue, and review fields. The claim boundary
+records one permitted descriptive statement and one blocked over-interpretation
+for every row. The failure catalog gives each observed issue a category,
+severity, remediation, and release effect.
+
+The operational layers then make the result repeatable: the query plan layer
+reproduces control and positive slices, the projection layer emits public-safe
+fields, the partition layer makes operation/role/state coverage inspectable,
+and the comparison layer pairs each positive path with its three controls. The
+state-transition audit confirms that all outputs use the seven-value topology
+state vocabulary. The scorecard aggregates per-operation support, review,
+address, and evidence closure. The lineage and checksum audits independently
+recheck source-to-record-to-result relations. Resource ceilings cap records,
+sources, review items, artifacts, and stages.
+
+The release gate is blocking for execution, replay, scope, manifest, and
+artifact failures. Review queue and trace checks remain visible as advisory
+records. A canonical serializer gives equivalent dictionaries the same output
+bytes, while the validation report renders fixture, replay, quality, review,
+release, and observability sections. The operator handbook describes load,
+replay, inspect, release, and remote-check procedures with evidence to retain.
+
+No row is promoted by a missing field, unresolved context, opposing channel,
+or unknown edge. Those cases stay addressable and reviewable.
+
+The package therefore supports both a compact summary command and a deep
+inspection path. Reviewers can start with the summary address, select an
+operation or control class, inspect its source and result receipts, compare it
+with the positive path, and retain the corresponding release-gate decision.
+This preserves a short handoff without removing the detailed evidence needed
+to reproduce the decision.
+
+The recorded limits also make future growth deliberate: expanding the fixture
+requires a contract update, a new control balance, refreshed evidence counts,
+new address checks, and a corresponding workflow assertion.
+
+That contract keeps the alpha plane auditable as additional public aggregate
+sources and operation variants are introduced.
+
+Every expansion remains
+versioned,
+bounded,
+addressed,
+tested,
+reviewable,
+and release-gated.
 
 ### Domain 09 C13-C16 topology frontier evidence gate
 

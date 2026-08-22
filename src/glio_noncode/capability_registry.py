@@ -3160,55 +3160,89 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D09-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_alpha.BoundaryMotifOrientationAnalyzer",
                     "glio_noncode.topology_alpha.BoundaryMotifOrientationReport",
+                    "glio_noncode.topology_alpha_frontier_adapters.TopologyAlphaFrontierAdapterRegistry",
+                    "glio_noncode.topology_alpha_frontier_public_data.default_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_fixture_eval.evaluate_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_pipeline.run_topology_alpha_frontier_pipeline",
+                    "glio_noncode.topology_alpha_frontier_evidence_matrix.build_topology_alpha_frontier_evidence_matrix",
+                    "glio_noncode.topology_alpha_frontier_claim_boundary.build_topology_alpha_frontier_claim_boundary",
+                    "glio_noncode.topology_alpha_frontier_exports.export_topology_alpha_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
                 "evidence_note": (
                     "Boundary-side motif observations preserve orientation, score, source version, "
                     "convergent/divergent/tandem alternatives, and mixed-orientation ambiguity; "
-                    "orientation is not treated as insulation proof."
+                    "the public aggregate C09-C12 fixture verifies positive, partial, ambiguous, "
+                    "foreign-context, replay, evidence, policy, and release paths; orientation is "
+                    "not treated as insulation proof."
                 ),
             },
             "GNC-D09-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_alpha.CTCFCohesinDisruptionModel",
                     "glio_noncode.topology_alpha.CTCFCohesinDisruptionReport",
+                    "glio_noncode.topology_alpha_frontier_adapters.TopologyAlphaFrontierAdapterRegistry",
+                    "glio_noncode.topology_alpha_frontier_public_data.default_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_fixture_eval.evaluate_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_pipeline.run_topology_alpha_frontier_pipeline",
+                    "glio_noncode.topology_alpha_frontier_conformance.build_topology_alpha_frontier_conformance",
+                    "glio_noncode.topology_alpha_frontier_failure_catalog.build_topology_alpha_frontier_failure_catalog",
+                    "glio_noncode.topology_alpha_frontier_runtime.run_topology_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
                 "evidence_note": (
                     "Reference/alternate CTCF and cohesin channels retain independent deltas, "
                     "combined descriptive labels, missing channels, state disagreement, contexts, "
-                    "and source hashes without causal interpretation."
+                    "and source hashes without causal interpretation; controls cover channel "
+                    "disagreement, context transport, schema closure, and deterministic replay."
                 ),
             },
             "GNC-D09-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_alpha.IDHInsulatorDysfunctionModel",
                     "glio_noncode.topology_alpha.IDHInsulatorDysfunctionReport",
+                    "glio_noncode.topology_alpha_frontier_adapters.TopologyAlphaFrontierAdapterRegistry",
+                    "glio_noncode.topology_alpha_frontier_public_data.default_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_fixture_eval.evaluate_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_metrics.build_topology_alpha_frontier_metrics",
+                    "glio_noncode.topology_alpha_frontier_governance.build_topology_alpha_frontier_governance",
+                    "glio_noncode.topology_alpha_frontier_release_notes.build_topology_alpha_frontier_release_notes",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
                 "evidence_note": (
                     "IDH-mutant and IDH-wildtype insulator scores are compared per region with a "
                     "separate methylation channel, state gates, missingness, source versions, and "
-                    "bounded dysfunction candidates; no mechanistic diagnosis is inferred."
+                    "bounded dysfunction candidates; the alpha fixture retains invalid vocabulary, "
+                    "foreign context, claim boundaries, and package notes; no mechanistic diagnosis "
+                    "is inferred."
                 ),
             },
             "GNC-D09-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.topology_alpha.SVTopologyRewiringSimulator",
                     "glio_noncode.topology_alpha.SVTopologyRewiringReport",
+                    "glio_noncode.topology_alpha_frontier_adapters.TopologyAlphaFrontierAdapterRegistry",
+                    "glio_noncode.topology_alpha_frontier_public_data.default_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_fixture_eval.evaluate_topology_alpha_frontier_fixture",
+                    "glio_noncode.topology_alpha_frontier_pipeline.run_topology_alpha_frontier_pipeline",
+                    "glio_noncode.topology_alpha_frontier_source_checks.build_topology_alpha_frontier_source_checks",
+                    "glio_noncode.topology_alpha_frontier_replay_ledger.build_topology_alpha_frontier_replay_ledger",
+                    "glio_noncode.topology_alpha_frontier_packaging.build_topology_alpha_frontier_package_manifest",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli"),
+                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
                 "evidence_note": (
                     "Declared SV events simulate preserved, lost, gained, and rewired contact-edge "
                     "sets with affected nodes, contexts, edge receipts, and explicit bookkeeping; "
-                    "the simulation is not a prediction of 3D function."
+                    "the C09-C12 release surface adds unknown-edge controls, source closure, query "
+                    "inspection, ordered stage receipts, and package validation; the simulation is "
+                    "not a prediction of 3D function."
                 ),
             },
             "GNC-D09-C13": {
