@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 144 capabilities have deterministic fixture-backed
-verification and 112 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 56.25% of the 256-capability
-catalog; MVP implementation coverage is 50.0%. The surfaces retain
+capabilities started (100%); 148 capabilities have deterministic fixture-backed
+verification and 108 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 57.81% of the 256-capability
+catalog; MVP implementation coverage is 56.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 144 capabilities are verified against the checked-in
-aggregate fixtures, while 112 capabilities remain partial. Partial
+capabilities started (100%); 148 capabilities are verified against the checked-in
+aggregate fixtures, while 108 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1427,6 +1427,37 @@ glio-noncode predict-nucleosome-propensity sequence-windows.json --minimum-lengt
 glio-noncode scan-splice-regulatory splice-windows.json --context-key "GRCh38|glioma|adult|stem_like|unknown|unknown" --output splice-evidence.json
 glio-noncode scan-utr-regulatory utr-windows.json --minimum-uorf-codons 2 --output utr-evidence.json
 glio-noncode evaluate-promoter-grammar promoter-grammar.json --minimum-coverage 0.5 --output promoter-grammar.json
+```
+
+### Domain 06 C01-C04 sequence effect frontier
+
+The first four Domain 06 capabilities now have a complete public aggregate
+evidence plane around the bounded sequence adapters. The fixture contains four
+positive records, twelve controls, four public source receipts, exact context,
+and a `public_aggregate_non_patient` boundary.
+
+- C01 context encoding retains GC, ambiguity, k-mer, sequence hash, and source
+  accounting while empty and invalid sequences remain explicit states.
+- C02 foundation-model ingestion validates model/version rows, reported
+  deltas, source hashes, and malformed-row controls without making a performance
+  claim.
+- C03 long-context ingestion enforces a 1,024-base minimum window and reports
+  short-window failures as explicit controls.
+- C04 regulatory-track ensembling retains model IDs, mean deltas, spread,
+  single-model partial state, disagreement, and no-observations abstention.
+
+The package provides 96 deterministic execution checks, 25 quality checks, ten
+invariants, twelve scenario rows, six threshold profiles, four validation rows,
+ten runtime stages, 12 review entries, a nine-node artifact inventory, source
+lineage, replay, policy, accessibility, boundary, CSV/Markdown exports, and a
+release pipeline. Model deltas remain descriptive research evidence and are not
+converted into probabilities.
+
+```powershell
+glio-noncode sequence-effect-data-audit --output sequence-effect-data.json
+glio-noncode sequence-effect-evaluate --output sequence-effect-evaluation.json
+glio-noncode sequence-effect-quality-gate --output sequence-effect-quality.json
+glio-noncode sequence-effect-pipeline --run-id d06-c01-c04-local --output sequence-effect-pipeline.json
 ```
 
 ### Domain 06 C13-C16 sequence frontier evidence gate

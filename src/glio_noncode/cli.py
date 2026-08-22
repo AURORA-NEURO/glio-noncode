@@ -267,6 +267,8 @@ from .workspace_gamma_frontier_cli import GAMMA_FRONTIER_COMMANDS, run_gamma_fro
 from .workspace_gamma_frontier_public_data import load_gamma_frontier_fixture
 from .reference_release_frontier_cli import REFERENCE_RELEASE_COMMANDS, run_reference_release_operation
 from .reference_release_frontier_public_data import load_reference_release_fixture
+from .sequence_effect_frontier_cli import SEQUENCE_EFFECT_FRONTIER_COMMANDS, run_sequence_effect_operation
+from .sequence_effect_frontier_public_data import load_sequence_effect_fixture
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
 from .workspace_beta_frontier_thresholds import build_beta_frontier_threshold_report
@@ -4388,6 +4390,12 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
 
+    for command_name in SEQUENCE_EFFECT_FRONTIER_COMMANDS:
+        command_parser = subparsers.add_parser(command_name, help="run the Domain 06 C01-C04 sequence effect frontier")
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--run-id", default="sequence-effect-cli")
+        command_parser.add_argument("--output", default=None)
+
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
         help="compare reference and alternate sequence windows for declared motif losses",
@@ -8371,6 +8379,16 @@ def main(argv: list[str] | None = None) -> int:
         if args.command in REFERENCE_RELEASE_COMMANDS:
             fixture = load_reference_release_fixture(args.input)
             result = run_reference_release_operation(args.command, fixture)
+            if isinstance(result, str):
+                _write_text(result, args.output)
+            elif hasattr(result, "to_dict"):
+                _write_json(result.to_dict(), args.output)
+            else:
+                _write_json(result, args.output)
+            return 0
+        if args.command in SEQUENCE_EFFECT_FRONTIER_COMMANDS:
+            fixture = load_sequence_effect_fixture(args.input) if args.input else None
+            result = run_sequence_effect_operation(args.command, fixture, run_id=args.run_id)
             if isinstance(result, str):
                 _write_text(result, args.output)
             elif hasattr(result, "to_dict"):

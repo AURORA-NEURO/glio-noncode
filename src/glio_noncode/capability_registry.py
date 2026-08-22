@@ -2101,47 +2101,59 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D06-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_adapters.SequenceContextEncoder",
+                    "glio_noncode.sequence_effect_frontier_public_data",
+                    "glio_noncode.sequence_effect_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_adapters",),
+                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
                 "evidence_note": (
                     "Bounded deterministic GC, ambiguity, and k-mer context features are "
-                    "content-addressed; external benchmark performance is not claimed."
+                    "content-addressed with public aggregate controls, replay, schema, "
+                    "lineage, and release checks; external benchmark performance is not claimed."
                 ),
             },
             "GNC-D06-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_adapters.SequenceFoundationModelAdapter",
+                    "glio_noncode.sequence_effect_frontier_fixture_eval",
+                    "glio_noncode.sequence_effect_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_sequence_adapters",),
+                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
                 "evidence_note": (
                     "Foundation-model output rows preserve model/version/source metadata and "
-                    "quarantine malformed or inconsistent deltas; model calibration remains."
+                    "quarantine malformed or inconsistent deltas across positive and control "
+                    "fixtures; calibration remains an explicit non-claim."
                 ),
             },
             "GNC-D06-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_adapters.LongContextVariantEffectAdapter",
+                    "glio_noncode.sequence_effect_frontier_schema",
+                    "glio_noncode.sequence_effect_frontier_replay",
                 ),
-                "test_modules": ("tests.test_sequence_adapters",),
+                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
                 "evidence_note": (
                     "Long-context outputs require a declared minimum window and preserve "
-                    "short-context failures as explicit issues."
+                    "short-context failures as explicit issues with deterministic replay and "
+                    "schema validation."
                 ),
             },
             "GNC-D06-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.sequence_adapters.RegulatoryTrackDeltaEnsemble",
+                    "glio_noncode.sequence_effect_frontier_metrics",
+                    "glio_noncode.sequence_effect_frontier_policy",
                 ),
-                "test_modules": ("tests.test_sequence_adapters",),
+                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
                 "evidence_note": (
                     "Model deltas are grouped by variant with mean, spread, model IDs, and "
-                    "ambiguity states; no delta is promoted to a probability."
+                    "ambiguity states, explicit controls, and a release policy; no delta is "
+                    "promoted to a probability."
                 ),
             },
             "GNC-D06-C05": {

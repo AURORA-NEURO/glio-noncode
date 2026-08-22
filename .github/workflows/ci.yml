@@ -726,3 +726,21 @@ jobs:
         run: python -m glio_noncode reference-release-adapters --output /tmp/glio-reference-release-adapters.json && python -m glio_noncode reference-release-scenarios --output /tmp/glio-reference-release-scenarios.json && python -m glio_noncode reference-release-thresholds --output /tmp/glio-reference-release-thresholds.json && python -m glio_noncode reference-release-validation --output /tmp/glio-reference-release-validation.json && python -m glio_noncode reference-release-runbook --output /tmp/glio-reference-release-runbook.json
       - name: Reference release frontier end-to-end pipeline
         run: python -m glio_noncode reference-release-pipeline --output /tmp/glio-reference-release-pipeline.json
+      - name: Sequence effect frontier data and contracts
+        run: python -m glio_noncode sequence-effect-data-audit --output /tmp/glio-sequence-effect-data.json && python -m glio_noncode sequence-effect-contracts --output /tmp/glio-sequence-effect-contracts.json && python -m glio_noncode sequence-effect-schema --output /tmp/glio-sequence-effect-schema.json
+      - name: Sequence effect frontier evaluation and replay
+        run: python -m glio_noncode sequence-effect-evaluate --output /tmp/glio-sequence-effect-evaluation.json && python -m glio_noncode sequence-effect-replay --output /tmp/glio-sequence-effect-replay.json
+      - name: Sequence effect frontier quality and runtime
+        run: python -m glio_noncode sequence-effect-quality-gate --output /tmp/glio-sequence-effect-quality.json && python -m glio_noncode sequence-effect-runtime --output /tmp/glio-sequence-effect-runtime.json
+      - name: Sequence effect frontier metrics lineage and policy
+        run: python -m glio_noncode sequence-effect-metrics --output /tmp/glio-sequence-effect-metrics.json && python -m glio_noncode sequence-effect-lineage --output /tmp/glio-sequence-effect-lineage.json && python -m glio_noncode sequence-effect-policy --output /tmp/glio-sequence-effect-policy.json
+      - name: Sequence effect frontier release bundle artifacts
+        run: python -m glio_noncode sequence-effect-release --output /tmp/glio-sequence-effect-release.json && python -m glio_noncode sequence-effect-bundle --output /tmp/glio-sequence-effect-bundle.json && python -m glio_noncode sequence-effect-artifacts --output /tmp/glio-sequence-effect-artifacts.json
+      - name: Sequence effect frontier review and CSV
+        run: python -m glio_noncode sequence-effect-view --output /tmp/glio-sequence-effect-view.json && python -m glio_noncode sequence-effect-review-queue --output /tmp/glio-sequence-effect-queue.json && python -m glio_noncode export-sequence-effect-review-csv --output /tmp/glio-sequence-effect-review.csv
+      - name: Sequence effect frontier boundaries and invariants
+        run: python -m glio_noncode sequence-effect-accessibility --output /tmp/glio-sequence-effect-accessibility.json && python -m glio_noncode sequence-effect-compliance --output /tmp/glio-sequence-effect-boundary.json && python -m glio_noncode sequence-effect-invariants --output /tmp/glio-sequence-effect-invariants.json
+      - name: Sequence effect frontier planning manifests
+        run: python -m glio_noncode sequence-effect-adapters --output /tmp/glio-sequence-effect-adapters.json && python -m glio_noncode sequence-effect-scenarios --output /tmp/glio-sequence-effect-scenarios.json && python -m glio_noncode sequence-effect-thresholds --output /tmp/glio-sequence-effect-thresholds.json && python -m glio_noncode sequence-effect-validation --output /tmp/glio-sequence-effect-validation.json && python -m glio_noncode sequence-effect-runbook --output /tmp/glio-sequence-effect-runbook.json
+      - name: Sequence effect frontier end-to-end pipeline
+        run: python -m glio_noncode sequence-effect-pipeline --run-id ci-sequence-effect --output /tmp/glio-sequence-effect-pipeline.json
