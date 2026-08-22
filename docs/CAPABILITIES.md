@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 132 capabilities have deterministic fixture-backed
-verification and 124 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 51.56% of the 256-capability
+capabilities started (100%); 136 capabilities have deterministic fixture-backed
+verification and 120 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 53.12% of the 256-capability
 catalog; MVP implementation coverage is 50.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -2441,6 +2441,31 @@ The Domain 15 scientific-beta projections add four deep research surfaces:
   source, confidence, pagination, and deterministic facet filters over saved
   workspace records. Partial, ambiguous, and unresolved evidence remains in
   the table, and filtering never changes the underlying evidence state.
+
+The C05-C08 beta frontier package now verifies these projections through a
+fresh public aggregate fixture. It contains 16 rows across five HTTPS receipts:
+four positive paths and twelve controls. The evaluator records 103 checks and
+keeps foreign context, invalid focus, missing mediator kinds, contradiction,
+foreign posterior components, unreconciled residuals, missing support, empty
+tables, and pagination behavior as explicit states.
+
+The beta release package adds four operation contracts, four schemas, 32
+scenario cases, 42 threshold probes, a 21-check depth audit, 20 invariants,
+36 lineage edges, 13 descriptive metrics, deterministic replay, eight runtime
+stages, structured observability, seven release artifacts, a quality gate,
+review queue, release manifest, and stable CSV export. Three positive surfaces
+are ready under research policy; partial, absent, abstained, contradictory,
+invalid, and out-of-domain surfaces remain visible for review.
+
+The beta verification commands are:
+
+```powershell
+glio-noncode beta-frontier-evaluate --output beta-frontier-evaluation.json
+glio-noncode beta-frontier-quality-gate --output beta-frontier-quality.json
+glio-noncode beta-frontier-runtime --output beta-frontier-runtime.json
+glio-noncode beta-frontier-review-queue --output beta-frontier-queue.json
+glio-noncode export-beta-frontier-review-csv --output beta-frontier-review.csv
+```
 
 These are research navigation artifacts. They do not infer activity, causality,
 diagnosis, prognosis, actionability, or treatment.

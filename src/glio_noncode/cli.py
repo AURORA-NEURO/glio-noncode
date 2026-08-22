@@ -244,6 +244,29 @@ from .workspace_frontier_scenario_matrix import build_workspace_frontier_scenari
 from .workspace_frontier_schema import default_workspace_frontier_schema
 from .workspace_frontier_thresholds import build_workspace_frontier_threshold_report
 from .workspace_frontier_views import build_workspace_frontier_review_view
+from .workspace_beta_frontier_adapters import default_beta_frontier_adapters
+from .workspace_beta_frontier_artifacts import build_beta_frontier_artifact_inventory
+from .workspace_beta_frontier_bundle import assemble_beta_frontier_bundle
+from .workspace_beta_frontier_checks import beta_frontier_invariants_from_execution
+from .workspace_beta_frontier_contracts import default_beta_frontier_contracts
+from .workspace_beta_frontier_depth import audit_beta_frontier_depth
+from .workspace_beta_frontier_exports import export_beta_frontier_review_csv
+from .workspace_beta_frontier_fixture_eval import evaluate_beta_frontier_fixture
+from .workspace_beta_frontier_lineage import build_beta_frontier_lineage
+from .workspace_beta_frontier_metrics import measure_beta_frontier
+from .workspace_beta_frontier_observability import observe_beta_frontier
+from .workspace_beta_frontier_policy import default_beta_frontier_policy
+from .workspace_beta_frontier_public_data import audit_beta_frontier_data, default_beta_frontier_fixture, load_beta_frontier_fixture
+from .workspace_beta_frontier_quality_gate import evaluate_beta_frontier_quality
+from .workspace_beta_frontier_reconciliation import reconcile_beta_frontier
+from .workspace_beta_frontier_release import build_beta_frontier_release_manifest
+from .workspace_beta_frontier_replay import replay_beta_frontier
+from .workspace_beta_frontier_review_queue import build_beta_frontier_review_queue
+from .workspace_beta_frontier_runtime import run_beta_frontier_runtime
+from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
+from .workspace_beta_frontier_schema import default_beta_frontier_schema
+from .workspace_beta_frontier_thresholds import build_beta_frontier_threshold_report
+from .workspace_beta_frontier_views import build_beta_frontier_review_view
 from .frontier_atlas_contracts import default_frontier_atlas_contracts
 from .frontier_atlas_exports import (
     export_frontier_atlas_metrics_csv,
@@ -1021,6 +1044,12 @@ def _read_workspace_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_workspace_frontier_fixture(path) if path else default_workspace_frontier_fixture()
+
+
+def _read_beta_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_beta_frontier_fixture(path) if path else default_beta_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -4313,6 +4342,37 @@ def build_parser() -> argparse.ArgumentParser:
     workspace_frontier_csv = subparsers.add_parser("export-workspace-frontier-review-csv", help="export Domain 15 workspace review rows as CSV")
     workspace_frontier_csv.add_argument("input", nargs="?", default=None)
     workspace_frontier_csv.add_argument("--output", default=None)
+
+    beta_frontier_commands = (
+        ("beta-frontier-data-audit", "audit public Domain 15 C05-C08 projection receipts"),
+        ("beta-frontier-contracts", "emit Domain 15 C05-C08 projection contracts"),
+        ("beta-frontier-schema", "emit Domain 15 C05-C08 projection schema"),
+        ("beta-frontier-evaluate", "evaluate Domain 15 C05-C08 projection records"),
+        ("beta-frontier-replay", "replay Domain 15 C05-C08 projection receipts"),
+        ("beta-frontier-metrics", "emit Domain 15 C05-C08 projection metrics"),
+        ("beta-frontier-lineage", "emit Domain 15 C05-C08 projection lineage"),
+        ("beta-frontier-policy", "emit Domain 15 C05-C08 projection policy"),
+        ("beta-frontier-quality-gate", "run Domain 15 C05-C08 projection quality checks"),
+        ("beta-frontier-runtime", "run Domain 15 C05-C08 projection release rehearsal"),
+        ("beta-frontier-observability", "emit Domain 15 C05-C08 projection observability"),
+        ("beta-frontier-artifacts", "emit Domain 15 C05-C08 projection artifact inventory"),
+        ("beta-frontier-bundle", "assemble Domain 15 C05-C08 projection bundle"),
+        ("beta-frontier-release", "build Domain 15 C05-C08 projection release manifest"),
+        ("beta-frontier-review-queue", "build Domain 15 C05-C08 projection review queue"),
+        ("beta-frontier-depth-audit", "run Domain 15 C05-C08 projection depth audit"),
+        ("beta-frontier-adapters", "emit Domain 15 C05-C08 input adapters"),
+        ("beta-frontier-scenarios", "emit Domain 15 C05-C08 scenario matrix"),
+        ("beta-frontier-thresholds", "emit Domain 15 C05-C08 threshold probes"),
+        ("beta-frontier-invariants", "run Domain 15 C05-C08 invariants"),
+    )
+    for command_name, command_help in beta_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        if command_name not in {"beta-frontier-contracts", "beta-frontier-adapters"}:
+            command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    beta_frontier_csv = subparsers.add_parser("export-beta-frontier-review-csv", help="export Domain 15 C05-C08 projection review rows as CSV")
+    beta_frontier_csv.add_argument("input", nargs="?", default=None)
+    beta_frontier_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -8184,6 +8244,106 @@ def main(argv: list[str] | None = None) -> int:
             release = build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-csv-replay"), runtime)
             view = build_workspace_frontier_review_view(fixture, evaluation, policy.decide(evaluation), release)
             _write_text(export_workspace_frontier_review_csv(view), args.output)
+            return 0
+        if args.command == "beta-frontier-data-audit":
+            _write_json(audit_beta_frontier_data(_read_beta_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-contracts":
+            _write_json(default_beta_frontier_contracts().to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-schema":
+            _write_json(default_beta_frontier_schema().to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-evaluate":
+            _write_json(evaluate_beta_frontier_fixture(_read_beta_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-replay":
+            _write_json(replay_beta_frontier(_read_beta_frontier_fixture(args.input), replay_id="beta-frontier-cli-replay").to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-metrics":
+            fixture = _read_beta_frontier_fixture(args.input)
+            _write_json(measure_beta_frontier(evaluate_beta_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-lineage":
+            fixture = _read_beta_frontier_fixture(args.input)
+            evaluation = evaluate_beta_frontier_fixture(fixture)
+            _write_json(build_beta_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-policy":
+            fixture = _read_beta_frontier_fixture(args.input)
+            evaluation = evaluate_beta_frontier_fixture(fixture)
+            policy = default_beta_frontier_policy()
+            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            return 0
+        if args.command == "beta-frontier-quality-gate":
+            fixture = _read_beta_frontier_fixture(args.input)
+            evaluation = evaluate_beta_frontier_fixture(fixture)
+            policy = default_beta_frontier_policy()
+            lineage = build_beta_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_beta_frontier(fixture, evaluation, policy)
+            _write_json(evaluate_beta_frontier_quality(fixture, evaluation, default_beta_frontier_contracts(), default_beta_frontier_schema(), lineage, reconciliation).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-runtime":
+            _write_json(run_beta_frontier_runtime(_read_beta_frontier_fixture(args.input), run_id="beta-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-observability":
+            fixture = _read_beta_frontier_fixture(args.input)
+            runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-observability")
+            _write_json(observe_beta_frontier(runtime, runtime.evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-artifacts":
+            fixture = _read_beta_frontier_fixture(args.input)
+            runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-artifacts")
+            release = build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay_beta_frontier(fixture, replay_id="beta-frontier-artifacts-replay"), runtime)
+            _write_json(build_beta_frontier_artifact_inventory(fixture.fixture_id, fixture.content_address, runtime.evaluation, runtime.metrics, runtime.quality, runtime, runtime.bundle, release).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-bundle":
+            fixture = _read_beta_frontier_fixture(args.input)
+            evaluation = evaluate_beta_frontier_fixture(fixture)
+            metrics = measure_beta_frontier(evaluation)
+            policy = default_beta_frontier_policy()
+            reconciliation = reconcile_beta_frontier(fixture, evaluation, policy)
+            _write_json(assemble_beta_frontier_bundle(fixture, evaluation, metrics, reconciliation).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-release":
+            fixture = _read_beta_frontier_fixture(args.input)
+            runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-release")
+            replay = replay_beta_frontier(fixture, replay_id="beta-frontier-release-replay")
+            _write_json(build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay, runtime).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-review-queue":
+            fixture = _read_beta_frontier_fixture(args.input)
+            runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-review")
+            replay = replay_beta_frontier(fixture, replay_id="beta-frontier-review-replay")
+            release = build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay, runtime)
+            policy = default_beta_frontier_policy()
+            view = build_beta_frontier_review_view(fixture, runtime.evaluation, policy.decide(runtime.evaluation), release)
+            _write_json(build_beta_frontier_review_queue(fixture, runtime.evaluation, policy.decide(runtime.evaluation), view, release).to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-depth-audit":
+            _write_json(audit_beta_frontier_depth().to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-adapters":
+            _write_json(default_beta_frontier_adapters().to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-scenarios":
+            _write_json(build_beta_frontier_scenario_matrix().to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-thresholds":
+            _write_json(build_beta_frontier_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "beta-frontier-invariants":
+            fixture = _read_beta_frontier_fixture(args.input)
+            _write_json(beta_frontier_invariants_from_execution(fixture, evaluate_beta_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "export-beta-frontier-review-csv":
+            fixture = _read_beta_frontier_fixture(args.input)
+            runtime = run_beta_frontier_runtime(fixture, run_id="beta-frontier-csv")
+            replay = replay_beta_frontier(fixture, replay_id="beta-frontier-csv-replay")
+            release = build_beta_frontier_release_manifest(runtime.bundle, runtime.quality, replay, runtime)
+            policy = default_beta_frontier_policy()
+            view = build_beta_frontier_review_view(fixture, runtime.evaluation, policy.decide(runtime.evaluation), release)
+            _write_text(export_beta_frontier_review_csv(view), args.output)
             return 0
         if args.command == "validation-frontier-data-audit":
             _write_json(audit_validation_frontier_data(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)

@@ -4161,60 +4161,75 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D15-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_beta.TopologyViewer",
                     "glio_noncode.workspace_beta.TopologyViewport",
+                    "glio_noncode.workspace_beta_frontier_fixture_eval",
+                    "glio_noncode.workspace_beta_frontier_quality_gate",
+                    "glio_noncode.workspace_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
                 "evidence_note": (
                     "Topology viewports join loop/stripe anchors, promoter-capture contacts, "
                     "contact scores, and activity-by-contact summaries with exact context, "
                     "interval focus, source versions, observation IDs, deterministic bounds, "
-                    "and explicit non-causal limitations; 3D rendering and large-track "
-                    "performance validation remain."
+                    "and explicit non-causal limitations. The C05-C08 public aggregate package "
+                    "adds sixteen rows, four positive paths, twelve controls, replay, lineage, "
+                    "quality gating, review exports, and an eight-stage runtime."
                 ),
             },
             "GNC-D15-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_beta.CausalChainExplorer",
                     "glio_noncode.workspace_beta.CausalChainView",
+                    "glio_noncode.workspace_beta_frontier_public_data",
+                    "glio_noncode.workspace_beta_frontier_reconciliation",
+                    "glio_noncode.workspace_beta_frontier_observability",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
                 "evidence_note": (
                     "Causal-chain views join all three mediator kinds, retain alternative paths, "
                     "negative evidence, source versions, missing mediator kinds, contradiction, "
-                    "and context mismatch; causal calibration, graph-scale interaction, and "
-                    "external validation remain."
+                    "and context mismatch. The public package verifies complete, incomplete, "
+                    "foreign-context, contradiction, alternative-path, and replay controls with "
+                    "explicit policy and review state."
                 ),
             },
             "GNC-D15-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_beta.PosteriorDecompositionViewer",
                     "glio_noncode.workspace_beta.PosteriorDecompositionView",
+                    "glio_noncode.workspace_beta_frontier_metrics",
+                    "glio_noncode.workspace_beta_frontier_release",
+                    "glio_noncode.workspace_beta_frontier_artifacts",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
                 "evidence_note": (
                     "Posterior decomposition views expose declared prior, exact-context support "
                     "components, normalized descriptive shares, calibration status, and an "
                     "unexplained residual without inventing missing evidence or clinical "
-                    "probability; calibration and benchmark validation remain."
+                    "probability. The public package verifies reconciled, foreign-component, "
+                    "unreconciled, missing-support, threshold, artifact, and release controls."
                 ),
             },
             "GNC-D15-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_beta.EvidenceTableAndFilters",
                     "glio_noncode.workspace_beta.EvidenceTableFilter",
+                    "glio_noncode.workspace_beta_frontier_views",
+                    "glio_noncode.workspace_beta_frontier_review_queue",
+                    "glio_noncode.workspace_beta_frontier_exports",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli"),
+                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
                 "evidence_note": (
                     "Evidence tables support exact-context text, channel, tier, state, source, "
                     "confidence, pagination, and deterministic facets while retaining partial "
-                    "and unresolved evidence rows; multi-user saved filters and accessibility "
-                    "conformance remain."
+                    "and unresolved evidence rows. The public package verifies foreign-context, "
+                    "empty-result, pagination, facet, review-queue, CSV, and release behavior."
                 ),
             },
             "GNC-D15-C09": {

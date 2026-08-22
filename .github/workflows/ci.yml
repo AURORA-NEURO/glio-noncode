@@ -642,3 +642,45 @@ jobs:
         run: python -m glio_noncode workspace-frontier-thresholds --output /tmp/glio-workspace-frontier-thresholds.json
       - name: Workspace frontier invariants
         run: python -m glio_noncode workspace-frontier-invariants --output /tmp/glio-workspace-frontier-invariants.json
+      - name: Beta frontier data boundary audit
+        run: python -m glio_noncode beta-frontier-data-audit --output /tmp/glio-beta-frontier-data.json
+      - name: Beta frontier operation contracts
+        run: python -m glio_noncode beta-frontier-contracts --output /tmp/glio-beta-frontier-contracts.json
+      - name: Beta frontier schema manifest
+        run: python -m glio_noncode beta-frontier-schema --output /tmp/glio-beta-frontier-schema.json
+      - name: Beta frontier fixture evaluation
+        run: python -m glio_noncode beta-frontier-evaluate --output /tmp/glio-beta-frontier-evaluation.json
+      - name: Beta frontier replay integrity
+        run: python -m glio_noncode beta-frontier-replay --output /tmp/glio-beta-frontier-replay.json
+      - name: Beta frontier metrics
+        run: python -m glio_noncode beta-frontier-metrics --output /tmp/glio-beta-frontier-metrics.json
+      - name: Beta frontier lineage graph
+        run: python -m glio_noncode beta-frontier-lineage --output /tmp/glio-beta-frontier-lineage.json
+      - name: Beta frontier policy evaluation
+        run: python -m glio_noncode beta-frontier-policy --output /tmp/glio-beta-frontier-policy.json
+      - name: Beta frontier quality gate
+        run: python -m glio_noncode beta-frontier-quality-gate --output /tmp/glio-beta-frontier-quality.json
+      - name: Beta frontier runtime rehearsal
+        run: python -m glio_noncode beta-frontier-runtime --output /tmp/glio-beta-frontier-runtime.json
+      - name: Beta frontier observability
+        run: python -m glio_noncode beta-frontier-observability --output /tmp/glio-beta-frontier-observability.json
+      - name: Beta frontier artifact inventory
+        run: python -m glio_noncode beta-frontier-artifacts --output /tmp/glio-beta-frontier-artifacts.json
+      - name: Beta frontier release bundle
+        run: python -m glio_noncode beta-frontier-bundle --output /tmp/glio-beta-frontier-bundle.json
+      - name: Beta frontier release manifest
+        run: python -m glio_noncode beta-frontier-release --output /tmp/glio-beta-frontier-release.json
+      - name: Beta frontier review queue
+        run: python -m glio_noncode beta-frontier-review-queue --output /tmp/glio-beta-frontier-queue.json
+      - name: Beta frontier review CSV
+        run: python -m glio_noncode export-beta-frontier-review-csv --output /tmp/glio-beta-frontier-review.csv
+      - name: Beta frontier depth audit
+        run: python -m glio_noncode beta-frontier-depth-audit --output /tmp/glio-beta-frontier-depth.json
+      - name: Beta frontier adapters
+        run: python -m glio_noncode beta-frontier-adapters --output /tmp/glio-beta-frontier-adapters.json
+      - name: Beta frontier scenarios
+        run: python -m glio_noncode beta-frontier-scenarios --output /tmp/glio-beta-frontier-scenarios.json
+      - name: Beta frontier thresholds
+        run: python -m glio_noncode beta-frontier-thresholds --output /tmp/glio-beta-frontier-thresholds.json
+      - name: Beta frontier invariants
+        run: python -m glio_noncode beta-frontier-invariants --output /tmp/glio-beta-frontier-invariants.json
