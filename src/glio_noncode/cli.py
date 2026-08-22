@@ -263,6 +263,8 @@ from .workspace_beta_frontier_release import build_beta_frontier_release_manifes
 from .workspace_beta_frontier_replay import replay_beta_frontier
 from .workspace_beta_frontier_review_queue import build_beta_frontier_review_queue
 from .workspace_beta_frontier_runtime import run_beta_frontier_runtime
+from .workspace_gamma_frontier_cli import GAMMA_FRONTIER_COMMANDS, run_gamma_frontier_operation
+from .workspace_gamma_frontier_public_data import load_gamma_frontier_fixture
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
 from .workspace_beta_frontier_thresholds import build_beta_frontier_threshold_report
@@ -4374,6 +4376,11 @@ def build_parser() -> argparse.ArgumentParser:
     beta_frontier_csv.add_argument("input", nargs="?", default=None)
     beta_frontier_csv.add_argument("--output", default=None)
 
+    for command_name in GAMMA_FRONTIER_COMMANDS:
+        command_parser = subparsers.add_parser(command_name, help="run the Domain 15 C09-C12 collaboration frontier")
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
         help="compare reference and alternate sequence windows for declared motif losses",
@@ -8344,6 +8351,15 @@ def main(argv: list[str] | None = None) -> int:
             policy = default_beta_frontier_policy()
             view = build_beta_frontier_review_view(fixture, runtime.evaluation, policy.decide(runtime.evaluation), release)
             _write_text(export_beta_frontier_review_csv(view), args.output)
+            return 0
+        if args.command in GAMMA_FRONTIER_COMMANDS:
+            result = run_gamma_frontier_operation(args.command, load_gamma_frontier_fixture(args.input))
+            if isinstance(result, str):
+                _write_text(result, args.output)
+            elif hasattr(result, "to_dict"):
+                _write_json(result.to_dict(), args.output)
+            else:
+                _write_json(result, args.output)
             return 0
         if args.command == "validation-frontier-data-audit":
             _write_json(audit_validation_frontier_data(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)

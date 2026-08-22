@@ -684,3 +684,25 @@ jobs:
         run: python -m glio_noncode beta-frontier-thresholds --output /tmp/glio-beta-frontier-thresholds.json
       - name: Beta frontier invariants
         run: python -m glio_noncode beta-frontier-invariants --output /tmp/glio-beta-frontier-invariants.json
+      - name: Gamma frontier data boundary audit
+        run: python -m glio_noncode gamma-frontier-data-audit --output /tmp/glio-gamma-frontier-data.json
+      - name: Gamma frontier operation contracts
+        run: python -m glio_noncode gamma-frontier-contracts --output /tmp/glio-gamma-frontier-contracts.json
+      - name: Gamma frontier schema manifest
+        run: python -m glio_noncode gamma-frontier-schema --output /tmp/glio-gamma-frontier-schema.json
+      - name: Gamma frontier fixture evaluation
+        run: python -m glio_noncode gamma-frontier-evaluate --output /tmp/glio-gamma-frontier-evaluation.json
+      - name: Gamma frontier replay integrity
+        run: python -m glio_noncode gamma-frontier-replay --output /tmp/glio-gamma-frontier-replay.json
+      - name: Gamma frontier quality gate
+        run: python -m glio_noncode gamma-frontier-quality-gate --output /tmp/glio-gamma-frontier-quality.json
+      - name: Gamma frontier runtime pipeline
+        run: python -m glio_noncode gamma-frontier-pipeline --output /tmp/glio-gamma-frontier-pipeline.json
+      - name: Gamma frontier metrics and lineage
+        run: python -m glio_noncode gamma-frontier-metrics --output /tmp/glio-gamma-frontier-metrics.json && python -m glio_noncode gamma-frontier-lineage --output /tmp/glio-gamma-frontier-lineage.json
+      - name: Gamma frontier review outputs
+        run: python -m glio_noncode gamma-frontier-review-queue --output /tmp/glio-gamma-frontier-queue.json && python -m glio_noncode export-gamma-frontier-review-csv --output /tmp/glio-gamma-frontier-review.csv
+      - name: Gamma frontier supporting checks
+        run: python -m glio_noncode gamma-frontier-accessibility --output /tmp/glio-gamma-frontier-accessibility.json && python -m glio_noncode gamma-frontier-compliance --output /tmp/glio-gamma-frontier-boundary.json && python -m glio_noncode gamma-frontier-invariants --output /tmp/glio-gamma-frontier-invariants.json
+      - name: Gamma frontier planning manifests
+        run: python -m glio_noncode gamma-frontier-adapters --output /tmp/glio-gamma-frontier-adapters.json && python -m glio_noncode gamma-frontier-scenarios --output /tmp/glio-gamma-frontier-scenarios.json && python -m glio_noncode gamma-frontier-thresholds --output /tmp/glio-gamma-frontier-thresholds.json && python -m glio_noncode gamma-frontier-validation --output /tmp/glio-gamma-frontier-validation.json && python -m glio_noncode gamma-frontier-runbook --output /tmp/glio-gamma-frontier-runbook.json

@@ -4233,55 +4233,83 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D15-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_alpha.ValidationExperimentBoardBuilder",
                     "glio_noncode.workspace_alpha.ValidationExperimentBoard",
+                    "glio_noncode.workspace_gamma_frontier_public_data",
+                    "glio_noncode.workspace_gamma_frontier_fixture_eval",
+                    "glio_noncode.workspace_gamma_frontier_projection_assertions",
+                    "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
                 "evidence_note": (
                     "Validation experiment boards group exact-context cards by declared status, "
                     "priority, dependencies, blockers, owners, readouts, and accessible column "
-                    "metadata; they do not execute or approve experiments."
+                    "metadata. The public C09-C12 package executes four board cases plus three "
+                    "controls, verifies six columns and dependency edges, retains malformed and "
+                    "foreign-context receipts, and carries the board through lineage, replay, "
+                    "projection assertions, reconciliation, quality gate, review queue, and release."
                 ),
             },
             "GNC-D15-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_alpha.NotebookSDKLauncher",
                     "glio_noncode.workspace_alpha.NotebookLaunchPlan",
+                    "glio_noncode.workspace_gamma_frontier_public_data",
+                    "glio_noncode.workspace_gamma_frontier_fixture_eval",
+                    "glio_noncode.workspace_gamma_frontier_projection_assertions",
+                    "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
                 "evidence_note": (
                     "Notebook and SDK launch plans produce bounded runtime, artifact, parameter, "
                     "resource, network-policy, and source receipts without executing code or "
-                    "silently enabling external access."
+                    "silently enabling external access. The public C09-C12 package verifies "
+                    "offline descriptors, foreign context, unsupported runtime, and unbounded "
+                    "resource controls, then carries parameter hashes and network policy through "
+                    "schema, replay, lineage, policy, quality, review, release, and export layers."
                 ),
             },
             "GNC-D15-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_alpha.ShareableSnapshotPublisher",
                     "glio_noncode.workspace_alpha.ShareableSignedSnapshot",
+                    "glio_noncode.workspace_gamma_frontier_public_data",
+                    "glio_noncode.workspace_gamma_frontier_fixture_eval",
+                    "glio_noncode.workspace_gamma_frontier_projection_assertions",
+                    "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
                 "evidence_note": (
                     "Shareable snapshots carry payload addresses, audience, expiry, key IDs, and "
                     "HMAC verification receipts while retaining research-use limitations; shared "
-                    "secret possession is not a public-key identity or scientific validation."
+                    "secret possession is not a public-key identity or scientific validation. The "
+                    "public C09-C12 package verifies valid, tampered, expired, and foreign-context "
+                    "envelopes; compact output omits secret values and carries verification state "
+                    "through boundary checks, replay, lineage, policy, bundle, release, and CSV."
                 ),
             },
             "GNC-D15-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace_alpha.RoleBasedCollaborationEvaluator",
                     "glio_noncode.workspace_alpha.CollaborationAccessReport",
+                    "glio_noncode.workspace_gamma_frontier_public_data",
+                    "glio_noncode.workspace_gamma_frontier_fixture_eval",
+                    "glio_noncode.workspace_gamma_frontier_policy",
+                    "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli"),
+                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
                 "evidence_note": (
                     "Role-based collaboration evaluation applies an explicit deny-by-default "
                     "permission matrix, exact-context gates, inactive-member handling, policy "
-                    "receipts, and access decisions without replacing institutional controls."
+                    "receipts, and access decisions without replacing institutional controls. The "
+                    "public C09-C12 package verifies allowed, foreign, inactive, and unknown-member "
+                    "cases, preserves reasons and policy receipts, and carries decisions through "
+                    "metrics, lineage, reconciliation, quality, review queue, release, and export."
                 ),
             },
             "GNC-D15-C13": {

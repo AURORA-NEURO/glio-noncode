@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 136 capabilities have deterministic fixture-backed
-verification and 120 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 53.12% of the 256-capability
+capabilities started (100%); 140 capabilities have deterministic fixture-backed
+verification and 116 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 54.69% of the 256-capability
 catalog; MVP implementation coverage is 50.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 104 controls are verified against the checked-in
-aggregate fixtures, while 152 capabilities remain partial. Partial
+capabilities started (100%); 140 capabilities are verified against the checked-in
+aggregate fixtures, while 116 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -2504,6 +2504,58 @@ glio-noncode publish-shareable-snapshot workspace.json --snapshot-id workspace-1
 glio-noncode verify-shareable-snapshot shared-snapshot.json --signing-secret "$env:GLIO_SNAPSHOT_SECRET" --output snapshot-verification.json
 glio-noncode evaluate-collaboration-access access.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output access-report.json
 ```
+
+The C09-C12 collaboration frontier now promotes these four bounded surfaces
+from partial to verified through a separate public aggregate package. The
+fixture contains 16 records across five HTTPS receipts: four positive paths and
+twelve controls. The evaluator emits 48 row checks, three for every record,
+and retains foreign context, malformed cards, unknown dependencies, invalid
+launch runtime, unbounded resources, invalid snapshot signatures, expired
+snapshots, foreign snapshots, inactive members, and unknown members.
+
+The package is implemented module-by-module with contracts, field schema,
+operation adapters, projection assertions, metrics, lineage, reconciliation,
+policy, quality gate, deterministic replay, runtime rehearsal, structured
+observability, accessibility, aggregate boundary checks, invariants, scenario
+matrix, threshold probes, validation matrix, runbook, sanitized review view,
+prioritized review queue, release manifest, address-only bundle, artifact
+inventory, canonical JSON, and CSV exports. The end-to-end pipeline exercises
+all of these surfaces and returns 16 named evidence addresses.
+
+The C09-C12 verification commands are:
+
+```powershell
+glio-noncode gamma-frontier-data-audit --output gamma-data.json
+glio-noncode gamma-frontier-contracts --output gamma-contracts.json
+glio-noncode gamma-frontier-schema --output gamma-schema.json
+glio-noncode gamma-frontier-evaluate --output gamma-evaluation.json
+glio-noncode gamma-frontier-replay --output gamma-replay.json
+glio-noncode gamma-frontier-metrics --output gamma-metrics.json
+glio-noncode gamma-frontier-lineage --output gamma-lineage.json
+glio-noncode gamma-frontier-policy --output gamma-policy.json
+glio-noncode gamma-frontier-quality-gate --output gamma-quality.json
+glio-noncode gamma-frontier-runtime --output gamma-runtime.json
+glio-noncode gamma-frontier-observability --output gamma-observability.json
+glio-noncode gamma-frontier-artifacts --output gamma-artifacts.json
+glio-noncode gamma-frontier-bundle --output gamma-bundle.json
+glio-noncode gamma-frontier-release --output gamma-release.json
+glio-noncode gamma-frontier-review-queue --output gamma-queue.json
+glio-noncode gamma-frontier-accessibility --output gamma-accessibility.json
+glio-noncode gamma-frontier-compliance --output gamma-boundary.json
+glio-noncode gamma-frontier-invariants --output gamma-invariants.json
+glio-noncode gamma-frontier-adapters --output gamma-adapters.json
+glio-noncode gamma-frontier-scenarios --output gamma-scenarios.json
+glio-noncode gamma-frontier-thresholds --output gamma-thresholds.json
+glio-noncode gamma-frontier-validation --output gamma-validation.json
+glio-noncode gamma-frontier-runbook --output gamma-runbook.json
+glio-noncode gamma-frontier-pipeline --output gamma-pipeline.json
+glio-noncode export-gamma-frontier-review-csv --output gamma-review.csv
+```
+
+The package is research-use infrastructure. Board state is not experiment
+execution or approval; launch plans do not execute code; HMAC integrity is not
+identity or scientific validation; access policy does not replace institutional
+controls. Secrets remain outside compact exports.
 
 ## Domain 16 typed mission runtime
 
