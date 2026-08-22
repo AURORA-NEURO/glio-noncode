@@ -412,3 +412,35 @@ jobs:
         run: python -m glio_noncode cell-state-frontier-review-view --output /tmp/glio-cell-state-frontier-view.json
       - name: Cell-state frontier runtime trace
         run: python -m glio_noncode cell-state-frontier-trace --run-id cell-state-frontier-ci --output /tmp/glio-cell-state-frontier-trace.json
+      - name: Topology frontier data boundary audit
+        run: python -m glio_noncode audit-topology-frontier-data --output /tmp/glio-topology-frontier-data.json
+      - name: Topology frontier fixture evaluation
+        run: python -m glio_noncode evaluate-topology-frontier-fixture --output /tmp/glio-topology-frontier-fixture.json
+      - name: Topology frontier replay integrity
+        run: python -m glio_noncode replay-topology-frontier --output /tmp/glio-topology-frontier-replay.json
+      - name: Topology frontier quality gate
+        run: python -m glio_noncode topology-frontier-quality-gate --output /tmp/glio-topology-frontier-quality.json
+      - name: Topology frontier scenario matrix
+        run: python -m glio_noncode evaluate-topology-frontier-scenarios --output /tmp/glio-topology-frontier-scenarios.json
+      - name: Topology frontier operation contracts
+        run: python -m glio_noncode topology-frontier-contracts --output /tmp/glio-topology-frontier-contracts.json
+      - name: Topology frontier schema validation
+        run: python -m glio_noncode topology-frontier-schema --output /tmp/glio-topology-frontier-schema.json
+      - name: Topology frontier policy evaluation
+        run: python -m glio_noncode topology-frontier-policy --output /tmp/glio-topology-frontier-policy.json
+      - name: Topology frontier metrics
+        run: python -m glio_noncode topology-frontier-metrics --output /tmp/glio-topology-frontier-metrics.json
+      - name: Topology frontier evidence bundle
+        run: python -m glio_noncode build-topology-frontier-bundle --output /tmp/glio-topology-frontier-bundle.json
+      - name: Topology frontier lineage graph
+        run: python -m glio_noncode topology-frontier-lineage --output /tmp/glio-topology-frontier-lineage.json
+      - name: Topology frontier receipt reconciliation
+        run: python -m glio_noncode topology-frontier-reconciliation --output /tmp/glio-topology-frontier-reconciliation.json
+      - name: Topology frontier pipeline integration
+        run: python -m glio_noncode run-topology-frontier-pipeline --run-id topology-frontier-ci --output /tmp/glio-topology-frontier-pipeline.json
+      - name: Topology frontier release manifest
+        run: python -m glio_noncode build-topology-frontier-release --run-id topology-frontier-ci --release-id topology-frontier-ci --output /tmp/glio-topology-frontier-release.json
+      - name: Topology frontier review view
+        run: python -m glio_noncode topology-frontier-review-view --output /tmp/glio-topology-frontier-view.json
+      - name: Topology frontier runtime trace
+        run: python -m glio_noncode topology-frontier-trace --run-id topology-frontier-ci --output /tmp/glio-topology-frontier-trace.json

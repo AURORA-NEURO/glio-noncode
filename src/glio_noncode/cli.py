@@ -700,6 +700,31 @@ from .topology_context import (
     TadBoundaryParser,
     TopologyAssay,
 )
+from .topology_frontier_contracts import default_topology_frontier_contracts
+from .topology_frontier_exports import (
+    export_topology_frontier_metrics_csv,
+    export_topology_frontier_receipts_csv,
+    export_topology_frontier_review_csv,
+    render_topology_frontier_review_markdown,
+)
+from .topology_frontier_fixture_eval import evaluate_topology_frontier_fixture
+from .topology_frontier_lineage import build_topology_frontier_lineage
+from .topology_frontier_metrics import compute_topology_frontier_metrics
+from .topology_frontier_observability import build_topology_frontier_trace
+from .topology_frontier_policy import evaluate_topology_frontier_policy
+from .topology_frontier_public_data import (
+    audit_topology_frontier_data,
+    default_topology_frontier_fixture,
+    load_topology_frontier_fixture,
+)
+from .topology_frontier_quality_gate import run_topology_frontier_quality_gate
+from .topology_frontier_reconciliation import reconcile_topology_frontier
+from .topology_frontier_release import build_topology_frontier_release
+from .topology_frontier_replay import replay_topology_frontier_evaluation
+from .topology_frontier_runtime import TopologyFrontierRuntimeOptions, run_topology_frontier_pipeline
+from .topology_frontier_scenario_matrix import evaluate_topology_frontier_scenarios
+from .topology_frontier_schema import default_topology_frontier_schemas, validate_topology_frontier_schema
+from .topology_frontier_views import build_topology_frontier_view, topology_frontier_review_summary
 from .validation_alpha import (
     ControlsRandomizationPlanner,
     ControlType,
@@ -828,6 +853,12 @@ def _read_cell_state_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_cell_state_frontier_fixture(path) if path else default_cell_state_frontier_fixture()
+
+
+def _read_topology_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_topology_frontier_fixture(path) if path else default_topology_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -3713,6 +3744,130 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cell_state_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
     cell_state_frontier_metrics_csv.add_argument("--output", default=None)
+
+    topology_frontier_evaluate = subparsers.add_parser(
+        "evaluate-topology-frontier-fixture",
+        help="evaluate the public Domain 09 C13-C16 topology fixture and controls",
+    )
+    topology_frontier_evaluate.add_argument("input", nargs="?", default=None)
+    topology_frontier_evaluate.add_argument("--output", default=None)
+    topology_frontier_audit = subparsers.add_parser(
+        "audit-topology-frontier-data",
+        help="audit Domain 09 C13-C16 source receipts and aggregate boundaries",
+    )
+    topology_frontier_audit.add_argument("input", nargs="?", default=None)
+    topology_frontier_audit.add_argument("--output", default=None)
+    topology_frontier_replay = subparsers.add_parser(
+        "replay-topology-frontier",
+        help="replay Domain 09 C13-C16 states and receipt addresses",
+    )
+    topology_frontier_replay.add_argument("input", nargs="?", default=None)
+    topology_frontier_replay.add_argument("--output", default=None)
+    topology_frontier_quality = subparsers.add_parser(
+        "topology-frontier-quality-gate",
+        help="run the complete Domain 09 C13-C16 quality gate",
+    )
+    topology_frontier_quality.add_argument("input", nargs="?", default=None)
+    topology_frontier_quality.add_argument("--output", default=None)
+    topology_frontier_scenarios = subparsers.add_parser(
+        "evaluate-topology-frontier-scenarios",
+        help="evaluate Domain 09 C13-C16 positive and negative controls",
+    )
+    topology_frontier_scenarios.add_argument("input", nargs="?", default=None)
+    topology_frontier_scenarios.add_argument("--output", default=None)
+    topology_frontier_policy = subparsers.add_parser(
+        "topology-frontier-policy",
+        help="evaluate Domain 09 C13-C16 interpretation and state policy",
+    )
+    topology_frontier_policy.add_argument("input", nargs="?", default=None)
+    topology_frontier_policy.add_argument("--output", default=None)
+    topology_frontier_contracts = subparsers.add_parser(
+        "topology-frontier-contracts",
+        help="emit typed Domain 09 C13-C16 contracts",
+    )
+    topology_frontier_contracts.add_argument("--output", default=None)
+    topology_frontier_schema = subparsers.add_parser(
+        "topology-frontier-schema",
+        help="emit or validate Domain 09 C13-C16 schemas",
+    )
+    topology_frontier_schema.add_argument("input", nargs="?", default=None)
+    topology_frontier_schema.add_argument("--output", default=None)
+    topology_frontier_metrics = subparsers.add_parser(
+        "topology-frontier-metrics",
+        help="emit Domain 09 C13-C16 operation metrics",
+    )
+    topology_frontier_metrics.add_argument("input", nargs="?", default=None)
+    topology_frontier_metrics.add_argument("--output", default=None)
+    topology_frontier_bundle = subparsers.add_parser(
+        "build-topology-frontier-bundle",
+        help="build the serialized Domain 09 C13-C16 bundle",
+    )
+    topology_frontier_bundle.add_argument("input", nargs="?", default=None)
+    topology_frontier_bundle.add_argument("--output", default=None)
+    topology_frontier_lineage = subparsers.add_parser(
+        "topology-frontier-lineage",
+        help="emit Domain 09 C13-C16 source-to-receipt lineage",
+    )
+    topology_frontier_lineage.add_argument("input", nargs="?", default=None)
+    topology_frontier_lineage.add_argument("--output", default=None)
+    topology_frontier_reconciliation = subparsers.add_parser(
+        "topology-frontier-reconciliation",
+        help="reconcile Domain 09 C13-C16 expected and observed states",
+    )
+    topology_frontier_reconciliation.add_argument("input", nargs="?", default=None)
+    topology_frontier_reconciliation.add_argument("--output", default=None)
+    topology_frontier_pipeline = subparsers.add_parser(
+        "run-topology-frontier-pipeline",
+        help="run the Domain 09 C13-C16 quality-gated pipeline",
+    )
+    topology_frontier_pipeline.add_argument("input", nargs="?", default=None)
+    topology_frontier_pipeline.add_argument("--run-id", default="topology-frontier-cli")
+    topology_frontier_pipeline.add_argument("--output", default=None)
+    topology_frontier_release = subparsers.add_parser(
+        "build-topology-frontier-release",
+        help="build a Domain 09 C13-C16 release manifest",
+    )
+    topology_frontier_release.add_argument("input", nargs="?", default=None)
+    topology_frontier_release.add_argument("--run-id", default="topology-frontier-release")
+    topology_frontier_release.add_argument("--release-id", default="topology-frontier-release-v1")
+    topology_frontier_release.add_argument("--output", default=None)
+    topology_frontier_view = subparsers.add_parser(
+        "topology-frontier-review-view",
+        help="emit the sanitized Domain 09 review queue and source matrix",
+    )
+    topology_frontier_view.add_argument("input", nargs="?", default=None)
+    topology_frontier_view.add_argument("--output", default=None)
+    topology_frontier_trace = subparsers.add_parser(
+        "topology-frontier-trace",
+        help="emit the nine-stage Domain 09 runtime trace",
+    )
+    topology_frontier_trace.add_argument("input", nargs="?", default=None)
+    topology_frontier_trace.add_argument("--run-id", default="topology-frontier-trace")
+    topology_frontier_trace.add_argument("--output", default=None)
+    topology_frontier_receipts_csv = subparsers.add_parser(
+        "export-topology-frontier-receipts-csv",
+        help="export sanitized Domain 09 receipts as CSV",
+    )
+    topology_frontier_receipts_csv.add_argument("input", nargs="?", default=None)
+    topology_frontier_receipts_csv.add_argument("--output", default=None)
+    topology_frontier_review_csv = subparsers.add_parser(
+        "export-topology-frontier-review-csv",
+        help="export the Domain 09 review queue as CSV",
+    )
+    topology_frontier_review_csv.add_argument("input", nargs="?", default=None)
+    topology_frontier_review_csv.add_argument("--output", default=None)
+    topology_frontier_review_md = subparsers.add_parser(
+        "export-topology-frontier-review-markdown",
+        help="export the Domain 09 review queue as Markdown",
+    )
+    topology_frontier_review_md.add_argument("input", nargs="?", default=None)
+    topology_frontier_review_md.add_argument("--output", default=None)
+    topology_frontier_metrics_csv = subparsers.add_parser(
+        "export-topology-frontier-metrics-csv",
+        help="export Domain 09 operation metrics as CSV",
+    )
+    topology_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
+    topology_frontier_metrics_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -7111,6 +7266,98 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "export-cell-state-frontier-metrics-csv":
             fixture = _read_cell_state_frontier_fixture(args.input)
             _write_text(export_cell_state_frontier_metrics_csv(compute_cell_state_frontier_metrics(evaluate_cell_state_frontier_fixture(fixture))), args.output)
+            return 0
+        if args.command == "evaluate-topology-frontier-fixture":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_json(evaluate_topology_frontier_fixture(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "audit-topology-frontier-data":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_json(audit_topology_frontier_data(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "replay-topology-frontier":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            _write_json(replay_topology_frontier_evaluation(evaluation, fixture=fixture).to_dict(), args.output)
+            return 0
+        if args.command == "topology-frontier-quality-gate":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_json(run_topology_frontier_quality_gate(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-topology-frontier-scenarios":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            _write_json(evaluate_topology_frontier_scenarios(evaluation, fixture=fixture).to_dict(), args.output)
+            return 0
+        if args.command == "topology-frontier-policy":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            _write_json(evaluate_topology_frontier_policy(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "topology-frontier-contracts":
+            _write_json(default_topology_frontier_contracts().manifest(), args.output)
+            return 0
+        if args.command == "topology-frontier-schema":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            schemas = default_topology_frontier_schemas()
+            _write_json({"schemas": [item.to_dict() for item in schemas], "validation": validate_topology_frontier_schema(evaluation, schemas=schemas).to_dict()}, args.output)
+            return 0
+        if args.command == "topology-frontier-metrics":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_json(compute_topology_frontier_metrics(evaluate_topology_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "build-topology-frontier-bundle":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_json(run_topology_frontier_quality_gate(fixture).bundle.to_dict(), args.output)
+            return 0
+        if args.command == "topology-frontier-lineage":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            _write_json(build_topology_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "topology-frontier-reconciliation":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            _write_json(reconcile_topology_frontier(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "run-topology-frontier-pipeline":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_json(run_topology_frontier_pipeline(TopologyFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture).to_dict(), args.output)
+            return 0
+        if args.command == "build-topology-frontier-release":
+            fixture = _read_topology_frontier_fixture(args.input)
+            quality = run_topology_frontier_quality_gate(fixture)
+            _write_json(build_topology_frontier_release(quality, run_id=args.run_id, release_id=args.release_id).to_dict(), args.output)
+            return 0
+        if args.command == "topology-frontier-review-view":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            view = build_topology_frontier_view(fixture, evaluation)
+            _write_json(view.to_dict() | {"summary": topology_frontier_review_summary(view)}, args.output)
+            return 0
+        if args.command == "topology-frontier-trace":
+            fixture = _read_topology_frontier_fixture(args.input)
+            runtime = run_topology_frontier_pipeline(TopologyFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture)
+            _write_json(build_topology_frontier_trace(runtime).to_dict(), args.output)
+            return 0
+        if args.command == "export-topology-frontier-receipts-csv":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_text(export_topology_frontier_receipts_csv(evaluate_topology_frontier_fixture(fixture)), args.output)
+            return 0
+        if args.command == "export-topology-frontier-review-csv":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            _write_text(export_topology_frontier_review_csv(build_topology_frontier_view(fixture, evaluation)), args.output)
+            return 0
+        if args.command == "export-topology-frontier-review-markdown":
+            fixture = _read_topology_frontier_fixture(args.input)
+            evaluation = evaluate_topology_frontier_fixture(fixture)
+            _write_text(render_topology_frontier_review_markdown(build_topology_frontier_view(fixture, evaluation)), args.output)
+            return 0
+        if args.command == "export-topology-frontier-metrics-csv":
+            fixture = _read_topology_frontier_fixture(args.input)
+            _write_text(export_topology_frontier_metrics_csv(compute_topology_frontier_metrics(evaluate_topology_frontier_fixture(fixture))), args.output)
             return 0
         if args.command == "parse-methylation":
             input_path = Path(args.input)

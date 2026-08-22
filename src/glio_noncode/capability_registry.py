@@ -2931,51 +2931,59 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D09-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.EcDNARegulatoryContactModel",
                     "glio_noncode.frontier_inference_alpha.EcDNAContactReport",
+                    "glio_noncode.topology_frontier_fixture_eval.evaluate_topology_frontier_fixture",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
                 "evidence_note": (
                     "ecDNA contacts retain element/gene identity, contact score, source count, "
-                    "normalized support, exact context, and review reasons."
+                    "normalized support, exact context, review reasons, public source receipts, "
+                    "replay, lineage, and release checks."
                 ),
             },
             "GNC-D09-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.CompartmentSwitchEstimator",
                     "glio_noncode.frontier_inference_alpha.CompartmentSwitchReport",
+                    "glio_noncode.topology_frontier_fixture_eval.evaluate_topology_frontier_fixture",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
                 "evidence_note": (
                     "Signed compartment scores produce explicit A/B transitions, deltas, confidence, "
-                    "and stable or threshold-review states."
+                    "and stable or threshold-review states with exact context controls, source "
+                    "lineage, schema, and replay evidence."
                 ),
             },
             "GNC-D09-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.TopologyUncertaintyTransportModel",
                     "glio_noncode.frontier_inference_alpha.TopologyTransportReport",
+                    "glio_noncode.topology_frontier_fixture_eval.evaluate_topology_frontier_fixture",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
                 "evidence_note": (
                     "Topology paths transport declared signal while accumulating edge uncertainty "
-                    "and path-contiguity review."
+                    "and path-contiguity review; public aggregate controls, policy checks, and "
+                    "content-addressed reconciliation are verified."
                 ),
             },
             "GNC-D09-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.ThreeDEvidencePublisher",
                     "glio_noncode.frontier_inference_alpha.ThreeDEvidenceBundle",
+                    "glio_noncode.topology_frontier_release.build_topology_frontier_release",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
                 "evidence_note": (
                     "3D evidence bundles retain path IDs, assay IDs, exact context, record address, "
-                    "and publication address."
+                    "and publication address with public source receipts, release gating, and "
+                    "review exports."
                 ),
             },
             "GNC-D10-C01": {

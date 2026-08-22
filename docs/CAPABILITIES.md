@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 104 capabilities have deterministic fixture-backed
-verification and 152 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 40.62% of the 256-capability
+capabilities started (100%); 108 capabilities have deterministic fixture-backed
+verification and 148 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 42.19% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -1711,6 +1711,39 @@ glio-noncode analyze-boundary-motif-orientation boundary-motifs.json --minimum-s
 glio-noncode model-ctcf-cohesin-disruption ctcf-cohesin.json --disruption-threshold 0.2 --output ctcf-cohesin-model.json
 glio-noncode model-idh-insulator-dysfunction idh-insulators.json --dysfunction-threshold 0.2 --output idh-insulator-model.json
 glio-noncode simulate-sv-topology-rewiring sv-topology.json --output sv-rewiring.json
+```
+
+### Domain 09 C13-C16 topology frontier evidence gate
+
+The Domain 09 C13-C16 tranche composes four public aggregate topology inference
+boundaries over one exact GRCh38 glioma context. It keeps source receipts, signed
+state changes, edge uncertainty, path closure, assay receipts, review states,
+lineage, and release addresses visible without turning topology observations into
+causal, clinical, or treatment claims.
+
+- C13 `ecdna_regulatory_contact` applies the existing ecDNA contact model with
+  source-count and contact-strength controls.
+- C14 `compartment_switch` preserves signed A/B transitions, stable controls,
+  exact-context gating, and malformed paired-score controls.
+- C15 `topology_uncertainty_transport` transports declared signal across edges,
+  retains accumulated uncertainty, and exposes disconnected-path controls.
+- C16 `three_d_evidence_publication` binds path IDs, assay IDs, exact context,
+  source receipts, and a content-addressed publication bundle.
+
+The fixture contains 4 positive records, 12 controls, 5 public source receipts,
+120 evaluation checks, 20 schema checks, 12 quality checks, 4 operation metrics,
+9 runtime stages, 16 lineage edges, 16 reconciliation items, and a sanitized
+12-row review queue. The bounded commands are:
+
+```powershell
+glio-noncode audit-topology-frontier-data --output topology-data.json
+glio-noncode evaluate-topology-frontier-fixture --output topology-evaluation.json
+glio-noncode replay-topology-frontier --output topology-replay.json
+glio-noncode topology-frontier-quality-gate --output topology-quality.json
+glio-noncode evaluate-topology-frontier-scenarios --output topology-scenarios.json
+glio-noncode topology-frontier-schema --output topology-schema.json
+glio-noncode run-topology-frontier-pipeline --run-id topology-ci --output topology-pipeline.json
+glio-noncode build-topology-frontier-release --run-id topology-ci --output topology-release.json
 ```
 
 ## Domain 10 candidate link graph
