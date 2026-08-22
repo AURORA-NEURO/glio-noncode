@@ -59,7 +59,7 @@ def build_topology_context_frontier_contracts() -> TopologyContextFrontierContra
         TopologyContextFrontierContract(
             "GNC-D09-C02-contract",
             TopologyContextFrontierOperation.MATRIX_QC,
-            ("contacts", "target_context_key", "normalization_method"),
+            ("contacts", "target_context_key", "normalization_method", "public_aggregate"),
             states,
             ("invalid_contact_row", "context_mismatch", "no_contact_rows"),
             "QC exposes duplicates and zeroes without hidden matrix correction.",
