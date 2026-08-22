@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 112 capabilities have deterministic fixture-backed
-verification and 144 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 43.75% of the 256-capability
+capabilities started (100%); 116 capabilities have deterministic fixture-backed
+verification and 140 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 45.31% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -1932,6 +1932,73 @@ glio-noncode adjudicate-confounding confounders.json --context-key "GRCh38|gliom
 glio-noncode correct-evidence-dependence dependence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-independent-groups 2 --output dependence-corrected.json
 glio-noncode integrate-negative-evidence negative-evidence.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-negative-controls 1 --output negative-integrated.json
 ```
+
+## Domain 11 causal frontier evidence
+
+Domain 11 now verifies the four causal-evidence capabilities with a bounded,
+public aggregate fixture. The fixture contains one positive and three control
+records for each operation, five public source receipts, an exact context key,
+and a declared non-patient boundary. The fixture is intentionally small enough
+to replay in continuous integration while preserving the fields needed for a
+reviewer to follow every transformation.
+
+The verified operation surfaces are:
+
+- `PosteriorDecompositionEngine` retains prior, likelihood, measurement,
+  dependence penalty, raw posterior, normalized posterior, state, and top
+  hypothesis identity. Zero mass is a review state and empty or out-of-bound
+  components are invalid controls.
+- `RegulatoryDriverHypothesisPosterior` retains driver identity, evidence IDs,
+  support, prior, posterior, rank, and minimum-support review. Low support is
+  not silently promoted into a supported driver.
+- `SelectivePredictionAndAbstention` retains score, uncertainty, the
+  uncertainty-aware threshold, abstention, and issue codes. Weak score and
+  high uncertainty are separate observable controls.
+- `CausalDossierPublisher` binds hypothesis IDs to evidence addresses and
+  emits a content-addressed research manifest. It does not upgrade a manifest
+  into a causal, diagnostic, prognostic, or treatment conclusion.
+
+The surrounding evidence boundary adds contracts, schema fields, fixture
+receipts, deterministic replay, a 33-scenario threshold matrix, source and
+transform lineage, operation metrics, policy decisions, reconciliation,
+observability events, JSON/CSV exports, a 12-check quality gate, a 10-stage
+runtime, a release manifest, and an 18-check depth audit. Controls are run in
+the same path as positive records. A release can therefore show that invalid,
+empty, weak, uncertain, and mismatched inputs remain visible.
+
+The public sources are used only as aggregate context and receipts:
+
+| Source receipt | Use in this boundary |
+| --- | --- |
+| ENCODE | functional genomics source context |
+| 4D Nucleome | topology and dependence context |
+| NCBI GEO | public molecular observation context |
+| PubMed | publication and evidence-address context |
+| NIH Common Fund | research-use and provenance context |
+
+The D11 command surface is deliberately split into audit, replay, evaluation,
+and export steps so a reviewer can stop after any receipt:
+
+```powershell
+glio-noncode causal-frontier-data-audit --output causal-data-audit.json
+glio-noncode causal-frontier-contracts --output causal-contracts.json
+glio-noncode causal-frontier-schema --output causal-schema.json
+glio-noncode causal-frontier-evaluate --output causal-evaluation.json
+glio-noncode causal-frontier-replay --output causal-replay.json
+glio-noncode causal-frontier-metrics --output causal-metrics.json
+glio-noncode causal-frontier-lineage --output causal-lineage.json
+glio-noncode causal-frontier-policy --output causal-policy.json
+glio-noncode causal-frontier-quality-gate --output causal-quality.json
+glio-noncode causal-frontier-runtime --output causal-runtime.json
+glio-noncode causal-frontier-release --output causal-release.json
+glio-noncode causal-frontier-depth-audit --output causal-depth.json
+```
+
+The D11 boundary supports aggregate evidence review, method development,
+reproducibility testing, and research triage. It excludes patient care,
+diagnostic determination, treatment selection, pathogenicity declaration, and
+actionability. Thresholds, source IDs, context, issue codes, abstentions, and
+release decisions remain part of the exported record.
 
 ## Domain 12 cohort discovery and controls
 

@@ -478,3 +478,29 @@ jobs:
         run: python -m glio_noncode link-frontier-trace --run-id link-frontier-ci --output /tmp/glio-link-frontier-trace.json
       - name: Link frontier operation depth audit
         run: python -m glio_noncode link-frontier-depth-audit --output /tmp/glio-link-frontier-depth.json
+      - name: Causal frontier data boundary audit
+        run: python -m glio_noncode causal-frontier-data-audit --output /tmp/glio-causal-frontier-data.json
+      - name: Causal frontier operation contracts
+        run: python -m glio_noncode causal-frontier-contracts --output /tmp/glio-causal-frontier-contracts.json
+      - name: Causal frontier schema manifest
+        run: python -m glio_noncode causal-frontier-schema --output /tmp/glio-causal-frontier-schema.json
+      - name: Causal frontier fixture evaluation
+        run: python -m glio_noncode causal-frontier-evaluate --output /tmp/glio-causal-frontier-evaluation.json
+      - name: Causal frontier replay integrity
+        run: python -m glio_noncode causal-frontier-replay --output /tmp/glio-causal-frontier-replay.json
+      - name: Causal frontier metrics
+        run: python -m glio_noncode causal-frontier-metrics --output /tmp/glio-causal-frontier-metrics.json
+      - name: Causal frontier lineage graph
+        run: python -m glio_noncode causal-frontier-lineage --output /tmp/glio-causal-frontier-lineage.json
+      - name: Causal frontier policy evaluation
+        run: python -m glio_noncode causal-frontier-policy --output /tmp/glio-causal-frontier-policy.json
+      - name: Causal frontier quality gate
+        run: python -m glio_noncode causal-frontier-quality-gate --output /tmp/glio-causal-frontier-quality.json
+      - name: Causal frontier runtime rehearsal
+        run: python -m glio_noncode causal-frontier-runtime --output /tmp/glio-causal-frontier-runtime.json
+      - name: Causal frontier release manifest
+        run: python -m glio_noncode causal-frontier-release --output /tmp/glio-causal-frontier-release.json
+      - name: Causal frontier review CSV
+        run: python -m glio_noncode export-causal-frontier-review-csv --output /tmp/glio-causal-frontier-review.csv
+      - name: Causal frontier depth audit
+        run: python -m glio_noncode causal-frontier-depth-audit --output /tmp/glio-causal-frontier-depth.json

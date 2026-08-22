@@ -3331,54 +3331,72 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D11-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.PosteriorDecompositionEngine",
                     "glio_noncode.frontier_inference_alpha.PosteriorDecompositionReport",
+                    "glio_noncode.causal_frontier_public_data",
+                    "glio_noncode.causal_frontier_fixture_eval",
+                    "glio_noncode.causal_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_causal_frontier_evidence", "tests.test_causal_frontier_depth"),
                 "evidence_note": (
                     "Posterior decomposition retains prior, likelihood, measurement, dependence "
-                    "penalty, raw score, normalized score, and top-hypothesis identity."
+                    "penalty, raw score, normalized score, and top-hypothesis identity. Public "
+                    "aggregate positive/control replay, source receipts, contracts, schema, "
+                    "lineage, and release checks are verified."
                 ),
             },
             "GNC-D11-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.RegulatoryDriverHypothesisPosterior",
                     "glio_noncode.frontier_inference_alpha.DriverPosteriorReport",
+                    "glio_noncode.causal_frontier_contracts",
+                    "glio_noncode.causal_frontier_policy",
+                    "glio_noncode.causal_frontier_reconciliation",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_causal_frontier_evidence"),
                 "evidence_note": (
                     "Regulatory-driver posteriors retain evidence IDs, support, priors, normalized "
-                    "posterior, rank, and minimum-support review."
+                    "posterior, rank, and minimum-support review. Low-support, empty, and invalid "
+                    "controls are replayed under a public aggregate policy boundary."
                 ),
             },
             "GNC-D11-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.SelectivePredictionAndAbstention",
                     "glio_noncode.frontier_inference_alpha.SelectivePredictionReport",
+                    "glio_noncode.causal_frontier_scenario_matrix",
+                    "glio_noncode.causal_frontier_metrics",
+                    "glio_noncode.causal_frontier_views",
                 ),
                 "test_modules": (
                     "tests.test_frontier_inference_alpha",
                     "tests.test_frontier_inference_alpha_cli",
+                    "tests.test_causal_frontier_evidence",
                 ),
                 "evidence_note": (
                     "Selective prediction applies uncertainty-aware score thresholds and records "
-                    "abstentions rather than forcing weak causal outputs."
+                    "abstentions rather than forcing weak causal outputs. A 42-scenario matrix, "
+                    "issue metrics, CSV review view, and release checks exercise threshold edges."
                 ),
             },
             "GNC-D11-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.CausalDossierPublisher",
                     "glio_noncode.frontier_inference_alpha.CausalDossier",
+                    "glio_noncode.causal_frontier_bundle",
+                    "glio_noncode.causal_frontier_release",
+                    "glio_noncode.causal_frontier_exports",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_causal_frontier_evidence", "tests.test_causal_frontier_evidence_cli"),
                 "evidence_note": (
                     "Causal dossiers bind hypothesis IDs and evidence addresses with a research-only "
-                    "publication receipt and no causal conclusion upgrade."
+                    "publication receipt and no causal conclusion upgrade. Bundle, release manifest, "
+                    "observability, replay, and deterministic JSON/CSV export surfaces are verified."
                 ),
             },
             "GNC-D12-C01": {
