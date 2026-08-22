@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 124 capabilities have deterministic fixture-backed
-verification and 132 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 48.44% of the 256-capability
-catalog; MVP implementation coverage is 31.25%. The surfaces retain
+capabilities started (100%); 128 capabilities have deterministic fixture-backed
+verification and 128 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 50.0% of the 256-capability
+catalog; MVP implementation coverage is 43.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -2239,6 +2239,7 @@ glio-noncode validation-frontier-artifacts --output validation-artifacts.json
 glio-noncode validation-frontier-bundle --output validation-bundle.json
 glio-noncode validation-frontier-release --output validation-release.json
 glio-noncode export-validation-frontier-review-csv --output validation-review.csv
+glio-noncode validation-frontier-review-queue --output validation-queue.json
 glio-noncode validation-frontier-depth-audit --output validation-depth.json
 ```
 
@@ -2266,6 +2267,56 @@ conflicting evidence into a false consensus. A research-only dossier envelope
 records a deterministic integrity digest and remains review-required. The
 digest is a content-addressed reproducibility aid, not a cryptographic identity
 signature, clinical conclusion, or treatment recommendation.
+
+The C01-C04 evidence-lifecycle frontier adds a public aggregate verification
+boundary for versioned graph construction, citation resolution, claim-edge
+validation, and contradiction/disagreement tracking. It contains 16 records,
+with one positive and three controls for each operation. Five HTTPS source
+receipts identify the aggregate boundary; no patient-level rows are included.
+
+The C01 citation path retains one valid row and one quarantined row. Controls
+cover malformed JSON, duplicate citation IDs, and an empty table. The C02 graph
+path retains a superseded claim in history while exposing the active claim.
+Controls cover missing lineage, graph-context mismatch, and duplicate claim IDs.
+The C03 edge path verifies supported, missing-source, context-mismatch, and
+absent-edge states. The C04 disagreement path retains positive and negative
+values separately while controls cover clear, incomplete, and out-of-domain
+states.
+
+The frontier has 120 evaluation checks, 36 lineage edges, 13 metrics, 12
+quality checks, 10 runtime stages, 31 scenario rows, 972 threshold probes, 26
+observability events, seven artifact nodes, 20 depth checks, and a 16-row
+review queue with four ready rows and twelve held controls. A ready lifecycle
+record is a research review artifact; it is not experimental success or a
+clinical conclusion.
+
+The evidence-lifecycle frontier commands are:
+
+```powershell
+glio-noncode evidence-lifecycle-data-audit --output lifecycle-data.json
+glio-noncode evidence-lifecycle-contracts --output lifecycle-contracts.json
+glio-noncode evidence-lifecycle-schema --output lifecycle-schema.json
+glio-noncode evidence-lifecycle-evaluate --output lifecycle-evaluation.json
+glio-noncode evidence-lifecycle-replay --output lifecycle-replay.json
+glio-noncode evidence-lifecycle-metrics --output lifecycle-metrics.json
+glio-noncode evidence-lifecycle-lineage --output lifecycle-lineage.json
+glio-noncode evidence-lifecycle-policy --output lifecycle-policy.json
+glio-noncode evidence-lifecycle-quality-gate --output lifecycle-quality.json
+glio-noncode evidence-lifecycle-runtime --output lifecycle-runtime.json
+glio-noncode evidence-lifecycle-observability --output lifecycle-observability.json
+glio-noncode evidence-lifecycle-artifacts --output lifecycle-artifacts.json
+glio-noncode evidence-lifecycle-bundle --output lifecycle-bundle.json
+glio-noncode evidence-lifecycle-release --output lifecycle-release.json
+glio-noncode evidence-lifecycle-review-queue --output lifecycle-queue.json
+glio-noncode export-evidence-lifecycle-review-csv --output lifecycle-review.csv
+glio-noncode evidence-lifecycle-depth-audit --output lifecycle-depth.json
+```
+
+These lifecycle surfaces preserve source versions, row hashes, raw records,
+supersession, missing citations, context mismatch, disagreement state,
+abstention, review policy, release boundaries, and replay addresses. They do
+not replace source reconciliation, adjudication, experimental validation,
+institutional review, or clinical governance.
 
 The Domain 14 scientific-beta extensions add operational evidence views:
 

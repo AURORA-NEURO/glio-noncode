@@ -202,6 +202,25 @@ from .evidence_lifecycle import (
     VersionedEvidenceClaim,
     VersionedEvidenceGraphConstructor,
 )
+from .evidence_lifecycle_frontier_artifacts import build_evidence_lifecycle_artifact_inventory
+from .evidence_lifecycle_frontier_bundle import assemble_evidence_lifecycle_bundle
+from .evidence_lifecycle_frontier_contracts import default_evidence_lifecycle_contracts
+from .evidence_lifecycle_frontier_depth import audit_evidence_lifecycle_depth
+from .evidence_lifecycle_frontier_exports import export_evidence_lifecycle_review_csv
+from .evidence_lifecycle_frontier_fixture_eval import evaluate_evidence_lifecycle_fixture
+from .evidence_lifecycle_frontier_lineage import build_evidence_lifecycle_lineage
+from .evidence_lifecycle_frontier_metrics import measure_evidence_lifecycle
+from .evidence_lifecycle_frontier_observability import observe_evidence_lifecycle
+from .evidence_lifecycle_frontier_policy import default_evidence_lifecycle_policy
+from .evidence_lifecycle_frontier_public_data import audit_evidence_lifecycle_data, default_evidence_lifecycle_fixture, load_evidence_lifecycle_fixture
+from .evidence_lifecycle_frontier_quality_gate import evaluate_evidence_lifecycle_quality
+from .evidence_lifecycle_frontier_reconciliation import reconcile_evidence_lifecycle
+from .evidence_lifecycle_frontier_release import build_evidence_lifecycle_release_manifest
+from .evidence_lifecycle_frontier_replay import replay_evidence_lifecycle
+from .evidence_lifecycle_frontier_review_queue import build_evidence_lifecycle_review_queue
+from .evidence_lifecycle_frontier_runtime import run_evidence_lifecycle_runtime
+from .evidence_lifecycle_frontier_schema import default_evidence_lifecycle_schema
+from .evidence_lifecycle_frontier_views import build_evidence_lifecycle_review_view
 from .frontier_atlas_contracts import default_frontier_atlas_contracts
 from .frontier_atlas_exports import (
     export_frontier_atlas_metrics_csv,
@@ -967,6 +986,12 @@ def _read_validation_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_validation_frontier_fixture(path) if path else default_validation_frontier_fixture()
+
+
+def _read_evidence_lifecycle_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_evidence_lifecycle_fixture(path) if path else default_evidence_lifecycle_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -4199,6 +4224,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validation_frontier_csv.add_argument("input", nargs="?", default=None)
     validation_frontier_csv.add_argument("--output", default=None)
+
+    evidence_lifecycle_commands = (
+        ("evidence-lifecycle-data-audit", "audit public Domain 14 lifecycle receipts"),
+        ("evidence-lifecycle-contracts", "emit Domain 14 lifecycle contracts"),
+        ("evidence-lifecycle-schema", "emit Domain 14 lifecycle schema"),
+        ("evidence-lifecycle-evaluate", "evaluate Domain 14 lifecycle records"),
+        ("evidence-lifecycle-replay", "replay Domain 14 lifecycle receipts"),
+        ("evidence-lifecycle-metrics", "emit Domain 14 lifecycle metrics"),
+        ("evidence-lifecycle-lineage", "emit Domain 14 lifecycle lineage"),
+        ("evidence-lifecycle-policy", "emit Domain 14 lifecycle policy"),
+        ("evidence-lifecycle-quality-gate", "run Domain 14 lifecycle quality checks"),
+        ("evidence-lifecycle-runtime", "run Domain 14 lifecycle release rehearsal"),
+        ("evidence-lifecycle-observability", "emit Domain 14 lifecycle observability"),
+        ("evidence-lifecycle-artifacts", "emit Domain 14 lifecycle artifact inventory"),
+        ("evidence-lifecycle-release", "build Domain 14 lifecycle release manifest"),
+        ("evidence-lifecycle-review-queue", "build Domain 14 lifecycle review queue"),
+        ("evidence-lifecycle-depth-audit", "run Domain 14 lifecycle depth audit"),
+    )
+    for command_name, command_help in evidence_lifecycle_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        if command_name != "evidence-lifecycle-contracts":
+            command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    evidence_lifecycle_bundle = subparsers.add_parser("evidence-lifecycle-bundle", help="assemble the Domain 14 lifecycle review bundle")
+    evidence_lifecycle_bundle.add_argument("input", nargs="?", default=None)
+    evidence_lifecycle_bundle.add_argument("--output", default=None)
+    evidence_lifecycle_csv = subparsers.add_parser("export-evidence-lifecycle-review-csv", help="export Domain 14 lifecycle review rows as CSV")
+    evidence_lifecycle_csv.add_argument("input", nargs="?", default=None)
+    evidence_lifecycle_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -7850,6 +7904,110 @@ def main(argv: list[str] | None = None) -> int:
             release = build_cohort_frontier_release_manifest(runtime.bundle, gate, replay_cohort_frontier(fixture, replay_id="cohort-frontier-csv-replay"))
             view = build_cohort_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)
             _write_text(export_cohort_frontier_review_csv(view), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-data-audit":
+            _write_json(audit_evidence_lifecycle_data(_read_evidence_lifecycle_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-contracts":
+            _write_json(default_evidence_lifecycle_contracts().manifest(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-schema":
+            _write_json(default_evidence_lifecycle_schema().to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-evaluate":
+            _write_json(evaluate_evidence_lifecycle_fixture(_read_evidence_lifecycle_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-replay":
+            _write_json(replay_evidence_lifecycle(_read_evidence_lifecycle_fixture(args.input), replay_id="evidence-lifecycle-cli-replay").to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-metrics":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            _write_json(measure_evidence_lifecycle(evaluate_evidence_lifecycle_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-lineage":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            _write_json(build_evidence_lifecycle_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-policy":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            policy = default_evidence_lifecycle_policy()
+            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            return 0
+        if args.command == "evidence-lifecycle-quality-gate":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            contracts = default_evidence_lifecycle_contracts()
+            schema = default_evidence_lifecycle_schema()
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            policy = default_evidence_lifecycle_policy()
+            lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
+            reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
+            _write_json(evaluate_evidence_lifecycle_quality(fixture, evaluation, contracts, schema, lineage, reconciliation).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-runtime":
+            _write_json(run_evidence_lifecycle_runtime(_read_evidence_lifecycle_fixture(args.input), run_id="evidence-lifecycle-cli").to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-observability":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-observability")
+            _write_json(observe_evidence_lifecycle(runtime, evaluate_evidence_lifecycle_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-artifacts":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            contracts = default_evidence_lifecycle_contracts()
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            metrics = measure_evidence_lifecycle(evaluation)
+            policy = default_evidence_lifecycle_policy()
+            lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
+            reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
+            gate = evaluate_evidence_lifecycle_quality(fixture, evaluation, contracts, default_evidence_lifecycle_schema(), lineage, reconciliation)
+            runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-artifacts")
+            bundle = runtime.bundle
+            release = build_evidence_lifecycle_release_manifest(bundle, gate, replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-artifacts-replay"))
+            _write_json(build_evidence_lifecycle_artifact_inventory(fixture, evaluation, metrics, gate, runtime, release, bundle).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-bundle":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            metrics = measure_evidence_lifecycle(evaluation)
+            policy = default_evidence_lifecycle_policy()
+            lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
+            reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
+            _write_json(assemble_evidence_lifecycle_bundle(fixture, evaluation, metrics, lineage, reconciliation, policy).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-release":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-release")
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            contracts = default_evidence_lifecycle_contracts()
+            policy = default_evidence_lifecycle_policy()
+            lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
+            reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
+            gate = evaluate_evidence_lifecycle_quality(fixture, evaluation, contracts, default_evidence_lifecycle_schema(), lineage, reconciliation)
+            _write_json(build_evidence_lifecycle_release_manifest(runtime.bundle, gate, replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-release-replay")).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-review-queue":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            policy = default_evidence_lifecycle_policy()
+            _write_json(build_evidence_lifecycle_review_queue(fixture, evaluation, policy.decide(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-depth-audit":
+            _write_json(audit_evidence_lifecycle_depth().to_dict(), args.output)
+            return 0
+        if args.command == "export-evidence-lifecycle-review-csv":
+            fixture = _read_evidence_lifecycle_fixture(args.input)
+            evaluation = evaluate_evidence_lifecycle_fixture(fixture)
+            policy = default_evidence_lifecycle_policy()
+            metrics = measure_evidence_lifecycle(evaluation)
+            lineage = build_evidence_lifecycle_lineage(fixture, evaluation)
+            reconciliation = reconcile_evidence_lifecycle(fixture, evaluation, policy)
+            gate = evaluate_evidence_lifecycle_quality(fixture, evaluation, default_evidence_lifecycle_contracts(), default_evidence_lifecycle_schema(), lineage, reconciliation)
+            runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-csv")
+            release = build_evidence_lifecycle_release_manifest(runtime.bundle, gate, replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-csv-replay"))
+            view = build_evidence_lifecycle_review_view(fixture, evaluation, policy.decide(evaluation), release)
+            _write_text(export_evidence_lifecycle_review_csv(view), args.output)
             return 0
         if args.command == "validation-frontier-data-audit":
             _write_json(audit_validation_frontier_data(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)

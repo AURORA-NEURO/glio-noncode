@@ -566,3 +566,37 @@ jobs:
         run: python -m glio_noncode validation-frontier-depth-audit --output /tmp/glio-validation-frontier-depth.json
       - name: Validation frontier review queue
         run: python -m glio_noncode validation-frontier-review-queue --output /tmp/glio-validation-frontier-queue.json
+      - name: Evidence lifecycle data boundary audit
+        run: python -m glio_noncode evidence-lifecycle-data-audit --output /tmp/glio-evidence-lifecycle-data.json
+      - name: Evidence lifecycle operation contracts
+        run: python -m glio_noncode evidence-lifecycle-contracts --output /tmp/glio-evidence-lifecycle-contracts.json
+      - name: Evidence lifecycle schema manifest
+        run: python -m glio_noncode evidence-lifecycle-schema --output /tmp/glio-evidence-lifecycle-schema.json
+      - name: Evidence lifecycle fixture evaluation
+        run: python -m glio_noncode evidence-lifecycle-evaluate --output /tmp/glio-evidence-lifecycle-evaluation.json
+      - name: Evidence lifecycle replay integrity
+        run: python -m glio_noncode evidence-lifecycle-replay --output /tmp/glio-evidence-lifecycle-replay.json
+      - name: Evidence lifecycle metrics
+        run: python -m glio_noncode evidence-lifecycle-metrics --output /tmp/glio-evidence-lifecycle-metrics.json
+      - name: Evidence lifecycle lineage graph
+        run: python -m glio_noncode evidence-lifecycle-lineage --output /tmp/glio-evidence-lifecycle-lineage.json
+      - name: Evidence lifecycle policy evaluation
+        run: python -m glio_noncode evidence-lifecycle-policy --output /tmp/glio-evidence-lifecycle-policy.json
+      - name: Evidence lifecycle quality gate
+        run: python -m glio_noncode evidence-lifecycle-quality-gate --output /tmp/glio-evidence-lifecycle-quality.json
+      - name: Evidence lifecycle runtime rehearsal
+        run: python -m glio_noncode evidence-lifecycle-runtime --output /tmp/glio-evidence-lifecycle-runtime.json
+      - name: Evidence lifecycle observability
+        run: python -m glio_noncode evidence-lifecycle-observability --output /tmp/glio-evidence-lifecycle-observability.json
+      - name: Evidence lifecycle artifact inventory
+        run: python -m glio_noncode evidence-lifecycle-artifacts --output /tmp/glio-evidence-lifecycle-artifacts.json
+      - name: Evidence lifecycle release bundle
+        run: python -m glio_noncode evidence-lifecycle-bundle --output /tmp/glio-evidence-lifecycle-bundle.json
+      - name: Evidence lifecycle release manifest
+        run: python -m glio_noncode evidence-lifecycle-release --output /tmp/glio-evidence-lifecycle-release.json
+      - name: Evidence lifecycle review queue
+        run: python -m glio_noncode evidence-lifecycle-review-queue --output /tmp/glio-evidence-lifecycle-queue.json
+      - name: Evidence lifecycle review CSV
+        run: python -m glio_noncode export-evidence-lifecycle-review-csv --output /tmp/glio-evidence-lifecycle-review.csv
+      - name: Evidence lifecycle depth audit
+        run: python -m glio_noncode evidence-lifecycle-depth-audit --output /tmp/glio-evidence-lifecycle-depth.json

@@ -616,6 +616,29 @@ from .evidence_lifecycle import (
     VersionedEvidenceClaim,
     VersionedEvidenceGraphConstructor,
 )
+from .evidence_lifecycle_frontier_adapters import EvidenceLifecycleAdapterReceipt, EvidenceLifecycleAdapterRegistry, EvidenceLifecycleInputAdapter, default_evidence_lifecycle_adapters
+from .evidence_lifecycle_frontier_artifacts import EvidenceLifecycleArtifact, EvidenceLifecycleArtifactInventory, EvidenceLifecycleArtifactKind, build_evidence_lifecycle_artifact_inventory
+from .evidence_lifecycle_frontier_bundle import EvidenceLifecycleReleaseBundle, assemble_evidence_lifecycle_bundle
+from .evidence_lifecycle_frontier_checks import EvidenceLifecycleInvariant, EvidenceLifecycleInvariantReport, EvidenceLifecycleInvariantResult, default_evidence_lifecycle_invariants, run_evidence_lifecycle_invariants, validation_lifecycle_observation_map
+from .evidence_lifecycle_frontier_contracts import EvidenceLifecycleContract, EvidenceLifecycleContractRegistry, default_evidence_lifecycle_contracts
+from .evidence_lifecycle_frontier_depth import EvidenceLifecycleDepthAudit, EvidenceLifecycleDepthCheck, audit_evidence_lifecycle_depth
+from .evidence_lifecycle_frontier_exports import export_evidence_lifecycle_canonical, export_evidence_lifecycle_json, export_evidence_lifecycle_manifest, export_evidence_lifecycle_review_csv
+from .evidence_lifecycle_frontier_fixture_eval import EvidenceLifecycleEvaluation, EvidenceLifecycleEvaluationCheck, EvidenceLifecycleExecution, evaluate_evidence_lifecycle_fixture, execute_evidence_lifecycle_record
+from .evidence_lifecycle_frontier_lineage import EvidenceLifecycleLineageEdge, EvidenceLifecycleLineageGraph, build_evidence_lifecycle_lineage
+from .evidence_lifecycle_frontier_metrics import EvidenceLifecycleMetric, EvidenceLifecycleMetricsReport, measure_evidence_lifecycle
+from .evidence_lifecycle_frontier_observability import EvidenceLifecycleEvent, EvidenceLifecycleObservabilityReport, observe_evidence_lifecycle
+from .evidence_lifecycle_frontier_policy import EvidenceLifecycleDecision, EvidenceLifecyclePolicy, EvidenceLifecyclePolicyDecision, EvidenceLifecyclePolicyRule, default_evidence_lifecycle_policy
+from .evidence_lifecycle_frontier_public_data import EVIDENCE_LIFECYCLE_CONTEXT_KEY, EVIDENCE_LIFECYCLE_CONTROL_COUNT, EVIDENCE_LIFECYCLE_EVIDENCE_BOUNDARY, EVIDENCE_LIFECYCLE_FIXTURE_VERSION, EVIDENCE_LIFECYCLE_POSITIVE_COUNT, EVIDENCE_LIFECYCLE_SOURCE_COUNT, EvidenceLifecycleCatalog, EvidenceLifecycleDataAudit, EvidenceLifecycleDataCheck, EvidenceLifecycleFixture, EvidenceLifecycleOperation, EvidenceLifecycleRecord, EvidenceLifecycleRole, EvidenceLifecycleSourceReceipt, audit_evidence_lifecycle_data, build_evidence_lifecycle_catalog, default_evidence_lifecycle_fixture, load_evidence_lifecycle_fixture
+from .evidence_lifecycle_frontier_quality_gate import EvidenceLifecycleGateCheck, EvidenceLifecycleQualityGate, evaluate_evidence_lifecycle_quality
+from .evidence_lifecycle_frontier_reconciliation import EvidenceLifecycleReconciliation, EvidenceLifecycleReconciliationItem, reconcile_evidence_lifecycle
+from .evidence_lifecycle_frontier_release import EvidenceLifecycleReleaseCheck, EvidenceLifecycleReleaseManifest, EvidenceLifecycleReleaseState, build_evidence_lifecycle_release_manifest
+from .evidence_lifecycle_frontier_replay import EvidenceLifecycleReplayComparison, EvidenceLifecycleReplayReceipt, compare_evidence_lifecycle_replays, evidence_lifecycle_replay_is_deterministic, replay_evidence_lifecycle
+from .evidence_lifecycle_frontier_review_queue import EvidenceLifecycleReviewDisposition, EvidenceLifecycleReviewPriority, EvidenceLifecycleReviewQueue, EvidenceLifecycleReviewQueueCheck, EvidenceLifecycleReviewQueueItem, build_evidence_lifecycle_review_queue
+from .evidence_lifecycle_frontier_runtime import EvidenceLifecycleRuntimeReport, EvidenceLifecycleRuntimeStage, run_evidence_lifecycle_runtime
+from .evidence_lifecycle_frontier_scenario_matrix import EvidenceLifecycleScenario, EvidenceLifecycleScenarioMatrix, build_evidence_lifecycle_scenario_matrix
+from .evidence_lifecycle_frontier_schema import EvidenceLifecycleFieldSpec, EvidenceLifecycleOperationSchema, EvidenceLifecycleSchemaManifest, default_evidence_lifecycle_schema
+from .evidence_lifecycle_frontier_thresholds import EvidenceLifecycleThresholdProbe, EvidenceLifecycleThresholdProfile, EvidenceLifecycleThresholdReport, build_evidence_lifecycle_threshold_report, default_evidence_lifecycle_threshold_profiles
+from .evidence_lifecycle_frontier_views import EvidenceLifecycleReviewRow, EvidenceLifecycleReviewView, build_evidence_lifecycle_review_view
 from .frontier_atlas_bundle import (
     FrontierAtlasBundle,
     build_frontier_atlas_bundle,
@@ -5877,6 +5900,111 @@ __all__ = [
     "replay_cohort_frontier_is_deterministic",
     "run_cohort_frontier_invariants",
     "run_cohort_frontier_runtime",
+]
+
+__all__ += [
+    "EVIDENCE_LIFECYCLE_CONTEXT_KEY",
+    "EVIDENCE_LIFECYCLE_CONTROL_COUNT",
+    "EVIDENCE_LIFECYCLE_EVIDENCE_BOUNDARY",
+    "EVIDENCE_LIFECYCLE_FIXTURE_VERSION",
+    "EVIDENCE_LIFECYCLE_POSITIVE_COUNT",
+    "EVIDENCE_LIFECYCLE_SOURCE_COUNT",
+    "EvidenceLifecycleAdapterReceipt",
+    "EvidenceLifecycleAdapterRegistry",
+    "EvidenceLifecycleArtifact",
+    "EvidenceLifecycleArtifactInventory",
+    "EvidenceLifecycleArtifactKind",
+    "EvidenceLifecycleCatalog",
+    "EvidenceLifecycleContract",
+    "EvidenceLifecycleContractRegistry",
+    "EvidenceLifecycleDataAudit",
+    "EvidenceLifecycleDataCheck",
+    "EvidenceLifecycleDecision",
+    "EvidenceLifecycleDepthAudit",
+    "EvidenceLifecycleDepthCheck",
+    "EvidenceLifecycleEvaluation",
+    "EvidenceLifecycleEvaluationCheck",
+    "EvidenceLifecycleEvent",
+    "EvidenceLifecycleExecution",
+    "EvidenceLifecycleFieldSpec",
+    "EvidenceLifecycleFixture",
+    "EvidenceLifecycleGateCheck",
+    "EvidenceLifecycleInputAdapter",
+    "EvidenceLifecycleInvariant",
+    "EvidenceLifecycleInvariantReport",
+    "EvidenceLifecycleInvariantResult",
+    "EvidenceLifecycleLineageEdge",
+    "EvidenceLifecycleLineageGraph",
+    "EvidenceLifecycleMetric",
+    "EvidenceLifecycleMetricsReport",
+    "EvidenceLifecycleObservabilityReport",
+    "EvidenceLifecycleOperation",
+    "EvidenceLifecycleOperationSchema",
+    "EvidenceLifecyclePolicy",
+    "EvidenceLifecyclePolicyDecision",
+    "EvidenceLifecyclePolicyRule",
+    "EvidenceLifecycleQualityGate",
+    "EvidenceLifecycleRecord",
+    "EvidenceLifecycleReconciliation",
+    "EvidenceLifecycleReconciliationItem",
+    "EvidenceLifecycleReleaseBundle",
+    "EvidenceLifecycleReleaseCheck",
+    "EvidenceLifecycleReleaseManifest",
+    "EvidenceLifecycleReleaseState",
+    "EvidenceLifecycleReplayComparison",
+    "EvidenceLifecycleReplayReceipt",
+    "EvidenceLifecycleReviewDisposition",
+    "EvidenceLifecycleReviewPriority",
+    "EvidenceLifecycleReviewQueue",
+    "EvidenceLifecycleReviewQueueCheck",
+    "EvidenceLifecycleReviewQueueItem",
+    "EvidenceLifecycleReviewRow",
+    "EvidenceLifecycleReviewView",
+    "EvidenceLifecycleRole",
+    "EvidenceLifecycleRuntimeReport",
+    "EvidenceLifecycleRuntimeStage",
+    "EvidenceLifecycleScenario",
+    "EvidenceLifecycleScenarioMatrix",
+    "EvidenceLifecycleSchemaManifest",
+    "EvidenceLifecycleSourceReceipt",
+    "EvidenceLifecycleThresholdProbe",
+    "EvidenceLifecycleThresholdProfile",
+    "EvidenceLifecycleThresholdReport",
+    "assemble_evidence_lifecycle_bundle",
+    "audit_evidence_lifecycle_data",
+    "audit_evidence_lifecycle_depth",
+    "build_evidence_lifecycle_artifact_inventory",
+    "build_evidence_lifecycle_catalog",
+    "build_evidence_lifecycle_lineage",
+    "build_evidence_lifecycle_release_manifest",
+    "build_evidence_lifecycle_review_queue",
+    "build_evidence_lifecycle_review_view",
+    "build_evidence_lifecycle_scenario_matrix",
+    "build_evidence_lifecycle_threshold_report",
+    "compare_evidence_lifecycle_replays",
+    "default_evidence_lifecycle_adapters",
+    "default_evidence_lifecycle_contracts",
+    "default_evidence_lifecycle_fixture",
+    "default_evidence_lifecycle_invariants",
+    "default_evidence_lifecycle_policy",
+    "default_evidence_lifecycle_schema",
+    "default_evidence_lifecycle_threshold_profiles",
+    "evaluate_evidence_lifecycle_fixture",
+    "evaluate_evidence_lifecycle_quality",
+    "execute_evidence_lifecycle_record",
+    "evidence_lifecycle_replay_is_deterministic",
+    "export_evidence_lifecycle_canonical",
+    "export_evidence_lifecycle_json",
+    "export_evidence_lifecycle_manifest",
+    "export_evidence_lifecycle_review_csv",
+    "load_evidence_lifecycle_fixture",
+    "measure_evidence_lifecycle",
+    "observe_evidence_lifecycle",
+    "reconcile_evidence_lifecycle",
+    "replay_evidence_lifecycle",
+    "run_evidence_lifecycle_invariants",
+    "run_evidence_lifecycle_runtime",
+    "validation_lifecycle_observation_map",
 ]
 
 __version__ = "0.1.0"
