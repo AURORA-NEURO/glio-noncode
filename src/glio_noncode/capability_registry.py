@@ -2830,67 +2830,107 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D08-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_alpha.SpatialNichePrior",
                     "glio_noncode.cell_context_alpha.SpatialNichePriorReport",
+                    "glio_noncode.cell_context_alpha_frontier_public_data.CellContextAlphaFrontierFixture",
+                    "glio_noncode.cell_context_alpha_frontier_adapters.execute_cell_context_alpha_frontier_record",
+                    "glio_noncode.cell_context_alpha_frontier_candidate_depth.audit_cell_context_alpha_frontier_candidates",
+                    "glio_noncode.cell_context_alpha_frontier_depth.audit_cell_context_alpha_frontier_depth",
+                    "glio_noncode.cell_context_alpha_frontier_pipeline.run_cell_context_alpha_frontier_pipeline",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_alpha",
                     "tests.test_cell_context_alpha_cli",
+                    "tests.test_cell_context_alpha_frontier",
                 ),
                 "evidence_note": (
                     "Spatial niche candidates are ranked within subject and exact context while "
                     "retaining support spread, close-candidate ambiguity, sample IDs, source "
-                    "versions, and raw hashes; the output is a descriptive prior."
+                    "versions, raw hashes, fixture controls, replay, quality, and release "
+                    "receipts; the output is a descriptive prior."
                 ),
             },
             "GNC-D08-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_alpha.CoreMarginTerritoryPrior",
                     "glio_noncode.cell_context_alpha.CoreMarginTerritoryReport",
+                    "glio_noncode.cell_context_alpha_frontier_public_data.CellContextAlphaFrontierFixture",
+                    "glio_noncode.cell_context_alpha_frontier_delta_depth.audit_cell_context_alpha_frontier_deltas",
+                    "glio_noncode.cell_context_alpha_frontier_reconciliation.reconcile_cell_context_alpha_frontier",
+                    "glio_noncode.cell_context_alpha_frontier_lineage.build_cell_context_alpha_frontier_lineage",
+                    "glio_noncode.cell_context_alpha_frontier_release.build_cell_context_alpha_frontier_release",
+                    "glio_noncode.cell_context_alpha_frontier_bundle.build_cell_context_alpha_frontier_bundle",
+                    "glio_noncode.cell_context_alpha_frontier_runtime.run_cell_context_alpha_frontier_runtime",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_alpha",
                     "tests.test_cell_context_alpha_cli",
+                    "tests.test_cell_context_alpha_frontier",
                 ),
                 "evidence_note": (
                     "Core and margin scores are compared with an explicit tolerance, preserving "
                     "mixed or one-sided territory evidence, exact context, subject identity, and "
-                    "source hashes without inventing localization."
+                    "source hashes without inventing localization; delta depth, reconciliation, "
+                    "lineage, release, and runtime checks are deterministic."
                 ),
             },
             "GNC-D08-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_alpha.RecurrenceStatePrior",
                     "glio_noncode.cell_context_alpha.RecurrenceStatePriorReport",
+                    "glio_noncode.cell_context_alpha_frontier_public_data.CellContextAlphaFrontierFixture",
+                    "glio_noncode.cell_context_alpha_frontier_policy.evaluate_cell_context_alpha_frontier_policy",
+                    "glio_noncode.cell_context_alpha_frontier_source_registry.build_cell_context_alpha_frontier_source_registry",
+                    "glio_noncode.cell_context_alpha_frontier_observability.build_cell_context_alpha_frontier_trace",
+                    "glio_noncode.cell_context_alpha_frontier_replay.replay_cell_context_alpha_frontier",
+                    "glio_noncode.cell_context_alpha_frontier_exports.export_cell_context_alpha_frontier_manifest",
+                    "glio_noncode.cell_context_alpha_frontier_views.build_cell_context_alpha_frontier_view",
+                    "glio_noncode.cell_context_alpha_frontier_review_queue.build_cell_context_alpha_frontier_review_queue",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_alpha",
                     "tests.test_cell_context_alpha_cli",
+                    "tests.test_cell_context_alpha_frontier",
                 ),
                 "evidence_note": (
                     "Primary, recurrence, and progression candidates are ranked per subject and "
                     "context with phase margins, replicate support, alternatives, and ambiguity "
-                    "retained; no prognosis is inferred."
+                    "retained; policy, source closure, replay, observability, export, view, and "
+                    "review receipts are available without inferring prognosis."
                 ),
             },
             "GNC-D08-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cell_context_alpha.TreatmentInducedStatePrior",
                     "glio_noncode.cell_context_alpha.TreatmentInducedStatePriorReport",
+                    "glio_noncode.cell_context_alpha_frontier_public_data.CellContextAlphaFrontierFixture",
+                    "glio_noncode.cell_context_alpha_frontier_compliance.evaluate_cell_context_alpha_frontier_boundary",
+                    "glio_noncode.cell_context_alpha_frontier_checks.run_cell_context_alpha_frontier_invariants",
+                    "glio_noncode.cell_context_alpha_frontier_thresholds.build_cell_context_alpha_frontier_threshold_report",
+                    "glio_noncode.cell_context_alpha_frontier_validation_matrix.validate_cell_context_alpha_frontier_matrix",
+                    "glio_noncode.cell_context_alpha_frontier_scenario_matrix.evaluate_cell_context_alpha_frontier_scenarios",
+                    "glio_noncode.cell_context_alpha_frontier_integrity.evaluate_cell_context_alpha_frontier_integrity",
+                    "glio_noncode.cell_context_alpha_frontier_accessibility.evaluate_cell_context_alpha_frontier_accessibility",
+                    "glio_noncode.cell_context_alpha_frontier_catalog.build_cell_context_alpha_frontier_catalog",
+                    "glio_noncode.cell_context_alpha_frontier_reports.build_cell_context_alpha_frontier_report",
+                    "glio_noncode.cell_context_alpha_frontier_pipeline.run_cell_context_alpha_frontier_pipeline",
                 ),
                 "test_modules": (
                     "tests.test_cell_context_alpha",
                     "tests.test_cell_context_alpha_cli",
+                    "tests.test_cell_context_alpha_frontier",
                 ),
                 "evidence_note": (
                     "Baseline and post-treatment support deltas retain treatment phase, state IDs, "
                     "subject/context gates, raw hashes, and induced/stable/reduced labels as "
-                    "descriptive evidence rather than response or resistance claims."
+                    "descriptive evidence rather than response or resistance claims; boundary, "
+                    "invariant, threshold, validation, scenario, integrity, accessibility, "
+                    "catalog, report, and pipeline gates are deterministic."
                 ),
             },
             "GNC-D08-C13": {

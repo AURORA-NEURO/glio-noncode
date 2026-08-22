@@ -790,6 +790,196 @@ from .cell_context_beta_frontier_views import (
     CellContextBetaFrontierReviewView,
     build_cell_context_beta_frontier_view,
 )
+from .cell_context_alpha_frontier_accessibility import (
+    CellContextAlphaFrontierAccessibilityReport,
+    CellContextAlphaFrontierOperationAccessibility,
+    evaluate_cell_context_alpha_frontier_accessibility,
+)
+from .cell_context_alpha_frontier_adapters import (
+    CellContextAlphaFrontierAdapterRegistry,
+    CellContextAlphaFrontierAdapterResult,
+    CellContextAlphaFrontierAdapterSpec,
+    build_cell_context_alpha_frontier_adapters,
+    execute_cell_context_alpha_frontier_record,
+)
+from .cell_context_alpha_frontier_artifacts import (
+    CellContextAlphaFrontierArtifact,
+    CellContextAlphaFrontierArtifactInventory,
+    build_cell_context_alpha_frontier_artifacts,
+)
+from .cell_context_alpha_frontier_bundle import (
+    CellContextAlphaFrontierBundle,
+    CellContextAlphaFrontierBundleMember,
+    build_cell_context_alpha_frontier_bundle,
+)
+from .cell_context_alpha_frontier_candidate_depth import (
+    CellContextAlphaFrontierCandidateDepthReport,
+    CellContextAlphaFrontierCandidateObservation,
+    audit_cell_context_alpha_frontier_candidates,
+)
+from .cell_context_alpha_frontier_catalog import (
+    CellContextAlphaFrontierCatalog,
+    CellContextAlphaFrontierCatalogEntry,
+    build_cell_context_alpha_frontier_catalog,
+)
+from .cell_context_alpha_frontier_checks import (
+    CellContextAlphaFrontierInvariant,
+    CellContextAlphaFrontierInvariantReport,
+    run_cell_context_alpha_frontier_invariants,
+)
+from .cell_context_alpha_frontier_cli import (
+    CELL_CONTEXT_ALPHA_FRONTIER_COMMANDS,
+    run_cell_context_alpha_frontier_operation,
+)
+from .cell_context_alpha_frontier_compliance import (
+    CellContextAlphaFrontierBoundaryCheck,
+    CellContextAlphaFrontierBoundaryReport,
+    evaluate_cell_context_alpha_frontier_boundary,
+)
+from .cell_context_alpha_frontier_contracts import (
+    CellContextAlphaFrontierContract,
+    CellContextAlphaFrontierContractReport,
+    build_cell_context_alpha_frontier_contracts,
+)
+from .cell_context_alpha_frontier_delta_depth import (
+    CellContextAlphaFrontierDeltaDepthReport,
+    CellContextAlphaFrontierDeltaObservation,
+    audit_cell_context_alpha_frontier_deltas,
+)
+from .cell_context_alpha_frontier_depth import (
+    CellContextAlphaFrontierDepthDimension,
+    CellContextAlphaFrontierDepthReport,
+    audit_cell_context_alpha_frontier_depth,
+)
+from .cell_context_alpha_frontier_exports import (
+    export_cell_context_alpha_frontier_manifest,
+    export_cell_context_alpha_frontier_review_csv,
+    render_cell_context_alpha_frontier_review_markdown,
+)
+from .cell_context_alpha_frontier_fixture_eval import (
+    CellContextAlphaFrontierEvaluation,
+    CellContextAlphaFrontierEvaluationRow,
+    evaluate_cell_context_alpha_frontier_fixture,
+)
+from .cell_context_alpha_frontier_integrity import (
+    CellContextAlphaFrontierIntegrityCheck,
+    CellContextAlphaFrontierIntegrityReport,
+    evaluate_cell_context_alpha_frontier_integrity,
+)
+from .cell_context_alpha_frontier_lineage import (
+    CellContextAlphaFrontierLineage,
+    CellContextAlphaFrontierLineageEdge,
+    build_cell_context_alpha_frontier_lineage,
+)
+from .cell_context_alpha_frontier_metrics import (
+    CellContextAlphaFrontierMetric,
+    CellContextAlphaFrontierMetrics,
+    build_cell_context_alpha_frontier_metrics,
+)
+from .cell_context_alpha_frontier_observability import (
+    CellContextAlphaFrontierObservabilityReport,
+    CellContextAlphaFrontierTraceEvent,
+    build_cell_context_alpha_frontier_trace,
+)
+from .cell_context_alpha_frontier_pipeline import (
+    CellContextAlphaFrontierPipelineReport,
+    CellContextAlphaFrontierStage,
+    run_cell_context_alpha_frontier_pipeline,
+)
+from .cell_context_alpha_frontier_policy import (
+    CellContextAlphaFrontierPolicyDecision,
+    CellContextAlphaFrontierPolicyReport,
+    evaluate_cell_context_alpha_frontier_policy,
+)
+from .cell_context_alpha_frontier_public_data import (
+    CELL_CONTEXT_ALPHA_FRONTIER_BOUNDARY,
+    CELL_CONTEXT_ALPHA_FRONTIER_CONTROL_COUNT,
+    CELL_CONTEXT_ALPHA_FRONTIER_CONTEXT_KEY,
+    CELL_CONTEXT_ALPHA_FRONTIER_FIXTURE_VERSION,
+    CELL_CONTEXT_ALPHA_FRONTIER_FOREIGN_CONTEXT_KEY,
+    CELL_CONTEXT_ALPHA_FRONTIER_POSITIVE_COUNT,
+    CELL_CONTEXT_ALPHA_FRONTIER_SOURCE_COUNT,
+    CellContextAlphaFrontierDataAudit,
+    CellContextAlphaFrontierDataCheck,
+    CellContextAlphaFrontierExpectedState,
+    CellContextAlphaFrontierFixture,
+    CellContextAlphaFrontierOperation,
+    CellContextAlphaFrontierRecord,
+    CellContextAlphaFrontierRole,
+    CellContextAlphaFrontierSourceReceipt,
+    audit_cell_context_alpha_frontier_data,
+    default_cell_context_alpha_frontier_fixture,
+)
+from .cell_context_alpha_frontier_quality_gate import (
+    CellContextAlphaFrontierQualityCheck,
+    CellContextAlphaFrontierQualityReport,
+    build_cell_context_alpha_frontier_quality,
+)
+from .cell_context_alpha_frontier_reconciliation import (
+    CellContextAlphaFrontierReconciliation,
+    CellContextAlphaFrontierReconciliationItem,
+    reconcile_cell_context_alpha_frontier,
+)
+from .cell_context_alpha_frontier_release import (
+    CellContextAlphaFrontierReleaseManifest,
+    build_cell_context_alpha_frontier_release,
+)
+from .cell_context_alpha_frontier_replay import (
+    CellContextAlphaFrontierReplayReceipt,
+    replay_cell_context_alpha_frontier,
+    replay_cell_context_alpha_frontier_evaluation,
+)
+from .cell_context_alpha_frontier_reports import (
+    CellContextAlphaFrontierReport,
+    CellContextAlphaFrontierReportSection,
+    build_cell_context_alpha_frontier_report,
+)
+from .cell_context_alpha_frontier_review_queue import (
+    CellContextAlphaFrontierQueueItem,
+    CellContextAlphaFrontierReviewQueue,
+    build_cell_context_alpha_frontier_review_queue,
+)
+from .cell_context_alpha_frontier_runbook import (
+    CellContextAlphaFrontierRunbook,
+    CellContextAlphaFrontierRunbookStep,
+    default_cell_context_alpha_frontier_runbook,
+)
+from .cell_context_alpha_frontier_runtime import (
+    CellContextAlphaFrontierRuntimeOptions,
+    run_cell_context_alpha_frontier_runtime,
+)
+from .cell_context_alpha_frontier_schema import (
+    CellContextAlphaFrontierSchemaCheck,
+    CellContextAlphaFrontierSchemaReport,
+    validate_cell_context_alpha_frontier_schema,
+)
+from .cell_context_alpha_frontier_scenario_matrix import (
+    CellContextAlphaFrontierScenario,
+    CellContextAlphaFrontierScenarioMatrix,
+    build_cell_context_alpha_frontier_scenario_matrix,
+    evaluate_cell_context_alpha_frontier_scenarios,
+)
+from .cell_context_alpha_frontier_source_registry import (
+    CellContextAlphaFrontierSourceEntry,
+    CellContextAlphaFrontierSourceRegistry,
+    build_cell_context_alpha_frontier_source_registry,
+)
+from .cell_context_alpha_frontier_thresholds import (
+    CellContextAlphaFrontierThreshold,
+    CellContextAlphaFrontierThresholdReport,
+    build_cell_context_alpha_frontier_threshold_report,
+)
+from .cell_context_alpha_frontier_validation_matrix import (
+    CellContextAlphaFrontierValidationCell,
+    CellContextAlphaFrontierValidationReport,
+    build_cell_context_alpha_frontier_validation_matrix,
+    validate_cell_context_alpha_frontier_matrix,
+)
+from .cell_context_alpha_frontier_views import (
+    CellContextAlphaFrontierReviewRow,
+    CellContextAlphaFrontierReviewView,
+    build_cell_context_alpha_frontier_view,
+)
 from .chromatin_context_frontier_adapters import (
     ChromatinContextFrontierAdapterRegistry,
     ChromatinContextFrontierAdapterResult,
@@ -9874,7 +10064,6 @@ __all__ += [
     "CellContextBetaFrontierTraceEvent",
     "CellContextBetaFrontierValidationCell",
     "CellContextBetaFrontierValidationReport",
-    "audit_cell_context_beta_frontier_accessibility",
     "audit_cell_context_beta_frontier_candidates",
     "audit_cell_context_beta_frontier_data",
     "audit_cell_context_beta_frontier_depth",
@@ -9923,6 +10112,126 @@ __all__ += [
     "CELL_CONTEXT_BETA_FRONTIER_GBM_CONTEXT_KEY",
     "CELL_CONTEXT_BETA_FRONTIER_H3_CONTEXT_KEY",
     "CELL_CONTEXT_BETA_FRONTIER_IDH_CONTEXT_KEY",
+    "CellContextAlphaFrontierAccessibilityReport",
+    "CellContextAlphaFrontierAdapterRegistry",
+    "CellContextAlphaFrontierAdapterResult",
+    "CellContextAlphaFrontierAdapterSpec",
+    "CellContextAlphaFrontierArtifact",
+    "CellContextAlphaFrontierArtifactInventory",
+    "CellContextAlphaFrontierBoundaryCheck",
+    "CellContextAlphaFrontierBoundaryReport",
+    "CellContextAlphaFrontierBundle",
+    "CellContextAlphaFrontierBundleMember",
+    "CellContextAlphaFrontierCandidateDepthReport",
+    "CellContextAlphaFrontierCandidateObservation",
+    "CellContextAlphaFrontierCatalog",
+    "CellContextAlphaFrontierCatalogEntry",
+    "CellContextAlphaFrontierContract",
+    "CellContextAlphaFrontierContractReport",
+    "CellContextAlphaFrontierDataAudit",
+    "CellContextAlphaFrontierDataCheck",
+    "CellContextAlphaFrontierDeltaDepthReport",
+    "CellContextAlphaFrontierDeltaObservation",
+    "CellContextAlphaFrontierDepthDimension",
+    "CellContextAlphaFrontierDepthReport",
+    "CellContextAlphaFrontierEvaluation",
+    "CellContextAlphaFrontierEvaluationRow",
+    "CellContextAlphaFrontierExpectedState",
+    "CellContextAlphaFrontierFixture",
+    "CellContextAlphaFrontierIntegrityCheck",
+    "CellContextAlphaFrontierIntegrityReport",
+    "CellContextAlphaFrontierInvariant",
+    "CellContextAlphaFrontierInvariantReport",
+    "CellContextAlphaFrontierLineage",
+    "CellContextAlphaFrontierLineageEdge",
+    "CellContextAlphaFrontierMetric",
+    "CellContextAlphaFrontierMetrics",
+    "CellContextAlphaFrontierObservabilityReport",
+    "CellContextAlphaFrontierOperation",
+    "CellContextAlphaFrontierOperationAccessibility",
+    "CellContextAlphaFrontierPipelineReport",
+    "CellContextAlphaFrontierPolicyDecision",
+    "CellContextAlphaFrontierPolicyReport",
+    "CellContextAlphaFrontierQualityCheck",
+    "CellContextAlphaFrontierQualityReport",
+    "CellContextAlphaFrontierQueueItem",
+    "CellContextAlphaFrontierReconciliation",
+    "CellContextAlphaFrontierReconciliationItem",
+    "CellContextAlphaFrontierRecord",
+    "CellContextAlphaFrontierReleaseManifest",
+    "CellContextAlphaFrontierReplayReceipt",
+    "CellContextAlphaFrontierReport",
+    "CellContextAlphaFrontierReportSection",
+    "CellContextAlphaFrontierReviewQueue",
+    "CellContextAlphaFrontierReviewRow",
+    "CellContextAlphaFrontierReviewView",
+    "CellContextAlphaFrontierRole",
+    "CellContextAlphaFrontierRunbook",
+    "CellContextAlphaFrontierRunbookStep",
+    "CellContextAlphaFrontierRuntimeOptions",
+    "CellContextAlphaFrontierScenario",
+    "CellContextAlphaFrontierScenarioMatrix",
+    "CellContextAlphaFrontierSchemaCheck",
+    "CellContextAlphaFrontierSchemaReport",
+    "CellContextAlphaFrontierSourceEntry",
+    "CellContextAlphaFrontierSourceReceipt",
+    "CellContextAlphaFrontierSourceRegistry",
+    "CellContextAlphaFrontierStage",
+    "CellContextAlphaFrontierThreshold",
+    "CellContextAlphaFrontierThresholdReport",
+    "CellContextAlphaFrontierTraceEvent",
+    "CellContextAlphaFrontierValidationCell",
+    "CellContextAlphaFrontierValidationReport",
+    "CELL_CONTEXT_ALPHA_FRONTIER_COMMANDS",
+    "CELL_CONTEXT_ALPHA_FRONTIER_BOUNDARY",
+    "CELL_CONTEXT_ALPHA_FRONTIER_CONTROL_COUNT",
+    "CELL_CONTEXT_ALPHA_FRONTIER_CONTEXT_KEY",
+    "CELL_CONTEXT_ALPHA_FRONTIER_FIXTURE_VERSION",
+    "CELL_CONTEXT_ALPHA_FRONTIER_FOREIGN_CONTEXT_KEY",
+    "CELL_CONTEXT_ALPHA_FRONTIER_POSITIVE_COUNT",
+    "CELL_CONTEXT_ALPHA_FRONTIER_SOURCE_COUNT",
+    "audit_cell_context_alpha_frontier_candidates",
+    "audit_cell_context_alpha_frontier_data",
+    "audit_cell_context_alpha_frontier_depth",
+    "audit_cell_context_alpha_frontier_deltas",
+    "build_cell_context_alpha_frontier_adapters",
+    "build_cell_context_alpha_frontier_artifacts",
+    "build_cell_context_alpha_frontier_bundle",
+    "build_cell_context_alpha_frontier_catalog",
+    "build_cell_context_alpha_frontier_contracts",
+    "build_cell_context_alpha_frontier_lineage",
+    "build_cell_context_alpha_frontier_metrics",
+    "build_cell_context_alpha_frontier_quality",
+    "build_cell_context_alpha_frontier_release",
+    "build_cell_context_alpha_frontier_report",
+    "build_cell_context_alpha_frontier_review_queue",
+    "build_cell_context_alpha_frontier_scenario_matrix",
+    "build_cell_context_alpha_frontier_source_registry",
+    "build_cell_context_alpha_frontier_threshold_report",
+    "build_cell_context_alpha_frontier_trace",
+    "build_cell_context_alpha_frontier_validation_matrix",
+    "build_cell_context_alpha_frontier_view",
+    "default_cell_context_alpha_frontier_fixture",
+    "default_cell_context_alpha_frontier_runbook",
+    "evaluate_cell_context_alpha_frontier_accessibility",
+    "evaluate_cell_context_alpha_frontier_boundary",
+    "evaluate_cell_context_alpha_frontier_fixture",
+    "evaluate_cell_context_alpha_frontier_integrity",
+    "evaluate_cell_context_alpha_frontier_policy",
+    "evaluate_cell_context_alpha_frontier_scenarios",
+    "execute_cell_context_alpha_frontier_record",
+    "export_cell_context_alpha_frontier_manifest",
+    "export_cell_context_alpha_frontier_review_csv",
+    "render_cell_context_alpha_frontier_review_markdown",
+    "reconcile_cell_context_alpha_frontier",
+    "replay_cell_context_alpha_frontier",
+    "replay_cell_context_alpha_frontier_evaluation",
+    "run_cell_context_alpha_frontier_invariants",
+    "run_cell_context_alpha_frontier_operation",
+    "run_cell_context_alpha_frontier_pipeline",
+    "run_cell_context_alpha_frontier_runtime",
+    "validate_cell_context_alpha_frontier_matrix",
+    "validate_cell_context_alpha_frontier_schema",
 ]
 
 __version__ = "0.1.0"

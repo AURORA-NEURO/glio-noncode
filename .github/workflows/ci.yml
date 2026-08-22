@@ -814,3 +814,13 @@ jobs:
         run: python -m glio_noncode cell-context-beta-frontier-export --output /tmp/glio-cell-context-beta-export.json && python -m glio_noncode cell-context-beta-frontier-review --output /tmp/glio-cell-context-beta-review.json
       - name: Cell context beta frontier end-to-end pipeline
         run: python -m glio_noncode run-cell-context-beta-frontier-pipeline --output /tmp/glio-cell-context-beta-pipeline.json
+      - name: Cell context alpha frontier fixture and audit
+        run: python -m glio_noncode cell-context-alpha-frontier-fixture --output /tmp/glio-cell-context-alpha-fixture.json && python -m glio_noncode cell-context-alpha-frontier-data --output /tmp/glio-cell-context-alpha-data.json
+      - name: Cell context alpha frontier contracts and schema
+        run: python -m glio_noncode cell-context-alpha-frontier-contracts --output /tmp/glio-cell-context-alpha-contracts.json && python -m glio_noncode cell-context-alpha-frontier-schema --output /tmp/glio-cell-context-alpha-schema.json && python -m glio_noncode cell-context-alpha-frontier-sources --output /tmp/glio-cell-context-alpha-sources.json
+      - name: Cell context alpha frontier evaluation and quality
+        run: python -m glio_noncode cell-context-alpha-frontier-evaluate --output /tmp/glio-cell-context-alpha-evaluation.json && python -m glio_noncode cell-context-alpha-frontier-quality --output /tmp/glio-cell-context-alpha-quality.json && python -m glio_noncode cell-context-alpha-frontier-replay --output /tmp/glio-cell-context-alpha-replay.json
+      - name: Cell context alpha frontier review exports
+        run: python -m glio_noncode cell-context-alpha-frontier-export --output /tmp/glio-cell-context-alpha-export.json && python -m glio_noncode cell-context-alpha-frontier-review --output /tmp/glio-cell-context-alpha-review.json
+      - name: Cell context alpha frontier end-to-end pipeline
+        run: python -m glio_noncode run-cell-context-alpha-frontier-pipeline --output /tmp/glio-cell-context-alpha-pipeline.json

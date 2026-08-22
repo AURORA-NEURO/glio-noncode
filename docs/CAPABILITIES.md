@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 176 capabilities have deterministic fixture-backed
-verification and 80 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 68.75% of the 256-capability
+capabilities started (100%); 180 capabilities have deterministic fixture-backed
+verification and 76 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 70.31% of the 256-capability
 catalog; MVP implementation coverage is 68.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 176 capabilities are verified against the checked-in
-aggregate fixtures, while 80 capabilities remain partial. Partial
+capabilities started (100%); 180 capabilities are verified against the checked-in
+aggregate fixtures, while 76 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1975,6 +1975,66 @@ The C05-C08 depth surface proves the following boundaries:
 - The public release adds candidate, gate, uncertainty, integrity, source,
   replay, policy, queue, bundle, artifact, report, accessibility, and runtime
   surfaces with a twelve-stage accepted pipeline.
+
+### Domain 08 C09-C12 alpha context-prior evidence gate
+
+The Domain 08 C09-C12 tranche binds four cell-context alpha priors to a closed
+public aggregate fixture. It contains one positive path and three controls for
+each operation: spatial niche, core-versus-margin territory, recurrence state,
+and treatment-induced state. The fixture has sixteen records, four public
+source receipts, a single adult glioma stem-like anchor context, and no
+subject-level payload keys.
+
+The adapter layer converts versioned JSON observations into the existing alpha
+primitive contracts. Every result retains the operation, exact context,
+sample-level support, candidate IDs, source versions, evidence IDs, content
+addresses, issue codes, and the expected state. Invalid rows become partial,
+close candidates remain ambiguous, and foreign context rows become out of
+domain without being merged into the accepted context.
+
+The four operation surfaces are intentionally distinct:
+
+- C09 `spatial_niche_prior` ranks niche candidates by bounded support while
+  retaining close-candidate margins and sample aggregation.
+- C10 `core_margin_territory_prior` compares core and margin support with an
+  explicit tolerance and exposes mixed or one-sided territory evidence.
+- C11 `recurrence_state_prior` preserves primary, recurrence, and progression
+  phase candidates with replicate counts, rank margins, and alternatives.
+- C12 `treatment_induced_state_prior` compares baseline and post-treatment
+  state support and records induced, stable, reduced, or mixed descriptive
+  labels without making response or resistance claims.
+
+The release has typed contracts, schema checks, source closure, fixture
+evaluation, replay receipts, operational metrics, policy decisions,
+reconciliation, quality gates, boundary checks, integrity invariants, depth
+audits, candidate and delta audits, validation matrices, scenario matrices,
+accessibility checks, catalog entries, review views, queue items, reports,
+release manifests, bundles, artifact inventories, runbook steps, and a
+twelve-stage runtime trace. The bundle is accepted only when the data,
+evaluation, schema, quality, policy, integrity, boundary, and release floors
+all pass.
+
+The complete command surface is:
+
+```powershell
+glio-noncode cell-context-alpha-frontier-fixture --output alpha-fixture.json
+glio-noncode cell-context-alpha-frontier-data --output alpha-data.json
+glio-noncode cell-context-alpha-frontier-evaluate --output alpha-evaluation.json
+glio-noncode cell-context-alpha-frontier-replay --output alpha-replay.json
+glio-noncode cell-context-alpha-frontier-quality --output alpha-quality.json
+glio-noncode cell-context-alpha-frontier-contracts --output alpha-contracts.json
+glio-noncode cell-context-alpha-frontier-adapters --output alpha-adapters.json
+glio-noncode cell-context-alpha-frontier-schema --output alpha-schema.json
+glio-noncode cell-context-alpha-frontier-sources --output alpha-sources.json
+glio-noncode cell-context-alpha-frontier-export --output alpha-export.json
+glio-noncode cell-context-alpha-frontier-review --output alpha-review.json
+glio-noncode run-cell-context-alpha-frontier-pipeline --output alpha-pipeline.json
+```
+
+The C09-C12 depth surface proves that descriptive priors, candidate ranking,
+territory deltas, phase transitions, and treatment-state deltas remain bounded
+to supplied aggregate evidence. It does not produce diagnosis, prognosis,
+localization, treatment selection, response, or resistance conclusions.
 
 ### Domain 08 C13-C16 cell-state frontier evidence gate
 
