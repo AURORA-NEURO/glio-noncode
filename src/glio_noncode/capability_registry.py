@@ -2716,54 +2716,72 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D08-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
+                    "glio_noncode.cell_state_frontier_public_data.CellStateFrontierFixture",
+                    "glio_noncode.cell_state_frontier_fixture_eval.evaluate_cell_state_frontier_fixture",
                     "glio_noncode.frontier_context_alpha.CellStateAbundanceUncertaintyModel",
-                    "glio_noncode.frontier_context_alpha.CellStateAbundanceReport",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_cell_state_frontier_evidence",
+                    "tests.test_cell_state_frontier_evidence_cli",
+                    "tests.test_cell_state_frontier_depth",
+                ),
                 "evidence_note": (
-                    "Cell-state abundance estimates include binomial standard error and bounded "
-                    "intervals with invalid-count review."
+                    "Public aggregate fixture runs include four positive and twelve control records; "
+                    "binomial intervals, invalid counts, context mismatch, replay, and quality-gated "
+                    "release evidence are deterministic and sanitized."
                 ),
             },
             "GNC-D08-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
+                    "glio_noncode.cell_state_frontier_fixture_eval.evaluate_cell_state_frontier_fixture",
                     "glio_noncode.frontier_context_alpha.SingleCellReferenceMapper",
-                    "glio_noncode.frontier_context_alpha.SingleCellMappingReport",
+                    "glio_noncode.cell_state_frontier_schema.validate_cell_state_frontier_schema",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_cell_state_frontier_evidence",
+                    "tests.test_cell_state_frontier_evidence_cli",
+                    "tests.test_cell_state_frontier_depth",
+                ),
                 "evidence_note": (
-                    "Single-cell mappings retain top/second score, margin, minimum-score and "
-                    "ambiguity gates against the supplied reference table."
+                    "Single-cell mappings retain top/second score, margin, minimum-score, exact-context "
+                    "gates, ambiguous controls, source lineage, and bounded review outputs."
                 ),
             },
             "GNC-D08-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.CellStateOODDetector",
-                    "glio_noncode.frontier_context_alpha.CellStateOODReport",
+                    "glio_noncode.cell_state_frontier_quality_gate.run_cell_state_frontier_quality_gate",
+                    "glio_noncode.cell_state_frontier_views.build_cell_state_frontier_view",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_context_alpha",
-                    "tests.test_frontier_context_alpha_cli",
+                    "tests.test_cell_state_frontier_evidence",
+                    "tests.test_cell_state_frontier_evidence_cli",
+                    "tests.test_cell_state_frontier_depth",
                 ),
                 "evidence_note": (
-                    "Cell-state OOD checks preserve distance, support score, support boundary, and "
-                    "explicit out-of-domain review findings."
+                    "Cell-state OOD checks preserve distance, support score, support boundary, exact "
+                    "territory controls, explicit out-of-domain findings, metrics, and review actions."
                 ),
             },
             "GNC-D08-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_context_alpha.CellStateContextPublisher",
-                    "glio_noncode.frontier_context_alpha.CellStateContextEnvelope",
+                    "glio_noncode.cell_state_frontier_release.build_cell_state_frontier_release",
+                    "glio_noncode.cell_state_frontier_exports.export_cell_state_frontier_json",
                 ),
-                "test_modules": ("tests.test_frontier_context_alpha",),
+                "test_modules": (
+                    "tests.test_cell_state_frontier_evidence",
+                    "tests.test_cell_state_frontier_evidence_cli",
+                    "tests.test_cell_state_frontier_depth",
+                ),
                 "evidence_note": (
-                    "Cell-state context envelopes bind cell IDs, mapping, abundance, OOD receipts, "
-                    "and exact context before publication."
+                    "Cell-state context envelopes bind aggregate cell IDs, mapping, abundance, OOD "
+                    "receipts, exact context, release state, and content addresses before publication."
                 ),
             },
             "GNC-D09-C01": {

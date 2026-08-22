@@ -380,3 +380,35 @@ jobs:
         run: python -m glio_noncode chromatin-frontier-review-view --output /tmp/glio-chromatin-frontier-view.json
       - name: Chromatin frontier runtime trace
         run: python -m glio_noncode chromatin-frontier-trace --run-id chromatin-frontier-ci --output /tmp/glio-chromatin-frontier-trace.json
+      - name: Cell-state frontier data boundary audit
+        run: python -m glio_noncode audit-cell-state-frontier-data --output /tmp/glio-cell-state-frontier-data.json
+      - name: Cell-state frontier fixture evaluation
+        run: python -m glio_noncode evaluate-cell-state-frontier-fixture --output /tmp/glio-cell-state-frontier-fixture.json
+      - name: Cell-state frontier replay integrity
+        run: python -m glio_noncode replay-cell-state-frontier --output /tmp/glio-cell-state-frontier-replay.json
+      - name: Cell-state frontier quality gate
+        run: python -m glio_noncode cell-state-frontier-quality-gate --output /tmp/glio-cell-state-frontier-quality.json
+      - name: Cell-state frontier scenario matrix
+        run: python -m glio_noncode evaluate-cell-state-frontier-scenarios --output /tmp/glio-cell-state-frontier-scenarios.json
+      - name: Cell-state frontier operation contracts
+        run: python -m glio_noncode cell-state-frontier-contracts --output /tmp/glio-cell-state-frontier-contracts.json
+      - name: Cell-state frontier schema validation
+        run: python -m glio_noncode cell-state-frontier-schema --output /tmp/glio-cell-state-frontier-schema.json
+      - name: Cell-state frontier policy evaluation
+        run: python -m glio_noncode cell-state-frontier-policy --output /tmp/glio-cell-state-frontier-policy.json
+      - name: Cell-state frontier metrics
+        run: python -m glio_noncode cell-state-frontier-metrics --output /tmp/glio-cell-state-frontier-metrics.json
+      - name: Cell-state frontier evidence bundle
+        run: python -m glio_noncode build-cell-state-frontier-bundle --output /tmp/glio-cell-state-frontier-bundle.json
+      - name: Cell-state frontier lineage graph
+        run: python -m glio_noncode cell-state-frontier-lineage --output /tmp/glio-cell-state-frontier-lineage.json
+      - name: Cell-state frontier receipt reconciliation
+        run: python -m glio_noncode cell-state-frontier-reconciliation --output /tmp/glio-cell-state-frontier-reconciliation.json
+      - name: Cell-state frontier pipeline integration
+        run: python -m glio_noncode run-cell-state-frontier-pipeline --run-id cell-state-frontier-ci --output /tmp/glio-cell-state-frontier-pipeline.json
+      - name: Cell-state frontier release manifest
+        run: python -m glio_noncode build-cell-state-frontier-release --run-id cell-state-frontier-ci --output /tmp/glio-cell-state-frontier-release.json
+      - name: Cell-state frontier review view
+        run: python -m glio_noncode cell-state-frontier-review-view --output /tmp/glio-cell-state-frontier-view.json
+      - name: Cell-state frontier runtime trace
+        run: python -m glio_noncode cell-state-frontier-trace --run-id cell-state-frontier-ci --output /tmp/glio-cell-state-frontier-trace.json

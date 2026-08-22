@@ -126,6 +126,40 @@ from .chromatin_frontier_views import (
     build_chromatin_frontier_view,
     chromatin_frontier_review_summary,
 )
+from .cell_state_frontier_contracts import default_cell_state_frontier_contracts
+from .cell_state_frontier_exports import (
+    export_cell_state_frontier_metrics_csv,
+    export_cell_state_frontier_receipts_csv,
+    export_cell_state_frontier_review_csv,
+    render_cell_state_frontier_review_markdown,
+)
+from .cell_state_frontier_fixture_eval import evaluate_cell_state_frontier_fixture
+from .cell_state_frontier_lineage import build_cell_state_frontier_lineage
+from .cell_state_frontier_metrics import compute_cell_state_frontier_metrics
+from .cell_state_frontier_observability import build_cell_state_frontier_trace
+from .cell_state_frontier_policy import evaluate_cell_state_frontier_policy
+from .cell_state_frontier_public_data import (
+    audit_cell_state_frontier_data,
+    default_cell_state_frontier_fixture,
+    load_cell_state_frontier_fixture,
+)
+from .cell_state_frontier_quality_gate import run_cell_state_frontier_quality_gate
+from .cell_state_frontier_reconciliation import reconcile_cell_state_frontier
+from .cell_state_frontier_release import build_cell_state_frontier_release
+from .cell_state_frontier_replay import replay_cell_state_frontier_evaluation
+from .cell_state_frontier_runtime import (
+    CellStateFrontierRuntimeOptions,
+    run_cell_state_frontier_pipeline,
+)
+from .cell_state_frontier_scenario_matrix import evaluate_cell_state_frontier_scenarios
+from .cell_state_frontier_schema import (
+    cell_state_frontier_schema_manifest,
+    validate_cell_state_frontier_schema,
+)
+from .cell_state_frontier_views import (
+    build_cell_state_frontier_view,
+    cell_state_frontier_review_summary,
+)
 from .cohort_alpha import (
     ClonalityTimingIntegrator,
     CrossCohortReplicationEngine,
@@ -788,6 +822,12 @@ def _read_chromatin_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_chromatin_frontier_fixture(path) if path else default_chromatin_frontier_fixture()
+
+
+def _read_cell_state_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_cell_state_frontier_fixture(path) if path else default_cell_state_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -3548,6 +3588,131 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chromatin_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
     chromatin_frontier_metrics_csv.add_argument("--output", default=None)
+
+    cell_state_frontier_evaluate = subparsers.add_parser(
+        "evaluate-cell-state-frontier-fixture",
+        help="evaluate the public Domain 08 C13-C16 fixture and controls",
+    )
+    cell_state_frontier_evaluate.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_evaluate.add_argument("--output", default=None)
+    cell_state_frontier_audit = subparsers.add_parser(
+        "audit-cell-state-frontier-data",
+        help="audit Domain 08 C13-C16 source receipts and aggregate boundaries",
+    )
+    cell_state_frontier_audit.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_audit.add_argument("--output", default=None)
+    cell_state_frontier_replay = subparsers.add_parser(
+        "replay-cell-state-frontier",
+        help="replay Domain 08 C13-C16 states and receipt addresses",
+    )
+    cell_state_frontier_replay.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_replay.add_argument("--output", default=None)
+    cell_state_frontier_quality = subparsers.add_parser(
+        "cell-state-frontier-quality-gate",
+        help="run the complete Domain 08 C13-C16 quality gate",
+    )
+    cell_state_frontier_quality.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_quality.add_argument("--output", default=None)
+    cell_state_frontier_scenarios = subparsers.add_parser(
+        "evaluate-cell-state-frontier-scenarios",
+        help="evaluate Domain 08 C13-C16 positive and negative controls",
+    )
+    cell_state_frontier_scenarios.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_scenarios.add_argument("--output", default=None)
+    cell_state_frontier_policy = subparsers.add_parser(
+        "cell-state-frontier-policy",
+        help="evaluate Domain 08 C13-C16 interpretation and state policy",
+    )
+    cell_state_frontier_policy.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_policy.add_argument("--output", default=None)
+    cell_state_frontier_contracts = subparsers.add_parser(
+        "cell-state-frontier-contracts",
+        help="emit typed Domain 08 C13-C16 contracts",
+    )
+    cell_state_frontier_contracts.add_argument("--output", default=None)
+    cell_state_frontier_schema = subparsers.add_parser(
+        "cell-state-frontier-schema",
+        help="emit or validate Domain 08 C13-C16 schemas",
+    )
+    cell_state_frontier_schema.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_schema.add_argument("--output", default=None)
+    cell_state_frontier_metrics = subparsers.add_parser(
+        "cell-state-frontier-metrics",
+        help="emit Domain 08 C13-C16 operation metrics",
+    )
+    cell_state_frontier_metrics.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_metrics.add_argument("--output", default=None)
+    cell_state_frontier_bundle = subparsers.add_parser(
+        "build-cell-state-frontier-bundle",
+        help="build the serialized Domain 08 C13-C16 bundle",
+    )
+    cell_state_frontier_bundle.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_bundle.add_argument("--output", default=None)
+    cell_state_frontier_lineage = subparsers.add_parser(
+        "cell-state-frontier-lineage",
+        help="emit Domain 08 C13-C16 source-to-receipt lineage",
+    )
+    cell_state_frontier_lineage.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_lineage.add_argument("--output", default=None)
+    cell_state_frontier_reconciliation = subparsers.add_parser(
+        "cell-state-frontier-reconciliation",
+        help="reconcile Domain 08 C13-C16 expected and observed states",
+    )
+    cell_state_frontier_reconciliation.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_reconciliation.add_argument("--output", default=None)
+    cell_state_frontier_pipeline = subparsers.add_parser(
+        "run-cell-state-frontier-pipeline",
+        help="run the Domain 08 C13-C16 quality-gated pipeline",
+    )
+    cell_state_frontier_pipeline.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_pipeline.add_argument("--run-id", default="cell-state-frontier-cli")
+    cell_state_frontier_pipeline.add_argument("--context-key", default=None)
+    cell_state_frontier_pipeline.add_argument("--fail-on-review", action="store_true")
+    cell_state_frontier_pipeline.add_argument("--output", default=None)
+    cell_state_frontier_release = subparsers.add_parser(
+        "build-cell-state-frontier-release",
+        help="build a Domain 08 C13-C16 release manifest",
+    )
+    cell_state_frontier_release.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_release.add_argument("--run-id", default="cell-state-frontier-release")
+    cell_state_frontier_release.add_argument("--output", default=None)
+    cell_state_frontier_view = subparsers.add_parser(
+        "cell-state-frontier-review-view",
+        help="emit the sanitized Domain 08 review queue and source matrix",
+    )
+    cell_state_frontier_view.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_view.add_argument("--output", default=None)
+    cell_state_frontier_trace = subparsers.add_parser(
+        "cell-state-frontier-trace",
+        help="emit the nine-stage Domain 08 runtime trace",
+    )
+    cell_state_frontier_trace.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_trace.add_argument("--run-id", default="cell-state-frontier-trace")
+    cell_state_frontier_trace.add_argument("--output", default=None)
+    cell_state_frontier_receipts_csv = subparsers.add_parser(
+        "export-cell-state-frontier-receipts-csv",
+        help="export sanitized Domain 08 receipts as CSV",
+    )
+    cell_state_frontier_receipts_csv.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_receipts_csv.add_argument("--output", default=None)
+    cell_state_frontier_review_csv = subparsers.add_parser(
+        "export-cell-state-frontier-review-csv",
+        help="export the Domain 08 review queue as CSV",
+    )
+    cell_state_frontier_review_csv.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_review_csv.add_argument("--output", default=None)
+    cell_state_frontier_review_md = subparsers.add_parser(
+        "export-cell-state-frontier-review-markdown",
+        help="export the Domain 08 review queue as Markdown",
+    )
+    cell_state_frontier_review_md.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_review_md.add_argument("--output", default=None)
+    cell_state_frontier_metrics_csv = subparsers.add_parser(
+        "export-cell-state-frontier-metrics-csv",
+        help="export Domain 08 operation metrics as CSV",
+    )
+    cell_state_frontier_metrics_csv.add_argument("input", nargs="?", default=None)
+    cell_state_frontier_metrics_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -6854,6 +7019,98 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 args.output,
             )
+            return 0
+        if args.command == "evaluate-cell-state-frontier-fixture":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_json(evaluate_cell_state_frontier_fixture(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "audit-cell-state-frontier-data":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_json(audit_cell_state_frontier_data(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "replay-cell-state-frontier":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            _write_json(replay_cell_state_frontier_evaluation(evaluation, fixture=fixture).to_dict(), args.output)
+            return 0
+        if args.command == "cell-state-frontier-quality-gate":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_json(run_cell_state_frontier_quality_gate(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-cell-state-frontier-scenarios":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_json(evaluate_cell_state_frontier_scenarios(evaluate_cell_state_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "cell-state-frontier-policy":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            _write_json(evaluate_cell_state_frontier_policy(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "cell-state-frontier-contracts":
+            _write_json(default_cell_state_frontier_contracts().manifest(), args.output)
+            return 0
+        if args.command == "cell-state-frontier-schema":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            _write_json(cell_state_frontier_schema_manifest() | {"validation": validate_cell_state_frontier_schema(fixture, evaluation).to_dict()}, args.output)
+            return 0
+        if args.command == "cell-state-frontier-metrics":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_json(compute_cell_state_frontier_metrics(evaluate_cell_state_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "build-cell-state-frontier-bundle":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_json(run_cell_state_frontier_quality_gate(fixture).bundle.to_dict(), args.output)
+            return 0
+        if args.command == "cell-state-frontier-lineage":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            _write_json(build_cell_state_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "cell-state-frontier-reconciliation":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            _write_json(reconcile_cell_state_frontier(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "run-cell-state-frontier-pipeline":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            options = CellStateFrontierRuntimeOptions(run_id=args.run_id, fail_on_review=args.fail_on_review, requested_context_key=args.context_key)
+            _write_json(run_cell_state_frontier_pipeline(options, fixture=fixture).to_dict(), args.output)
+            return 0
+        if args.command == "build-cell-state-frontier-release":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            quality = run_cell_state_frontier_quality_gate(fixture)
+            runtime = run_cell_state_frontier_pipeline(CellStateFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture)
+            _write_json(build_cell_state_frontier_release(quality, runtime).to_dict(), args.output)
+            return 0
+        if args.command == "cell-state-frontier-review-view":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            view = build_cell_state_frontier_view(fixture, evaluation)
+            _write_json(view.to_dict() | {"summary": cell_state_frontier_review_summary(view)}, args.output)
+            return 0
+        if args.command == "cell-state-frontier-trace":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            runtime = run_cell_state_frontier_pipeline(CellStateFrontierRuntimeOptions(run_id=args.run_id), fixture=fixture)
+            _write_json(build_cell_state_frontier_trace(runtime).to_dict(), args.output)
+            return 0
+        if args.command == "export-cell-state-frontier-receipts-csv":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_text(export_cell_state_frontier_receipts_csv(evaluate_cell_state_frontier_fixture(fixture)), args.output)
+            return 0
+        if args.command == "export-cell-state-frontier-review-csv":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            _write_text(export_cell_state_frontier_review_csv(build_cell_state_frontier_view(fixture, evaluation)), args.output)
+            return 0
+        if args.command == "export-cell-state-frontier-review-markdown":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            evaluation = evaluate_cell_state_frontier_fixture(fixture)
+            _write_text(render_cell_state_frontier_review_markdown(build_cell_state_frontier_view(fixture, evaluation)), args.output)
+            return 0
+        if args.command == "export-cell-state-frontier-metrics-csv":
+            fixture = _read_cell_state_frontier_fixture(args.input)
+            _write_text(export_cell_state_frontier_metrics_csv(compute_cell_state_frontier_metrics(evaluate_cell_state_frontier_fixture(fixture))), args.output)
             return 0
         if args.command == "parse-methylation":
             input_path = Path(args.input)

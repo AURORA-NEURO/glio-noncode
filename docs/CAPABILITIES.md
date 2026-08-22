@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 100 capabilities have deterministic fixture-backed
-verification and 156 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 39.06% of the 256-capability
+capabilities started (100%); 104 capabilities have deterministic fixture-backed
+verification and 152 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 40.62% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -480,8 +480,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 100 controls are verified against the checked-in
-aggregate fixtures, while 156 capabilities remain partial. Partial
+capabilities started (100%); 104 controls are verified against the checked-in
+aggregate fixtures, while 152 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1608,6 +1608,38 @@ glio-noncode estimate-spatial-niche-prior spatial-niches.json --context-key "GRC
 glio-noncode estimate-core-margin-prior core-margin.json --ambiguity-tolerance 0.1 --output core-margin-prior.json
 glio-noncode estimate-recurrence-state-prior recurrence-states.json --ambiguity-margin 0.1 --output recurrence-prior.json
 glio-noncode estimate-treatment-induced-state-prior treatment-states.json --induction-threshold 0.1 --output treatment-state-prior.json
+```
+
+### Domain 08 C13-C16 cell-state frontier evidence gate
+
+The Domain 08 C13-C16 tranche composes four cell-state boundaries over a public
+aggregate fixture. It keeps exact context, source closure, state margins,
+uncertainty intervals, out-of-domain findings, upstream receipt addresses, and
+review actions visible in every output.
+
+- C13 `cell_state_abundance_interval` reports bounded binomial abundance
+  intervals and retains invalid-count controls as partial.
+- C14 `single_cell_reference_mapping` preserves top and second reference scores,
+  margins, ambiguous controls, and context mismatch controls.
+- C15 `cell_state_ood_detection` evaluates distance and support boundaries while
+  keeping other territories out of the accepted context.
+- C16 `cell_state_context_publication` binds aggregate cell IDs to mapping,
+  abundance, and OOD receipt addresses before a release can be ready.
+
+The fixture contains 4 positive records, 12 controls, 5 public source receipts,
+120 evaluation checks, 23 schema checks, 12 quality checks, 4 operation metrics,
+9 runtime stages, 16 lineage edges, 16 reconciliation items, and a sanitized
+12-row review queue. The bounded commands are:
+
+```powershell
+glio-noncode audit-cell-state-frontier-data --output cell-state-data.json
+glio-noncode evaluate-cell-state-frontier-fixture --output cell-state-evaluation.json
+glio-noncode replay-cell-state-frontier --output cell-state-replay.json
+glio-noncode cell-state-frontier-quality-gate --output cell-state-quality.json
+glio-noncode evaluate-cell-state-frontier-scenarios --output cell-state-scenarios.json
+glio-noncode cell-state-frontier-schema --output cell-state-schema.json
+glio-noncode run-cell-state-frontier-pipeline --run-id cell-state-ci --output cell-state-pipeline.json
+glio-noncode build-cell-state-frontier-release --run-id cell-state-ci --output cell-state-release.json
 ```
 
 ## Domain 09 3D topology
