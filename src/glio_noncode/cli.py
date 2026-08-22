@@ -293,6 +293,7 @@ from .sequence_grammar_frontier_cli import (
 )
 from .sequence_grammar_frontier_public_data import load_sequence_grammar_fixture
 from .sequence_regulation_frontier_cli import run_sequence_regulation_operation
+from .methylation_frontier_cli import run_methylation_frontier_operation
 from .workspace_beta_frontier_scenario_matrix import build_beta_frontier_scenario_matrix
 from .workspace_beta_frontier_schema import default_beta_frontier_schema
 from .workspace_beta_frontier_thresholds import build_beta_frontier_threshold_report
@@ -4551,6 +4552,25 @@ def build_parser() -> argparse.ArgumentParser:
             help="inspect the Domain 06 C09-C12 public aggregate plane",
         )
         sequence_regulation_parser.add_argument("--output", default=None)
+
+    for methylation_frontier_command in (
+        "methylation-frontier-fixture",
+        "methylation-frontier-data",
+        "methylation-frontier-evaluate",
+        "methylation-frontier-replay",
+        "methylation-frontier-quality",
+        "methylation-frontier-contracts",
+        "methylation-frontier-adapters",
+        "methylation-frontier-catalog",
+        "methylation-frontier-schema",
+        "methylation-frontier-sources",
+        "run-methylation-frontier-pipeline",
+    ):
+        methylation_frontier_parser = subparsers.add_parser(
+            methylation_frontier_command,
+            help="inspect the Domain 07 C05-C08 public aggregate methylation plane",
+        )
+        methylation_frontier_parser.add_argument("--output", default=None)
 
     methylation_parse = subparsers.add_parser(
         "parse-methylation",
@@ -10442,6 +10462,21 @@ def main(argv: list[str] | None = None) -> int:
             "run-sequence-regulation-pipeline",
         }:
             _write_json(run_sequence_regulation_operation(args.command), args.output)
+            return 0
+        if args.command in {
+            "methylation-frontier-fixture",
+            "methylation-frontier-data",
+            "methylation-frontier-evaluate",
+            "methylation-frontier-replay",
+            "methylation-frontier-quality",
+            "methylation-frontier-contracts",
+            "methylation-frontier-adapters",
+            "methylation-frontier-catalog",
+            "methylation-frontier-schema",
+            "methylation-frontier-sources",
+            "run-methylation-frontier-pipeline",
+        }:
+            _write_json(run_methylation_frontier_operation(args.command), args.output)
             return 0
         if args.command == "parse-context":
             input_path = Path(args.input)

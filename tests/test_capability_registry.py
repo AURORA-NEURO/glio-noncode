@@ -15,10 +15,10 @@ class CapabilityRegistryTests(unittest.TestCase):
         coverage = registry.coverage()
         self.assertEqual(coverage.total_capabilities, 256)
         self.assertEqual(coverage.mvp_capabilities, 64)
-        self.assertEqual(coverage.verified, 156)
-        self.assertEqual(coverage.partial, 100)
+        self.assertEqual(coverage.verified, 160)
+        self.assertEqual(coverage.partial, 96)
         self.assertEqual(coverage.planned, 0)
-        self.assertAlmostEqual(coverage.implementation_percent, 60.94)
+        self.assertAlmostEqual(coverage.implementation_percent, 62.5)
         self.assertAlmostEqual(coverage.mvp_implementation_percent, 56.25)
         self.assertEqual(coverage.started, 256)
         self.assertAlmostEqual(coverage.started_percent, 100.0)
@@ -100,14 +100,16 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertEqual(registry.record("GNC-D06-C12").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D07-C09").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D07-C12").state, CapabilityState.PARTIAL)
+        self.assertEqual(registry.record("GNC-D07-C05").state, CapabilityState.VERIFIED)
+        self.assertEqual(registry.record("GNC-D07-C06").state, CapabilityState.VERIFIED)
+        self.assertEqual(registry.record("GNC-D07-C07").state, CapabilityState.VERIFIED)
+        self.assertEqual(registry.record("GNC-D07-C08").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D08-C09").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D08-C12").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D06-C05").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D06-C06").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D06-C07").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D06-C08").state, CapabilityState.VERIFIED)
-        self.assertEqual(registry.record("GNC-D07-C05").state, CapabilityState.PARTIAL)
-        self.assertEqual(registry.record("GNC-D07-C08").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D08-C05").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D08-C08").state, CapabilityState.PARTIAL)
         self.assertEqual(registry.record("GNC-D09-C05").state, CapabilityState.PARTIAL)
@@ -190,7 +192,24 @@ class CapabilityRegistryTests(unittest.TestCase):
             expected_state = (
                 CapabilityState.VERIFIED
                 if capability_id.split("-")[1]
-                in {"D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13", "D14", "D15", "D16"}
+                in {
+                    "D01",
+                    "D02",
+                    "D03",
+                    "D04",
+                    "D05",
+                    "D06",
+                    "D07",
+                    "D08",
+                    "D09",
+                    "D10",
+                    "D11",
+                    "D12",
+                    "D13",
+                    "D14",
+                    "D15",
+                    "D16",
+                }
                 else CapabilityState.PARTIAL
             )
             self.assertEqual(registry.record(capability_id).state, expected_state)

@@ -772,3 +772,11 @@ jobs:
         run: python -m glio_noncode sequence-regulation-quality --output /tmp/glio-sequence-regulation-quality.json && python -m glio_noncode sequence-regulation-replay --output /tmp/glio-sequence-regulation-replay.json
       - name: Sequence regulation frontier end-to-end pipeline
         run: python -m glio_noncode run-sequence-regulation-pipeline --output /tmp/glio-sequence-regulation-pipeline.json
+      - name: Methylation frontier fixture and audit
+        run: python -m glio_noncode methylation-frontier-fixture --output /tmp/glio-methylation-frontier-fixture.json && python -m glio_noncode methylation-frontier-data --output /tmp/glio-methylation-frontier-data.json
+      - name: Methylation frontier contracts and schema
+        run: python -m glio_noncode methylation-frontier-contracts --output /tmp/glio-methylation-frontier-contracts.json && python -m glio_noncode methylation-frontier-schema --output /tmp/glio-methylation-frontier-schema.json && python -m glio_noncode methylation-frontier-sources --output /tmp/glio-methylation-frontier-sources.json
+      - name: Methylation frontier evaluation and quality
+        run: python -m glio_noncode methylation-frontier-evaluate --output /tmp/glio-methylation-frontier-evaluation.json && python -m glio_noncode methylation-frontier-quality --output /tmp/glio-methylation-frontier-quality.json && python -m glio_noncode methylation-frontier-replay --output /tmp/glio-methylation-frontier-replay.json
+      - name: Methylation frontier end-to-end pipeline
+        run: python -m glio_noncode run-methylation-frontier-pipeline --output /tmp/glio-methylation-frontier-pipeline.json

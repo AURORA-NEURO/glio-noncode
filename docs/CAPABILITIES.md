@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 156 capabilities have deterministic fixture-backed
-verification and 100 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 60.94% of the 256-capability
+capabilities started (100%); 160 capabilities have deterministic fixture-backed
+verification and 96 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 62.50% of the 256-capability
 catalog; MVP implementation coverage is 56.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -528,8 +528,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 156 capabilities are verified against the checked-in
-aggregate fixtures, while 100 capabilities remain partial. Partial
+capabilities started (100%); 160 capabilities are verified against the checked-in
+aggregate fixtures, while 96 capabilities remain partial. Partial
 means the bounded code and tests exist. Verified means the local deterministic
 fixture and negative-control boundary pass; external validation, calibration,
 and institutional release evidence remain separate.
@@ -1626,6 +1626,38 @@ glio-noncode query-methylation-context methylation.tsv --chromosome 7 --start 10
 glio-noncode analyze-cpg-change cpg-window.json --output cpg-changes.json
 glio-noncode analyze-methylation-motifs methylation-motifs.json --output methylation-motifs.json
 glio-noncode model-idh-hypermethylation idh-panel.json --model-id idh-panel --model-version 2026.1 --context-key "GRCh38|glioma|adult|stem_like|tumor|unknown" --output idh-context.json
+```
+
+### Domain 07 C05-C08 methylation frontier evidence gate
+
+The Domain 07 C05-C08 tranche binds the methylation primitives to a closed
+public aggregate fixture. It contains four positive records and twelve
+controls across methylation context retrieval, CpG creation/loss, sensitive
+motif context, and IDH hypermethylation context. Each source retains a URI,
+version, checksum, and exact context key. Malformed rows, missing support,
+foreign context, changed-length sequence windows, and incomplete comparator
+panels stay visible as invalid, abstained, partial, or out-of-domain states.
+
+The release plane adds typed contracts, schema and public-boundary checks,
+source lineage, expected-path reconciliation, policy decisions, metrics,
+review-safe rows, a prioritized review queue, structured runtime events,
+accessibility checks, replay comparison, scenario and validation matrices,
+thresholds, a runbook, and a content-addressed bundle. The IDH panel remains
+descriptive aggregate context and is not a diagnostic classifier. Measured
+beta values are preserved; missing values are not imputed.
+
+The bounded aggregate command surface is:
+
+```powershell
+glio-noncode methylation-frontier-fixture --output methylation-frontier-fixture.json
+glio-noncode methylation-frontier-data --output methylation-frontier-data.json
+glio-noncode methylation-frontier-evaluate --output methylation-frontier-evaluation.json
+glio-noncode methylation-frontier-quality --output methylation-frontier-quality.json
+glio-noncode methylation-frontier-contracts --output methylation-frontier-contracts.json
+glio-noncode methylation-frontier-schema --output methylation-frontier-schema.json
+glio-noncode methylation-frontier-sources --output methylation-frontier-sources.json
+glio-noncode methylation-frontier-replay --output methylation-frontier-replay.json
+glio-noncode run-methylation-frontier-pipeline --output methylation-frontier-pipeline.json
 ```
 
 The Domain 07 chromatin-alpha tranche adds assay-control depth:

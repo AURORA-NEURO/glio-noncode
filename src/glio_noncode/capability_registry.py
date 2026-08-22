@@ -2420,66 +2420,83 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D07-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.methylation_beta.MethylationRecordParser",
                     "glio_noncode.methylation_beta.MethylationContextRetriever",
+                    "glio_noncode.methylation_frontier_public_data.default_methylation_frontier_fixture",
+                    "glio_noncode.methylation_frontier_pipeline.run_methylation_frontier_pipeline",
                 ),
                 "test_modules": (
                     "tests.test_methylation_beta",
                     "tests.test_methylation_beta_cli",
+                    "tests.test_methylation_frontier",
                 ),
                 "evidence_note": (
                     "One-based or BED-like methylation records preserve beta values, coverage, "
                     "assay/sample/replicate metadata, source versions, raw hashes, exact context "
-                    "queries, replicate spread, and out-of-domain context; external assay fixtures "
-                    "and calibration remain."
+                    "queries, replicate spread, and out-of-domain context. The public aggregate "
+                    "tranche adds source receipts, controls, replay, review routing, and release checks."
                 ),
             },
             "GNC-D07-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.methylation_beta.CpGCreationLossAnalyzer",
+                    "glio_noncode.methylation_frontier_adapters.execute_methylation_frontier_record",
+                    "glio_noncode.methylation_frontier_quality_gate.build_methylation_frontier_quality",
                 ),
                 "test_modules": (
                     "tests.test_methylation_beta",
                     "tests.test_methylation_beta_cli",
+                    "tests.test_methylation_frontier",
                 ),
                 "evidence_note": (
                     "Equal-length allele windows yield coordinate-safe CpG creation/loss "
                     "events and optionally attach exact methylation records; "
                     "length-changing windows abstain and "
-                    "sequence changes are not treated as functional effects."
+                    "sequence changes are not treated as functional effects. Positive and "
+                    "control fixture paths verify creation, loss, invalid, bounded, and "
+                    "abstention behavior."
                 ),
             },
             "GNC-D07-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.methylation_beta.MethylationSensitiveMotifAnalyzer",
+                    "glio_noncode.methylation_frontier_views.build_methylation_frontier_review_view",
+                    "glio_noncode.methylation_frontier_replay.replay_methylation_frontier",
                 ),
                 "test_modules": (
                     "tests.test_methylation_beta",
                     "tests.test_methylation_beta_cli",
+                    "tests.test_methylation_frontier",
                 ),
                 "evidence_note": (
                     "Declared IUPAC motif hits retain zero-based sensitive offsets, strand, exact "
                     "methylation beta measurements, missingness, disagreement, source versions, "
-                    "and context; binding or regulatory effect is not inferred."
+                    "and context; binding or regulatory effect is not inferred. Review-safe "
+                    "views retain motif, methylation, issue, context, and receipt fields."
                 ),
             },
             "GNC-D07-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.methylation_beta.IdhHypermethylationContextModel",
+                    "glio_noncode.methylation_frontier_source_registry.build_methylation_frontier_source_registry",
+                    "glio_noncode.methylation_frontier_release.build_methylation_frontier_release",
                 ),
                 "test_modules": (
                     "tests.test_methylation_beta",
                     "tests.test_methylation_beta_cli",
+                    "tests.test_methylation_frontier",
                 ),
                 "evidence_note": (
                     "Versioned IDH-mutant versus IDH-wildtype panel summaries expose thresholded "
                     "hypermethylation, coverage-weighted beta, comparator delta, source versions, "
-                    "and minimum-site abstention; this is not a diagnostic classifier."
+                    "and minimum-site abstention; this is not a diagnostic classifier. The "
+                    "aggregate release adds lineage, policy, reconciliation, review, replay, "
+                    "and content-addressed bundle checks."
                 ),
             },
             "GNC-D07-C09": {
