@@ -3629,43 +3629,88 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D13-C01": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.validation_planning.EvidenceGapAnalyzer",),
-                "test_modules": ("tests.test_validation_planning",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_planning.EvidenceGapAnalyzer",
+                    "glio_noncode.validation_frontier_public_data",
+                    "glio_noncode.validation_frontier_fixture_eval",
+                    "glio_noncode.validation_frontier_quality_gate",
+                    "glio_noncode.validation_frontier_release",
+                ),
+                "test_modules": (
+                    "tests.test_validation_planning",
+                    "tests.test_validation_frontier_evidence",
+                    "tests.test_validation_frontier_depth",
+                    "tests.test_validation_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Typed hypotheses are converted into ranked evidence gaps with required "
                     "channels, impact, context, and review warnings; external planning benchmarks "
-                    "and calibration remain."
+                    "and calibration remain. The public aggregate frontier verifies missing "
+                    "measurement, uncertainty, context mismatch, and complete-snapshot controls."
                 ),
             },
             "GNC-D13-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_planning.AssayEligibilityRouter",
+                    "glio_noncode.validation_frontier_contracts",
+                    "glio_noncode.validation_frontier_policy",
+                    "glio_noncode.validation_frontier_reconciliation",
                 ),
-                "test_modules": ("tests.test_validation_planning",),
+                "test_modules": (
+                    "tests.test_validation_planning",
+                    "tests.test_validation_frontier_evidence",
+                    "tests.test_validation_frontier_depth",
+                    "tests.test_validation_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Assay routes check model, insert, control, and readout constraints while "
                     "preserving blockers, alternatives, sensitivity, and human-review boundaries."
+                    " The fixture verifies ready, blocked, missing-control, model-mismatch, and "
+                    "empty-inventory states."
                 ),
             },
             "GNC-D13-C03": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.validation_planning.MPRAPlanner",),
-                "test_modules": ("tests.test_validation_planning",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_planning.MPRAPlanner",
+                    "glio_noncode.validation_frontier_schema",
+                    "glio_noncode.validation_frontier_scenario_matrix",
+                    "glio_noncode.validation_frontier_thresholds",
+                ),
+                "test_modules": (
+                    "tests.test_validation_planning",
+                    "tests.test_validation_frontier_evidence",
+                    "tests.test_validation_frontier_depth",
+                    "tests.test_validation_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "MPRA packages validate reference alleles, generate reference/alternate "
                     "constructs, enforce context and construct bounds, and retain controls and "
-                    "research-use limitations."
+                    "research-use limitations. Scenario and threshold surfaces verify paired "
+                    "constructs, context mismatch, empty targets, and budget overflow."
                 ),
             },
             "GNC-D13-C04": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.validation_planning.STARRSeqPlanner",),
-                "test_modules": ("tests.test_validation_planning",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_planning.STARRSeqPlanner",
+                    "glio_noncode.validation_frontier_bundle",
+                    "glio_noncode.validation_frontier_lineage",
+                    "glio_noncode.validation_frontier_exports",
+                ),
+                "test_modules": (
+                    "tests.test_validation_planning",
+                    "tests.test_validation_frontier_evidence",
+                    "tests.test_validation_frontier_depth",
+                    "tests.test_validation_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "STARR-seq packages share the allele-aware bounded planner contract and block "
-                    "context mismatch or construct-budget overflow without claiming assay efficacy."
+                    "context mismatch or construct-budget overflow without claiming assay efficacy. "
+                    "Release, lineage, review CSV, and aggregate manifest checks preserve the "
+                    "bounded planning boundary."
                 ),
             },
             "GNC-D13-C05": {

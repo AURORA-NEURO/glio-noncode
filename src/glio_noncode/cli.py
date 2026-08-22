@@ -807,6 +807,25 @@ from .validation_beta import (
     PrimeEditingDesignPlanner,
     ValidationBetaTarget,
 )
+from .validation_frontier_artifacts import ValidationFrontierArtifactKind, build_validation_frontier_artifact_inventory
+from .validation_frontier_bundle import assemble_validation_frontier_bundle
+from .validation_frontier_contracts import default_validation_frontier_contracts
+from .validation_frontier_depth import audit_validation_frontier_depth
+from .validation_frontier_exports import export_validation_frontier_review_csv
+from .validation_frontier_fixture_eval import evaluate_validation_frontier_fixture
+from .validation_frontier_lineage import build_validation_frontier_lineage
+from .validation_frontier_metrics import measure_validation_frontier
+from .validation_frontier_observability import observe_validation_frontier
+from .validation_frontier_policy import default_validation_frontier_policy
+from .validation_frontier_public_data import audit_validation_frontier_data, default_validation_frontier_fixture, load_validation_frontier_fixture
+from .validation_frontier_quality_gate import evaluate_validation_frontier_quality
+from .validation_frontier_reconciliation import reconcile_validation_frontier
+from .validation_frontier_release import build_validation_frontier_release_manifest
+from .validation_frontier_replay import replay_validation_frontier
+from .validation_frontier_review_queue import build_validation_frontier_review_queue
+from .validation_frontier_runtime import run_validation_frontier_runtime
+from .validation_frontier_schema import default_validation_frontier_schema
+from .validation_frontier_views import build_validation_frontier_review_view
 from .variant_beta import (
     CategoricalCatalogParser,
     CatVRSNormalizer,
@@ -942,6 +961,12 @@ def _read_cohort_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_cohort_frontier_fixture(path) if path else default_cohort_frontier_fixture()
+
+
+def _read_validation_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_validation_frontier_fixture(path) if path else default_validation_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -4139,6 +4164,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cohort_frontier_csv.add_argument("input", nargs="?", default=None)
     cohort_frontier_csv.add_argument("--output", default=None)
+
+    validation_frontier_commands = (
+        ("validation-frontier-data-audit", "audit public Domain 13 planning receipts"),
+        ("validation-frontier-contracts", "emit Domain 13 planning contracts"),
+        ("validation-frontier-schema", "emit Domain 13 planning schema"),
+        ("validation-frontier-evaluate", "evaluate Domain 13 planning records"),
+        ("validation-frontier-replay", "replay Domain 13 planning receipts"),
+        ("validation-frontier-metrics", "emit Domain 13 planning metrics"),
+        ("validation-frontier-lineage", "emit Domain 13 planning lineage"),
+        ("validation-frontier-policy", "emit Domain 13 planning policy"),
+        ("validation-frontier-quality-gate", "run Domain 13 planning quality checks"),
+        ("validation-frontier-runtime", "run Domain 13 planning release rehearsal"),
+        ("validation-frontier-observability", "emit Domain 13 planning observability"),
+        ("validation-frontier-artifacts", "emit Domain 13 planning artifact inventory"),
+        ("validation-frontier-release", "build Domain 13 planning release manifest"),
+        ("validation-frontier-review-queue", "build Domain 13 planning review queue"),
+        ("validation-frontier-depth-audit", "run Domain 13 planning depth audit"),
+    )
+    for command_name, command_help in validation_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        if command_name != "validation-frontier-contracts":
+            command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    validation_frontier_bundle = subparsers.add_parser(
+        "validation-frontier-bundle",
+        help="assemble the Domain 13 planning review bundle",
+    )
+    validation_frontier_bundle.add_argument("input", nargs="?", default=None)
+    validation_frontier_bundle.add_argument("--output", default=None)
+    validation_frontier_csv = subparsers.add_parser(
+        "export-validation-frontier-review-csv",
+        help="export Domain 13 planning review rows as CSV",
+    )
+    validation_frontier_csv.add_argument("input", nargs="?", default=None)
+    validation_frontier_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -7790,6 +7850,114 @@ def main(argv: list[str] | None = None) -> int:
             release = build_cohort_frontier_release_manifest(runtime.bundle, gate, replay_cohort_frontier(fixture, replay_id="cohort-frontier-csv-replay"))
             view = build_cohort_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)
             _write_text(export_cohort_frontier_review_csv(view), args.output)
+            return 0
+        if args.command == "validation-frontier-data-audit":
+            _write_json(audit_validation_frontier_data(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-contracts":
+            _write_json(default_validation_frontier_contracts().manifest(), args.output)
+            return 0
+        if args.command == "validation-frontier-schema":
+            _write_json(default_validation_frontier_schema().to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-evaluate":
+            _write_json(evaluate_validation_frontier_fixture(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-replay":
+            _write_json(replay_validation_frontier(_read_validation_frontier_fixture(args.input), replay_id="validation-frontier-cli-replay").to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-metrics":
+            fixture = _read_validation_frontier_fixture(args.input)
+            _write_json(measure_validation_frontier(evaluate_validation_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-lineage":
+            fixture = _read_validation_frontier_fixture(args.input)
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            _write_json(build_validation_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-policy":
+            fixture = _read_validation_frontier_fixture(args.input)
+            contracts = default_validation_frontier_contracts()
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            policy = default_validation_frontier_policy(contracts)
+            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            return 0
+        if args.command == "validation-frontier-quality-gate":
+            fixture = _read_validation_frontier_fixture(args.input)
+            contracts = default_validation_frontier_contracts()
+            schema = default_validation_frontier_schema()
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            policy = default_validation_frontier_policy(contracts)
+            lineage = build_validation_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
+            _write_json(evaluate_validation_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-runtime":
+            _write_json(run_validation_frontier_runtime(_read_validation_frontier_fixture(args.input), run_id="validation-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-observability":
+            fixture = _read_validation_frontier_fixture(args.input)
+            runtime = run_validation_frontier_runtime(fixture, run_id="validation-frontier-observability")
+            _write_json(observe_validation_frontier(runtime, evaluate_validation_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-artifacts":
+            fixture = _read_validation_frontier_fixture(args.input)
+            contracts = default_validation_frontier_contracts()
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            metrics = measure_validation_frontier(evaluation)
+            policy = default_validation_frontier_policy(contracts)
+            lineage = build_validation_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
+            gate = evaluate_validation_frontier_quality(fixture, evaluation, contracts, default_validation_frontier_schema(), lineage, reconciliation)
+            runtime = run_validation_frontier_runtime(fixture, run_id="validation-frontier-artifacts")
+            release = build_validation_frontier_release_manifest(runtime.bundle, gate, replay_validation_frontier(fixture, replay_id="validation-frontier-artifacts-replay"))
+            _write_json(build_validation_frontier_artifact_inventory(fixture, evaluation, metrics, lineage, gate, runtime, release).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-bundle":
+            fixture = _read_validation_frontier_fixture(args.input)
+            contracts = default_validation_frontier_contracts()
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            metrics = measure_validation_frontier(evaluation)
+            policy = default_validation_frontier_policy(contracts)
+            lineage = build_validation_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
+            _write_json(assemble_validation_frontier_bundle(fixture, evaluation, metrics, lineage, reconciliation, policy).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-release":
+            fixture = _read_validation_frontier_fixture(args.input)
+            runtime = run_validation_frontier_runtime(fixture, run_id="validation-frontier-release")
+            contracts = default_validation_frontier_contracts()
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            policy = default_validation_frontier_policy(contracts)
+            lineage = build_validation_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
+            gate = evaluate_validation_frontier_quality(fixture, evaluation, contracts, default_validation_frontier_schema(), lineage, reconciliation)
+            replay = replay_validation_frontier(fixture, replay_id="validation-frontier-release-replay")
+            _write_json(build_validation_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-review-queue":
+            fixture = _read_validation_frontier_fixture(args.input)
+            contracts = default_validation_frontier_contracts()
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            policy = default_validation_frontier_policy(contracts)
+            _write_json(build_validation_frontier_review_queue(fixture, evaluation, policy.decide(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-frontier-depth-audit":
+            _write_json(audit_validation_frontier_depth().to_dict(), args.output)
+            return 0
+        if args.command == "export-validation-frontier-review-csv":
+            fixture = _read_validation_frontier_fixture(args.input)
+            evaluation = evaluate_validation_frontier_fixture(fixture)
+            metrics = measure_validation_frontier(evaluation)
+            contracts = default_validation_frontier_contracts()
+            policy = default_validation_frontier_policy(contracts)
+            lineage = build_validation_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_validation_frontier(fixture, evaluation, policy)
+            gate = evaluate_validation_frontier_quality(fixture, evaluation, contracts, default_validation_frontier_schema(), lineage, reconciliation)
+            runtime = run_validation_frontier_runtime(fixture, run_id="validation-frontier-csv")
+            release = build_validation_frontier_release_manifest(runtime.bundle, gate, replay_validation_frontier(fixture, replay_id="validation-frontier-csv-replay"))
+            view = build_validation_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)
+            _write_text(export_validation_frontier_review_csv(view), args.output)
             return 0
         if args.command == "evaluate-topology-frontier-fixture":
             fixture = _read_topology_frontier_fixture(args.input)

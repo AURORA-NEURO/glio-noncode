@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 120 capabilities have deterministic fixture-backed
-verification and 136 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 46.88% of the 256-capability
+capabilities started (100%); 124 capabilities have deterministic fixture-backed
+verification and 132 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 48.44% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -2200,6 +2200,51 @@ glio-noncode parse-guide-oligo-design guides.tsv --source-id guide-design --outp
 glio-noncode plan-controls-randomization validation-targets.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --biological-replicates 3 --technical-replicates 1 --output controls-plan.json
 glio-noncode estimate-power-replication power.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --output power.json
 ```
+
+The C01-C04 validation-planning frontier adds a public aggregate release
+boundary for four core planning capabilities. It contains 16 records, with one
+positive and three controls for each of evidence-gap analysis, assay eligibility,
+MPRA planning, and STARR-seq planning. Five public source receipts identify the
+planning evidence boundary; no patient-level rows or restricted samples are
+included.
+
+The positive C01 record retains missing measurement and high uncertainty as
+ranked gaps. The C02 positive route retains matching model, insert bounds,
+controls, readouts, alternatives, and sensitivity. The C03 and C04 positive
+packages retain paired reference and alternate constructs. Controls cover context
+mismatch, missing typed inputs, model mismatch, missing controls and readouts,
+empty inventory, insert bounds, construct budget, and empty target lists.
+
+The frontier has 120 evaluation checks, 36 lineage edges, 13 metrics, 12
+quality checks, 10 runtime stages, 31 scenario rows, 972 threshold probes, 26
+observability events, seven artifact nodes, and 20 depth checks. A ready plan is
+a research review artifact. It is not assay success, efficacy, safety, causal
+validation, or a clinical decision.
+
+The validation-planning frontier commands are:
+
+```powershell
+glio-noncode validation-frontier-data-audit --output validation-data.json
+glio-noncode validation-frontier-contracts --output validation-contracts.json
+glio-noncode validation-frontier-schema --output validation-schema.json
+glio-noncode validation-frontier-evaluate --output validation-evaluation.json
+glio-noncode validation-frontier-replay --output validation-replay.json
+glio-noncode validation-frontier-metrics --output validation-metrics.json
+glio-noncode validation-frontier-lineage --output validation-lineage.json
+glio-noncode validation-frontier-policy --output validation-policy.json
+glio-noncode validation-frontier-quality-gate --output validation-quality.json
+glio-noncode validation-frontier-runtime --output validation-runtime.json
+glio-noncode validation-frontier-observability --output validation-observability.json
+glio-noncode validation-frontier-artifacts --output validation-artifacts.json
+glio-noncode validation-frontier-bundle --output validation-bundle.json
+glio-noncode validation-frontier-release --output validation-release.json
+glio-noncode export-validation-frontier-review-csv --output validation-review.csv
+glio-noncode validation-frontier-depth-audit --output validation-depth.json
+```
+
+These surfaces preserve blockers, abstentions, controls, limitations, source
+receipts, allowed uses, and excluded uses. They do not replace assay design
+review, synthesis review, institutional approval, or experimental validation.
 
 ## Domain 14 evidence lifecycle
 

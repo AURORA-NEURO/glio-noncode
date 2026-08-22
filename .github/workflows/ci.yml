@@ -532,3 +532,37 @@ jobs:
         run: python -m glio_noncode export-cohort-frontier-review-csv --output /tmp/glio-cohort-frontier-review.csv
       - name: Cohort frontier depth audit
         run: python -m glio_noncode cohort-frontier-depth-audit --output /tmp/glio-cohort-frontier-depth.json
+      - name: Validation frontier data boundary audit
+        run: python -m glio_noncode validation-frontier-data-audit --output /tmp/glio-validation-frontier-data.json
+      - name: Validation frontier operation contracts
+        run: python -m glio_noncode validation-frontier-contracts --output /tmp/glio-validation-frontier-contracts.json
+      - name: Validation frontier schema manifest
+        run: python -m glio_noncode validation-frontier-schema --output /tmp/glio-validation-frontier-schema.json
+      - name: Validation frontier fixture evaluation
+        run: python -m glio_noncode validation-frontier-evaluate --output /tmp/glio-validation-frontier-evaluation.json
+      - name: Validation frontier replay integrity
+        run: python -m glio_noncode validation-frontier-replay --output /tmp/glio-validation-frontier-replay.json
+      - name: Validation frontier metrics
+        run: python -m glio_noncode validation-frontier-metrics --output /tmp/glio-validation-frontier-metrics.json
+      - name: Validation frontier lineage graph
+        run: python -m glio_noncode validation-frontier-lineage --output /tmp/glio-validation-frontier-lineage.json
+      - name: Validation frontier policy evaluation
+        run: python -m glio_noncode validation-frontier-policy --output /tmp/glio-validation-frontier-policy.json
+      - name: Validation frontier quality gate
+        run: python -m glio_noncode validation-frontier-quality-gate --output /tmp/glio-validation-frontier-quality.json
+      - name: Validation frontier runtime rehearsal
+        run: python -m glio_noncode validation-frontier-runtime --output /tmp/glio-validation-frontier-runtime.json
+      - name: Validation frontier observability
+        run: python -m glio_noncode validation-frontier-observability --output /tmp/glio-validation-frontier-observability.json
+      - name: Validation frontier artifact inventory
+        run: python -m glio_noncode validation-frontier-artifacts --output /tmp/glio-validation-frontier-artifacts.json
+      - name: Validation frontier release bundle
+        run: python -m glio_noncode validation-frontier-bundle --output /tmp/glio-validation-frontier-bundle.json
+      - name: Validation frontier release manifest
+        run: python -m glio_noncode validation-frontier-release --output /tmp/glio-validation-frontier-release.json
+      - name: Validation frontier review CSV
+        run: python -m glio_noncode export-validation-frontier-review-csv --output /tmp/glio-validation-frontier-review.csv
+      - name: Validation frontier depth audit
+        run: python -m glio_noncode validation-frontier-depth-audit --output /tmp/glio-validation-frontier-depth.json
+      - name: Validation frontier review queue
+        run: python -m glio_noncode validation-frontier-review-queue --output /tmp/glio-validation-frontier-queue.json
