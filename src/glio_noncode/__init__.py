@@ -1402,6 +1402,28 @@ from .causal_frontier_thresholds import (
     default_causal_frontier_threshold_profiles,
 )
 from .causal_frontier_views import CausalFrontierReviewRow, CausalFrontierReviewView, build_causal_frontier_review_view
+from .cohort_frontier_adapters import CohortFrontierAdapterReceipt, CohortFrontierAdapterRegistry, CohortFrontierInputAdapter, default_cohort_frontier_adapters
+from .cohort_frontier_artifacts import CohortFrontierArtifact, CohortFrontierArtifactInventory, CohortFrontierArtifactKind, build_cohort_frontier_artifact_inventory
+from .cohort_frontier_bundle import CohortFrontierReleaseBundle, assemble_cohort_frontier_bundle
+from .cohort_frontier_checks import CohortFrontierInvariant, CohortFrontierInvariantReport, CohortFrontierInvariantResult, cohort_frontier_observation_map, default_cohort_frontier_invariants, run_cohort_frontier_invariants
+from .cohort_frontier_contracts import CohortFrontierContract, CohortFrontierContractRegistry, default_cohort_frontier_contracts
+from .cohort_frontier_depth import CohortFrontierDepthAudit, CohortFrontierDepthCheck, audit_cohort_frontier_depth
+from .cohort_frontier_exports import export_cohort_frontier_canonical, export_cohort_frontier_json, export_cohort_frontier_manifest, export_cohort_frontier_review_csv
+from .cohort_frontier_fixture_eval import CohortFrontierEvaluation, CohortFrontierEvaluationCheck, CohortFrontierExecution, evaluate_cohort_frontier_fixture, execute_cohort_frontier_record
+from .cohort_frontier_lineage import CohortFrontierLineageEdge, CohortFrontierLineageGraph, build_cohort_frontier_lineage
+from .cohort_frontier_metrics import CohortFrontierMetric, CohortFrontierMetricsReport, measure_cohort_frontier
+from .cohort_frontier_observability import CohortFrontierEvent, CohortFrontierObservabilityReport, observe_cohort_frontier
+from .cohort_frontier_policy import CohortFrontierDecision, CohortFrontierPolicy, CohortFrontierPolicyDecision, CohortFrontierPolicyRule, default_cohort_frontier_policy
+from .cohort_frontier_public_data import COHORT_FRONTIER_CONTEXT_KEY, COHORT_FRONTIER_CONTROL_COUNT, COHORT_FRONTIER_EVIDENCE_BOUNDARY, COHORT_FRONTIER_FIXTURE_VERSION, COHORT_FRONTIER_POSITIVE_COUNT, COHORT_FRONTIER_SOURCE_COUNT, CohortFrontierCatalog, CohortFrontierDataAudit, CohortFrontierDataCheck, CohortFrontierFixture, CohortFrontierOperation, CohortFrontierRecord, CohortFrontierRole, CohortFrontierSourceReceipt, audit_cohort_frontier_data, build_cohort_frontier_catalog, default_cohort_frontier_fixture, load_cohort_frontier_fixture
+from .cohort_frontier_quality_gate import CohortFrontierGateCheck, CohortFrontierQualityGate, evaluate_cohort_frontier_quality
+from .cohort_frontier_reconciliation import CohortFrontierReconciliation, CohortFrontierReconciliationItem, reconcile_cohort_frontier
+from .cohort_frontier_release import CohortFrontierReleaseCheck, CohortFrontierReleaseManifest, CohortFrontierReleaseState, build_cohort_frontier_release_manifest
+from .cohort_frontier_replay import CohortFrontierReplayComparison, CohortFrontierReplayReceipt, compare_cohort_frontier_replays, replay_cohort_frontier, replay_cohort_frontier_is_deterministic
+from .cohort_frontier_runtime import CohortFrontierRuntimeReport, CohortFrontierRuntimeStage, run_cohort_frontier_runtime
+from .cohort_frontier_scenario_matrix import CohortFrontierScenario, CohortFrontierScenarioMatrix, build_cohort_frontier_scenario_matrix
+from .cohort_frontier_schema import CohortFrontierFieldSpec, CohortFrontierOperationSchema, CohortFrontierSchemaManifest, default_cohort_frontier_schema
+from .cohort_frontier_thresholds import CohortFrontierThresholdProbe, CohortFrontierThresholdProfile, CohortFrontierThresholdReport, build_cohort_frontier_threshold_report, default_cohort_frontier_threshold_profiles
+from .cohort_frontier_views import CohortFrontierReviewRow, CohortFrontierReviewView, build_cohort_frontier_review_view
 from .link_graph import (
     CcreElementAssigner,
     CoordinateOverlapLinker,
@@ -5634,6 +5656,102 @@ __all__ = [
     "replay_is_deterministic",
     "run_causal_frontier_runtime",
     "run_causal_frontier_invariants",
+    "COHORT_FRONTIER_CONTEXT_KEY",
+    "COHORT_FRONTIER_CONTROL_COUNT",
+    "COHORT_FRONTIER_EVIDENCE_BOUNDARY",
+    "COHORT_FRONTIER_FIXTURE_VERSION",
+    "COHORT_FRONTIER_POSITIVE_COUNT",
+    "COHORT_FRONTIER_SOURCE_COUNT",
+    "CohortFrontierAdapterReceipt",
+    "CohortFrontierAdapterRegistry",
+    "CohortFrontierArtifact",
+    "CohortFrontierArtifactInventory",
+    "CohortFrontierArtifactKind",
+    "CohortFrontierCatalog",
+    "CohortFrontierContract",
+    "CohortFrontierContractRegistry",
+    "CohortFrontierDataAudit",
+    "CohortFrontierDataCheck",
+    "CohortFrontierDecision",
+    "CohortFrontierDepthAudit",
+    "CohortFrontierDepthCheck",
+    "CohortFrontierEvaluation",
+    "CohortFrontierEvaluationCheck",
+    "CohortFrontierEvent",
+    "CohortFrontierExecution",
+    "CohortFrontierFieldSpec",
+    "CohortFrontierFixture",
+    "CohortFrontierGateCheck",
+    "CohortFrontierInputAdapter",
+    "CohortFrontierInvariant",
+    "CohortFrontierInvariantReport",
+    "CohortFrontierInvariantResult",
+    "CohortFrontierLineageEdge",
+    "CohortFrontierLineageGraph",
+    "CohortFrontierMetric",
+    "CohortFrontierMetricsReport",
+    "CohortFrontierObservabilityReport",
+    "CohortFrontierOperation",
+    "CohortFrontierOperationSchema",
+    "CohortFrontierPolicy",
+    "CohortFrontierPolicyDecision",
+    "CohortFrontierPolicyRule",
+    "CohortFrontierQualityGate",
+    "CohortFrontierRecord",
+    "CohortFrontierReconciliation",
+    "CohortFrontierReconciliationItem",
+    "CohortFrontierReleaseBundle",
+    "CohortFrontierReleaseCheck",
+    "CohortFrontierReleaseManifest",
+    "CohortFrontierReleaseState",
+    "CohortFrontierReplayComparison",
+    "CohortFrontierReplayReceipt",
+    "CohortFrontierReviewRow",
+    "CohortFrontierReviewView",
+    "CohortFrontierRole",
+    "CohortFrontierRuntimeReport",
+    "CohortFrontierRuntimeStage",
+    "CohortFrontierScenario",
+    "CohortFrontierScenarioMatrix",
+    "CohortFrontierSchemaManifest",
+    "CohortFrontierSourceReceipt",
+    "CohortFrontierThresholdProbe",
+    "CohortFrontierThresholdProfile",
+    "CohortFrontierThresholdReport",
+    "assemble_cohort_frontier_bundle",
+    "audit_cohort_frontier_data",
+    "audit_cohort_frontier_depth",
+    "build_cohort_frontier_artifact_inventory",
+    "build_cohort_frontier_catalog",
+    "build_cohort_frontier_lineage",
+    "build_cohort_frontier_release_manifest",
+    "build_cohort_frontier_review_view",
+    "build_cohort_frontier_scenario_matrix",
+    "build_cohort_frontier_threshold_report",
+    "cohort_frontier_observation_map",
+    "compare_cohort_frontier_replays",
+    "default_cohort_frontier_adapters",
+    "default_cohort_frontier_contracts",
+    "default_cohort_frontier_fixture",
+    "default_cohort_frontier_invariants",
+    "default_cohort_frontier_policy",
+    "default_cohort_frontier_schema",
+    "default_cohort_frontier_threshold_profiles",
+    "evaluate_cohort_frontier_fixture",
+    "evaluate_cohort_frontier_quality",
+    "execute_cohort_frontier_record",
+    "export_cohort_frontier_canonical",
+    "export_cohort_frontier_json",
+    "export_cohort_frontier_manifest",
+    "export_cohort_frontier_review_csv",
+    "load_cohort_frontier_fixture",
+    "measure_cohort_frontier",
+    "observe_cohort_frontier",
+    "reconcile_cohort_frontier",
+    "replay_cohort_frontier",
+    "replay_cohort_frontier_is_deterministic",
+    "run_cohort_frontier_invariants",
+    "run_cohort_frontier_runtime",
 ]
 
 __version__ = "0.1.0"

@@ -3541,54 +3541,91 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D12-C13": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.SubgroupFairnessStratifier",
                     "glio_noncode.frontier_inference_alpha.FairnessStratificationReport",
+                    "glio_noncode.cohort_frontier_public_data",
+                    "glio_noncode.cohort_frontier_fixture_eval",
+                    "glio_noncode.cohort_frontier_quality_gate",
+                    "glio_noncode.cohort_frontier_release",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_cohort_frontier_evidence",
+                    "tests.test_cohort_frontier_depth",
+                    "tests.test_cohort_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Subgroup rates retain group size, positive count, rate, parity gap, and review "
-                    "thresholds without hiding small strata."
+                    "thresholds without hiding small strata. A public aggregate fixture exercises "
+                    "balanced and high-gap controls through evaluation, reconciliation, release, "
+                    "and CSV review surfaces."
                 ),
             },
             "GNC-D12-C14": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.TransportabilityEstimator",
                     "glio_noncode.frontier_inference_alpha.TransportabilityReport",
+                    "glio_noncode.cohort_frontier_scenario_matrix",
+                    "glio_noncode.cohort_frontier_thresholds",
+                    "glio_noncode.cohort_frontier_replay",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_cohort_frontier_evidence",
+                    "tests.test_cohort_frontier_depth",
+                    "tests.test_cohort_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Transportability estimates retain source/target feature sets, overlap, shift "
-                    "score, and feature-gap or shift review."
+                    "score, and feature-gap or shift review. Threshold probes, scenario matrices, "
+                    "deterministic replay, and release gating make both review boundaries visible."
                 ),
             },
             "GNC-D12-C15": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.FederatedSummaryAnalyzer",
                     "glio_noncode.frontier_inference_alpha.FederatedSummaryReport",
+                    "glio_noncode.cohort_frontier_adapters",
+                    "glio_noncode.cohort_frontier_contracts",
+                    "glio_noncode.cohort_frontier_policy",
                 ),
                 "test_modules": (
                     "tests.test_frontier_inference_alpha",
                     "tests.test_frontier_inference_alpha_cli",
+                    "tests.test_cohort_frontier_evidence",
+                    "tests.test_cohort_frontier_depth",
+                    "tests.test_cohort_frontier_evidence_cli",
                 ),
                 "evidence_note": (
                     "Federated summaries aggregate site counts and means while retaining privacy-floor "
-                    "violations and between-site spread without raw cross-site records."
+                    "violations and between-site spread without raw cross-site records. Adapter, "
+                    "contract, policy, and aggregate export checks preserve the privacy boundary."
                 ),
             },
             "GNC-D12-C16": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.frontier_inference_alpha.CohortDiscoveryPublisher",
                     "glio_noncode.frontier_inference_alpha.CohortDiscoveryBundle",
+                    "glio_noncode.cohort_frontier_bundle",
+                    "glio_noncode.cohort_frontier_lineage",
+                    "glio_noncode.cohort_frontier_views",
+                    "glio_noncode.cohort_frontier_exports",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha",),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_cohort_frontier_evidence",
+                    "tests.test_cohort_frontier_depth",
+                    "tests.test_cohort_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Cohort discovery bundles retain aggregate feature IDs, analysis IDs, exact "
-                    "context, record address, and publication address."
+                    "context, record address, and publication address. Lineage, artifact inventory, "
+                    "review views, release checks, and public CSV export are fixture-backed."
                 ),
             },
             "GNC-D13-C01": {

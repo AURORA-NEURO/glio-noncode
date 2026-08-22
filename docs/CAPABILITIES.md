@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 116 capabilities have deterministic fixture-backed
-verification and 140 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 45.31% of the 256-capability
+capabilities started (100%); 120 capabilities have deterministic fixture-backed
+verification and 136 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 46.88% of the 256-capability
 catalog; MVP implementation coverage is 31.25%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -2073,6 +2073,65 @@ The query boundary is:
 ```powershell
 glio-noncode cohort-query cohort.json --output cohort-selection.json
 ```
+
+The Domain 12 convergence frontier now closes the four C13-C16 operations with
+a deterministic public aggregate fixture. The fixture contains 16 records: one
+positive record and three controls for subgroup fairness, transportability,
+federated summaries, and cohort discovery. Five public source receipts identify
+the evidence boundary without importing patient-level rows. Positive records
+exercise the supported or published paths; controls deliberately exercise a
+parity gap, feature gap, distribution shift, privacy-floor violation, empty
+input, context mismatch, and invalid payload controls.
+
+Every record receives an execution receipt and seven record-level checks, while
+eight global checks validate fixture shape, operation coverage, issue vocabulary,
+and deterministic addresses. The resulting 120-check evaluation is joined to
+36 lineage edges, 11 metrics, 12 blocking quality checks, a 10-stage runtime
+rehearsal, and a four-check release manifest. Controls stay in the review view;
+they are never converted into an absent-effect conclusion.
+
+The four operation boundaries are:
+
+- subgroup fairness retains each group denominator, positive count, rate, gap,
+  and review group;
+- transportability retains source and target feature sets, overlap, shift, and
+  feature-specific review IDs;
+- federated summaries retain site counts, means, spread, and privacy-floor
+  review without merging raw site rows;
+- cohort discovery publishes only an aggregate feature and analysis manifest
+  with exact context and content addresses.
+
+Additional depth surfaces make the boundary inspectable under change. The
+scenario matrix has 33 rows, threshold probing covers 972 probes, the artifact
+inventory has seven nodes, the invariant runner has ten checks, and
+observability emits 26 structured events. Public aggregate exports include
+canonical JSON, indented JSON, release manifests, and a review CSV with all 16
+records.
+
+The Domain 12 frontier commands are:
+
+```powershell
+glio-noncode cohort-frontier-data-audit --output cohort-data-audit.json
+glio-noncode cohort-frontier-contracts --output cohort-contracts.json
+glio-noncode cohort-frontier-schema --output cohort-schema.json
+glio-noncode cohort-frontier-evaluate --output cohort-evaluation.json
+glio-noncode cohort-frontier-replay --output cohort-replay.json
+glio-noncode cohort-frontier-metrics --output cohort-metrics.json
+glio-noncode cohort-frontier-lineage --output cohort-lineage.json
+glio-noncode cohort-frontier-policy --output cohort-policy.json
+glio-noncode cohort-frontier-quality-gate --output cohort-quality.json
+glio-noncode cohort-frontier-runtime --output cohort-runtime.json
+glio-noncode cohort-frontier-bundle --output cohort-bundle.json
+glio-noncode cohort-frontier-release --output cohort-release.json
+glio-noncode export-cohort-frontier-review-csv --output cohort-review.csv
+glio-noncode cohort-frontier-depth-audit --output cohort-depth.json
+```
+
+This frontier is research infrastructure for aggregate cohort review, method
+development, reproducibility testing, and triage. It excludes patient care,
+diagnosis, prognosis, treatment selection, individual risk, and clinical cohort
+claims. A published discovery result is a content-addressed manifest, not a
+validated cohort conclusion.
 
 ## Domain 13 validation planning
 

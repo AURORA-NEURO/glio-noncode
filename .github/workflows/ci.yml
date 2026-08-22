@@ -504,3 +504,31 @@ jobs:
         run: python -m glio_noncode export-causal-frontier-review-csv --output /tmp/glio-causal-frontier-review.csv
       - name: Causal frontier depth audit
         run: python -m glio_noncode causal-frontier-depth-audit --output /tmp/glio-causal-frontier-depth.json
+      - name: Cohort frontier data boundary audit
+        run: python -m glio_noncode cohort-frontier-data-audit --output /tmp/glio-cohort-frontier-data.json
+      - name: Cohort frontier operation contracts
+        run: python -m glio_noncode cohort-frontier-contracts --output /tmp/glio-cohort-frontier-contracts.json
+      - name: Cohort frontier schema manifest
+        run: python -m glio_noncode cohort-frontier-schema --output /tmp/glio-cohort-frontier-schema.json
+      - name: Cohort frontier fixture evaluation
+        run: python -m glio_noncode cohort-frontier-evaluate --output /tmp/glio-cohort-frontier-evaluation.json
+      - name: Cohort frontier replay integrity
+        run: python -m glio_noncode cohort-frontier-replay --output /tmp/glio-cohort-frontier-replay.json
+      - name: Cohort frontier metrics
+        run: python -m glio_noncode cohort-frontier-metrics --output /tmp/glio-cohort-frontier-metrics.json
+      - name: Cohort frontier lineage graph
+        run: python -m glio_noncode cohort-frontier-lineage --output /tmp/glio-cohort-frontier-lineage.json
+      - name: Cohort frontier policy evaluation
+        run: python -m glio_noncode cohort-frontier-policy --output /tmp/glio-cohort-frontier-policy.json
+      - name: Cohort frontier quality gate
+        run: python -m glio_noncode cohort-frontier-quality-gate --output /tmp/glio-cohort-frontier-quality.json
+      - name: Cohort frontier runtime rehearsal
+        run: python -m glio_noncode cohort-frontier-runtime --output /tmp/glio-cohort-frontier-runtime.json
+      - name: Cohort frontier release bundle
+        run: python -m glio_noncode cohort-frontier-bundle --output /tmp/glio-cohort-frontier-bundle.json
+      - name: Cohort frontier release manifest
+        run: python -m glio_noncode cohort-frontier-release --output /tmp/glio-cohort-frontier-release.json
+      - name: Cohort frontier review CSV
+        run: python -m glio_noncode export-cohort-frontier-review-csv --output /tmp/glio-cohort-frontier-review.csv
+      - name: Cohort frontier depth audit
+        run: python -m glio_noncode cohort-frontier-depth-audit --output /tmp/glio-cohort-frontier-depth.json

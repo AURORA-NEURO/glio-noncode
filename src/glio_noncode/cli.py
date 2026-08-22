@@ -328,6 +328,22 @@ from .causal_frontier_replay import replay_causal_frontier
 from .causal_frontier_runtime import run_causal_frontier_runtime
 from .causal_frontier_schema import default_causal_frontier_schema
 from .causal_frontier_views import build_causal_frontier_review_view
+from .cohort_frontier_bundle import assemble_cohort_frontier_bundle
+from .cohort_frontier_contracts import default_cohort_frontier_contracts
+from .cohort_frontier_depth import audit_cohort_frontier_depth
+from .cohort_frontier_exports import export_cohort_frontier_review_csv
+from .cohort_frontier_fixture_eval import evaluate_cohort_frontier_fixture
+from .cohort_frontier_lineage import build_cohort_frontier_lineage
+from .cohort_frontier_metrics import measure_cohort_frontier
+from .cohort_frontier_policy import default_cohort_frontier_policy
+from .cohort_frontier_public_data import audit_cohort_frontier_data, default_cohort_frontier_fixture, load_cohort_frontier_fixture
+from .cohort_frontier_quality_gate import evaluate_cohort_frontier_quality
+from .cohort_frontier_reconciliation import reconcile_cohort_frontier
+from .cohort_frontier_release import build_cohort_frontier_release_manifest
+from .cohort_frontier_replay import replay_cohort_frontier
+from .cohort_frontier_runtime import run_cohort_frontier_runtime
+from .cohort_frontier_schema import default_cohort_frontier_schema
+from .cohort_frontier_views import build_cohort_frontier_review_view
 from .link_graph import GeneFeatureParser
 from .link_graph_alpha import (
     ContactAssayKind,
@@ -920,6 +936,12 @@ def _read_causal_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_causal_frontier_fixture(path) if path else default_causal_frontier_fixture()
+
+
+def _read_cohort_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_cohort_frontier_fixture(path) if path else default_cohort_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -4085,6 +4107,38 @@ def build_parser() -> argparse.ArgumentParser:
     )
     causal_frontier_csv.add_argument("input", nargs="?", default=None)
     causal_frontier_csv.add_argument("--output", default=None)
+
+    cohort_frontier_commands = (
+        ("cohort-frontier-data-audit", "audit public Domain 12 source receipts"),
+        ("cohort-frontier-contracts", "emit Domain 12 operation contracts"),
+        ("cohort-frontier-schema", "emit Domain 12 field schema"),
+        ("cohort-frontier-evaluate", "evaluate Domain 12 positive and control records"),
+        ("cohort-frontier-replay", "replay Domain 12 content-addressed receipts"),
+        ("cohort-frontier-metrics", "emit Domain 12 operation metrics"),
+        ("cohort-frontier-lineage", "emit Domain 12 source lineage"),
+        ("cohort-frontier-policy", "emit Domain 12 policy decisions"),
+        ("cohort-frontier-quality-gate", "run Domain 12 quality checks"),
+        ("cohort-frontier-runtime", "run Domain 12 release rehearsal"),
+        ("cohort-frontier-release", "build Domain 12 release manifest"),
+        ("cohort-frontier-depth-audit", "run Domain 12 depth audit"),
+    )
+    for command_name, command_help in cohort_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        if command_name != "cohort-frontier-contracts":
+            command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    cohort_frontier_bundle = subparsers.add_parser(
+        "cohort-frontier-bundle",
+        help="assemble the Domain 12 research-use release bundle",
+    )
+    cohort_frontier_bundle.add_argument("input", nargs="?", default=None)
+    cohort_frontier_bundle.add_argument("--output", default=None)
+    cohort_frontier_csv = subparsers.add_parser(
+        "export-cohort-frontier-review-csv",
+        help="export the Domain 12 review rows as CSV",
+    )
+    cohort_frontier_csv.add_argument("input", nargs="?", default=None)
+    cohort_frontier_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -7652,6 +7706,90 @@ def main(argv: list[str] | None = None) -> int:
             runtime = run_causal_frontier_runtime(fixture, run_id="causal-frontier-csv")
             release = build_causal_frontier_release_manifest(runtime.bundle, gate, replay_causal_frontier(fixture, replay_id="causal-frontier-csv-replay"))
             _write_text(export_causal_frontier_review_csv(build_causal_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)), args.output)
+            return 0
+        if args.command == "cohort-frontier-data-audit":
+            _write_json(audit_cohort_frontier_data(_read_cohort_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-contracts":
+            _write_json(default_cohort_frontier_contracts().manifest(), args.output)
+            return 0
+        if args.command == "cohort-frontier-schema":
+            _write_json(default_cohort_frontier_schema().to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-evaluate":
+            _write_json(evaluate_cohort_frontier_fixture(_read_cohort_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-replay":
+            _write_json(replay_cohort_frontier(_read_cohort_frontier_fixture(args.input), replay_id="cohort-frontier-cli-replay").to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-metrics":
+            fixture = _read_cohort_frontier_fixture(args.input)
+            _write_json(measure_cohort_frontier(evaluate_cohort_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-lineage":
+            fixture = _read_cohort_frontier_fixture(args.input)
+            evaluation = evaluate_cohort_frontier_fixture(fixture)
+            _write_json(build_cohort_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-policy":
+            fixture = _read_cohort_frontier_fixture(args.input)
+            contracts = default_cohort_frontier_contracts()
+            evaluation = evaluate_cohort_frontier_fixture(fixture)
+            policy = default_cohort_frontier_policy(contracts)
+            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            return 0
+        if args.command == "cohort-frontier-quality-gate":
+            fixture = _read_cohort_frontier_fixture(args.input)
+            contracts = default_cohort_frontier_contracts()
+            schema = default_cohort_frontier_schema()
+            evaluation = evaluate_cohort_frontier_fixture(fixture)
+            policy = default_cohort_frontier_policy(contracts)
+            lineage = build_cohort_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
+            _write_json(evaluate_cohort_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation).to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-runtime":
+            _write_json(run_cohort_frontier_runtime(_read_cohort_frontier_fixture(args.input), run_id="cohort-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-bundle":
+            fixture = _read_cohort_frontier_fixture(args.input)
+            contracts = default_cohort_frontier_contracts()
+            evaluation = evaluate_cohort_frontier_fixture(fixture)
+            metrics = measure_cohort_frontier(evaluation)
+            policy = default_cohort_frontier_policy(contracts)
+            lineage = build_cohort_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
+            _write_json(assemble_cohort_frontier_bundle(fixture, evaluation, metrics, lineage, reconciliation, policy).to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-release":
+            fixture = _read_cohort_frontier_fixture(args.input)
+            runtime = run_cohort_frontier_runtime(fixture, run_id="cohort-frontier-release")
+            contracts = default_cohort_frontier_contracts()
+            schema = default_cohort_frontier_schema()
+            evaluation = evaluate_cohort_frontier_fixture(fixture)
+            policy = default_cohort_frontier_policy(contracts)
+            lineage = build_cohort_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
+            gate = evaluate_cohort_frontier_quality(fixture, evaluation, contracts, schema, lineage, reconciliation)
+            replay = replay_cohort_frontier(fixture, replay_id="cohort-frontier-release-replay")
+            _write_json(build_cohort_frontier_release_manifest(runtime.bundle, gate, replay).to_dict(), args.output)
+            return 0
+        if args.command == "cohort-frontier-depth-audit":
+            _write_json(audit_cohort_frontier_depth().to_dict(), args.output)
+            return 0
+        if args.command == "export-cohort-frontier-review-csv":
+            fixture = _read_cohort_frontier_fixture(args.input)
+            evaluation = evaluate_cohort_frontier_fixture(fixture)
+            metrics = measure_cohort_frontier(evaluation)
+            contracts = default_cohort_frontier_contracts()
+            policy = default_cohort_frontier_policy(contracts)
+            lineage = build_cohort_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_cohort_frontier(fixture, evaluation, policy)
+            gate = evaluate_cohort_frontier_quality(fixture, evaluation, contracts, default_cohort_frontier_schema(), lineage, reconciliation)
+            runtime = run_cohort_frontier_runtime(fixture, run_id="cohort-frontier-csv")
+            release = build_cohort_frontier_release_manifest(runtime.bundle, gate, replay_cohort_frontier(fixture, replay_id="cohort-frontier-csv-replay"))
+            view = build_cohort_frontier_review_view(fixture, evaluation, metrics, policy.decide(evaluation), release)
+            _write_text(export_cohort_frontier_review_csv(view), args.output)
             return 0
         if args.command == "evaluate-topology-frontier-fixture":
             fixture = _read_topology_frontier_fixture(args.input)
