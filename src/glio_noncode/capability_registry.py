@@ -4104,46 +4104,60 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D15-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.workspace.CaseWorkspaceBuilder",
                     "glio_noncode.workspace.WorkspaceBrowser",
+                    "glio_noncode.workspace_frontier_fixture_eval",
+                    "glio_noncode.workspace_frontier_review_queue",
                 ),
-                "test_modules": ("tests.test_workspace", "tests.test_cli_api"),
+                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_evidence_cli"),
                 "evidence_note": (
-                    "Case workspaces expose immutable variant, element, hypothesis, evidence, "
-                    "and validation sections with exact context, facets, pagination, and research "
-                    "limitations; UI rendering and accessibility conformance remain."
+                    "The public aggregate fixture verifies immutable case sections, exact context, "
+                    "facets, pagination, accessibility metadata, source receipts, control states, "
+                    "replay stability, and release accounting."
                 ),
             },
             "GNC-D15-C02": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.workspace.CohortWorkspaceBuilder",),
-                "test_modules": ("tests.test_workspace",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace.CohortWorkspaceBuilder",
+                    "glio_noncode.workspace_frontier_fixture_eval",
+                    "glio_noncode.workspace_frontier_metrics",
+                ),
+                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_depth"),
                 "evidence_note": (
-                    "Cohort workspaces retain selected records, callable/background summaries, "
-                    "and control candidates as separate filterable records; cohort-scale rendering "
-                    "and performance benchmarks remain."
+                    "The public aggregate fixture verifies selected records, callability exclusion, "
+                    "exact-context withholding, bounded facets, section separation, source receipts, "
+                    "replay stability, and descriptive metric accounting."
                 ),
             },
             "GNC-D15-C03": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.workspace.VariantExplorer",),
-                "test_modules": ("tests.test_workspace",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace.VariantExplorer",
+                    "glio_noncode.workspace_frontier_fixture_eval",
+                    "glio_noncode.workspace_frontier_contracts",
+                ),
+                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_evidence_cli"),
                 "evidence_note": (
-                    "Variant detail resolution keeps exact context, declared related records, "
-                    "absent variants, and out-of-domain requests explicit; multi-view interaction "
-                    "and external usability evaluation remain."
+                    "The public aggregate fixture verifies canonical variant resolution, declared "
+                    "relationship grouping, absent-variant abstention, context mismatch withholding, "
+                    "content addresses, and stable CLI output."
                 ),
             },
             "GNC-D15-C04": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.workspace.RegulatoryTrackBrowser",),
-                "test_modules": ("tests.test_workspace", "tests.test_cli_api"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.workspace.RegulatoryTrackBrowser",
+                    "glio_noncode.workspace_frontier_fixture_eval",
+                    "glio_noncode.workspace_frontier_thresholds",
+                ),
+                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_depth"),
                 "evidence_note": (
-                    "Regulatory tracks become interval-searchable records with source IDs, row "
-                    "hashes, coordinate overlap, facets, and exact-context out-of-domain behavior; "
-                    "large-track rendering and accessibility tests remain."
+                    "The public aggregate fixture verifies source-accounted interval records, row "
+                    "hashes, normalized coordinate overlap, parse-issue visibility, facets, exact "
+                    "context, accessibility labels, bounded threshold probes, and release evidence."
                 ),
             },
             "GNC-D15-C05": {

@@ -639,6 +639,29 @@ from .evidence_lifecycle_frontier_scenario_matrix import EvidenceLifecycleScenar
 from .evidence_lifecycle_frontier_schema import EvidenceLifecycleFieldSpec, EvidenceLifecycleOperationSchema, EvidenceLifecycleSchemaManifest, default_evidence_lifecycle_schema
 from .evidence_lifecycle_frontier_thresholds import EvidenceLifecycleThresholdProbe, EvidenceLifecycleThresholdProfile, EvidenceLifecycleThresholdReport, build_evidence_lifecycle_threshold_report, default_evidence_lifecycle_threshold_profiles
 from .evidence_lifecycle_frontier_views import EvidenceLifecycleReviewRow, EvidenceLifecycleReviewView, build_evidence_lifecycle_review_view
+from .workspace_frontier_adapters import WorkspaceFrontierAdapterKind, WorkspaceFrontierAdapterReceipt, WorkspaceFrontierAdapterRegistry, WorkspaceFrontierInputAdapter, adapt_workspace_frontier_input, default_workspace_frontier_adapters
+from .workspace_frontier_artifacts import WorkspaceFrontierArtifact, WorkspaceFrontierArtifactInventory, WorkspaceFrontierArtifactKind, build_workspace_frontier_artifact_inventory
+from .workspace_frontier_bundle import WorkspaceFrontierReleaseBundle, assemble_workspace_frontier_bundle
+from .workspace_frontier_checks import WorkspaceFrontierInvariant, WorkspaceFrontierInvariantReport, WorkspaceFrontierInvariantResult, default_workspace_frontier_invariants, run_workspace_frontier_invariants, workspace_frontier_invariants_from_execution, workspace_frontier_observation_map
+from .workspace_frontier_contracts import WorkspaceFrontierContract, WorkspaceFrontierContractRegistry, default_workspace_frontier_contracts
+from .workspace_frontier_depth import WorkspaceFrontierDepthAudit, WorkspaceFrontierDepthCheck, audit_workspace_frontier_depth
+from .workspace_frontier_exports import export_workspace_frontier_canonical, export_workspace_frontier_json, export_workspace_frontier_manifest, export_workspace_frontier_review_csv
+from .workspace_frontier_fixture_eval import WorkspaceFrontierEvaluation, WorkspaceFrontierEvaluationCheck, WorkspaceFrontierExecution, evaluate_workspace_frontier_fixture, execute_workspace_frontier_record
+from .workspace_frontier_lineage import WorkspaceFrontierLineageEdge, WorkspaceFrontierLineageGraph, build_workspace_frontier_lineage
+from .workspace_frontier_metrics import WorkspaceFrontierMetric, WorkspaceFrontierMetricsReport, measure_workspace_frontier
+from .workspace_frontier_observability import WorkspaceFrontierEvent, WorkspaceFrontierObservabilityReport, observe_workspace_frontier
+from .workspace_frontier_policy import WorkspaceFrontierDecision, WorkspaceFrontierPolicy, WorkspaceFrontierPolicyDecision, WorkspaceFrontierPolicyRule, default_workspace_frontier_policy
+from .workspace_frontier_public_data import WORKSPACE_FRONTIER_CONTEXT_KEY, WORKSPACE_FRONTIER_CONTROL_COUNT, WORKSPACE_FRONTIER_EVIDENCE_BOUNDARY, WORKSPACE_FRONTIER_FIXTURE_VERSION, WORKSPACE_FRONTIER_POSITIVE_COUNT, WORKSPACE_FRONTIER_SOURCE_COUNT, WorkspaceFrontierCatalog, WorkspaceFrontierDataAudit, WorkspaceFrontierDataCheck, WorkspaceFrontierFixture, WorkspaceFrontierOperation, WorkspaceFrontierRecord, WorkspaceFrontierRole, WorkspaceFrontierSourceReceipt, audit_workspace_frontier_data, build_workspace_frontier_catalog, default_workspace_frontier_fixture, load_workspace_frontier_fixture
+from .workspace_frontier_quality_gate import WorkspaceFrontierGateCheck, WorkspaceFrontierQualityGate, evaluate_workspace_frontier_quality
+from .workspace_frontier_reconciliation import WorkspaceFrontierReconciliation, WorkspaceFrontierReconciliationItem, reconcile_workspace_frontier
+from .workspace_frontier_release import WorkspaceFrontierReleaseCheck, WorkspaceFrontierReleaseManifest, WorkspaceFrontierReleaseState, build_workspace_frontier_release_manifest
+from .workspace_frontier_replay import WorkspaceFrontierReplayComparison, WorkspaceFrontierReplayReceipt, compare_workspace_frontier_replays, replay_workspace_frontier, workspace_frontier_replay_is_deterministic
+from .workspace_frontier_review_queue import WorkspaceFrontierReviewDisposition, WorkspaceFrontierReviewPriority, WorkspaceFrontierReviewQueue, WorkspaceFrontierReviewQueueCheck, WorkspaceFrontierReviewQueueItem, build_workspace_frontier_review_queue
+from .workspace_frontier_runtime import WorkspaceFrontierRuntimeReport, WorkspaceFrontierRuntimeStage, run_workspace_frontier_runtime
+from .workspace_frontier_scenario_matrix import WorkspaceFrontierScenario, WorkspaceFrontierScenarioMatrix, build_workspace_frontier_scenario_matrix
+from .workspace_frontier_schema import WorkspaceFrontierFieldSpec, WorkspaceFrontierOperationSchema, WorkspaceFrontierSchemaManifest, default_workspace_frontier_schema
+from .workspace_frontier_thresholds import WorkspaceFrontierThresholdProbe, WorkspaceFrontierThresholdProfile, WorkspaceFrontierThresholdReport, build_workspace_frontier_threshold_report, default_workspace_frontier_threshold_profiles
+from .workspace_frontier_views import WorkspaceFrontierReviewRow, WorkspaceFrontierReviewView, build_workspace_frontier_review_view
 from .frontier_atlas_bundle import (
     FrontierAtlasBundle,
     build_frontier_atlas_bundle,
@@ -6005,6 +6028,114 @@ __all__ += [
     "run_evidence_lifecycle_invariants",
     "run_evidence_lifecycle_runtime",
     "validation_lifecycle_observation_map",
+]
+
+__all__ += [
+    "WORKSPACE_FRONTIER_CONTEXT_KEY",
+    "WORKSPACE_FRONTIER_CONTROL_COUNT",
+    "WORKSPACE_FRONTIER_EVIDENCE_BOUNDARY",
+    "WORKSPACE_FRONTIER_FIXTURE_VERSION",
+    "WORKSPACE_FRONTIER_POSITIVE_COUNT",
+    "WORKSPACE_FRONTIER_SOURCE_COUNT",
+    "WorkspaceFrontierAdapterKind",
+    "WorkspaceFrontierAdapterReceipt",
+    "WorkspaceFrontierAdapterRegistry",
+    "WorkspaceFrontierArtifact",
+    "WorkspaceFrontierArtifactInventory",
+    "WorkspaceFrontierArtifactKind",
+    "WorkspaceFrontierCatalog",
+    "WorkspaceFrontierContract",
+    "WorkspaceFrontierContractRegistry",
+    "WorkspaceFrontierDataAudit",
+    "WorkspaceFrontierDataCheck",
+    "WorkspaceFrontierDecision",
+    "WorkspaceFrontierDepthAudit",
+    "WorkspaceFrontierDepthCheck",
+    "WorkspaceFrontierEvaluation",
+    "WorkspaceFrontierEvaluationCheck",
+    "WorkspaceFrontierEvent",
+    "WorkspaceFrontierExecution",
+    "WorkspaceFrontierFieldSpec",
+    "WorkspaceFrontierFixture",
+    "WorkspaceFrontierGateCheck",
+    "WorkspaceFrontierInputAdapter",
+    "WorkspaceFrontierInvariant",
+    "WorkspaceFrontierInvariantReport",
+    "WorkspaceFrontierInvariantResult",
+    "WorkspaceFrontierLineageEdge",
+    "WorkspaceFrontierLineageGraph",
+    "WorkspaceFrontierMetric",
+    "WorkspaceFrontierMetricsReport",
+    "WorkspaceFrontierObservabilityReport",
+    "WorkspaceFrontierOperation",
+    "WorkspaceFrontierOperationSchema",
+    "WorkspaceFrontierPolicy",
+    "WorkspaceFrontierPolicyDecision",
+    "WorkspaceFrontierPolicyRule",
+    "WorkspaceFrontierQualityGate",
+    "WorkspaceFrontierRecord",
+    "WorkspaceFrontierReconciliation",
+    "WorkspaceFrontierReconciliationItem",
+    "WorkspaceFrontierReleaseBundle",
+    "WorkspaceFrontierReleaseCheck",
+    "WorkspaceFrontierReleaseManifest",
+    "WorkspaceFrontierReleaseState",
+    "WorkspaceFrontierReplayComparison",
+    "WorkspaceFrontierReplayReceipt",
+    "WorkspaceFrontierReviewDisposition",
+    "WorkspaceFrontierReviewPriority",
+    "WorkspaceFrontierReviewQueue",
+    "WorkspaceFrontierReviewQueueCheck",
+    "WorkspaceFrontierReviewQueueItem",
+    "WorkspaceFrontierReviewRow",
+    "WorkspaceFrontierReviewView",
+    "WorkspaceFrontierRole",
+    "WorkspaceFrontierRuntimeReport",
+    "WorkspaceFrontierRuntimeStage",
+    "WorkspaceFrontierScenario",
+    "WorkspaceFrontierScenarioMatrix",
+    "WorkspaceFrontierSchemaManifest",
+    "WorkspaceFrontierSourceReceipt",
+    "WorkspaceFrontierThresholdProbe",
+    "WorkspaceFrontierThresholdProfile",
+    "WorkspaceFrontierThresholdReport",
+    "adapt_workspace_frontier_input",
+    "assemble_workspace_frontier_bundle",
+    "audit_workspace_frontier_data",
+    "audit_workspace_frontier_depth",
+    "build_workspace_frontier_artifact_inventory",
+    "build_workspace_frontier_catalog",
+    "build_workspace_frontier_lineage",
+    "build_workspace_frontier_release_manifest",
+    "build_workspace_frontier_review_queue",
+    "build_workspace_frontier_review_view",
+    "build_workspace_frontier_scenario_matrix",
+    "build_workspace_frontier_threshold_report",
+    "compare_workspace_frontier_replays",
+    "default_workspace_frontier_adapters",
+    "default_workspace_frontier_contracts",
+    "default_workspace_frontier_fixture",
+    "default_workspace_frontier_invariants",
+    "default_workspace_frontier_policy",
+    "default_workspace_frontier_schema",
+    "default_workspace_frontier_threshold_profiles",
+    "evaluate_workspace_frontier_fixture",
+    "evaluate_workspace_frontier_quality",
+    "execute_workspace_frontier_record",
+    "export_workspace_frontier_canonical",
+    "export_workspace_frontier_json",
+    "export_workspace_frontier_manifest",
+    "export_workspace_frontier_review_csv",
+    "load_workspace_frontier_fixture",
+    "measure_workspace_frontier",
+    "observe_workspace_frontier",
+    "reconcile_workspace_frontier",
+    "replay_workspace_frontier",
+    "run_workspace_frontier_invariants",
+    "run_workspace_frontier_runtime",
+    "workspace_frontier_invariants_from_execution",
+    "workspace_frontier_observation_map",
+    "workspace_frontier_replay_is_deterministic",
 ]
 
 __version__ = "0.1.0"

@@ -600,3 +600,45 @@ jobs:
         run: python -m glio_noncode export-evidence-lifecycle-review-csv --output /tmp/glio-evidence-lifecycle-review.csv
       - name: Evidence lifecycle depth audit
         run: python -m glio_noncode evidence-lifecycle-depth-audit --output /tmp/glio-evidence-lifecycle-depth.json
+      - name: Workspace frontier data boundary audit
+        run: python -m glio_noncode workspace-frontier-data-audit --output /tmp/glio-workspace-frontier-data.json
+      - name: Workspace frontier operation contracts
+        run: python -m glio_noncode workspace-frontier-contracts --output /tmp/glio-workspace-frontier-contracts.json
+      - name: Workspace frontier schema manifest
+        run: python -m glio_noncode workspace-frontier-schema --output /tmp/glio-workspace-frontier-schema.json
+      - name: Workspace frontier fixture evaluation
+        run: python -m glio_noncode workspace-frontier-evaluate --output /tmp/glio-workspace-frontier-evaluation.json
+      - name: Workspace frontier replay integrity
+        run: python -m glio_noncode workspace-frontier-replay --output /tmp/glio-workspace-frontier-replay.json
+      - name: Workspace frontier metrics
+        run: python -m glio_noncode workspace-frontier-metrics --output /tmp/glio-workspace-frontier-metrics.json
+      - name: Workspace frontier lineage graph
+        run: python -m glio_noncode workspace-frontier-lineage --output /tmp/glio-workspace-frontier-lineage.json
+      - name: Workspace frontier policy evaluation
+        run: python -m glio_noncode workspace-frontier-policy --output /tmp/glio-workspace-frontier-policy.json
+      - name: Workspace frontier quality gate
+        run: python -m glio_noncode workspace-frontier-quality-gate --output /tmp/glio-workspace-frontier-quality.json
+      - name: Workspace frontier runtime rehearsal
+        run: python -m glio_noncode workspace-frontier-runtime --output /tmp/glio-workspace-frontier-runtime.json
+      - name: Workspace frontier observability
+        run: python -m glio_noncode workspace-frontier-observability --output /tmp/glio-workspace-frontier-observability.json
+      - name: Workspace frontier artifact inventory
+        run: python -m glio_noncode workspace-frontier-artifacts --output /tmp/glio-workspace-frontier-artifacts.json
+      - name: Workspace frontier release bundle
+        run: python -m glio_noncode workspace-frontier-bundle --output /tmp/glio-workspace-frontier-bundle.json
+      - name: Workspace frontier release manifest
+        run: python -m glio_noncode workspace-frontier-release --output /tmp/glio-workspace-frontier-release.json
+      - name: Workspace frontier review queue
+        run: python -m glio_noncode workspace-frontier-review-queue --output /tmp/glio-workspace-frontier-queue.json
+      - name: Workspace frontier review CSV
+        run: python -m glio_noncode export-workspace-frontier-review-csv --output /tmp/glio-workspace-frontier-review.csv
+      - name: Workspace frontier depth audit
+        run: python -m glio_noncode workspace-frontier-depth-audit --output /tmp/glio-workspace-frontier-depth.json
+      - name: Workspace frontier adapters
+        run: python -m glio_noncode workspace-frontier-adapters --output /tmp/glio-workspace-frontier-adapters.json
+      - name: Workspace frontier scenarios
+        run: python -m glio_noncode workspace-frontier-scenarios --output /tmp/glio-workspace-frontier-scenarios.json
+      - name: Workspace frontier thresholds
+        run: python -m glio_noncode workspace-frontier-thresholds --output /tmp/glio-workspace-frontier-thresholds.json
+      - name: Workspace frontier invariants
+        run: python -m glio_noncode workspace-frontier-invariants --output /tmp/glio-workspace-frontier-invariants.json

@@ -22,10 +22,10 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add partial, test-backed coverage for all C13-C16
 capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 128 capabilities have deterministic fixture-backed
-verification and 128 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 50.0% of the 256-capability
-catalog; MVP implementation coverage is 43.75%. The surfaces retain
+capabilities started (100%); 132 capabilities have deterministic fixture-backed
+verification and 124 remain partial. The frontier surfaces are bounded research
+infrastructure. Current verified coverage is 51.56% of the 256-capability
+catalog; MVP implementation coverage is 50.0%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -2391,6 +2391,33 @@ and matched controls in separate sections. The variant explorer resolves a
 single variant and only declared relationships. The regulatory track browser
 turns parsed intervals into source-accounted overlap-searchable records while
 keeping parse issues and the annotation-only limitation visible.
+
+The C01–C04 workspace frontier adds a public aggregate verification package for
+these four surfaces. The fixture contains 16 records across five HTTPS source
+receipts: one positive and three controls per operation. Evaluation executes
+the existing case, cohort, variant, and track primitives and records 120
+checks. Controls cover context mismatch, malformed case input, duplicate
+variant identity, callability exclusion, absent variants, malformed interval
+rows, and empty track input.
+
+The frontier package extends the read models with a 14-check quality gate, 21
+depth checks, 36 lineage edges, 13 metrics, eight ordered runtime stages, 24
+observability events, 972 bounded threshold probes, seven release artifacts,
+33 scenarios, deterministic replay, adapter receipts, a release manifest, and
+a 16-row review queue. Three supported positive rows are ready for research
+navigation; 13 partial, absent, abstained, invalid, or out-of-domain rows stay
+held for review. Accessibility labels, keyboard order, focus boundary, and
+reading order remain in the public payload.
+
+The verification commands are:
+
+```powershell
+glio-noncode workspace-frontier-evaluate --output workspace-frontier-evaluation.json
+glio-noncode workspace-frontier-quality-gate --output workspace-frontier-quality.json
+glio-noncode workspace-frontier-runtime --output workspace-frontier-runtime.json
+glio-noncode workspace-frontier-review-queue --output workspace-frontier-queue.json
+glio-noncode export-workspace-frontier-review-csv --output workspace-frontier-review.csv
+```
 
 The Domain 15 scientific-beta projections add four deep research surfaces:
 

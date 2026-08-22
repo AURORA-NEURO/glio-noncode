@@ -221,6 +221,29 @@ from .evidence_lifecycle_frontier_review_queue import build_evidence_lifecycle_r
 from .evidence_lifecycle_frontier_runtime import run_evidence_lifecycle_runtime
 from .evidence_lifecycle_frontier_schema import default_evidence_lifecycle_schema
 from .evidence_lifecycle_frontier_views import build_evidence_lifecycle_review_view
+from .workspace_frontier_adapters import default_workspace_frontier_adapters
+from .workspace_frontier_artifacts import build_workspace_frontier_artifact_inventory
+from .workspace_frontier_bundle import assemble_workspace_frontier_bundle
+from .workspace_frontier_checks import workspace_frontier_invariants_from_execution
+from .workspace_frontier_contracts import default_workspace_frontier_contracts
+from .workspace_frontier_depth import audit_workspace_frontier_depth
+from .workspace_frontier_exports import export_workspace_frontier_review_csv
+from .workspace_frontier_fixture_eval import evaluate_workspace_frontier_fixture
+from .workspace_frontier_lineage import build_workspace_frontier_lineage
+from .workspace_frontier_metrics import measure_workspace_frontier
+from .workspace_frontier_observability import observe_workspace_frontier
+from .workspace_frontier_policy import default_workspace_frontier_policy
+from .workspace_frontier_public_data import audit_workspace_frontier_data, default_workspace_frontier_fixture, load_workspace_frontier_fixture
+from .workspace_frontier_quality_gate import evaluate_workspace_frontier_quality
+from .workspace_frontier_reconciliation import reconcile_workspace_frontier
+from .workspace_frontier_release import build_workspace_frontier_release_manifest
+from .workspace_frontier_replay import replay_workspace_frontier
+from .workspace_frontier_review_queue import build_workspace_frontier_review_queue
+from .workspace_frontier_runtime import run_workspace_frontier_runtime
+from .workspace_frontier_scenario_matrix import build_workspace_frontier_scenario_matrix
+from .workspace_frontier_schema import default_workspace_frontier_schema
+from .workspace_frontier_thresholds import build_workspace_frontier_threshold_report
+from .workspace_frontier_views import build_workspace_frontier_review_view
 from .frontier_atlas_contracts import default_frontier_atlas_contracts
 from .frontier_atlas_exports import (
     export_frontier_atlas_metrics_csv,
@@ -992,6 +1015,12 @@ def _read_evidence_lifecycle_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_evidence_lifecycle_fixture(path) if path else default_evidence_lifecycle_fixture()
+
+
+def _read_workspace_frontier_fixture(path: str | None):
+    """Load a caller fixture or use the deterministic public aggregate."""
+
+    return load_workspace_frontier_fixture(path) if path else default_workspace_frontier_fixture()
 
 
 def _workspace_from_payload(payload: Mapping[str, Any]) -> ResearchWorkspace:
@@ -4253,6 +4282,37 @@ def build_parser() -> argparse.ArgumentParser:
     evidence_lifecycle_csv = subparsers.add_parser("export-evidence-lifecycle-review-csv", help="export Domain 14 lifecycle review rows as CSV")
     evidence_lifecycle_csv.add_argument("input", nargs="?", default=None)
     evidence_lifecycle_csv.add_argument("--output", default=None)
+
+    workspace_frontier_commands = (
+        ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
+        ("workspace-frontier-contracts", "emit Domain 15 workspace contracts"),
+        ("workspace-frontier-schema", "emit Domain 15 workspace schema"),
+        ("workspace-frontier-evaluate", "evaluate Domain 15 workspace records"),
+        ("workspace-frontier-replay", "replay Domain 15 workspace receipts"),
+        ("workspace-frontier-metrics", "emit Domain 15 workspace metrics"),
+        ("workspace-frontier-lineage", "emit Domain 15 workspace lineage"),
+        ("workspace-frontier-policy", "emit Domain 15 workspace policy"),
+        ("workspace-frontier-quality-gate", "run Domain 15 workspace quality checks"),
+        ("workspace-frontier-runtime", "run Domain 15 workspace release rehearsal"),
+        ("workspace-frontier-observability", "emit Domain 15 workspace observability"),
+        ("workspace-frontier-artifacts", "emit Domain 15 workspace artifact inventory"),
+        ("workspace-frontier-bundle", "assemble the Domain 15 workspace evidence bundle"),
+        ("workspace-frontier-release", "build Domain 15 workspace release manifest"),
+        ("workspace-frontier-review-queue", "build Domain 15 workspace review queue"),
+        ("workspace-frontier-depth-audit", "run Domain 15 workspace depth audit"),
+        ("workspace-frontier-adapters", "emit Domain 15 workspace input adapters"),
+        ("workspace-frontier-scenarios", "emit Domain 15 workspace scenario matrix"),
+        ("workspace-frontier-thresholds", "emit Domain 15 workspace threshold probes"),
+        ("workspace-frontier-invariants", "run Domain 15 workspace invariants"),
+    )
+    for command_name, command_help in workspace_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        if command_name not in {"workspace-frontier-contracts", "workspace-frontier-adapters"}:
+            command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    workspace_frontier_csv = subparsers.add_parser("export-workspace-frontier-review-csv", help="export Domain 15 workspace review rows as CSV")
+    workspace_frontier_csv.add_argument("input", nargs="?", default=None)
+    workspace_frontier_csv.add_argument("--output", default=None)
 
     motif_disruption = subparsers.add_parser(
         "scan-motif-disruption",
@@ -8008,6 +8068,122 @@ def main(argv: list[str] | None = None) -> int:
             release = build_evidence_lifecycle_release_manifest(runtime.bundle, gate, replay_evidence_lifecycle(fixture, replay_id="evidence-lifecycle-csv-replay"))
             view = build_evidence_lifecycle_review_view(fixture, evaluation, policy.decide(evaluation), release)
             _write_text(export_evidence_lifecycle_review_csv(view), args.output)
+            return 0
+        if args.command == "workspace-frontier-data-audit":
+            _write_json(audit_workspace_frontier_data(_read_workspace_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-contracts":
+            _write_json(default_workspace_frontier_contracts().to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-schema":
+            _write_json(default_workspace_frontier_schema().to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-evaluate":
+            _write_json(evaluate_workspace_frontier_fixture(_read_workspace_frontier_fixture(args.input)).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-replay":
+            _write_json(replay_workspace_frontier(_read_workspace_frontier_fixture(args.input), replay_id="workspace-frontier-cli-replay").to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-metrics":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            _write_json(measure_workspace_frontier(evaluate_workspace_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-lineage":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            evaluation = evaluate_workspace_frontier_fixture(fixture)
+            _write_json(build_workspace_frontier_lineage(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-policy":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            evaluation = evaluate_workspace_frontier_fixture(fixture)
+            policy = default_workspace_frontier_policy()
+            _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+            return 0
+        if args.command == "workspace-frontier-quality-gate":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            evaluation = evaluate_workspace_frontier_fixture(fixture)
+            policy = default_workspace_frontier_policy()
+            lineage = build_workspace_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
+            _write_json(evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-runtime":
+            _write_json(run_workspace_frontier_runtime(_read_workspace_frontier_fixture(args.input), run_id="workspace-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-observability":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-observability")
+            _write_json(observe_workspace_frontier(runtime, runtime.evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-artifacts":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            evaluation = evaluate_workspace_frontier_fixture(fixture)
+            metrics = measure_workspace_frontier(evaluation)
+            policy = default_workspace_frontier_policy()
+            lineage = build_workspace_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
+            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
+            runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-artifacts")
+            release = build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-artifacts-replay"), runtime)
+            _write_json(build_workspace_frontier_artifact_inventory(fixture.fixture_id, fixture.content_address, evaluation, metrics, quality, runtime, runtime.bundle, release).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-bundle":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            evaluation = evaluate_workspace_frontier_fixture(fixture)
+            metrics = measure_workspace_frontier(evaluation)
+            policy = default_workspace_frontier_policy()
+            reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
+            _write_json(assemble_workspace_frontier_bundle(fixture, evaluation, metrics, reconciliation).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-release":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-release")
+            evaluation = runtime.evaluation
+            policy = default_workspace_frontier_policy()
+            lineage = build_workspace_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
+            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
+            _write_json(build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-release-replay"), runtime).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-review-queue":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            evaluation = evaluate_workspace_frontier_fixture(fixture)
+            policy = default_workspace_frontier_policy()
+            runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-review")
+            lineage = build_workspace_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
+            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
+            release = build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-review-replay"), runtime)
+            view = build_workspace_frontier_review_view(fixture, evaluation, policy.decide(evaluation), release)
+            _write_json(build_workspace_frontier_review_queue(fixture, evaluation, policy.decide(evaluation), view, release).to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-depth-audit":
+            _write_json(audit_workspace_frontier_depth().to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-adapters":
+            _write_json(default_workspace_frontier_adapters().to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-scenarios":
+            _write_json(build_workspace_frontier_scenario_matrix().to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-thresholds":
+            _write_json(build_workspace_frontier_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "workspace-frontier-invariants":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            _write_json(workspace_frontier_invariants_from_execution(fixture, evaluate_workspace_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "export-workspace-frontier-review-csv":
+            fixture = _read_workspace_frontier_fixture(args.input)
+            evaluation = evaluate_workspace_frontier_fixture(fixture)
+            policy = default_workspace_frontier_policy()
+            runtime = run_workspace_frontier_runtime(fixture, run_id="workspace-frontier-csv")
+            lineage = build_workspace_frontier_lineage(fixture, evaluation)
+            reconciliation = reconcile_workspace_frontier(fixture, evaluation, policy)
+            quality = evaluate_workspace_frontier_quality(fixture, evaluation, default_workspace_frontier_contracts(), default_workspace_frontier_schema(), lineage, reconciliation)
+            release = build_workspace_frontier_release_manifest(runtime.bundle, quality, replay_workspace_frontier(fixture, replay_id="workspace-frontier-csv-replay"), runtime)
+            view = build_workspace_frontier_review_view(fixture, evaluation, policy.decide(evaluation), release)
+            _write_text(export_workspace_frontier_review_csv(view), args.output)
             return 0
         if args.command == "validation-frontier-data-audit":
             _write_json(audit_validation_frontier_data(_read_validation_frontier_fixture(args.input)).to_dict(), args.output)
