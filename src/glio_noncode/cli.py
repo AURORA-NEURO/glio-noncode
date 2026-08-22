@@ -439,6 +439,37 @@ from .causal_frontier_replay import replay_causal_frontier
 from .causal_frontier_runtime import run_causal_frontier_runtime
 from .causal_frontier_schema import default_causal_frontier_schema
 from .causal_frontier_views import build_causal_frontier_review_view
+from .causal_foundation_frontier_artifacts import build_causal_foundation_frontier_artifact_inventory
+from .causal_foundation_frontier_contracts import build_causal_foundation_frontier_contracts
+from .causal_foundation_frontier_depth import audit_causal_foundation_frontier_depth
+from .causal_foundation_frontier_exports import (
+    causal_foundation_frontier_export_json,
+    causal_foundation_frontier_export_review_csv,
+    causal_foundation_frontier_export_review_markdown,
+)
+from .causal_foundation_frontier_fixture_eval import evaluate_causal_foundation_frontier_fixture
+from .causal_foundation_frontier_integrity import evaluate_causal_foundation_frontier_integrity
+from .causal_foundation_frontier_lineage import build_causal_foundation_frontier_lineage
+from .causal_foundation_frontier_metrics import build_causal_foundation_frontier_metrics
+from .causal_foundation_frontier_policy import default_causal_foundation_frontier_policy
+from .causal_foundation_frontier_provenance import build_causal_foundation_frontier_provenance
+from .causal_foundation_frontier_quality_gate import evaluate_causal_foundation_frontier_quality
+from .causal_foundation_frontier_public_data import (
+    audit_causal_foundation_frontier_data,
+    default_causal_foundation_frontier_fixture,
+)
+from .causal_foundation_frontier_reconciliation import reconcile_causal_foundation_frontier
+from .causal_foundation_frontier_release import build_causal_foundation_frontier_release_manifest
+from .causal_foundation_frontier_replay import replay_causal_foundation_frontier
+from .causal_foundation_frontier_review import build_causal_foundation_frontier_review_queue
+from .causal_foundation_frontier_runtime import run_causal_foundation_frontier_runtime
+from .causal_foundation_frontier_scenario_matrix import build_causal_foundation_frontier_scenario_matrix
+from .causal_foundation_frontier_schema import validate_causal_foundation_frontier_schema
+from .causal_foundation_frontier_validation_matrix import build_causal_foundation_frontier_validation_matrix
+from .causal_foundation_frontier_views import (
+    build_causal_foundation_frontier_review_view,
+    build_causal_foundation_frontier_summary_view,
+)
 from .cohort_frontier_bundle import assemble_cohort_frontier_bundle
 from .cohort_frontier_contracts import default_cohort_frontier_contracts
 from .cohort_frontier_depth import audit_cohort_frontier_depth
@@ -1101,6 +1132,14 @@ def _read_causal_frontier_fixture(path: str | None):
     """Load a caller fixture or use the deterministic public aggregate."""
 
     return load_causal_frontier_fixture(path) if path else default_causal_frontier_fixture()
+
+
+def _read_causal_foundation_frontier_fixture(path: str | None):
+    """Return the pinned Domain 11 C01-C04 aggregate fixture."""
+
+    if path:
+        raise ValueError("custom causal foundation fixture loading is not enabled; use the pinned public aggregate")
+    return default_causal_foundation_frontier_fixture()
 
 
 def _read_cohort_frontier_fixture(path: str | None):
@@ -4296,6 +4335,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     causal_frontier_csv.add_argument("input", nargs="?", default=None)
     causal_frontier_csv.add_argument("--output", default=None)
+
+    causal_foundation_frontier_commands = (
+        ("causal-foundation-frontier-data-audit", "audit Domain 11 C01-C04 public aggregate receipts"),
+        ("causal-foundation-frontier-contracts", "emit Domain 11 C01-C04 operation contracts"),
+        ("causal-foundation-frontier-schema", "emit Domain 11 C01-C04 record schema"),
+        ("causal-foundation-frontier-evaluate", "evaluate Domain 11 C01-C04 positive and control rows"),
+        ("causal-foundation-frontier-metrics", "emit Domain 11 C01-C04 metrics"),
+        ("causal-foundation-frontier-policy", "emit Domain 11 C01-C04 policy decisions"),
+        ("causal-foundation-frontier-review", "emit Domain 11 C01-C04 review queue"),
+        ("causal-foundation-frontier-quality-gate", "run Domain 11 C01-C04 quality gate"),
+        ("causal-foundation-frontier-runtime", "run Domain 11 C01-C04 runtime rehearsal"),
+        ("causal-foundation-frontier-release", "build Domain 11 C01-C04 release manifest"),
+        ("causal-foundation-frontier-depth-audit", "run Domain 11 C01-C04 depth audit"),
+        ("causal-foundation-frontier-integrity", "run Domain 11 C01-C04 integrity checks"),
+        ("causal-foundation-frontier-scenarios", "emit Domain 11 C01-C04 scenario matrix"),
+        ("causal-foundation-frontier-validation-matrix", "emit Domain 11 C01-C04 validation matrix"),
+        ("causal-foundation-frontier-summary", "emit Domain 11 C01-C04 summary view"),
+    )
+    for command_name, command_help in causal_foundation_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    for command_name, command_help in (
+        ("export-causal-foundation-frontier-review-csv", "export Domain 11 C01-C04 review rows as CSV"),
+        ("export-causal-foundation-frontier-review-markdown", "export Domain 11 C01-C04 review rows as Markdown"),
+        ("export-causal-foundation-frontier-json", "export Domain 11 C01-C04 release payload as JSON"),
+    ):
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
 
     cohort_frontier_commands = (
         ("cohort-frontier-data-audit", "audit public Domain 12 source receipts"),
@@ -8354,6 +8423,67 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             return 0
+        if args.command.startswith("causal-foundation-frontier") or args.command.startswith("export-causal-foundation-frontier"):
+            fixture = _read_causal_foundation_frontier_fixture(args.input)
+            if args.command == "causal-foundation-frontier-data-audit":
+                _write_json(audit_causal_foundation_frontier_data(fixture).to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-contracts":
+                _write_json(build_causal_foundation_frontier_contracts().to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-schema":
+                evaluation = evaluate_causal_foundation_frontier_fixture(fixture)
+                _write_json(validate_causal_foundation_frontier_schema(fixture, evaluation).to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-evaluate":
+                _write_json(evaluate_causal_foundation_frontier_fixture(fixture).to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-metrics":
+                evaluation = evaluate_causal_foundation_frontier_fixture(fixture)
+                _write_json(build_causal_foundation_frontier_metrics(evaluation, fixture).to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-policy":
+                evaluation = evaluate_causal_foundation_frontier_fixture(fixture)
+                policy = default_causal_foundation_frontier_policy()
+                _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-runtime":
+                _write_json(run_causal_foundation_frontier_runtime(fixture, run_id="causal-foundation-frontier-cli").to_dict(), args.output)
+                return 0
+            runtime = run_causal_foundation_frontier_runtime(fixture, run_id="causal-foundation-frontier-cli")
+            if args.command == "causal-foundation-frontier-review":
+                _write_json(runtime.review.to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-quality-gate":
+                _write_json(runtime.gate.to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-release":
+                _write_json(runtime.release.to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-depth-audit":
+                _write_json(runtime.depth.to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-integrity":
+                _write_json(evaluate_causal_foundation_frontier_integrity(fixture, runtime.evaluation, runtime.lineage, runtime.provenance).to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-scenarios":
+                _write_json(build_causal_foundation_frontier_scenario_matrix(fixture, runtime.evaluation).to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-validation-matrix":
+                _write_json(build_causal_foundation_frontier_validation_matrix(fixture, runtime.evaluation).to_dict(), args.output)
+                return 0
+            if args.command == "causal-foundation-frontier-summary":
+                _write_json(runtime.summary_view.to_dict(), args.output)
+                return 0
+            if args.command == "export-causal-foundation-frontier-review-csv":
+                _write_text(causal_foundation_frontier_export_review_csv(runtime.review_view), args.output)
+                return 0
+            if args.command == "export-causal-foundation-frontier-review-markdown":
+                _write_text(causal_foundation_frontier_export_review_markdown(runtime.review_view), args.output)
+                return 0
+            if args.command == "export-causal-foundation-frontier-json":
+                _write_text(causal_foundation_frontier_export_json(runtime), args.output)
+                return 0
         if args.command == "cohort-frontier-data-audit":
             _write_json(
                 audit_cohort_frontier_data(_read_cohort_frontier_fixture(args.input)).to_dict(),

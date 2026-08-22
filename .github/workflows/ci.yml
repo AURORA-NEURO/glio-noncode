@@ -504,6 +504,34 @@ jobs:
         run: python -m glio_noncode export-causal-frontier-review-csv --output /tmp/glio-causal-frontier-review.csv
       - name: Causal frontier depth audit
         run: python -m glio_noncode causal-frontier-depth-audit --output /tmp/glio-causal-frontier-depth.json
+      - name: Causal foundation data boundary audit
+        run: python -m glio_noncode causal-foundation-frontier-data-audit --output /tmp/glio-causal-foundation-data.json
+      - name: Causal foundation operation contracts
+        run: python -m glio_noncode causal-foundation-frontier-contracts --output /tmp/glio-causal-foundation-contracts.json
+      - name: Causal foundation schema
+        run: python -m glio_noncode causal-foundation-frontier-schema --output /tmp/glio-causal-foundation-schema.json
+      - name: Causal foundation fixture evaluation
+        run: python -m glio_noncode causal-foundation-frontier-evaluate --output /tmp/glio-causal-foundation-evaluation.json
+      - name: Causal foundation metrics
+        run: python -m glio_noncode causal-foundation-frontier-metrics --output /tmp/glio-causal-foundation-metrics.json
+      - name: Causal foundation review queue
+        run: python -m glio_noncode causal-foundation-frontier-review --output /tmp/glio-causal-foundation-review.json
+      - name: Causal foundation quality gate
+        run: python -m glio_noncode causal-foundation-frontier-quality-gate --output /tmp/glio-causal-foundation-quality.json
+      - name: Causal foundation runtime rehearsal
+        run: python -m glio_noncode causal-foundation-frontier-runtime --output /tmp/glio-causal-foundation-runtime.json
+      - name: Causal foundation release manifest
+        run: python -m glio_noncode causal-foundation-frontier-release --output /tmp/glio-causal-foundation-release.json
+      - name: Causal foundation depth audit
+        run: python -m glio_noncode causal-foundation-frontier-depth-audit --output /tmp/glio-causal-foundation-depth.json
+      - name: Causal foundation integrity
+        run: python -m glio_noncode causal-foundation-frontier-integrity --output /tmp/glio-causal-foundation-integrity.json
+      - name: Causal foundation scenario matrix
+        run: python -m glio_noncode causal-foundation-frontier-scenarios --output /tmp/glio-causal-foundation-scenarios.json
+      - name: Causal foundation validation matrix
+        run: python -m glio_noncode causal-foundation-frontier-validation-matrix --output /tmp/glio-causal-foundation-validation.json
+      - name: Causal foundation review CSV
+        run: python -m glio_noncode export-causal-foundation-frontier-review-csv --output /tmp/glio-causal-foundation-review.csv
       - name: Cohort frontier data boundary audit
         run: python -m glio_noncode cohort-frontier-data-audit --output /tmp/glio-cohort-frontier-data.json
       - name: Cohort frontier operation contracts

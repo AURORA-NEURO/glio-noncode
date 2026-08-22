@@ -3559,49 +3559,103 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D11-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.causal_reasoning.TypedHypothesisObjectBuilder",
+                    "glio_noncode.causal_foundation_frontier_public_data",
+                    "glio_noncode.causal_foundation_frontier_adapters",
+                    "glio_noncode.causal_foundation_frontier_fixture_eval",
+                    "glio_noncode.causal_foundation_frontier_policy",
+                    "glio_noncode.causal_foundation_frontier_quality_gate",
+                    "glio_noncode.causal_foundation_frontier_runtime",
+                    "glio_noncode.causal_foundation_frontier_release",
                 ),
-                "test_modules": ("tests.test_causal_reasoning",),
+                "test_modules": (
+                    "tests.test_causal_reasoning",
+                    "tests.test_causal_foundation_frontier",
+                    "tests.test_causal_foundation_frontier_depth",
+                    "tests.test_causal_foundation_frontier_cli",
+                ),
                 "evidence_note": (
                     "Typed RegulatoryCausalHypothesis objects retain factor lineage, prior and "
                     "likelihood proxies, missing evidence, contradictions, and research-use "
-                    "limitations; external task calibration and OOD evaluation remain."
+                    "limitations. Public aggregate positive/control replay now verifies the "
+                    "typed object adapter, exact-state floors, policy, release gate, and "
+                    "foreign-context quarantine; external task calibration remains."
                 ),
             },
             "GNC-D11-C02": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.causal_reasoning.FactorGraphConstructor",),
-                "test_modules": ("tests.test_causal_reasoning",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.causal_reasoning.FactorGraphConstructor",
+                    "glio_noncode.causal_foundation_frontier_public_data",
+                    "glio_noncode.causal_foundation_frontier_adapters",
+                    "glio_noncode.causal_foundation_frontier_lineage",
+                    "glio_noncode.causal_foundation_frontier_provenance",
+                    "glio_noncode.causal_foundation_frontier_integrity",
+                    "glio_noncode.causal_foundation_frontier_validation_matrix",
+                ),
+                "test_modules": (
+                    "tests.test_causal_reasoning",
+                    "tests.test_causal_foundation_frontier",
+                    "tests.test_causal_foundation_frontier_depth",
+                ),
                 "evidence_note": (
                     "Immutable factor graph snapshots preserve parent lineage, supersession, "
                     "orphan diagnostics, contradiction edges, active views, and deterministic "
-                    "replay; migration fixtures remain."
+                    "replay. Public aggregate controls now verify orphan and contradiction "
+                    "states, source-to-result lineage, provenance closure, and integrity; "
+                    "migration fixtures remain."
                 ),
             },
             "GNC-D11-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.causal_reasoning.ContextConditionedPriorModel",
+                    "glio_noncode.causal_foundation_frontier_public_data",
+                    "glio_noncode.causal_foundation_frontier_adapters",
+                    "glio_noncode.causal_foundation_frontier_schema",
+                    "glio_noncode.causal_foundation_frontier_metrics",
+                    "glio_noncode.causal_foundation_frontier_review",
+                    "glio_noncode.causal_foundation_frontier_claim_boundary",
                 ),
-                "test_modules": ("tests.test_causal_reasoning",),
+                "test_modules": (
+                    "tests.test_causal_reasoning",
+                    "tests.test_causal_foundation_frontier",
+                    "tests.test_causal_foundation_frontier_operational",
+                ),
                 "evidence_note": (
                     "Exact-context prior profiles expose bounded feature contributions, missing "
                     "features, out-of-range support, and a non-probabilistic prior score; external "
-                    "calibration and transport evaluation remain."
+                    "calibration and transport evaluation remain. The public control fixture "
+                    "now verifies missing, out-of-range, foreign-context, schema, review, and "
+                    "release-boundary behavior."
                 ),
             },
             "GNC-D11-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.causal_reasoning.MeasurementLikelihoodModel",
+                    "glio_noncode.causal_foundation_frontier_public_data",
+                    "glio_noncode.causal_foundation_frontier_adapters",
+                    "glio_noncode.causal_foundation_frontier_review",
+                    "glio_noncode.causal_foundation_frontier_operational",
+                    "glio_noncode.causal_foundation_frontier_quality_gate",
+                    "glio_noncode.causal_foundation_frontier_artifacts",
                 ),
-                "test_modules": ("tests.test_causal_reasoning",),
+                "test_modules": (
+                    "tests.test_causal_reasoning",
+                    "tests.test_causal_foundation_frontier",
+                    "tests.test_causal_foundation_frontier_depth",
+                    "tests.test_causal_foundation_frontier_operational",
+                ),
                 "evidence_note": (
                     "Measurement channels are grouped for dependence-aware aggregation with "
                     "missing, contradictory, and context-mismatched states; the output remains "
-                    "a likelihood proxy rather than a calibrated clinical probability."
+                    "a likelihood proxy rather than a calibrated clinical probability. The "
+                    "public control fixture now verifies single-group partial output, explicit "
+                    "contradiction retention, foreign-context quarantine, review actions, and "
+                    "artifact release checks."
                 ),
             },
             "GNC-D11-C05": {

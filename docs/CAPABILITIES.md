@@ -2635,6 +2635,52 @@ contradictory measurements. Both are explicitly proxies, not calibrated
 probabilities, causal effects, diagnoses, prognoses, treatment recommendations,
 or actionability claims.
 
+### Domain 11 C01-C04 foundation build
+
+The four foundation capabilities are exercised as a closed public-aggregate
+replay plane. `TypedHypothesisObjectBuilder`, `FactorGraphConstructor`,
+`ContextConditionedPriorModel`, and `MeasurementLikelihoodModel` are bound to
+four operation adapters and a 16-row fixture. Each operation has one supported
+positive and three controls: missing evidence, contradiction or incomplete
+lineage, and foreign-context or out-of-support input. Five HTTPS public source
+receipts are carried through every record.
+
+The implementation is organized into the following modules:
+
+- public-data and adapters preserve source IDs, exact context, typed payloads,
+  expected states, issue floors, and content addresses;
+- contracts and schema close the required input/output fields for all four
+  capability IDs;
+- evaluation, metrics, replay, lineage, provenance, integrity, and validation
+  matrices make state and issue behavior reproducible and inspectable;
+- policy, reconciliation, review, operational, quality-gate, depth, claim
+  boundary, and assurance surfaces keep controls visible and prevent foreign or
+  contradictory rows from crossing the release boundary;
+- runtime, bundle, release, artifact, observability, view, JSON, CSV, and
+  Markdown surfaces provide a 19-stage release rehearsal with 16 artifacts.
+
+The pinned commands are:
+
+```powershell
+glio-noncode causal-foundation-frontier-data-audit --output foundation-data.json
+glio-noncode causal-foundation-frontier-evaluate --output foundation-evaluation.json
+glio-noncode causal-foundation-frontier-policy --output foundation-policy.json
+glio-noncode causal-foundation-frontier-review --output foundation-review.json
+glio-noncode causal-foundation-frontier-quality-gate --output foundation-quality.json
+glio-noncode causal-foundation-frontier-runtime --output foundation-runtime.json
+glio-noncode causal-foundation-frontier-release --output foundation-release.json
+glio-noncode causal-foundation-frontier-integrity --output foundation-integrity.json
+glio-noncode export-causal-foundation-frontier-review-csv --output foundation-review.csv
+```
+
+The release state is ready only when the fixture audit, exact replay, contract
+coverage, schema, metrics, graph receipts, reconciliation, review coverage,
+depth audit, quality gate, artifact inventory, and claim boundary agree. Four
+positive rows are retained for aggregate research review; ten control rows are
+blocked or abstained. The outputs remain bounded proxies and are not calibrated
+clinical probabilities, individual causal findings, diagnostic determinations,
+prognoses, treatment selections, or patient-care instructions.
+
 The Domain 11 scientific-beta extensions make the three mediator steps and the
 allele comparison explicit:
 
