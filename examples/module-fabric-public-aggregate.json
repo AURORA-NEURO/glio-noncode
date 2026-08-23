@@ -1,0 +1,927 @@
+{
+  "content_address": "sha256:f10c22c22ef5926cbdef5b01345a24846e25ce84e109292ae9cb35a7810b2009",
+  "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+  "evidence_boundary": "public_aggregate_module_integration",
+  "fixture_id": "module-fabric-public-aggregate-001",
+  "fixture_version": "2026.08.module-fabric.v1",
+  "records": [
+    {
+      "capability_id": "GNC-D01-C01",
+      "content_address": "sha256:69e520325bca0357f38f34dde27545b7216e747b2b782846f7888f521267431c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D01",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D01-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D01",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D01-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C01",
+      "content_address": "sha256:f305214cf696e4d3a401c88aa40523c4ec0e236da807b8a9d9b5ac1fe3192476",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D01",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D01-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D02",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D01-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ensembl-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D02-C01",
+      "content_address": "sha256:7c51a107490e27d17d431b8bde7c633dca490395453ab1aaa5699f7f094f4ae7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D02",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D02-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D02",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D02-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D02-C01",
+      "content_address": "sha256:a3892e56dbc707275227b10c985acd81cb181aff9861a38900d1e36d8c3e1d2c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D02",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D02-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D03",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D02-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D03-C01",
+      "content_address": "sha256:542eb82e8f5f4089a1a1e27a2fac98bebcbd094f003d2b87b86014e58702e17d",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D03",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D03-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D03",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D03-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ncbi-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D03-C01",
+      "content_address": "sha256:e9afb031570e31f4141dddf947638197fc1e6325400d04b797ced9b1e9f1b6a6",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D03",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D03-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D04",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D03-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-portal"
+      ]
+    },
+    {
+      "capability_id": "GNC-D04-C01",
+      "content_address": "sha256:1c50f8bfd0084b363f2869c06fb1eb97d0e7df5168e674707fa47f4ad02b876d",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D04",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D04-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D04",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D04-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D04-C01",
+      "content_address": "sha256:3d8abefe16c3f60a76ada480408be4a3dae39e339494e5a2b19ac2b29250f357",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D04",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D04-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D05",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D04-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc-portal"
+      ]
+    },
+    {
+      "capability_id": "GNC-D05-C01",
+      "content_address": "sha256:39df6ff2231202940ffd8498e0ae7a0ce4e4da6a56346dd9277f03d65a33c984",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D05",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D05-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D05",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D05-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D05-C01",
+      "content_address": "sha256:ce9f23259e33c685b37de8115174f43914df5e4351f35d1aeebf0a31659e7e89",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D05",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D05-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D06",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D05-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C01",
+      "content_address": "sha256:e5a9f450215d51e45c0ab3abc499796dc410ff138af3e51f600432d41983fa36",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D06",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D06-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D06",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D06-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C01",
+      "content_address": "sha256:e8cf44e25a10c7f033dc6418f34fdc4c26a4f407426d6fa48527f6e0ceac8391",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D06",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D06-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D07",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D06-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ensembl-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C01",
+      "content_address": "sha256:76db0c7c47788c4234abaad1ec2765f9c67da576a5428da0d3d757add454b973",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D07",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D07-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D07",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D07-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C01",
+      "content_address": "sha256:e40b33ed3708ca52af497e4bf2e2af6895baba90761c53693a22e6680991a7fa",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D07",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D07-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D08",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D07-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C01",
+      "content_address": "sha256:67771eb5567708ff4ff5f6d83dfa9f74259c25de1967cc3d5d4fbe3cbfd2cb5e",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D08",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D08-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D08",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D08-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ncbi-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C01",
+      "content_address": "sha256:6ade963896c8e2fff33a0ab8fd30c685a2bdb558f472050cebc53614d7478fb2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D08",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D08-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D09",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D08-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-portal"
+      ]
+    },
+    {
+      "capability_id": "GNC-D09-C01",
+      "content_address": "sha256:e42b6dab515da4d1e8c8c52260794e9e0a1ea886d5b68178a48a739c20448ff7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D09",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D09-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D09",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D09-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D09-C01",
+      "content_address": "sha256:5c09f32d1c4abdd37893b94f7f52695a433ddc395d00e8100d83022a90d2f5d1",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D09",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D09-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D10",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D09-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc-portal"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C01",
+      "content_address": "sha256:b825d421aa7d7749180288ae344a7e954b1719185d4371d7e9ea9d1cbccd19c8",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D10",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D10-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D10",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D10-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C01",
+      "content_address": "sha256:0605d85861916533c3915a9c1fa2217a293958883eeded1b05a2ffd9490c5e90",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D10",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D10-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D11",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D10-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C01",
+      "content_address": "sha256:8f567748a7f9997bc63bef8ef78a4708cc5626e3a6b9a8a51e1e1290b1d06aba",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D11",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D11-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D11",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D11-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C01",
+      "content_address": "sha256:f32057cb6e0955799c5e93a5fbc2b20c66ca3a31e71665a851b7dcfe0d8e2c90",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D11",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D11-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D12",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D11-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ensembl-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D12-C01",
+      "content_address": "sha256:30fa6bfbbd1d54447697681d2f1fba2d7a73f8dffc6e4508624a7763e9ecdbd0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D12",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D12-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D12",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D12-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D12-C01",
+      "content_address": "sha256:ed616fb4528a7e8f6026e02763d0330ff3c3e5d5f3f0fbde286037691a159a5c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D12",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D12-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D13",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D12-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C01",
+      "content_address": "sha256:34a3671127db5a83150474c0f034815c05fa40c18c7ba9426f5a51419e2ae929",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D13",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D13-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D13",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D13-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ncbi-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C01",
+      "content_address": "sha256:48a6a7b9e8f8cd80dc155ccd71acb9f8cef4593a39e514b25b378e92e425e464",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D13",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D13-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D14",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D13-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode-portal"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C01",
+      "content_address": "sha256:994ba94c862b92bc1145aebc611b87e352ffe2e8ff2c06a762f99dcf1c799cfe",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D14",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D14-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D14",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D14-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C01",
+      "content_address": "sha256:f2aefeb7859a1d88e1d686de3ef2570972f6e1ed4c4c4669e7c55664ecf9aa71",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D14",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D14-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D15",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D14-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc-portal"
+      ]
+    },
+    {
+      "capability_id": "GNC-D15-C01",
+      "content_address": "sha256:c6c3af40339b46bb98510a3f7fc53828087b87d024b13c51b7fdb336a51bc907",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D15",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D15-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D15",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D15-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D15-C01",
+      "content_address": "sha256:7fd5270fd21b348122199ffe52abe3769e86a45198a1d34e32ba2a84306ca8a0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D15",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D15-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D16",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D15-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C01",
+      "content_address": "sha256:7dd0664303465e3139dae769cb75d1798246d5b9a351d5e7a0dbf9debca7247b",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D16",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "notes": "declared capability references resolve inside its owning domain",
+      "payload": {
+        "claim_boundary": "reference resolution and declared evidence closure only",
+        "declared_capability_id": "GNC-D16-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "declared_domain_id": "D16",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "positive",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D16-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C01",
+      "content_address": "sha256:1b7a5b2862c3d20816b674eb3eb3b1cb4e458218d8faedd8f68c8077980419d2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "domain_id": "D16",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "foreign_domain"
+      ],
+      "expected_state": "review",
+      "notes": "foreign context and domain controls remain visible and non-publishable",
+      "payload": {
+        "claim_boundary": "control must remain review-only",
+        "control_kind": "foreign_context_and_domain",
+        "declared_capability_id": "GNC-D16-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "declared_domain_id": "D01",
+        "minimum_implementation_references": 1,
+        "minimum_test_references": 1,
+        "record_role": "control",
+        "required_capability_order": 1,
+        "source_mode": "public_aggregate"
+      },
+      "record_id": "D16-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ensembl-reference"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:6d7cb229a1c91193d1dc0591d015b9acf1ebe975e190eab490191f164eca7f6d",
+      "scope": "public_aggregate",
+      "source_id": "blueprint-receipt",
+      "title": "GLIO-NONCODE capability blueprint receipt",
+      "uri": "https://github.com/AURORA-NEURO/glio-noncode",
+      "version": "blueprint-2026-08-20"
+    },
+    {
+      "content_address": "sha256:26ef171b7e7049ef3e14f87266d945da78ef3e3203fa4b699419804975d450c1",
+      "scope": "public_aggregate",
+      "source_id": "ensembl-reference",
+      "title": "Ensembl public reference portal",
+      "uri": "https://www.ensembl.org/info/data/index.html",
+      "version": "public reference portal"
+    },
+    {
+      "content_address": "sha256:3bcac8bbf85b6bb81e001f85386793fcaeb544c38453a17b8bf7b42b0c04b3d3",
+      "scope": "public_aggregate",
+      "source_id": "ncbi-reference",
+      "title": "NCBI public reference resources",
+      "uri": "https://www.ncbi.nlm.nih.gov/datasets/",
+      "version": "public aggregate index"
+    },
+    {
+      "content_address": "sha256:fe1dc7c41cd1f2bfadeed71bdfce5e98053dd11a847d957037c70347f3a3530d",
+      "scope": "public_aggregate",
+      "source_id": "encode-portal",
+      "title": "ENCODE public data portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "public aggregate portal"
+    },
+    {
+      "content_address": "sha256:1f39758238c166fe028669f7c81b6118ac50d0f86ea66e01d38e11b7ca97ca69",
+      "scope": "public_aggregate",
+      "source_id": "gdc-portal",
+      "title": "NCI Genomic Data Commons public portal",
+      "uri": "https://portal.gdc.cancer.gov/",
+      "version": "public aggregate portal"
+    }
+  ]
+}

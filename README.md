@@ -177,6 +177,42 @@ safety, clinical utility, or institutional approval. See the dedicated
 [release](docs/PLANNING_FRONTIER_RELEASE.md), and
 [runbook](docs/PLANNING_FRONTIER_RUNBOOK.md) notes.
 
+The repository-wide module fabric closes the integration boundary across all
+256 catalog capabilities and 16 domains. It resolves every declared
+implementation and test reference, evaluates 32 public aggregate rows (one
+positive and one held control per domain), emits 256 named record checks, and
+rehearses a 20-stage runtime with source closure, lineage, replay, quality,
+and release receipts:
+
+```text
+glio-noncode module-fabric-data-audit --output module-fabric-data.json
+glio-noncode module-fabric-evaluate --output module-fabric-evaluation.json
+glio-noncode module-fabric-depth --output module-fabric-depth.json
+glio-noncode module-fabric-quality --output module-fabric-quality.json
+glio-noncode module-fabric-runtime --output module-fabric-runtime.json
+glio-noncode module-fabric-report --format markdown --output module-fabric-report.md
+glio-noncode module-fabric-review-csv --output module-fabric-review.csv
+glio-noncode module-fabric-ledger --output module-fabric-ledger.json
+glio-noncode module-fabric-ledger-audit --output module-fabric-ledger-audit.json
+glio-noncode module-fabric-recovery --output module-fabric-recovery.json
+```
+
+The operational ledger retains 20 ordered stage receipts, conserved 32-row
+denominators, and explicit 16-positive / 16-review counts without copying raw
+fixture payloads. Its recovery output routes held controls to manual review and
+cannot promote them automatically. See the [module-fabric operations notes](docs/MODULE_FABRIC_OPERATIONS.md),
+[ledger notes](docs/MODULE_FABRIC_OPERATIONS_LEDGER.md),
+[schema](docs/MODULE_FABRIC_SCHEMA.md), and
+[release gates](docs/MODULE_FABRIC_RELEASE.md).
+
+The module fabric audits repository wiring only. It does not infer biological
+truth, validate clinical utility, authorize deployment, or copy private
+subject data. Its checked-in public aggregate fixture is
+[examples/module-fabric-public-aggregate.json](examples/module-fabric-public-aggregate.json).
+The [operations](docs/MODULE_FABRIC_OPERATIONS.md),
+[schema](docs/MODULE_FABRIC_SCHEMA.md), and
+[release](docs/MODULE_FABRIC_RELEASE.md) documents define its bounded use.
+
 See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_API.md](docs/WORKBENCH_RELEASE_FRONTIER_API.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md](docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md),

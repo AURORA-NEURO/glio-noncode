@@ -1061,10 +1061,10 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.specimen_context.SpecimenOntologyMapper",
                     "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
-                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_fixture_eval.evaluate_specimen_frontier_fixture",
                     "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
-                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
-                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixtures",
+                    "glio_noncode.specimen_frontier_quality_gate.evaluate_specimen_frontier_quality_gate",
                     "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
                     "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
                     "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
@@ -1094,10 +1094,10 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.specimen_context.MatchedNormalResolver",
                     "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
-                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_fixture_eval.evaluate_specimen_frontier_fixture",
                     "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
-                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
-                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixtures",
+                    "glio_noncode.specimen_frontier_quality_gate.evaluate_specimen_frontier_quality_gate",
                     "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
                     "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
                     "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
@@ -1126,10 +1126,10 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.specimen_context.PurityPloidyImporter",
                     "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
-                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_fixture_eval.evaluate_specimen_frontier_fixture",
                     "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
-                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
-                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixtures",
+                    "glio_noncode.specimen_frontier_quality_gate.evaluate_specimen_frontier_quality_gate",
                     "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
                     "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
                     "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
@@ -1157,10 +1157,10 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.specimen_context.ContaminationSwapDetector",
                     "glio_noncode.specimen_frontier_public_data.SpecimenFrontierFixtureCatalog",
-                    "glio_noncode.specimen_frontier_fixture_eval.SpecimenFrontierFixtureEvaluator",
+                    "glio_noncode.specimen_frontier_fixture_eval.evaluate_specimen_frontier_fixture",
                     "glio_noncode.specimen_frontier_contracts.SpecimenFrontierContractRegistry",
-                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixture",
-                    "glio_noncode.specimen_frontier_quality_gate.SpecimenFrontierQualityGate",
+                    "glio_noncode.specimen_frontier_replay.replay_specimen_frontier_fixtures",
+                    "glio_noncode.specimen_frontier_quality_gate.evaluate_specimen_frontier_quality_gate",
                     "glio_noncode.specimen_frontier_bundle.SpecimenFrontierEvidenceBundleBuilder",
                     "glio_noncode.specimen_frontier_lineage.build_specimen_frontier_lineage",
                     "glio_noncode.specimen_frontier_runtime.run_specimen_frontier_pipeline",
@@ -4579,7 +4579,7 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_lineage",
                     "glio_noncode.lifecycle_beta_frontier_validation_matrix",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_evidence"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_surfaces"),
                 "evidence_note": (
                     "Provenance lineage views expose parent and supersession relations, active and "
                     "historical claims, source versions, citation nodes, hashes, and graph context "
@@ -4608,7 +4608,7 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_review_queue",
                     "glio_noncode.lifecycle_beta_frontier_operational",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_operational"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_operations"),
                 "evidence_note": (
                     "Reviewer routing maps active claims to explicit domain, provenance, "
                     "statistical, "
@@ -4639,7 +4639,7 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_exports",
                     "glio_noncode.lifecycle_beta_frontier_views",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_exports"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_supporting"),
                 "evidence_note": (
                     "Reviewer comments and before/after changes are immutable, context-gated, "
                     "content-addressed, and appendable with duplicate and malformed-row checks; "
@@ -4655,7 +4655,7 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_release",
                     "glio_noncode.lifecycle_beta_frontier_bundle",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_release"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_mutations"),
                 "evidence_note": (
                     "Research-only release records retain graph address, gate results, reviewer "
                     "roles, failed conditions, comment-log address, and explicit approval or "
@@ -4670,7 +4670,7 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_reconciliation",
                     "glio_noncode.lifecycle_beta_frontier_integrity",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_delta"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_mutations"),
                 "evidence_note": (
                     "Evidence delta reports classify added, removed, and changed claims and "
                     "citations plus graph-state or context changes with before/after addresses "
@@ -5092,9 +5092,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C05": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.ControlFrontierPolicy",
-                    "glio_noncode.control_frontier.run_control_frontier_operation",
-                    "glio_noncode.control_frontier.evaluate_control_frontier_fixture",
+                    "glio_noncode.control_frontier_policy.ControlFrontierPolicy",
+                    "glio_noncode.control_frontier_operations.run_control_frontier_operation",
+                    "glio_noncode.control_frontier_fixture_eval.evaluate_control_frontier_fixture",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
                 "evidence_note": (
@@ -5106,9 +5106,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C06": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.run_control_frontier_operation",
-                    "glio_noncode.control_frontier.build_control_frontier_threshold_report",
-                    "glio_noncode.control_frontier.build_control_frontier_operational_matrix",
+                    "glio_noncode.control_frontier_operations.run_control_frontier_operation",
+                    "glio_noncode.control_frontier_thresholds.build_control_frontier_threshold_report",
+                    "glio_noncode.control_frontier_operational.build_control_frontier_operational_matrix",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
@@ -5120,9 +5120,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C07": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.run_control_frontier_operation",
-                    "glio_noncode.control_frontier.evaluate_control_frontier_scenarios",
-                    "glio_noncode.control_frontier.run_control_frontier_failure_injections",
+                    "glio_noncode.control_frontier_operations.run_control_frontier_operation",
+                    "glio_noncode.control_frontier_scenario_matrix.evaluate_control_frontier_scenarios",
+                    "glio_noncode.control_frontier_failure_injection.run_control_frontier_failure_injections",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
@@ -5134,9 +5134,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C08": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.ControlFrontierReviewQueue",
-                    "glio_noncode.control_frontier.build_control_frontier_review_sla",
-                    "glio_noncode.control_frontier.build_control_frontier_handoff",
+                    "glio_noncode.control_frontier_review_queue.ControlFrontierReviewQueue",
+                    "glio_noncode.control_frontier_review_sla.build_control_frontier_review_sla",
+                    "glio_noncode.control_frontier_handoff.build_control_frontier_handoff",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
                 "evidence_note": (
@@ -5148,9 +5148,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C09": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.run_control_frontier_operation",
-                    "glio_noncode.control_frontier.verify_control_frontier_audit_log",
-                    "glio_noncode.control_frontier.replay_control_frontier_evaluation",
+                    "glio_noncode.control_frontier_operations.run_control_frontier_operation",
+                    "glio_noncode.control_frontier_audit_log.verify_control_frontier_audit_log",
+                    "glio_noncode.control_frontier_replay.replay_control_frontier_evaluation",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
@@ -5162,9 +5162,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C10": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.run_control_frontier_operation",
-                    "glio_noncode.control_frontier.evaluate_control_frontier_compatibility",
-                    "glio_noncode.control_frontier.build_control_frontier_source_registry",
+                    "glio_noncode.control_frontier_operations.run_control_frontier_operation",
+                    "glio_noncode.control_frontier_compatibility.evaluate_control_frontier_compatibility",
+                    "glio_noncode.control_frontier_source_registry.build_control_frontier_source_registry",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
@@ -5176,9 +5176,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C11": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.run_control_frontier_operation",
-                    "glio_noncode.control_frontier.ControlFrontierSourceRegistry",
-                    "glio_noncode.control_frontier.default_control_frontier_data_dictionary",
+                    "glio_noncode.control_frontier_operations.run_control_frontier_operation",
+                    "glio_noncode.control_frontier_source_registry.ControlFrontierSourceRegistry",
+                    "glio_noncode.control_frontier_data_dictionary.default_control_frontier_data_dictionary",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
                 "evidence_note": (
@@ -5190,9 +5190,9 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C12": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_frontier.run_control_frontier_operation",
-                    "glio_noncode.control_frontier.build_control_frontier_threshold_report",
-                    "glio_noncode.control_frontier.evaluate_control_frontier_scenarios",
+                    "glio_noncode.control_frontier_operations.run_control_frontier_operation",
+                    "glio_noncode.control_frontier_thresholds.build_control_frontier_threshold_report",
+                    "glio_noncode.control_frontier_scenario_matrix.evaluate_control_frontier_scenarios",
                 ),
                 "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (

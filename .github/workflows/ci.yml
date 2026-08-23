@@ -1194,3 +1194,21 @@ jobs:
         run: python -m glio_noncode link-graph-beta-frontier-release --output /tmp/glio-link-beta-release.json && python -m glio_noncode link-graph-beta-frontier-summary --output /tmp/glio-link-beta-summary.json
       - name: Link graph beta frontier focused tests
         run: pytest -q tests/test_link_graph_beta_frontier.py tests/test_link_graph_beta_frontier_depth.py tests/test_link_graph_beta_frontier_integration.py tests/test_link_graph_beta_frontier_operational_matrix.py tests/test_link_graph_beta_frontier_operational_matrix_contracts.py
+      - name: Module fabric public data boundary
+        run: python -m glio_noncode module-fabric-data-audit --output /tmp/glio-module-fabric-data.json && python -m glio_noncode module-fabric-fixture --output /tmp/glio-module-fabric-fixture.json
+      - name: Module fabric evaluation and depth
+        run: python -m glio_noncode module-fabric-evaluate --output /tmp/glio-module-fabric-evaluation.json && python -m glio_noncode module-fabric-depth --output /tmp/glio-module-fabric-depth.json
+      - name: Module fabric quality replay and scenarios
+        run: python -m glio_noncode module-fabric-quality --output /tmp/glio-module-fabric-quality.json && python -m glio_noncode module-fabric-replay --output /tmp/glio-module-fabric-replay.json && python -m glio_noncode module-fabric-scenarios --output /tmp/glio-module-fabric-scenarios.json
+      - name: Module fabric runtime and report
+        run: python -m glio_noncode module-fabric-runtime --output /tmp/glio-module-fabric-runtime.json && python -m glio_noncode module-fabric-report --format markdown --output /tmp/glio-module-fabric-report.md
+      - name: Module fabric review and failure controls
+        run: python -m glio_noncode module-fabric-review-csv --output /tmp/glio-module-fabric-review.csv && python -m glio_noncode module-fabric-failures --output /tmp/glio-module-fabric-failures.json
+      - name: Module fabric static contracts
+        run: python -m glio_noncode module-fabric-schema --output /tmp/glio-module-fabric-schema.json && python -m glio_noncode module-fabric-catalog --output /tmp/glio-module-fabric-catalog.json && python -m glio_noncode module-fabric-sources --output /tmp/glio-module-fabric-sources.json && python -m glio_noncode module-fabric-data-dictionary --output /tmp/glio-module-fabric-dictionary.json
+      - name: Module fabric focused tests
+        run: python -m unittest tests.test_module_fabric tests.test_module_fabric_depth tests.test_module_fabric_cli
+      - name: Module fabric operational ledger
+        run: python -m glio_noncode module-fabric-ledger --output /tmp/glio-module-fabric-ledger.json && python -m glio_noncode module-fabric-ledger-audit --output /tmp/glio-module-fabric-ledger-audit.json && python -m glio_noncode module-fabric-recovery --output /tmp/glio-module-fabric-recovery.json
+      - name: Module fabric ledger tests
+        run: python -m unittest tests.test_module_fabric_operations_ledger

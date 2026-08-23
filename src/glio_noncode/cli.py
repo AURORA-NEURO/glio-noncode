@@ -55,6 +55,32 @@ from .atlas_beta import (
 )
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
+from .module_fabric_catalog import default_module_fabric_catalog
+from .module_fabric_data_dictionary import default_module_fabric_data_dictionary
+from .module_fabric_depth import audit_module_fabric_depth
+from .module_fabric_exports import (
+    export_module_fabric_review_csv,
+)
+from .module_fabric_failures import run_module_fabric_failure_injections
+from .module_fabric_fixture_eval import evaluate_module_fabric_fixture
+from .module_fabric_operations_ledger import (
+    audit_module_fabric_operation_ledger,
+    build_module_fabric_operation_ledger,
+    build_module_fabric_recovery_report,
+)
+from .module_fabric_public_data import (
+    audit_module_fabric_data,
+    default_module_fabric_fixture,
+    load_module_fabric_fixture,
+    module_fabric_fixture_json,
+)
+from .module_fabric_quality_gate import run_module_fabric_quality_gate
+from .module_fabric_reports import module_fabric_report, render_module_fabric_runtime_markdown
+from .module_fabric_replay import replay_module_fabric
+from .module_fabric_runtime import run_module_fabric_runtime
+from .module_fabric_scenario_matrix import evaluate_module_fabric_scenarios
+from .module_fabric_schema import default_module_fabric_schema
+from .module_fabric_source_registry import build_module_fabric_source_registry
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
     DependenceMethod,
@@ -1302,6 +1328,10 @@ def _write_text(text: str, output: str | None) -> None:
         sys.stdout.write(text)
 
 
+def _module_fabric_fixture(input_path: str | None):
+    return load_module_fabric_fixture(input_path) if input_path else default_module_fabric_fixture()
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -1830,6 +1860,109 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
     subparsers.add_parser("capabilities", help="print the 256-capability implementation ledger")
     subparsers.add_parser("references", help="print the reference assembly registry")
+    module_fabric_fixture = subparsers.add_parser(
+        "module-fabric-fixture",
+        help="emit the public aggregate repository-wide module-fabric fixture",
+    )
+    module_fabric_fixture.add_argument("--output", default=None)
+    module_fabric_data = subparsers.add_parser(
+        "module-fabric-data-audit",
+        help="audit public source, role, domain, and capability closure for the module fabric",
+    )
+    module_fabric_data.add_argument("--input", default=None)
+    module_fabric_data.add_argument("--output", default=None)
+    module_fabric_evaluate = subparsers.add_parser(
+        "module-fabric-evaluate",
+        help="resolve every declared implementation and test reference in the fixture",
+    )
+    module_fabric_evaluate.add_argument("--input", default=None)
+    module_fabric_evaluate.add_argument("--output", default=None)
+    module_fabric_depth = subparsers.add_parser(
+        "module-fabric-depth",
+        help="run the 256-capability and sixteen-domain depth audit",
+    )
+    module_fabric_depth.add_argument("--input", default=None)
+    module_fabric_depth.add_argument("--output", default=None)
+    module_fabric_replay = subparsers.add_parser(
+        "module-fabric-replay",
+        help="replay module-fabric evaluation and reference receipts deterministically",
+    )
+    module_fabric_replay.add_argument("--input", default=None)
+    module_fabric_replay.add_argument("--output", default=None)
+    module_fabric_quality = subparsers.add_parser(
+        "module-fabric-quality",
+        help="run the combined module-fabric quality gate",
+    )
+    module_fabric_quality.add_argument("--input", default=None)
+    module_fabric_quality.add_argument("--output", default=None)
+    module_fabric_scenarios = subparsers.add_parser(
+        "module-fabric-scenarios",
+        help="evaluate positive and control scenarios across all domains",
+    )
+    module_fabric_scenarios.add_argument("--input", default=None)
+    module_fabric_scenarios.add_argument("--output", default=None)
+    module_fabric_runtime = subparsers.add_parser(
+        "module-fabric-runtime",
+        help="run the ordered repository-wide module-fabric runtime",
+    )
+    module_fabric_runtime.add_argument("--input", default=None)
+    module_fabric_runtime.add_argument("--output", default=None)
+    module_fabric_report_parser = subparsers.add_parser(
+        "module-fabric-report",
+        help="render a module-fabric runtime report",
+    )
+    module_fabric_report_parser.add_argument("--input", default=None)
+    module_fabric_report_parser.add_argument("--format", choices=("json", "markdown"), default="json")
+    module_fabric_report_parser.add_argument("--output", default=None)
+    module_fabric_review_csv = subparsers.add_parser(
+        "module-fabric-review-csv",
+        help="export public module-fabric review rows as CSV",
+    )
+    module_fabric_review_csv.add_argument("--input", default=None)
+    module_fabric_review_csv.add_argument("--output", default=None)
+    module_fabric_failures = subparsers.add_parser(
+        "module-fabric-failures",
+        help="run module-fabric failure-injection controls",
+    )
+    module_fabric_failures.add_argument("--output", default=None)
+    module_fabric_schema = subparsers.add_parser(
+        "module-fabric-schema",
+        help="print the closed module-fabric projection schema",
+    )
+    module_fabric_schema.add_argument("--output", default=None)
+    module_fabric_catalog = subparsers.add_parser(
+        "module-fabric-catalog",
+        help="print the sixteen-domain module-fabric contract catalog",
+    )
+    module_fabric_catalog.add_argument("--output", default=None)
+    module_fabric_sources = subparsers.add_parser(
+        "module-fabric-sources",
+        help="print module-fabric public source receipts",
+    )
+    module_fabric_sources.add_argument("--output", default=None)
+    module_fabric_dictionary = subparsers.add_parser(
+        "module-fabric-data-dictionary",
+        help="print the module-fabric data dictionary",
+    )
+    module_fabric_dictionary.add_argument("--output", default=None)
+    module_fabric_ledger = subparsers.add_parser(
+        "module-fabric-ledger",
+        help="emit the ordered sanitized module-fabric operation ledger",
+    )
+    module_fabric_ledger.add_argument("--input", default=None)
+    module_fabric_ledger.add_argument("--output", default=None)
+    module_fabric_ledger_audit = subparsers.add_parser(
+        "module-fabric-ledger-audit",
+        help="audit operation ordering, counts, addresses, and control holds",
+    )
+    module_fabric_ledger_audit.add_argument("--input", default=None)
+    module_fabric_ledger_audit.add_argument("--output", default=None)
+    module_fabric_recovery = subparsers.add_parser(
+        "module-fabric-recovery",
+        help="emit review-only recovery instructions for held controls",
+    )
+    module_fabric_recovery.add_argument("--input", default=None)
+    module_fabric_recovery.add_argument("--output", default=None)
     frontier_contracts = subparsers.add_parser(
         "frontier-contracts", help="print the 79-operation frontier contract registry"
     )
@@ -6434,6 +6567,88 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "schema":
             _write_json(schema_document(), args.output)
             return 0
+        if args.command == "module-fabric-fixture":
+            _write_text(module_fabric_fixture_json(), args.output)
+            return 0
+        if args.command == "module-fabric-data-audit":
+            fixture = _module_fabric_fixture(args.input)
+            report = audit_module_fabric_data(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-evaluate":
+            fixture = _module_fabric_fixture(args.input)
+            report = evaluate_module_fabric_fixture(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-depth":
+            fixture = _module_fabric_fixture(args.input)
+            report = audit_module_fabric_depth(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-replay":
+            fixture = _module_fabric_fixture(args.input)
+            report = replay_module_fabric(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-quality":
+            fixture = _module_fabric_fixture(args.input)
+            report = run_module_fabric_quality_gate(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-scenarios":
+            fixture = _module_fabric_fixture(args.input)
+            report = evaluate_module_fabric_scenarios(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-runtime":
+            fixture = _module_fabric_fixture(args.input)
+            report = run_module_fabric_runtime(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.state.value == "accepted" else 2
+        if args.command == "module-fabric-report":
+            fixture = _module_fabric_fixture(args.input)
+            report = run_module_fabric_runtime(fixture)
+            if args.format == "markdown":
+                _write_text(render_module_fabric_runtime_markdown(report), args.output)
+            else:
+                _write_json(module_fabric_report(report), args.output)
+            return 0 if report.state.value == "accepted" else 2
+        if args.command == "module-fabric-review-csv":
+            fixture = _module_fabric_fixture(args.input)
+            _write_text(export_module_fabric_review_csv(fixture), args.output)
+            return 0
+        if args.command == "module-fabric-failures":
+            report = run_module_fabric_failure_injections()
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-schema":
+            _write_json(default_module_fabric_schema().to_dict(), args.output)
+            return 0
+        if args.command == "module-fabric-catalog":
+            _write_json(default_module_fabric_catalog().to_dict(), args.output)
+            return 0
+        if args.command == "module-fabric-sources":
+            _write_json(build_module_fabric_source_registry().to_dict(), args.output)
+            return 0
+        if args.command == "module-fabric-data-dictionary":
+            _write_json(default_module_fabric_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "module-fabric-ledger":
+            fixture = _module_fabric_fixture(args.input)
+            ledger = build_module_fabric_operation_ledger(fixture)
+            _write_json(ledger.to_dict(), args.output)
+            return 0
+        if args.command == "module-fabric-ledger-audit":
+            fixture = _module_fabric_fixture(args.input)
+            ledger = build_module_fabric_operation_ledger(fixture)
+            audit = audit_module_fabric_operation_ledger(ledger)
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "module-fabric-recovery":
+            fixture = _module_fabric_fixture(args.input)
+            report = build_module_fabric_recovery_report(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "cohort-beta-frontier-fixture":
             _write_text(cohort_beta_frontier_fixture_json(), args.output)
             return 0
