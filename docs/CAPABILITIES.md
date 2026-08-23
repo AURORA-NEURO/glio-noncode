@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage across the sixteen
 domains. The repository ledger now has 256 of 256 capabilities started (100%);
-228 capabilities have deterministic fixture-backed verification and 28 remain
+236 capabilities have deterministic fixture-backed verification and 20 remain
 partial. The frontier surfaces are bounded research infrastructure. Current
-verified coverage is 89.06% of the 256-capability catalog; MVP implementation
+verified coverage is 92.19% of the 256-capability catalog; MVP implementation
 coverage is 93.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -632,11 +632,11 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 184 capabilities are verified against the checked-in
-aggregate fixtures, while 72 capabilities remain partial. Partial
-means the bounded code and tests exist. Verified means the local deterministic
-fixture and negative-control boundary pass; external validation, calibration,
-and institutional release evidence remain separate.
+capabilities started (100%); 236 capabilities are verified against the checked-in
+aggregate fixtures, while 20 capabilities remain partial. Partial means the
+bounded code and tests exist. Verified means the local deterministic fixture and
+negative-control boundary pass; external validation, calibration, and
+institutional release evidence remain separate.
 
 Domain 13 now includes off-target risk estimation, prerequisite-safe validation
 value-of-information selection, content-addressed experiment packages, and
@@ -3340,6 +3340,61 @@ glio-noncode validation-frontier-depth-audit --output validation-depth.json
 These surfaces preserve blockers, abstentions, controls, limitations, source
 receipts, allowed uses, and excluded uses. They do not replace assay design
 review, synthesis review, institutional approval, or experimental validation.
+
+### Domain 13 C05-C12 validation-beta frontier
+
+The C05-C12 validation-beta tranche now promotes the perturbation and research
+planning primitives into a closed public aggregate evidence plane. It uses one
+positive row and three controls for each of eight operation families, for 32
+records over seven public source receipts. The exact context is
+`GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment`; foreign territory and
+post-treatment rows are retained as out-of-domain controls.
+
+The eight operation families are:
+
+- CRISPRi and CRISPRa guide design, with independent mode receipts and explicit
+  candidate-budget, context, and no-target boundaries;
+- base-editing design, retaining single-base chemistry and unsupported-edit
+  blockers;
+- prime-editing design, retaining PBS, RTT, edit-length, and flank controls;
+- allele-specific reporter planning, preserving paired reference/alternate
+  constructs and construct budgets;
+- model-system eligibility, with exact context, cell-state, model, and evidence
+  floors;
+- guide/oligo adaptation, retaining valid sequences and quarantining malformed
+  rows with source hashes;
+- deterministic controls and biological/technical replicate randomization; and
+- transparent power/replication estimation with effect, variance, shortfall,
+  context, and normal-approximation assumptions visible.
+
+The frontier is backed by typed contracts and schemas, public source closure,
+content-addressed records, 32-row fixture evaluation, 32-row reconciliation,
+source-to-result lineage, state-aware publish/review/quarantine policy, a
+24-item review queue, deterministic replay, 12 quality checks, 20 depth checks,
+25 runtime stages, 40 threshold probes, a 32-cell six-plane validation matrix,
+an eight-operation reproducible handoff, release and bundle manifests,
+CSV/Markdown/JSON views, and negative-boundary probes. Positive rows are
+publishable only as bounded research
+planning receipts. The surface does not claim guide efficacy, off-target safety,
+assay success, causal effect, clinical utility, institutional approval, or
+automatic execution.
+
+The C05-C12 command surface is:
+
+```powershell
+glio-noncode validation-beta-frontier-fixture --output validation-beta-fixture.json
+glio-noncode validation-beta-frontier-data --output validation-beta-data.json
+glio-noncode validation-beta-frontier-contracts --output validation-beta-contracts.json
+glio-noncode validation-beta-frontier-schema --output validation-beta-schema.json
+glio-noncode validation-beta-frontier-evaluate --output validation-beta-evaluation.json
+glio-noncode validation-beta-frontier-quality --output validation-beta-quality.json
+glio-noncode validation-beta-frontier-replay --output validation-beta-replay.json
+glio-noncode validation-beta-frontier-thresholds --output validation-beta-thresholds.json
+glio-noncode validation-beta-frontier-validation-matrix --output validation-beta-matrix.json
+glio-noncode validation-beta-frontier-handoff --output validation-beta-handoff.json
+glio-noncode validation-beta-frontier-report --format markdown --output validation-beta-review.md
+glio-noncode run-validation-beta-frontier-pipeline --output validation-beta-runtime.json
+```
 
 ## Domain 14 evidence lifecycle
 

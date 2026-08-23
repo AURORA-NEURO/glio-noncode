@@ -1062,6 +1062,10 @@ from .validation_frontier_review_queue import build_validation_frontier_review_q
 from .validation_frontier_runtime import run_validation_frontier_runtime
 from .validation_frontier_schema import default_validation_frontier_schema
 from .validation_frontier_views import build_validation_frontier_review_view
+from .validation_beta_frontier_cli import (
+    VALIDATION_BETA_FRONTIER_COMMANDS,
+    run_validation_beta_frontier_operation,
+)
 from .variant_beta import (
     CategoricalCatalogParser,
     CatVRSNormalizer,
@@ -5690,6 +5694,24 @@ def build_parser() -> argparse.ArgumentParser:
     power.add_argument("input", type=str)
     power.add_argument("--context-key", required=True)
     power.add_argument("--output", default=None)
+
+    for command in VALIDATION_BETA_FRONTIER_COMMANDS:
+        validation_beta_frontier = subparsers.add_parser(
+            command,
+            help="run the Domain 13 validation-beta frontier operation",
+        )
+        validation_beta_frontier.add_argument(
+            "--input",
+            default=None,
+            help="optional serialized public aggregate fixture",
+        )
+        validation_beta_frontier.add_argument("--output", default=None)
+        if command == "validation-beta-frontier-report":
+            validation_beta_frontier.add_argument(
+                "--format",
+                choices=("json", "csv", "markdown"),
+                default="json",
+            )
 
     for operation in (
         FRONTIER_OPERATIONS
@@ -10904,6 +10926,17 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(result.to_dict(), args.output)
             return 0
+        if args.command in VALIDATION_BETA_FRONTIER_COMMANDS:
+            result = run_validation_beta_frontier_operation(
+                args.command,
+                input_path=getattr(args, "input", None),
+                output_format=getattr(args, "format", "json"),
+            )
+            if result.format == "text":
+                _write_text(str(result.payload), args.output)
+            else:
+                _write_json(result.payload, args.output)
+            return 0 if result.accepted else 2
         if args.command in FRONTIER_OPERATIONS:
             result = run_frontier_operation(
                 args.command,

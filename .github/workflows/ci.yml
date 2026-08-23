@@ -808,6 +808,24 @@ jobs:
         run: python -m glio_noncode validation-frontier-depth-audit --output /tmp/glio-validation-frontier-depth.json
       - name: Validation frontier review queue
         run: python -m glio_noncode validation-frontier-review-queue --output /tmp/glio-validation-frontier-queue.json
+      - name: Validation beta frontier fixture and data audit
+        run: python -m glio_noncode validation-beta-frontier-fixture --output /tmp/glio-validation-beta-fixture.json && python -m glio_noncode validation-beta-frontier-data --output /tmp/glio-validation-beta-data.json
+      - name: Validation beta frontier contracts and schema
+        run: python -m glio_noncode validation-beta-frontier-contracts --output /tmp/glio-validation-beta-contracts.json && python -m glio_noncode validation-beta-frontier-schema --output /tmp/glio-validation-beta-schema.json
+      - name: Validation beta frontier evaluation and controls
+        run: python -m glio_noncode validation-beta-frontier-evaluate --output /tmp/glio-validation-beta-evaluation.json && python -m glio_noncode validation-beta-frontier-controls --output /tmp/glio-validation-beta-controls.json && python -m glio_noncode validation-beta-frontier-integrity --output /tmp/glio-validation-beta-integrity.json
+      - name: Validation beta frontier evidence governance
+        run: python -m glio_noncode validation-beta-frontier-metrics --output /tmp/glio-validation-beta-metrics.json && python -m glio_noncode validation-beta-frontier-lineage --output /tmp/glio-validation-beta-lineage.json && python -m glio_noncode validation-beta-frontier-policy --output /tmp/glio-validation-beta-policy.json && python -m glio_noncode validation-beta-frontier-reconciliation --output /tmp/glio-validation-beta-reconciliation.json
+      - name: Validation beta frontier quality and replay
+        run: python -m glio_noncode validation-beta-frontier-quality --output /tmp/glio-validation-beta-quality.json && python -m glio_noncode validation-beta-frontier-replay --output /tmp/glio-validation-beta-replay.json && python -m glio_noncode validation-beta-frontier-depth --output /tmp/glio-validation-beta-depth.json
+      - name: Validation beta frontier threshold matrix and handoff
+        run: python -m glio_noncode validation-beta-frontier-thresholds --output /tmp/glio-validation-beta-thresholds.json && python -m glio_noncode validation-beta-frontier-validation-matrix --output /tmp/glio-validation-beta-matrix.json && python -m glio_noncode validation-beta-frontier-handoff --output /tmp/glio-validation-beta-handoff.json
+      - name: Validation beta frontier release and review
+        run: python -m glio_noncode validation-beta-frontier-release --output /tmp/glio-validation-beta-release.json && python -m glio_noncode validation-beta-frontier-bundle --output /tmp/glio-validation-beta-bundle.json && python -m glio_noncode validation-beta-frontier-review --output /tmp/glio-validation-beta-review.json && python -m glio_noncode validation-beta-frontier-report --format markdown --output /tmp/glio-validation-beta-report.md
+      - name: Validation beta frontier runtime rehearsal
+        run: python -m glio_noncode run-validation-beta-frontier-pipeline --output /tmp/glio-validation-beta-runtime.json
+      - name: Validation beta frontier focused tests
+        run: python -m unittest tests.test_validation_beta_frontier tests.test_validation_beta_frontier_cli
       - name: Evidence lifecycle data boundary audit
         run: python -m glio_noncode evidence-lifecycle-data-audit --output /tmp/glio-evidence-lifecycle-data.json
       - name: Evidence lifecycle operation contracts

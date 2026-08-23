@@ -4270,103 +4270,149 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D13-C05": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.validation_beta.CRISPRiDesignPlanner",),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.validation_beta.CRISPRiDesignPlanner",
+                    "glio_noncode.validation_beta.CRISPRaDesignPlanner",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_contracts",
+                    "glio_noncode.validation_beta_frontier_quality_gate",
+                    "glio_noncode.validation_beta_frontier_runtime",
+                ),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "CRISPRi design packages generate context-gated guide candidates with declared "
                     "overlap, heuristic score, specificity, PAM, control, readout, and budget "
-                    "receipts; guide efficacy and off-target validation remain external."
+                    "receipts; the public aggregate frontier verifies positive and boundary paths, "
+                    "while guide efficacy and off-target validation remain external."
                 ),
             },
             "GNC-D13-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_beta.BaseEditingDesignPlanner",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_governance",
+                    "glio_noncode.validation_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "Base-editing planning checks single-base substitution compatibility and a "
                     "declared editing window while retaining candidate guides, edit payload, "
-                    "bystander warnings, controls, and blocked unsupported chemistry."
+                    "bystander warnings, controls, and blocked unsupported chemistry. The public "
+                    "aggregate frontier verifies paired positive and control receipts."
                 ),
             },
             "GNC-D13-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_beta.PrimeEditingDesignPlanner",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_governance",
+                    "glio_noncode.validation_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "Prime-editing packages generate declared guide, PBS, RTT, and edit payload "
                     "placeholders with flank and edit-length gates; pegRNA efficacy, nicking, "
-                    "off-target, and bystander validation remain required."
+                    "off-target, and bystander validation remain required. The public aggregate "
+                    "frontier verifies PBS/RTT, edit-length, flank, context, and empty-target controls."
                 ),
             },
             "GNC-D13-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_beta.AlleleSpecificReporterPlanner",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_governance",
+                    "glio_noncode.validation_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli"),
+                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "Allele-specific reporter packages keep reference and alternate constructs "
                     "paired under exact context, controls, readouts, and construct budgets; "
-                    "reporter activity does not establish endogenous causality or clinical effect."
+                    "reporter activity does not establish endogenous causality or clinical effect. "
+                    "The public aggregate frontier verifies paired alleles, budget, context, and "
+                    "empty-target controls."
                 ),
             },
             "GNC-D13-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_alpha.ModelSystemEligibilityMatcher",
                     "glio_noncode.validation_alpha.ModelSystemEligibilityReport",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_governance",
+                    "glio_noncode.validation_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "Model-system eligibility matches exact context, declared model support, "
                     "cell state, evidence strength, blockers, and source receipts; it is a "
-                    "planning gate and not proof of model fidelity or validation success."
+                    "planning gate and not proof of model fidelity or validation success. The public "
+                    "aggregate frontier verifies eligible, blocked, and out-of-domain paths."
                 ),
             },
             "GNC-D13-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_alpha.GuideOligoDesignAdapter",
                     "glio_noncode.validation_alpha.GuideOligoBatch",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_exports",
+                    "glio_noncode.validation_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "Guide and oligo adaptation preserves design IDs, target IDs, sequences, "
                     "strand, offsets, PAM, context, versions, row hashes, and malformed-row "
-                    "quarantine; sequence adaptation does not establish efficacy or safety."
+                    "quarantine; sequence adaptation does not establish efficacy or safety. The "
+                    "public aggregate frontier verifies source closure, malformed rows, context "
+                    "review, and empty-source abstention."
                 ),
             },
             "GNC-D13-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_alpha.ControlsRandomizationPlanner",
                     "glio_noncode.validation_alpha.ControlsRandomizationReport",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_control_coverage",
+                    "glio_noncode.validation_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "Control and replicate plans generate deterministic content-addressed "
                     "assignments for biological and technical replicates while retaining context "
                     "blockers and review boundaries; they do not guarantee balance or assay "
-                    "validity."
+                    "validity. The public aggregate frontier verifies deterministic assignments, "
+                    "three control rows, context isolation, missing IDs, and empty plans."
                 ),
             },
             "GNC-D13-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.validation_alpha.PowerReplicationEstimator",
                     "glio_noncode.validation_alpha.PowerReplicationReport",
+                    "glio_noncode.validation_beta_frontier_public_data",
+                    "glio_noncode.validation_beta_frontier_fixture_eval",
+                    "glio_noncode.validation_beta_frontier_governance",
+                    "glio_noncode.validation_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli"),
+                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
                     "Power planning exposes effect, variance, alpha, target power, replicate "
                     "requirements, blocking factors, shortfalls, assumptions, and source receipts "
                     "under a transparent approximation; it is not a statistical guarantee or a "
-                    "clinical claim."
+                    "clinical claim. The public aggregate frontier verifies ready, partial, "
+                    "out-of-domain, abstained, and invalid-observation controls."
                 ),
             },
             "GNC-D13-C13": {
