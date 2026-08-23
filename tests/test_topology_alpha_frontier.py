@@ -231,7 +231,7 @@ class TopologyAlphaFrontierTests(unittest.TestCase):
         self.assertTrue(thresholds.accepted)
         self.assertEqual(thresholds.get("motif_minimum_score").value, 0.5)
         self.assertEqual(len(default_topology_alpha_frontier_runbook().steps), 5)
-        self.assertEqual(len(TOPOLOGY_ALPHA_FRONTIER_COMMANDS), 12)
+        self.assertEqual(len(TOPOLOGY_ALPHA_FRONTIER_COMMANDS), 13)
         for operation in TOPOLOGY_ALPHA_FRONTIER_COMMANDS:
             value = run_topology_alpha_frontier_operation(operation)
             self.assertIsInstance(value, dict)

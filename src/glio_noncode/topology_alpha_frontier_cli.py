@@ -29,6 +29,7 @@ TOPOLOGY_ALPHA_FRONTIER_COMMANDS = (
     "topology-alpha-frontier-release",
     "topology-alpha-frontier-manifest",
     "topology-alpha-frontier-summary",
+    "topology-alpha-frontier-pipeline",
 )
 
 
@@ -49,6 +50,7 @@ def run_topology_alpha_frontier_operation(operation: str) -> dict[str, Any]:
         "topology-alpha-frontier-release": build_topology_alpha_frontier_release(fixture, evaluation, pipeline.quality).to_dict(),
         "topology-alpha-frontier-manifest": {"fixture_id": fixture.fixture_id, "version": fixture.version, "boundary": fixture.boundary},
         "topology-alpha-frontier-summary": {"accepted": pipeline.accepted, "state_match_count": evaluation.state_match_count, "issue_match_count": evaluation.issue_match_count, "stage_count": len(pipeline.stages)},
+        "topology-alpha-frontier-pipeline": pipeline.to_dict(),
     }
     if operation not in values:
         raise KeyError(operation)
