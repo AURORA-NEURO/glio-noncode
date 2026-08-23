@@ -307,6 +307,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D06-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.chromatin_architecture_operations.evaluate_chromatin_architecture_fixture",
+                            "glio_noncode.chromatin_architecture_runtime.run_chromatin_architecture",
+                            "glio_noncode.chromatin_architecture_quality.assess_chromatin_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D07-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -339,6 +348,14 @@ class CapabilityRegistry:
                             "tests.test_sequence_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D06-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_chromatin_architecture",
+                            "tests.test_chromatin_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D07-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),

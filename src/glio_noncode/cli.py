@@ -1671,6 +1671,16 @@ def _sequence_architecture_fixture(input_path: str | None):
     )
 
 
+def _chromatin_architecture_fixture(input_path: str | None):
+    from .chromatin_architecture_public_data import default_chromatin_architecture_fixture
+
+    return (
+        default_chromatin_architecture_fixture(input_path)
+        if input_path
+        else default_chromatin_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2825,6 +2835,70 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sequence_architecture_bundle.add_argument("--input", default=None)
     sequence_architecture_bundle.add_argument("--output", required=True)
+    chromatin_architecture_fixture = subparsers.add_parser(
+        "chromatin-architecture-fixture",
+        help="emit the D07 C01-C16 public aggregate chromatin architecture fixture",
+    )
+    chromatin_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("chromatin-architecture-data-audit", "audit D07 chromatin sources, context, joins, and scope"),
+        ("chromatin-architecture-plan", "compile the D07 chromatin dependency plan"),
+        ("evaluate-chromatin-architecture", "execute D07 family delegates and aggregate controls"),
+        ("chromatin-architecture-runtime", "run the D07 twenty-two-stage chromatin runtime"),
+        ("chromatin-architecture-validation", "emit the D07 plane-by-operation validation matrix"),
+        ("chromatin-architecture-quality", "run the D07 chromatin release quality gate"),
+        ("chromatin-architecture-depth", "report D07 chromatin operation and evidence depth"),
+        ("replay-chromatin-architecture", "replay D07 chromatin evaluation deterministically"),
+        ("chromatin-architecture-review", "emit D07 held-control review receipts"),
+        ("chromatin-architecture-metrics", "emit D07 chromatin architecture metrics"),
+        ("chromatin-architecture-access", "emit D07 chromatin artifact access policy"),
+        ("chromatin-architecture-schema", "emit D07 chromatin interchange schema"),
+        ("chromatin-architecture-invariants", "emit D07 chromatin cross-module invariants"),
+        ("chromatin-architecture-failures", "emit D07 chromatin failure classifications"),
+        ("chromatin-architecture-scenarios", "emit D07 chromatin scenario matrix and summary"),
+        ("chromatin-architecture-runbook", "emit D07 chromatin operational runbook"),
+        ("chromatin-architecture-dictionary", "emit the D07 chromatin field dictionary"),
+        ("chromatin-architecture-compliance", "run D07 public-scope compliance checks"),
+        ("chromatin-architecture-sources", "emit the D07 source-to-operation registry"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    chromatin_architecture_report = subparsers.add_parser(
+        "chromatin-architecture-report",
+        help="render a D07 chromatin release report",
+    )
+    chromatin_architecture_report.add_argument("--input", default=None)
+    chromatin_architecture_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    chromatin_architecture_report.add_argument("--output", default=None)
+    chromatin_architecture_receipts = subparsers.add_parser(
+        "chromatin-architecture-receipts-csv",
+        help="export D07 chromatin receipts as CSV",
+    )
+    chromatin_architecture_receipts.add_argument("--input", default=None)
+    chromatin_architecture_receipts.add_argument("--output", required=True)
+    chromatin_architecture_review_csv = subparsers.add_parser(
+        "chromatin-architecture-review-csv",
+        help="export D07 chromatin held controls as CSV",
+    )
+    chromatin_architecture_review_csv.add_argument("--input", default=None)
+    chromatin_architecture_review_csv.add_argument("--output", required=True)
+    chromatin_architecture_query = subparsers.add_parser(
+        "chromatin-architecture-query",
+        help="query D07 sanitized chromatin receipts",
+    )
+    chromatin_architecture_query.add_argument("--input", default=None)
+    chromatin_architecture_query.add_argument("--operation", default=None)
+    chromatin_architecture_query.add_argument("--state", choices=("accepted", "review"), default=None)
+    chromatin_architecture_query.add_argument("--scenario", default=None)
+    chromatin_architecture_query.add_argument("--family", default=None)
+    chromatin_architecture_query.add_argument("--output", default=None)
+    chromatin_architecture_bundle = subparsers.add_parser(
+        "chromatin-architecture-bundle",
+        help="write a D07 chromatin runtime bundle",
+    )
+    chromatin_architecture_bundle.add_argument("--input", default=None)
+    chromatin_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -8632,6 +8706,205 @@ def main(argv: list[str] | None = None) -> int:
                 sequence_architecture_fixture_json(fixture),
                 str(output_dir / "fixture.json"),
             )
+            return 0 if runtime.accepted else 2
+        if args.command == "chromatin-architecture-fixture":
+            from .chromatin_architecture_public_data import chromatin_architecture_fixture_json
+
+            _write_text(chromatin_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "chromatin-architecture-data-audit":
+            from .chromatin_architecture_public_data import audit_chromatin_architecture_data
+
+            report = audit_chromatin_architecture_data(_chromatin_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-plan":
+            from .chromatin_architecture_plan import compile_chromatin_architecture_plan
+
+            report = compile_chromatin_architecture_plan(_chromatin_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-chromatin-architecture":
+            from .chromatin_architecture_operations import evaluate_chromatin_architecture_fixture
+
+            report = evaluate_chromatin_architecture_fixture(_chromatin_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-runtime":
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "chromatin-architecture-validation":
+            from .chromatin_architecture_operations import evaluate_chromatin_architecture_fixture
+            from .chromatin_architecture_validation import validate_chromatin_architecture_matrix
+
+            fixture = _chromatin_architecture_fixture(args.input)
+            matrix = validate_chromatin_architecture_matrix(fixture, evaluate_chromatin_architecture_fixture(fixture))
+            _write_json(matrix.to_dict(), args.output)
+            return 0 if matrix.accepted else 2
+        if args.command == "chromatin-architecture-quality":
+            from .chromatin_architecture_failures import classify_chromatin_architecture_failures
+            from .chromatin_architecture_lineage import build_chromatin_architecture_lineage
+            from .chromatin_architecture_metrics import materialize_chromatin_architecture_metrics
+            from .chromatin_architecture_policy import score_chromatin_architecture_policy
+            from .chromatin_architecture_quality import assess_chromatin_architecture_quality
+            from .chromatin_architecture_replay import replay_chromatin_architecture_fixture
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+            from .chromatin_architecture_schema import validate_chromatin_architecture_schema
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            policy = score_chromatin_architecture_policy(runtime.evaluation)
+            lineage = build_chromatin_architecture_lineage(runtime.fixture, runtime.evaluation)
+            metrics = materialize_chromatin_architecture_metrics(runtime.evaluation)
+            schema = validate_chromatin_architecture_schema(runtime.fixture, runtime.evaluation)
+            replay = replay_chromatin_architecture_fixture(runtime.fixture)
+            failures = classify_chromatin_architecture_failures(runtime.evaluation)
+            report = assess_chromatin_architecture_quality(runtime.fixture, runtime.audit, runtime.plan, runtime.evaluation, policy, runtime.review_queue, lineage, metrics, schema, replay, failures, runtime.release)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-depth":
+            from .chromatin_architecture_depth import chromatin_architecture_depth_report
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            report = chromatin_architecture_depth_report(runtime.fixture, runtime.evaluation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.addressed_count > 0 else 2
+        if args.command == "replay-chromatin-architecture":
+            from .chromatin_architecture_replay import replay_chromatin_architecture_fixture
+
+            report = replay_chromatin_architecture_fixture(_chromatin_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-review":
+            from .chromatin_architecture_review import build_chromatin_architecture_review_queue
+
+            fixture = _chromatin_architecture_fixture(args.input)
+            report = build_chromatin_architecture_review_queue(fixture.fixture_id, fixture.cases)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-metrics":
+            from .chromatin_architecture_metrics import materialize_chromatin_architecture_metrics
+            from .chromatin_architecture_operations import evaluate_chromatin_architecture_fixture
+
+            report = materialize_chromatin_architecture_metrics(evaluate_chromatin_architecture_fixture(_chromatin_architecture_fixture(args.input)))
+            _write_json(report.to_dict(), args.output)
+            return 0
+        if args.command == "chromatin-architecture-access":
+            from .chromatin_architecture_access import chromatin_architecture_access_policy
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            report = chromatin_architecture_access_policy(run_chromatin_architecture(_chromatin_architecture_fixture(args.input)).artifacts)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-schema":
+            from .chromatin_architecture_schema import chromatin_architecture_schema
+
+            _write_json(chromatin_architecture_schema().to_dict(), args.output)
+            return 0
+        if args.command == "chromatin-architecture-invariants":
+            from .chromatin_architecture_invariants import check_chromatin_architecture_invariants
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            checks = check_chromatin_architecture_invariants(runtime.fixture, runtime.evaluation)
+            _write_json({"accepted": all(item.passed for item in checks), "checks": [jsonable(item) for item in checks]}, args.output)
+            return 0 if all(item.passed for item in checks) else 2
+        if args.command == "chromatin-architecture-failures":
+            from .chromatin_architecture_failures import classify_chromatin_architecture_failures
+            from .chromatin_architecture_operations import evaluate_chromatin_architecture_fixture
+
+            report = classify_chromatin_architecture_failures(evaluate_chromatin_architecture_fixture(_chromatin_architecture_fixture(args.input)))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-scenarios":
+            from .chromatin_architecture_scenarios import build_chromatin_architecture_scenario_matrix, chromatin_architecture_scenario_summary
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            matrix = build_chromatin_architecture_scenario_matrix(runtime.fixture, runtime.evaluation)
+            _write_json({"accepted": matrix.accepted, "matrix": matrix.to_dict(), "summary": chromatin_architecture_scenario_summary(matrix)}, args.output)
+            return 0 if matrix.accepted else 2
+        if args.command == "chromatin-architecture-runbook":
+            from .chromatin_architecture_runbook import chromatin_architecture_runbook
+
+            report = chromatin_architecture_runbook()
+            _write_json(report.to_dict(), args.output)
+            return 0
+        if args.command == "chromatin-architecture-dictionary":
+            from .chromatin_architecture_data_dictionary import chromatin_architecture_data_dictionary
+
+            report = chromatin_architecture_data_dictionary(_chromatin_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0
+        if args.command == "chromatin-architecture-compliance":
+            from .chromatin_architecture_compliance import assess_chromatin_architecture_compliance
+
+            report = assess_chromatin_architecture_compliance(_chromatin_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-sources":
+            from .chromatin_architecture_source_registry import build_chromatin_architecture_source_registry
+
+            report = build_chromatin_architecture_source_registry(_chromatin_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-report":
+            from .chromatin_architecture_data_dictionary import chromatin_architecture_data_dictionary
+            from .chromatin_architecture_metrics import materialize_chromatin_architecture_metrics
+            from .chromatin_architecture_reporting import build_chromatin_architecture_report, render_chromatin_architecture_markdown
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            report = build_chromatin_architecture_report(runtime, materialize_chromatin_architecture_metrics(runtime.evaluation), chromatin_architecture_data_dictionary(runtime.fixture))
+            if args.format == "markdown":
+                _write_text(render_chromatin_architecture_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "chromatin-architecture-receipts-csv":
+            from .chromatin_architecture_reporting import chromatin_architecture_receipts_csv
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            _write_text(chromatin_architecture_receipts_csv(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "chromatin-architecture-review-csv":
+            from .chromatin_architecture_reporting import chromatin_architecture_review_csv
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
+            _write_text(chromatin_architecture_review_csv(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "chromatin-architecture-query":
+            from .chromatin_architecture_operations import evaluate_chromatin_architecture_fixture
+            from .chromatin_architecture_query import ChromatinArchitectureQuery, query_chromatin_architecture
+            from .chromatin_architecture_contracts import ChromatinArchitectureOperation, ChromatinArchitectureState
+
+            fixture = _chromatin_architecture_fixture(args.input)
+            evaluation = evaluate_chromatin_architecture_fixture(fixture)
+            query = ChromatinArchitectureQuery(
+                operation=ChromatinArchitectureOperation(args.operation) if args.operation else None,
+                state=ChromatinArchitectureState(args.state) if args.state else None,
+                scenario=args.scenario,
+                family=args.family,
+            )
+            report = query_chromatin_architecture(fixture.cases, evaluation, query)
+            _write_json(report.to_dict(), args.output)
+            return 0
+        if args.command == "chromatin-architecture-bundle":
+            from .chromatin_architecture_public_data import chromatin_architecture_fixture_json
+            from .chromatin_architecture_runtime import run_chromatin_architecture
+
+            fixture = _chromatin_architecture_fixture(args.input)
+            runtime = run_chromatin_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_text(chromatin_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)
