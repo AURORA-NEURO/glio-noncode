@@ -9897,6 +9897,43 @@ __all__ += [
     "validate_cohort_foundation_frontier_schema",
 ]
 
+from .coordination_architecture_access import CoordinationAccessManifest, build_coordination_access_manifest
+from .coordination_architecture_contracts import CoordinationAssignment, CoordinationCase, CoordinationCheck, CoordinationCheckKind, CoordinationDeploymentArtifact, CoordinationEvaluation, CoordinationExecution, CoordinationFailureProbe, CoordinationFailureReport, CoordinationFixture, CoordinationLedger, CoordinationLedgerEvent, CoordinationObservation, CoordinationOperation, CoordinationOperationSpec, CoordinationPlan, CoordinationPlanNode, CoordinationPlane, CoordinationPolicyDecision, CoordinationQualityReport, CoordinationRegistry, CoordinationRegistryEntry, CoordinationRelease, CoordinationReviewItem, CoordinationRole, CoordinationRuntime, CoordinationRuntimeStage, CoordinationScenario, CoordinationSchedule, CoordinationSecurityDecision, CoordinationSource, CoordinationState, CoordinationToolRegistry, CoordinationToolSpec, addressed, COORDINATION_BOUNDARY, COORDINATION_CASE_COUNT, COORDINATION_CONTEXT, COORDINATION_FOREIGN_CONTEXT, COORDINATION_OPERATION_COUNT, COORDINATION_VERSION
+from .coordination_architecture_depth import CoordinationDepthAudit, CoordinationDepthCheck, audit_coordination_depth
+from .coordination_architecture_deployment import audit_coordination_deployment, build_coordination_assignments, build_coordination_deployment_artifacts
+from .coordination_architecture_exports import coordination_quality_json, coordination_report_markdown, coordination_review_csv, coordination_runtime_json, coordination_summary
+from .coordination_architecture_failures import run_coordination_failure_injections
+from .coordination_architecture_fallback import CoordinationFallbackRoute, route_coordination_fallback
+from .coordination_architecture_invariants import coordination_invariants
+from .coordination_architecture_ledger import build_coordination_ledger, verify_coordination_ledger
+from .coordination_architecture_monitoring import audit_coordination_observations, build_coordination_observations
+from .coordination_architecture_observability import CoordinationTrace, CoordinationTraceEvent, build_coordination_trace, verify_coordination_trace
+from .coordination_architecture_operations import evaluate_coordination_case, evaluate_coordination_fixture, execute_coordination_case
+from .coordination_architecture_plan import audit_coordination_plan, compile_coordination_plan
+from .coordination_architecture_policy import evaluate_coordination_policy
+from .coordination_architecture_public_data import CoordinationDataAudit, CoordinationDataCheck, audit_coordination_data, coordination_fixture_json, default_coordination_fixture, default_coordination_operations, default_coordination_sources, load_coordination_fixture
+from .coordination_architecture_query import CoordinationQueryResult, query_coordination
+from .coordination_architecture_quality import run_coordination_quality_gate
+from .coordination_architecture_reconciliation import CoordinationReconciliation, CoordinationReconciliationItem, reconcile_coordination_evaluation
+from .coordination_architecture_registries import build_coordination_compute_registry, build_coordination_reference_registry, validate_coordination_registry
+from .coordination_architecture_release import build_coordination_release, verify_coordination_release
+from .coordination_architecture_replay import CoordinationReplayReport, replay_coordination_runtime
+from .coordination_architecture_review import build_coordination_review_queue, review_queue_summary
+from .coordination_architecture_runbook import CoordinationRunbook, CoordinationRunbookStep, build_coordination_runbook, runbook_is_executable
+from .coordination_architecture_runtime import run_coordination_architecture
+from .coordination_architecture_sandbox import CoordinationSandboxReceipt, execute_coordination_sandbox, sandbox_projection
+from .coordination_architecture_schema import CoordinationSchemaField, CoordinationSchemaManifest, default_coordination_schema, validate_coordination_schema
+from .coordination_architecture_scheduler import DEFAULT_COORDINATION_CAPACITY, schedule_coordination_plan
+from .coordination_architecture_security import evaluate_coordination_security
+from .coordination_architecture_tools import build_coordination_tool_registry, validate_coordination_tool_registry
+from .coordination_architecture_validation import CoordinationValidationCell, CoordinationValidationMatrix, build_coordination_validation_matrix
+
+__all__ += [
+    "COORDINATION_BOUNDARY", "COORDINATION_CASE_COUNT", "COORDINATION_CONTEXT", "COORDINATION_FOREIGN_CONTEXT", "COORDINATION_OPERATION_COUNT", "COORDINATION_VERSION", "DEFAULT_COORDINATION_CAPACITY",
+    "CoordinationAccessManifest", "CoordinationAssignment", "CoordinationCase", "CoordinationCheck", "CoordinationCheckKind", "CoordinationDataAudit", "CoordinationDataCheck", "CoordinationDepthAudit", "CoordinationDepthCheck", "CoordinationDeploymentArtifact", "CoordinationEvaluation", "CoordinationExecution", "CoordinationFailureProbe", "CoordinationFailureReport", "CoordinationFallbackRoute", "CoordinationFixture", "CoordinationLedger", "CoordinationLedgerEvent", "CoordinationObservation", "CoordinationOperation", "CoordinationOperationSpec", "CoordinationPlan", "CoordinationPlanNode", "CoordinationPlane", "CoordinationPolicyDecision", "CoordinationQualityReport", "CoordinationQueryResult", "CoordinationReconciliation", "CoordinationReconciliationItem", "CoordinationRegistry", "CoordinationRegistryEntry", "CoordinationRelease", "CoordinationReplayReport", "CoordinationReviewItem", "CoordinationRole", "CoordinationRunbook", "CoordinationRunbookStep", "CoordinationRuntime", "CoordinationRuntimeStage", "CoordinationSandboxReceipt", "CoordinationScenario", "CoordinationSchedule", "CoordinationSchemaField", "CoordinationSchemaManifest", "CoordinationSecurityDecision", "CoordinationSource", "CoordinationState", "CoordinationToolRegistry", "CoordinationToolSpec", "CoordinationTrace", "CoordinationTraceEvent", "CoordinationValidationCell", "CoordinationValidationMatrix",
+    "addressed", "audit_coordination_data", "audit_coordination_deployment", "audit_coordination_depth", "audit_coordination_observations", "audit_coordination_plan", "build_coordination_access_manifest", "build_coordination_assignments", "build_coordination_compute_registry", "build_coordination_deployment_artifacts", "build_coordination_ledger", "build_coordination_observations", "build_coordination_reference_registry", "build_coordination_review_queue", "build_coordination_runbook", "build_coordination_tool_registry", "build_coordination_trace", "build_coordination_validation_matrix", "compile_coordination_plan", "coordination_fixture_json", "coordination_invariants", "coordination_quality_json", "coordination_report_markdown", "coordination_review_csv", "coordination_runtime_json", "coordination_summary", "default_coordination_fixture", "default_coordination_operations", "default_coordination_schema", "default_coordination_sources", "evaluate_coordination_case", "evaluate_coordination_fixture", "evaluate_coordination_policy", "evaluate_coordination_security", "execute_coordination_case", "execute_coordination_sandbox", "load_coordination_fixture", "query_coordination", "reconcile_coordination_evaluation", "replay_coordination_runtime", "review_queue_summary", "route_coordination_fallback", "run_coordination_architecture", "run_coordination_failure_injections", "run_coordination_quality_gate", "runbook_is_executable", "sandbox_projection", "schedule_coordination_plan", "validate_coordination_registry", "validate_coordination_schema", "validate_coordination_tool_registry", "verify_coordination_ledger", "verify_coordination_release", "verify_coordination_trace",
+]
+
 from .module_fabric_catalog import FabricContractCatalog, FabricDomainContract, default_module_fabric_catalog, validate_module_fabric_catalog
 from .module_fabric_contracts import FabricCheck, FabricCheckPlane, FabricDepthAudit, FabricDepthCheck, FabricEvaluation, FabricExecution, FabricFailureProbe, FabricFailureReport, FabricFixture, FabricLineage, FabricLineageEdge, FabricLineageNode, FabricMetrics, FabricOperationResult, FabricQualityCheck, FabricQualityReport, FabricRecord, FabricReferenceKind, FabricReferenceReceipt, FabricReferenceState, FabricReleaseArtifact, FabricReleaseManifest, FabricReplayCheck, FabricReplayReport, FabricRole, FabricRuntimeReport, FabricRuntimeStage, FabricSourceReceipt, FabricState
 from .module_fabric_data_dictionary import FabricDataDictionary, FabricDictionaryEntry, default_module_fabric_data_dictionary

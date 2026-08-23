@@ -213,6 +213,32 @@ The [operations](docs/MODULE_FABRIC_OPERATIONS.md),
 [schema](docs/MODULE_FABRIC_SCHEMA.md), and
 [release](docs/MODULE_FABRIC_RELEASE.md) documents define its bounded use.
 
+The D16 coordination architecture now composes all 16 platform-control
+capabilities into one functional public-aggregate runtime. It contains 16
+dependency-ordered operations, 64 positive/control cases, 20 runtime stages,
+112 seven-plane validation cells, a 64-event hash chain, offline deployment
+artifacts, federated assignment receipts, and release/rollback gates:
+
+```text
+glio-noncode coordination-fixture --output coordination.json
+glio-noncode coordination-data-audit --input coordination.json
+glio-noncode coordination-runtime --output coordination-runtime.json
+glio-noncode coordination-quality --output coordination-quality.json
+glio-noncode coordination-depth --output coordination-depth.json
+glio-noncode coordination-validation --output coordination-validation.json
+glio-noncode coordination-runbook --output coordination-runbook.json
+glio-noncode coordination-review-csv --output coordination-review.csv
+glio-noncode coordination-query --state review --output coordination-review.json
+glio-noncode coordination-failures --output coordination-failures.json
+```
+
+The [coordination operations](docs/COORDINATION_ARCHITECTURE_OPERATIONS.md),
+[schema](docs/COORDINATION_ARCHITECTURE_SCHEMA.md),
+[runbook](docs/COORDINATION_ARCHITECTURE_RUNBOOK.md), and
+[release gate](docs/COORDINATION_ARCHITECTURE_RELEASE.md) documents define the
+runtime boundary. The checked-in fixture is
+[examples/coordination-architecture-public-aggregate.json](examples/coordination-architecture-public-aggregate.json).
+
 See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_API.md](docs/WORKBENCH_RELEASE_FRONTIER_API.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md](docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md),

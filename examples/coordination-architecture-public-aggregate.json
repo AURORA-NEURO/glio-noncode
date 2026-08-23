@@ -1,0 +1,2371 @@
+{
+  "boundary": "public_aggregate_platform_coordination",
+  "cases": [
+    {
+      "capability_id": "GNC-D16-C01",
+      "case_id": "COORD-D16-C01-positive",
+      "content_address": "coordination-case:84b31cc69a9b8937c1af94f806050f7e6ef869a40949f06e1de10b1f9486dfca",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C01",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mission.request.v1",
+        "declared_operation_id": "COORD-D16-C01",
+        "declared_output_contract": "mission.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 3,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "planner",
+      "scenario": "positive",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C01",
+      "case_id": "COORD-D16-C01-foreign_context",
+      "content_address": "coordination-case:a744ed45166bea52a2412a3d530e0b35202f2d601d02f13e3e903eb73b733492",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C01",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "mission.request.v1",
+        "declared_operation_id": "COORD-D16-C01",
+        "declared_output_contract": "mission.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 3,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "planner",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C01",
+      "case_id": "COORD-D16-C01-budget_exceeded",
+      "content_address": "coordination-case:597c644e4d0c9b36bcd67173c67d9cd12f6f010cc80e7a8c78c2aad3113b9493",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C01",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mission.request.v1",
+        "declared_operation_id": "COORD-D16-C01",
+        "declared_output_contract": "mission.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 3,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "planner",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C01",
+      "case_id": "COORD-D16-C01-contract_mismatch",
+      "content_address": "coordination-case:2b57a707fe05ca92c4d6e8c6116815e3c051ef70f66592dafa4e617ff6b56086",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C01",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C01",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C01",
+        "declared_output_contract": "mission.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 3,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "planner",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C02",
+      "case_id": "COORD-D16-C02-positive",
+      "content_address": "coordination-case:d727a7886a4db35fdff6e13e36047aa08e907b48494193e13e65d00bffc3f0f6",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C02",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C02",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mission.plan.v1",
+        "declared_operation_id": "COORD-D16-C02",
+        "declared_output_contract": "workflow.graph.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 4,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compiler",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C02",
+      "case_id": "COORD-D16-C02-foreign_context",
+      "content_address": "coordination-case:57a2014a5e48c59fa322615f21cce99c888396c83326dcdcba50e0445eaa8460",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C02",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C02",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "mission.plan.v1",
+        "declared_operation_id": "COORD-D16-C02",
+        "declared_output_contract": "workflow.graph.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 4,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compiler",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C02",
+      "case_id": "COORD-D16-C02-budget_exceeded",
+      "content_address": "coordination-case:bcb3b6ee97ad20204cd6594daa9e2065a98d1466a1769d13026fd24928651afc",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C02",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C02",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mission.plan.v1",
+        "declared_operation_id": "COORD-D16-C02",
+        "declared_output_contract": "workflow.graph.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 4,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compiler",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C02",
+      "case_id": "COORD-D16-C02-contract_mismatch",
+      "content_address": "coordination-case:5861fa1996be8edfc7e34541b814fdf3da0c2cbea19a1984a54bf7785d0a0b2a",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C02",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C02",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C02",
+        "declared_output_contract": "workflow.graph.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 4,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compiler",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C03",
+      "case_id": "COORD-D16-C03-positive",
+      "content_address": "coordination-case:c1fd263f468cf7259a7982a04587dd94b14976482edf4e9a9d335540a14a959f",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C03",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C03",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "workflow.graph.v1",
+        "declared_operation_id": "COORD-D16-C03",
+        "declared_output_contract": "tool.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 5,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "tool_registry",
+      "scenario": "positive",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C03",
+      "case_id": "COORD-D16-C03-foreign_context",
+      "content_address": "coordination-case:c123d5d34a07c8d43abf664b38b1544bc943fd44b2eb5fd0c94c70906e085a75",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C03",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C03",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "workflow.graph.v1",
+        "declared_operation_id": "COORD-D16-C03",
+        "declared_output_contract": "tool.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 5,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "tool_registry",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C03",
+      "case_id": "COORD-D16-C03-budget_exceeded",
+      "content_address": "coordination-case:71c57385ba1af2f1912d4227f6fb5aa0083e4837068eb0800d22bb55c57c7c1e",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C03",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C03",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "workflow.graph.v1",
+        "declared_operation_id": "COORD-D16-C03",
+        "declared_output_contract": "tool.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 5,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "tool_registry",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C03",
+      "case_id": "COORD-D16-C03-contract_mismatch",
+      "content_address": "coordination-case:c88371aeb77b76481e3895d38ebeeeec134f9931898353af4553f1a34cc5d19a",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C03",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C03",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C03",
+        "declared_output_contract": "tool.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 5,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "tool_registry",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C04",
+      "case_id": "COORD-D16-C04-positive",
+      "content_address": "coordination-case:4dbf9302ac19eaad38d4466a73ddd6738b826216fd0cc6053516da15fa4c5b90",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C04",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C04",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "tool.registry.v1",
+        "declared_operation_id": "COORD-D16-C04",
+        "declared_output_contract": "sandbox.receipt.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 6,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "sandbox",
+      "scenario": "positive",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C04",
+      "case_id": "COORD-D16-C04-foreign_context",
+      "content_address": "coordination-case:ba983b28f1baa449271629deb6f310cee639a5aa300f67ec7f4986e15b82f50e",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C04",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C04",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "tool.registry.v1",
+        "declared_operation_id": "COORD-D16-C04",
+        "declared_output_contract": "sandbox.receipt.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 6,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "sandbox",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C04",
+      "case_id": "COORD-D16-C04-budget_exceeded",
+      "content_address": "coordination-case:f8fc29cfa34115af8d2678b7b77f115027819e2fef24a96b9e14cfa54a994a17",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C04",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C04",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "tool.registry.v1",
+        "declared_operation_id": "COORD-D16-C04",
+        "declared_output_contract": "sandbox.receipt.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 6,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "sandbox",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C04",
+      "case_id": "COORD-D16-C04-contract_mismatch",
+      "content_address": "coordination-case:a5100b6ed08c44d37f2a736a5088608681c49a5afa5bd980520873d5cc2d8c15",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C04",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C04",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C04",
+        "declared_output_contract": "sandbox.receipt.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 6,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "sandbox",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C05",
+      "case_id": "COORD-D16-C05-positive",
+      "content_address": "coordination-case:5cf1c6e13948a6bdf9a44e0ae2a808b9490a0d0c0011329d3ad0852211408536",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C05",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C05",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "sandbox.receipt.v1",
+        "declared_operation_id": "COORD-D16-C05",
+        "declared_output_contract": "policy.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 7,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "policy",
+      "scenario": "positive",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C05",
+      "case_id": "COORD-D16-C05-foreign_context",
+      "content_address": "coordination-case:3719f8a52c75d578d58a1d953c64710d71c62abe0d6fb7fe427121e2fe51b61e",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C05",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C05",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "sandbox.receipt.v1",
+        "declared_operation_id": "COORD-D16-C05",
+        "declared_output_contract": "policy.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 7,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "policy",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C05",
+      "case_id": "COORD-D16-C05-budget_exceeded",
+      "content_address": "coordination-case:f2b418b5574b0c4213a2891068092ff7e80db587f7f5705c7ae6a5539970d1bf",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C05",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C05",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "sandbox.receipt.v1",
+        "declared_operation_id": "COORD-D16-C05",
+        "declared_output_contract": "policy.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 7,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "policy",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C05",
+      "case_id": "COORD-D16-C05-contract_mismatch",
+      "content_address": "coordination-case:18373d3863ca20a39040c3afcbf015e2df89e0f8f67df8f2929cafb2eae25d79",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C05",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C05",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C05",
+        "declared_output_contract": "policy.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 7,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "policy",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C06",
+      "case_id": "COORD-D16-C06-positive",
+      "content_address": "coordination-case:68a7b2814fd084a03c61447643819ece4f89640e19101f42309236c01196809c",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C06",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C06",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "policy.decision.v1",
+        "declared_operation_id": "COORD-D16-C06",
+        "declared_output_contract": "schedule.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 8,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "scheduler",
+      "scenario": "positive",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C06",
+      "case_id": "COORD-D16-C06-foreign_context",
+      "content_address": "coordination-case:b33f9d4fde78b3d590df6ac9dce5bb1a4715e9e53bc1342d103210f642809262",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C06",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C06",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "policy.decision.v1",
+        "declared_operation_id": "COORD-D16-C06",
+        "declared_output_contract": "schedule.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 8,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "scheduler",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C06",
+      "case_id": "COORD-D16-C06-budget_exceeded",
+      "content_address": "coordination-case:485ca25d572d5a525e490e18139ee0263572090b403b90422566e98be6117cee",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C06",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C06",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "policy.decision.v1",
+        "declared_operation_id": "COORD-D16-C06",
+        "declared_output_contract": "schedule.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 8,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "scheduler",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C06",
+      "case_id": "COORD-D16-C06-contract_mismatch",
+      "content_address": "coordination-case:a7606bf56d73b2b5a6c3a4a40b64dbbf03848d54a4ffdfb1f6736669a5bea2de",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C06",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C06",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C06",
+        "declared_output_contract": "schedule.plan.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 8,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "scheduler",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C07",
+      "case_id": "COORD-D16-C07-positive",
+      "content_address": "coordination-case:66e636d258394d9093885635c0a31db0de11e419c380b269356f1f185b5b99ab",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C07",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C07",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "schedule.plan.v1",
+        "declared_operation_id": "COORD-D16-C07",
+        "declared_output_contract": "fallback.route.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 9,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "fallback",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C07",
+      "case_id": "COORD-D16-C07-foreign_context",
+      "content_address": "coordination-case:72f95a8c7cff6e3632c9d8172821487b3ec9b3ee1c8288a253b7a19b9f69301e",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C07",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C07",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "schedule.plan.v1",
+        "declared_operation_id": "COORD-D16-C07",
+        "declared_output_contract": "fallback.route.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 9,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "fallback",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C07",
+      "case_id": "COORD-D16-C07-budget_exceeded",
+      "content_address": "coordination-case:a08f85d9d3bea83e669b922e95df6e4082b96436c2ae94d2f1233cedbb83300a",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C07",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C07",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "schedule.plan.v1",
+        "declared_operation_id": "COORD-D16-C07",
+        "declared_output_contract": "fallback.route.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 9,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "fallback",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C07",
+      "case_id": "COORD-D16-C07-contract_mismatch",
+      "content_address": "coordination-case:8f1b440c61941caac04f9a0a7eab806092390f863b9931449bc0130e5c5f9ffa",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C07",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C07",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C07",
+        "declared_output_contract": "fallback.route.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 9,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "fallback",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C08",
+      "case_id": "COORD-D16-C08-positive",
+      "content_address": "coordination-case:ea6491fe55606ab826d06b1a3656f143ad96f56e21ea0c94014b6178aca81c3c",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C08",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C08",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "fallback.route.v1",
+        "declared_operation_id": "COORD-D16-C08",
+        "declared_output_contract": "review.queue.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 10,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "review",
+      "scenario": "positive",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C08",
+      "case_id": "COORD-D16-C08-foreign_context",
+      "content_address": "coordination-case:b511605b58359ff6aea632262f06d257d959ba68dee6134d73eb041640d6cab3",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C08",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C08",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "fallback.route.v1",
+        "declared_operation_id": "COORD-D16-C08",
+        "declared_output_contract": "review.queue.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 10,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "review",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C08",
+      "case_id": "COORD-D16-C08-budget_exceeded",
+      "content_address": "coordination-case:ad8c09e92bae1336929d76388765cfa870dc89576cc568cff816e65004d92874",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C08",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C08",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "fallback.route.v1",
+        "declared_operation_id": "COORD-D16-C08",
+        "declared_output_contract": "review.queue.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 10,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "review",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C08",
+      "case_id": "COORD-D16-C08-contract_mismatch",
+      "content_address": "coordination-case:45a2744a5eb7bc359b68dd5207521701e04e0c3fc6a60910a46f164a8b6122ae",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C08",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C08",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C08",
+        "declared_output_contract": "review.queue.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 10,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "review",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C09",
+      "case_id": "COORD-D16-C09-positive",
+      "content_address": "coordination-case:e5de8f0ac0f1b70d27678d196f480723f2a0e6e8693456ec60f5ec031ba2c117",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C09",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C09",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "review.queue.v1",
+        "declared_operation_id": "COORD-D16-C09",
+        "declared_output_contract": "event.ledger.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 11,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "ledger",
+      "scenario": "positive",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C09",
+      "case_id": "COORD-D16-C09-foreign_context",
+      "content_address": "coordination-case:f2939036090b51230e6ca1ad227a08216bc31e5e88498f90a9588fe986f9ad93",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C09",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C09",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "review.queue.v1",
+        "declared_operation_id": "COORD-D16-C09",
+        "declared_output_contract": "event.ledger.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 11,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "ledger",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C09",
+      "case_id": "COORD-D16-C09-budget_exceeded",
+      "content_address": "coordination-case:f83d93b1cb3e1b7a15795460d3121a6ec6da65ddb8dd718ae13522c73b4fbd37",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C09",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C09",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "review.queue.v1",
+        "declared_operation_id": "COORD-D16-C09",
+        "declared_output_contract": "event.ledger.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 11,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "ledger",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C09",
+      "case_id": "COORD-D16-C09-contract_mismatch",
+      "content_address": "coordination-case:227492855c27a69e5effd21ac6ebca47caec0cc2c1d50b8b87c8ad56f08d47be",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C09",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C09",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C09",
+        "declared_output_contract": "event.ledger.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 11,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "ledger",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C10",
+      "case_id": "COORD-D16-C10-positive",
+      "content_address": "coordination-case:d1127d36118db7ecdd4df80e1fc56e6696163752b860c774a5c5a831a0fc6c1e",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C10",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C10",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "event.ledger.v1",
+        "declared_operation_id": "COORD-D16-C10",
+        "declared_output_contract": "compute.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 12,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compute_registry",
+      "scenario": "positive",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C10",
+      "case_id": "COORD-D16-C10-foreign_context",
+      "content_address": "coordination-case:0771a9e10e574a338035c1d86c447450259f5468035202b410a9ce7653d8ebf4",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C10",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C10",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "event.ledger.v1",
+        "declared_operation_id": "COORD-D16-C10",
+        "declared_output_contract": "compute.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 12,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compute_registry",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C10",
+      "case_id": "COORD-D16-C10-budget_exceeded",
+      "content_address": "coordination-case:5183868c783f708c4881fb6c0bb75916a022d6187873ed589677f8e7292f16d3",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C10",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C10",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "event.ledger.v1",
+        "declared_operation_id": "COORD-D16-C10",
+        "declared_output_contract": "compute.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 12,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compute_registry",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C10",
+      "case_id": "COORD-D16-C10-contract_mismatch",
+      "content_address": "coordination-case:8a54657187cf0a2810b9182ad87cda8d265b3ba0f4d6ad092031b39c08b4f49d",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C10",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C10",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C10",
+        "declared_output_contract": "compute.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 12,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "compute_registry",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C11",
+      "case_id": "COORD-D16-C11-positive",
+      "content_address": "coordination-case:b42a1d81912d491720118fed6fc45de2f58066a36aecddce8a614d130674d1d5",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C11",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C11",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "compute.registry.v1",
+        "declared_operation_id": "COORD-D16-C11",
+        "declared_output_contract": "reference.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 13,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "reference_registry",
+      "scenario": "positive",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C11",
+      "case_id": "COORD-D16-C11-foreign_context",
+      "content_address": "coordination-case:d42341e5ce72f6407574a15ca84cde1baa4e67562c852fea20c6b715f94c00ab",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C11",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C11",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "compute.registry.v1",
+        "declared_operation_id": "COORD-D16-C11",
+        "declared_output_contract": "reference.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 13,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "reference_registry",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C11",
+      "case_id": "COORD-D16-C11-budget_exceeded",
+      "content_address": "coordination-case:45b0ad8cb8a11469c5fd4638cd1720254f02d8626f664a08e409234437ae00ae",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C11",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C11",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "compute.registry.v1",
+        "declared_operation_id": "COORD-D16-C11",
+        "declared_output_contract": "reference.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 13,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "reference_registry",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C11",
+      "case_id": "COORD-D16-C11-contract_mismatch",
+      "content_address": "coordination-case:ab64e64adf3de8a5daee515b8d833e7d36d94e72d1e74fb0b418492f99b1be9b",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C11",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C11",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C11",
+        "declared_output_contract": "reference.registry.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 13,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "reference_registry",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C12",
+      "case_id": "COORD-D16-C12-positive",
+      "content_address": "coordination-case:5ac1e9068b058df92fce7812ec04e1b24af8dab6e8070b7e9975810f4f8572b6",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C12",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C12",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "reference.registry.v1",
+        "declared_operation_id": "COORD-D16-C12",
+        "declared_output_contract": "monitoring.observation.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 14,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "monitoring",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C12",
+      "case_id": "COORD-D16-C12-foreign_context",
+      "content_address": "coordination-case:ee39366f94997a2382744978aadab5f83b66d6f32314becc10ed61a33b32a7de",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C12",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C12",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "reference.registry.v1",
+        "declared_operation_id": "COORD-D16-C12",
+        "declared_output_contract": "monitoring.observation.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 14,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "monitoring",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C12",
+      "case_id": "COORD-D16-C12-budget_exceeded",
+      "content_address": "coordination-case:16b40044c79e4cf4b03856bb2c64b50fcfce4649f963b5bcc54f35825999ae01",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C12",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C12",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "reference.registry.v1",
+        "declared_operation_id": "COORD-D16-C12",
+        "declared_output_contract": "monitoring.observation.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 14,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "monitoring",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C12",
+      "case_id": "COORD-D16-C12-contract_mismatch",
+      "content_address": "coordination-case:c953a409cf0736ae9ea378f4f7ea802d45c9a7b142c94ef158aa871571de1050",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C12",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C12",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C12",
+        "declared_output_contract": "monitoring.observation.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 14,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "monitoring",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C13",
+      "case_id": "COORD-D16-C13-positive",
+      "content_address": "coordination-case:b1c383ba8eac2ecc6e5b9ea173c7f30187f2075cc86169471731ae67388c42f4",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C13",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C13",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "monitoring.observation.v1",
+        "declared_operation_id": "COORD-D16-C13",
+        "declared_output_contract": "security.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 15,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "security",
+      "scenario": "positive",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C13",
+      "case_id": "COORD-D16-C13-foreign_context",
+      "content_address": "coordination-case:6dadff088bb37cd46e8f7e40187cdef164b3dc5caafdf86abf0f0fddb25e57a4",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C13",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C13",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "monitoring.observation.v1",
+        "declared_operation_id": "COORD-D16-C13",
+        "declared_output_contract": "security.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 15,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "security",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C13",
+      "case_id": "COORD-D16-C13-budget_exceeded",
+      "content_address": "coordination-case:0010ea0a9869080c9e3857c54421b51f5f603a1e768cec14cde86df68336f3fa",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C13",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C13",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "monitoring.observation.v1",
+        "declared_operation_id": "COORD-D16-C13",
+        "declared_output_contract": "security.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 15,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "security",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C13",
+      "case_id": "COORD-D16-C13-contract_mismatch",
+      "content_address": "coordination-case:5b7d24d07f8bd8d18c9e813289a2c1efe351b7b090b1fc67789b8b63e3940c4d",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C13",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C13",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C13",
+        "declared_output_contract": "security.decision.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 15,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "security",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C14",
+      "case_id": "COORD-D16-C14-positive",
+      "content_address": "coordination-case:9189b7532413ac931204882a9baca57967dd5d8b2c8aef54adb2b67935936237",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C14",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C14",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "security.decision.v1",
+        "declared_operation_id": "COORD-D16-C14",
+        "declared_output_contract": "deployment.bundle.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 16,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "deployment",
+      "scenario": "positive",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C14",
+      "case_id": "COORD-D16-C14-foreign_context",
+      "content_address": "coordination-case:19581514e489b183f1d7fb345d72ec739015891d8b998d6a0d850191d5e8fcd2",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C14",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C14",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "security.decision.v1",
+        "declared_operation_id": "COORD-D16-C14",
+        "declared_output_contract": "deployment.bundle.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 16,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "deployment",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C14",
+      "case_id": "COORD-D16-C14-budget_exceeded",
+      "content_address": "coordination-case:b7303510178c2ae9c171d41b364dcecce0710501c0c237af87a36103cc1bec00",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C14",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C14",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "security.decision.v1",
+        "declared_operation_id": "COORD-D16-C14",
+        "declared_output_contract": "deployment.bundle.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 16,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "deployment",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C14",
+      "case_id": "COORD-D16-C14-contract_mismatch",
+      "content_address": "coordination-case:d289c5dc101cc614e6c90fbc26f6b2c99e4e87fb8c23b9aec8385e4c88ab97e8",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C14",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C14",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C14",
+        "declared_output_contract": "deployment.bundle.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 16,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "deployment",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C15",
+      "case_id": "COORD-D16-C15-positive",
+      "content_address": "coordination-case:b5abc3e772f2bbe0416ccc756c5a6ff367ccff3b147d1585fcb9988258b98874",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C15",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C15",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "deployment.bundle.v1",
+        "declared_operation_id": "COORD-D16-C15",
+        "declared_output_contract": "federation.assignment.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 17,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "federation",
+      "scenario": "positive",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C15",
+      "case_id": "COORD-D16-C15-foreign_context",
+      "content_address": "coordination-case:f93d95cd674ba8c085036b20768c621691aa5a15595427783a3af1443aec91bc",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C15",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C15",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "deployment.bundle.v1",
+        "declared_operation_id": "COORD-D16-C15",
+        "declared_output_contract": "federation.assignment.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 17,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "federation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C15",
+      "case_id": "COORD-D16-C15-budget_exceeded",
+      "content_address": "coordination-case:6b0663f24a7a3f595de42a606561d6ad1b2d273ce112e8c15879bea2032b8bb6",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C15",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C15",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "deployment.bundle.v1",
+        "declared_operation_id": "COORD-D16-C15",
+        "declared_output_contract": "federation.assignment.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 17,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "federation",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C15",
+      "case_id": "COORD-D16-C15-contract_mismatch",
+      "content_address": "coordination-case:7537604183b7b86069335c5d66489ae4dd63a20d70fe66b4cee7ab99f06c3fb7",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C15",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C15",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C15",
+        "declared_output_contract": "federation.assignment.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 17,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "federation",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C16",
+      "case_id": "COORD-D16-C16-positive",
+      "content_address": "coordination-case:3bddeeb7293254589c0e26c8a6d793a9636be0cdb8fec445c1de15b03302b867",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "COORD-D16-C16",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C16",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "federation.assignment.v1",
+        "declared_operation_id": "COORD-D16-C16",
+        "declared_output_contract": "release.manifest.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "positive",
+        "requested_budget_units": 18,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "release",
+      "scenario": "positive",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C16",
+      "case_id": "COORD-D16-C16-foreign_context",
+      "content_address": "coordination-case:c125fd834990817518ef0ffca931c27ad3504a15b6d1e0ac344e703f248f9397",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C16",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C16",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|post_treatment",
+        "declared_input_contract": "federation.assignment.v1",
+        "declared_operation_id": "COORD-D16-C16",
+        "declared_output_contract": "release.manifest.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 18,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "release",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C16",
+      "case_id": "COORD-D16-C16-budget_exceeded",
+      "content_address": "coordination-case:fdf8d08077e380753b5625158fb2ddf23aa6a3da53e4d20ffca22b3b0f04f82c",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "budget_exceeded"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C16",
+      "payload": {
+        "available_budget_units": 0,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C16",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "federation.assignment.v1",
+        "declared_operation_id": "COORD-D16-C16",
+        "declared_output_contract": "release.manifest.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 18,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "release",
+      "scenario": "budget_exceeded",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "capability_id": "GNC-D16-C16",
+      "case_id": "COORD-D16-C16-contract_mismatch",
+      "content_address": "coordination-case:b1de63e6e14d9f7a4787a56202f53a825dfbe1d635cea1d0ee25e1daec9daacb",
+      "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+      "expected_issue_codes": [
+        "contract_mismatch"
+      ],
+      "expected_state": "review",
+      "operation_id": "COORD-D16-C16",
+      "payload": {
+        "available_budget_units": 128,
+        "claim_boundary": "public_aggregate_platform_coordination",
+        "declared_capability_id": "GNC-D16-C16",
+        "declared_context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+        "declared_input_contract": "mismatch.contract.v0",
+        "declared_operation_id": "COORD-D16-C16",
+        "declared_output_contract": "release.manifest.v1",
+        "network_requested": false,
+        "public_aggregate_only": true,
+        "record_role": "control",
+        "requested_budget_units": 18,
+        "route": "local_deterministic",
+        "schema_version": "2026.08.coordination-architecture.v1"
+      },
+      "role": "release",
+      "scenario": "contract_mismatch",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    }
+  ],
+  "content_address": "coordination-fixture:0f905db3681b9fc0a22a189c54dfb40568cb67d7bb1fe44233df7ac6db99f247",
+  "context_key": "GRCh38|glioma|adult|stem_like|aggregate|pre_treatment",
+  "fixture_id": "coordination-architecture-d16",
+  "operations": [
+    {
+      "budget_units": 3,
+      "capability_id": "GNC-D16-C01",
+      "content_address": "coordination-operation:47efaaeb49707d411bc2abfa57dc6fcac7cb21d55e0de621b4c7f454084c6c3f",
+      "dependencies": [],
+      "input_contract": "mission.request.v1",
+      "operation": "mission_plan",
+      "operation_id": "COORD-D16-C01",
+      "ordinal": 1,
+      "output_contract": "mission.plan.v1",
+      "requires_review": false,
+      "role": "planner",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 4,
+      "capability_id": "GNC-D16-C02",
+      "content_address": "coordination-operation:2e421a177e95e35146952e6ef971c376858f9daca78721e39e70b36907ce2753",
+      "dependencies": [
+        "COORD-D16-C01"
+      ],
+      "input_contract": "mission.plan.v1",
+      "operation": "workflow_compile",
+      "operation_id": "COORD-D16-C02",
+      "ordinal": 2,
+      "output_contract": "workflow.graph.v1",
+      "requires_review": false,
+      "role": "compiler",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 5,
+      "capability_id": "GNC-D16-C03",
+      "content_address": "coordination-operation:8a48b590830f9f1b64df3e4b04a23ea7fdfde6f46bf391a80b4f7a21e24d9e11",
+      "dependencies": [
+        "COORD-D16-C02"
+      ],
+      "input_contract": "workflow.graph.v1",
+      "operation": "typed_tool_registry",
+      "operation_id": "COORD-D16-C03",
+      "ordinal": 3,
+      "output_contract": "tool.registry.v1",
+      "requires_review": false,
+      "role": "tool_registry",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 6,
+      "capability_id": "GNC-D16-C04",
+      "content_address": "coordination-operation:f8f3040d1129d45567c1169ee30c72214ed6c0c11e4a9c0bb15bfb4a56abe587",
+      "dependencies": [
+        "COORD-D16-C03"
+      ],
+      "input_contract": "tool.registry.v1",
+      "operation": "execution_sandbox",
+      "operation_id": "COORD-D16-C04",
+      "ordinal": 4,
+      "output_contract": "sandbox.receipt.v1",
+      "requires_review": false,
+      "role": "sandbox",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 7,
+      "capability_id": "GNC-D16-C05",
+      "content_address": "coordination-operation:cc67a5c4e6e348a5207c926de5a020d06d39906904bbeb00b035471266c773c5",
+      "dependencies": [
+        "COORD-D16-C04"
+      ],
+      "input_contract": "sandbox.receipt.v1",
+      "operation": "claim_gate",
+      "operation_id": "COORD-D16-C05",
+      "ordinal": 5,
+      "output_contract": "policy.decision.v1",
+      "requires_review": true,
+      "role": "policy",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 8,
+      "capability_id": "GNC-D16-C06",
+      "content_address": "coordination-operation:5d9fda4a2929464f14e35d8a2e3459115a6c7733cc062d021552908241bcb078",
+      "dependencies": [
+        "COORD-D16-C05"
+      ],
+      "input_contract": "policy.decision.v1",
+      "operation": "resource_schedule",
+      "operation_id": "COORD-D16-C06",
+      "ordinal": 6,
+      "output_contract": "schedule.plan.v1",
+      "requires_review": false,
+      "role": "scheduler",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 9,
+      "capability_id": "GNC-D16-C07",
+      "content_address": "coordination-operation:9038dcbf4b2801ce658d5df0e978a45153303e0b7793ff0301fb2a0013f6f87d",
+      "dependencies": [
+        "COORD-D16-C06"
+      ],
+      "input_contract": "schedule.plan.v1",
+      "operation": "fallback_route",
+      "operation_id": "COORD-D16-C07",
+      "ordinal": 7,
+      "output_contract": "fallback.route.v1",
+      "requires_review": true,
+      "role": "fallback",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 10,
+      "capability_id": "GNC-D16-C08",
+      "content_address": "coordination-operation:e781faee1003163f29f8a97d8d29fae1771fbb675e8d6fa80b56c4f5c7f7905e",
+      "dependencies": [
+        "COORD-D16-C07"
+      ],
+      "input_contract": "fallback.route.v1",
+      "operation": "human_review",
+      "operation_id": "COORD-D16-C08",
+      "ordinal": 8,
+      "output_contract": "review.queue.v1",
+      "requires_review": true,
+      "role": "review",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 11,
+      "capability_id": "GNC-D16-C09",
+      "content_address": "coordination-operation:b43fcefb3af9334d46cc58f2d0917fd34400645f6f958f87e64d1c8f21a2a472",
+      "dependencies": [
+        "COORD-D16-C08"
+      ],
+      "input_contract": "review.queue.v1",
+      "operation": "event_ledger",
+      "operation_id": "COORD-D16-C09",
+      "ordinal": 9,
+      "output_contract": "event.ledger.v1",
+      "requires_review": false,
+      "role": "ledger",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 12,
+      "capability_id": "GNC-D16-C10",
+      "content_address": "coordination-operation:cbe5e0643b2b29b309a186b7aef44ad165eccad353e9adabcade859e936b6cc2",
+      "dependencies": [
+        "COORD-D16-C09"
+      ],
+      "input_contract": "event.ledger.v1",
+      "operation": "compute_registry",
+      "operation_id": "COORD-D16-C10",
+      "ordinal": 10,
+      "output_contract": "compute.registry.v1",
+      "requires_review": false,
+      "role": "compute_registry",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 13,
+      "capability_id": "GNC-D16-C11",
+      "content_address": "coordination-operation:c6bcb07bd871772ba077ad6907040a2b0558c2f5f7871172d01b52a0dd36af3a",
+      "dependencies": [
+        "COORD-D16-C10"
+      ],
+      "input_contract": "compute.registry.v1",
+      "operation": "reference_registry",
+      "operation_id": "COORD-D16-C11",
+      "ordinal": 11,
+      "output_contract": "reference.registry.v1",
+      "requires_review": false,
+      "role": "reference_registry",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 14,
+      "capability_id": "GNC-D16-C12",
+      "content_address": "coordination-operation:34f369e033840109b4496204fbf3b665d458faf88e6353da9b63267edec4a3bf",
+      "dependencies": [
+        "COORD-D16-C11"
+      ],
+      "input_contract": "reference.registry.v1",
+      "operation": "drift_monitor",
+      "operation_id": "COORD-D16-C12",
+      "ordinal": 12,
+      "output_contract": "monitoring.observation.v1",
+      "requires_review": true,
+      "role": "monitoring",
+      "source_ids": [
+        "ncbi-datasets",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 15,
+      "capability_id": "GNC-D16-C13",
+      "content_address": "coordination-operation:8c6f8724984b84667a4172297bbd4e7f27e82b867085f620d8d16502b757da72",
+      "dependencies": [
+        "COORD-D16-C12"
+      ],
+      "input_contract": "monitoring.observation.v1",
+      "operation": "security_policy",
+      "operation_id": "COORD-D16-C13",
+      "ordinal": 13,
+      "output_contract": "security.decision.v1",
+      "requires_review": true,
+      "role": "security",
+      "source_ids": [
+        "encode-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 16,
+      "capability_id": "GNC-D16-C14",
+      "content_address": "coordination-operation:523e1467c460a35adc0c03298aeb3c4c1909b9cb2841d3cf744bbf90a575adbc",
+      "dependencies": [
+        "COORD-D16-C13"
+      ],
+      "input_contract": "security.decision.v1",
+      "operation": "deployment_bundle",
+      "operation_id": "COORD-D16-C14",
+      "ordinal": 14,
+      "output_contract": "deployment.bundle.v1",
+      "requires_review": false,
+      "role": "deployment",
+      "source_ids": [
+        "gdc-portal",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 17,
+      "capability_id": "GNC-D16-C15",
+      "content_address": "coordination-operation:7ae8e906d94dabd7f88e25897ed055ac30e3f71fc228a97889eb864e8a0f0a6a",
+      "dependencies": [
+        "COORD-D16-C14"
+      ],
+      "input_contract": "deployment.bundle.v1",
+      "operation": "federated_coordination",
+      "operation_id": "COORD-D16-C15",
+      "ordinal": 15,
+      "output_contract": "federation.assignment.v1",
+      "requires_review": true,
+      "role": "federation",
+      "source_ids": [
+        "blueprint-receipt",
+        "blueprint-receipt"
+      ]
+    },
+    {
+      "budget_units": 18,
+      "capability_id": "GNC-D16-C16",
+      "content_address": "coordination-operation:5ad90331566415b1676884dee3e5e018145a198644807375dae4c82772e2e70c",
+      "dependencies": [
+        "COORD-D16-C15"
+      ],
+      "input_contract": "federation.assignment.v1",
+      "operation": "release_rollback",
+      "operation_id": "COORD-D16-C16",
+      "ordinal": 16,
+      "output_contract": "release.manifest.v1",
+      "requires_review": true,
+      "role": "release",
+      "source_ids": [
+        "ensembl-reference",
+        "blueprint-receipt"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "coordination-source:6d7cb229a1c91193d1dc0591d015b9acf1ebe975e190eab490191f164eca7f6d",
+      "scope": "public_aggregate",
+      "source_id": "blueprint-receipt",
+      "title": "GLIO-NONCODE capability blueprint receipt",
+      "uri": "https://github.com/AURORA-NEURO/glio-noncode",
+      "version": "blueprint-2026-08-20"
+    },
+    {
+      "content_address": "coordination-source:26ef171b7e7049ef3e14f87266d945da78ef3e3203fa4b699419804975d450c1",
+      "scope": "public_aggregate",
+      "source_id": "ensembl-reference",
+      "title": "Ensembl public reference portal",
+      "uri": "https://www.ensembl.org/info/data/index.html",
+      "version": "public reference portal"
+    },
+    {
+      "content_address": "coordination-source:7f22253f1469c9d6a89be9789f36a93c82e53e59a7d1c30a8d9ada15b6a13603",
+      "scope": "public_aggregate",
+      "source_id": "ncbi-datasets",
+      "title": "NCBI public datasets portal",
+      "uri": "https://www.ncbi.nlm.nih.gov/datasets/",
+      "version": "public aggregate index"
+    },
+    {
+      "content_address": "coordination-source:fe1dc7c41cd1f2bfadeed71bdfce5e98053dd11a847d957037c70347f3a3530d",
+      "scope": "public_aggregate",
+      "source_id": "encode-portal",
+      "title": "ENCODE public data portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "public aggregate portal"
+    },
+    {
+      "content_address": "coordination-source:1f39758238c166fe028669f7c81b6118ac50d0f86ea66e01d38e11b7ca97ca69",
+      "scope": "public_aggregate",
+      "source_id": "gdc-portal",
+      "title": "NCI Genomic Data Commons public portal",
+      "uri": "https://portal.gdc.cancer.gov/",
+      "version": "public aggregate portal"
+    }
+  ],
+  "version": "2026.08.coordination-architecture.v1"
+}

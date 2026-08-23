@@ -5035,8 +5035,8 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D16-C01": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.mission_runtime.MissionPlanBuilder",),
-                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_depth"),
+                "implementation_modules": ("glio_noncode.mission_runtime.MissionPlanBuilder", "glio_noncode.coordination_architecture_plan.compile_coordination_plan"),
+                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "The platform frontier adds a public aggregate fixture with one positive "
                     "and three controls for planning. It verifies dependency expansion, empty "
@@ -5050,8 +5050,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.platform_frontier_operations.run_platform_frontier_operation",
                     "glio_noncode.platform_frontier_schema.PlatformFrontierSchema",
                     "glio_noncode.platform_frontier_depth.audit_platform_frontier_depth",
+                    "glio_noncode.coordination_architecture_plan.compile_coordination_plan",
                 ),
-                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_platform_frontier_cli"),
+                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_platform_frontier_cli", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "Workflow compilation is exercised through dependency-safe positive work, "
                     "cycle and missing-dependency controls, and network or nondeterministic "
@@ -5065,8 +5066,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.platform_frontier_adapters.PlatformFrontierAdapterRegistry",
                     "glio_noncode.platform_frontier_operations.run_platform_frontier_operation",
                     "glio_noncode.platform_frontier_compatibility.PlatformFrontierCompatibilityReport",
+                    "glio_noncode.coordination_architecture_tools.build_coordination_tool_registry",
                 ),
-                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth"),
+                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "The registry adapter resolves typed contracts, exposes safety and mutation "
                     "metadata, verifies the 96-tool cardinality, and retains missing-tool, "
@@ -5080,8 +5082,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.mission_runtime.ExecutionSandbox",
                     "glio_noncode.platform_frontier_operations.run_platform_frontier_operation",
                     "glio_noncode.platform_frontier_integrity.PlatformFrontierIntegrityReport",
+                    "glio_noncode.coordination_architecture_sandbox.execute_coordination_sandbox",
                 ),
-                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_cli"),
+                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_cli", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "Sandbox execution verifies registered local handlers, policy admission, "
                     "resource scheduling, provenance, event IDs, idempotent replay, local network "
@@ -5095,8 +5098,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_policy.ControlFrontierPolicy",
                     "glio_noncode.control_frontier_operations.run_control_frontier_operation",
                     "glio_noncode.control_frontier_fixture_eval.evaluate_control_frontier_fixture",
+                    "glio_noncode.coordination_architecture_policy.evaluate_coordination_policy",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "The aggregate fixture covers claim ceilings, source allowlist gaps, mutation "
                     "scope, sensitive paths, and control visibility. Five retained checks per row "
@@ -5109,8 +5113,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_operations.run_control_frontier_operation",
                     "glio_noncode.control_frontier_thresholds.build_control_frontier_threshold_report",
                     "glio_noncode.control_frontier_operational.build_control_frontier_operational_matrix",
+                    "glio_noncode.coordination_architecture_scheduler.schedule_coordination_plan",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "The scheduler adapter exercises dependency, capacity, network, and cycle "
                     "controls. Threshold probes, operational rows, and retained receipts make "
@@ -5123,8 +5128,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_operations.run_control_frontier_operation",
                     "glio_noncode.control_frontier_scenario_matrix.evaluate_control_frontier_scenarios",
                     "glio_noncode.control_frontier_failure_injection.run_control_frontier_failure_injections",
+                    "glio_noncode.coordination_architecture_fallback.route_coordination_fallback",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "The fallback adapter selects a deterministic eligible route and retains "
                     "non-retryable, network-only, and missing-input controls. Scenario and "
@@ -5137,8 +5143,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_review_queue.ControlFrontierReviewQueue",
                     "glio_noncode.control_frontier_review_sla.build_control_frontier_review_sla",
                     "glio_noncode.control_frontier_handoff.build_control_frontier_handoff",
+                    "glio_noncode.coordination_architecture_review.build_coordination_review_queue",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "Review routing preserves blockers, stable priority, declared roles, source "
                     "receipts, queue bounds, SLA bands, and handoff state. The omitted and blocked "
@@ -5151,8 +5158,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_operations.run_control_frontier_operation",
                     "glio_noncode.control_frontier_audit_log.verify_control_frontier_audit_log",
                     "glio_noncode.control_frontier_replay.replay_control_frontier_evaluation",
+                    "glio_noncode.coordination_architecture_ledger.build_coordination_ledger",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "Ledger execution retains event transitions, duplicate and foreign-context "
                     "controls, replay receipts, audit-log verification, and exact context closure. "
@@ -5165,8 +5173,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_operations.run_control_frontier_operation",
                     "glio_noncode.control_frontier_compatibility.evaluate_control_frontier_compatibility",
                     "glio_noncode.control_frontier_source_registry.build_control_frontier_source_registry",
+                    "glio_noncode.coordination_architecture_registries.build_coordination_compute_registry",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "Model resolution retains digest, version, input/output contracts, exact-context "
                     "support, status, license, evaluation receipt, and explicit compatibility "
@@ -5179,8 +5188,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_operations.run_control_frontier_operation",
                     "glio_noncode.control_frontier_source_registry.ControlFrontierSourceRegistry",
                     "glio_noncode.control_frontier_data_dictionary.default_control_frontier_data_dictionary",
+                    "glio_noncode.coordination_architecture_registries.build_coordination_reference_registry",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "Reference resolution retains URI, checksum, schema, coordinate system, exact "
                     "context, license, retrieval receipt, and availability. Foreign, coordinate, "
@@ -5193,8 +5203,9 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_operations.run_control_frontier_operation",
                     "glio_noncode.control_frontier_thresholds.build_control_frontier_threshold_report",
                     "glio_noncode.control_frontier_scenario_matrix.evaluate_control_frontier_scenarios",
+                    "glio_noncode.coordination_architecture_monitoring.build_coordination_observations",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
                 "evidence_note": (
                     "Drift and out-of-domain monitoring retains watch, drift, and support-boundary "
                     "controls with declared thresholds, source receipts, and review states. The "
@@ -5207,11 +5218,13 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.deployment_frontier_operations.run_deployment_frontier_operation",
                     "glio_noncode.deployment_frontier_policy.DeploymentFrontierPolicy",
                     "glio_noncode.deployment_frontier_quality_gate.run_deployment_frontier_quality_gate",
+                    "glio_noncode.coordination_architecture_security.evaluate_coordination_security",
                 ),
                 "test_modules": (
                     "tests.test_deployment_frontier",
                     "tests.test_deployment_frontier_depth",
                     "tests.test_deployment_frontier_cli",
+                    "tests.test_coordination_architecture",
                 ),
                 "evidence_note": (
                     "Privacy/security policy evaluation is deny-by-default and retains roles, sensitive "
@@ -5226,11 +5239,13 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.deployment_frontier_operations.run_deployment_frontier_operation",
                     "glio_noncode.deployment_frontier_artifacts.DeploymentFrontierArtifactInventory",
                     "glio_noncode.deployment_frontier_package.DeploymentFrontierPackageManifest",
+                    "glio_noncode.coordination_architecture_deployment.build_coordination_deployment_artifacts",
                 ),
                 "test_modules": (
                     "tests.test_deployment_frontier",
                     "tests.test_deployment_frontier_depth",
                     "tests.test_deployment_frontier_cli",
+                    "tests.test_coordination_architecture",
                 ),
                 "evidence_note": (
                     "Local deployment bundles retain artifact digests, service manifests, runtime and "
@@ -5244,11 +5259,13 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.deployment_frontier_operations.run_deployment_frontier_operation",
                     "glio_noncode.deployment_frontier_lineage.DeploymentFrontierLineage",
                     "glio_noncode.deployment_frontier_review_queue.DeploymentFrontierReviewQueue",
+                    "glio_noncode.coordination_architecture_deployment.build_coordination_assignments",
                 ),
                 "test_modules": (
                     "tests.test_deployment_frontier",
                     "tests.test_deployment_frontier_depth",
                     "tests.test_deployment_frontier_cli",
+                    "tests.test_coordination_architecture",
                 ),
                 "evidence_note": (
                     "Federated coordination retains site-local eligibility, context support, sample "
@@ -5262,11 +5279,13 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.deployment_frontier_release.DeploymentFrontierReleaseManifest",
                     "glio_noncode.deployment_frontier_rollback.DeploymentFrontierRollbackPlan",
                     "glio_noncode.deployment_frontier_release_checks.DeploymentFrontierReleaseCheckReport",
+                    "glio_noncode.coordination_architecture_release.build_coordination_release",
                 ),
                 "test_modules": (
                     "tests.test_deployment_frontier",
                     "tests.test_deployment_frontier_depth",
                     "tests.test_deployment_frontier_cli",
+                    "tests.test_coordination_architecture",
                 ),
                 "evidence_note": (
                     "Release and rollback decisions apply explicit tests, integrity, compatibility, "

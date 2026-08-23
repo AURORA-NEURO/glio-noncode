@@ -81,6 +81,24 @@ from .module_fabric_runtime import run_module_fabric_runtime
 from .module_fabric_scenario_matrix import evaluate_module_fabric_scenarios
 from .module_fabric_schema import default_module_fabric_schema
 from .module_fabric_source_registry import build_module_fabric_source_registry
+from .coordination_architecture_access import build_coordination_access_manifest
+from .coordination_architecture_contracts import CoordinationScenario, CoordinationState
+from .coordination_architecture_depth import audit_coordination_depth
+from .coordination_architecture_exports import coordination_quality_json, coordination_report_markdown, coordination_review_csv, coordination_runtime_json
+from .coordination_architecture_failures import run_coordination_failure_injections
+from .coordination_architecture_invariants import coordination_invariants
+from .coordination_architecture_observability import build_coordination_trace
+from .coordination_architecture_plan import compile_coordination_plan
+from .coordination_architecture_public_data import audit_coordination_data, coordination_fixture_json, default_coordination_fixture, load_coordination_fixture
+from .coordination_architecture_query import query_coordination
+from .coordination_architecture_quality import run_coordination_quality_gate
+from .coordination_architecture_replay import replay_coordination_runtime
+from .coordination_architecture_review import build_coordination_review_queue
+from .coordination_architecture_runbook import build_coordination_runbook
+from .coordination_architecture_runtime import run_coordination_architecture
+from .coordination_architecture_schema import default_coordination_schema
+from .coordination_architecture_tools import build_coordination_tool_registry
+from .coordination_architecture_validation import build_coordination_validation_matrix
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
     DependenceMethod,
@@ -1332,6 +1350,10 @@ def _module_fabric_fixture(input_path: str | None):
     return load_module_fabric_fixture(input_path) if input_path else default_module_fabric_fixture()
 
 
+def _coordination_fixture(input_path: str | None):
+    return load_coordination_fixture(input_path) if input_path else default_coordination_fixture()
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -1945,6 +1967,116 @@ def build_parser() -> argparse.ArgumentParser:
         help="print the module-fabric data dictionary",
     )
     module_fabric_dictionary.add_argument("--output", default=None)
+    coordination_fixture = subparsers.add_parser(
+        "coordination-fixture",
+        help="emit the D16 public aggregate coordination architecture fixture",
+    )
+    coordination_fixture.add_argument("--output", default=None)
+    coordination_data = subparsers.add_parser(
+        "coordination-data-audit",
+        help="audit D16 coordination source, operation, and case cardinality",
+    )
+    coordination_data.add_argument("--input", default=None)
+    coordination_data.add_argument("--output", default=None)
+    coordination_runtime = subparsers.add_parser(
+        "coordination-runtime",
+        help="run the end-to-end D16 coordination architecture",
+    )
+    coordination_runtime.add_argument("--input", default=None)
+    coordination_runtime.add_argument("--output", default=None)
+    coordination_quality = subparsers.add_parser(
+        "coordination-quality",
+        help="run the D16 coordination quality gate",
+    )
+    coordination_quality.add_argument("--input", default=None)
+    coordination_quality.add_argument("--output", default=None)
+    coordination_depth = subparsers.add_parser(
+        "coordination-depth",
+        help="run D16 coordination depth and cardinality checks",
+    )
+    coordination_depth.add_argument("--input", default=None)
+    coordination_depth.add_argument("--output", default=None)
+    coordination_replay = subparsers.add_parser(
+        "coordination-replay",
+        help="replay the D16 coordination runtime deterministically",
+    )
+    coordination_replay.add_argument("--input", default=None)
+    coordination_replay.add_argument("--output", default=None)
+    coordination_validation = subparsers.add_parser(
+        "coordination-validation",
+        help="emit the seven-plane D16 validation matrix",
+    )
+    coordination_validation.add_argument("--input", default=None)
+    coordination_validation.add_argument("--output", default=None)
+    coordination_runbook = subparsers.add_parser(
+        "coordination-runbook",
+        help="emit executable D16 coordination runbook steps",
+    )
+    coordination_runbook.add_argument("--input", default=None)
+    coordination_runbook.add_argument("--output", default=None)
+    coordination_trace = subparsers.add_parser(
+        "coordination-trace",
+        help="emit addressed D16 coordination trace events",
+    )
+    coordination_trace.add_argument("--input", default=None)
+    coordination_trace.add_argument("--output", default=None)
+    coordination_review = subparsers.add_parser(
+        "coordination-review-csv",
+        help="export held D16 coordination cases as review CSV",
+    )
+    coordination_review.add_argument("--input", default=None)
+    coordination_review.add_argument("--output", default=None)
+    coordination_report = subparsers.add_parser(
+        "coordination-report",
+        help="render a D16 coordination runtime report",
+    )
+    coordination_report.add_argument("--input", default=None)
+    coordination_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    coordination_report.add_argument("--output", default=None)
+    coordination_failures = subparsers.add_parser(
+        "coordination-failures",
+        help="run D16 coordination negative controls",
+    )
+    coordination_failures.add_argument("--output", default=None)
+    coordination_schema = subparsers.add_parser(
+        "coordination-schema",
+        help="emit the D16 coordination projection schema",
+    )
+    coordination_schema.add_argument("--output", default=None)
+    coordination_plan = subparsers.add_parser(
+        "coordination-plan",
+        help="emit the D16 dependency-safe plan",
+    )
+    coordination_plan.add_argument("--input", default=None)
+    coordination_plan.add_argument("--output", default=None)
+    coordination_tools = subparsers.add_parser(
+        "coordination-tools",
+        help="emit the D16 typed tool registry",
+    )
+    coordination_tools.add_argument("--input", default=None)
+    coordination_tools.add_argument("--output", default=None)
+    coordination_access = subparsers.add_parser(
+        "coordination-access",
+        help="emit the D16 aggregate-only access manifest",
+    )
+    coordination_access.add_argument("--input", default=None)
+    coordination_access.add_argument("--output", default=None)
+    coordination_invariants_parser = subparsers.add_parser(
+        "coordination-invariants",
+        help="emit D16 conservation invariant results",
+    )
+    coordination_invariants_parser.add_argument("--input", default=None)
+    coordination_invariants_parser.add_argument("--output", default=None)
+    coordination_query = subparsers.add_parser(
+        "coordination-query",
+        help="query sanitized D16 coordination executions",
+    )
+    coordination_query.add_argument("--input", default=None)
+    coordination_query.add_argument("--state", choices=tuple(item.value for item in CoordinationState), default=None)
+    coordination_query.add_argument("--scenario", choices=tuple(item.value for item in CoordinationScenario), default=None)
+    coordination_query.add_argument("--operation-id", default=None)
+    coordination_query.add_argument("--issue-code", default=None)
+    coordination_query.add_argument("--output", default=None)
     module_fabric_ledger = subparsers.add_parser(
         "module-fabric-ledger",
         help="emit the ordered sanitized module-fabric operation ledger",
@@ -6632,6 +6764,96 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "module-fabric-data-dictionary":
             _write_json(default_module_fabric_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "coordination-fixture":
+            _write_text(coordination_fixture_json(), args.output)
+            return 0
+        if args.command == "coordination-data-audit":
+            fixture = _coordination_fixture(args.input)
+            report = audit_coordination_data(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "coordination-runtime":
+            fixture = _coordination_fixture(args.input)
+            report = run_coordination_architecture(fixture)
+            _write_text(coordination_runtime_json(report), args.output)
+            return 0 if report.state.value == "accepted" else 2
+        if args.command == "coordination-quality":
+            fixture = _coordination_fixture(args.input)
+            runtime = run_coordination_architecture(fixture)
+            report = run_coordination_quality_gate(runtime)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "coordination-depth":
+            fixture = _coordination_fixture(args.input)
+            report = audit_coordination_depth(run_coordination_architecture(fixture))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "coordination-replay":
+            fixture = _coordination_fixture(args.input)
+            report = replay_coordination_runtime(run_coordination_architecture(fixture))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "coordination-validation":
+            fixture = _coordination_fixture(args.input)
+            report = build_coordination_validation_matrix(run_coordination_architecture(fixture))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "coordination-runbook":
+            fixture = _coordination_fixture(args.input)
+            _write_json(build_coordination_runbook(run_coordination_architecture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "coordination-trace":
+            fixture = _coordination_fixture(args.input)
+            _write_json(build_coordination_trace(run_coordination_architecture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "coordination-review-csv":
+            fixture = _coordination_fixture(args.input)
+            _write_text(coordination_review_csv(run_coordination_architecture(fixture)), args.output)
+            return 0
+        if args.command == "coordination-report":
+            fixture = _coordination_fixture(args.input)
+            runtime = run_coordination_architecture(fixture)
+            if args.format == "markdown":
+                _write_text(coordination_report_markdown(runtime), args.output)
+            else:
+                _write_text(coordination_runtime_json(runtime), args.output)
+            return 0 if runtime.state.value == "accepted" else 2
+        if args.command == "coordination-failures":
+            report = run_coordination_failure_injections()
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "coordination-schema":
+            _write_json(default_coordination_schema().to_dict(), args.output)
+            return 0
+        if args.command == "coordination-plan":
+            fixture = _coordination_fixture(args.input)
+            _write_json(compile_coordination_plan(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "coordination-tools":
+            fixture = _coordination_fixture(args.input)
+            _write_json(build_coordination_tool_registry(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "coordination-access":
+            fixture = _coordination_fixture(args.input)
+            _write_json(build_coordination_access_manifest(run_coordination_architecture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "coordination-invariants":
+            fixture = _coordination_fixture(args.input)
+            issues = coordination_invariants(run_coordination_architecture(fixture))
+            _write_json({"accepted": not issues, "issues": issues}, args.output)
+            return 0 if not issues else 2
+        if args.command == "coordination-query":
+            fixture = _coordination_fixture(args.input)
+            runtime = run_coordination_architecture(fixture)
+            result = query_coordination(
+                runtime,
+                state=CoordinationState(args.state) if args.state else None,
+                scenario=CoordinationScenario(args.scenario) if args.scenario else None,
+                operation_id=args.operation_id,
+                issue_code=args.issue_code,
+            )
+            _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "module-fabric-ledger":
             fixture = _module_fabric_fixture(args.input)
