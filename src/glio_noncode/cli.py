@@ -1681,6 +1681,16 @@ def _chromatin_architecture_fixture(input_path: str | None):
     )
 
 
+def _cell_state_architecture_fixture(input_path: str | None):
+    from .cell_state_architecture_public_data import default_cell_state_architecture_fixture
+
+    return (
+        default_cell_state_architecture_fixture(input_path)
+        if input_path
+        else default_cell_state_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2899,6 +2909,40 @@ def build_parser() -> argparse.ArgumentParser:
     )
     chromatin_architecture_bundle.add_argument("--input", default=None)
     chromatin_architecture_bundle.add_argument("--output", required=True)
+    cell_state_architecture_fixture = subparsers.add_parser(
+        "cell-state-architecture-fixture",
+        help="emit the D08 C01-C16 public aggregate cell-state architecture fixture",
+    )
+    cell_state_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("cell-state-architecture-data-audit", "audit D08 cell-state sources, context, joins, and scope"),
+        ("cell-state-architecture-plan", "compile the D08 cell-state dependency plan"),
+        ("evaluate-cell-state-architecture", "execute D08 family paths and aggregate controls"),
+        ("cell-state-architecture-runtime", "run the D08 twenty-two-stage cell-state runtime"),
+        ("cell-state-architecture-depth", "report D08 cell-state operation and evidence depth"),
+        ("replay-cell-state-architecture", "replay D08 cell-state evaluation deterministically"),
+        ("cell-state-architecture-report", "emit the D08 cell-state runtime report"),
+        ("cell-state-architecture-scenarios", "emit the D08 cell-state scenario matrix"),
+        ("cell-state-architecture-sources", "emit the D08 cell-state source registry"),
+        ("cell-state-architecture-compliance", "run D08 aggregate-scope compliance checks"),
+        ("cell-state-architecture-validation", "run D08 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    cell_state_architecture_query = subparsers.add_parser(
+        "cell-state-architecture-query", help="query D08 sanitized cell-state cases"
+    )
+    cell_state_architecture_query.add_argument("--input", default=None)
+    cell_state_architecture_query.add_argument("--operation", default=None)
+    cell_state_architecture_query.add_argument("--family", default=None)
+    cell_state_architecture_query.add_argument("--scenario", default=None)
+    cell_state_architecture_query.add_argument("--output", default=None)
+    cell_state_architecture_bundle = subparsers.add_parser(
+        "cell-state-architecture-bundle", help="write a D08 cell-state runtime bundle"
+    )
+    cell_state_architecture_bundle.add_argument("--input", default=None)
+    cell_state_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -8905,6 +8949,99 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
             _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
             _write_text(chromatin_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "cell-state-architecture-fixture":
+            from .cell_state_architecture_public_data import cell_state_architecture_fixture_json
+
+            _write_text(cell_state_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "cell-state-architecture-data-audit":
+            from .cell_state_architecture_public_data import audit_cell_state_architecture_data
+
+            report = audit_cell_state_architecture_data(_cell_state_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "cell-state-architecture-plan":
+            from .cell_state_architecture_plan import build_cell_state_architecture_plan
+
+            report = build_cell_state_architecture_plan(_cell_state_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-cell-state-architecture":
+            from .cell_state_architecture_operations import evaluate_cell_state_architecture_fixture
+
+            report = evaluate_cell_state_architecture_fixture(_cell_state_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "cell-state-architecture-runtime":
+            from .cell_state_architecture_runtime import run_cell_state_architecture
+
+            runtime = run_cell_state_architecture(_cell_state_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "cell-state-architecture-depth":
+            from .cell_state_architecture_depth import assess_cell_state_architecture_depth, depth_percent
+            from .cell_state_architecture_runtime import run_cell_state_architecture
+
+            runtime = run_cell_state_architecture(_cell_state_architecture_fixture(args.input))
+            report = assess_cell_state_architecture_depth(runtime.fixture, runtime.evaluation)
+            _write_json(report.to_dict() | {"completion_percent": depth_percent(report)}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "replay-cell-state-architecture":
+            from .cell_state_architecture_replay import replay_cell_state_architecture_fixture
+
+            report = replay_cell_state_architecture_fixture(_cell_state_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "cell-state-architecture-report":
+            from .cell_state_architecture_reporting import build_cell_state_architecture_report
+            from .cell_state_architecture_runtime import run_cell_state_architecture
+
+            runtime = run_cell_state_architecture(_cell_state_architecture_fixture(args.input))
+            _write_json(build_cell_state_architecture_report(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "cell-state-architecture-scenarios":
+            from .cell_state_architecture_scenarios import cell_state_architecture_scenario_matrix
+
+            fixture = _cell_state_architecture_fixture(args.input)
+            _write_json({"accepted": True, "matrix": cell_state_architecture_scenario_matrix(fixture)}, args.output)
+            return 0
+        if args.command == "cell-state-architecture-sources":
+            from .cell_state_architecture_source_registry import build_cell_state_architecture_source_registry
+
+            _write_json(build_cell_state_architecture_source_registry(_cell_state_architecture_fixture(args.input)), args.output)
+            return 0
+        if args.command == "cell-state-architecture-compliance":
+            from .cell_state_architecture_compliance import assess_cell_state_architecture_compliance
+
+            report = assess_cell_state_architecture_compliance(_cell_state_architecture_fixture(args.input))
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "cell-state-architecture-validation":
+            from .cell_state_architecture_validation import validate_cell_state_architecture
+
+            report = validate_cell_state_architecture(_cell_state_architecture_fixture(args.input))
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "cell-state-architecture-query":
+            from .cell_state_architecture_query import find_cell_state_cases
+            from .cell_state_architecture_runtime import run_cell_state_architecture
+
+            runtime = run_cell_state_architecture(_cell_state_architecture_fixture(args.input))
+            rows = find_cell_state_cases(runtime, operation_id=args.operation, family=args.family, scenario=args.scenario)
+            _write_json({"accepted": runtime.accepted, "count": len(rows), "cases": rows}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "cell-state-architecture-bundle":
+            from .cell_state_architecture_public_data import cell_state_architecture_fixture_json
+            from .cell_state_architecture_runtime import run_cell_state_architecture
+
+            fixture = _cell_state_architecture_fixture(args.input)
+            runtime = run_cell_state_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_text(cell_state_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)

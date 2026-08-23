@@ -1,0 +1,4015 @@
+{
+  "boundary": "public_aggregate_cell_state_disease_territory",
+  "cases": [
+    {
+      "capability_id": "GNC-D08-C01",
+      "case_id": "D08-C01-positive",
+      "content_address": "sha256:ac8c6b7a49b45ac083434c6157f62aab1975054e170064025773faed2b95bfdd",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C01",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_frontier",
+      "operation": "disease_ontology_context",
+      "operation_id": "D08-C01",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:c427ebd19d9714deb7f67f0614eb1f809a4ff97438b57c84c092795dd138e789",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "one exact-context disease ontology candidate remains",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "disease_ontology_context",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"disease-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+          },
+          "record_id": "d08-c01-positive",
+          "role": "positive",
+          "source_ids": [
+            "cell-atlas-aggregate"
+          ]
+        },
+        "family_record_id": "d08-c01-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:ba5c4e97ab9e05a0af311b02fe57cf5669dd60d8dce4f0d2fe2dce36f4ba44d2",
+            "detail": "disease ontology candidates are exact-context and taxonomy-scoped",
+            "issue_codes": [],
+            "measurements": {
+              "candidate_ids": [
+                "MONDO:001"
+              ],
+              "candidate_labels": [
+                "diffuse glioma"
+              ],
+              "dimension": "disease_ontology",
+              "evidence_ids": [
+                "disease-supported"
+              ],
+              "selected_candidate_id": "MONDO:001",
+              "selected_candidate_label": "diffuse glioma",
+              "source_ids": [
+                "cell-atlas-aggregate"
+              ],
+              "uncertainty": 0.2
+            },
+            "operation": "disease_ontology_context",
+            "primitive_state": "supported",
+            "record_id": "d08-c01-positive",
+            "state": "supported",
+            "warnings": [
+              "Context resolution is a research taxonomy observation, not a diagnosis or prognosis.",
+              "External calibration, transport, and out-of-domain evaluation remain required."
+            ]
+          },
+          "content_address": "sha256:76a69dff6a9d8dc8370a296cf73b29683afe21a4e3e36bdf81628023301ccf1c",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:c427ebd19d9714deb7f67f0614eb1f809a4ff97438b57c84c092795dd138e789",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "one exact-context disease ontology candidate remains",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "disease_ontology_context",
+            "record_id": "d08-c01-positive",
+            "role": "positive",
+            "source_ids": [
+              "cell-atlas-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"disease-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C01",
+      "case_id": "D08-C01-foreign_context",
+      "content_address": "sha256:b88e15d912a731779ca8c5da3042cf122389ae01c7ff255e683e2828c0a37e16",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "disease_ontology_context",
+      "operation_id": "D08-C01",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c01-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"disease-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C01",
+      "case_id": "D08-C01-malformed_input",
+      "content_address": "sha256:e4ba7e5e94359f9b8c7389fd2046413539b907a247e446044bbe380293fd4032",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "disease_ontology_context",
+      "operation_id": "D08-C01",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c01-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"disease-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C01",
+      "case_id": "D08-C01-identity_conflict",
+      "content_address": "sha256:62be5fce0e04a33846d9c333d32e28b7a9b0d3511ab6b8851ff2ea24d8132485",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "disease_ontology_context",
+      "operation_id": "D08-C01",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c01-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"disease-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C02",
+      "case_id": "D08-C02-positive",
+      "content_address": "sha256:fe74bd8d165863f7d76941fdc7d77437f616619fe9b8ab8c0582b87681f45155",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C02",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_frontier",
+      "operation": "adult_pediatric_route",
+      "operation_id": "D08-C02",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:116065d36034152572c248520869c13e489eb68da3f3710867820d5f432d0b11",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "adult route agrees with declared context",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "adult_pediatric_route",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"age-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+          },
+          "record_id": "d08-c02-positive",
+          "role": "positive",
+          "source_ids": [
+            "gtex-aggregate"
+          ]
+        },
+        "family_record_id": "d08-c02-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:37c73278a90ca7f922e639e1f10c6fa2cc1306432fba01cbed1c873df7f92b07",
+            "detail": "adult or pediatric routing preserves declared context and conflict",
+            "issue_codes": [],
+            "measurements": {
+              "candidate_ids": [
+                "adult"
+              ],
+              "candidate_labels": [
+                "adult"
+              ],
+              "dimension": "age_route",
+              "evidence_ids": [
+                "age-supported"
+              ],
+              "selected_candidate_id": "adult",
+              "selected_candidate_label": "adult",
+              "source_ids": [
+                "case-context",
+                "gtex-aggregate"
+              ],
+              "uncertainty": 0.0
+            },
+            "operation": "adult_pediatric_route",
+            "primitive_state": "supported",
+            "record_id": "d08-c02-positive",
+            "state": "supported",
+            "warnings": [
+              "Adult/pediatric routing is a context partition and not a disease conclusion.",
+              "Adolescent, mixed-age, and unknown cohorts require an explicit extension."
+            ]
+          },
+          "content_address": "sha256:fea1484bd846c540d5a449e4b591d1f7b6a8d1f5bac35383b9d0e79e44bc97ac",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:116065d36034152572c248520869c13e489eb68da3f3710867820d5f432d0b11",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "adult route agrees with declared context",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "adult_pediatric_route",
+            "record_id": "d08-c02-positive",
+            "role": "positive",
+            "source_ids": [
+              "gtex-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"age-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_frontier:gtex-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C02",
+      "case_id": "D08-C02-foreign_context",
+      "content_address": "sha256:2fab9f408181a8dc6f48aef016d5fc38962bb1f1c07c7740c763bb40c143e888",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "adult_pediatric_route",
+      "operation_id": "D08-C02",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c02-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"age-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_frontier:gtex-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C02",
+      "case_id": "D08-C02-malformed_input",
+      "content_address": "sha256:f332dffa443349552e6ab69c39e5eec86520bdf9db28390d6e891e563f425fff",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "adult_pediatric_route",
+      "operation_id": "D08-C02",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c02-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"age-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_frontier:gtex-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C02",
+      "case_id": "D08-C02-identity_conflict",
+      "content_address": "sha256:2315d62264383304d07d383ed7329043a9c562664677d6f599ee8fa53a371c5c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "adult_pediatric_route",
+      "operation_id": "D08-C02",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c02-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"age-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_frontier:gtex-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C03",
+      "case_id": "D08-C03-positive",
+      "content_address": "sha256:797f704961a7c5ebc763c944d1c56bf5f9f085eedf93523f157da4c039383eb7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C03",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_frontier",
+      "operation": "molecular_class_state",
+      "operation_id": "D08-C03",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:2592f58a102277cbfa481be58bad3aa1137d9de234b299da574bfe080189a49a",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "molecular class and state resolve separately and agree",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "molecular_class_state",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"class-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"state-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+          },
+          "record_id": "d08-c03-positive",
+          "role": "positive",
+          "source_ids": [
+            "ncit-aggregate"
+          ]
+        },
+        "family_record_id": "d08-c03-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:08fa57f4e4061061e68dc8efd079ada15e84f621c9b1d3b7aef285746b94d568",
+            "detail": "molecular class and molecular state are resolved as separate dimensions",
+            "issue_codes": [],
+            "measurements": {
+              "class_candidate_ids": [
+                "IDH_mutant"
+              ],
+              "class_state": "supported",
+              "class_uncertainty": 0.2,
+              "molecular_state": "supported",
+              "state_candidate_ids": [
+                "proneural"
+              ],
+              "state_uncertainty": 0.2,
+              "uncertainty": 0.2
+            },
+            "operation": "molecular_class_state",
+            "primitive_state": "supported",
+            "record_id": "d08-c03-positive",
+            "state": "supported",
+            "warnings": [
+              "Molecular context rows are descriptive and do not assert pathogenicity or treatment actionability.",
+              "Unmeasured molecular class or state remains abstained, not negative."
+            ]
+          },
+          "content_address": "sha256:4a2ff071aa922f58e4e074952f2d0e29f37a7cc67a4e902a10c510f93160b5d7",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:2592f58a102277cbfa481be58bad3aa1137d9de234b299da574bfe080189a49a",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "molecular class and state resolve separately and agree",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "molecular_class_state",
+            "record_id": "d08-c03-positive",
+            "role": "positive",
+            "source_ids": [
+              "ncit-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"class-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"state-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C03",
+      "case_id": "D08-C03-foreign_context",
+      "content_address": "sha256:3d36599bc7fcd595c0c6edfb5eba7e8384adbb904fe428b3274e901b7e37adb0",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "molecular_class_state",
+      "operation_id": "D08-C03",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c03-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"class-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"state-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C03",
+      "case_id": "D08-C03-malformed_input",
+      "content_address": "sha256:c192676b51a30663bb986cab397d4c5f4bac89c3238b4a4e7dd002d19a50e58c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "molecular_class_state",
+      "operation_id": "D08-C03",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c03-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"class-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"state-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C03",
+      "case_id": "D08-C03-identity_conflict",
+      "content_address": "sha256:5d2f31adf3503a95da1e5da1fa865228b6de4c28f8cad5990aa8a4bba977e910",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "molecular_class_state",
+      "operation_id": "D08-C03",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c03-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"class-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"state-supported\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C04",
+      "case_id": "D08-C04-positive",
+      "content_address": "sha256:48e4586d4615c639761a63f1c78160581667aedee1b0997767ab742cb7b31739",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C04",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_frontier",
+      "operation": "territory_context_assembly",
+      "operation_id": "D08-C04",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:ffe122831bed48f79689c8f3a2f9facb44797754ac0001438fc84cf6da3e8a56",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "territory and other context dimensions assemble to supported",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "territory_context_assembly",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"assembly-disease\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"assembly-age\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"assembly-class\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"assembly-state\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"malignant_core\",\"candidate_label\":\"malignant core\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"territory\",\"observation_id\":\"assembly-territory\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+          },
+          "record_id": "d08-c04-positive",
+          "role": "positive",
+          "source_ids": [
+            "hca-aggregate"
+          ]
+        },
+        "family_record_id": "d08-c04-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:d72997df14696b42dfa35f471f6ce03f9d38458215089a5bf0eaa70a9469513a",
+            "detail": "territory candidates propagate through a full disease, age, molecular, and context assembly",
+            "issue_codes": [],
+            "measurements": {
+              "age_state": "supported",
+              "assembled_state": "supported",
+              "disease_state": "supported",
+              "molecular_state": "supported",
+              "source_ids": [
+                "case-context",
+                "hca-aggregate"
+              ],
+              "territory_candidates": [
+                "malignant_core"
+              ],
+              "territory_state": "supported",
+              "uncertainty": 0.15
+            },
+            "operation": "territory_context_assembly",
+            "primitive_state": "supported",
+            "record_id": "d08-c04-positive",
+            "state": "supported",
+            "warnings": [
+              "This context bundle is for research use and is not a clinical diagnosis, prognosis, or treatment recommendation.",
+              "Generic context scores are not proof; external benchmark, calibration, transport, and OOD evaluation remain required.",
+              "No component infers consent, identity, assay support, or negative evidence when it is missing.",
+              "Territory identity remains a taxonomy observation, not a clinical label."
+            ]
+          },
+          "content_address": "sha256:2ee13e11a98107d4fbe89c9c049f27d6a246299062dafb09e56a2c7c294302ac",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:ffe122831bed48f79689c8f3a2f9facb44797754ac0001438fc84cf6da3e8a56",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "territory and other context dimensions assemble to supported",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "territory_context_assembly",
+            "record_id": "d08-c04-positive",
+            "role": "positive",
+            "source_ids": [
+              "hca-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"assembly-disease\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"assembly-age\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"assembly-class\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"assembly-state\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"malignant_core\",\"candidate_label\":\"malignant core\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"territory\",\"observation_id\":\"assembly-territory\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_frontier:hca-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C04",
+      "case_id": "D08-C04-foreign_context",
+      "content_address": "sha256:80f09096a4d764c72ab7d816824842f165927a26ca0db5e84a7075bf80d787f6",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "territory_context_assembly",
+      "operation_id": "D08-C04",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c04-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"assembly-disease\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"assembly-age\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"assembly-class\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"assembly-state\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"malignant_core\",\"candidate_label\":\"malignant core\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"territory\",\"observation_id\":\"assembly-territory\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_frontier:hca-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C04",
+      "case_id": "D08-C04-malformed_input",
+      "content_address": "sha256:dcca97a577e3a47384adf43a4116191735a85b2ef34b70834b93d4e87a4eded7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "territory_context_assembly",
+      "operation_id": "D08-C04",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c04-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"assembly-disease\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"assembly-age\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"assembly-class\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"assembly-state\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"malignant_core\",\"candidate_label\":\"malignant core\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"territory\",\"observation_id\":\"assembly-territory\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_frontier:hca-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C04",
+      "case_id": "D08-C04-identity_conflict",
+      "content_address": "sha256:7def3623aa24904969d303048104135bf1e1478a0fc551b9b5ea3f9429ab786a",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_frontier",
+      "operation": "territory_context_assembly",
+      "operation_id": "D08-C04",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c04-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"MONDO:001\",\"candidate_label\":\"diffuse glioma\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"disease_ontology\",\"observation_id\":\"assembly-disease\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"adult\",\"candidate_label\":\"adult\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"age_route\",\"observation_id\":\"assembly-age\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"IDH_mutant\",\"candidate_label\":\"IDH-mutant\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_class\",\"observation_id\":\"assembly-class\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"molecular_state\",\"observation_id\":\"assembly-state\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"},{\"candidate_id\":\"malignant_core\",\"candidate_label\":\"malignant core\",\"confidence\":0.9,\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"dimension\":\"territory\",\"observation_id\":\"assembly-territory\",\"source_version\":\"context-aggregate-2026-01\",\"state\":\"supported\",\"subject_id\":\"aggregate-cohort\"}]}"
+        }
+      },
+      "plane": "taxonomy",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_frontier:hca-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C05",
+      "case_id": "D08-C05-positive",
+      "content_address": "sha256:4bc3f5d83f79b228a0cf1ff0034825253c9620dc444a61406db6c306a88935cd",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C05",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_beta_frontier",
+      "operation": "developmental_lineage_prior",
+      "operation_id": "D08-C05",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:a5dc24ed9e46352e34a3bcced0386779e50edd1c121028666c1b9946bc7516a7",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "adult aggregate developmental lineage prior",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "developmental_lineage_prior",
+          "payload": {
+            "ambiguity_margin": 0.15,
+            "model_version": "beta-1",
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"radial_glia_like\",\"candidate_label\":\"radial glia-like\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.95,\"uncertainty\":0.1},{\"candidate_id\":\"oligodendrocyte_lineage\",\"candidate_label\":\"oligodendrocyte lineage\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-secondary\",\"subject_id\":\"aggregate-cohort\",\"support\":0.22,\"uncertainty\":0.1}]}",
+            "source_version": "aggregate-beta-2026-01",
+            "target_context_key": "GRCh38|glioma|adult|stem_like|core|unknown"
+          },
+          "record_id": "d08-c05-positive",
+          "role": "positive",
+          "source_ids": [
+            "beta-cell-atlas"
+          ]
+        },
+        "family_record_id": "d08-c05-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:f4f3538552f125d2da44d95a6346a4258d939a148f91c44040456b433918c68c",
+            "detail": "one context-prior candidate exceeds the declared ambiguity margin",
+            "issue_codes": [],
+            "measurements": {
+              "applicable": true,
+              "candidate_evidence_counts": {
+                "oligodendrocyte_lineage": 1,
+                "radial_glia_like": 1
+              },
+              "candidate_ids": [
+                "oligodendrocyte_lineage",
+                "radial_glia_like"
+              ],
+              "candidate_support": {
+                "oligodendrocyte_lineage": 0.198,
+                "radial_glia_like": 0.855
+              },
+              "candidate_uncertainty": {
+                "oligodendrocyte_lineage": 0.1,
+                "radial_glia_like": 0.1
+              },
+              "evidence_ids": [
+                "dev-positive",
+                "dev-secondary"
+              ],
+              "missing_requirements": [],
+              "parsed_count": 2,
+              "selected_candidate_id": "radial_glia_like",
+              "selected_candidate_label": "radial glia-like",
+              "source_ids": [
+                "beta-cell-atlas"
+              ],
+              "source_versions": [
+                "aggregate-beta-2026-01"
+              ],
+              "target_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "uncertainty": 0.1
+            },
+            "operation": "developmental_lineage_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c05-positive",
+            "state": "supported",
+            "warnings": [
+              "Prior support scores are bounded research evidence summaries, not calibrated probabilities.",
+              "Context mismatch, missing observations, and candidate disagreement are not negative evidence.",
+              "External calibration, subgroup transport, and out-of-domain evaluation remain required."
+            ]
+          },
+          "content_address": "sha256:8d59637b0a71bfbe7c9d1f8955eff2eea00f58cda5b71961dc27a2df113653f1",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:a5dc24ed9e46352e34a3bcced0386779e50edd1c121028666c1b9946bc7516a7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "adult aggregate developmental lineage prior",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "developmental_lineage_prior",
+            "record_id": "d08-c05-positive",
+            "role": "positive",
+            "source_ids": [
+              "beta-cell-atlas"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"radial_glia_like\",\"candidate_label\":\"radial glia-like\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.95,\"uncertainty\":0.1},{\"candidate_id\":\"oligodendrocyte_lineage\",\"candidate_label\":\"oligodendrocyte lineage\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-secondary\",\"subject_id\":\"aggregate-cohort\",\"support\":0.22,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C05",
+      "case_id": "D08-C05-foreign_context",
+      "content_address": "sha256:62cc5c90aca5da4bd4828b450528ef46b220e379d7b7bd9fcf2777e375ddcf45",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "developmental_lineage_prior",
+      "operation_id": "D08-C05",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c05-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"radial_glia_like\",\"candidate_label\":\"radial glia-like\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.95,\"uncertainty\":0.1},{\"candidate_id\":\"oligodendrocyte_lineage\",\"candidate_label\":\"oligodendrocyte lineage\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-secondary\",\"subject_id\":\"aggregate-cohort\",\"support\":0.22,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C05",
+      "case_id": "D08-C05-malformed_input",
+      "content_address": "sha256:3e1c20a8ac8958ad1af20de375fad56fbd964f0b21e69b7432db4004e34b1e65",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "developmental_lineage_prior",
+      "operation_id": "D08-C05",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c05-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"radial_glia_like\",\"candidate_label\":\"radial glia-like\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.95,\"uncertainty\":0.1},{\"candidate_id\":\"oligodendrocyte_lineage\",\"candidate_label\":\"oligodendrocyte lineage\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-secondary\",\"subject_id\":\"aggregate-cohort\",\"support\":0.22,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C05",
+      "case_id": "D08-C05-identity_conflict",
+      "content_address": "sha256:21b47a454fddb25c4bfab9b752ef0f15a828b5629a569fc08ad45f627e3021a8",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "developmental_lineage_prior",
+      "operation_id": "D08-C05",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c05-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"radial_glia_like\",\"candidate_label\":\"radial glia-like\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.95,\"uncertainty\":0.1},{\"candidate_id\":\"oligodendrocyte_lineage\",\"candidate_label\":\"oligodendrocyte lineage\",\"context_key\":\"GRCh38|glioma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"dev-secondary\",\"subject_id\":\"aggregate-cohort\",\"support\":0.22,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C06",
+      "case_id": "D08-C06-positive",
+      "content_address": "sha256:526d5c644aebd402130b23bd5b56798c806ed767f7a392855ec50ffefefc6524",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C06",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_beta_frontier",
+      "operation": "glioblastoma_malignant_state_prior",
+      "operation_id": "D08-C06",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:ca721c19618d2af21ddbe4ea202466d6f0ab93dfefe8515eb157b5981a192c5a",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "explicit glioblastoma malignant-state gate",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "glioblastoma_malignant_state_prior",
+          "payload": {
+            "ambiguity_margin": 0.15,
+            "model_version": "beta-1",
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"stem_like\",\"candidate_label\":\"stem-like\",\"context_key\":\"GRCh38|glioblastoma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"gbm-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+            "source_version": "aggregate-beta-2026-01",
+            "target_context_key": "GRCh38|glioblastoma|adult|stem_like|core|unknown"
+          },
+          "record_id": "d08-c06-positive",
+          "role": "positive",
+          "source_ids": [
+            "beta-cell-atlas"
+          ]
+        },
+        "family_record_id": "d08-c06-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:07fec3153107ab87439ac030e74f265f01740cf608b531f81800dccfda6f2a96",
+            "detail": "one context-prior candidate exceeds the declared ambiguity margin",
+            "issue_codes": [],
+            "measurements": {
+              "applicable": true,
+              "candidate_evidence_counts": {
+                "stem_like": 1
+              },
+              "candidate_ids": [
+                "stem_like"
+              ],
+              "candidate_support": {
+                "stem_like": 0.846
+              },
+              "candidate_uncertainty": {
+                "stem_like": 0.1
+              },
+              "evidence_ids": [
+                "gbm-positive"
+              ],
+              "missing_requirements": [],
+              "parsed_count": 1,
+              "selected_candidate_id": "stem_like",
+              "selected_candidate_label": "stem-like",
+              "source_ids": [
+                "beta-cell-atlas"
+              ],
+              "source_versions": [
+                "aggregate-beta-2026-01"
+              ],
+              "target_context_key": "GRCh38|glioblastoma|adult|stem_like|core|unknown",
+              "uncertainty": 0.1
+            },
+            "operation": "glioblastoma_malignant_state_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c06-positive",
+            "state": "supported",
+            "warnings": [
+              "Prior support scores are bounded research evidence summaries, not calibrated probabilities.",
+              "Context mismatch, missing observations, and candidate disagreement are not negative evidence.",
+              "External calibration, subgroup transport, and out-of-domain evaluation remain required."
+            ]
+          },
+          "content_address": "sha256:ff9d150ed42b4787289a493e48bb7b156d4e0c737439168c5dee06bcb037de03",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:ca721c19618d2af21ddbe4ea202466d6f0ab93dfefe8515eb157b5981a192c5a",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "explicit glioblastoma malignant-state gate",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "glioblastoma_malignant_state_prior",
+            "record_id": "d08-c06-positive",
+            "role": "positive",
+            "source_ids": [
+              "beta-cell-atlas"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"stem_like\",\"candidate_label\":\"stem-like\",\"context_key\":\"GRCh38|glioblastoma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"gbm-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioblastoma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C06",
+      "case_id": "D08-C06-foreign_context",
+      "content_address": "sha256:28b8ffa47c37c2d89339b7214bad40ddcfce5a4e91a9d583855d50d3eb4c7293",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "glioblastoma_malignant_state_prior",
+      "operation_id": "D08-C06",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c06-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"stem_like\",\"candidate_label\":\"stem-like\",\"context_key\":\"GRCh38|glioblastoma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"gbm-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioblastoma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C06",
+      "case_id": "D08-C06-malformed_input",
+      "content_address": "sha256:6d12fa2c0bf8cc34a9063da24ac012a66c90b66310fa9e2764ae425e3d6ce62c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "glioblastoma_malignant_state_prior",
+      "operation_id": "D08-C06",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c06-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"stem_like\",\"candidate_label\":\"stem-like\",\"context_key\":\"GRCh38|glioblastoma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"gbm-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioblastoma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C06",
+      "case_id": "D08-C06-identity_conflict",
+      "content_address": "sha256:258dd8785af2c2e6b5d98e3913a8cd2f74b9c1d94caea6f4d17a9df94f3e525c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "glioblastoma_malignant_state_prior",
+      "operation_id": "D08-C06",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c06-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"stem_like\",\"candidate_label\":\"stem-like\",\"context_key\":\"GRCh38|glioblastoma|adult|stem_like|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"gbm-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioblastoma|adult|stem_like|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C07",
+      "case_id": "D08-C07-positive",
+      "content_address": "sha256:1ab68fbcb1913e4f974ed5a7f265b55406ab433a83b2bcb975c855081d674aaa",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C07",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_beta_frontier",
+      "operation": "idh_mutant_lineage_state_prior",
+      "operation_id": "D08-C07",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:1d41d3aa304eb878c38e33564c85620baa9aa1d2234f9d6cbcfbda95588b985a",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "declared IDH-mutant lineage-state gate",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "idh_mutant_lineage_state_prior",
+          "payload": {
+            "ambiguity_margin": 0.15,
+            "declared_molecular_state": "IDH-mutant",
+            "model_version": "beta-1",
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"context_key\":\"GRCh38|glioma|adult|proneural|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"idh-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.93,\"uncertainty\":0.1}]}",
+            "source_version": "aggregate-beta-2026-01",
+            "target_context_key": "GRCh38|glioma|adult|proneural|core|unknown"
+          },
+          "record_id": "d08-c07-positive",
+          "role": "positive",
+          "source_ids": [
+            "beta-cell-atlas"
+          ]
+        },
+        "family_record_id": "d08-c07-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:1786c10207d4521f3d4a7661ab7ab1c5c02e4dc2c992a08fa2e119080461ef89",
+            "detail": "one context-prior candidate exceeds the declared ambiguity margin",
+            "issue_codes": [],
+            "measurements": {
+              "applicable": true,
+              "candidate_evidence_counts": {
+                "proneural": 1
+              },
+              "candidate_ids": [
+                "proneural"
+              ],
+              "candidate_support": {
+                "proneural": 0.837
+              },
+              "candidate_uncertainty": {
+                "proneural": 0.1
+              },
+              "evidence_ids": [
+                "idh-positive"
+              ],
+              "missing_requirements": [],
+              "parsed_count": 1,
+              "selected_candidate_id": "proneural",
+              "selected_candidate_label": "proneural",
+              "source_ids": [
+                "beta-cell-atlas"
+              ],
+              "source_versions": [
+                "aggregate-beta-2026-01"
+              ],
+              "target_context_key": "GRCh38|glioma|adult|proneural|core|unknown",
+              "uncertainty": 0.1
+            },
+            "operation": "idh_mutant_lineage_state_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c07-positive",
+            "state": "supported",
+            "warnings": [
+              "Prior support scores are bounded research evidence summaries, not calibrated probabilities.",
+              "Context mismatch, missing observations, and candidate disagreement are not negative evidence.",
+              "External calibration, subgroup transport, and out-of-domain evaluation remain required."
+            ]
+          },
+          "content_address": "sha256:15cc4a2d142900fc90620fa7f0223c0d93a4dc24a84891ed79e2f9dfe2e4035d",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:1d41d3aa304eb878c38e33564c85620baa9aa1d2234f9d6cbcfbda95588b985a",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "declared IDH-mutant lineage-state gate",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "idh_mutant_lineage_state_prior",
+            "record_id": "d08-c07-positive",
+            "role": "positive",
+            "source_ids": [
+              "beta-cell-atlas"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "IDH-mutant",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"context_key\":\"GRCh38|glioma|adult|proneural|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"idh-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.93,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|proneural|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C07",
+      "case_id": "D08-C07-foreign_context",
+      "content_address": "sha256:71829cfbfde990d2ee66f5aa682a541e8ecac198345d922b0e85b5c240dbba7e",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "idh_mutant_lineage_state_prior",
+      "operation_id": "D08-C07",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c07-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "IDH-mutant",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"context_key\":\"GRCh38|glioma|adult|proneural|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"idh-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.93,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|proneural|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C07",
+      "case_id": "D08-C07-malformed_input",
+      "content_address": "sha256:26c775e0ae6cfcd1a143f6ddacbc229fde47835dfeadfcd19bf202df7b112ce7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "idh_mutant_lineage_state_prior",
+      "operation_id": "D08-C07",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c07-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "IDH-mutant",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"context_key\":\"GRCh38|glioma|adult|proneural|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"idh-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.93,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|proneural|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C07",
+      "case_id": "D08-C07-identity_conflict",
+      "content_address": "sha256:07c7d55aa53b5ea005ad1631ba349954d1f36fb0e33319eb6a5182940b0633c0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "idh_mutant_lineage_state_prior",
+      "operation_id": "D08-C07",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c07-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "IDH-mutant",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"proneural\",\"candidate_label\":\"proneural\",\"context_key\":\"GRCh38|glioma|adult|proneural|core|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"idh-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.93,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|proneural|core|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C08",
+      "case_id": "D08-C08-positive",
+      "content_address": "sha256:0f4b032b6f06564097a455ba81e91123c6c61dc7207846a6847d4b3c4028a4d4",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C08",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_beta_frontier",
+      "operation": "h3k27_altered_developmental_state_prior",
+      "operation_id": "D08-C08",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+        "family_record": {
+          "content_address": "sha256:c2ced587c8f77d3e1d468c70762acf5b7fd09d0285bbb9b66db2696d7be30acf",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+          "description": "declared H3K27-altered developmental-state gate",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "h3k27_altered_developmental_state_prior",
+          "payload": {
+            "ambiguity_margin": 0.15,
+            "declared_molecular_state": "H3K27-altered",
+            "model_version": "beta-1",
+            "observation_text": "{\"observations\":[{\"candidate_id\":\"midline_glial_progenitor\",\"candidate_label\":\"midline glial progenitor\",\"context_key\":\"GRCh38|glioma|pediatric|stem_like|midline|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"h3-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+            "source_version": "aggregate-beta-2026-01",
+            "target_context_key": "GRCh38|glioma|pediatric|stem_like|midline|unknown"
+          },
+          "record_id": "d08-c08-positive",
+          "role": "positive",
+          "source_ids": [
+            "beta-cell-atlas"
+          ]
+        },
+        "family_record_id": "d08-c08-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:f0bc3c82c1e51dc6d0192d6756c6bee8aed5190e2cc8a7223789fb7c6777ec1f",
+            "detail": "one context-prior candidate exceeds the declared ambiguity margin",
+            "issue_codes": [],
+            "measurements": {
+              "applicable": true,
+              "candidate_evidence_counts": {
+                "midline_glial_progenitor": 1
+              },
+              "candidate_ids": [
+                "midline_glial_progenitor"
+              ],
+              "candidate_support": {
+                "midline_glial_progenitor": 0.846
+              },
+              "candidate_uncertainty": {
+                "midline_glial_progenitor": 0.1
+              },
+              "evidence_ids": [
+                "h3-positive"
+              ],
+              "missing_requirements": [],
+              "parsed_count": 1,
+              "selected_candidate_id": "midline_glial_progenitor",
+              "selected_candidate_label": "midline glial progenitor",
+              "source_ids": [
+                "beta-cell-atlas"
+              ],
+              "source_versions": [
+                "aggregate-beta-2026-01"
+              ],
+              "target_context_key": "GRCh38|glioma|pediatric|stem_like|midline|unknown",
+              "uncertainty": 0.1
+            },
+            "operation": "h3k27_altered_developmental_state_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c08-positive",
+            "state": "supported",
+            "warnings": [
+              "Prior support scores are bounded research evidence summaries, not calibrated probabilities.",
+              "Context mismatch, missing observations, and candidate disagreement are not negative evidence.",
+              "External calibration, subgroup transport, and out-of-domain evaluation remain required."
+            ]
+          },
+          "content_address": "sha256:8395ddcbbca9abef0914299c5bc079e01a81daac5c15c25d42ce93a0fce65c13",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:c2ced587c8f77d3e1d468c70762acf5b7fd09d0285bbb9b66db2696d7be30acf",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "description": "declared H3K27-altered developmental-state gate",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "h3k27_altered_developmental_state_prior",
+            "record_id": "d08-c08-positive",
+            "role": "positive",
+            "source_ids": [
+              "beta-cell-atlas"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "H3K27-altered",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"midline_glial_progenitor\",\"candidate_label\":\"midline glial progenitor\",\"context_key\":\"GRCh38|glioma|pediatric|stem_like|midline|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"h3-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|pediatric|stem_like|midline|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C08",
+      "case_id": "D08-C08-foreign_context",
+      "content_address": "sha256:27f6ac6f3718b83b8db804385ed6f7661f091fb8f05e6b09535d4a15cd09da9a",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "h3k27_altered_developmental_state_prior",
+      "operation_id": "D08-C08",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c08-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "H3K27-altered",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"midline_glial_progenitor\",\"candidate_label\":\"midline glial progenitor\",\"context_key\":\"GRCh38|glioma|pediatric|stem_like|midline|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"h3-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|pediatric|stem_like|midline|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C08",
+      "case_id": "D08-C08-malformed_input",
+      "content_address": "sha256:3ccfea78fe69c59b26f7a711af110d56f3fe4a30efdf541af440c50e22915469",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "h3k27_altered_developmental_state_prior",
+      "operation_id": "D08-C08",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c08-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "H3K27-altered",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"midline_glial_progenitor\",\"candidate_label\":\"midline glial progenitor\",\"context_key\":\"GRCh38|glioma|pediatric|stem_like|midline|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"h3-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|pediatric|stem_like|midline|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C08",
+      "case_id": "D08-C08-identity_conflict",
+      "content_address": "sha256:1c66cd5cd383013d97cc688d5d7a65d8bb65823c98c29c88bcb084da0b4e3f1c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_beta_frontier",
+      "operation": "h3k27_altered_developmental_state_prior",
+      "operation_id": "D08-C08",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c08-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_margin": 0.15,
+          "declared_molecular_state": "H3K27-altered",
+          "model_version": "beta-1",
+          "observation_text": "{\"observations\":[{\"candidate_id\":\"midline_glial_progenitor\",\"candidate_label\":\"midline glial progenitor\",\"context_key\":\"GRCh38|glioma|pediatric|stem_like|midline|unknown\",\"evidence_tier\":\"public-reference-atlas\",\"observation_id\":\"h3-positive\",\"subject_id\":\"aggregate-cohort\",\"support\":0.94,\"uncertainty\":0.1}]}",
+          "source_version": "aggregate-beta-2026-01",
+          "target_context_key": "GRCh38|glioma|pediatric|stem_like|midline|unknown"
+        }
+      },
+      "plane": "prior",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C09",
+      "case_id": "D08-C09-positive",
+      "content_address": "sha256:1f121e0d8f651feb353b0c9d9922a14447edf737f5896964c8459e6ba5db3437",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C09",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_alpha_frontier",
+      "operation": "spatial_niche_prior",
+      "operation_id": "D08-C09",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:1156467ff7bc44aee017646a845bebdd183638f7efd6a6b4661bc4e4b0d68c67",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "spatial niche support replicated across aggregate rows",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "spatial_niche_prior",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-1\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.84},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-2\",\"sample_id\":\"aggregate-b\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.78}]}",
+            "source_version": "aggregate-alpha-2026-01",
+            "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+          },
+          "record_id": "d08-c09-positive",
+          "role": "positive",
+          "source_ids": [
+            "alpha-spatial"
+          ]
+        },
+        "family_record_id": "d08-c09-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:3afa594d811931150014b6638886bcc9761f74341fd952eb88206d3452bba7ac",
+            "detail": "context-alpha report retains descriptive candidates and deltas",
+            "issue_codes": [],
+            "measurements": {
+              "candidate_ids": [
+                "perivascular"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "evidence_ids": [],
+              "operation": "spatial_niche_prior",
+              "parsed_count": 2,
+              "result_count": 1,
+              "results": [
+                {
+                  "content_address": "sha256:5de5282e52b92ea0e3e0b8cb6e2e4543b90041cf645963a0ac0840b015bf55c7",
+                  "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+                  "maximum_support": 0.84,
+                  "median_support": 0.81,
+                  "minimum_support": 0.78,
+                  "niche_id": "perivascular",
+                  "observation_count": 2,
+                  "rank": 1,
+                  "raw_hashes": [
+                    "sha256:2d352d9218ea5e1d487ebb69979ab2f9d70fd8b6b5a0a1901fbde26aa28f0ee3",
+                    "sha256:f681f1d5b00cb726123f5e3554a648031f279ea3327b4759115e88b4272cee7e"
+                  ],
+                  "sample_ids": [
+                    "aggregate-a",
+                    "aggregate-b"
+                  ],
+                  "score_margin_to_next": null,
+                  "source_ids": [
+                    "alpha-aggregate"
+                  ],
+                  "state": "supported",
+                  "subject_id": "aggregate-cohort",
+                  "support_spread": 0.06
+                }
+              ],
+              "source_ids": [
+                "alpha-aggregate"
+              ],
+              "source_versions": [
+                "aggregate-alpha-2026-01"
+              ],
+              "uncertainty": 0.06
+            },
+            "operation": "spatial_niche_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c09-positive",
+            "state": "supported",
+            "warnings": [
+              "Spatial niche rankings are descriptive context priors, not cell-state truth.",
+              "Close candidates remain ambiguous rather than being silently selected."
+            ]
+          },
+          "content_address": "sha256:1f5210131ba5bf7e67e20ad220b8cd16de0df9552f3d41f9a59981b7438b2a70",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:1156467ff7bc44aee017646a845bebdd183638f7efd6a6b4661bc4e4b0d68c67",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "spatial niche support replicated across aggregate rows",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "spatial_niche_prior",
+            "record_id": "d08-c09-positive",
+            "role": "positive",
+            "source_ids": [
+              "alpha-spatial"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-1\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.84},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-2\",\"sample_id\":\"aggregate-b\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.78}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-spatial"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C09",
+      "case_id": "D08-C09-foreign_context",
+      "content_address": "sha256:e15e6fc93d564335dd407ae69cb6281fb19361608338dfb978c411875734a145",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "spatial_niche_prior",
+      "operation_id": "D08-C09",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c09-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-1\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.84},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-2\",\"sample_id\":\"aggregate-b\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.78}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-spatial"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C09",
+      "case_id": "D08-C09-malformed_input",
+      "content_address": "sha256:6a803d51c17515035cc9e4547f97381be61b98c479ed14b585a13297a4a34d7f",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "spatial_niche_prior",
+      "operation_id": "D08-C09",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c09-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-1\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.84},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-2\",\"sample_id\":\"aggregate-b\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.78}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-spatial"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C09",
+      "case_id": "D08-C09-identity_conflict",
+      "content_address": "sha256:0f906fca8de99d5431e138078c706dddd7dc39719c80d43ed821ab58bd88f5a1",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "spatial_niche_prior",
+      "operation_id": "D08-C09",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c09-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-1\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.84},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"niche_id\":\"perivascular\",\"observation_id\":\"niche-2\",\"sample_id\":\"aggregate-b\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.78}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-spatial"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C10",
+      "case_id": "D08-C10-positive",
+      "content_address": "sha256:3315efe8ec40e74e7c00515cbb37d954266b12e32f48fa8794df4d5c20ebcca1",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C10",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_alpha_frontier",
+      "operation": "core_margin_territory_prior",
+      "operation_id": "D08-C10",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:8365da8e7ac58ecf77dc217256d6be9876d6358a60df392cbaf4caaefdab56bf",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "core territory support exceeds margin support",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "core_margin_territory_prior",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"core_score\":0.86,\"margin_score\":0.22,\"observation_id\":\"territory-positive\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\"}]}",
+            "source_version": "aggregate-alpha-2026-01",
+            "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+          },
+          "record_id": "d08-c10-positive",
+          "role": "positive",
+          "source_ids": [
+            "alpha-territory"
+          ]
+        },
+        "family_record_id": "d08-c10-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:a4cf22cf6baf447209a16b87e00f78af0cc7d8def4ec61c01702f403df4ea3f0",
+            "detail": "context-alpha report retains descriptive candidates and deltas",
+            "issue_codes": [],
+            "measurements": {
+              "candidate_ids": [
+                "unknown"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "evidence_ids": [
+                "territory-positive"
+              ],
+              "operation": "core_margin_territory_prior",
+              "parsed_count": 1,
+              "result_count": 1,
+              "results": [
+                {
+                  "content_address": "sha256:66528272b10d5d6ae1c9cb865c7a991cf86ac0b2cd2d8a0bda7adf3375a2ed1e",
+                  "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+                  "core_margin_delta": 0.64,
+                  "core_score": 0.86,
+                  "margin_score": 0.22,
+                  "observation_ids": [
+                    "territory-positive"
+                  ],
+                  "raw_hashes": [
+                    "sha256:598cbb42b80954e19705cadf86b4db5ec329fbc1e396bfb8e49d615782c0e173"
+                  ],
+                  "source_ids": [
+                    "alpha-aggregate"
+                  ],
+                  "state": "supported",
+                  "subject_id": "aggregate-cohort",
+                  "territory_label": "core"
+                }
+              ],
+              "source_ids": [
+                "alpha-aggregate"
+              ],
+              "source_versions": [
+                "aggregate-alpha-2026-01"
+              ],
+              "uncertainty": 0.0
+            },
+            "operation": "core_margin_territory_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c10-positive",
+            "state": "supported",
+            "warnings": [
+              "Core/margin labels summarize declared territory scores and are not invasive localization claims.",
+              "Missing one-sided scores remain partial rather than being imputed."
+            ]
+          },
+          "content_address": "sha256:58f32b08ab1bcd2a4e98a64ba62033ea97ae815539cf35222de8c68553291fa4",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:8365da8e7ac58ecf77dc217256d6be9876d6358a60df392cbaf4caaefdab56bf",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "core territory support exceeds margin support",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "core_margin_territory_prior",
+            "record_id": "d08-c10-positive",
+            "role": "positive",
+            "source_ids": [
+              "alpha-territory"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"core_score\":0.86,\"margin_score\":0.22,\"observation_id\":\"territory-positive\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-territory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C10",
+      "case_id": "D08-C10-foreign_context",
+      "content_address": "sha256:ee8f1500a9ba20620a099fed8f8882667d0b7120d6c6bfb31e471a532c5abe8d",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "core_margin_territory_prior",
+      "operation_id": "D08-C10",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c10-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"core_score\":0.86,\"margin_score\":0.22,\"observation_id\":\"territory-positive\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-territory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C10",
+      "case_id": "D08-C10-malformed_input",
+      "content_address": "sha256:2ef5eaa220c53411826ede02b18cddc6bc2e2dcdd3178d032d7020b9cefe7594",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "core_margin_territory_prior",
+      "operation_id": "D08-C10",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c10-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"core_score\":0.86,\"margin_score\":0.22,\"observation_id\":\"territory-positive\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-territory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C10",
+      "case_id": "D08-C10-identity_conflict",
+      "content_address": "sha256:913b3eb679ebcc83ae4be1722c345e2e002ab27ad3ea8dddce2b0fbbba8641e2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "core_margin_territory_prior",
+      "operation_id": "D08-C10",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c10-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"core_score\":0.86,\"margin_score\":0.22,\"observation_id\":\"territory-positive\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-territory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C11",
+      "case_id": "D08-C11-positive",
+      "content_address": "sha256:490e020f09aa87360ed22511e6248a512940a39d582dbcb0eac45446368cb982",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C11",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_alpha_frontier",
+      "operation": "recurrence_state_prior",
+      "operation_id": "D08-C11",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:40bf7890f26935cd44efc5f0c1257b1d5b09bd8dcdda65a8412cb76d45c3348d",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "primary phase ranks above recurrence",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "recurrence_state_prior",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-a\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.86},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-b\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.82},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-a\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.38},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-b\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.4}]}",
+            "source_version": "aggregate-alpha-2026-01",
+            "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+          },
+          "record_id": "d08-c11-positive",
+          "role": "positive",
+          "source_ids": [
+            "alpha-recurrence"
+          ]
+        },
+        "family_record_id": "d08-c11-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:2481e39de0e829c99ef14d7bff5fb6e43904602cae5f4447cb93f81d0930d76e",
+            "detail": "context-alpha report retains descriptive candidates and deltas",
+            "issue_codes": [],
+            "measurements": {
+              "candidate_ids": [
+                "primary",
+                "recurrence"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "evidence_ids": [],
+              "operation": "recurrence_state_prior",
+              "parsed_count": 4,
+              "result_count": 2,
+              "results": [
+                {
+                  "content_address": "sha256:8450375478144ccb02da56d35243d649e9a2c160e019cbf11ed6791adb1c015d",
+                  "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+                  "median_support": 0.84,
+                  "observation_count": 2,
+                  "phase": "primary",
+                  "phase_margin_to_next": 0.45,
+                  "rank": 1,
+                  "raw_hashes": [
+                    "sha256:5cc08c1614f2772f5420f3946a4beb1348e10fa8adf377e35dfb16fd7f16c6dd",
+                    "sha256:fecfec9c814642487519480694c1b87e74edda9625ca7006df31ceed3ef1e54f"
+                  ],
+                  "source_ids": [
+                    "alpha-aggregate"
+                  ],
+                  "state": "supported",
+                  "subject_id": "aggregate-cohort",
+                  "support_spread": 0.04
+                },
+                {
+                  "content_address": "sha256:6fd4844335e54ad4a07da999162a2e77526bf789299223761ccf203adab355d8",
+                  "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+                  "median_support": 0.39,
+                  "observation_count": 2,
+                  "phase": "recurrence",
+                  "phase_margin_to_next": null,
+                  "rank": 2,
+                  "raw_hashes": [
+                    "sha256:3ba4c1cefa39a46310e1decd471c09be33c5114cfdaaf0bc2e40f1ed4fcca190",
+                    "sha256:b2d4264b38f83c4a4ac9bde22b22f1c12cc7b190348a9f374bc9b03bd0ccb6ca"
+                  ],
+                  "source_ids": [
+                    "alpha-aggregate"
+                  ],
+                  "state": "supported",
+                  "subject_id": "aggregate-cohort",
+                  "support_spread": 0.02
+                }
+              ],
+              "source_ids": [
+                "alpha-aggregate"
+              ],
+              "source_versions": [
+                "aggregate-alpha-2026-01"
+              ],
+              "uncertainty": 0.03
+            },
+            "operation": "recurrence_state_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c11-positive",
+            "state": "supported",
+            "warnings": [
+              "Recurrence phase rankings preserve primary, recurrence, and progression alternatives.",
+              "A recurrence prior is not a prognosis or treatment-response claim."
+            ]
+          },
+          "content_address": "sha256:4d78c564387a386b767a048fdc95a81fcf906146f14a3c0b05aef90231fd62da",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:40bf7890f26935cd44efc5f0c1257b1d5b09bd8dcdda65a8412cb76d45c3348d",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "primary phase ranks above recurrence",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "recurrence_state_prior",
+            "record_id": "d08-c11-positive",
+            "role": "positive",
+            "source_ids": [
+              "alpha-recurrence"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-a\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.86},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-b\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.82},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-a\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.38},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-b\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.4}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C11",
+      "case_id": "D08-C11-foreign_context",
+      "content_address": "sha256:c404adfb7b86e886e29b83aff0cb9552597f78c16a747d70123457c2e253b5be",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "recurrence_state_prior",
+      "operation_id": "D08-C11",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c11-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-a\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.86},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-b\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.82},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-a\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.38},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-b\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.4}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C11",
+      "case_id": "D08-C11-malformed_input",
+      "content_address": "sha256:8f18a6094b06d845b058cf9b4d6a4ce8def2067fe8dc2c289553827e0953a81e",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "recurrence_state_prior",
+      "operation_id": "D08-C11",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c11-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-a\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.86},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-b\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.82},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-a\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.38},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-b\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.4}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C11",
+      "case_id": "D08-C11-identity_conflict",
+      "content_address": "sha256:ba5801ef8cde0839bf6848904e37af6a6e2597f61ef38ba541d4aee9e4d732fd",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "recurrence_state_prior",
+      "operation_id": "D08-C11",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c11-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-a\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.86},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-primary-b\",\"phase\":\"primary\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.82},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-a\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.38},{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"phase-recurrence-b\",\"phase\":\"recurrence\",\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"subject_id\":\"aggregate-cohort\",\"support\":0.4}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C12",
+      "case_id": "D08-C12-positive",
+      "content_address": "sha256:912dd1fa18991f170f98f79f074ce26638bf7d5ab78e7fcb9d1fd85f678c2cbe",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C12",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "cell_context_alpha_frontier",
+      "operation": "treatment_induced_state_prior",
+      "operation_id": "D08-C12",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:9a9383c335842dc0b1e29ad6a1e794c8b8de15088329633379e99ca977818455",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "post-treatment support increase is descriptive",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "treatment_induced_state_prior",
+          "payload": {
+            "observation_text": "{\"observations\":[{\"baseline_support\":0.22,\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"treatment-positive\",\"post_treatment_support\":0.76,\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"state_id\":\"mesenchymal\",\"subject_id\":\"aggregate-cohort\",\"treatment_id\":\"aggregate-exposure\",\"treatment_phase\":\"post_treatment\"}]}",
+            "source_version": "aggregate-alpha-2026-01",
+            "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+          },
+          "record_id": "d08-c12-positive",
+          "role": "positive",
+          "source_ids": [
+            "alpha-treatment"
+          ]
+        },
+        "family_record_id": "d08-c12-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:2a5c5c849aeae2cab0403e43f95026eb897994fe1b7d0465c58abbfee735b31d",
+            "detail": "context-alpha report retains descriptive candidates and deltas",
+            "issue_codes": [],
+            "measurements": {
+              "candidate_ids": [
+                "mesenchymal"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "evidence_ids": [
+                "treatment-positive"
+              ],
+              "operation": "treatment_induced_state_prior",
+              "parsed_count": 1,
+              "result_count": 1,
+              "results": [
+                {
+                  "baseline_support": 0.22,
+                  "content_address": "sha256:fb48f000507ae3e3eae3106f5a742f32065654edfc1d6767520c19b17e4973d7",
+                  "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+                  "induction_label": "induced",
+                  "observation_ids": [
+                    "treatment-positive"
+                  ],
+                  "post_treatment_support": 0.76,
+                  "raw_hashes": [
+                    "sha256:ffd255cbd97abb1ca535c7e439e774e5432e20184ebf19504c43a1844589cdaa"
+                  ],
+                  "source_ids": [
+                    "alpha-aggregate"
+                  ],
+                  "state": "supported",
+                  "state_id": "mesenchymal",
+                  "subject_id": "aggregate-cohort",
+                  "support_delta": 0.54,
+                  "treatment_id": "aggregate-exposure",
+                  "treatment_phase": "post_treatment"
+                }
+              ],
+              "source_ids": [
+                "alpha-aggregate"
+              ],
+              "source_versions": [
+                "aggregate-alpha-2026-01"
+              ],
+              "uncertainty": 0.0
+            },
+            "operation": "treatment_induced_state_prior",
+            "primitive_state": "supported",
+            "record_id": "d08-c12-positive",
+            "state": "supported",
+            "warnings": [
+              "Treatment-induced labels describe pre/post support changes and do not establish resistance or response.",
+              "Treatment exposures and state candidates remain context-qualified and source-accounted."
+            ]
+          },
+          "content_address": "sha256:4ceba5caca8b307e3b850bc9078cd4b3adff8bdfc404aa69ccb974a08b63b99a",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:9a9383c335842dc0b1e29ad6a1e794c8b8de15088329633379e99ca977818455",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "post-treatment support increase is descriptive",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "treatment_induced_state_prior",
+            "record_id": "d08-c12-positive",
+            "role": "positive",
+            "source_ids": [
+              "alpha-treatment"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"baseline_support\":0.22,\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"treatment-positive\",\"post_treatment_support\":0.76,\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"state_id\":\"mesenchymal\",\"subject_id\":\"aggregate-cohort\",\"treatment_id\":\"aggregate-exposure\",\"treatment_phase\":\"post_treatment\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C12",
+      "case_id": "D08-C12-foreign_context",
+      "content_address": "sha256:e620905fa25f76118e768a5b5172e65a5ec2b23fc409ddc5c6f3e836d58ca21b",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "treatment_induced_state_prior",
+      "operation_id": "D08-C12",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d08-c12-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"baseline_support\":0.22,\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"treatment-positive\",\"post_treatment_support\":0.76,\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"state_id\":\"mesenchymal\",\"subject_id\":\"aggregate-cohort\",\"treatment_id\":\"aggregate-exposure\",\"treatment_phase\":\"post_treatment\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C12",
+      "case_id": "D08-C12-malformed_input",
+      "content_address": "sha256:c19f142d8df14daa31bc29fd93b689e45332e2744b37fd992ca39d90d990b0c6",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "treatment_induced_state_prior",
+      "operation_id": "D08-C12",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d08-c12-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"baseline_support\":0.22,\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"treatment-positive\",\"post_treatment_support\":0.76,\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"state_id\":\"mesenchymal\",\"subject_id\":\"aggregate-cohort\",\"treatment_id\":\"aggregate-exposure\",\"treatment_phase\":\"post_treatment\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C12",
+      "case_id": "D08-C12-identity_conflict",
+      "content_address": "sha256:fa896b3f61ae48e239d5c44aa7fd81adbd323dec48cb0fcac057f11356b99949",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_context_alpha_frontier",
+      "operation": "treatment_induced_state_prior",
+      "operation_id": "D08-C12",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d08-c12-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "observation_text": "{\"observations\":[{\"baseline_support\":0.22,\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"observation_id\":\"treatment-positive\",\"post_treatment_support\":0.76,\"sample_id\":\"aggregate-a\",\"source_id\":\"alpha-aggregate\",\"source_version\":\"aggregate-alpha-2026-01\",\"state_id\":\"mesenchymal\",\"subject_id\":\"aggregate-cohort\",\"treatment_id\":\"aggregate-exposure\",\"treatment_phase\":\"post_treatment\"}]}",
+          "source_version": "aggregate-alpha-2026-01",
+          "target_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown"
+        }
+      },
+      "plane": "territory",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C13",
+      "case_id": "D08-C13-positive",
+      "content_address": "sha256:202169907d06825e14474875826bc0ee660d237b8f4e8d61d5ee07f84fbcdbd4",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C13",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_abundance_interval",
+      "operation_id": "D08-C13",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:0d699c5b3b915484b54a1c460379dc5404d90c489b0030d7077a24af9da5f5ab",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "bounded aggregate abundance has a valid interval",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "cell_state_abundance_interval",
+          "payload": {
+            "input_text": "[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"count\":40,\"sample_id\":\"aggregate-sample-a\",\"state_id\":\"stem_like\",\"total_cells\":100}]",
+            "interval_multiplier": 1.96
+          },
+          "record_id": "C13-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "cellxgene-census",
+            "human-cell-atlas"
+          ]
+        },
+        "family_record_id": "C13-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:cc9e7bcb8ef62f454c96d6fe7ff53a2a81e770dd2ab6903d53a2e7c828afa0d8",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "cell_state_abundance_interval",
+          "primary_count": 1,
+          "record_id": "C13-POS-001",
+          "role": "positive",
+          "secondary_count": 1,
+          "summary": {
+            "abundances": [
+              0.4
+            ],
+            "estimate_count": 1,
+            "intervals": [
+              [
+                0.30398,
+                0.49602
+              ]
+            ],
+            "issue_codes": [],
+            "review_ids": [],
+            "stable_ids": [
+              "aggregate-sample-a:stem_like"
+            ],
+            "state": "supported"
+          }
+        },
+        "operation_payload": {
+          "interval_multiplier": 1.96,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "count": 40,
+              "sample_id": "aggregate-sample-a",
+              "state_id": "stem_like",
+              "total_cells": 100
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C13",
+      "case_id": "D08-C13-foreign_context",
+      "content_address": "sha256:6356de00ab8355123f9ce513fa766cf3bb22e000287b78b42a893ee59b1bcf7a",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_abundance_interval",
+      "operation_id": "D08-C13",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C13-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "interval_multiplier": 1.96,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "count": 40,
+              "sample_id": "aggregate-sample-a",
+              "state_id": "stem_like",
+              "total_cells": 100
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C13",
+      "case_id": "D08-C13-malformed_input",
+      "content_address": "sha256:be265bb16e0166022b346c7c322da5e6d26782f3ba1ac31ac650ce0c1b08ca50",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_abundance_interval",
+      "operation_id": "D08-C13",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C13-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "interval_multiplier": 1.96,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "count": 40,
+              "sample_id": "aggregate-sample-a",
+              "state_id": "stem_like",
+              "total_cells": 100
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C13",
+      "case_id": "D08-C13-identity_conflict",
+      "content_address": "sha256:e24852a3be80108e9403954998b94a95dfb45d7602916316d28bf79c832b0363",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_abundance_interval",
+      "operation_id": "D08-C13",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C13-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "interval_multiplier": 1.96,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "count": 40,
+              "sample_id": "aggregate-sample-a",
+              "state_id": "stem_like",
+              "total_cells": 100
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C14",
+      "case_id": "D08-C14-positive",
+      "content_address": "sha256:1589cec36a9d01f8f88eb48863456201c24c2e3f33dbd42fb390e525d38e2b48",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C14",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "cell_state_frontier",
+      "operation": "single_cell_reference_mapping",
+      "operation_id": "D08-C14",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:f86d963e7fea9e5d7765c576328c77595bb13e6121c7445fa4f4705d35bd3627",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "reference score and margin support a mapped state",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "single_cell_reference_mapping",
+          "payload": {
+            "input_text": "[{\"cell_id\":\"aggregate-cell-001\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"reference_scores\":{\"differentiated\":0.2,\"stem_like\":0.92}}]",
+            "minimum_margin": 0.1,
+            "minimum_score": 0.6
+          },
+          "record_id": "C14-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "tabula-sapiens",
+            "human-cell-atlas"
+          ]
+        },
+        "family_record_id": "C14-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:6ffebbe031d07ebc3e94c4281c9bdcc1dc986252bedc8927997e5fe331c6b883",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "single_cell_reference_mapping",
+          "primary_count": 1,
+          "record_id": "C14-POS-001",
+          "role": "positive",
+          "secondary_count": 1,
+          "summary": {
+            "issue_codes": [],
+            "mapped_ids": [
+              "aggregate-cell-001"
+            ],
+            "mapping_count": 1,
+            "margins": [
+              0.72
+            ],
+            "reference_state_ids": [
+              "stem_like"
+            ],
+            "review_ids": [],
+            "state": "supported"
+          }
+        },
+        "operation_payload": {
+          "minimum_margin": 0.1,
+          "minimum_score": 0.6,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-001",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "reference_scores": {
+                "differentiated": 0.2,
+                "stem_like": 0.92
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C14",
+      "case_id": "D08-C14-foreign_context",
+      "content_address": "sha256:ca6a87c5ef08cf412cd5178d6861efa044a44240652ba585ae58d2d9c4622e3a",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "single_cell_reference_mapping",
+      "operation_id": "D08-C14",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C14-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_margin": 0.1,
+          "minimum_score": 0.6,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-001",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "reference_scores": {
+                "differentiated": 0.2,
+                "stem_like": 0.92
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C14",
+      "case_id": "D08-C14-malformed_input",
+      "content_address": "sha256:6cbd9007584279124f670b85a6e2339d6ebdb9f9ddea4e46139339af0dbc62e6",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "single_cell_reference_mapping",
+      "operation_id": "D08-C14",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C14-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "minimum_margin": 0.1,
+          "minimum_score": 0.6,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-001",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "reference_scores": {
+                "differentiated": 0.2,
+                "stem_like": 0.92
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C14",
+      "case_id": "D08-C14-identity_conflict",
+      "content_address": "sha256:40ca1f07032f460d8d70c57572f92e470d6684dea376371bd60cb0ae41252172",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "single_cell_reference_mapping",
+      "operation_id": "D08-C14",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C14-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_margin": 0.1,
+          "minimum_score": 0.6,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-001",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "reference_scores": {
+                "differentiated": 0.2,
+                "stem_like": 0.92
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:human-cell-atlas"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C15",
+      "case_id": "D08-C15-positive",
+      "content_address": "sha256:58fbc311ba4518ea98ab7627a3ee277e39e4bd9c237cf33506ceec8042cc6a61",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C15",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_ood_detection",
+      "operation_id": "D08-C15",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:0df110aedd32211b06408d61aea4b8aed62ba29b0d938d497a96c5fc34e909ad",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "distance and support remain inside declared cell-state territory",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "cell_state_ood_detection",
+          "payload": {
+            "input_text": "[{\"cell_id\":\"aggregate-cell-in-domain\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"distance\":0.5,\"support_boundary\":3.0,\"support_score\":0.9}]",
+            "maximum_distance": 3.0,
+            "minimum_support": 0.5
+          },
+          "record_id": "C15-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "cellxgene-census",
+            "tabula-sapiens"
+          ]
+        },
+        "family_record_id": "C15-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:c456d1a39e1a15fb76fa39fd7a1a1b5b72e9beff0b90aa24e57902250c9df204",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "cell_state_ood_detection",
+          "primary_count": 1,
+          "record_id": "C15-POS-001",
+          "role": "positive",
+          "secondary_count": 1,
+          "summary": {
+            "distances": [
+              0.5
+            ],
+            "finding_count": 1,
+            "in_domain_ids": [
+              "aggregate-cell-in-domain"
+            ],
+            "issue_codes": [],
+            "ood_ids": [],
+            "review_ids": [],
+            "state": "supported",
+            "support_scores": [
+              0.9
+            ]
+          }
+        },
+        "operation_payload": {
+          "maximum_distance": 3.0,
+          "minimum_support": 0.5,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-in-domain",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "distance": 0.5,
+              "support_boundary": 3.0,
+              "support_score": 0.9
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C15",
+      "case_id": "D08-C15-foreign_context",
+      "content_address": "sha256:578a8454276fa9f22301aa16326216debd40454a4aaeb7ff8bc0004a3152d080",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_ood_detection",
+      "operation_id": "D08-C15",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C15-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "maximum_distance": 3.0,
+          "minimum_support": 0.5,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-in-domain",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "distance": 0.5,
+              "support_boundary": 3.0,
+              "support_score": 0.9
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C15",
+      "case_id": "D08-C15-malformed_input",
+      "content_address": "sha256:a90a535ece4196837c24cf802abd23bce36ea4bebd77fd8d53be568bd8b3ac0d",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_ood_detection",
+      "operation_id": "D08-C15",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C15-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "maximum_distance": 3.0,
+          "minimum_support": 0.5,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-in-domain",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "distance": 0.5,
+              "support_boundary": 3.0,
+              "support_score": 0.9
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C15",
+      "case_id": "D08-C15-identity_conflict",
+      "content_address": "sha256:82d94ff76c5831295f62a4403411d10168b096dd078b2b62cd3e8ab707b4deed",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_ood_detection",
+      "operation_id": "D08-C15",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C15-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "maximum_distance": 3.0,
+          "minimum_support": 0.5,
+          "records": [
+            {
+              "cell_id": "aggregate-cell-in-domain",
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "distance": 0.5,
+              "support_boundary": 3.0,
+              "support_score": 0.9
+            }
+          ]
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C16",
+      "case_id": "D08-C16-positive",
+      "content_address": "sha256:372149a00a3c040b22e5145fde4b46b5f5e4bec158d23f8ed1bf10988944e910",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D08-C16",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "published",
+      "expected_state": "accepted",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_context_publication",
+      "operation_id": "D08-C16",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:01dcb50e1b487a41a915e5098d65d9218ca1e2468ba16b41cefe0e48a349a9c8",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "context envelope binds three aggregate receipts",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "cell_state_context_publication",
+          "payload": {
+            "abundance_address": "sha256:aggregate-abundance",
+            "cell_ids": [
+              "aggregate-cell-001",
+              "aggregate-cell-002"
+            ],
+            "input_text": "[{\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\"}]",
+            "mapping_address": "sha256:aggregate-mapping",
+            "ood_address": "sha256:aggregate-ood"
+          },
+          "record_id": "C16-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "human-cell-atlas",
+            "cellxgene-census",
+            "tabula-sapiens"
+          ]
+        },
+        "family_record_id": "C16-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:512476c00efd0821263ece55d8711adc4f05694416a73d78efdcff432b9066aa",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "cell_state_context_publication",
+          "primary_count": 2,
+          "record_id": "C16-POS-001",
+          "role": "positive",
+          "secondary_count": 3,
+          "summary": {
+            "cell_count": 2,
+            "envelope_address": "sha256:aec040f2577b4d106c4949a8d8c07f072955867372683ab413c32640a0daf207",
+            "issue_codes": [],
+            "receipt_count": 3,
+            "state": "supported"
+          }
+        },
+        "operation_payload": {
+          "abundance_address": "sha256:aggregate-abundance",
+          "cell_ids": [
+            "aggregate-cell-001",
+            "aggregate-cell-002"
+          ],
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "envelope_id": "d08-public-cell-state-release",
+          "mapping_address": "sha256:aggregate-mapping",
+          "ood_address": "sha256:aggregate-ood"
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "positive",
+      "source_ids": [
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C16",
+      "case_id": "D08-C16-foreign_context",
+      "content_address": "sha256:38aa9161fe36220e8fe578e2b501a2e1856f3bdc9efb642caa4f11e5a65f5f98",
+      "context_key": "GRCh38|glioma|pediatric|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_context_publication",
+      "operation_id": "D08-C16",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C16-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "abundance_address": "sha256:aggregate-abundance",
+          "cell_ids": [
+            "aggregate-cell-001",
+            "aggregate-cell-002"
+          ],
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "envelope_id": "d08-public-cell-state-release",
+          "mapping_address": "sha256:aggregate-mapping",
+          "ood_address": "sha256:aggregate-ood"
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C16",
+      "case_id": "D08-C16-malformed_input",
+      "content_address": "sha256:7ea7643fa56d8b1dab268ec6736c63384aee57a0993ffdb73a212d1208c1b1e0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_context_publication",
+      "operation_id": "D08-C16",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C16-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "abundance_address": "sha256:aggregate-abundance",
+          "cell_ids": [
+            "aggregate-cell-001",
+            "aggregate-cell-002"
+          ],
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "envelope_id": "d08-public-cell-state-release",
+          "mapping_address": "sha256:aggregate-mapping",
+          "ood_address": "sha256:aggregate-ood"
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C16",
+      "case_id": "D08-C16-identity_conflict",
+      "content_address": "sha256:132637e488830e1bdb07658ed8244dbe996ccfbf9d2bb86128de3cfaae8697a7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "cell_state_frontier",
+      "operation": "cell_state_context_publication",
+      "operation_id": "D08-C16",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C16-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "abundance_address": "sha256:aggregate-abundance",
+          "cell_ids": [
+            "aggregate-cell-001",
+            "aggregate-cell-002"
+          ],
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "envelope_id": "d08-public-cell-state-release",
+          "mapping_address": "sha256:aggregate-mapping",
+          "ood_address": "sha256:aggregate-ood"
+        }
+      },
+      "plane": "cell_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:tabula-sapiens"
+      ]
+    }
+  ],
+  "content_address": "sha256:b27453647162179a41cd274b98738095bd8a6d431ce0e6631b3c8fc7003e0168",
+  "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+  "fixture_id": "d08-cell-state-architecture-public-aggregate",
+  "operations": [
+    {
+      "capability_id": "GNC-D08-C01",
+      "content_address": "sha256:0879f0bd822255bb3eb5e39cde8d25f647b564a7d7b242fbc3866b3f84d5868b",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [],
+      "family": "cell_context_frontier",
+      "input_contract": "cell_state.disease_ontology_context.public_record.v1",
+      "operation": "disease_ontology_context",
+      "operation_id": "D08-C01",
+      "ordinal": 1,
+      "output_contract": "cell_state.disease_ontology_context.receipt.v1",
+      "plane": "taxonomy",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate",
+        "cell_context_frontier:gtex-aggregate",
+        "cell_context_frontier:hca-aggregate",
+        "cell_context_frontier:mondo-aggregate",
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C02",
+      "content_address": "sha256:a67bf7def9376c6ca5796e0e0cccd6da161511e28c3b3bf00e3b3154da6f2df2",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C01"
+      ],
+      "family": "cell_context_frontier",
+      "input_contract": "cell_state.adult_pediatric_route.public_record.v1",
+      "operation": "adult_pediatric_route",
+      "operation_id": "D08-C02",
+      "ordinal": 2,
+      "output_contract": "cell_state.adult_pediatric_route.receipt.v1",
+      "plane": "taxonomy",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate",
+        "cell_context_frontier:gtex-aggregate",
+        "cell_context_frontier:hca-aggregate",
+        "cell_context_frontier:mondo-aggregate",
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C03",
+      "content_address": "sha256:88db103d7fa718a8c50af58216e06f2f6f7f93dc33aeb12bc795d0b367e8d756",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C02"
+      ],
+      "family": "cell_context_frontier",
+      "input_contract": "cell_state.molecular_class_state.public_record.v1",
+      "operation": "molecular_class_state",
+      "operation_id": "D08-C03",
+      "ordinal": 3,
+      "output_contract": "cell_state.molecular_class_state.receipt.v1",
+      "plane": "taxonomy",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate",
+        "cell_context_frontier:gtex-aggregate",
+        "cell_context_frontier:hca-aggregate",
+        "cell_context_frontier:mondo-aggregate",
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C04",
+      "content_address": "sha256:75a29c1886884ced10bdd980308d11ffc2f21f766738c81886b9117b080fe3ec",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C03"
+      ],
+      "family": "cell_context_frontier",
+      "input_contract": "cell_state.territory_context_assembly.public_record.v1",
+      "operation": "territory_context_assembly",
+      "operation_id": "D08-C04",
+      "ordinal": 4,
+      "output_contract": "cell_state.territory_context_assembly.receipt.v1",
+      "plane": "taxonomy",
+      "source_ids": [
+        "cell_context_frontier:cell-atlas-aggregate",
+        "cell_context_frontier:gtex-aggregate",
+        "cell_context_frontier:hca-aggregate",
+        "cell_context_frontier:mondo-aggregate",
+        "cell_context_frontier:ncit-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C05",
+      "content_address": "sha256:b4728e672dac2473f076c917b56ab441e2313c6aaa7d7cff1a97c7f7f1fb591a",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C04"
+      ],
+      "family": "cell_context_beta_frontier",
+      "input_contract": "cell_state.developmental_lineage_prior.public_record.v1",
+      "operation": "developmental_lineage_prior",
+      "operation_id": "D08-C05",
+      "ordinal": 5,
+      "output_contract": "cell_state.developmental_lineage_prior.receipt.v1",
+      "plane": "prior",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas",
+        "cell_context_beta_frontier:beta-development",
+        "cell_context_beta_frontier:beta-epigenome",
+        "cell_context_beta_frontier:beta-ontologies"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C06",
+      "content_address": "sha256:15db36679a8d7558c585d1260a65fee3dd5258099eab445adc516829e1a57909",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C05"
+      ],
+      "family": "cell_context_beta_frontier",
+      "input_contract": "cell_state.glioblastoma_malignant_state_prior.public_record.v1",
+      "operation": "glioblastoma_malignant_state_prior",
+      "operation_id": "D08-C06",
+      "ordinal": 6,
+      "output_contract": "cell_state.glioblastoma_malignant_state_prior.receipt.v1",
+      "plane": "prior",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas",
+        "cell_context_beta_frontier:beta-development",
+        "cell_context_beta_frontier:beta-epigenome",
+        "cell_context_beta_frontier:beta-ontologies"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C07",
+      "content_address": "sha256:fda075e315d09a49fc7c20cf5a1f0480326aaf71a2175b55ac8ad1b609b5ee3c",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C06"
+      ],
+      "family": "cell_context_beta_frontier",
+      "input_contract": "cell_state.idh_mutant_lineage_state_prior.public_record.v1",
+      "operation": "idh_mutant_lineage_state_prior",
+      "operation_id": "D08-C07",
+      "ordinal": 7,
+      "output_contract": "cell_state.idh_mutant_lineage_state_prior.receipt.v1",
+      "plane": "prior",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas",
+        "cell_context_beta_frontier:beta-development",
+        "cell_context_beta_frontier:beta-epigenome",
+        "cell_context_beta_frontier:beta-ontologies"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C08",
+      "content_address": "sha256:428c425e821a1b1f4fc935dcca995c34813956273b6754b4f7fbe77dda9a1703",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C07"
+      ],
+      "family": "cell_context_beta_frontier",
+      "input_contract": "cell_state.h3k27_altered_developmental_state_prior.public_record.v1",
+      "operation": "h3k27_altered_developmental_state_prior",
+      "operation_id": "D08-C08",
+      "ordinal": 8,
+      "output_contract": "cell_state.h3k27_altered_developmental_state_prior.receipt.v1",
+      "plane": "prior",
+      "source_ids": [
+        "cell_context_beta_frontier:beta-cell-atlas",
+        "cell_context_beta_frontier:beta-development",
+        "cell_context_beta_frontier:beta-epigenome",
+        "cell_context_beta_frontier:beta-ontologies"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C09",
+      "content_address": "sha256:008bc0a12518ae05869c01bfd4a0e794f6a595d44836f6e1169edaa6d7b4a515",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C08"
+      ],
+      "family": "cell_context_alpha_frontier",
+      "input_contract": "cell_state.spatial_niche_prior.public_record.v1",
+      "operation": "spatial_niche_prior",
+      "operation_id": "D08-C09",
+      "ordinal": 9,
+      "output_contract": "cell_state.spatial_niche_prior.receipt.v1",
+      "plane": "territory",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence",
+        "cell_context_alpha_frontier:alpha-spatial",
+        "cell_context_alpha_frontier:alpha-territory",
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C10",
+      "content_address": "sha256:0dd71c64a11e3029db663ca816068a0b93eab0e268fc1863efc00f8770394719",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C09"
+      ],
+      "family": "cell_context_alpha_frontier",
+      "input_contract": "cell_state.core_margin_territory_prior.public_record.v1",
+      "operation": "core_margin_territory_prior",
+      "operation_id": "D08-C10",
+      "ordinal": 10,
+      "output_contract": "cell_state.core_margin_territory_prior.receipt.v1",
+      "plane": "territory",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence",
+        "cell_context_alpha_frontier:alpha-spatial",
+        "cell_context_alpha_frontier:alpha-territory",
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C11",
+      "content_address": "sha256:214411522079b6ea53d5eab32e9a4c31ee6adf6b0723079f6eae3ef7f2eee8f1",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C10"
+      ],
+      "family": "cell_context_alpha_frontier",
+      "input_contract": "cell_state.recurrence_state_prior.public_record.v1",
+      "operation": "recurrence_state_prior",
+      "operation_id": "D08-C11",
+      "ordinal": 11,
+      "output_contract": "cell_state.recurrence_state_prior.receipt.v1",
+      "plane": "territory",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence",
+        "cell_context_alpha_frontier:alpha-spatial",
+        "cell_context_alpha_frontier:alpha-territory",
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C12",
+      "content_address": "sha256:71c0857df39d24a82a1c253c71189f1bf9b1a590f974cd1491f6b27ff7c6bf6e",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C11"
+      ],
+      "family": "cell_context_alpha_frontier",
+      "input_contract": "cell_state.treatment_induced_state_prior.public_record.v1",
+      "operation": "treatment_induced_state_prior",
+      "operation_id": "D08-C12",
+      "ordinal": 12,
+      "output_contract": "cell_state.treatment_induced_state_prior.receipt.v1",
+      "plane": "territory",
+      "source_ids": [
+        "cell_context_alpha_frontier:alpha-recurrence",
+        "cell_context_alpha_frontier:alpha-spatial",
+        "cell_context_alpha_frontier:alpha-territory",
+        "cell_context_alpha_frontier:alpha-treatment"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C13",
+      "content_address": "sha256:7449916278d7cd42a6ee02e25fe2e6694dc1e8067e19d81efa1922711e7fbe8c",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C12"
+      ],
+      "family": "cell_state_frontier",
+      "input_contract": "cell_state.cell_state_abundance_interval.public_record.v1",
+      "operation": "cell_state_abundance_interval",
+      "operation_id": "D08-C13",
+      "ordinal": 13,
+      "output_contract": "cell_state.cell_state_abundance_interval.receipt.v1",
+      "plane": "cell_state",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:ncbi-geo-cell-state",
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:ucsc-genome-browser-cell"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C14",
+      "content_address": "sha256:5f70dafecc591ada707f2ddd72ab7d2261df82900d033c4a7fd40e3863d6b47c",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C13"
+      ],
+      "family": "cell_state_frontier",
+      "input_contract": "cell_state.single_cell_reference_mapping.public_record.v1",
+      "operation": "single_cell_reference_mapping",
+      "operation_id": "D08-C14",
+      "ordinal": 14,
+      "output_contract": "cell_state.single_cell_reference_mapping.receipt.v1",
+      "plane": "cell_state",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:ncbi-geo-cell-state",
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:ucsc-genome-browser-cell"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C15",
+      "content_address": "sha256:1ae260cb7c01659d2bd60a2bd9f243179fb3f12ca062b98866d31a276a558816",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C14"
+      ],
+      "family": "cell_state_frontier",
+      "input_contract": "cell_state.cell_state_ood_detection.public_record.v1",
+      "operation": "cell_state_ood_detection",
+      "operation_id": "D08-C15",
+      "ordinal": 15,
+      "output_contract": "cell_state.cell_state_ood_detection.receipt.v1",
+      "plane": "cell_state",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:ncbi-geo-cell-state",
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:ucsc-genome-browser-cell"
+      ]
+    },
+    {
+      "capability_id": "GNC-D08-C16",
+      "content_address": "sha256:26cd62b9126bae2abf72620602dfa55326da272a5598d9ed65cc87c12a58b654",
+      "control_policy": "hold context mismatch, malformed input, and identity conflict before delegation",
+      "dependencies": [
+        "D08-C15"
+      ],
+      "family": "cell_state_frontier",
+      "input_contract": "cell_state.cell_state_context_publication.public_record.v1",
+      "operation": "cell_state_context_publication",
+      "operation_id": "D08-C16",
+      "ordinal": 16,
+      "output_contract": "cell_state.cell_state_context_publication.receipt.v1",
+      "plane": "cell_state",
+      "source_ids": [
+        "cell_state_frontier:cellxgene-census",
+        "cell_state_frontier:human-cell-atlas",
+        "cell_state_frontier:ncbi-geo-cell-state",
+        "cell_state_frontier:tabula-sapiens",
+        "cell_state_frontier:ucsc-genome-browser-cell"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:dc1cc79e50226df0500ad91f4b91bdd35650eb7e706284f99d679bdca41180ec",
+      "family": "cell_context_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_frontier:cell-atlas-aggregate",
+      "title": "Cell Atlas public metadata index",
+      "uri": "https://www.humancellatlas.org/",
+      "version": "2026-01"
+    },
+    {
+      "content_address": "sha256:d4cb0d0a1c8dfd8c9e670ba0eef7533e915441026e3fc027219f9e2b32bb1243",
+      "family": "cell_context_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_frontier:mondo-aggregate",
+      "title": "MONDO disease ontology release",
+      "uri": "https://mondo.monarchinitiative.org/",
+      "version": "2025-12"
+    },
+    {
+      "content_address": "sha256:098748fb7e8b3f4c218f57cddcfca0ae8b0b399e16c9b6443f35b5a11e79dc4b",
+      "family": "cell_context_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_frontier:ncit-aggregate",
+      "title": "NCIt public terminology service",
+      "uri": "https://evsexplore.semantics.cancer.gov/evsexplore/",
+      "version": "2025-11"
+    },
+    {
+      "content_address": "sha256:fb587b712776924915838c54e9bcfa18f4a6f3a9d4efd6866faf51653509a788",
+      "family": "cell_context_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_frontier:gtex-aggregate",
+      "title": "GTEx public tissue context summaries",
+      "uri": "https://gtexportal.org/home/",
+      "version": "2025-10"
+    },
+    {
+      "content_address": "sha256:057997ab5a287efa0211d4ba38ebb58229be38c2f341fb2b2ac2a798cbda0887",
+      "family": "cell_context_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_frontier:hca-aggregate",
+      "title": "Human Cell Atlas public data portal",
+      "uri": "https://data.humancellatlas.org/",
+      "version": "2026-02"
+    },
+    {
+      "content_address": "sha256:1b19b91729384bf7dcb434cdbe78be68bb6121aa6aa04b3ff2c1868f2151530e",
+      "family": "cell_context_beta_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_beta_frontier:beta-cell-atlas",
+      "title": "Human Cell Atlas public index",
+      "uri": "https://data.humancellatlas.org/",
+      "version": "2026-01"
+    },
+    {
+      "content_address": "sha256:e69e002881d005d38af6458c8ca6cf72f7dafb5fd0cedb6c9f64bb651a40f0f3",
+      "family": "cell_context_beta_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_beta_frontier:beta-ontologies",
+      "title": "MONDO and NCIt public terminology",
+      "uri": "https://mondo.monarchinitiative.org/",
+      "version": "2025-12"
+    },
+    {
+      "content_address": "sha256:4e5930fa02e281f14422858038746e25861fec2f3ba2fa39c44c6442631e1ae6",
+      "family": "cell_context_beta_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_beta_frontier:beta-development",
+      "title": "Developmental cell atlas public portal",
+      "uri": "https://cellxgene.cziscience.com/",
+      "version": "2025-11"
+    },
+    {
+      "content_address": "sha256:40ff43878d6547be2253efd029f880ecb1a21688db3b77686363d0564aa7dc7b",
+      "family": "cell_context_beta_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_beta_frontier:beta-epigenome",
+      "title": "ENCODE public data portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "2025-10"
+    },
+    {
+      "content_address": "sha256:30a7ba174e2976ea0697da6698b87c613bd968cdc91bb2be3f858dd6de01c232",
+      "family": "cell_context_alpha_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_alpha_frontier:alpha-spatial",
+      "title": "Human Cell Atlas spatial index",
+      "uri": "https://data.humancellatlas.org/",
+      "version": "2026-01"
+    },
+    {
+      "content_address": "sha256:88a1638de3b9e40ebbde7642343b7d2c4b4ab4b0cc823b056deba8efc56abd01",
+      "family": "cell_context_alpha_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_alpha_frontier:alpha-territory",
+      "title": "GTEx public tissue portal",
+      "uri": "https://gtexportal.org/home/",
+      "version": "2025-10"
+    },
+    {
+      "content_address": "sha256:c64cf577a6fb40e5d4129e643cdf115d1bb1c8838b7fd1bc3d1f8e4604f3413e",
+      "family": "cell_context_alpha_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_alpha_frontier:alpha-recurrence",
+      "title": "Cancer Genome Atlas public portal",
+      "uri": "https://portal.gdc.cancer.gov/",
+      "version": "2025-12"
+    },
+    {
+      "content_address": "sha256:3abbec62989d38db6cd37c85d65f9d8ad75bf46ad4ff0454723e1d334a5ec2b1",
+      "family": "cell_context_alpha_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_context_alpha_frontier:alpha-treatment",
+      "title": "Open Targets public platform",
+      "uri": "https://platform.opentargets.org/",
+      "version": "2025-11"
+    },
+    {
+      "content_address": "sha256:b51bfc095753024696bfb3061210abe029c635892749e1fbc0c0c5553cd7c19b",
+      "family": "cell_state_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_state_frontier:cellxgene-census",
+      "title": "CELLxGENE Census aggregate cell-state references",
+      "uri": "https://chanzuckerberg.github.io/cellxgene-census/",
+      "version": "2024-07"
+    },
+    {
+      "content_address": "sha256:ee146e875c894dd305b72e3b5599e4a5845328b0ed6b7b78d588b4b143f10cef",
+      "family": "cell_state_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_state_frontier:human-cell-atlas",
+      "title": "Human Cell Atlas public atlas",
+      "uri": "https://data.humancellatlas.org/",
+      "version": "2024-06"
+    },
+    {
+      "content_address": "sha256:6a2892b85a1f33b216917977e3dd7b339bc1d0b1de89fa50c7d95dc92e536b6e",
+      "family": "cell_state_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_state_frontier:tabula-sapiens",
+      "title": "Tabula Sapiens cell-state reference",
+      "uri": "https://tabula-sapiens-portal.ds.czbiohub.org/",
+      "version": "2022"
+    },
+    {
+      "content_address": "sha256:8401707446713e4a2f32debb2b2188f485010b59cc05a4dd72499a70386be307",
+      "family": "cell_state_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_state_frontier:ncbi-geo-cell-state",
+      "title": "NCBI Gene Expression Omnibus aggregate submissions",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/",
+      "version": "2025-01"
+    },
+    {
+      "content_address": "sha256:615ae69620543bada9bb153ef8e876df7d29c3d515e59ed63927ae50ebcbc709",
+      "family": "cell_state_frontier",
+      "license": "public source receipt",
+      "scope": "public_aggregate",
+      "source_id": "cell_state_frontier:ucsc-genome-browser-cell",
+      "title": "UCSC Genome Browser reference assembly context",
+      "uri": "https://genome.ucsc.edu/",
+      "version": "GRCh38"
+    }
+  ],
+  "version": "2026.08.d08-cell-state-architecture.v1"
+}
