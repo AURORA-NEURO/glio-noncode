@@ -1171,6 +1171,35 @@ from .structural_quality_gate import evaluate_structural_quality_gate
 from .structural_replay import StructuralReplayExpectation, replay_structural_fixtures
 from .structural_runtime import run_structural_pipeline
 from .structural_scenario_matrix import evaluate_structural_scenarios
+from .structural_architecture_access import build_structural_architecture_access_manifest
+from .structural_architecture_bundle import (
+    build_structural_architecture_artifacts,
+    build_structural_architecture_release,
+    render_structural_architecture_markdown,
+    render_structural_architecture_review_csv,
+    write_structural_architecture_bundle,
+)
+from .structural_architecture_depth import audit_structural_architecture_depth
+from .structural_architecture_exports import export_structural_architecture_json
+from .structural_architecture_failures import run_structural_architecture_failure_probes
+from .structural_architecture_invariants import run_structural_architecture_invariants
+from .structural_architecture_lineage import build_structural_architecture_ledger
+from .structural_architecture_metrics import measure_structural_architecture
+from .structural_architecture_operations import evaluate_structural_architecture_fixture
+from .structural_architecture_plan import compile_structural_architecture_plan
+from .structural_architecture_public_data import (
+    audit_structural_architecture_data,
+    default_structural_architecture_fixture,
+    structural_architecture_fixture_json,
+)
+from .structural_architecture_quality import evaluate_structural_architecture_quality
+from .structural_architecture_query import query_structural_architecture
+from .structural_architecture_replay import replay_structural_architecture
+from .structural_architecture_review import build_structural_architecture_review_queue
+from .structural_architecture_runbook import build_structural_architecture_runbook
+from .structural_architecture_runtime import run_structural_architecture
+from .structural_architecture_schema import default_structural_architecture_schema
+from .structural_architecture_validation import build_structural_architecture_validation_matrix
 from .topology_alpha import (
     BoundaryMotifOrientationAnalyzer,
     CTCFCohesinDisruptionModel,
@@ -1378,6 +1407,10 @@ def _coordination_fixture(input_path: str | None):
 
 def _intake_architecture_fixture(input_path: str | None):
     return load_intake_architecture_fixture(input_path) if input_path else default_intake_architecture_fixture()
+
+
+def _structural_architecture_fixture(input_path: str | None):
+    return default_structural_architecture_fixture(input_path) if input_path else default_structural_architecture_fixture()
 
 
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
@@ -2198,6 +2231,116 @@ def build_parser() -> argparse.ArgumentParser:
     )
     intake_architecture_invariants_parser.add_argument("--input", default=None)
     intake_architecture_invariants_parser.add_argument("--output", default=None)
+    structural_architecture_fixture = subparsers.add_parser(
+        "structural-architecture-fixture",
+        help="emit the D02 C01-C16 public aggregate architecture fixture",
+    )
+    structural_architecture_fixture.add_argument("--output", default=None)
+    structural_architecture_data = subparsers.add_parser(
+        "structural-architecture-data-audit",
+        help="audit D02 architecture sources, cases, contexts, and aggregate scope",
+    )
+    structural_architecture_data.add_argument("--input", default=None)
+    structural_architecture_data.add_argument("--output", default=None)
+    structural_architecture_plan = subparsers.add_parser(
+        "structural-architecture-plan",
+        help="compile the D02 C01-C16 dependency plan",
+    )
+    structural_architecture_plan.add_argument("--input", default=None)
+    structural_architecture_plan.add_argument("--output", default=None)
+    structural_architecture_evaluate = subparsers.add_parser(
+        "evaluate-structural-architecture",
+        help="execute all D02 structural positives and controls",
+    )
+    structural_architecture_evaluate.add_argument("--input", default=None)
+    structural_architecture_evaluate.add_argument("--output", default=None)
+    structural_architecture_runtime = subparsers.add_parser(
+        "structural-architecture-runtime",
+        help="run the twenty-stage D02 structural architecture",
+    )
+    structural_architecture_runtime.add_argument("--input", default=None)
+    structural_architecture_runtime.add_argument("--output", default=None)
+    structural_architecture_quality = subparsers.add_parser(
+        "structural-architecture-quality",
+        help="run the D02 structural architecture release quality gate",
+    )
+    structural_architecture_quality.add_argument("--input", default=None)
+    structural_architecture_quality.add_argument("--output", default=None)
+    structural_architecture_depth = subparsers.add_parser(
+        "structural-architecture-depth",
+        help="audit D02 operation, case, stage, artifact, and lineage depth",
+    )
+    structural_architecture_depth.add_argument("--input", default=None)
+    structural_architecture_depth.add_argument("--output", default=None)
+    structural_architecture_replay = subparsers.add_parser(
+        "replay-structural-architecture",
+        help="replay D02 architecture evaluation deterministically",
+    )
+    structural_architecture_replay.add_argument("--input", default=None)
+    structural_architecture_replay.add_argument("--output", default=None)
+    structural_architecture_validation = subparsers.add_parser(
+        "structural-architecture-validation",
+        help="emit the seven-plane by sixteen-operation D02 validation matrix",
+    )
+    structural_architecture_validation.add_argument("--input", default=None)
+    structural_architecture_validation.add_argument("--output", default=None)
+    structural_architecture_review = subparsers.add_parser(
+        "structural-architecture-review-csv",
+        help="export D02 held controls as review CSV",
+    )
+    structural_architecture_review.add_argument("--input", default=None)
+    structural_architecture_review.add_argument("--output", default=None)
+    structural_architecture_report = subparsers.add_parser(
+        "structural-architecture-report",
+        help="render a D02 structural architecture runtime report",
+    )
+    structural_architecture_report.add_argument("--input", default=None)
+    structural_architecture_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    structural_architecture_report.add_argument("--output", default=None)
+    structural_architecture_failures = subparsers.add_parser(
+        "structural-architecture-failures",
+        help="run D02 structural architecture boundary probes",
+    )
+    structural_architecture_failures.add_argument("--input", default=None)
+    structural_architecture_failures.add_argument("--output", default=None)
+    structural_architecture_schema = subparsers.add_parser(
+        "structural-architecture-schema",
+        help="emit the D02 structural architecture schema manifest",
+    )
+    structural_architecture_schema.add_argument("--output", default=None)
+    structural_architecture_query = subparsers.add_parser(
+        "structural-architecture-query",
+        help="query sanitized D02 structural architecture receipts",
+    )
+    structural_architecture_query.add_argument("--input", default=None)
+    structural_architecture_query.add_argument("--operation-id", default=None)
+    structural_architecture_query.add_argument("--state", choices=("accepted", "review"), default=None)
+    structural_architecture_query.add_argument("--issue-code", default=None)
+    structural_architecture_query.add_argument("--output", default=None)
+    structural_architecture_invariants = subparsers.add_parser(
+        "structural-architecture-invariants",
+        help="emit D02 structural architecture conservation invariants",
+    )
+    structural_architecture_invariants.add_argument("--input", default=None)
+    structural_architecture_invariants.add_argument("--output", default=None)
+    structural_architecture_metrics = subparsers.add_parser(
+        "structural-architecture-metrics",
+        help="emit D02 structural architecture operation metrics",
+    )
+    structural_architecture_metrics.add_argument("--input", default=None)
+    structural_architecture_metrics.add_argument("--output", default=None)
+    structural_architecture_access = subparsers.add_parser(
+        "structural-architecture-access",
+        help="emit the D02 structural architecture export access manifest",
+    )
+    structural_architecture_access.add_argument("--input", default=None)
+    structural_architecture_access.add_argument("--output", default=None)
+    structural_architecture_bundle = subparsers.add_parser(
+        "structural-architecture-bundle",
+        help="write six offline D02 architecture artifacts to a directory",
+    )
+    structural_architecture_bundle.add_argument("--input", default=None)
+    structural_architecture_bundle.add_argument("--output", required=True)
     module_fabric_ledger = subparsers.add_parser(
         "module-fabric-ledger",
         help="emit the ordered sanitized module-fabric operation ledger",
@@ -7050,6 +7193,92 @@ def main(argv: list[str] | None = None) -> int:
             issues = intake_architecture_invariants(run_intake_architecture(fixture))
             _write_json({"issues": issues, "accepted": not issues}, args.output)
             return 0 if not issues else 2
+        if args.command == "structural-architecture-fixture":
+            _write_text(structural_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "structural-architecture-data-audit":
+            report = audit_structural_architecture_data(_structural_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "structural-architecture-plan":
+            fixture = _structural_architecture_fixture(args.input)
+            _write_json(compile_structural_architecture_plan(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "evaluate-structural-architecture":
+            report = evaluate_structural_architecture_fixture(_structural_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "structural-architecture-runtime":
+            runtime = run_structural_architecture(_structural_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "structural-architecture-quality":
+            runtime = run_structural_architecture(_structural_architecture_fixture(args.input))
+            report = evaluate_structural_architecture_quality(runtime)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.passed else 2
+        if args.command == "structural-architecture-depth":
+            report = audit_structural_architecture_depth(run_structural_architecture(_structural_architecture_fixture(args.input)))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-structural-architecture":
+            report = replay_structural_architecture(args.input) if args.input else replay_structural_architecture()
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted and report.deterministic else 2
+        if args.command == "structural-architecture-validation":
+            fixture = _structural_architecture_fixture(args.input)
+            evaluation = evaluate_structural_architecture_fixture(fixture)
+            report = build_structural_architecture_validation_matrix(fixture, evaluation)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "structural-architecture-review-csv":
+            fixture = _structural_architecture_fixture(args.input)
+            _write_text(render_structural_architecture_review_csv(evaluate_structural_architecture_fixture(fixture)), args.output)
+            return 0
+        if args.command == "structural-architecture-report":
+            runtime = run_structural_architecture(_structural_architecture_fixture(args.input))
+            if args.format == "markdown":
+                _write_text(render_structural_architecture_markdown(runtime.release), args.output)
+            else:
+                _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "structural-architecture-failures":
+            report = run_structural_architecture_failure_probes(_structural_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "structural-architecture-schema":
+            _write_json(default_structural_architecture_schema().to_dict(), args.output)
+            return 0
+        if args.command == "structural-architecture-query":
+            evaluation = evaluate_structural_architecture_fixture(_structural_architecture_fixture(args.input))
+            from .structural_architecture_contracts import StructuralArchitectureState
+            result = query_structural_architecture(
+                evaluation,
+                operation_id=args.operation_id,
+                state=StructuralArchitectureState(args.state) if args.state else None,
+                issue_code=args.issue_code,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == "structural-architecture-invariants":
+            report = run_structural_architecture_invariants(run_structural_architecture(_structural_architecture_fixture(args.input)))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "structural-architecture-metrics":
+            fixture = _structural_architecture_fixture(args.input)
+            evaluation = evaluate_structural_architecture_fixture(fixture)
+            _write_json(measure_structural_architecture(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "structural-architecture-access":
+            runtime = run_structural_architecture(_structural_architecture_fixture(args.input))
+            _write_json(build_structural_architecture_access_manifest(runtime.artifacts).to_dict(), args.output)
+            return 0
+        if args.command == "structural-architecture-bundle":
+            fixture = _structural_architecture_fixture(args.input)
+            evaluation = evaluate_structural_architecture_fixture(fixture)
+            ledger = build_structural_architecture_ledger(fixture, evaluation)
+            release = write_structural_architecture_bundle(fixture, evaluation, ledger, args.output)
+            return 0 if release.published else 2
         if args.command == "module-fabric-ledger":
             fixture = _module_fabric_fixture(args.input)
             ledger = build_module_fabric_operation_ledger(fixture)

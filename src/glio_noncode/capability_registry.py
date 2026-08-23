@@ -625,11 +625,16 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.structural_reconstruction.StructuralReconstructor",
                     "glio_noncode.structural_fixture_eval.evaluate_structural_fixture",
                     "glio_noncode.structural_runtime.StructuralPipeline",
+                    "glio_noncode.structural_architecture_operations.evaluate_structural_architecture_fixture",
+                    "glio_noncode.structural_architecture_runtime.run_structural_architecture",
+                    "glio_noncode.structural_architecture_quality.evaluate_structural_architecture_quality",
                 ),
                 "test_modules": (
                     "tests.test_structural_reconstruction",
                     "tests.test_structural_fixture_eval",
                     "tests.test_structural_runtime",
+                    "tests.test_structural_architecture",
+                    "tests.test_structural_architecture_cli",
                 ),
                 "evidence_note": (
                     "Breakend pairing, symbolic interval checks, phased segments, and "

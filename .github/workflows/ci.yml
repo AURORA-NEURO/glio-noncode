@@ -1232,3 +1232,13 @@ jobs:
         run: python -m glio_noncode intake-architecture-report --input /tmp/glio-intake-architecture-fixture.json --format markdown --output /tmp/glio-intake-architecture-report.md && python -m glio_noncode intake-architecture-runbook --input /tmp/glio-intake-architecture-fixture.json --output /tmp/glio-intake-architecture-runbook.json && python -m glio_noncode intake-architecture-schema --output /tmp/glio-intake-architecture-schema.json && python -m glio_noncode intake-architecture-query --input /tmp/glio-intake-architecture-fixture.json --query review --output /tmp/glio-intake-architecture-query.json && python -m glio_noncode intake-architecture-invariants --input /tmp/glio-intake-architecture-fixture.json --output /tmp/glio-intake-architecture-invariants.json
       - name: Intake architecture focused tests
         run: python -m unittest tests.test_intake_architecture tests.test_intake_architecture_cli
+      - name: Structural architecture public data and plan
+        run: python -m glio_noncode structural-architecture-data-audit --output /tmp/glio-structural-architecture-data.json && python -m glio_noncode structural-architecture-plan --output /tmp/glio-structural-architecture-plan.json
+      - name: Structural architecture evaluation and runtime
+        run: python -m glio_noncode evaluate-structural-architecture --output /tmp/glio-structural-architecture-evaluation.json && python -m glio_noncode structural-architecture-runtime --output /tmp/glio-structural-architecture-runtime.json
+      - name: Structural architecture quality, depth, validation, and replay
+        run: python -m glio_noncode structural-architecture-quality --output /tmp/glio-structural-architecture-quality.json && python -m glio_noncode structural-architecture-depth --output /tmp/glio-structural-architecture-depth.json && python -m glio_noncode structural-architecture-validation --output /tmp/glio-structural-architecture-validation.json && python -m glio_noncode replay-structural-architecture --output /tmp/glio-structural-architecture-replay.json
+      - name: Structural architecture exports and controls
+        run: python -m glio_noncode structural-architecture-review-csv --output /tmp/glio-structural-architecture-review.csv && python -m glio_noncode structural-architecture-failures --output /tmp/glio-structural-architecture-failures.json && python -m glio_noncode structural-architecture-invariants --output /tmp/glio-structural-architecture-invariants.json
+      - name: Structural architecture focused tests
+        run: python -m unittest tests.test_structural_architecture tests.test_structural_architecture_cli

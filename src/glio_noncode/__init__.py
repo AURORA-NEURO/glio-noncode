@@ -14076,6 +14076,76 @@ __all__ += [
 
 __all__ += ["ValidationReleaseBenchmarkResult", "ValidationReleaseClaimBoundary", "ValidationReleaseContractMigration", "ValidationReleaseMigrationReport", "ValidationReleaseReproducibilityPacket", "ValidationReleaseReviewProtocol", "ValidationReleaseReviewProtocolStep", "ValidationReleaseThresholdProbe", "ValidationReleaseThresholdReport", "benchmark_validation_release", "build_validation_release_contract_migrations", "build_validation_release_reproducibility_packet", "build_validation_release_review_protocol", "build_validation_release_threshold_report", "evaluate_validation_release_claim_boundary"]
 
+from .structural_architecture_access import StructuralArchitectureAccessManifest, build_structural_architecture_access_manifest
+from .structural_architecture_bundle import (
+    build_structural_architecture_artifacts,
+    build_structural_architecture_release,
+    render_structural_architecture_markdown,
+    render_structural_architecture_review_csv,
+    write_structural_architecture_bundle,
+)
+from .structural_architecture_contracts import (
+    STRUCTURAL_ARCHITECTURE_ARTIFACT_COUNT,
+    STRUCTURAL_ARCHITECTURE_BOUNDARY,
+    STRUCTURAL_ARCHITECTURE_CASE_COUNT,
+    STRUCTURAL_ARCHITECTURE_CONTEXT,
+    STRUCTURAL_ARCHITECTURE_FOREIGN_CONTEXT,
+    STRUCTURAL_ARCHITECTURE_OPERATION_COUNT,
+    STRUCTURAL_ARCHITECTURE_VERSION,
+    StructuralArchitectureArtifact,
+    StructuralArchitectureCase,
+    StructuralArchitectureCaseReceipt,
+    StructuralArchitectureCheck,
+    StructuralArchitectureCheckKind,
+    StructuralArchitectureDataAudit,
+    StructuralArchitectureDepthReport,
+    StructuralArchitectureEvaluation,
+    StructuralArchitectureExecution,
+    StructuralArchitectureFixture,
+    StructuralArchitectureLedger,
+    StructuralArchitectureLedgerEvent,
+    StructuralArchitectureOperation,
+    StructuralArchitectureOperationSpec,
+    StructuralArchitecturePlan,
+    StructuralArchitecturePlanNode,
+    StructuralArchitecturePlane,
+    StructuralArchitectureQualityGate,
+    StructuralArchitectureRelease,
+    StructuralArchitectureReviewItem,
+    StructuralArchitectureReviewQueue,
+    StructuralArchitectureRuntime,
+    StructuralArchitectureRuntimeStage,
+    StructuralArchitectureScenario,
+    StructuralArchitectureSource,
+    StructuralArchitectureState,
+    addressed,
+)
+from .structural_architecture_depth import audit_structural_architecture_depth
+from .structural_architecture_exports import export_structural_architecture_json, export_structural_architecture_review_csv, render_structural_architecture_release_markdown
+from .structural_architecture_failures import StructuralArchitectureFailureProbe, StructuralArchitectureFailureReport, run_structural_architecture_failure_probes
+from .structural_architecture_invariants import StructuralArchitectureInvariant, StructuralArchitectureInvariantReport, run_structural_architecture_invariants
+from .structural_architecture_lineage import audit_structural_architecture_ledger, build_structural_architecture_ledger
+from .structural_architecture_metrics import StructuralArchitectureMetrics, StructuralArchitectureOperationMetric, measure_structural_architecture
+from .structural_architecture_observability import StructuralArchitectureEvent, StructuralArchitectureObservabilityReport, observe_structural_architecture
+from .structural_architecture_operations import evaluate_structural_architecture_fixture, execute_structural_architecture_case
+from .structural_architecture_plan import compile_structural_architecture_plan, plan_is_executable
+from .structural_architecture_policy import StructuralArchitecturePolicyDecision, StructuralArchitecturePolicyReport, evaluate_structural_architecture_policy, evaluate_structural_architecture_policies
+from .structural_architecture_public_data import audit_structural_architecture_data, default_structural_architecture_fixture, load_structural_architecture_mapping, structural_architecture_fixture_json
+from .structural_architecture_quality import evaluate_structural_architecture_quality
+from .structural_architecture_query import StructuralArchitectureQueryResult, query_structural_architecture
+from .structural_architecture_replay import StructuralArchitectureReplayReceipt, replay_is_deterministic, replay_structural_architecture
+from .structural_architecture_review import build_structural_architecture_review_queue
+from .structural_architecture_runbook import StructuralArchitectureRunbook, StructuralArchitectureRunbookStep, build_structural_architecture_runbook, runbook_is_executable
+from .structural_architecture_runtime import run_structural_architecture, run_structural_architecture_from_mapping
+from .structural_architecture_schema import StructuralArchitectureSchemaField, StructuralArchitectureSchemaReport, default_structural_architecture_schema, validate_structural_architecture_schema
+from .structural_architecture_validation import StructuralArchitectureValidationCell, StructuralArchitectureValidationMatrix, build_structural_architecture_validation_matrix
+
+__all__ += [
+    "STRUCTURAL_ARCHITECTURE_ARTIFACT_COUNT", "STRUCTURAL_ARCHITECTURE_BOUNDARY", "STRUCTURAL_ARCHITECTURE_CASE_COUNT", "STRUCTURAL_ARCHITECTURE_CONTEXT", "STRUCTURAL_ARCHITECTURE_FOREIGN_CONTEXT", "STRUCTURAL_ARCHITECTURE_OPERATION_COUNT", "STRUCTURAL_ARCHITECTURE_VERSION",
+    "StructuralArchitectureAccessManifest", "StructuralArchitectureArtifact", "StructuralArchitectureCase", "StructuralArchitectureCaseReceipt", "StructuralArchitectureCheck", "StructuralArchitectureCheckKind", "StructuralArchitectureDataAudit", "StructuralArchitectureDepthReport", "StructuralArchitectureEvaluation", "StructuralArchitectureExecution", "StructuralArchitectureEvent", "StructuralArchitectureFailureProbe", "StructuralArchitectureFailureReport", "StructuralArchitectureFixture", "StructuralArchitectureInvariant", "StructuralArchitectureInvariantReport", "StructuralArchitectureLedger", "StructuralArchitectureLedgerEvent", "StructuralArchitectureMetrics", "StructuralArchitectureObservabilityReport", "StructuralArchitectureOperation", "StructuralArchitectureOperationMetric", "StructuralArchitectureOperationSpec", "StructuralArchitecturePlan", "StructuralArchitecturePlanNode", "StructuralArchitecturePlane", "StructuralArchitecturePolicyDecision", "StructuralArchitecturePolicyReport", "StructuralArchitectureQualityGate", "StructuralArchitectureQueryResult", "StructuralArchitectureRelease", "StructuralArchitectureReplayReceipt", "StructuralArchitectureReviewItem", "StructuralArchitectureReviewQueue", "StructuralArchitectureRunbook", "StructuralArchitectureRunbookStep", "StructuralArchitectureRuntime", "StructuralArchitectureRuntimeStage", "StructuralArchitectureScenario", "StructuralArchitectureSchemaField", "StructuralArchitectureSchemaReport", "StructuralArchitectureSource", "StructuralArchitectureState", "StructuralArchitectureValidationCell", "StructuralArchitectureValidationMatrix",
+    "addressed", "audit_structural_architecture_data", "audit_structural_architecture_depth", "audit_structural_architecture_ledger", "build_structural_architecture_access_manifest", "build_structural_architecture_artifacts", "build_structural_architecture_ledger", "build_structural_architecture_release", "build_structural_architecture_review_queue", "build_structural_architecture_runbook", "build_structural_architecture_validation_matrix", "compile_structural_architecture_plan", "default_structural_architecture_fixture", "default_structural_architecture_schema", "evaluate_structural_architecture_fixture", "evaluate_structural_architecture_policy", "evaluate_structural_architecture_policies", "evaluate_structural_architecture_quality", "execute_structural_architecture_case", "export_structural_architecture_json", "export_structural_architecture_review_csv", "load_structural_architecture_mapping", "measure_structural_architecture", "observe_structural_architecture", "plan_is_executable", "query_structural_architecture", "render_structural_architecture_markdown", "render_structural_architecture_release_markdown", "render_structural_architecture_review_csv", "replay_is_deterministic", "replay_structural_architecture", "run_structural_architecture", "run_structural_architecture_failure_probes", "run_structural_architecture_from_mapping", "run_structural_architecture_invariants", "structural_architecture_fixture_json", "validate_structural_architecture_schema", "write_structural_architecture_bundle", "runbook_is_executable",
+]
+
 from .evidence_release_frontier_access import EvidenceReleaseAccessManifest, build_evidence_release_access_manifest
 from .evidence_release_frontier_adapters import EvidenceReleaseAdapter, EvidenceReleaseAdapterRegistry, build_evidence_release_adapters, execute_evidence_release_adapter
 from .evidence_release_frontier_artifacts import EvidenceReleaseArtifactInventory, build_evidence_release_artifact_inventory
