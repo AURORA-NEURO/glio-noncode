@@ -302,6 +302,23 @@ from .validation_release_frontier_schema import default_validation_release_front
 from .validation_release_frontier_lineage import build_validation_release_lineage
 from .validation_release_frontier_reconciliation import reconcile_validation_release
 from .validation_release_frontier_thresholds import build_validation_release_threshold_report
+from .evidence_release_frontier_access import build_evidence_release_access_manifest
+from .evidence_release_frontier_adapters import build_evidence_release_adapters
+from .evidence_release_frontier_data_dictionary import default_evidence_release_data_dictionary
+from .evidence_release_frontier_depth import audit_evidence_release_depth
+from .evidence_release_frontier_exports import export_evidence_release_review_csv
+from .evidence_release_frontier_failure_injection import run_evidence_release_failure_injections
+from .evidence_release_frontier_fixture_eval import evaluate_evidence_release_fixture
+from .evidence_release_frontier_handoff import build_evidence_release_handoff
+from .evidence_release_frontier_metrics import measure_evidence_release
+from .evidence_release_frontier_public_data import audit_evidence_release_frontier_data, default_evidence_release_frontier_fixture
+from .evidence_release_frontier_report import render_evidence_release_report
+from .evidence_release_frontier_review_queue import build_evidence_release_review_queue
+from .evidence_release_frontier_runtime import run_evidence_release_runtime
+from .evidence_release_frontier_schema import default_evidence_release_frontier_schema
+from .evidence_release_frontier_reconciliation import reconcile_evidence_release
+from .evidence_release_frontier_quality_gate import run_evidence_release_quality_gate
+from .evidence_release_frontier_validation_matrix import build_evidence_release_validation_matrix
 from .control_plane import (
     ClaimCeiling,
     InvocationRequest,
@@ -4856,6 +4873,26 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     validation_release_frontier_csv = subparsers.add_parser("validation-release-frontier-review-csv", help="export Domain 13 C13-C16 review rows")
     validation_release_frontier_csv.add_argument("--output", default=None)
+
+    evidence_release_frontier_commands = (
+        ("evidence-release-frontier-data-audit", "audit Domain 14 C13-C16 public aggregate data"),
+        ("evidence-release-frontier-evaluate", "evaluate Domain 14 C13-C16 positive and control rows"),
+        ("evidence-release-frontier-pipeline", "run the complete Domain 14 C13-C16 runtime rehearsal"),
+        ("evidence-release-frontier-depth", "run Domain 14 C13-C16 depth checks"),
+        ("evidence-release-frontier-thresholds", "probe Domain 14 C13-C16 state boundaries"),
+        ("evidence-release-frontier-quality", "run Domain 14 C13-C16 quality gate"),
+        ("evidence-release-frontier-validation-matrix", "emit Domain 14 C13-C16 validation matrix"),
+        ("evidence-release-frontier-handoff", "emit Domain 14 C13-C16 review handoff"),
+        ("evidence-release-frontier-access", "emit Domain 14 C13-C16 public access manifest"),
+        ("evidence-release-frontier-data-dictionary", "emit Domain 14 C13-C16 data dictionary"),
+        ("evidence-release-frontier-report", "render Domain 14 C13-C16 review report"),
+        ("evidence-release-frontier-failure-injection", "rehearse Domain 14 C13-C16 control failures"),
+    )
+    for command_name, command_help in evidence_release_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    evidence_release_frontier_csv = subparsers.add_parser("evidence-release-frontier-review-csv", help="export Domain 14 C13-C16 review rows")
+    evidence_release_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9783,6 +9820,51 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "validation-release-frontier-review-csv":
             _write_text(export_validation_release_review_csv(evaluate_validation_release_fixture(default_validation_release_frontier_fixture())), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-data-audit":
+            _write_json(audit_evidence_release_frontier_data(default_evidence_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-evaluate":
+            _write_json(evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-pipeline":
+            _write_json(run_evidence_release_runtime(default_evidence_release_frontier_fixture(), run_id="evidence-release-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-depth":
+            fixture = default_evidence_release_frontier_fixture()
+            _write_json(audit_evidence_release_depth(fixture, evaluate_evidence_release_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-thresholds":
+            from .evidence_release_frontier_thresholds import build_evidence_release_threshold_report
+            _write_json(build_evidence_release_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-quality":
+            fixture = default_evidence_release_frontier_fixture()
+            evaluation = evaluate_evidence_release_fixture(fixture)
+            _write_json(run_evidence_release_quality_gate(audit_evidence_release_frontier_data(fixture), evaluation, build_evidence_release_adapters(), default_evidence_release_frontier_schema(), reconcile_evidence_release(fixture, evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-validation-matrix":
+            _write_json(build_evidence_release_validation_matrix(evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-handoff":
+            fixture = default_evidence_release_frontier_fixture()
+            evaluation = evaluate_evidence_release_fixture(fixture)
+            _write_json(build_evidence_release_handoff(fixture, evaluation, measure_evidence_release(evaluation), build_evidence_release_review_queue(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-access":
+            _write_json(build_evidence_release_access_manifest(default_evidence_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-data-dictionary":
+            _write_json(default_evidence_release_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-report":
+            _write_text(render_evidence_release_report(run_evidence_release_runtime(default_evidence_release_frontier_fixture(), run_id="evidence-release-frontier-report").summary), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-failure-injection":
+            _write_json(run_evidence_release_failure_injections().to_dict(), args.output)
+            return 0
+        if args.command == "evidence-release-frontier-review-csv":
+            _write_text(export_evidence_release_review_csv(evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture())), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)

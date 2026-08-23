@@ -1,0 +1,624 @@
+{
+  "content_address": "sha256:56819f47c04e0871506cdee854faf0907d8599749e48909397bd19e36d9bea69",
+  "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+  "evidence_boundary": "public_aggregate_evidence_lifecycle_release",
+  "fixture_id": "evidence-release-public-aggregate-001",
+  "fixture_version": "2026.08.d14-c13-c16.v1",
+  "records": [
+    {
+      "capability": "evidence-tier-reclassification",
+      "content_address": "sha256:c4bb645fb6267c7c6774d30de1a6dd6264fda8b21d63dea7f0e7c2be68e83d33",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "reclassified",
+      "notes": "two reviewers and two public source receipts clear the transition",
+      "operation": "reclassification",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "evidence_id": "evidence-claim-001",
+        "evidence_score": 0.88,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "record_id": "D14-C13-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "europepmc",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "evidence-tier-reclassification",
+      "content_address": "sha256:4dc8c7c48ac4b91be3a6f37e4bfd59867f3517372dc248f75196cde5ad719b85",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "score_below_threshold"
+      ],
+      "expected_state": "review",
+      "notes": "a low score remains review-only",
+      "operation": "reclassification",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "evidence_id": "evidence-low-score",
+        "evidence_score": 0.42,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "record_id": "D14-C13-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "evidence-tier-reclassification",
+      "content_address": "sha256:872d0df2a6581a7178003ab1a931c3c200b5f127627405292f1bc747c91baa83",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "independent_reviewers_missing"
+      ],
+      "expected_state": "review",
+      "notes": "one reviewer does not close the transition",
+      "operation": "reclassification",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "evidence_id": "evidence-one-reviewer",
+        "evidence_score": 0.88,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "record_id": "D14-C13-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "evidence-tier-reclassification",
+      "content_address": "sha256:9752e6cfe0a2f61505a42307368157bceba43bd6f8bb88a4dc3bda9628ddb406",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "a foreign context is quarantined",
+      "operation": "reclassification",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "evidence_id": "evidence-foreign",
+        "evidence_score": 0.88,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "record_id": "D14-C13-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "record-deprecation-supersession",
+      "content_address": "sha256:65c8240f0a788ac1b6a6b10f1d7ff8821f94406f928ec0ce23dfe61eac4e41cf",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "superseded",
+      "notes": "a two-record chain closes with one active record",
+      "operation": "supersession",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-old",
+            "status": "deprecated",
+            "supersedes": null
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-current",
+            "status": "active",
+            "supersedes": "claim-old"
+          }
+        ]
+      },
+      "record_id": "D14-C14-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "pubmed",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "record-deprecation-supersession",
+      "content_address": "sha256:cc34540ccd8efd2d9804eb6a2b47e6b9e4b582c46d4d8d7c2bf4b1086e7c9cf3",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "supersession_target_missing"
+      ],
+      "expected_state": "review",
+      "notes": "a missing target cannot be silently retired",
+      "operation": "supersession",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-current",
+            "status": "active",
+            "supersedes": "claim-missing"
+          }
+        ]
+      },
+      "record_id": "D14-C14-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "pubmed",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "record-deprecation-supersession",
+      "content_address": "sha256:dcc9d1dcc5f07fc18f7b5d15940e6e8351e38eb2e9897ad47a52c58e58cc53fe",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "supersession_cycle"
+      ],
+      "expected_state": "blocked",
+      "notes": "a cycle blocks publication",
+      "operation": "supersession",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-a",
+            "status": "active",
+            "supersedes": "claim-b"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-b",
+            "status": "deprecated",
+            "supersedes": "claim-a"
+          }
+        ]
+      },
+      "record_id": "D14-C14-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "pubmed",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "record-deprecation-supersession",
+      "content_address": "sha256:c57a1113023cb1f74d17f29211e68b850aecf43a5ca26c034ecbcb5259d87ec8",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign lifecycle state is not transported",
+      "operation": "supersession",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-old",
+            "status": "deprecated",
+            "supersedes": null
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-current",
+            "status": "active",
+            "supersedes": "claim-old"
+          }
+        ]
+      },
+      "record_id": "D14-C14-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "pubmed",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "audit-reproducibility-bundle",
+      "content_address": "sha256:49554b97c16d8332f37ac036b076466833e6f39cb1f52c755f20461227a14944",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "bundled",
+      "notes": "evidence, review, and release sections close with addresses",
+      "operation": "reproducibility_bundle",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "sections": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:evidence-001",
+                "record_id": "evidence-001"
+              }
+            ],
+            "kind": "evidence",
+            "section_id": "evidence-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:review-001",
+                "record_id": "review-001"
+              }
+            ],
+            "kind": "review",
+            "section_id": "review-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:release-001",
+                "record_id": "release-001"
+              }
+            ],
+            "kind": "release",
+            "section_id": "release-section"
+          }
+        ]
+      },
+      "record_id": "D14-C15-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc",
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "audit-reproducibility-bundle",
+      "content_address": "sha256:6a06c285fa303e4a1c5f01c2ada2a41379fae550de151faad8c76f457c6a71e2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "required_section_missing"
+      ],
+      "expected_state": "review",
+      "notes": "an empty bundle is reviewable but not published",
+      "operation": "reproducibility_bundle",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "sections": []
+      },
+      "record_id": "D14-C15-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "audit-reproducibility-bundle",
+      "content_address": "sha256:8a3059b3530392d2ed0035d0ecc56e3f2e492f4a7307e315a16f4b2a4cb1d403",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_section_id"
+      ],
+      "expected_state": "review",
+      "notes": "duplicate section identity is held for review",
+      "operation": "reproducibility_bundle",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "sections": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:evidence-001",
+                "record_id": "evidence-001"
+              }
+            ],
+            "kind": "evidence",
+            "section_id": "duplicate"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:review-001",
+                "record_id": "review-001"
+              }
+            ],
+            "kind": "review",
+            "section_id": "duplicate"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:release-001",
+                "record_id": "release-001"
+              }
+            ],
+            "kind": "release",
+            "section_id": "release-section"
+          }
+        ]
+      },
+      "record_id": "D14-C15-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "audit-reproducibility-bundle",
+      "content_address": "sha256:7bb3e47227b9313dcaa0b5c9056dc6d81746d47bb3dfab046bfb3e6318814eb2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign bundle context is blocked",
+      "operation": "reproducibility_bundle",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "sections": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:evidence-001",
+                "record_id": "evidence-001"
+              }
+            ],
+            "kind": "evidence",
+            "section_id": "evidence-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:review-001",
+                "record_id": "review-001"
+              }
+            ],
+            "kind": "review",
+            "section_id": "review-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:release-001",
+                "record_id": "release-001"
+              }
+            ],
+            "kind": "release",
+            "section_id": "release-section"
+          }
+        ]
+      },
+      "record_id": "D14-C15-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "signed-research-dossier",
+      "content_address": "sha256:fff8ca288bbf71fe59d4055cf46a63ebe10e3529a9463461ea5b73d1e28ded34",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "signed",
+      "notes": "the dossier receives a key ID and verifiable HMAC receipt",
+      "operation": "signed_dossier",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "dossier_id": "dossier-001",
+        "expires_at": "2030-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {
+          "bundle_address": "sha256:bundle-001",
+          "claim_ids": [
+            "claim-current"
+          ],
+          "release_scope": "aggregate research review"
+        }
+      },
+      "record_id": "D14-C16-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "europepmc",
+        "gdc",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "signed-research-dossier",
+      "content_address": "sha256:63c952caac807151e7f62d20c6037bb293ae762a049c064bbfcfa5d23be7ef1c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "dossier_expired"
+      ],
+      "expected_state": "review",
+      "notes": "expired material cannot be published",
+      "operation": "signed_dossier",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "dossier_id": "dossier-expired",
+        "expires_at": "expired:2024-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {
+          "bundle_address": "sha256:bundle-001",
+          "claim_ids": [
+            "claim-current"
+          ],
+          "release_scope": "aggregate research review"
+        }
+      },
+      "record_id": "D14-C16-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "gdc",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "signed-research-dossier",
+      "content_address": "sha256:a4619e5076fa55eb0f2662e9a7135bfe767432cb7f94b7900f250e77c0dc9de8",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign dossier context cannot be signed",
+      "operation": "signed_dossier",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "dossier_id": "dossier-foreign",
+        "expires_at": "2030-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {
+          "bundle_address": "sha256:bundle-001",
+          "claim_ids": [
+            "claim-current"
+          ],
+          "release_scope": "aggregate research review"
+        }
+      },
+      "record_id": "D14-C16-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "gdc",
+        "ga4gh"
+      ]
+    },
+    {
+      "capability": "signed-research-dossier",
+      "content_address": "sha256:52ffa02c240616f6b0b89878e179ab30c9dcaf4e89687f034dd17c72ceb12a6b",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "dossier_payload_empty"
+      ],
+      "expected_state": "review",
+      "notes": "empty dossier payload is not released",
+      "operation": "signed_dossier",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "dossier_id": "dossier-empty",
+        "expires_at": "2030-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {}
+      },
+      "record_id": "D14-C16-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "gdc",
+        "ga4gh"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:9ce0523ea867bffe70d8a6fa62d0a305d6b3f714c0fefe3f26de0e529e35de7c",
+      "scope": "public literature and citation index",
+      "source_id": "europepmc",
+      "title": "Europe PMC literature service",
+      "uri": "https://europepmc.org/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:b19ac5772c58cf22d69512317955e5dea7c8c8c7c7294e61f80649b5303942f4",
+      "scope": "public indexed article metadata",
+      "source_id": "pubmed",
+      "title": "PubMed biomedical literature",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:0a02cf94c53fe6cf7bb187b01f592e99ade20ec525e575106ad2e342f7b8bd2c",
+      "scope": "public aggregate disease and genomic reference",
+      "source_id": "gdc",
+      "title": "NCI Genomic Data Commons",
+      "uri": "https://gdc.cancer.gov/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:1e0f97ea0339ad52a92f4d0c9ae034e4245fcb6d4a628619008ade1bd29ad36b",
+      "scope": "public functional assay reference",
+      "source_id": "encode",
+      "title": "ENCODE project portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:914059f85d251fd93c7e41c0d11b54c4b47538a3f171112155de7b6b8fdde8d7",
+      "scope": "public interoperability and data-use reference",
+      "source_id": "ga4gh",
+      "title": "Global Alliance for Genomics and Health",
+      "uri": "https://www.ga4gh.org/",
+      "version": "public portal receipt"
+    }
+  ]
+}

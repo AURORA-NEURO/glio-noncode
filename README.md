@@ -95,6 +95,26 @@ and [docs/VALIDATION_RELEASE_FRONTIER_RELEASE.md](docs/VALIDATION_RELEASE_FRONTI
 The callable surface is listed in [docs/VALIDATION_RELEASE_FRONTIER_API.md](docs/VALIDATION_RELEASE_FRONTIER_API.md),
 with the release audit in [docs/VALIDATION_RELEASE_FRONTIER_CHECKLIST.md](docs/VALIDATION_RELEASE_FRONTIER_CHECKLIST.md).
 
+The D14 C13–C16 evidence-release frontier now provides a dedicated lifecycle
+boundary for evidence-tier reclassification, deprecation and supersession,
+reproducibility bundles, and signed dossier verification. It uses 16 aggregate
+rows, 81 deterministic checks, 53 ordered runtime stages, and five public HTTPS
+source receipts:
+
+```powershell
+glio-noncode evidence-release-frontier-data-audit --output evidence-release-data.json
+glio-noncode evidence-release-frontier-evaluate --output evidence-release-evaluation.json
+glio-noncode evidence-release-frontier-pipeline --output evidence-release-runtime.json
+glio-noncode evidence-release-frontier-review-csv --output evidence-release-review.csv
+```
+
+The operation, schema, failure, release, and data-boundary contracts are documented
+in [docs/EVIDENCE_RELEASE_FRONTIER_OPERATIONS.md](docs/EVIDENCE_RELEASE_FRONTIER_OPERATIONS.md),
+[docs/EVIDENCE_RELEASE_FRONTIER_API.md](docs/EVIDENCE_RELEASE_FRONTIER_API.md),
+[docs/EVIDENCE_RELEASE_FRONTIER_SCHEMA.md](docs/EVIDENCE_RELEASE_FRONTIER_SCHEMA.md),
+[docs/EVIDENCE_RELEASE_FRONTIER_FAILURE_MODES.md](docs/EVIDENCE_RELEASE_FRONTIER_FAILURE_MODES.md),
+and [docs/EVIDENCE_RELEASE_FRONTIER_RELEASE.md](docs/EVIDENCE_RELEASE_FRONTIER_RELEASE.md).
+
 ## Design boundaries
 
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.

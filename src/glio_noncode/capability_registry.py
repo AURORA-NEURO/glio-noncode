@@ -4673,71 +4673,75 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D14-C13": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.ReclassificationEngine",
-                    "glio_noncode.frontier_release_alpha.ReclassificationReport",
+                    "glio_noncode.evidence_release_frontier_operations.evaluate_reclassification",
+                    "glio_noncode.evidence_release_frontier_contracts.EvidenceReleaseOperationResult",
+                    "glio_noncode.evidence_release_frontier_fixture_eval.evaluate_evidence_release_fixture",
+                    "glio_noncode.evidence_release_frontier_runtime.run_evidence_release_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_evidence_release_frontier",
+                    "tests.test_evidence_release_frontier_extensions",
+                    "tests.test_evidence_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Reclassification proposes evidence-tier changes from declared scores and "
-                    "requires independent reviewer counts and exact context. The fixture verifies "
-                    "the reviewer gate and a bounded supported classification proposal."
+                    "Reclassification requires an exact context, a score threshold, two independent "
+                    "reviewer IDs, and two public source receipts. Positive and low-score, reviewer, "
+                    "and foreign-context controls are replayed through the release runtime."
                 ),
             },
             "GNC-D14-C14": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.DeprecationSupersessionManager",
-                    "glio_noncode.frontier_release_alpha.SupersessionReport",
+                    "glio_noncode.evidence_release_frontier_operations.evaluate_supersession",
+                    "glio_noncode.evidence_release_frontier_context_boundary.evaluate_evidence_release_context_boundary",
+                    "glio_noncode.evidence_release_frontier_decision_ledger.build_evidence_release_decision_ledger",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_evidence_release_frontier",
+                    "tests.test_evidence_release_frontier_extensions",
+                    "tests.test_evidence_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Deprecation and supersession records detect missing targets, self-links, context "
-                    "mismatches, and supersession cycles. The fixture verifies an active exact-context "
-                    "record while a separate cycle control remains review-required."
+                    "Supersession retains prior records, detects missing targets, self-links, context "
+                    "mismatches, and cycles, and writes an append-only decision ledger. A positive "
+                    "exact-context chain and three controls are included in the public fixture."
                 ),
             },
             "GNC-D14-C15": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.AuditReproducibilityBundleBuilder",
-                    "glio_noncode.frontier_release_alpha.ReproducibilityBundle",
+                    "glio_noncode.evidence_release_frontier_operations.evaluate_reproducibility_bundle",
+                    "glio_noncode.evidence_release_frontier_reproducibility.build_evidence_release_reproducibility_packet",
+                    "glio_noncode.evidence_release_frontier_bundle.assemble_evidence_release_bundle",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_evidence_release_frontier",
+                    "tests.test_evidence_release_frontier_extensions",
+                    "tests.test_evidence_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Audit bundles require evidence, review, and release sections and retain each "
-                    "section address and item count in a reproducible manifest. The fixture verifies "
-                    "all required sections and a stable bundle receipt."
+                    "Audit bundles require evidence, review, and release sections, item addresses, "
+                    "unique section identity, and exact context. Replay, artifact inventory, review "
+                    "routing, and a safe package manifest close the reproducibility boundary."
                 ),
             },
             "GNC-D14-C16": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.SignedDossierPublisher",
-                    "glio_noncode.frontier_release_alpha.DossierVerification",
+                    "glio_noncode.evidence_release_frontier_operations.sign_dossier",
+                    "glio_noncode.evidence_release_frontier_operations.verify_signed_dossier",
+                    "glio_noncode.evidence_release_frontier_publication_policy.evaluate_evidence_release_publication_policy",
+                    "glio_noncode.evidence_release_frontier_runtime.run_evidence_release_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_release_alpha_cli",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_evidence_release_frontier",
+                    "tests.test_evidence_release_frontier_extensions",
+                    "tests.test_evidence_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Research dossier signing uses an explicit key ID, audience, payload address, "
-                    "expiry, HMAC receipt, and verification state; shared-secret signing is not a "
-                    "public-key identity. The fixture verifies dossier publication without emitting "
-                    "the signing secret."
+                    "Research dossier signing uses an explicit key ID, audience, expiry, payload "
+                    "address, HMAC receipt, and recomputed verification state. Shared-secret signing "
+                    "is not treated as a public-key identity and no signing material is emitted."
                 ),
             },
             "GNC-D15-C01": {
