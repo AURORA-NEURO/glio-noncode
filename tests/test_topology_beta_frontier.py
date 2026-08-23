@@ -240,7 +240,7 @@ class TopologyBetaFrontierTests(unittest.TestCase):
         self.assertTrue(thresholds.accepted)
         self.assertEqual(thresholds.get("contact_signal_scale").value, 10.0)
         self.assertEqual(len(default_topology_beta_frontier_runbook().steps), 5)
-        self.assertEqual(len(TOPOLOGY_BETA_FRONTIER_COMMANDS), 12)
+        self.assertEqual(len(TOPOLOGY_BETA_FRONTIER_COMMANDS), 13)
         for operation in TOPOLOGY_BETA_FRONTIER_COMMANDS:
             value = run_topology_beta_frontier_operation(operation)
             self.assertIsInstance(value, dict)

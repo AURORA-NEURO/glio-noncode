@@ -11,6 +11,15 @@ CONTEXT = "GRCh38|glioma|adult|stem_like|core|unknown"
 
 
 class TopologyBetaCliTests(unittest.TestCase):
+    def test_frontier_pipeline_command_is_registered_and_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "topology-beta-pipeline.json"
+            self.assertEqual(main(["topology-beta-frontier-pipeline", "--output", str(output)]), 0)
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertTrue(payload["accepted"])
+            self.assertEqual(len(payload["stage_ids"]), 12)
+            self.assertEqual(set(payload["stages"]), set(payload["stage_ids"]))
+
     def test_loop_and_promoter_capture_parser_commands(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

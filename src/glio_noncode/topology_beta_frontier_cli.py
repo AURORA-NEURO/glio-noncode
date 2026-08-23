@@ -27,6 +27,7 @@ TOPOLOGY_BETA_FRONTIER_COMMANDS = (
     "topology-beta-frontier-release",
     "topology-beta-frontier-manifest",
     "topology-beta-frontier-summary",
+    "topology-beta-frontier-pipeline",
 )
 
 
@@ -46,6 +47,37 @@ def run_topology_beta_frontier_operation(operation: str) -> dict[str, Any]:
         "topology-beta-frontier-release": {"fixture_id": fixture.fixture_id, "ready": evaluation.accepted},
         "topology-beta-frontier-manifest": {"fixture_id": fixture.fixture_id, "version": fixture.version, "boundary": fixture.boundary},
         "topology-beta-frontier-summary": {"accepted": evaluation.accepted, "state_match_count": evaluation.state_match_count, "issue_match_count": evaluation.issue_match_count},
+    }
+    values["topology-beta-frontier-pipeline"] = {
+        "accepted": evaluation.accepted,
+        "stage_ids": (
+            "fixture",
+            "evaluate",
+            "contracts",
+            "schema",
+            "metrics",
+            "catalog",
+            "accessibility",
+            "runbook",
+            "review",
+            "release",
+            "manifest",
+            "summary",
+        ),
+        "stages": {stage_id: values[f"topology-beta-frontier-{stage_id}"] for stage_id in (
+            "fixture",
+            "evaluate",
+            "contracts",
+            "schema",
+            "metrics",
+            "catalog",
+            "accessibility",
+            "runbook",
+            "review",
+            "release",
+            "manifest",
+            "summary",
+        )},
     }
     if operation not in values:
         raise KeyError(operation)
