@@ -158,6 +158,28 @@ from .specimen_architecture_runtime import run_specimen_architecture
 from .specimen_architecture_schema import specimen_architecture_schema
 from .specimen_architecture_validation import validate_specimen_architecture_matrix
 from .specimen_architecture_quality import assess_specimen_architecture_quality
+from .reference_architecture_access import reference_architecture_access_policy
+from .reference_architecture_depth import reference_architecture_depth_report
+from .reference_architecture_failures import classify_reference_architecture_failures
+from .reference_architecture_invariants import check_reference_architecture_invariants
+from .reference_architecture_metrics import materialize_reference_architecture_metrics
+from .reference_architecture_operations import evaluate_reference_architecture_fixture
+from .reference_architecture_plan import compile_reference_architecture_plan
+from .reference_architecture_public_data import (
+    audit_reference_architecture_data,
+    default_reference_architecture_fixture,
+    reference_architecture_fixture_json,
+)
+from .reference_architecture_query import (
+    reference_cases_for_operation,
+    reference_receipts_for_state,
+)
+from .reference_architecture_replay import replay_reference_architecture_fixture
+from .reference_architecture_review import build_reference_architecture_review_queue
+from .reference_architecture_runtime import run_reference_architecture
+from .reference_architecture_schema import reference_architecture_schema
+from .reference_architecture_validation import validate_reference_architecture_matrix
+from .reference_architecture_quality import assess_reference_architecture_quality
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
     DependenceMethod,
@@ -1560,6 +1582,14 @@ def _specimen_architecture_fixture(input_path: str | None):
     )
 
 
+def _reference_architecture_fixture(input_path: str | None):
+    return (
+        default_reference_architecture_fixture(input_path)
+        if input_path
+        else default_reference_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2438,6 +2468,82 @@ def build_parser() -> argparse.ArgumentParser:
     )
     specimen_architecture_bundle.add_argument("--input", default=None)
     specimen_architecture_bundle.add_argument("--output", required=True)
+    reference_architecture_fixture = subparsers.add_parser(
+        "reference-architecture-fixture",
+        help="emit the D04 C01-C16 public aggregate reference architecture fixture",
+    )
+    reference_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        (
+            "reference-architecture-data-audit",
+            "audit D04 reference sources, context, joins, and aggregate scope",
+        ),
+        ("reference-architecture-plan", "compile the D04 C01-C16 dependency plan"),
+        (
+            "evaluate-reference-architecture",
+            "execute D04 positive reference adapters and boundary controls",
+        ),
+        (
+            "reference-architecture-runtime",
+            "run the twenty-stage D04 reference architecture",
+        ),
+        (
+            "reference-architecture-validation",
+            "emit the five-plane by sixteen-operation D04 validation matrix",
+        ),
+        (
+            "reference-architecture-quality",
+            "run the D04 reference architecture release quality gate",
+        ),
+        (
+            "reference-architecture-depth",
+            "report D04 operation, case, stage, artifact, and lineage depth",
+        ),
+        (
+            "replay-reference-architecture",
+            "replay D04 reference evaluation deterministically",
+        ),
+        (
+            "reference-architecture-review",
+            "emit D04 held-control review receipts",
+        ),
+        ("reference-architecture-metrics", "emit D04 reference architecture metrics"),
+        (
+            "reference-architecture-access",
+            "emit D04 reference artifact access policy",
+        ),
+        (
+            "reference-architecture-schema",
+            "emit D04 reference architecture interchange schema",
+        ),
+        (
+            "reference-architecture-invariants",
+            "emit D04 reference architecture cross-module invariants",
+        ),
+        (
+            "reference-architecture-failures",
+            "emit D04 reference architecture failure classification",
+        ),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    reference_architecture_query = subparsers.add_parser(
+        "reference-architecture-query",
+        help="query sanitized D04 reference architecture receipts",
+    )
+    reference_architecture_query.add_argument("--input", default=None)
+    reference_architecture_query.add_argument("--operation", default=None)
+    reference_architecture_query.add_argument(
+        "--state", choices=("accepted", "review"), default=None
+    )
+    reference_architecture_query.add_argument("--output", default=None)
+    reference_architecture_bundle = subparsers.add_parser(
+        "reference-architecture-bundle",
+        help="write a D04 reference architecture runtime bundle",
+    )
+    reference_architecture_bundle.add_argument("--input", default=None)
+    reference_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -7696,6 +7802,160 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_text(
                 specimen_architecture_fixture_json(fixture), str(output_dir / "fixture.json")
+            )
+            return 0 if runtime.accepted else 2
+        if args.command == "reference-architecture-fixture":
+            _write_text(reference_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "reference-architecture-data-audit":
+            report = audit_reference_architecture_data(
+                _reference_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-architecture-plan":
+            report = compile_reference_architecture_plan(
+                _reference_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-reference-architecture":
+            report = evaluate_reference_architecture_fixture(
+                _reference_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-architecture-runtime":
+            runtime = run_reference_architecture(_reference_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "reference-architecture-validation":
+            fixture = _reference_architecture_fixture(args.input)
+            report = validate_reference_architecture_matrix(
+                fixture, evaluate_reference_architecture_fixture(fixture)
+            )
+            accepted = all(item.passed for item in report)
+            _write_json(
+                {"accepted": accepted, "cells": [jsonable(item) for item in report]},
+                args.output,
+            )
+            return 0 if accepted else 2
+        if args.command == "reference-architecture-quality":
+            fixture = _reference_architecture_fixture(args.input)
+            runtime = run_reference_architecture(fixture)
+            quality = assess_reference_architecture_quality(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime.artifacts,
+                runtime.release,
+                len(runtime.stages),
+            )
+            _write_json(quality.to_dict(), args.output)
+            return 0 if quality.passed else 2
+        if args.command == "reference-architecture-depth":
+            fixture = _reference_architecture_fixture(args.input)
+            runtime = run_reference_architecture(fixture)
+            report = reference_architecture_depth_report(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-reference-architecture":
+            report = replay_reference_architecture_fixture(
+                _reference_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-architecture-review":
+            fixture = _reference_architecture_fixture(args.input)
+            report = build_reference_architecture_review_queue(fixture.fixture_id, fixture.cases)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-architecture-metrics":
+            fixture = _reference_architecture_fixture(args.input)
+            runtime = run_reference_architecture(fixture)
+            matrix = validate_reference_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_reference_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(matrix)
+            )
+            _write_json(jsonable(metrics), args.output)
+            return 0
+        if args.command == "reference-architecture-access":
+            fixture = _reference_architecture_fixture(args.input)
+            runtime = run_reference_architecture(fixture)
+            report = reference_architecture_access_policy(runtime.artifacts)
+            _write_json(jsonable(report), args.output)
+            return 0 if all(item.passed for item in report.checks) else 2
+        if args.command == "reference-architecture-schema":
+            _write_json(jsonable(reference_architecture_schema()), args.output)
+            return 0
+        if args.command == "reference-architecture-invariants":
+            fixture = _reference_architecture_fixture(args.input)
+            runtime = run_reference_architecture(fixture)
+            checks = check_reference_architecture_invariants(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+            )
+            accepted = all(item.passed for item in checks)
+            _write_json(
+                {"accepted": accepted, "checks": [jsonable(item) for item in checks]},
+                args.output,
+            )
+            return 0 if accepted else 2
+        if args.command == "reference-architecture-failures":
+            fixture = _reference_architecture_fixture(args.input)
+            report = classify_reference_architecture_failures(
+                evaluate_reference_architecture_fixture(fixture)
+            )
+            _write_json(
+                {"accepted": not report.release_blocked, "report": jsonable(report)},
+                args.output,
+            )
+            return 0 if not report.release_blocked else 2
+        if args.command == "reference-architecture-query":
+            fixture = _reference_architecture_fixture(args.input)
+            evaluation = evaluate_reference_architecture_fixture(fixture)
+            if args.operation:
+                result = {
+                    "operation": args.operation,
+                    "cases": reference_cases_for_operation(fixture, args.operation),
+                }
+            elif args.state:
+                result = {
+                    "state": args.state,
+                    "receipts": reference_receipts_for_state(evaluation, args.state),
+                }
+            else:
+                result = {"receipts": [jsonable(item) for item in evaluation.receipts]}
+            _write_json(result, args.output)
+            return 0
+        if args.command == "reference-architecture-bundle":
+            fixture = _reference_architecture_fixture(args.input)
+            runtime = run_reference_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_text(
+                reference_architecture_fixture_json(fixture),
+                str(output_dir / "fixture.json"),
             )
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":

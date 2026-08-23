@@ -280,6 +280,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D03-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.reference_architecture_operations.evaluate_reference_architecture_fixture",
+                            "glio_noncode.reference_architecture_runtime.run_reference_architecture",
+                            "glio_noncode.reference_architecture_quality.assess_reference_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D04-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -288,6 +297,14 @@ class CapabilityRegistry:
                             "tests.test_specimen_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D03-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_reference_architecture",
+                            "tests.test_reference_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D04-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),
