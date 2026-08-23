@@ -200,6 +200,39 @@ from .atlas_architecture_runtime import run_atlas_architecture
 from .atlas_architecture_schema import atlas_architecture_schema
 from .atlas_architecture_validation import validate_atlas_architecture_matrix
 from .atlas_architecture_quality import assess_atlas_architecture_quality
+from .sequence_architecture_access import sequence_architecture_access_policy
+from .sequence_architecture_compliance import assess_sequence_architecture_compliance
+from .sequence_architecture_data_dictionary import sequence_architecture_data_dictionary
+from .sequence_architecture_depth import sequence_architecture_depth_report
+from .sequence_architecture_failures import classify_sequence_architecture_failures
+from .sequence_architecture_invariants import check_sequence_architecture_invariants
+from .sequence_architecture_metrics import materialize_sequence_architecture_metrics
+from .sequence_architecture_operations import evaluate_sequence_architecture_fixture
+from .sequence_architecture_plan import compile_sequence_architecture_plan
+from .sequence_architecture_public_data import (
+    audit_sequence_architecture_data,
+    default_sequence_architecture_fixture,
+    sequence_architecture_fixture_json,
+)
+from .sequence_architecture_query import sequence_cases_for_operation, sequence_receipts_for_state
+from .sequence_architecture_replay import replay_sequence_architecture_fixture
+from .sequence_architecture_review import build_sequence_architecture_review_queue
+from .sequence_architecture_runbook import sequence_architecture_runbook
+from .sequence_architecture_runtime import run_sequence_architecture
+from .sequence_architecture_schema import sequence_architecture_schema
+from .sequence_architecture_source_registry import build_sequence_architecture_source_registry
+from .sequence_architecture_scenarios import (
+    build_sequence_architecture_scenario_matrix,
+    sequence_architecture_scenario_summary,
+)
+from .sequence_architecture_validation import validate_sequence_architecture_matrix
+from .sequence_architecture_quality import assess_sequence_architecture_quality
+from .sequence_architecture_reporting import (
+    build_sequence_architecture_report,
+    render_sequence_architecture_markdown,
+    sequence_architecture_receipts_csv,
+    sequence_architecture_review_csv,
+)
 from .atlas_architecture_reporting import (
     atlas_architecture_receipts_csv,
     atlas_architecture_review_csv,
@@ -1630,6 +1663,14 @@ def _atlas_architecture_fixture(input_path: str | None):
     )
 
 
+def _sequence_architecture_fixture(input_path: str | None):
+    return (
+        default_sequence_architecture_fixture(input_path)
+        if input_path
+        else default_sequence_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2696,6 +2737,94 @@ def build_parser() -> argparse.ArgumentParser:
     )
     atlas_architecture_sources_csv_parser.add_argument("--input", default=None)
     atlas_architecture_sources_csv_parser.add_argument("--output", required=True)
+    sequence_architecture_fixture = subparsers.add_parser(
+        "sequence-architecture-fixture",
+        help="emit the D06 C01-C16 public aggregate sequence architecture fixture",
+    )
+    sequence_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        (
+            "sequence-architecture-data-audit",
+            "audit D06 sequence sources, context, joins, and aggregate scope",
+        ),
+        ("sequence-architecture-plan", "compile the D06 C01-C16 sequence dependency plan"),
+        (
+            "evaluate-sequence-architecture",
+            "execute D06 family-backed positives and aggregate controls",
+        ),
+        ("sequence-architecture-runtime", "run the twenty-stage D06 sequence architecture"),
+        (
+            "sequence-architecture-validation",
+            "emit the five-plane by sixteen-operation D06 validation matrix",
+        ),
+        ("sequence-architecture-quality", "run the D06 sequence release quality gate"),
+        ("sequence-architecture-depth", "report D06 sequence operation and lineage depth"),
+        ("replay-sequence-architecture", "replay D06 sequence evaluation deterministically"),
+        ("sequence-architecture-review", "emit D06 held-control review receipts"),
+        ("sequence-architecture-metrics", "emit D06 sequence architecture metrics"),
+        ("sequence-architecture-access", "emit D06 sequence artifact access policy"),
+        ("sequence-architecture-schema", "emit D06 sequence interchange schema"),
+        ("sequence-architecture-invariants", "emit D06 sequence cross-module invariants"),
+        ("sequence-architecture-failures", "emit D06 sequence failure classification"),
+        ("sequence-architecture-scenarios", "emit D06 sequence scenario matrix and summary"),
+        ("sequence-architecture-runbook", "emit D06 sequence operational runbook"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    sequence_architecture_dictionary = subparsers.add_parser(
+        "sequence-architecture-dictionary",
+        help="emit the D06 field-level sequence data dictionary",
+    )
+    sequence_architecture_dictionary.add_argument("--input", default=None)
+    sequence_architecture_dictionary.add_argument("--output", default=None)
+    sequence_architecture_report = subparsers.add_parser(
+        "sequence-architecture-report",
+        help="render a D06 sequence release report",
+    )
+    sequence_architecture_report.add_argument("--input", default=None)
+    sequence_architecture_report.add_argument(
+        "--format", choices=("json", "markdown"), default="json"
+    )
+    sequence_architecture_report.add_argument("--output", default=None)
+    sequence_architecture_receipts = subparsers.add_parser(
+        "sequence-architecture-receipts-csv",
+        help="export D06 sequence receipts as CSV",
+    )
+    sequence_architecture_receipts.add_argument("--input", default=None)
+    sequence_architecture_receipts.add_argument("--output", required=True)
+    sequence_architecture_review_csv = subparsers.add_parser(
+        "sequence-architecture-review-csv",
+        help="export D06 held controls as CSV",
+    )
+    sequence_architecture_review_csv.add_argument("--input", default=None)
+    sequence_architecture_review_csv.add_argument("--output", required=True)
+    sequence_architecture_compliance = subparsers.add_parser(
+        "sequence-architecture-compliance",
+        help="run D06 public-scope and claim-boundary compliance checks",
+    )
+    sequence_architecture_compliance.add_argument("--input", default=None)
+    sequence_architecture_compliance.add_argument("--output", default=None)
+    sequence_architecture_sources = subparsers.add_parser(
+        "sequence-architecture-sources",
+        help="emit the D06 source-to-operation registry",
+    )
+    sequence_architecture_sources.add_argument("--input", default=None)
+    sequence_architecture_sources.add_argument("--output", default=None)
+    sequence_architecture_query = subparsers.add_parser(
+        "sequence-architecture-query",
+        help="query sanitized D06 sequence receipts",
+    )
+    sequence_architecture_query.add_argument("--input", default=None)
+    sequence_architecture_query.add_argument("--operation", default=None)
+    sequence_architecture_query.add_argument("--state", choices=("accepted", "review"), default=None)
+    sequence_architecture_query.add_argument("--output", default=None)
+    sequence_architecture_bundle = subparsers.add_parser(
+        "sequence-architecture-bundle",
+        help="write a D06 sequence runtime bundle",
+    )
+    sequence_architecture_bundle.add_argument("--input", default=None)
+    sequence_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -8305,6 +8434,205 @@ def main(argv: list[str] | None = None) -> int:
             fixture = _atlas_architecture_fixture(args.input)
             _write_text(atlas_architecture_sources_csv(fixture), args.output)
             return 0
+        if args.command == "sequence-architecture-fixture":
+            _write_text(sequence_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "sequence-architecture-data-audit":
+            report = audit_sequence_architecture_data(_sequence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-plan":
+            report = compile_sequence_architecture_plan(_sequence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-sequence-architecture":
+            report = evaluate_sequence_architecture_fixture(_sequence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-runtime":
+            runtime = run_sequence_architecture(_sequence_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "sequence-architecture-validation":
+            fixture = _sequence_architecture_fixture(args.input)
+            cells = validate_sequence_architecture_matrix(
+                fixture, evaluate_sequence_architecture_fixture(fixture)
+            )
+            accepted = all(item.passed for item in cells)
+            _write_json(
+                {"accepted": accepted, "cells": [jsonable(item) for item in cells]},
+                args.output,
+            )
+            return 0 if accepted else 2
+        if args.command == "sequence-architecture-quality":
+            fixture = _sequence_architecture_fixture(args.input)
+            runtime = run_sequence_architecture(fixture)
+            quality = assess_sequence_architecture_quality(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime.artifacts,
+                runtime.release,
+                len(runtime.stages),
+            )
+            _write_json(quality.to_dict(), args.output)
+            return 0 if quality.passed else 2
+        if args.command == "sequence-architecture-depth":
+            fixture = _sequence_architecture_fixture(args.input)
+            runtime = run_sequence_architecture(fixture)
+            report = sequence_architecture_depth_report(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-sequence-architecture":
+            report = replay_sequence_architecture_fixture(_sequence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-review":
+            fixture = _sequence_architecture_fixture(args.input)
+            report = build_sequence_architecture_review_queue(fixture.fixture_id, fixture.cases)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-metrics":
+            fixture = _sequence_architecture_fixture(args.input)
+            runtime = run_sequence_architecture(fixture)
+            metrics = materialize_sequence_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(runtime.validation)
+            )
+            _write_json(metrics.to_dict(), args.output)
+            return 0
+        if args.command == "sequence-architecture-access":
+            runtime = run_sequence_architecture(_sequence_architecture_fixture(args.input))
+            report = sequence_architecture_access_policy(runtime.artifacts)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-schema":
+            _write_json(sequence_architecture_schema().to_dict(), args.output)
+            return 0
+        if args.command == "sequence-architecture-invariants":
+            fixture = _sequence_architecture_fixture(args.input)
+            runtime = run_sequence_architecture(fixture)
+            checks = check_sequence_architecture_invariants(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+            )
+            accepted = all(item.passed for item in checks)
+            _write_json(
+                {"accepted": accepted, "checks": [jsonable(item) for item in checks]},
+                args.output,
+            )
+            return 0 if accepted else 2
+        if args.command == "sequence-architecture-failures":
+            fixture = _sequence_architecture_fixture(args.input)
+            report = classify_sequence_architecture_failures(
+                evaluate_sequence_architecture_fixture(fixture)
+            )
+            _write_json(
+                {"accepted": not report.release_blocked, "report": report.to_dict()},
+                args.output,
+            )
+            return 0 if not report.release_blocked else 2
+        if args.command == "sequence-architecture-scenarios":
+            fixture = _sequence_architecture_fixture(args.input)
+            runtime = run_sequence_architecture(fixture)
+            matrix = build_sequence_architecture_scenario_matrix(fixture, runtime.evaluation)
+            _write_json(
+                {
+                    "accepted": matrix.accepted,
+                    "matrix": matrix.to_dict(),
+                    "summary": sequence_architecture_scenario_summary(matrix),
+                },
+                args.output,
+            )
+            return 0 if matrix.accepted else 2
+        if args.command == "sequence-architecture-runbook":
+            report = sequence_architecture_runbook()
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-dictionary":
+            fixture = _sequence_architecture_fixture(args.input)
+            report = sequence_architecture_data_dictionary(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-report":
+            fixture = _sequence_architecture_fixture(args.input)
+            runtime = run_sequence_architecture(fixture)
+            metrics = materialize_sequence_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(runtime.validation)
+            )
+            dictionary = sequence_architecture_data_dictionary(fixture)
+            report = build_sequence_architecture_report(fixture, runtime, metrics, dictionary)
+            if args.format == "markdown":
+                _write_text(render_sequence_architecture_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if runtime.accepted and dictionary.accepted else 2
+        if args.command == "sequence-architecture-receipts-csv":
+            runtime = run_sequence_architecture(_sequence_architecture_fixture(args.input))
+            _write_text(sequence_architecture_receipts_csv(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "sequence-architecture-review-csv":
+            runtime = run_sequence_architecture(_sequence_architecture_fixture(args.input))
+            _write_text(sequence_architecture_review_csv(runtime.review_queue), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "sequence-architecture-compliance":
+            report = assess_sequence_architecture_compliance(
+                _sequence_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-sources":
+            report = build_sequence_architecture_source_registry(
+                _sequence_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "sequence-architecture-query":
+            fixture = _sequence_architecture_fixture(args.input)
+            evaluation = evaluate_sequence_architecture_fixture(fixture)
+            if args.operation:
+                result = {
+                    "operation": args.operation,
+                    "cases": sequence_cases_for_operation(fixture, args.operation),
+                }
+            elif args.state:
+                result = {
+                    "state": args.state,
+                    "receipts": sequence_receipts_for_state(evaluation, args.state),
+                }
+            else:
+                result = {"receipts": [jsonable(item) for item in evaluation.receipts]}
+            _write_json(result, args.output)
+            return 0
+        if args.command == "sequence-architecture-bundle":
+            fixture = _sequence_architecture_fixture(args.input)
+            runtime = run_sequence_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_text(
+                sequence_architecture_fixture_json(fixture),
+                str(output_dir / "fixture.json"),
+            )
+            return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)
             return 0

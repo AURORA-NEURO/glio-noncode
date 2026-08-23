@@ -298,6 +298,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D05-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.sequence_architecture_operations.evaluate_sequence_architecture_fixture",
+                            "glio_noncode.sequence_architecture_runtime.run_sequence_architecture",
+                            "glio_noncode.sequence_architecture_quality.assess_sequence_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D06-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -322,6 +331,14 @@ class CapabilityRegistry:
                             "tests.test_atlas_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D05-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_sequence_architecture",
+                            "tests.test_sequence_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D06-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),
