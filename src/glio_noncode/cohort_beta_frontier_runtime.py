@@ -92,7 +92,9 @@ class CohortBetaFrontierRuntimeReport:
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self)
+        payload = {field: getattr(self, field) for field in self.__dataclass_fields__}
+        payload["adapters"] = self.adapters.to_dict()
+        return jsonable(payload)
 
 
 def run_cohort_beta_frontier_runtime(fixture: CohortBetaFrontierFixture | None = None, *, run_id: str = "cohort-beta-frontier-runtime") -> CohortBetaFrontierRuntimeReport:

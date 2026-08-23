@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import unittest
+import json
 
 from glio_noncode.cohort_beta import CohortBetaState, RegulatoryRecurrenceTester
 from glio_noncode.cohort_beta_frontier_adapters import default_cohort_beta_frontier_adapters, validate_cohort_beta_frontier_payload
@@ -95,6 +96,11 @@ class CohortBetaFrontierTests(unittest.TestCase):
         self.assertTrue(report.release.ready)
         self.assertTrue(report.assurance.accepted)
         self.assertEqual(report.claim_evidence.claims[0].operation, "C05")
+
+    def test_runtime_projection_is_json_serializable(self) -> None:
+        report = run_cohort_beta_frontier_runtime()
+        payload = json.dumps(report.to_dict(), sort_keys=True)
+        self.assertIn('"accepted": true', payload)
 
     def test_recurrence_primitive_remains_exact_context(self) -> None:
         result = RegulatoryRecurrenceTester().test(({"record_id": "r", "variant_id": "v", "sample_id": "s", "chromosome": "chr7", "position": 100, "context_key": "other", "source_id": "public", "source_version": "v1"},), context_key=C05_C08_CONTEXT)
