@@ -99,6 +99,28 @@ from .coordination_architecture_runtime import run_coordination_architecture
 from .coordination_architecture_schema import default_coordination_schema
 from .coordination_architecture_tools import build_coordination_tool_registry
 from .coordination_architecture_validation import build_coordination_validation_matrix
+from .intake_architecture_bundle import build_intake_architecture_release
+from .intake_architecture_contracts import IntakeArchitectureScenario
+from .intake_architecture_depth import audit_intake_architecture_depth
+from .intake_architecture_exports import intake_architecture_report_markdown, intake_architecture_runtime_json
+from .intake_architecture_failures import run_intake_architecture_failure_injections
+from .intake_architecture_invariants import intake_architecture_invariants
+from .intake_architecture_operations import evaluate_intake_architecture_fixture
+from .intake_architecture_plan import compile_intake_architecture_plan
+from .intake_architecture_public_data import (
+    audit_intake_architecture_data,
+    default_intake_architecture_fixture,
+    intake_architecture_fixture_json,
+    load_intake_architecture_fixture,
+)
+from .intake_architecture_query import query_intake_architecture
+from .intake_architecture_replay import replay_intake_architecture
+from .intake_architecture_review import build_intake_architecture_review_queue, intake_review_csv
+from .intake_architecture_runbook import build_intake_architecture_runbook
+from .intake_architecture_runtime import run_intake_architecture
+from .intake_architecture_schema import default_intake_architecture_schema
+from .intake_architecture_validation import build_intake_architecture_validation_matrix
+from .intake_architecture_quality import run_intake_architecture_quality_gate
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
     DependenceMethod,
@@ -1354,6 +1376,10 @@ def _coordination_fixture(input_path: str | None):
     return load_coordination_fixture(input_path) if input_path else default_coordination_fixture()
 
 
+def _intake_architecture_fixture(input_path: str | None):
+    return load_intake_architecture_fixture(input_path) if input_path else default_intake_architecture_fixture()
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2077,6 +2103,101 @@ def build_parser() -> argparse.ArgumentParser:
     coordination_query.add_argument("--operation-id", default=None)
     coordination_query.add_argument("--issue-code", default=None)
     coordination_query.add_argument("--output", default=None)
+    intake_architecture_fixture = subparsers.add_parser(
+        "intake-architecture-fixture",
+        help="emit the D01 public aggregate variant identity and intake fixture",
+    )
+    intake_architecture_fixture.add_argument("--output", default=None)
+    intake_architecture_data = subparsers.add_parser(
+        "intake-architecture-data-audit",
+        help="audit D01 source, operation, case, and privacy cardinality",
+    )
+    intake_architecture_data.add_argument("--input", default=None)
+    intake_architecture_data.add_argument("--output", default=None)
+    intake_architecture_plan = subparsers.add_parser(
+        "intake-architecture-plan",
+        help="emit the D01 dependency-safe intake plan",
+    )
+    intake_architecture_plan.add_argument("--input", default=None)
+    intake_architecture_plan.add_argument("--output", default=None)
+    intake_architecture_evaluate = subparsers.add_parser(
+        "intake-architecture-evaluate",
+        help="evaluate all D01 positive and control cases",
+    )
+    intake_architecture_evaluate.add_argument("--input", default=None)
+    intake_architecture_evaluate.add_argument("--output", default=None)
+    intake_architecture_runtime_parser = subparsers.add_parser(
+        "intake-architecture-runtime",
+        help="run the twenty-stage D01 intake architecture",
+    )
+    intake_architecture_runtime_parser.add_argument("--input", default=None)
+    intake_architecture_runtime_parser.add_argument("--output", default=None)
+    intake_architecture_quality = subparsers.add_parser(
+        "intake-architecture-quality",
+        help="run the deep D01 quality gate",
+    )
+    intake_architecture_quality.add_argument("--input", default=None)
+    intake_architecture_quality.add_argument("--output", default=None)
+    intake_architecture_depth = subparsers.add_parser(
+        "intake-architecture-depth",
+        help="audit D01 implementation depth and denominators",
+    )
+    intake_architecture_depth.add_argument("--input", default=None)
+    intake_architecture_depth.add_argument("--output", default=None)
+    intake_architecture_replay = subparsers.add_parser(
+        "intake-architecture-replay",
+        help="replay the D01 evaluation deterministically",
+    )
+    intake_architecture_replay.add_argument("--input", default=None)
+    intake_architecture_replay.add_argument("--output", default=None)
+    intake_architecture_validation = subparsers.add_parser(
+        "intake-architecture-validation",
+        help="emit the seven-plane by sixteen-operation D01 validation matrix",
+    )
+    intake_architecture_validation.add_argument("--input", default=None)
+    intake_architecture_validation.add_argument("--output", default=None)
+    intake_architecture_runbook_parser = subparsers.add_parser(
+        "intake-architecture-runbook",
+        help="emit executable D01 runbook steps",
+    )
+    intake_architecture_runbook_parser.add_argument("--input", default=None)
+    intake_architecture_runbook_parser.add_argument("--output", default=None)
+    intake_architecture_review_parser = subparsers.add_parser(
+        "intake-architecture-review-csv",
+        help="export held D01 controls as review CSV",
+    )
+    intake_architecture_review_parser.add_argument("--input", default=None)
+    intake_architecture_review_parser.add_argument("--output", default=None)
+    intake_architecture_report_parser = subparsers.add_parser(
+        "intake-architecture-report",
+        help="render a D01 runtime report",
+    )
+    intake_architecture_report_parser.add_argument("--input", default=None)
+    intake_architecture_report_parser.add_argument("--format", choices=("json", "markdown"), default="json")
+    intake_architecture_report_parser.add_argument("--output", default=None)
+    intake_architecture_failures = subparsers.add_parser(
+        "intake-architecture-failures",
+        help="run D01 negative controls",
+    )
+    intake_architecture_failures.add_argument("--output", default=None)
+    intake_architecture_schema = subparsers.add_parser(
+        "intake-architecture-schema",
+        help="emit the D01 public aggregate schema manifest",
+    )
+    intake_architecture_schema.add_argument("--output", default=None)
+    intake_architecture_query = subparsers.add_parser(
+        "intake-architecture-query",
+        help="query sanitized D01 execution results",
+    )
+    intake_architecture_query.add_argument("--input", default=None)
+    intake_architecture_query.add_argument("--query", required=True)
+    intake_architecture_query.add_argument("--output", default=None)
+    intake_architecture_invariants_parser = subparsers.add_parser(
+        "intake-architecture-invariants",
+        help="emit D01 conservation and boundary invariant results",
+    )
+    intake_architecture_invariants_parser.add_argument("--input", default=None)
+    intake_architecture_invariants_parser.add_argument("--output", default=None)
     module_fabric_ledger = subparsers.add_parser(
         "module-fabric-ledger",
         help="emit the ordered sanitized module-fabric operation ledger",
@@ -6855,6 +6976,80 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(result.to_dict(), args.output)
             return 0
+        if args.command == "intake-architecture-fixture":
+            _write_text(intake_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "intake-architecture-data-audit":
+            fixture = _intake_architecture_fixture(args.input)
+            report = audit_intake_architecture_data(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "intake-architecture-plan":
+            fixture = _intake_architecture_fixture(args.input)
+            _write_json(compile_intake_architecture_plan(fixture).to_dict(), args.output)
+            return 0
+        if args.command == "intake-architecture-evaluate":
+            fixture = _intake_architecture_fixture(args.input)
+            report = evaluate_intake_architecture_fixture(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "intake-architecture-runtime":
+            fixture = _intake_architecture_fixture(args.input)
+            runtime = run_intake_architecture(fixture)
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.state.value == "accepted" else 2
+        if args.command == "intake-architecture-quality":
+            fixture = _intake_architecture_fixture(args.input)
+            report = run_intake_architecture_quality_gate(run_intake_architecture(fixture))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "intake-architecture-depth":
+            fixture = _intake_architecture_fixture(args.input)
+            report = audit_intake_architecture_depth(run_intake_architecture(fixture))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "intake-architecture-replay":
+            fixture = _intake_architecture_fixture(args.input)
+            report = replay_intake_architecture(fixture)
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "intake-architecture-validation":
+            fixture = _intake_architecture_fixture(args.input)
+            report = build_intake_architecture_validation_matrix(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "intake-architecture-runbook":
+            fixture = _intake_architecture_fixture(args.input)
+            _write_json(build_intake_architecture_runbook(run_intake_architecture(fixture)), args.output)
+            return 0
+        if args.command == "intake-architecture-review-csv":
+            fixture = _intake_architecture_fixture(args.input)
+            _write_text(intake_review_csv(build_intake_architecture_review_queue(evaluate_intake_architecture_fixture(fixture))), args.output)
+            return 0
+        if args.command == "intake-architecture-report":
+            fixture = _intake_architecture_fixture(args.input)
+            runtime = run_intake_architecture(fixture)
+            if args.format == "markdown":
+                _write_text(intake_architecture_report_markdown(runtime), args.output)
+            else:
+                _write_text(intake_architecture_runtime_json(runtime), args.output)
+            return 0 if runtime.state.value == "accepted" else 2
+        if args.command == "intake-architecture-failures":
+            report = run_intake_architecture_failure_injections()
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "intake-architecture-schema":
+            _write_json(default_intake_architecture_schema().to_dict(), args.output)
+            return 0
+        if args.command == "intake-architecture-query":
+            fixture = _intake_architecture_fixture(args.input)
+            _write_json(query_intake_architecture(run_intake_architecture(fixture), args.query), args.output)
+            return 0
+        if args.command == "intake-architecture-invariants":
+            fixture = _intake_architecture_fixture(args.input)
+            issues = intake_architecture_invariants(run_intake_architecture(fixture))
+            _write_json({"issues": issues, "accepted": not issues}, args.output)
+            return 0 if not issues else 2
         if args.command == "module-fabric-ledger":
             fixture = _module_fabric_fixture(args.input)
             ledger = build_module_fabric_operation_ledger(fixture)

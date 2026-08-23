@@ -239,6 +239,41 @@ The [coordination operations](docs/COORDINATION_ARCHITECTURE_OPERATIONS.md),
 runtime boundary. The checked-in fixture is
 [examples/coordination-architecture-public-aggregate.json](examples/coordination-architecture-public-aggregate.json).
 
+The D01 variant identity and intake architecture now provides a complete
+public-aggregate intake boundary over the first sixteen capabilities. It has
+six HTTPS source receipts, sixteen dependency-ordered operations, sixty-four
+balanced cases, seven validation planes, twenty runtime stages, a sixty-four
+event hash-linked receipt ledger, five offline bundle artifacts, deterministic
+replay, and explicit release rollback metadata:
+
+```text
+glio-noncode intake-architecture-fixture --output intake-architecture.json
+glio-noncode intake-architecture-data-audit --input intake-architecture.json
+glio-noncode intake-architecture-plan --input intake-architecture.json
+glio-noncode intake-architecture-evaluate --input intake-architecture.json
+glio-noncode intake-architecture-runtime --input intake-architecture.json --output intake-runtime.json
+glio-noncode intake-architecture-quality --input intake-architecture.json
+glio-noncode intake-architecture-depth --input intake-architecture.json
+glio-noncode intake-architecture-validation --input intake-architecture.json
+glio-noncode intake-architecture-replay --input intake-architecture.json
+glio-noncode intake-architecture-review-csv --input intake-architecture.json
+glio-noncode intake-architecture-report --input intake-architecture.json --format markdown
+```
+
+The implementation composes the canonical VCF/BCF/gVCF intake parser,
+regulatory-track parser, VRS-shaped normalizer, categorical normalizer,
+multi-allelic decomposer, repeat-aware normalizer, and source-qualified
+identity resolver. Malformed, foreign-context, and duplicate-identity rows are
+held for review with their original content addresses. The boundary contains
+public identifiers and aggregate receipts only; it does not establish specimen
+custody, biological authentication, clinical interpretation, or individual
+outcomes. See the [D01 operations](docs/INTAKE_ARCHITECTURE_OPERATIONS.md),
+[schema](docs/INTAKE_ARCHITECTURE_SCHEMA.md),
+[runbook](docs/INTAKE_ARCHITECTURE_RUNBOOK.md), and
+[release gate](docs/INTAKE_ARCHITECTURE_RELEASE.md) documents. The checked-in
+fixture manifest is
+[examples/intake-architecture-public-aggregate.json](examples/intake-architecture-public-aggregate.json).
+
 See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_API.md](docs/WORKBENCH_RELEASE_FRONTIER_API.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md](docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md),

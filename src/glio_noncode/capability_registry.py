@@ -321,8 +321,9 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.intake.VariantIntake",
                     "glio_noncode.models.CaseManifest",
+                    "glio_noncode.intake_architecture_operations.evaluate_intake_architecture_case",
                 ),
-                "test_modules": ("tests.test_intake", "tests.test_d01_capabilities"),
+                "test_modules": ("tests.test_intake", "tests.test_d01_capabilities", "tests.test_intake_architecture"),
                 "evidence_note": (
                     "VCF/TSV/JSON/BCF fixtures preserve source accounting and can be "
                     "projected into a CaseManifest; malformed records remain reviewable."
@@ -333,8 +334,9 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.intake.VariantIntake",
                     "glio_noncode.bcf.BcfReader",
+                    "glio_noncode.intake_architecture_parsing.parse_intake_architecture_case",
                 ),
-                "test_modules": ("tests.test_intake", "tests.test_bcf"),
+                "test_modules": ("tests.test_intake", "tests.test_bcf", "tests.test_intake_architecture"),
                 "evidence_note": (
                     "Binary BCF2 and text gVCF paths have bounded fixtures, genotype "
                     "handling, and explicit symbolic-record deferral."
@@ -342,8 +344,8 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C03": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.regulatory_tracks.RegulatoryTrackParser",),
-                "test_modules": ("tests.test_d01_capabilities",),
+                "implementation_modules": ("glio_noncode.regulatory_tracks.RegulatoryTrackParser", "glio_noncode.intake_architecture_parsing.parse_regulatory_track"),
+                "test_modules": ("tests.test_d01_capabilities", "tests.test_intake_architecture"),
                 "evidence_note": (
                     "BED, narrowPeak, GFF3, and JSON interval fixtures preserve source "
                     "coordinates, attributes, hashes, and quarantined rows."
@@ -351,11 +353,12 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C04": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.variant_normalization.VRSNormalizer",),
+                "implementation_modules": ("glio_noncode.variant_normalization.VRSNormalizer", "glio_noncode.intake_architecture_normalization.normalize_vrs"),
                 "test_modules": (
                     "tests.test_d01_capabilities",
                     "tests.test_variation_fixture_eval",
                     "tests.test_variation_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "VRS-shaped Allele output, sequence-digest provenance, trimming, and "
@@ -369,12 +372,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.variant_beta.CategoricalCatalogParser",
                     "glio_noncode.variant_beta.CatVRSNormalizer",
+                    "glio_noncode.intake_architecture_normalization.normalize_cat_vrs",
                 ),
                 "test_modules": (
                     "tests.test_variant_beta",
                     "tests.test_variant_beta_cli",
                     "tests.test_variation_fixture_eval",
                     "tests.test_variation_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Versioned JSON/TSV/CSV categorical catalogs retain malformed rows and "
@@ -388,12 +393,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.variant_beta.AnnotationStatement",
                     "glio_noncode.variant_beta.VAAnnotationEnvelopeBuilder",
+                    "glio_noncode.intake_architecture_operations.evaluate_intake_architecture_case",
                 ),
                 "test_modules": (
                     "tests.test_variant_beta",
                     "tests.test_variant_beta_cli",
                     "tests.test_variation_fixture_eval",
                     "tests.test_variation_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Statement/evidence envelopes retain provenance, context, subject scope, "
@@ -404,12 +411,13 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C07": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.variant_beta.MultiAllelicDecomposer",),
+                "implementation_modules": ("glio_noncode.variant_beta.MultiAllelicDecomposer", "glio_noncode.intake_architecture_parsing.parse_multiallelic"),
                 "test_modules": (
                     "tests.test_variant_beta",
                     "tests.test_variant_beta_cli",
                     "tests.test_variation_fixture_eval",
                     "tests.test_variation_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Literal alternate alleles become indexed child identities with parent raw "
@@ -420,12 +428,13 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C08": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.variant_beta.RepeatAwareNormalizer",),
+                "implementation_modules": ("glio_noncode.variant_beta.RepeatAwareNormalizer", "glio_noncode.intake_architecture_normalization.normalize_repeat"),
                 "test_modules": (
                     "tests.test_variant_beta",
                     "tests.test_variant_beta_cli",
                     "tests.test_variation_fixture_eval",
                     "tests.test_variation_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Literal SNVs and indels are replayed against a supplied local reference "
@@ -439,12 +448,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.identity_beta.VariantEquivalenceResolver",
                     "glio_noncode.identity_beta.VariantIdentityRecord",
+                    "glio_noncode.intake_architecture_identity.resolve_public_identity",
                 ),
                 "test_modules": (
                     "tests.test_identity_beta",
                     "tests.test_identity_beta_cli",
                     "tests.test_identity_fixture_eval",
                     "tests.test_identity_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Equivalence resolution normalizes build, contig, interval, allele, and "
@@ -460,12 +471,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.identity_beta.DuplicateAliasReconciler",
                     "glio_noncode.identity_beta.AliasReconciliationReport",
+                    "glio_noncode.intake_architecture_identity.reconcile_aliases",
                 ),
                 "test_modules": (
                     "tests.test_identity_beta",
                     "tests.test_identity_beta_cli",
                     "tests.test_identity_fixture_eval",
                     "tests.test_identity_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Duplicate normalized identities and explicit alias collisions are grouped "
@@ -480,12 +493,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.identity_beta.BatchSampleIdentityChecker",
                     "glio_noncode.identity_beta.SampleIdentityResult",
+                    "glio_noncode.intake_architecture_identity.check_batch_identity",
                 ),
                 "test_modules": (
                     "tests.test_identity_beta",
                     "tests.test_identity_beta_cli",
                     "tests.test_identity_fixture_eval",
                     "tests.test_identity_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Batch, sample, and subject mappings retain source versions, missing fields, "
@@ -500,12 +515,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.identity_beta.ChainOfCustodyCapture",
                     "glio_noncode.identity_beta.CustodyCaptureResult",
+                    "glio_noncode.intake_architecture_provenance.build_intake_architecture_ledger",
                 ),
                 "test_modules": (
                     "tests.test_identity_beta",
                     "tests.test_identity_beta_cli",
                     "tests.test_identity_fixture_eval",
                     "tests.test_identity_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Custody capture records artifact event order, predecessor links, input/output "
@@ -520,12 +537,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.ConsentPolicyAttacher",
                     "glio_noncode.frontier_data_alpha.ConsentAttachmentReport",
+                    "glio_noncode.intake_architecture_policy.evaluate_intake_policy",
                 ),
                 "test_modules": (
                     "tests.test_frontier_data_alpha",
                     "tests.test_intake_public_data",
                     "tests.test_intake_fixture_eval",
                     "tests.test_intake_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Consent attachments retain policy identity, version, purpose, permitted uses, "
@@ -540,12 +559,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.InputAnomalyQuarantine",
                     "glio_noncode.frontier_data_alpha.AnomalyQuarantineReport",
+                    "glio_noncode.intake_architecture_quarantine.build_intake_quarantine",
                 ),
                 "test_modules": (
                     "tests.test_frontier_data_alpha",
                     "tests.test_intake_public_data",
                     "tests.test_intake_fixture_eval",
                     "tests.test_intake_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Duplicate IDs, missing or mismatched context, invalid coordinates, and "
@@ -559,12 +580,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.DataCompletenessScorer",
                     "glio_noncode.frontier_data_alpha.CompletenessReport",
+                    "glio_noncode.intake_architecture_completeness.score_intake_completeness",
                 ),
                 "test_modules": (
                     "tests.test_frontier_data_alpha",
                     "tests.test_intake_public_data",
                     "tests.test_intake_fixture_eval",
                     "tests.test_intake_fixture_cli",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Weighted required-field completeness scores preserve present, missing, and "
@@ -578,6 +601,7 @@ def default_capability_registry() -> CapabilityRegistry:
                 "implementation_modules": (
                     "glio_noncode.frontier_data_alpha.IntakeBundleExporter",
                     "glio_noncode.frontier_data_alpha.IntakeBundle",
+                    "glio_noncode.intake_architecture_bundle.build_intake_architecture_artifacts",
                 ),
                 "test_modules": (
                     "tests.test_frontier_data_alpha",
@@ -585,6 +609,7 @@ def default_capability_registry() -> CapabilityRegistry:
                     "tests.test_intake_fixture_eval",
                     "tests.test_intake_fixture_cli",
                     "tests.test_intake_bundle",
+                    "tests.test_intake_architecture",
                 ),
                 "evidence_note": (
                     "Intake bundles are deterministic, content-addressed, context-bound, and "

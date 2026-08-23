@@ -1,0 +1,3571 @@
+{
+  "boundary": "public_aggregate_variant_identity_and_intake",
+  "cases": [
+    {
+      "capability_id": "GNC-D01-C01",
+      "case_id": "INTAKE-D01-C01-positive",
+      "content_address": "intake-case:29ee9f87194bc3b777c76cc53216c8f616b42058932f991481bbb817610c4188",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C01",
+      "payload": {
+        "capability_id": "GNC-D01-C01",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C01",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:case_manifest_ingestion:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C01",
+      "case_id": "INTAKE-D01-C01-foreign_context",
+      "content_address": "intake-case:895b69a1246c8284a35b6f507a62fafd1afeb8a1d5b9ca43beadcc963c02e355",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C01",
+      "payload": {
+        "capability_id": "GNC-D01-C01",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C01",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:case_manifest_ingestion:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C01",
+      "case_id": "INTAKE-D01-C01-malformed_input",
+      "content_address": "intake-case:487e823a6ce563a76a8122816efafd881a1ab2d8bffbbb800defe6c72058c8ea",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C01",
+      "payload": {
+        "capability_id": "GNC-D01-C01",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C01",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:case_manifest_ingestion:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C01",
+      "case_id": "INTAKE-D01-C01-duplicate_identity",
+      "content_address": "intake-case:8a685ba9f8538becbba15e1df9d8d5ba9d3666f0e84fc8d9d5728a60d5682905",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C01",
+      "payload": {
+        "capability_id": "GNC-D01-C01",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C01",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:case_manifest_ingestion:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C02",
+      "case_id": "INTAKE-D01-C02-positive",
+      "content_address": "intake-case:d5d3635062f7983059450e7df8c5b5caefd70910dda989951123043e47c412a2",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C02",
+      "payload": {
+        "capability_id": "GNC-D01-C02",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "input_format": "vcf",
+        "operation_id": "INTAKE-D01-C02",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t55249063\trs429358\tT\tC\t.\tPASS\tSOURCE=public\n",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vcf_bcf_gvcf_parsing:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C02",
+      "case_id": "INTAKE-D01-C02-foreign_context",
+      "content_address": "intake-case:eeebabbc5dfa9d64badf41a47d0a4923736f8936deb20256150678072f4b8938",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C02",
+      "payload": {
+        "capability_id": "GNC-D01-C02",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "input_format": "vcf",
+        "operation_id": "INTAKE-D01-C02",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t55249063\trs429358\tT\tC\t.\tPASS\tSOURCE=public\n",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vcf_bcf_gvcf_parsing:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C02",
+      "case_id": "INTAKE-D01-C02-malformed_input",
+      "content_address": "intake-case:e0cae976b0356031a525a198185d8671a97b1d00cce3707946cc680251723651",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C02",
+      "payload": {
+        "capability_id": "GNC-D01-C02",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "input_format": "vcf",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C02",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "not-a-vcf-record",
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vcf_bcf_gvcf_parsing:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C02",
+      "case_id": "INTAKE-D01-C02-duplicate_identity",
+      "content_address": "intake-case:6824b152342ae6e82e8e8bd8b6cbeac337cff2824b5d08152cfbb81f6b792f4c",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C02",
+      "payload": {
+        "capability_id": "GNC-D01-C02",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "input_format": "vcf",
+        "operation_id": "INTAKE-D01-C02",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t55249063\trs429358\tT\tC\t.\tPASS\tSOURCE=public\n",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vcf_bcf_gvcf_parsing:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C03",
+      "case_id": "INTAKE-D01-C03-positive",
+      "content_address": "intake-case:fdb0239747acd1001444e16045565b57356920668750f5d8cb6058bd9edba35a",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C03",
+      "payload": {
+        "capability_id": "GNC-D01-C03",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "input_format": "tsv",
+        "operation_id": "INTAKE-D01-C03",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "track_text": "chrom\tstart\tend\tname\tscore\nchr7\t55249062\t55249063\tpublic-regulatory-window\t1.0\n",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:regulatory_track_parsing:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C03",
+      "case_id": "INTAKE-D01-C03-foreign_context",
+      "content_address": "intake-case:c390cbc1ba73337fab0a85d23bd6807e9dd41eb11ef87720e8cbc1ed36c40665",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C03",
+      "payload": {
+        "capability_id": "GNC-D01-C03",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "input_format": "tsv",
+        "operation_id": "INTAKE-D01-C03",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "track_text": "chrom\tstart\tend\tname\tscore\nchr7\t55249062\t55249063\tpublic-regulatory-window\t1.0\n",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:regulatory_track_parsing:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C03",
+      "case_id": "INTAKE-D01-C03-malformed_input",
+      "content_address": "intake-case:8ccf2063b4d80a0fb5f39c8aec0f019bde6c8363f2d8545106dbb8888d7718c9",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C03",
+      "payload": {
+        "capability_id": "GNC-D01-C03",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "input_format": "tsv",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C03",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "track_text": "chrom\tstart\tend\tname\tscore\nchr7\t55249062\t55249063\tpublic-regulatory-window\t1.0\n",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:regulatory_track_parsing:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C03",
+      "case_id": "INTAKE-D01-C03-duplicate_identity",
+      "content_address": "intake-case:7d0f2aed5e1cf7f01a8c3e8c0880ba671749976cea186336a122debef4b6c79d",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C03",
+      "payload": {
+        "capability_id": "GNC-D01-C03",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "input_format": "tsv",
+        "operation_id": "INTAKE-D01-C03",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "track_text": "chrom\tstart\tend\tname\tscore\nchr7\t55249062\t55249063\tpublic-regulatory-window\t1.0\n",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:regulatory_track_parsing:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C04",
+      "case_id": "INTAKE-D01-C04-positive",
+      "content_address": "intake-case:54f9bc101ce36c7ec7b98f71133bff9700850806282dc64a3b97c37c40716c8b",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C04",
+      "payload": {
+        "capability_id": "GNC-D01-C04",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C04",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vrs_normalization:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C04",
+      "case_id": "INTAKE-D01-C04-foreign_context",
+      "content_address": "intake-case:f5aa165f0effaa75ad2378016063ddb392f214dca259807137c56441170b2ffa",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C04",
+      "payload": {
+        "capability_id": "GNC-D01-C04",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C04",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vrs_normalization:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C04",
+      "case_id": "INTAKE-D01-C04-malformed_input",
+      "content_address": "intake-case:cf9046453b8da98a68bc3072087e6262575fa540d953fd2fa6892592f2eba064",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C04",
+      "payload": {
+        "capability_id": "GNC-D01-C04",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C04",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vrs_normalization:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C04",
+      "case_id": "INTAKE-D01-C04-duplicate_identity",
+      "content_address": "intake-case:8f69dc6064089e353c9d2267c9a49014477c3aeb2f8866bdfca485e8981e0adf",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C04",
+      "payload": {
+        "capability_id": "GNC-D01-C04",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C04",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:vrs_normalization:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C05",
+      "case_id": "INTAKE-D01-C05-positive",
+      "content_address": "intake-case:df9b120aeb85c975be1b28647caa19e72ecc8b4967a602160ea5c9940ddc0e38",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C05",
+      "payload": {
+        "capability_id": "GNC-D01-C05",
+        "category": {
+          "category_id": "cat-vrs:public-reference-snv",
+          "definition": "Declared membership set for deterministic parser validation.",
+          "label": "public reference variation set",
+          "member_variation_ids": [
+            "dbsnp:rs429358"
+          ],
+          "rules": {
+            "membership": "explicit_identifier_only"
+          }
+        },
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C05",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:cat_vrs_normalization:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C05",
+      "case_id": "INTAKE-D01-C05-foreign_context",
+      "content_address": "intake-case:a838cc1ba914b7962aa3fa89ae7ed89839b6ea9b5c1a9c5364345d8ba2a12d00",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C05",
+      "payload": {
+        "capability_id": "GNC-D01-C05",
+        "category": {
+          "category_id": "cat-vrs:public-reference-snv",
+          "definition": "Declared membership set for deterministic parser validation.",
+          "label": "public reference variation set",
+          "member_variation_ids": [
+            "dbsnp:rs429358"
+          ],
+          "rules": {
+            "membership": "explicit_identifier_only"
+          }
+        },
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C05",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:cat_vrs_normalization:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C05",
+      "case_id": "INTAKE-D01-C05-malformed_input",
+      "content_address": "intake-case:2def77f6b3f1f9a4e0795dd045d850f832bbf3caa44905aab546b10649842c8b",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C05",
+      "payload": {
+        "capability_id": "GNC-D01-C05",
+        "category": {
+          "category_id": "cat-vrs:public-reference-snv",
+          "definition": "Declared membership set for deterministic parser validation.",
+          "label": "public reference variation set",
+          "member_variation_ids": [
+            "dbsnp:rs429358"
+          ],
+          "rules": {
+            "membership": "explicit_identifier_only"
+          }
+        },
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C05",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:cat_vrs_normalization:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C05",
+      "case_id": "INTAKE-D01-C05-duplicate_identity",
+      "content_address": "intake-case:052d262692185133c64faee49b6af18c01fc0fd6e0604a1055cdcce91bd08700",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C05",
+      "payload": {
+        "capability_id": "GNC-D01-C05",
+        "category": {
+          "category_id": "cat-vrs:public-reference-snv",
+          "definition": "Declared membership set for deterministic parser validation.",
+          "label": "public reference variation set",
+          "member_variation_ids": [
+            "dbsnp:rs429358"
+          ],
+          "rules": {
+            "membership": "explicit_identifier_only"
+          }
+        },
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C05",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:cat_vrs_normalization:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C06",
+      "case_id": "INTAKE-D01-C06-positive",
+      "content_address": "intake-case:b9d1a1980268f3ec6e8d692aa1756640bf7ccc85dab4488caabc9c605c243a48",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C06",
+      "payload": {
+        "capability_id": "GNC-D01-C06",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C06",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "statement": {
+          "object": "GRCh38:7:55249063:T:C",
+          "predicate": "has_declared_public_reference_identity",
+          "source_id": "ncbi-variation",
+          "statement_id": "va-statement:public-aggregate-001",
+          "subject": "dbsnp:rs429358"
+        },
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:va_spec_envelope:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C06",
+      "case_id": "INTAKE-D01-C06-foreign_context",
+      "content_address": "intake-case:f9559b7e8934720548304b7648800168289382cc102b64d6a27b7bd8a8bf02d9",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C06",
+      "payload": {
+        "capability_id": "GNC-D01-C06",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C06",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "statement": {
+          "object": "GRCh38:7:55249063:T:C",
+          "predicate": "has_declared_public_reference_identity",
+          "source_id": "ncbi-variation",
+          "statement_id": "va-statement:public-aggregate-001",
+          "subject": "dbsnp:rs429358"
+        },
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:va_spec_envelope:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C06",
+      "case_id": "INTAKE-D01-C06-malformed_input",
+      "content_address": "intake-case:c898a357c2aca917e5d782f8bff91063884aa3b4bfab1daa9425bb29596e79aa",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C06",
+      "payload": {
+        "capability_id": "GNC-D01-C06",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C06",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "statement": {
+          "object": "GRCh38:7:55249063:T:C",
+          "predicate": "has_declared_public_reference_identity",
+          "source_id": "ncbi-variation",
+          "statement_id": "va-statement:public-aggregate-001",
+          "subject": "dbsnp:rs429358"
+        },
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:va_spec_envelope:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C06",
+      "case_id": "INTAKE-D01-C06-duplicate_identity",
+      "content_address": "intake-case:2bccef53e437cf46ce16efe715ad1e36404d37e3662b9ec51d23d26e137d9e98",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C06",
+      "payload": {
+        "capability_id": "GNC-D01-C06",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C06",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "statement": {
+          "object": "GRCh38:7:55249063:T:C",
+          "predicate": "has_declared_public_reference_identity",
+          "source_id": "ncbi-variation",
+          "statement_id": "va-statement:public-aggregate-001",
+          "subject": "dbsnp:rs429358"
+        },
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:va_spec_envelope:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C07",
+      "case_id": "INTAKE-D01-C07-positive",
+      "content_address": "intake-case:1613f0fda1cb6b0fefd30f858c65ed9d31a55b5e14d4b944010ce909a5017065",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C07",
+      "payload": {
+        "capability_id": "GNC-D01-C07",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C07",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t55249063\tpublic-multi\tT\tC,G\t.\tPASS\tSOURCE=public\n",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:multiallelic_decomposition:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C07",
+      "case_id": "INTAKE-D01-C07-foreign_context",
+      "content_address": "intake-case:0c590e6ff9d3b1f0d3f56d2e73773408b4e47f172a26b1adc6df8c5e25f7bbda",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C07",
+      "payload": {
+        "capability_id": "GNC-D01-C07",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C07",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t55249063\tpublic-multi\tT\tC,G\t.\tPASS\tSOURCE=public\n",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:multiallelic_decomposition:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C07",
+      "case_id": "INTAKE-D01-C07-malformed_input",
+      "content_address": "intake-case:0e85405b8659d650380e40a7d2d482db283082f715feaf16bb548ad848bfe69e",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C07",
+      "payload": {
+        "capability_id": "GNC-D01-C07",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C07",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t55249063\tpublic-multi\tT\tC,G\t.\tPASS\tSOURCE=public\n",
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:multiallelic_decomposition:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C07",
+      "case_id": "INTAKE-D01-C07-duplicate_identity",
+      "content_address": "intake-case:05080a9d42cd84c9add1e4ba02c7e68931d57170326a464773406795fc24a73b",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C07",
+      "payload": {
+        "capability_id": "GNC-D01-C07",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C07",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "raw_text": "##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n7\t55249063\tpublic-multi\tT\tC,G\t.\tPASS\tSOURCE=public\n",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:multiallelic_decomposition:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C08",
+      "case_id": "INTAKE-D01-C08-positive",
+      "content_address": "intake-case:4df67cf1380b512771bfed8195314571f3a017009f2873845e0a3121a22f65be",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C08",
+      "payload": {
+        "capability_id": "GNC-D01-C08",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C08",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "reference_window": {
+          "max_shift_bp": 4,
+          "sequence": "ACACACAC",
+          "start": 55249060
+        },
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249062,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "A",
+          "sample_id": "public-aggregate",
+          "start": 55249062,
+          "variant_id": "public:repeat-window"
+        }
+      },
+      "public_identifier": "public:repeat_aware_normalization:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C08",
+      "case_id": "INTAKE-D01-C08-foreign_context",
+      "content_address": "intake-case:4b1449f330a0190b70ccc975741e4f504093d1b3e5cc48b2ee03182ba05da97a",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C08",
+      "payload": {
+        "capability_id": "GNC-D01-C08",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C08",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "reference_window": {
+          "max_shift_bp": 4,
+          "sequence": "ACACACAC",
+          "start": 55249060
+        },
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249062,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "A",
+          "sample_id": "public-aggregate",
+          "start": 55249062,
+          "variant_id": "public:repeat-window"
+        }
+      },
+      "public_identifier": "public:repeat_aware_normalization:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C08",
+      "case_id": "INTAKE-D01-C08-malformed_input",
+      "content_address": "intake-case:56997332e7892813348169a64981c739ee4056962e28638e2ae987a5647792cb",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C08",
+      "payload": {
+        "capability_id": "GNC-D01-C08",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C08",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "reference_window": {
+          "max_shift_bp": 4,
+          "sequence": "ACACACAC",
+          "start": 55249060
+        },
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249062,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "A",
+          "sample_id": "public-aggregate",
+          "start": 55249062,
+          "variant_id": "public:repeat-window"
+        }
+      },
+      "public_identifier": "public:repeat_aware_normalization:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C08",
+      "case_id": "INTAKE-D01-C08-duplicate_identity",
+      "content_address": "intake-case:654ac8c9bfdadab800601c36206e7895fcdd778c5e17437ce08ed43c4f076041",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C08",
+      "payload": {
+        "capability_id": "GNC-D01-C08",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C08",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "reference_window": {
+          "max_shift_bp": 4,
+          "sequence": "ACACACAC",
+          "start": 55249060
+        },
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249062,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "A",
+          "sample_id": "public-aggregate",
+          "start": 55249062,
+          "variant_id": "public:repeat-window"
+        }
+      },
+      "public_identifier": "public:repeat_aware_normalization:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C09",
+      "case_id": "INTAKE-D01-C09-positive",
+      "content_address": "intake-case:8a6e87a8581ce7fa6585dc1ea2423164405b1e6afd4734bf4cff0d08cb33b4ad",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C09",
+      "payload": {
+        "aliases": [
+          "GRCh38:7:55249063:T:C"
+        ],
+        "capability_id": "GNC-D01-C09",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C09",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "query": "dbsnp:rs429358",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:variant_equivalence:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C09",
+      "case_id": "INTAKE-D01-C09-foreign_context",
+      "content_address": "intake-case:5281a474940146fbd93af5473cbab51dd04ae7b2f078e577edf1a3691ed06877",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C09",
+      "payload": {
+        "aliases": [
+          "GRCh38:7:55249063:T:C"
+        ],
+        "capability_id": "GNC-D01-C09",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C09",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "query": "dbsnp:rs429358",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:variant_equivalence:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C09",
+      "case_id": "INTAKE-D01-C09-malformed_input",
+      "content_address": "intake-case:c5a56fdb90f14381985ed4e76b154995913dd88141f48fa4450678e342e8649a",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C09",
+      "payload": {
+        "aliases": [
+          "GRCh38:7:55249063:T:C"
+        ],
+        "capability_id": "GNC-D01-C09",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C09",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "query": "dbsnp:rs429358",
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:variant_equivalence:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C09",
+      "case_id": "INTAKE-D01-C09-duplicate_identity",
+      "content_address": "intake-case:056488e0394b3dbef34a91c7ed5f5a155a9286578c63289685e2eaee41814c15",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C09",
+      "payload": {
+        "aliases": [
+          "GRCh38:7:55249063:T:C"
+        ],
+        "capability_id": "GNC-D01-C09",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C09",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "query": "dbsnp:rs429358",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:variant_equivalence:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C10",
+      "case_id": "INTAKE-D01-C10-positive",
+      "content_address": "intake-case:978acd1a24f4f2bd92616524188529daea41ded041e7accedf1f4734de19bee0",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C10",
+      "payload": {
+        "capability_id": "GNC-D01-C10",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C10",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "records": [
+          {
+            "aliases": [
+              "dbsnp:rs429358"
+            ],
+            "record_id": "public-record-1",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          },
+          {
+            "aliases": [
+              "GRCh38:7:55249063:T:C"
+            ],
+            "record_id": "public-record-2",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          }
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:duplicate_alias_reconciliation:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C10",
+      "case_id": "INTAKE-D01-C10-foreign_context",
+      "content_address": "intake-case:ee1032c04edeeabf59523838c483933518b9499471dfbebb9950d7160c72b01d",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C10",
+      "payload": {
+        "capability_id": "GNC-D01-C10",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C10",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "records": [
+          {
+            "aliases": [
+              "dbsnp:rs429358"
+            ],
+            "record_id": "public-record-1",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          },
+          {
+            "aliases": [
+              "GRCh38:7:55249063:T:C"
+            ],
+            "record_id": "public-record-2",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          }
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:duplicate_alias_reconciliation:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C10",
+      "case_id": "INTAKE-D01-C10-malformed_input",
+      "content_address": "intake-case:e7b6647ba344b61c73d96e2935a03269c398bc0b7529b76b89c83723715af50a",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C10",
+      "payload": {
+        "capability_id": "GNC-D01-C10",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C10",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "records": [
+          {
+            "aliases": [
+              "dbsnp:rs429358"
+            ],
+            "record_id": "public-record-1",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          },
+          {
+            "aliases": [
+              "GRCh38:7:55249063:T:C"
+            ],
+            "record_id": "public-record-2",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          }
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:duplicate_alias_reconciliation:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C10",
+      "case_id": "INTAKE-D01-C10-duplicate_identity",
+      "content_address": "intake-case:58be7eff9bd8bc23a093a97020c956b5e14614a2ebae9aa5cf37b99e419583f6",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C10",
+      "payload": {
+        "capability_id": "GNC-D01-C10",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C10",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "records": [
+          {
+            "aliases": [
+              "dbsnp:rs429358"
+            ],
+            "record_id": "public-record-1",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          },
+          {
+            "aliases": [
+              "GRCh38:7:55249063:T:C"
+            ],
+            "record_id": "public-record-2",
+            "variant": {
+              "alternate": "C",
+              "chromosome": "7",
+              "end": 55249063,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "uncertain",
+              "reference": "T",
+              "sample_id": "public-aggregate",
+              "start": 55249063,
+              "variant_id": "dbsnp:rs429358"
+            }
+          }
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:duplicate_alias_reconciliation:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C11",
+      "case_id": "INTAKE-D01-C11-positive",
+      "content_address": "intake-case:adc47f148a5a67ca0560a28e523b888f5147fa9848b6a7e5bb259f94be19a1ab",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C11",
+      "payload": {
+        "batch_id": "public-batch-001",
+        "capability_id": "GNC-D01-C11",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "declared_record_count": 1,
+        "operation_id": "INTAKE-D01-C11",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "sample_ids": [
+          "public-aggregate"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:batch_sample_identity:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C11",
+      "case_id": "INTAKE-D01-C11-foreign_context",
+      "content_address": "intake-case:a90e8f50e19e52ea5b5e64c2fccd8a08b24cf267dbd68cf97247367604336692",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C11",
+      "payload": {
+        "batch_id": "public-batch-001",
+        "capability_id": "GNC-D01-C11",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "declared_record_count": 1,
+        "operation_id": "INTAKE-D01-C11",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "sample_ids": [
+          "public-aggregate"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:batch_sample_identity:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C11",
+      "case_id": "INTAKE-D01-C11-malformed_input",
+      "content_address": "intake-case:b1beaf451cd720f44f23bb046e13168dd1c373d774dd150cd215f4fed175ce19",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C11",
+      "payload": {
+        "batch_id": "public-batch-001",
+        "capability_id": "GNC-D01-C11",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "declared_record_count": 1,
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C11",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "sample_ids": [
+          "public-aggregate"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:batch_sample_identity:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C11",
+      "case_id": "INTAKE-D01-C11-duplicate_identity",
+      "content_address": "intake-case:2c0c189ca5e5baa4fc0cb63455da1204c243df6d94cd0c45e19bf1c2b7b9c9ba",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C11",
+      "payload": {
+        "batch_id": "public-batch-001",
+        "capability_id": "GNC-D01-C11",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "declared_record_count": 1,
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C11",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "sample_ids": [
+          "public-aggregate"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:batch_sample_identity:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C12",
+      "case_id": "INTAKE-D01-C12-positive",
+      "content_address": "intake-case:a1dbc7bbac05e0a5737b95f671cb0e5671a78d967bd24d3bbb36ff7f4827934c",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C12",
+      "payload": {
+        "capability_id": "GNC-D01-C12",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "custody_events": [
+          {
+            "digest": "sha256:public-receipt-001",
+            "event_id": "public-receipt-001",
+            "source_id": "ncbi-variation",
+            "stage": "source_read"
+          },
+          {
+            "digest": "sha256:public-receipt-002",
+            "event_id": "public-receipt-002",
+            "source_id": "repository-controls",
+            "stage": "canonicalized"
+          }
+        ],
+        "operation_id": "INTAKE-D01-C12",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:chain_of_custody:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C12",
+      "case_id": "INTAKE-D01-C12-foreign_context",
+      "content_address": "intake-case:da1b38322608c65b7cfab202450540baff9789561c34d2172dd23d83f421824d",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C12",
+      "payload": {
+        "capability_id": "GNC-D01-C12",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "custody_events": [
+          {
+            "digest": "sha256:public-receipt-001",
+            "event_id": "public-receipt-001",
+            "source_id": "ncbi-variation",
+            "stage": "source_read"
+          },
+          {
+            "digest": "sha256:public-receipt-002",
+            "event_id": "public-receipt-002",
+            "source_id": "repository-controls",
+            "stage": "canonicalized"
+          }
+        ],
+        "operation_id": "INTAKE-D01-C12",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:chain_of_custody:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C12",
+      "case_id": "INTAKE-D01-C12-malformed_input",
+      "content_address": "intake-case:0c557bfa02a46ccfd09db94669712a866ced53c0b203cb042172ed10d629f75c",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C12",
+      "payload": {
+        "capability_id": "GNC-D01-C12",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "custody_events": [
+          {
+            "digest": "sha256:public-receipt-001",
+            "event_id": "public-receipt-001",
+            "source_id": "ncbi-variation",
+            "stage": "source_read"
+          },
+          {
+            "digest": "sha256:public-receipt-002",
+            "event_id": "public-receipt-002",
+            "source_id": "repository-controls",
+            "stage": "canonicalized"
+          }
+        ],
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C12",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:chain_of_custody:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C12",
+      "case_id": "INTAKE-D01-C12-duplicate_identity",
+      "content_address": "intake-case:e8e2a54da25b6011cd9aed5a555d14deea4da9bbbe99ee768f36eb490feb0b28",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C12",
+      "payload": {
+        "capability_id": "GNC-D01-C12",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "custody_events": [
+          {
+            "digest": "sha256:public-receipt-001",
+            "event_id": "public-receipt-001",
+            "source_id": "ncbi-variation",
+            "stage": "source_read"
+          },
+          {
+            "digest": "sha256:public-receipt-002",
+            "event_id": "public-receipt-002",
+            "source_id": "repository-controls",
+            "stage": "canonicalized"
+          }
+        ],
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C12",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:chain_of_custody:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C13",
+      "case_id": "INTAKE-D01-C13-positive",
+      "content_address": "intake-case:f527eca3f674729ec6b8ed378bbc1c314c9c926838d94bf0fd56d9b20d89f034",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C13",
+      "payload": {
+        "capability_id": "GNC-D01-C13",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C13",
+        "policy": {
+          "patient_level_data": false,
+          "permitted_uses": [
+            "research",
+            "quality_audit",
+            "reproducibility"
+          ],
+          "policy_id": "public-aggregate-use",
+          "version": "v1"
+        },
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:consent_policy:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C13",
+      "case_id": "INTAKE-D01-C13-foreign_context",
+      "content_address": "intake-case:2a4d544891fdc02be6d6708884dcad393216499b73f56a6effde821000a18b55",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C13",
+      "payload": {
+        "capability_id": "GNC-D01-C13",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C13",
+        "policy": {
+          "patient_level_data": false,
+          "permitted_uses": [
+            "research",
+            "quality_audit",
+            "reproducibility"
+          ],
+          "policy_id": "public-aggregate-use",
+          "version": "v1"
+        },
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:consent_policy:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C13",
+      "case_id": "INTAKE-D01-C13-malformed_input",
+      "content_address": "intake-case:997abaeffd00c328bb924ed1ae58888d35c5c5d52c66b5abc621d50617da7617",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C13",
+      "payload": {
+        "capability_id": "GNC-D01-C13",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C13",
+        "policy": {
+          "patient_level_data": false,
+          "permitted_uses": [
+            "research",
+            "quality_audit",
+            "reproducibility"
+          ],
+          "policy_id": "public-aggregate-use",
+          "version": "v1"
+        },
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:consent_policy:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C13",
+      "case_id": "INTAKE-D01-C13-duplicate_identity",
+      "content_address": "intake-case:b6eaf756dcc9fd8b468b26e97cfa5a2782c6a14b69cbbc839cc32d10445b9351",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C13",
+      "payload": {
+        "capability_id": "GNC-D01-C13",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C13",
+        "policy": {
+          "patient_level_data": false,
+          "permitted_uses": [
+            "research",
+            "quality_audit",
+            "reproducibility"
+          ],
+          "policy_id": "public-aggregate-use",
+          "version": "v1"
+        },
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:consent_policy:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C14",
+      "case_id": "INTAKE-D01-C14-positive",
+      "content_address": "intake-case:d5a4d4504587ab00a1ef4eb90baa1c141f876e452fb8ddcf99c5d17f57369755",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C14",
+      "payload": {
+        "anomaly_policy": {
+          "allowed_bases": "ACGTN",
+          "unsupported_symbols": [
+            "<",
+            ">",
+            "[",
+            "]"
+          ]
+        },
+        "capability_id": "GNC-D01-C14",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C14",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:input_quarantine:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C14",
+      "case_id": "INTAKE-D01-C14-foreign_context",
+      "content_address": "intake-case:5f72d40c8c1ec1a80afa7d3a3b05171460abdc4b76dfc648716b67296b3eccdb",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C14",
+      "payload": {
+        "anomaly_policy": {
+          "allowed_bases": "ACGTN",
+          "unsupported_symbols": [
+            "<",
+            ">",
+            "[",
+            "]"
+          ]
+        },
+        "capability_id": "GNC-D01-C14",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C14",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:input_quarantine:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C14",
+      "case_id": "INTAKE-D01-C14-malformed_input",
+      "content_address": "intake-case:21c9b1bde3b082c4267c4e56ed96c7cfac64de49390b7dad49bb85e64d9110a5",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C14",
+      "payload": {
+        "anomaly_policy": {
+          "allowed_bases": "ACGTN",
+          "unsupported_symbols": [
+            "<",
+            ">",
+            "[",
+            "]"
+          ]
+        },
+        "capability_id": "GNC-D01-C14",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C14",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:input_quarantine:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C14",
+      "case_id": "INTAKE-D01-C14-duplicate_identity",
+      "content_address": "intake-case:958ac73aae31bb07ac18248ab7b5f6d96635d1f499c2a6ded1e58ae38f4a065f",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C14",
+      "payload": {
+        "anomaly_policy": {
+          "allowed_bases": "ACGTN",
+          "unsupported_symbols": [
+            "<",
+            ">",
+            "[",
+            "]"
+          ]
+        },
+        "capability_id": "GNC-D01-C14",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C14",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:input_quarantine:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C15",
+      "case_id": "INTAKE-D01-C15-positive",
+      "content_address": "intake-case:0ae05fce679fc265c8bd2427813e6023a5c8e8ac4326837dd79ce6c1880e0544",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C15",
+      "payload": {
+        "capability_id": "GNC-D01-C15",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "operation_id": "INTAKE-D01-C15",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_fields": [
+          "operation_id",
+          "context_key",
+          "source_record",
+          "public_identifiers",
+          "variant"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        },
+        "weights": {
+          "context_key": 2.0,
+          "operation_id": 1.0,
+          "public_identifiers": 2.0,
+          "source_record": 1.0,
+          "variant": 4.0
+        }
+      },
+      "public_identifier": "public:completeness_scoring:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C15",
+      "case_id": "INTAKE-D01-C15-foreign_context",
+      "content_address": "intake-case:14ffb70ee0cb804de03d7bd83307c5d003d37f39c3bc3cf9e43bfeec51ca65ba",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C15",
+      "payload": {
+        "capability_id": "GNC-D01-C15",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "operation_id": "INTAKE-D01-C15",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_fields": [
+          "operation_id",
+          "context_key",
+          "source_record",
+          "public_identifiers",
+          "variant"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        },
+        "weights": {
+          "context_key": 2.0,
+          "operation_id": 1.0,
+          "public_identifiers": 2.0,
+          "source_record": 1.0,
+          "variant": 4.0
+        }
+      },
+      "public_identifier": "public:completeness_scoring:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C15",
+      "case_id": "INTAKE-D01-C15-malformed_input",
+      "content_address": "intake-case:b95cf7bda3538478c0cb9418bdac8946f571b4125c20d3467e316f28390504fd",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C15",
+      "payload": {
+        "capability_id": "GNC-D01-C15",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "operation_id": "INTAKE-D01-C15",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "required_fields": [
+          "operation_id",
+          "context_key",
+          "source_record",
+          "public_identifiers",
+          "variant"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        },
+        "weights": {
+          "context_key": 2.0,
+          "operation_id": 1.0,
+          "public_identifiers": 2.0,
+          "source_record": 1.0,
+          "variant": 4.0
+        }
+      },
+      "public_identifier": "public:completeness_scoring:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C15",
+      "case_id": "INTAKE-D01-C15-duplicate_identity",
+      "content_address": "intake-case:f6e6b843eaf5f7c5673e8ca068fb4d9142823569deb91f352887a88fa1238138",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C15",
+      "payload": {
+        "capability_id": "GNC-D01-C15",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "operation_id": "INTAKE-D01-C15",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_fields": [
+          "operation_id",
+          "context_key",
+          "source_record",
+          "public_identifiers",
+          "variant"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        },
+        "weights": {
+          "context_key": 2.0,
+          "operation_id": 1.0,
+          "public_identifiers": 2.0,
+          "source_record": 1.0,
+          "variant": 4.0
+        }
+      },
+      "public_identifier": "public:completeness_scoring:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C16",
+      "case_id": "INTAKE-D01-C16-positive",
+      "content_address": "intake-case:71529bed0bbe4772f7206de06080e8025f0eba43c389f6944bf10e4596edcd43",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "accepted",
+      "operation_id": "INTAKE-D01-C16",
+      "payload": {
+        "artifact_kinds": [
+          "manifest",
+          "source_receipts",
+          "operation_results",
+          "ledger",
+          "release"
+        ],
+        "capability_id": "GNC-D01-C16",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "offline_capable": true,
+        "operation_id": "INTAKE-D01-C16",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:reproducible_bundle:positive",
+      "scenario": "positive",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C16",
+      "case_id": "INTAKE-D01-C16-foreign_context",
+      "content_address": "intake-case:2830c4d68e2352dcd94d53b8f0a4f49c89bed0c7379f9db78a4149e310a5ef52",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "foreign_context"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C16",
+      "payload": {
+        "artifact_kinds": [
+          "manifest",
+          "source_receipts",
+          "operation_results",
+          "ledger",
+          "release"
+        ],
+        "capability_id": "GNC-D01-C16",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|post_treatment",
+        "offline_capable": true,
+        "operation_id": "INTAKE-D01-C16",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:reproducible_bundle:foreign_context",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C16",
+      "case_id": "INTAKE-D01-C16-malformed_input",
+      "content_address": "intake-case:392d617b519853d6ef76a5ced5f07d37137ebadb68b13238cf96a8bed9213a50",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C16",
+      "payload": {
+        "artifact_kinds": [
+          "manifest",
+          "source_receipts",
+          "operation_results",
+          "ledger",
+          "release"
+        ],
+        "capability_id": "GNC-D01-C16",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "malformed": true,
+        "offline_capable": true,
+        "operation_id": "INTAKE-D01-C16",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "required_field": "",
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:reproducible_bundle:malformed_input",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C16",
+      "case_id": "INTAKE-D01-C16-duplicate_identity",
+      "content_address": "intake-case:17dcedfc90d6d1cc20704ad9aa6cb8509085ddb16c923e4a171892d183630b63",
+      "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_identity"
+      ],
+      "expected_state": "review",
+      "operation_id": "INTAKE-D01-C16",
+      "payload": {
+        "artifact_kinds": [
+          "manifest",
+          "source_receipts",
+          "operation_results",
+          "ledger",
+          "release"
+        ],
+        "capability_id": "GNC-D01-C16",
+        "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+        "duplicate_identity": true,
+        "duplicate_keys": [
+          "GRCh38:7:55249063:T:C",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "offline_capable": true,
+        "operation_id": "INTAKE-D01-C16",
+        "public_aggregate_only": true,
+        "public_identifiers": [
+          "dbsnp:rs429358",
+          "GRCh38:7:55249063:T:C"
+        ],
+        "schema_version": "2026.08.intake-architecture.v1",
+        "source_record": "public-reference-aggregate",
+        "variant": {
+          "alternate": "C",
+          "chromosome": "7",
+          "end": 55249063,
+          "genome_build": "GRCh38",
+          "kind": "snv",
+          "origin": "uncertain",
+          "reference": "T",
+          "sample_id": "public-aggregate",
+          "start": 55249063,
+          "variant_id": "dbsnp:rs429358"
+        }
+      },
+      "public_identifier": "public:reproducible_bundle:duplicate_identity",
+      "scenario": "duplicate_identity",
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    }
+  ],
+  "content_address": "intake-fixture:4faae9f55fcf2a10bc71b5cccff0534b81cd39db5a923f70895ee37a8b83666b",
+  "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+  "fixture_id": "intake-architecture-d01",
+  "operations": [
+    {
+      "capability_id": "GNC-D01-C01",
+      "content_address": "intake-operation:9eb994400d6ad521d033efb6e0148837a41fef5ac80622f284a5bfd121558be9",
+      "dependencies": [],
+      "input_contract": "case.manifest.input.v1",
+      "operation": "case_manifest_ingestion",
+      "operation_id": "INTAKE-D01-C01",
+      "ordinal": 1,
+      "output_contract": "case.manifest.receipt.v1",
+      "plane": "ingestion",
+      "review_on_control": true,
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C02",
+      "content_address": "intake-operation:51eca9f387fe1acb19e1fd21447bc527b3b5ba9630b351e506e8ba6bae5d1fd3",
+      "dependencies": [
+        "INTAKE-D01-C01"
+      ],
+      "input_contract": "variant.bytes.input.v1",
+      "operation": "vcf_bcf_gvcf_parsing",
+      "operation_id": "INTAKE-D01-C02",
+      "ordinal": 2,
+      "output_contract": "variant.parse.receipt.v1",
+      "plane": "parsing",
+      "review_on_control": true,
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C03",
+      "content_address": "intake-operation:3c25bee7e856f34ff2d42d68d554666aa4a216a8224073c2c0fe3436938275aa",
+      "dependencies": [
+        "INTAKE-D01-C02"
+      ],
+      "input_contract": "regulatory.track.input.v1",
+      "operation": "regulatory_track_parsing",
+      "operation_id": "INTAKE-D01-C03",
+      "ordinal": 3,
+      "output_contract": "regulatory.track.receipt.v1",
+      "plane": "parsing",
+      "review_on_control": true,
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C04",
+      "content_address": "intake-operation:ae08e903f2a337430d30fff27286229c49e1690034bea6cb9c12e355c4efef6e",
+      "dependencies": [
+        "INTAKE-D01-C03"
+      ],
+      "input_contract": "variant.identity.input.v1",
+      "operation": "vrs_normalization",
+      "operation_id": "INTAKE-D01-C04",
+      "ordinal": 4,
+      "output_contract": "vrs.normalization.receipt.v1",
+      "plane": "normalization",
+      "review_on_control": true,
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C05",
+      "content_address": "intake-operation:768c5db47c9e9ab5fc4227e416d0a621d6bd17109648f316e614224bb6acfe94",
+      "dependencies": [
+        "INTAKE-D01-C04"
+      ],
+      "input_contract": "categorical.variation.input.v1",
+      "operation": "cat_vrs_normalization",
+      "operation_id": "INTAKE-D01-C05",
+      "ordinal": 5,
+      "output_contract": "catvrs.normalization.receipt.v1",
+      "plane": "normalization",
+      "review_on_control": true,
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C06",
+      "content_address": "intake-operation:375ee032868ad745c2871eb31d573e73e110a71bb7c011429a5c2ea2e1709805",
+      "dependencies": [
+        "INTAKE-D01-C05"
+      ],
+      "input_contract": "annotation.statement.input.v1",
+      "operation": "va_spec_envelope",
+      "operation_id": "INTAKE-D01-C06",
+      "ordinal": 6,
+      "output_contract": "va.spec.receipt.v1",
+      "plane": "normalization",
+      "review_on_control": true,
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C07",
+      "content_address": "intake-operation:f9c7ed6afb36f3c14b6a4cd9321b639e59fad9d54274cc1ad78bcbaf44f04c5a",
+      "dependencies": [
+        "INTAKE-D01-C06"
+      ],
+      "input_contract": "multiallelic.record.input.v1",
+      "operation": "multiallelic_decomposition",
+      "operation_id": "INTAKE-D01-C07",
+      "ordinal": 7,
+      "output_contract": "allele.decomposition.receipt.v1",
+      "plane": "parsing",
+      "review_on_control": true,
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C08",
+      "content_address": "intake-operation:649ace95a819ce8edcfe4b127e928d305c56aef2a5ee16308f8701c245671d64",
+      "dependencies": [
+        "INTAKE-D01-C07"
+      ],
+      "input_contract": "repeat.window.input.v1",
+      "operation": "repeat_aware_normalization",
+      "operation_id": "INTAKE-D01-C08",
+      "ordinal": 8,
+      "output_contract": "repeat.normalization.receipt.v1",
+      "plane": "normalization",
+      "review_on_control": true,
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C09",
+      "content_address": "intake-operation:fc7179141706a610a59250226c6712eccb75d7b24d32589767f9648ed9e26bb0",
+      "dependencies": [
+        "INTAKE-D01-C08"
+      ],
+      "input_contract": "identity.query.input.v1",
+      "operation": "variant_equivalence",
+      "operation_id": "INTAKE-D01-C09",
+      "ordinal": 9,
+      "output_contract": "identity.match.receipt.v1",
+      "plane": "identity",
+      "review_on_control": true,
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C10",
+      "content_address": "intake-operation:89850018a919b503ccf37eb4335b2f4a1b0dec92a647dede4d08346454296ae2",
+      "dependencies": [
+        "INTAKE-D01-C09"
+      ],
+      "input_contract": "identity.batch.input.v1",
+      "operation": "duplicate_alias_reconciliation",
+      "operation_id": "INTAKE-D01-C10",
+      "ordinal": 10,
+      "output_contract": "identity.reconciliation.receipt.v1",
+      "plane": "identity",
+      "review_on_control": true,
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C11",
+      "content_address": "intake-operation:f90239bca4852508e53d142e326e37642eab4c8ba5ca5e4b50ab10ae5afa08b6",
+      "dependencies": [
+        "INTAKE-D01-C10"
+      ],
+      "input_contract": "batch.identity.input.v1",
+      "operation": "batch_sample_identity",
+      "operation_id": "INTAKE-D01-C11",
+      "ordinal": 11,
+      "output_contract": "batch.identity.receipt.v1",
+      "plane": "identity",
+      "review_on_control": true,
+      "source_ids": [
+        "ucsc-encode-reference",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C12",
+      "content_address": "intake-operation:e4fe3ed8f3c6c7498398a0d644704bf737bd28554d817416ecec74333e0bec11",
+      "dependencies": [
+        "INTAKE-D01-C11"
+      ],
+      "input_contract": "custody.receipt.input.v1",
+      "operation": "chain_of_custody",
+      "operation_id": "INTAKE-D01-C12",
+      "ordinal": 12,
+      "output_contract": "custody.ledger.receipt.v1",
+      "plane": "provenance",
+      "review_on_control": true,
+      "source_ids": [
+        "repository-controls",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C13",
+      "content_address": "intake-operation:739c695b4dd2821f7570d87e7293e94871c68c11d892fc5168f9f4f4eda1e4b8",
+      "dependencies": [
+        "INTAKE-D01-C12"
+      ],
+      "input_contract": "data.use.policy.input.v1",
+      "operation": "consent_policy",
+      "operation_id": "INTAKE-D01-C13",
+      "ordinal": 13,
+      "output_contract": "data.use.policy.receipt.v1",
+      "plane": "policy",
+      "review_on_control": true,
+      "source_ids": [
+        "ncbi-variation",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C14",
+      "content_address": "intake-operation:1194923e31c14f72a2bc9ba0ee3340e5f3b895cc6d937a60e10683c74b09ec33",
+      "dependencies": [
+        "INTAKE-D01-C13"
+      ],
+      "input_contract": "input.anomaly.input.v1",
+      "operation": "input_quarantine",
+      "operation_id": "INTAKE-D01-C14",
+      "ordinal": 14,
+      "output_contract": "input.quarantine.receipt.v1",
+      "plane": "policy",
+      "review_on_control": true,
+      "source_ids": [
+        "ncbi-reference-assembly",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C15",
+      "content_address": "intake-operation:83d8d76ed0666417ff4be171f566cdbbd979a9d234d4c5cc9c45be632364affb",
+      "dependencies": [
+        "INTAKE-D01-C14"
+      ],
+      "input_contract": "completeness.input.v1",
+      "operation": "completeness_scoring",
+      "operation_id": "INTAKE-D01-C15",
+      "ordinal": 15,
+      "output_contract": "completeness.receipt.v1",
+      "plane": "policy",
+      "review_on_control": true,
+      "source_ids": [
+        "ga4gh-vrs",
+        "repository-controls"
+      ]
+    },
+    {
+      "capability_id": "GNC-D01-C16",
+      "content_address": "intake-operation:32564e89c9dcec1cbfefeba3489983ab3375ec12f501f64ca25a4d3a5218d1ce",
+      "dependencies": [
+        "INTAKE-D01-C15"
+      ],
+      "input_contract": "intake.bundle.input.v1",
+      "operation": "reproducible_bundle",
+      "operation_id": "INTAKE-D01-C16",
+      "ordinal": 16,
+      "output_contract": "intake.bundle.receipt.v1",
+      "plane": "release",
+      "review_on_control": true,
+      "source_ids": [
+        "ensembl-variation",
+        "repository-controls"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "intake-source:9728558e479e904301103891dedab070d7364bd650f12b29d631712a96cb7163",
+      "scope": "public_aggregate",
+      "source_id": "ncbi-variation",
+      "title": "NCBI Variation public reference index",
+      "uri": "https://www.ncbi.nlm.nih.gov/snp/",
+      "version": "public-index-2026"
+    },
+    {
+      "content_address": "intake-source:0c78269d8cb8ecfb413a1c60c8f004e83ec0db05d91d4592cbca9414d1195113",
+      "scope": "public_aggregate",
+      "source_id": "ncbi-reference-assembly",
+      "title": "NCBI human reference assembly record",
+      "uri": "https://www.ncbi.nlm.nih.gov/assembly/GCF_000001405.40/",
+      "version": "GCF_000001405.40"
+    },
+    {
+      "content_address": "intake-source:8be278c28d8a2fa68bd2fa44789ec5db3528ee693c18653a087f0f7ff1b99d66",
+      "scope": "public_aggregate",
+      "source_id": "ga4gh-vrs",
+      "title": "GA4GH Variation Representation Specification",
+      "uri": "https://vrs.ga4gh.org/",
+      "version": "v2-public-spec"
+    },
+    {
+      "content_address": "intake-source:94e664442f092650ae4ff7047071030de8c749c4bd991ca7f584036cfe5269cf",
+      "scope": "public_aggregate",
+      "source_id": "ensembl-variation",
+      "title": "Ensembl public variation documentation",
+      "uri": "https://www.ensembl.org/info/genome/variation/index.html",
+      "version": "public-documentation"
+    },
+    {
+      "content_address": "intake-source:8d73c9a9b28b051fe4ee536813afd988be7e36141e235c1ed01bdb7f571f574d",
+      "scope": "public_aggregate",
+      "source_id": "ucsc-encode-reference",
+      "title": "UCSC and ENCODE public regulatory reference portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "public-portal"
+    },
+    {
+      "content_address": "intake-source:982c8d0f005494087f1b1832e073c4d31b7ded557eec08256f823ead1113658c",
+      "scope": "public_aggregate",
+      "source_id": "repository-controls",
+      "title": "GLIO-NONCODE public aggregate validation receipts",
+      "uri": "https://github.com/AURORA-NEURO/glio-noncode",
+      "version": "d01-controls-v1"
+    }
+  ],
+  "version": "2026.08.intake-architecture.v1"
+}
