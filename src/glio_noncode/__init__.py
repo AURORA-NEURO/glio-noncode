@@ -3088,6 +3088,69 @@ from .causal_frontier_views import (
     CausalFrontierReviewView,
     build_causal_frontier_review_view,
 )
+from .cohort_foundation_frontier_checks import CohortFoundationInvariant, CohortFoundationInvariantReport, CohortFoundationInvariantResult, cohort_foundation_frontier_observation_map, default_cohort_foundation_frontier_invariants, run_cohort_foundation_frontier_invariants
+from .cohort_foundation_frontier_change_control import CohortFoundationChangeControlItem, CohortFoundationChangeControlReport, default_cohort_foundation_frontier_change_control_report
+from .cohort_foundation_frontier_control_coverage import CohortFoundationControlCoverage, CohortFoundationControlCoverageRow, build_cohort_foundation_frontier_control_coverage
+from .cohort_foundation_frontier_accessibility import CohortFoundationAccessibilityReport, CohortFoundationAccessibleField, build_cohort_foundation_frontier_accessibility_report
+from .cohort_foundation_frontier_audit_log import CohortFoundationAuditLog, CohortFoundationAuditLogEntry, build_cohort_foundation_frontier_audit_log
+from .cohort_foundation_frontier_claim_evidence import CohortFoundationClaimEvidenceLedger, CohortFoundationClaimEvidenceLink, build_cohort_foundation_frontier_claim_evidence_ledger
+from .cohort_foundation_frontier_compatibility import CohortFoundationCompatibilityCheck, CohortFoundationCompatibilityReport, evaluate_cohort_foundation_frontier_compatibility
+from .cohort_foundation_frontier_data_dictionary import CohortFoundationDataDictionary, CohortFoundationDataDictionaryEntry, default_cohort_foundation_frontier_data_dictionary
+from .cohort_foundation_frontier_dataset_manifest import CohortFoundationDatasetManifest, build_cohort_foundation_frontier_dataset_manifest
+from .cohort_foundation_frontier_failure_injection import CohortFoundationFailureInjectionReport, CohortFoundationFailureInjectionResult, run_cohort_foundation_frontier_failure_injections
+from .cohort_foundation_frontier_integrity import CohortFoundationIntegrityCheck, CohortFoundationIntegrityReport, evaluate_cohort_foundation_frontier_integrity
+from .cohort_foundation_frontier_observability import CohortFoundationEvent, CohortFoundationObservabilityReport, observe_cohort_foundation_frontier
+from .cohort_foundation_frontier_package import CohortFoundationPackageFile, CohortFoundationPackageManifest, build_cohort_foundation_frontier_package_manifest
+from .cohort_foundation_frontier_performance import CohortFoundationPerformanceBudget, CohortFoundationPerformanceReport, build_cohort_foundation_frontier_performance_report
+from .cohort_foundation_frontier_source_registry import CohortFoundationSourceEntry, CohortFoundationSourceRegistry, build_cohort_foundation_frontier_source_registry
+from .cohort_foundation_frontier_thresholds import CohortFoundationThresholdProbe, CohortFoundationThresholdProfile, CohortFoundationThresholdReport, build_cohort_foundation_frontier_threshold_report, default_cohort_foundation_frontier_threshold_profiles
+from .cohort_foundation_frontier_transcript import CohortFoundationTranscript, CohortFoundationTranscriptLine, build_cohort_foundation_frontier_transcript
+from .cohort_foundation_frontier_traces import CohortFoundationDecisionTrace, CohortFoundationTraceLedger, CohortFoundationTraceStep, build_cohort_foundation_frontier_trace_ledger
+from .cohort_foundation_frontier_adapters import (
+    CohortFoundationAdapterReceipt,
+    CohortFoundationAdapterRegistry,
+    CohortFoundationInputAdapter,
+    default_cohort_foundation_frontier_adapters,
+)
+from .cohort_foundation_frontier_artifacts import (
+    CohortFoundationArtifact,
+    CohortFoundationArtifactInventory,
+    CohortFoundationArtifactKind,
+    build_cohort_foundation_frontier_artifact_inventory,
+)
+from .cohort_foundation_frontier_assurance import CohortFoundationAssurance, build_cohort_foundation_frontier_assurance
+from .cohort_foundation_frontier_bundle import CohortFoundationReleaseBundle, assemble_cohort_foundation_frontier_bundle
+from .cohort_foundation_frontier_claim_boundary import CohortFoundationClaimBoundary, build_cohort_foundation_frontier_claim_boundary
+from .cohort_foundation_frontier_contracts import CohortFoundationContract, CohortFoundationContractRegistry, default_cohort_foundation_frontier_contracts
+from .cohort_foundation_frontier_depth import CohortFoundationDepthAudit, CohortFoundationDepthCheck, audit_cohort_foundation_frontier_depth
+from .cohort_foundation_frontier_diagnostics import CohortFoundationDiagnosticFinding, CohortFoundationDiagnosticReport, CohortFoundationDiagnosticSeverity, build_cohort_foundation_frontier_diagnostics
+from .cohort_foundation_frontier_exports import export_cohort_foundation_frontier_canonical, export_cohort_foundation_frontier_json, export_cohort_foundation_frontier_manifest, export_cohort_foundation_frontier_review_csv, export_cohort_foundation_frontier_review_markdown
+from .cohort_foundation_frontier_fixture_eval import CohortFoundationEvaluation, CohortFoundationEvaluationCheck, CohortFoundationExecution, evaluate_cohort_foundation_frontier_fixture, execute_cohort_foundation_record
+from .cohort_foundation_frontier_lineage import CohortFoundationLineageEdge, CohortFoundationLineageGraph, CohortFoundationLineageNode, CohortFoundationLineageNodeKind, build_cohort_foundation_frontier_lineage
+from .cohort_foundation_frontier_metrics import CohortFoundationMetrics, CohortFoundationOperationMetric, measure_cohort_foundation_frontier
+from .cohort_foundation_frontier_operational import CohortFoundationOperationalCell, CohortFoundationOperationalMatrix, build_cohort_foundation_frontier_operational_matrix
+from .cohort_foundation_frontier_policy import CohortFoundationDisposition, CohortFoundationPolicy, CohortFoundationPolicyDecision, default_cohort_foundation_frontier_policy, materialize_cohort_foundation_frontier_policy
+from .cohort_foundation_frontier_provenance import CohortFoundationProvenanceGraph, CohortFoundationProvenanceReceipt, build_cohort_foundation_frontier_provenance
+from .cohort_foundation_frontier_public_data import COHORT_FOUNDATION_FRONTIER_BOUNDARY, COHORT_FOUNDATION_FRONTIER_CONTEXT_KEY, COHORT_FOUNDATION_FRONTIER_FIXTURE_VERSION, COHORT_FOUNDATION_FRONTIER_FOREIGN_CONTEXT_KEY, CohortFoundationDataAudit, CohortFoundationDataCheck, CohortFoundationFixture, CohortFoundationOperation, CohortFoundationRecord, CohortFoundationRole, CohortFoundationSourceReceipt, audit_cohort_foundation_frontier_data, cohort_foundation_frontier_fixture_json, default_cohort_foundation_frontier_fixture, load_cohort_foundation_frontier_fixture
+from .cohort_foundation_frontier_query import CohortFoundationQueryResult, query_cohort_foundation_frontier
+from .cohort_foundation_frontier_quality_gate import CohortFoundationQualityCheck, CohortFoundationQualityGate, evaluate_cohort_foundation_frontier_quality
+from .cohort_foundation_frontier_reconciliation import CohortFoundationReconciliation, CohortFoundationReconciliationItem, reconcile_cohort_foundation_frontier
+from .cohort_foundation_frontier_release import CohortFoundationReleaseCheck, CohortFoundationReleaseManifest, CohortFoundationReleaseState, build_cohort_foundation_frontier_release_manifest
+from .cohort_foundation_frontier_recovery import CohortFoundationRecoveryPlan, CohortFoundationRecoveryStep, build_cohort_foundation_frontier_recovery_plan
+from .cohort_foundation_frontier_review_sla import CohortFoundationReviewSlaItem, CohortFoundationReviewSlaReport, build_cohort_foundation_frontier_review_sla
+from .cohort_foundation_frontier_retention import CohortFoundationRetentionReport, CohortFoundationRetentionRule, default_cohort_foundation_frontier_retention_report
+from .cohort_foundation_frontier_reproducibility import CohortFoundationReproducibilityReceipt, build_cohort_foundation_frontier_reproducibility_receipt
+from .cohort_foundation_frontier_replay import CohortFoundationReplayComparison, CohortFoundationReplayReceipt, compare_cohort_foundation_frontier_replays, replay_cohort_foundation_frontier, replay_cohort_foundation_frontier_is_deterministic
+from .cohort_foundation_frontier_report import CohortFoundationReport, CohortFoundationReportSection, build_cohort_foundation_frontier_report
+from .cohort_foundation_frontier_runbook import CohortFoundationRunbook, CohortFoundationRunbookStep, build_cohort_foundation_frontier_runbook, cohort_foundation_frontier_runbook_is_executable
+from .cohort_foundation_frontier_runtime import CohortFoundationRuntimeReport, CohortFoundationRuntimeStage, run_cohort_foundation_frontier_runtime
+from .cohort_foundation_frontier_scenario_matrix import CohortFoundationScenario, CohortFoundationScenarioMatrix, build_cohort_foundation_frontier_scenario_matrix
+from .cohort_foundation_frontier_schema import CohortFoundationSchemaCheck, CohortFoundationSchemaReport, default_cohort_foundation_frontier_schema, validate_cohort_foundation_frontier_schema
+from .cohort_foundation_frontier_schema_migrations import CohortFoundationSchemaMigration, CohortFoundationSchemaMigrationReport, build_cohort_foundation_frontier_schema_migration_report, default_cohort_foundation_frontier_schema_migrations
+from .cohort_foundation_frontier_summary import CohortFoundationSummary, build_cohort_foundation_frontier_summary
+from .cohort_foundation_frontier_validation_matrix import CohortFoundationValidationCell, CohortFoundationValidationMatrix, build_cohort_foundation_frontier_validation_matrix
+from .cohort_foundation_frontier_review import CohortFoundationReviewItem, CohortFoundationReviewQueue, CohortFoundationReviewSeverity, build_cohort_foundation_frontier_review_queue
+from .cohort_foundation_frontier_views import CohortFoundationReviewView, CohortFoundationReviewViewRow, build_cohort_foundation_frontier_review_view
 from .cohort_frontier_adapters import (
     CohortFrontierAdapterReceipt,
     CohortFrontierAdapterRegistry,
@@ -9639,6 +9702,197 @@ __all__ = [
     "replay_cohort_frontier_is_deterministic",
     "run_cohort_frontier_invariants",
     "run_cohort_frontier_runtime",
+]
+
+__all__ += [
+    "COHORT_FOUNDATION_FRONTIER_BOUNDARY",
+    "COHORT_FOUNDATION_FRONTIER_CONTEXT_KEY",
+    "COHORT_FOUNDATION_FRONTIER_FIXTURE_VERSION",
+    "COHORT_FOUNDATION_FRONTIER_FOREIGN_CONTEXT_KEY",
+    "CohortFoundationAdapterReceipt",
+    "CohortFoundationAdapterRegistry",
+    "CohortFoundationArtifact",
+    "CohortFoundationArtifactInventory",
+    "CohortFoundationArtifactKind",
+    "CohortFoundationAccessibilityReport",
+    "CohortFoundationAccessibleField",
+    "CohortFoundationAuditLog",
+    "CohortFoundationAuditLogEntry",
+    "CohortFoundationClaimEvidenceLedger",
+    "CohortFoundationClaimEvidenceLink",
+    "CohortFoundationChangeControlItem",
+    "CohortFoundationChangeControlReport",
+    "CohortFoundationAssurance",
+    "CohortFoundationControlCoverage",
+    "CohortFoundationControlCoverageRow",
+    "CohortFoundationCompatibilityCheck",
+    "CohortFoundationCompatibilityReport",
+    "CohortFoundationClaimBoundary",
+    "CohortFoundationContract",
+    "CohortFoundationContractRegistry",
+    "CohortFoundationDataAudit",
+    "CohortFoundationDataCheck",
+    "CohortFoundationDataDictionary",
+    "CohortFoundationDataDictionaryEntry",
+    "CohortFoundationDatasetManifest",
+    "CohortFoundationDecisionTrace",
+    "CohortFoundationDepthAudit",
+    "CohortFoundationDepthCheck",
+    "CohortFoundationDiagnosticFinding",
+    "CohortFoundationDiagnosticReport",
+    "CohortFoundationDiagnosticSeverity",
+    "CohortFoundationDisposition",
+    "CohortFoundationEvaluation",
+    "CohortFoundationEvaluationCheck",
+    "CohortFoundationExecution",
+    "CohortFoundationEvent",
+    "CohortFoundationFailureInjectionReport",
+    "CohortFoundationFailureInjectionResult",
+    "CohortFoundationFixture",
+    "CohortFoundationInputAdapter",
+    "CohortFoundationIntegrityCheck",
+    "CohortFoundationIntegrityReport",
+    "CohortFoundationInvariant",
+    "CohortFoundationInvariantReport",
+    "CohortFoundationInvariantResult",
+    "CohortFoundationLineageEdge",
+    "CohortFoundationLineageGraph",
+    "CohortFoundationLineageNode",
+    "CohortFoundationLineageNodeKind",
+    "CohortFoundationMetrics",
+    "CohortFoundationOperation",
+    "CohortFoundationOperationMetric",
+    "CohortFoundationOperationalCell",
+    "CohortFoundationOperationalMatrix",
+    "CohortFoundationObservabilityReport",
+    "CohortFoundationPackageFile",
+    "CohortFoundationPackageManifest",
+    "CohortFoundationPerformanceBudget",
+    "CohortFoundationPerformanceReport",
+    "CohortFoundationPolicy",
+    "CohortFoundationPolicyDecision",
+    "CohortFoundationProvenanceGraph",
+    "CohortFoundationProvenanceReceipt",
+    "CohortFoundationQueryResult",
+    "CohortFoundationQualityCheck",
+    "CohortFoundationQualityGate",
+    "CohortFoundationReconciliation",
+    "CohortFoundationReconciliationItem",
+    "CohortFoundationReleaseBundle",
+    "CohortFoundationReleaseCheck",
+    "CohortFoundationReleaseManifest",
+    "CohortFoundationReleaseState",
+    "CohortFoundationRecoveryPlan",
+    "CohortFoundationRecoveryStep",
+    "CohortFoundationReplayComparison",
+    "CohortFoundationReplayReceipt",
+    "CohortFoundationReport",
+    "CohortFoundationReportSection",
+    "CohortFoundationReviewItem",
+    "CohortFoundationReviewQueue",
+    "CohortFoundationReviewSeverity",
+    "CohortFoundationReviewSlaItem",
+    "CohortFoundationReviewSlaReport",
+    "CohortFoundationRetentionReport",
+    "CohortFoundationRetentionRule",
+    "CohortFoundationReproducibilityReceipt",
+    "CohortFoundationReviewView",
+    "CohortFoundationReviewViewRow",
+    "CohortFoundationRole",
+    "CohortFoundationRunbook",
+    "CohortFoundationRunbookStep",
+    "CohortFoundationRuntimeReport",
+    "CohortFoundationRuntimeStage",
+    "CohortFoundationScenario",
+    "CohortFoundationScenarioMatrix",
+    "CohortFoundationSchemaCheck",
+    "CohortFoundationSchemaReport",
+    "CohortFoundationSchemaMigration",
+    "CohortFoundationSchemaMigrationReport",
+    "CohortFoundationSourceReceipt",
+    "CohortFoundationSourceEntry",
+    "CohortFoundationSourceRegistry",
+    "CohortFoundationSummary",
+    "CohortFoundationThresholdProbe",
+    "CohortFoundationThresholdProfile",
+    "CohortFoundationThresholdReport",
+    "CohortFoundationTranscript",
+    "CohortFoundationTranscriptLine",
+    "CohortFoundationTraceLedger",
+    "CohortFoundationTraceStep",
+    "CohortFoundationValidationCell",
+    "CohortFoundationValidationMatrix",
+    "assemble_cohort_foundation_frontier_bundle",
+    "audit_cohort_foundation_frontier_data",
+    "audit_cohort_foundation_frontier_depth",
+    "build_cohort_foundation_frontier_artifact_inventory",
+    "build_cohort_foundation_frontier_accessibility_report",
+    "build_cohort_foundation_frontier_audit_log",
+    "build_cohort_foundation_frontier_claim_evidence_ledger",
+    "build_cohort_foundation_frontier_reproducibility_receipt",
+    "build_cohort_foundation_frontier_assurance",
+    "build_cohort_foundation_frontier_claim_boundary",
+    "build_cohort_foundation_frontier_control_coverage",
+    "build_cohort_foundation_frontier_contracts",
+    "build_cohort_foundation_frontier_diagnostics",
+    "build_cohort_foundation_frontier_dataset_manifest",
+    "build_cohort_foundation_frontier_package_manifest",
+    "build_cohort_foundation_frontier_performance_report",
+    "build_cohort_foundation_frontier_lineage",
+    "build_cohort_foundation_frontier_source_registry",
+    "build_cohort_foundation_frontier_threshold_report",
+    "build_cohort_foundation_frontier_trace_ledger",
+    "build_cohort_foundation_frontier_transcript",
+    "build_cohort_foundation_frontier_summary",
+    "build_cohort_foundation_frontier_operational_matrix",
+    "build_cohort_foundation_frontier_provenance",
+    "build_cohort_foundation_frontier_report",
+    "build_cohort_foundation_frontier_release_manifest",
+    "build_cohort_foundation_frontier_recovery_plan",
+    "build_cohort_foundation_frontier_review_sla",
+    "build_cohort_foundation_frontier_review_queue",
+    "build_cohort_foundation_frontier_review_view",
+    "build_cohort_foundation_frontier_runbook",
+    "build_cohort_foundation_frontier_scenario_matrix",
+    "build_cohort_foundation_frontier_schema_migration_report",
+    "build_cohort_foundation_frontier_validation_matrix",
+    "cohort_foundation_frontier_fixture_json",
+    "cohort_foundation_frontier_observation_map",
+    "cohort_foundation_frontier_runbook_is_executable",
+    "compare_cohort_foundation_frontier_replays",
+    "default_cohort_foundation_frontier_adapters",
+    "default_cohort_foundation_frontier_contracts",
+    "default_cohort_foundation_frontier_fixture",
+    "default_cohort_foundation_frontier_policy",
+    "default_cohort_foundation_frontier_schema",
+    "default_cohort_foundation_frontier_schema_migrations",
+    "default_cohort_foundation_frontier_data_dictionary",
+    "default_cohort_foundation_frontier_change_control_report",
+    "default_cohort_foundation_frontier_retention_report",
+    "default_cohort_foundation_frontier_invariants",
+    "default_cohort_foundation_frontier_threshold_profiles",
+    "evaluate_cohort_foundation_frontier_fixture",
+    "evaluate_cohort_foundation_frontier_quality",
+    "evaluate_cohort_foundation_frontier_integrity",
+    "evaluate_cohort_foundation_frontier_compatibility",
+    "run_cohort_foundation_frontier_failure_injections",
+    "execute_cohort_foundation_record",
+    "export_cohort_foundation_frontier_canonical",
+    "export_cohort_foundation_frontier_json",
+    "export_cohort_foundation_frontier_manifest",
+    "export_cohort_foundation_frontier_review_csv",
+    "export_cohort_foundation_frontier_review_markdown",
+    "load_cohort_foundation_frontier_fixture",
+    "measure_cohort_foundation_frontier",
+    "materialize_cohort_foundation_frontier_policy",
+    "query_cohort_foundation_frontier",
+    "reconcile_cohort_foundation_frontier",
+    "replay_cohort_foundation_frontier",
+    "replay_cohort_foundation_frontier_is_deterministic",
+    "run_cohort_foundation_frontier_runtime",
+    "run_cohort_foundation_frontier_invariants",
+    "observe_cohort_foundation_frontier",
+    "validate_cohort_foundation_frontier_schema",
 ]
 
 __all__ += [

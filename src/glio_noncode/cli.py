@@ -183,6 +183,54 @@ from .cohort_beta import (
     SetKind,
 )
 from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
+from .cohort_foundation_frontier_accessibility import build_cohort_foundation_frontier_accessibility_report
+from .cohort_foundation_frontier_audit_log import build_cohort_foundation_frontier_audit_log
+from .cohort_foundation_frontier_claim_evidence import build_cohort_foundation_frontier_claim_evidence_ledger
+from .cohort_foundation_frontier_change_control import default_cohort_foundation_frontier_change_control_report
+from .cohort_foundation_frontier_compatibility import evaluate_cohort_foundation_frontier_compatibility
+from .cohort_foundation_frontier_artifacts import build_cohort_foundation_frontier_artifact_inventory
+from .cohort_foundation_frontier_assurance import build_cohort_foundation_frontier_assurance
+from .cohort_foundation_frontier_claim_boundary import build_cohort_foundation_frontier_claim_boundary
+from .cohort_foundation_frontier_checks import run_cohort_foundation_frontier_invariants
+from .cohort_foundation_frontier_control_coverage import build_cohort_foundation_frontier_control_coverage
+from .cohort_foundation_frontier_contracts import default_cohort_foundation_frontier_contracts
+from .cohort_foundation_frontier_depth import audit_cohort_foundation_frontier_depth
+from .cohort_foundation_frontier_data_dictionary import default_cohort_foundation_frontier_data_dictionary
+from .cohort_foundation_frontier_dataset_manifest import build_cohort_foundation_frontier_dataset_manifest
+from .cohort_foundation_frontier_diagnostics import build_cohort_foundation_frontier_diagnostics
+from .cohort_foundation_frontier_exports import export_cohort_foundation_frontier_json, export_cohort_foundation_frontier_review_csv, export_cohort_foundation_frontier_review_markdown
+from .cohort_foundation_frontier_fixture_eval import evaluate_cohort_foundation_frontier_fixture
+from .cohort_foundation_frontier_failure_injection import run_cohort_foundation_frontier_failure_injections
+from .cohort_foundation_frontier_integrity import evaluate_cohort_foundation_frontier_integrity
+from .cohort_foundation_frontier_lineage import build_cohort_foundation_frontier_lineage
+from .cohort_foundation_frontier_metrics import measure_cohort_foundation_frontier
+from .cohort_foundation_frontier_operational import build_cohort_foundation_frontier_operational_matrix
+from .cohort_foundation_frontier_observability import observe_cohort_foundation_frontier
+from .cohort_foundation_frontier_package import build_cohort_foundation_frontier_package_manifest
+from .cohort_foundation_frontier_performance import build_cohort_foundation_frontier_performance_report
+from .cohort_foundation_frontier_policy import materialize_cohort_foundation_frontier_policy
+from .cohort_foundation_frontier_provenance import build_cohort_foundation_frontier_provenance
+from .cohort_foundation_frontier_public_data import audit_cohort_foundation_frontier_data, default_cohort_foundation_frontier_fixture, load_cohort_foundation_frontier_fixture
+from .cohort_foundation_frontier_quality_gate import evaluate_cohort_foundation_frontier_quality
+from .cohort_foundation_frontier_reconciliation import reconcile_cohort_foundation_frontier
+from .cohort_foundation_frontier_release import build_cohort_foundation_frontier_release_manifest
+from .cohort_foundation_frontier_recovery import build_cohort_foundation_frontier_recovery_plan
+from .cohort_foundation_frontier_review_sla import build_cohort_foundation_frontier_review_sla
+from .cohort_foundation_frontier_retention import default_cohort_foundation_frontier_retention_report
+from .cohort_foundation_frontier_reproducibility import build_cohort_foundation_frontier_reproducibility_receipt
+from .cohort_foundation_frontier_replay import replay_cohort_foundation_frontier
+from .cohort_foundation_frontier_report import build_cohort_foundation_frontier_report
+from .cohort_foundation_frontier_runtime import run_cohort_foundation_frontier_runtime
+from .cohort_foundation_frontier_scenario_matrix import build_cohort_foundation_frontier_scenario_matrix
+from .cohort_foundation_frontier_schema import default_cohort_foundation_frontier_schema
+from .cohort_foundation_frontier_schema_migrations import build_cohort_foundation_frontier_schema_migration_report
+from .cohort_foundation_frontier_summary import build_cohort_foundation_frontier_summary
+from .cohort_foundation_frontier_source_registry import build_cohort_foundation_frontier_source_registry
+from .cohort_foundation_frontier_thresholds import build_cohort_foundation_frontier_threshold_report
+from .cohort_foundation_frontier_traces import build_cohort_foundation_frontier_trace_ledger
+from .cohort_foundation_frontier_transcript import build_cohort_foundation_frontier_transcript
+from .cohort_foundation_frontier_validation_matrix import build_cohort_foundation_frontier_validation_matrix
+from .cohort_foundation_frontier_views import build_cohort_foundation_frontier_review_view
 from .control_beta import (
     BudgetResourceScheduler,
     DeterministicFallbackRouter,
@@ -1149,6 +1197,12 @@ def _read_causal_foundation_frontier_fixture(path: str | None):
     if path:
         raise ValueError("custom causal foundation fixture loading is not enabled; use the pinned public aggregate")
     return default_causal_foundation_frontier_fixture()
+
+
+def _read_cohort_foundation_frontier_fixture(path: str | None):
+    """Load a supplied aggregate fixture or use the pinned C01-C04 fixture."""
+
+    return load_cohort_foundation_frontier_fixture(path) if path else default_cohort_foundation_frontier_fixture()
 
 
 def _read_causal_beta_frontier_fixture(path: str | None):
@@ -4449,6 +4503,66 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cohort_frontier_csv.add_argument("input", nargs="?", default=None)
     cohort_frontier_csv.add_argument("--output", default=None)
+
+    cohort_foundation_commands = (
+        ("cohort-foundation-frontier-data-audit", "audit Domain 12 C01-C04 public aggregate receipts"),
+        ("cohort-foundation-frontier-contracts", "emit Domain 12 C01-C04 operation contracts"),
+        ("cohort-foundation-frontier-schema", "emit Domain 12 C01-C04 field schema"),
+        ("cohort-foundation-frontier-evaluate", "evaluate Domain 12 C01-C04 positive and control records"),
+        ("cohort-foundation-frontier-replay", "replay Domain 12 C01-C04 content-addressed receipts"),
+        ("cohort-foundation-frontier-metrics", "emit Domain 12 C01-C04 operation metrics"),
+        ("cohort-foundation-frontier-lineage", "emit Domain 12 C01-C04 source lineage"),
+        ("cohort-foundation-frontier-policy", "emit Domain 12 C01-C04 policy decisions"),
+        ("cohort-foundation-frontier-quality-gate", "run Domain 12 C01-C04 quality checks"),
+        ("cohort-foundation-frontier-runtime", "run Domain 12 C01-C04 release rehearsal"),
+        ("cohort-foundation-frontier-release", "build Domain 12 C01-C04 release manifest"),
+        ("cohort-foundation-frontier-artifacts", "emit Domain 12 C01-C04 artifact inventory"),
+        ("cohort-foundation-frontier-depth-audit", "run Domain 12 C01-C04 depth audit"),
+        ("cohort-foundation-frontier-diagnostics", "emit Domain 12 C01-C04 diagnostics"),
+        ("cohort-foundation-frontier-scenarios", "emit Domain 12 C01-C04 scenario matrix"),
+        ("cohort-foundation-frontier-validation-matrix", "emit Domain 12 C01-C04 validation matrix"),
+        ("cohort-foundation-frontier-operational", "emit Domain 12 C01-C04 operational matrix"),
+        ("cohort-foundation-frontier-boundary", "emit Domain 12 C01-C04 claim boundary"),
+        ("cohort-foundation-frontier-assurance", "emit Domain 12 C01-C04 assurance statement"),
+        ("cohort-foundation-frontier-runbook", "emit Domain 12 C01-C04 executable runbook"),
+        ("cohort-foundation-frontier-report", "emit Domain 12 C01-C04 report"),
+        ("cohort-foundation-frontier-sources", "emit Domain 12 C01-C04 source registry"),
+        ("cohort-foundation-frontier-integrity", "run Domain 12 C01-C04 integrity checks"),
+        ("cohort-foundation-frontier-control-coverage", "emit Domain 12 C01-C04 control coverage"),
+        ("cohort-foundation-frontier-traces", "emit Domain 12 C01-C04 decision traces"),
+        ("cohort-foundation-frontier-invariants", "run Domain 12 C01-C04 invariants"),
+        ("cohort-foundation-frontier-thresholds", "emit Domain 12 C01-C04 threshold probes"),
+        ("cohort-foundation-frontier-observability", "emit Domain 12 C01-C04 runtime events"),
+        ("cohort-foundation-frontier-accessibility", "emit Domain 12 C01-C04 review accessibility metadata"),
+        ("cohort-foundation-frontier-performance", "emit Domain 12 C01-C04 performance budgets"),
+        ("cohort-foundation-frontier-schema-migrations", "emit Domain 12 C01-C04 schema migrations"),
+        ("cohort-foundation-frontier-failure-injections", "run Domain 12 C01-C04 failure injections"),
+        ("cohort-foundation-frontier-recovery", "emit Domain 12 C01-C04 recovery plan"),
+        ("cohort-foundation-frontier-package", "emit Domain 12 C01-C04 package manifest"),
+        ("cohort-foundation-frontier-claim-evidence", "emit Domain 12 C01-C04 claim evidence links"),
+        ("cohort-foundation-frontier-audit-log", "emit Domain 12 C01-C04 audit log"),
+        ("cohort-foundation-frontier-review-sla", "emit Domain 12 C01-C04 review SLA"),
+        ("cohort-foundation-frontier-data-dictionary", "emit Domain 12 C01-C04 data dictionary"),
+        ("cohort-foundation-frontier-compatibility", "run Domain 12 C01-C04 compatibility checks"),
+        ("cohort-foundation-frontier-change-control", "emit Domain 12 C01-C04 change controls"),
+        ("cohort-foundation-frontier-retention", "emit Domain 12 C01-C04 retention rules"),
+        ("cohort-foundation-frontier-reproducibility", "emit Domain 12 C01-C04 reproducibility receipt"),
+        ("cohort-foundation-frontier-dataset-manifest", "emit Domain 12 C01-C04 dataset manifest"),
+        ("cohort-foundation-frontier-transcript", "emit Domain 12 C01-C04 stage transcript"),
+        ("cohort-foundation-frontier-summary", "emit Domain 12 C01-C04 handoff summary"),
+    )
+    for command_name, command_help in cohort_foundation_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
+    for command_name, command_help in (
+        ("export-cohort-foundation-frontier-review-csv", "export Domain 12 C01-C04 review rows as CSV"),
+        ("export-cohort-foundation-frontier-review-markdown", "export Domain 12 C01-C04 review rows as Markdown"),
+        ("export-cohort-foundation-frontier-json", "export Domain 12 C01-C04 runtime payload as JSON"),
+    ):
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("input", nargs="?", default=None)
+        command_parser.add_argument("--output", default=None)
 
     validation_frontier_commands = (
         ("validation-frontier-data-audit", "audit public Domain 13 planning receipts"),
@@ -8871,6 +8985,153 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_text(export_cohort_frontier_review_csv(view), args.output)
             return 0
+        if args.command.startswith("cohort-foundation-frontier") or args.command.startswith("export-cohort-foundation-frontier"):
+            fixture = _read_cohort_foundation_frontier_fixture(args.input)
+            runtime = run_cohort_foundation_frontier_runtime(fixture, run_id="cohort-foundation-frontier-cli")
+            if args.command == "cohort-foundation-frontier-data-audit":
+                _write_json(runtime.data_audit.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-contracts":
+                _write_json(runtime.contracts.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-schema":
+                _write_json(runtime.schema.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-evaluate":
+                _write_json(runtime.evaluation.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-replay":
+                _write_json(runtime.replay.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-metrics":
+                _write_json(runtime.metrics.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-lineage":
+                _write_json(runtime.lineage.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-policy":
+                _write_json(runtime.policy.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-quality-gate":
+                _write_json(runtime.quality.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-runtime":
+                _write_json(runtime.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-release":
+                _write_json(runtime.release.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-artifacts":
+                _write_json(runtime.artifacts.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-depth-audit":
+                _write_json(runtime.depth.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-diagnostics":
+                _write_json(runtime.diagnostics.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-scenarios":
+                _write_json(runtime.scenarios.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-validation-matrix":
+                _write_json(runtime.validation.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-operational":
+                _write_json(runtime.operational.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-boundary":
+                _write_json(runtime.claim_boundary.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-assurance":
+                _write_json(runtime.assurance.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-runbook":
+                _write_json(runtime.runbook.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-report":
+                _write_json(build_cohort_foundation_frontier_report(runtime).to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-sources":
+                _write_json(runtime.source_registry.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-integrity":
+                _write_json(runtime.integrity.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-control-coverage":
+                _write_json(runtime.control_coverage.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-traces":
+                _write_json(runtime.traces.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-invariants":
+                _write_json(runtime.invariants.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-thresholds":
+                _write_json(runtime.thresholds.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-observability":
+                _write_json(runtime.observability.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-accessibility":
+                _write_json(runtime.accessibility.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-performance":
+                _write_json(runtime.performance.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-schema-migrations":
+                _write_json(runtime.schema_migrations.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-failure-injections":
+                _write_json(runtime.failure_injections.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-recovery":
+                _write_json(runtime.recovery.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-package":
+                _write_json(runtime.package.to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-claim-evidence":
+                _write_json(build_cohort_foundation_frontier_claim_evidence_ledger(runtime.evaluation, runtime.policy, fixture.context_key).to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-audit-log":
+                _write_json(build_cohort_foundation_frontier_audit_log(fixture.fixture_id, [item.output_address for item in runtime.stages]).to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-review-sla":
+                _write_json(build_cohort_foundation_frontier_review_sla(runtime.review).to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-data-dictionary":
+                _write_json(default_cohort_foundation_frontier_data_dictionary().to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-compatibility":
+                _write_json(evaluate_cohort_foundation_frontier_compatibility(runtime.release).to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-change-control":
+                _write_json(default_cohort_foundation_frontier_change_control_report().to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-retention":
+                _write_json(default_cohort_foundation_frontier_retention_report().to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-reproducibility":
+                _write_json(build_cohort_foundation_frontier_reproducibility_receipt(fixture.fixture_version, fixture.to_dict()["content_address"], runtime.stages).to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-dataset-manifest":
+                _write_json(build_cohort_foundation_frontier_dataset_manifest(fixture).to_dict(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-transcript":
+                _write_text(build_cohort_foundation_frontier_transcript(runtime.stages).to_text(), args.output)
+                return 0
+            if args.command == "cohort-foundation-frontier-summary":
+                _write_json(build_cohort_foundation_frontier_summary(runtime).to_dict(), args.output)
+                return 0
+            if args.command == "export-cohort-foundation-frontier-review-csv":
+                _write_text(export_cohort_foundation_frontier_review_csv(runtime.review), args.output)
+                return 0
+            if args.command == "export-cohort-foundation-frontier-review-markdown":
+                _write_text(export_cohort_foundation_frontier_review_markdown(runtime.review), args.output)
+                return 0
+            if args.command == "export-cohort-foundation-frontier-json":
+                _write_text(export_cohort_foundation_frontier_json(runtime), args.output)
+                return 0
         if args.command == "evidence-lifecycle-data-audit":
             _write_json(
                 audit_evidence_lifecycle_data(

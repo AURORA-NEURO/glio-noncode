@@ -654,6 +654,100 @@ jobs:
         run: python -m glio_noncode export-cohort-frontier-review-csv --output /tmp/glio-cohort-frontier-review.csv
       - name: Cohort frontier depth audit
         run: python -m glio_noncode cohort-frontier-depth-audit --output /tmp/glio-cohort-frontier-depth.json
+      - name: Cohort foundation frontier data boundary audit
+        run: python -m glio_noncode cohort-foundation-frontier-data-audit --output /tmp/glio-cohort-foundation-data.json
+      - name: Cohort foundation frontier contracts
+        run: python -m glio_noncode cohort-foundation-frontier-contracts --output /tmp/glio-cohort-foundation-contracts.json
+      - name: Cohort foundation frontier schema
+        run: python -m glio_noncode cohort-foundation-frontier-schema --output /tmp/glio-cohort-foundation-schema.json
+      - name: Cohort foundation frontier evaluation
+        run: python -m glio_noncode cohort-foundation-frontier-evaluate --output /tmp/glio-cohort-foundation-evaluation.json
+      - name: Cohort foundation frontier replay
+        run: python -m glio_noncode cohort-foundation-frontier-replay --output /tmp/glio-cohort-foundation-replay.json
+      - name: Cohort foundation frontier metrics
+        run: python -m glio_noncode cohort-foundation-frontier-metrics --output /tmp/glio-cohort-foundation-metrics.json
+      - name: Cohort foundation frontier lineage
+        run: python -m glio_noncode cohort-foundation-frontier-lineage --output /tmp/glio-cohort-foundation-lineage.json
+      - name: Cohort foundation frontier policy
+        run: python -m glio_noncode cohort-foundation-frontier-policy --output /tmp/glio-cohort-foundation-policy.json
+      - name: Cohort foundation frontier quality gate
+        run: python -m glio_noncode cohort-foundation-frontier-quality-gate --output /tmp/glio-cohort-foundation-quality.json
+      - name: Cohort foundation frontier runtime
+        run: python -m glio_noncode cohort-foundation-frontier-runtime --output /tmp/glio-cohort-foundation-runtime.json
+      - name: Cohort foundation frontier release
+        run: python -m glio_noncode cohort-foundation-frontier-release --output /tmp/glio-cohort-foundation-release.json
+      - name: Cohort foundation frontier artifacts
+        run: python -m glio_noncode cohort-foundation-frontier-artifacts --output /tmp/glio-cohort-foundation-artifacts.json
+      - name: Cohort foundation frontier depth
+        run: python -m glio_noncode cohort-foundation-frontier-depth-audit --output /tmp/glio-cohort-foundation-depth.json
+      - name: Cohort foundation frontier diagnostics
+        run: python -m glio_noncode cohort-foundation-frontier-diagnostics --output /tmp/glio-cohort-foundation-diagnostics.json
+      - name: Cohort foundation frontier scenarios
+        run: python -m glio_noncode cohort-foundation-frontier-scenarios --output /tmp/glio-cohort-foundation-scenarios.json
+      - name: Cohort foundation frontier validation matrix
+        run: python -m glio_noncode cohort-foundation-frontier-validation-matrix --output /tmp/glio-cohort-foundation-validation.json
+      - name: Cohort foundation frontier operational matrix
+        run: python -m glio_noncode cohort-foundation-frontier-operational --output /tmp/glio-cohort-foundation-operational.json
+      - name: Cohort foundation frontier claim boundary
+        run: python -m glio_noncode cohort-foundation-frontier-boundary --output /tmp/glio-cohort-foundation-boundary.json
+      - name: Cohort foundation frontier assurance
+        run: python -m glio_noncode cohort-foundation-frontier-assurance --output /tmp/glio-cohort-foundation-assurance.json
+      - name: Cohort foundation frontier runbook
+        run: python -m glio_noncode cohort-foundation-frontier-runbook --output /tmp/glio-cohort-foundation-runbook.json
+      - name: Cohort foundation frontier report
+        run: python -m glio_noncode cohort-foundation-frontier-report --output /tmp/glio-cohort-foundation-report.json
+      - name: Cohort foundation frontier review CSV
+        run: python -m glio_noncode export-cohort-foundation-frontier-review-csv --output /tmp/glio-cohort-foundation-review.csv
+      - name: Cohort foundation frontier review Markdown
+        run: python -m glio_noncode export-cohort-foundation-frontier-review-markdown --output /tmp/glio-cohort-foundation-review.md
+      - name: Cohort foundation frontier source registry
+        run: python -m glio_noncode cohort-foundation-frontier-sources --output /tmp/glio-cohort-foundation-sources.json
+      - name: Cohort foundation frontier integrity
+        run: python -m glio_noncode cohort-foundation-frontier-integrity --output /tmp/glio-cohort-foundation-integrity.json
+      - name: Cohort foundation frontier control coverage
+        run: python -m glio_noncode cohort-foundation-frontier-control-coverage --output /tmp/glio-cohort-foundation-controls.json
+      - name: Cohort foundation frontier traces
+        run: python -m glio_noncode cohort-foundation-frontier-traces --output /tmp/glio-cohort-foundation-traces.json
+      - name: Cohort foundation frontier invariants
+        run: python -m glio_noncode cohort-foundation-frontier-invariants --output /tmp/glio-cohort-foundation-invariants.json
+      - name: Cohort foundation frontier thresholds
+        run: python -m glio_noncode cohort-foundation-frontier-thresholds --output /tmp/glio-cohort-foundation-thresholds.json
+      - name: Cohort foundation frontier observability
+        run: python -m glio_noncode cohort-foundation-frontier-observability --output /tmp/glio-cohort-foundation-observability.json
+      - name: Cohort foundation frontier accessibility
+        run: python -m glio_noncode cohort-foundation-frontier-accessibility --output /tmp/glio-cohort-foundation-accessibility.json
+      - name: Cohort foundation frontier performance
+        run: python -m glio_noncode cohort-foundation-frontier-performance --output /tmp/glio-cohort-foundation-performance.json
+      - name: Cohort foundation frontier schema migrations
+        run: python -m glio_noncode cohort-foundation-frontier-schema-migrations --output /tmp/glio-cohort-foundation-migrations.json
+      - name: Cohort foundation frontier failure injections
+        run: python -m glio_noncode cohort-foundation-frontier-failure-injections --output /tmp/glio-cohort-foundation-failures.json
+      - name: Cohort foundation frontier recovery
+        run: python -m glio_noncode cohort-foundation-frontier-recovery --output /tmp/glio-cohort-foundation-recovery.json
+      - name: Cohort foundation frontier package
+        run: python -m glio_noncode cohort-foundation-frontier-package --output /tmp/glio-cohort-foundation-package.json
+      - name: Cohort foundation frontier claim evidence
+        run: python -m glio_noncode cohort-foundation-frontier-claim-evidence --output /tmp/glio-cohort-foundation-claim-evidence.json
+      - name: Cohort foundation frontier audit log
+        run: python -m glio_noncode cohort-foundation-frontier-audit-log --output /tmp/glio-cohort-foundation-audit-log.json
+      - name: Cohort foundation frontier review SLA
+        run: python -m glio_noncode cohort-foundation-frontier-review-sla --output /tmp/glio-cohort-foundation-review-sla.json
+      - name: Cohort foundation frontier data dictionary
+        run: python -m glio_noncode cohort-foundation-frontier-data-dictionary --output /tmp/glio-cohort-foundation-data-dictionary.json
+      - name: Cohort foundation frontier compatibility
+        run: python -m glio_noncode cohort-foundation-frontier-compatibility --output /tmp/glio-cohort-foundation-compatibility.json
+      - name: Cohort foundation frontier change control
+        run: python -m glio_noncode cohort-foundation-frontier-change-control --output /tmp/glio-cohort-foundation-change-control.json
+      - name: Cohort foundation frontier retention
+        run: python -m glio_noncode cohort-foundation-frontier-retention --output /tmp/glio-cohort-foundation-retention.json
+      - name: Cohort foundation frontier reproducibility
+        run: python -m glio_noncode cohort-foundation-frontier-reproducibility --output /tmp/glio-cohort-foundation-reproducibility.json
+      - name: Cohort foundation frontier dataset manifest
+        run: python -m glio_noncode cohort-foundation-frontier-dataset-manifest --output /tmp/glio-cohort-foundation-dataset.json
+      - name: Cohort foundation frontier transcript
+        run: python -m glio_noncode cohort-foundation-frontier-transcript --output /tmp/glio-cohort-foundation-transcript.txt
+      - name: Cohort foundation frontier summary
+        run: python -m glio_noncode cohort-foundation-frontier-summary --output /tmp/glio-cohort-foundation-summary.json
       - name: Validation frontier data boundary audit
         run: python -m glio_noncode validation-frontier-data-audit --output /tmp/glio-validation-frontier-data.json
       - name: Validation frontier operation contracts

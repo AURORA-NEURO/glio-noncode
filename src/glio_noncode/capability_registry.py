@@ -3888,48 +3888,75 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D12-C01": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.cohort_discovery.CohortQueryBuilder",),
-                "test_modules": ("tests.test_cohort_discovery",),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.cohort_discovery.CohortQueryBuilder",
+                    "glio_noncode.cohort_foundation_frontier_public_data",
+                    "glio_noncode.cohort_foundation_frontier_adapters",
+                    "glio_noncode.cohort_foundation_frontier_contracts",
+                    "glio_noncode.cohort_foundation_frontier_fixture_eval",
+                    "glio_noncode.cohort_foundation_frontier_runtime",
+                ),
+                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
                 "evidence_note": (
                     "Cohort queries preserve exact context, variant/origin/sample criteria, "
                     "callable requirements, exclusion reasons, source IDs, and out-of-domain "
-                    "transport; external task calibration remains."
+                    "transport. The public C01-C04 aggregate fixture verifies positive, partial, "
+                    "empty, and foreign-context paths through adapters, contracts, replay, "
+                    "lineage, policy, quality, release, and CLI surfaces."
                 ),
             },
             "GNC-D12-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_discovery.LocalBackgroundMutationModel",
+                    "glio_noncode.cohort_foundation_frontier_fixture_eval",
+                    "glio_noncode.cohort_foundation_frontier_metrics",
+                    "glio_noncode.cohort_foundation_frontier_provenance",
+                    "glio_noncode.cohort_foundation_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_cohort_discovery",),
+                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
                 "evidence_note": (
                     "Local background summaries retain callable bases, observed records, context "
                     "rate, target-space expectation, and small-sample uncertainty without emitting "
-                    "an unvalidated significance claim."
+                    "an unvalidated significance claim. The public fixture verifies supported, "
+                    "zero-observation partial, missing-denominator abstention, and foreign-context "
+                    "controls with deterministic release accounting."
                 ),
             },
             "GNC-D12-C03": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_discovery.SequenceContextControlMatcher",
+                    "glio_noncode.cohort_foundation_frontier_adapters",
+                    "glio_noncode.cohort_foundation_frontier_policy",
+                    "glio_noncode.cohort_foundation_frontier_reconciliation",
+                    "glio_noncode.cohort_foundation_frontier_review",
                 ),
-                "test_modules": ("tests.test_cohort_discovery",),
+                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
                 "evidence_note": (
                     "Sequence controls use exact context and bounded normalized Hamming distance, "
                     "preserving candidate count, distances, source IDs, and abstention/OOD states."
+                    " The public fixture exercises supported, insufficient, absent, and foreign "
+                    "candidate paths and retains review, quarantine, and export decisions."
                 ),
             },
             "GNC-D12-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_discovery.ChromatinContextControlMatcher",
+                    "glio_noncode.cohort_foundation_frontier_schema",
+                    "glio_noncode.cohort_foundation_frontier_lineage",
+                    "glio_noncode.cohort_foundation_frontier_release",
+                    "glio_noncode.cohort_foundation_frontier_artifacts",
                 ),
-                "test_modules": ("tests.test_cohort_discovery",),
+                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
                 "evidence_note": (
                     "Chromatin controls use declared feature ranges and RMS distance with complete "
                     "vector requirements, context gating, candidate accounting, and explicit "
-                    "negative-control limitations."
+                    "negative-control limitations. The public fixture verifies matched, incomplete, "
+                    "distance-excluded, and foreign-context controls through schema, lineage, "
+                    "artifact, release, and runtime gates."
                 ),
             },
             "GNC-D12-C05": {

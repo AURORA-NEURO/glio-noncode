@@ -20,12 +20,12 @@ verified only when tests and the stated evidence boundary support that claim.
 The registry reports planned, partial, implemented, and verified counts
 separately so a single percentage cannot hide unfinished work.
 
-The frontier expansion waves add test-backed coverage for all C13-C16
-capabilities in Domains 01-16. The repository ledger now has 256 of 256
-capabilities started (100%); 196 capabilities have deterministic fixture-backed
-verification and 60 remain partial. The frontier surfaces are bounded research
-infrastructure. Current verified coverage is 76.56% of the 256-capability
-catalog; MVP implementation coverage is 75.0%. The surfaces retain
+The frontier expansion waves add test-backed coverage across the sixteen
+domains. The repository ledger now has 256 of 256 capabilities started (100%);
+220 capabilities have deterministic fixture-backed verification and 36 remain
+partial. The frontier surfaces are bounded research infrastructure. Current
+verified coverage is 85.94% of the 256-capability catalog; MVP implementation
+coverage is 93.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
@@ -2995,6 +2995,68 @@ glio-noncode compare-primary-recurrence phases.json --context-key "GRCh38|glioma
 glio-noncode detect-treatment-selection treatment-phases.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --change-threshold 0.2 --output treatment-selection.json
 glio-noncode replicate-cross-cohort replication.json --context-key "GRCh38|glioma|adult|stem_like|core|unknown" --minimum-cohorts 2 --minimum-concordance 0.75 --output replication.json
 ```
+
+The Domain 12 C01-C04 foundation frontier now verifies the four cohort
+selection and control primitives over a separate public aggregate fixture:
+
+- `CohortQueryBuilder` preserves exact context, variant kind, origin,
+  chromosome, sample, callable criteria, and every exclusion reason;
+- `LocalBackgroundMutationModel` reports callable bases, observed variants,
+  descriptive rate, target-space expectation, uncertainty, and the explicit
+  zero-observation limitation;
+- `SequenceContextControlMatcher` selects bounded Hamming-distance controls;
+- `ChromatinContextControlMatcher` selects controls by normalized RMS feature
+  distance with complete-vector and feature-range requirements.
+
+The fixture contains 16 pseudonymous aggregate records: one positive and three
+controls for each operation. It cites five public aggregate sources and covers
+supported, partial, absent, abstained, and foreign-context paths. The 39-stage
+runtime joins strict adapters, contracts, schema, evaluation, metrics,
+lineage, provenance, policy, reconciliation, review, quality, replay, bundle,
+release, artifacts, diagnostics, scenarios, validation, operational matrix,
+claim boundary, assurance, runbook, and query surfaces. No patient-level rows
+are imported or published.
+
+```powershell
+glio-noncode cohort-foundation-frontier-data-audit --output cohort-foundation-data.json
+glio-noncode cohort-foundation-frontier-contracts --output cohort-foundation-contracts.json
+glio-noncode cohort-foundation-frontier-schema --output cohort-foundation-schema.json
+glio-noncode cohort-foundation-frontier-evaluate --output cohort-foundation-evaluation.json
+glio-noncode cohort-foundation-frontier-runtime --output cohort-foundation-runtime.json
+glio-noncode cohort-foundation-frontier-release --output cohort-foundation-release.json
+glio-noncode cohort-foundation-frontier-depth-audit --output cohort-foundation-depth.json
+glio-noncode cohort-foundation-frontier-assurance --output cohort-foundation-assurance.json
+glio-noncode cohort-foundation-frontier-sources --output cohort-foundation-sources.json
+glio-noncode cohort-foundation-frontier-integrity --output cohort-foundation-integrity.json
+glio-noncode cohort-foundation-frontier-control-coverage --output cohort-foundation-controls.json
+glio-noncode cohort-foundation-frontier-traces --output cohort-foundation-traces.json
+glio-noncode cohort-foundation-frontier-invariants --output cohort-foundation-invariants.json
+glio-noncode cohort-foundation-frontier-thresholds --output cohort-foundation-thresholds.json
+glio-noncode cohort-foundation-frontier-observability --output cohort-foundation-observability.json
+glio-noncode cohort-foundation-frontier-accessibility --output cohort-foundation-accessibility.json
+glio-noncode cohort-foundation-frontier-performance --output cohort-foundation-performance.json
+glio-noncode cohort-foundation-frontier-schema-migrations --output cohort-foundation-migrations.json
+glio-noncode cohort-foundation-frontier-failure-injections --output cohort-foundation-failures.json
+glio-noncode cohort-foundation-frontier-recovery --output cohort-foundation-recovery.json
+glio-noncode cohort-foundation-frontier-package --output cohort-foundation-package.json
+glio-noncode cohort-foundation-frontier-claim-evidence --output cohort-foundation-claim-evidence.json
+glio-noncode cohort-foundation-frontier-audit-log --output cohort-foundation-audit-log.json
+glio-noncode cohort-foundation-frontier-review-sla --output cohort-foundation-review-sla.json
+glio-noncode cohort-foundation-frontier-data-dictionary --output cohort-foundation-data-dictionary.json
+glio-noncode cohort-foundation-frontier-compatibility --output cohort-foundation-compatibility.json
+glio-noncode cohort-foundation-frontier-change-control --output cohort-foundation-change-control.json
+glio-noncode cohort-foundation-frontier-retention --output cohort-foundation-retention.json
+glio-noncode cohort-foundation-frontier-reproducibility --output cohort-foundation-reproducibility.json
+glio-noncode cohort-foundation-frontier-dataset-manifest --output cohort-foundation-dataset.json
+glio-noncode cohort-foundation-frontier-transcript --output cohort-foundation-transcript.txt
+glio-noncode cohort-foundation-frontier-summary --output cohort-foundation-summary.json
+glio-noncode export-cohort-foundation-frontier-review-csv --output cohort-foundation-review.csv
+glio-noncode export-cohort-foundation-frontier-review-markdown --output cohort-foundation-review.md
+```
+
+The foundation frontier remains descriptive research infrastructure. It does
+not produce a significance test, causal null proof, clinical risk estimate,
+diagnosis, prognosis, treatment recommendation, or transportability claim.
 
 The query boundary is:
 
