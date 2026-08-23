@@ -154,6 +154,29 @@ glio-noncode editing-design-frontier-pipeline --output editing-design-runtime.js
 glio-noncode editing-design-frontier-review-csv --output editing-design-review.csv
 ```
 
+The D13 C09–C12 planning frontier is an independent surface for model-system
+eligibility, guide/oligo adaptation, deterministic controls and randomization,
+and transparent power/replication estimates. It executes 16 public aggregate
+scenarios, 80 row checks, 69 assurance planes, and a 28-stage runtime. It keeps
+foreign context, malformed rows, missing target identity, empty evidence, and
+replicate shortfalls visible as review boundaries.
+
+```text
+glio-noncode planning-frontier-data-audit --output planning-data.json
+glio-noncode planning-frontier-evaluate --output planning-evaluation.json
+glio-noncode planning-frontier-pipeline --output planning-runtime.json
+glio-noncode planning-frontier-review-csv --output planning-review.csv
+```
+
+The planning surface is public aggregate research planning only. It does not
+prove model fidelity, guide activity, assay validity, statistical certainty,
+safety, clinical utility, or institutional approval. See the dedicated
+[planning operations](docs/PLANNING_FRONTIER_OPERATIONS.md),
+[schema](docs/PLANNING_FRONTIER_SCHEMA.md),
+[failure modes](docs/PLANNING_FRONTIER_FAILURE_MODES.md),
+[release](docs/PLANNING_FRONTIER_RELEASE.md), and
+[runbook](docs/PLANNING_FRONTIER_RUNBOOK.md) notes.
+
 See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_API.md](docs/WORKBENCH_RELEASE_FRONTIER_API.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md](docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md),

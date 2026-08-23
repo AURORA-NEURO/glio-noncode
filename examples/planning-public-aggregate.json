@@ -1,0 +1,577 @@
+{
+  "content_address": "sha256:8ac635736dce533bed21d4813bf7f44dd3984bcb42043c46b9fa933496989bb4",
+  "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+  "evidence_boundary": "public_aggregate_planning_evidence",
+  "fixture_id": "planning-public-aggregate-001",
+  "fixture_version": "2026.08.d13-c09-c12.v1",
+  "records": [
+    {
+      "capability": "model-system-eligibility",
+      "content_address": "sha256:e67faa62e4de5c5971617b1e41387ce25c9aa224cd310e9134ea3683872b8cdc",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "notes": "declared model support and replicated evidence meet the gate",
+      "operation": "model_system_eligibility",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [
+          {
+            "blockers": [],
+            "cell_state": "stem_like",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "declared_context_keys": [
+              "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
+            ],
+            "evidence_strength": "replicated",
+            "model_id": "model-001",
+            "model_system": "adult_glioma_stem_like",
+            "source_id": "gtex",
+            "supports_context": true
+          }
+        ],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "record_id": "D13-C09-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gtex",
+        "pubmed"
+      ]
+    },
+    {
+      "capability": "model-system-eligibility",
+      "content_address": "sha256:938ca6c5cb7062aa09db3286e514ab8c88beeec3850e3f8bee7a30e99fc413bd",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch",
+        "context_not_declared_supported"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign model observation is blocked",
+      "operation": "model_system_eligibility",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [
+          {
+            "blockers": [],
+            "cell_state": "stem_like",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "declared_context_keys": [
+              "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
+            ],
+            "evidence_strength": "replicated",
+            "model_id": "model-001",
+            "model_system": "adult_glioma_stem_like",
+            "source_id": "gtex",
+            "supports_context": true
+          }
+        ],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "record_id": "D13-C09-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gtex"
+      ]
+    },
+    {
+      "capability": "model-system-eligibility",
+      "content_address": "sha256:60ad96f16592b86f5d6ba34c7ef13075a104ed4cf4514659370e5d0d7778a483",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_not_declared_supported",
+        "evidence_below_threshold",
+        "no_declared_eligible_model_system"
+      ],
+      "expected_state": "review",
+      "notes": "weak or undeclared model support remains review-only",
+      "operation": "model_system_eligibility",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [
+          {
+            "blockers": [],
+            "cell_state": "stem_like",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "declared_context_keys": [],
+            "evidence_strength": "exploratory",
+            "model_id": "model-001",
+            "model_system": "adult_glioma_stem_like",
+            "source_id": "gtex",
+            "supports_context": true
+          }
+        ],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "record_id": "D13-C09-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "gtex"
+      ]
+    },
+    {
+      "capability": "model-system-eligibility",
+      "content_address": "sha256:b2134c7c6527acf5dedf00090704c90e784b3bb3874103e8b96a0b1c0766ac1f",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "no_model_observations"
+      ],
+      "expected_state": "abstained",
+      "notes": "empty model evidence abstains",
+      "operation": "model_system_eligibility",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "record_id": "D13-C09-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "gtex"
+      ]
+    },
+    {
+      "capability": "guide-oligo-adaptation",
+      "content_address": "sha256:143b639e62441e5f4bff1182dfd454a568a1d925dab1d0bc7437f7fdfe84cbc7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "notes": "public guide row is adapted with a stable address",
+      "operation": "guide_oligo_adaptation",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": "{\"observations\": [{\"context_key\": \"GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment\", \"design_id\": \"design-001\", \"observation_id\": \"guide-observation-001\", \"oligo_id\": \"oligo-001\", \"oligo_type\": \"guide\", \"pam\": \"NGG\", \"sequence\": \"ACGTACGTACGTACGTACGT\", \"start_offset\": 20, \"strand\": \"+\", \"target_id\": \"target-001\"}]}"
+      },
+      "record_id": "D13-C10-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "addgene",
+        "ncbi-refseq"
+      ]
+    },
+    {
+      "capability": "guide-oligo-adaptation",
+      "content_address": "sha256:a77849c58ce996944ed4ccde55ec7a10d7b2c391a7facee6aafd6c3aa1cdefd6",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign guide context is blocked",
+      "operation": "guide_oligo_adaptation",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": "{\"observations\": [{\"context_key\": \"GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment\", \"design_id\": \"design-001\", \"observation_id\": \"guide-observation-001\", \"oligo_id\": \"oligo-001\", \"oligo_type\": \"guide\", \"pam\": \"NGG\", \"sequence\": \"ACGTACGTACGTACGTACGT\", \"start_offset\": 20, \"strand\": \"+\", \"target_id\": \"target-001\"}]}"
+      },
+      "record_id": "D13-C10-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "addgene"
+      ]
+    },
+    {
+      "capability": "guide-oligo-adaptation",
+      "content_address": "sha256:a508c8e9c57583b91a11b1dccdf343ed3007a403893537257eb27e9fa7cc9d6f",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "invalid_guide_oligo_row"
+      ],
+      "expected_state": "review",
+      "notes": "malformed guide row is quarantined",
+      "operation": "guide_oligo_adaptation",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": "{\"observations\": [{\"design_id\": \"design-002\", \"target_id\": \"target-002\", \"sequence\": \"\"}]}"
+      },
+      "record_id": "D13-C10-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "addgene"
+      ]
+    },
+    {
+      "capability": "guide-oligo-adaptation",
+      "content_address": "sha256:fe6ae862203a5724e9affab886ffe33a01494c87310cfa06cd92a5fe8fbf9e65",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "empty_source"
+      ],
+      "expected_state": "abstained",
+      "notes": "empty source abstains",
+      "operation": "guide_oligo_adaptation",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": ""
+      },
+      "record_id": "D13-C10-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "addgene"
+      ]
+    },
+    {
+      "capability": "controls-randomization",
+      "content_address": "sha256:98d907cae9ce49a2334fa45d086e6bd3667338b3e7413836956999b3068a1898",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "notes": "seeded assignments are deterministic and context-closed",
+      "operation": "controls_randomization",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [
+          {
+            "condition": "baseline",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "target_id": "target-001"
+          },
+          {
+            "condition": "baseline",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "target_id": "target-002"
+          }
+        ],
+        "technical_replicates": 2
+      },
+      "record_id": "D13-C11-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "addgene",
+        "pubmed"
+      ]
+    },
+    {
+      "capability": "controls-randomization",
+      "content_address": "sha256:9d62a851efaca9bbfdd8bca05a0195e0191bd698290a784a1109c3c859d2e61b",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign target block is retained",
+      "operation": "controls_randomization",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "target_id": "target-foreign"
+          }
+        ],
+        "technical_replicates": 2
+      },
+      "record_id": "D13-C11-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "addgene"
+      ]
+    },
+    {
+      "capability": "controls-randomization",
+      "content_address": "sha256:07f4e6d99ed9dc78701dc0dcacdc4d15864750640c58b353b1eb8490a273f858",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "missing_target_id"
+      ],
+      "expected_state": "review",
+      "notes": "missing target identity remains review-only",
+      "operation": "controls_randomization",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
+          }
+        ],
+        "technical_replicates": 2
+      },
+      "record_id": "D13-C11-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "addgene"
+      ]
+    },
+    {
+      "capability": "controls-randomization",
+      "content_address": "sha256:2e4b7570fdf9562b9c71795fe07da7b79b49370638aa37f22841e7a77c31da73",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "no_targets"
+      ],
+      "expected_state": "abstained",
+      "notes": "empty target plan abstains",
+      "operation": "controls_randomization",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [],
+        "technical_replicates": 2
+      },
+      "record_id": "D13-C11-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "addgene"
+      ]
+    },
+    {
+      "capability": "power-replication",
+      "content_address": "sha256:b09c061701e797b0217eb65b940b23b9f5758ebf6e155eac8d5ac67325c7b5ac",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "notes": "effect and noise inputs produce an addressed estimate",
+      "operation": "power_replication",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.8,
+            "observation_id": "power-observation-001",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0.5
+          },
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.82,
+            "observation_id": "power-observation-002",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0.52
+          }
+        ],
+        "request_id": "power-request-001"
+      },
+      "record_id": "D13-C12-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "pubmed",
+        "gtex"
+      ]
+    },
+    {
+      "capability": "power-replication",
+      "content_address": "sha256:257a1bee4fa08c8514b9bbb45199b537c4ccc4442776ef239ba01265dbdccd53",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign power observation is blocked",
+      "operation": "power_replication",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.8,
+            "observation_id": "power-observation-001",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0.5
+          }
+        ],
+        "request_id": "power-request-001"
+      },
+      "record_id": "D13-C12-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "pubmed"
+      ]
+    },
+    {
+      "capability": "power-replication",
+      "content_address": "sha256:e7a3bafa5563601274585d94ddc31e49d1944a30e395641f8d045a761681a4d0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "invalid_power_row"
+      ],
+      "expected_state": "review",
+      "notes": "non-positive variance is invalid",
+      "operation": "power_replication",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.8,
+            "observation_id": "power-observation-001",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0
+          }
+        ],
+        "request_id": "power-request-001"
+      },
+      "record_id": "D13-C12-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "pubmed"
+      ]
+    },
+    {
+      "capability": "power-replication",
+      "content_address": "sha256:b5db0eff095041b93d28e2629716c2157393a97c283972c21a7bcd6d26d8adc0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "no_power_observations"
+      ],
+      "expected_state": "abstained",
+      "notes": "empty power evidence abstains",
+      "operation": "power_replication",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [],
+        "request_id": "power-request-001"
+      },
+      "record_id": "D13-C12-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "pubmed"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:67e2a1f845d91dd2e6e568f82b92ee8bae92aae43765945500acf7bccb924400",
+      "scope": "public sequence context",
+      "source_id": "ncbi-refseq",
+      "title": "NCBI Reference Sequence",
+      "uri": "https://www.ncbi.nlm.nih.gov/refseq/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:1e9fa8a8ed621fc7b4afc86314d39ba7b0223406f24f07eb4ed68557c22b14c5",
+      "scope": "public plasmid and perturbation context",
+      "source_id": "addgene",
+      "title": "Addgene public repository",
+      "uri": "https://www.addgene.org/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:64cd1a262dcfca55ffbee8ce1e420a6c61ec39314688c6d6d44722d5bec7990f",
+      "scope": "public regulatory assay context",
+      "source_id": "encode",
+      "title": "ENCODE project portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:9a7a861c1b6c685b76c5b59659c56b803de3797bc929b26eb1423422633abd15",
+      "scope": "public literature index",
+      "source_id": "pubmed",
+      "title": "PubMed biomedical literature",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:b5bd1ce474a69188a45d3e0e72df84eca0406778a5106271b43583e93107f73c",
+      "scope": "public tissue expression context",
+      "source_id": "gtex",
+      "title": "GTEx portal",
+      "uri": "https://gtexportal.org/home/",
+      "version": "public portal receipt"
+    }
+  ]
+}

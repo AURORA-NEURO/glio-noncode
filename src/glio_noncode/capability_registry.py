@@ -4350,14 +4350,14 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C09": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_alpha.ModelSystemEligibilityMatcher",
-                    "glio_noncode.validation_alpha.ModelSystemEligibilityReport",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_governance",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.planning_frontier_operations.evaluate_model_system_eligibility",
+                    "glio_noncode.planning_frontier_contracts.PlanningOperation",
+                    "glio_noncode.planning_frontier_public_data",
+                    "glio_noncode.planning_frontier_fixture_eval",
+                    "glio_noncode.planning_frontier_provenance",
+                    "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
                 "evidence_note": (
                     "Model-system eligibility matches exact context, declared model support, "
                     "cell state, evidence strength, blockers, and source receipts; it is a "
@@ -4368,14 +4368,14 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C10": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_alpha.GuideOligoDesignAdapter",
-                    "glio_noncode.validation_alpha.GuideOligoBatch",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_exports",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.planning_frontier_operations.evaluate_guide_oligo_adaptation",
+                    "glio_noncode.planning_frontier_adapters.PlanningAdapterRegistry",
+                    "glio_noncode.planning_frontier_public_data",
+                    "glio_noncode.planning_frontier_fixture_eval",
+                    "glio_noncode.planning_frontier_exports",
+                    "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
                 "evidence_note": (
                     "Guide and oligo adaptation preserves design IDs, target IDs, sequences, "
                     "strand, offsets, PAM, context, versions, row hashes, and malformed-row "
@@ -4387,14 +4387,14 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C11": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_alpha.ControlsRandomizationPlanner",
-                    "glio_noncode.validation_alpha.ControlsRandomizationReport",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_control_coverage",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.planning_frontier_operations.evaluate_controls_randomization",
+                    "glio_noncode.planning_frontier_contracts.PlanningExecution",
+                    "glio_noncode.planning_frontier_public_data",
+                    "glio_noncode.planning_frontier_fixture_eval",
+                    "glio_noncode.planning_frontier_review_queue",
+                    "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
                 "evidence_note": (
                     "Control and replicate plans generate deterministic content-addressed "
                     "assignments for biological and technical replicates while retaining context "
@@ -4406,14 +4406,14 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C12": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_alpha.PowerReplicationEstimator",
-                    "glio_noncode.validation_alpha.PowerReplicationReport",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_governance",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.planning_frontier_operations.evaluate_power_replication",
+                    "glio_noncode.planning_frontier_contracts.PlanningState",
+                    "glio_noncode.planning_frontier_public_data",
+                    "glio_noncode.planning_frontier_fixture_eval",
+                    "glio_noncode.planning_frontier_quality_gate",
+                    "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_alpha", "tests.test_validation_alpha_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
                 "evidence_note": (
                     "Power planning exposes effect, variance, alpha, target power, replicate "
                     "requirements, blocking factors, shortfalls, assumptions, and source receipts "

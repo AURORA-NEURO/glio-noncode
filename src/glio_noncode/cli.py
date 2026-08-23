@@ -336,6 +336,29 @@ from .editing_design_frontier_runtime import run_editing_design_runtime
 from .editing_design_frontier_schema import default_editing_design_frontier_schema
 from .editing_design_frontier_thresholds import build_editing_design_threshold_report
 from .editing_design_frontier_validation_matrix import build_editing_design_validation_matrix
+from .planning_frontier_adapters import build_planning_adapters
+from .planning_frontier_data_dictionary import build_planning_data_dictionary
+from .planning_frontier_depth import build_planning_depth_report
+from .planning_frontier_exports import export_planning_review_csv
+from .planning_frontier_failure_injection import build_planning_failure_report
+from .planning_frontier_fixture_eval import evaluate_planning_fixture
+from .planning_frontier_integrity import evaluate_planning_integrity
+from .planning_frontier_metrics import measure_planning
+from .planning_frontier_policy import materialize_planning_policy
+from .planning_frontier_provenance import build_planning_provenance
+from .planning_frontier_public_data import audit_planning_frontier_data, default_planning_frontier_fixture
+from .planning_frontier_reconciliation import reconcile_planning
+from .planning_frontier_release import build_planning_release
+from .planning_frontier_reports import build_planning_report
+from .planning_frontier_review_queue import build_planning_review_queue
+from .planning_frontier_runtime import run_planning_runtime
+from .planning_frontier_schema import default_planning_schema
+from .planning_frontier_replay import replay_planning
+from .planning_frontier_quality_gate import build_planning_quality_gate
+from .planning_frontier_thresholds import build_planning_threshold_report
+from .planning_frontier_validation_matrix import build_planning_validation_matrix
+from .planning_frontier_handoff import build_planning_handoff
+from .planning_frontier_run_manifest import build_planning_run_manifest
 from .evidence_release_frontier_access import build_evidence_release_access_manifest
 from .evidence_release_frontier_adapters import build_evidence_release_adapters
 from .evidence_release_frontier_data_dictionary import default_evidence_release_data_dictionary
@@ -5003,6 +5026,30 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     editing_design_frontier_csv = subparsers.add_parser("editing-design-frontier-review-csv", help="export D13 C05-C08 editing review rows")
     editing_design_frontier_csv.add_argument("--output", default=None)
+
+    planning_frontier_commands = (
+        ("planning-frontier-data-audit", "audit D13 C09-C12 public aggregate planning data"),
+        ("planning-frontier-evaluate", "evaluate D13 C09-C12 planning scenarios"),
+        ("planning-frontier-pipeline", "run the complete D13 C09-C12 planning runtime"),
+        ("planning-frontier-depth", "run D13 C09-C12 planning depth checks"),
+        ("planning-frontier-quality", "run D13 C09-C12 planning quality gate"),
+        ("planning-frontier-thresholds", "emit D13 C09-C12 planning thresholds"),
+        ("planning-frontier-validation-matrix", "emit D13 C09-C12 planning validation matrix"),
+        ("planning-frontier-handoff", "emit D13 C09-C12 planning reviewer handoff"),
+        ("planning-frontier-run-manifest", "emit D13 C09-C12 planning run manifest"),
+        ("planning-frontier-provenance", "emit D13 C09-C12 planning provenance"),
+        ("planning-frontier-replay", "replay D13 C09-C12 planning scenarios"),
+        ("planning-frontier-integrity", "run D13 C09-C12 planning integrity checks"),
+        ("planning-frontier-review-queue", "emit D13 C09-C12 planning review queue"),
+        ("planning-frontier-data-dictionary", "emit D13 C09-C12 planning data dictionary"),
+        ("planning-frontier-report", "emit D13 C09-C12 planning report"),
+        ("planning-frontier-failure-injection", "rehearse D13 C09-C12 planning failures"),
+    )
+    for command_name, command_help in planning_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    planning_frontier_csv = subparsers.add_parser("planning-frontier-review-csv", help="export D13 C09-C12 planning review rows")
+    planning_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -10110,6 +10157,64 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "editing-design-frontier-review-csv":
             _write_text(export_editing_design_review_csv(evaluate_editing_design_fixture(default_editing_design_frontier_fixture())), args.output)
+            return 0
+        if args.command == "planning-frontier-data-audit":
+            _write_json(audit_planning_frontier_data(default_planning_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-evaluate":
+            _write_json(evaluate_planning_fixture(default_planning_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-pipeline":
+            _write_json(run_planning_runtime(default_planning_frontier_fixture(), run_id="planning-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-depth":
+            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture); metrics = measure_planning(evaluation); quality = build_planning_quality_gate(audit=audit_planning_frontier_data(fixture), fixture=fixture, evaluation=evaluation, adapters=build_planning_adapters(), schema=default_planning_schema())
+            _write_json(build_planning_depth_report(fixture, evaluation, metrics, quality).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-quality":
+            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            _write_json(build_planning_quality_gate(audit=audit_planning_frontier_data(fixture), fixture=fixture, evaluation=evaluation, adapters=build_planning_adapters(), schema=default_planning_schema()).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-thresholds":
+            _write_json(build_planning_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-validation-matrix":
+            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            _write_json(build_planning_validation_matrix(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-handoff":
+            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            _write_json(build_planning_handoff(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-run-manifest":
+            _write_json(build_planning_run_manifest(default_planning_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-provenance":
+            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            _write_json(build_planning_provenance(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-replay":
+            _write_json(replay_planning(default_planning_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-integrity":
+            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            _write_json(evaluate_planning_integrity(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-review-queue":
+            _write_json(build_planning_review_queue(evaluate_planning_fixture(default_planning_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-data-dictionary":
+            _write_json(build_planning_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-report":
+            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            _write_text(build_planning_report(fixture=fixture, evaluation=evaluation).markdown(), args.output)
+            return 0
+        if args.command == "planning-frontier-failure-injection":
+            _write_json(build_planning_failure_report().to_dict(), args.output)
+            return 0
+        if args.command == "planning-frontier-review-csv":
+            _write_text(export_planning_review_csv(evaluate_planning_fixture(default_planning_frontier_fixture())), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)
