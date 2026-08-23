@@ -1242,3 +1242,15 @@ jobs:
         run: python -m glio_noncode structural-architecture-review-csv --output /tmp/glio-structural-architecture-review.csv && python -m glio_noncode structural-architecture-failures --output /tmp/glio-structural-architecture-failures.json && python -m glio_noncode structural-architecture-invariants --output /tmp/glio-structural-architecture-invariants.json
       - name: Structural architecture focused tests
         run: python -m unittest tests.test_structural_architecture tests.test_structural_architecture_cli
+      - name: Specimen architecture public data and plan
+        run: python -m glio_noncode specimen-architecture-data-audit --output /tmp/glio-specimen-architecture-data.json && python -m glio_noncode specimen-architecture-plan --output /tmp/glio-specimen-architecture-plan.json
+      - name: Specimen architecture evaluation and runtime
+        run: python -m glio_noncode evaluate-specimen-architecture --output /tmp/glio-specimen-architecture-evaluation.json && python -m glio_noncode specimen-architecture-runtime --output /tmp/glio-specimen-architecture-runtime.json
+      - name: Specimen architecture quality, depth, validation, and replay
+        run: python -m glio_noncode specimen-architecture-quality --output /tmp/glio-specimen-architecture-quality.json && python -m glio_noncode specimen-architecture-depth --output /tmp/glio-specimen-architecture-depth.json && python -m glio_noncode specimen-architecture-validation --output /tmp/glio-specimen-architecture-validation.json && python -m glio_noncode replay-specimen-architecture --output /tmp/glio-specimen-architecture-replay.json
+      - name: Specimen architecture review, access, and invariants
+        run: python -m glio_noncode specimen-architecture-review --output /tmp/glio-specimen-architecture-review.json && python -m glio_noncode specimen-architecture-metrics --output /tmp/glio-specimen-architecture-metrics.json && python -m glio_noncode specimen-architecture-access --output /tmp/glio-specimen-architecture-access.json && python -m glio_noncode specimen-architecture-invariants --output /tmp/glio-specimen-architecture-invariants.json
+      - name: Specimen architecture schema, failures, and bundle
+        run: python -m glio_noncode specimen-architecture-schema --output /tmp/glio-specimen-architecture-schema.json && python -m glio_noncode specimen-architecture-failures --output /tmp/glio-specimen-architecture-failures.json && python -m glio_noncode specimen-architecture-bundle --output /tmp/glio-specimen-architecture-bundle
+      - name: Specimen architecture focused tests
+        run: python -m unittest tests.test_specimen_architecture tests.test_specimen_architecture_exports

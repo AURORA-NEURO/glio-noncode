@@ -271,8 +271,25 @@ class CapabilityRegistry:
                     state=state,
                     implementation_modules=tuple(
                         str(item) for item in raw.get("implementation_modules", ())
+                    )
+                    + (
+                        (
+                            "glio_noncode.specimen_architecture_operations.evaluate_specimen_architecture_fixture",
+                            "glio_noncode.specimen_architecture_runtime.run_specimen_architecture",
+                            "glio_noncode.specimen_architecture_quality.assess_specimen_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D03-")
+                        else ()
                     ),
-                    test_modules=tuple(str(item) for item in raw.get("test_modules", ())),
+                    test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
+                    + (
+                        (
+                            "tests.test_specimen_architecture",
+                            "tests.test_specimen_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D03-")
+                        else ()
+                    ),
                     evidence_note=str(raw.get("evidence_note", "")),
                 )
             )
@@ -323,7 +340,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.models.CaseManifest",
                     "glio_noncode.intake_architecture_operations.evaluate_intake_architecture_case",
                 ),
-                "test_modules": ("tests.test_intake", "tests.test_d01_capabilities", "tests.test_intake_architecture"),
+                "test_modules": (
+                    "tests.test_intake",
+                    "tests.test_d01_capabilities",
+                    "tests.test_intake_architecture",
+                ),
                 "evidence_note": (
                     "VCF/TSV/JSON/BCF fixtures preserve source accounting and can be "
                     "projected into a CaseManifest; malformed records remain reviewable."
@@ -336,7 +357,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.bcf.BcfReader",
                     "glio_noncode.intake_architecture_parsing.parse_intake_architecture_case",
                 ),
-                "test_modules": ("tests.test_intake", "tests.test_bcf", "tests.test_intake_architecture"),
+                "test_modules": (
+                    "tests.test_intake",
+                    "tests.test_bcf",
+                    "tests.test_intake_architecture",
+                ),
                 "evidence_note": (
                     "Binary BCF2 and text gVCF paths have bounded fixtures, genotype "
                     "handling, and explicit symbolic-record deferral."
@@ -344,7 +369,10 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C03": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.regulatory_tracks.RegulatoryTrackParser", "glio_noncode.intake_architecture_parsing.parse_regulatory_track"),
+                "implementation_modules": (
+                    "glio_noncode.regulatory_tracks.RegulatoryTrackParser",
+                    "glio_noncode.intake_architecture_parsing.parse_regulatory_track",
+                ),
                 "test_modules": ("tests.test_d01_capabilities", "tests.test_intake_architecture"),
                 "evidence_note": (
                     "BED, narrowPeak, GFF3, and JSON interval fixtures preserve source "
@@ -353,7 +381,10 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C04": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.variant_normalization.VRSNormalizer", "glio_noncode.intake_architecture_normalization.normalize_vrs"),
+                "implementation_modules": (
+                    "glio_noncode.variant_normalization.VRSNormalizer",
+                    "glio_noncode.intake_architecture_normalization.normalize_vrs",
+                ),
                 "test_modules": (
                     "tests.test_d01_capabilities",
                     "tests.test_variation_fixture_eval",
@@ -411,7 +442,10 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C07": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.variant_beta.MultiAllelicDecomposer", "glio_noncode.intake_architecture_parsing.parse_multiallelic"),
+                "implementation_modules": (
+                    "glio_noncode.variant_beta.MultiAllelicDecomposer",
+                    "glio_noncode.intake_architecture_parsing.parse_multiallelic",
+                ),
                 "test_modules": (
                     "tests.test_variant_beta",
                     "tests.test_variant_beta_cli",
@@ -428,7 +462,10 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D01-C08": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.variant_beta.RepeatAwareNormalizer", "glio_noncode.intake_architecture_normalization.normalize_repeat"),
+                "implementation_modules": (
+                    "glio_noncode.variant_beta.RepeatAwareNormalizer",
+                    "glio_noncode.intake_architecture_normalization.normalize_repeat",
+                ),
                 "test_modules": (
                     "tests.test_variant_beta",
                     "tests.test_variant_beta_cli",
@@ -2137,7 +2174,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_effect_frontier_public_data",
                     "glio_noncode.sequence_effect_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_adapters",
+                    "tests.test_sequence_effect_frontier",
+                ),
                 "evidence_note": (
                     "Bounded deterministic GC, ambiguity, and k-mer context features are "
                     "content-addressed with public aggregate controls, replay, schema, "
@@ -2151,7 +2191,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_effect_frontier_fixture_eval",
                     "glio_noncode.sequence_effect_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_adapters",
+                    "tests.test_sequence_effect_frontier",
+                ),
                 "evidence_note": (
                     "Foundation-model output rows preserve model/version/source metadata and "
                     "quarantine malformed or inconsistent deltas across positive and control "
@@ -2165,7 +2208,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_effect_frontier_schema",
                     "glio_noncode.sequence_effect_frontier_replay",
                 ),
-                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_adapters",
+                    "tests.test_sequence_effect_frontier",
+                ),
                 "evidence_note": (
                     "Long-context outputs require a declared minimum window and preserve "
                     "short-context failures as explicit issues with deterministic replay and "
@@ -2179,7 +2225,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_effect_frontier_metrics",
                     "glio_noncode.sequence_effect_frontier_policy",
                 ),
-                "test_modules": ("tests.test_sequence_adapters", "tests.test_sequence_effect_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_adapters",
+                    "tests.test_sequence_effect_frontier",
+                ),
                 "evidence_note": (
                     "Model deltas are grouped by variant with mean, spread, model IDs, and "
                     "ambiguity states, explicit controls, and a release policy; no delta is "
@@ -2194,7 +2243,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_grammar_frontier_adapters",
                     "glio_noncode.sequence_grammar_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_beta",
+                    "tests.test_sequence_grammar_frontier",
+                ),
                 "evidence_note": (
                     "Declared IUPAC motif disruption scans compare reference and alternate local "
                     "windows, preserve strand, source version, sequence hashes, context, and "
@@ -2209,7 +2261,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_grammar_frontier_adapters",
                     "glio_noncode.sequence_grammar_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_beta",
+                    "tests.test_sequence_grammar_frontier",
+                ),
                 "evidence_note": (
                     "Declared motif creation scans retain alternate-only hits, reference/alternate "
                     "window hashes, IUPAC source versions, strand, context, and explicit non-claim "
@@ -2224,7 +2279,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_grammar_frontier_adapters",
                     "glio_noncode.sequence_grammar_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_beta",
+                    "tests.test_sequence_grammar_frontier",
+                ),
                 "evidence_note": (
                     "Spacing and orientation rules retain every compatible motif pair, unmatched "
                     "rules, context, and ambiguity states; compatibility is not treated as proof "
@@ -2239,7 +2297,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_grammar_frontier_adapters",
                     "glio_noncode.sequence_grammar_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_beta", "tests.test_sequence_grammar_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_beta",
+                    "tests.test_sequence_grammar_frontier",
+                ),
                 "evidence_note": (
                     "Versioned cooperative grammar interactions produce a reproducible descriptive "
                     "score with per-interaction contributions and required-missing states; the "
@@ -2255,7 +2316,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
                     "glio_noncode.sequence_regulation_frontier_pipeline.run_sequence_regulation_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_alpha",
+                    "tests.test_sequence_alpha_cli",
+                    "tests.test_sequence_regulation_frontier",
+                ),
                 "evidence_note": (
                     "The aggregate tranche runs phase-aware sequence features through source "
                     "receipts, positive and control records, context gates, staged quality "
@@ -2272,7 +2337,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
                     "glio_noncode.sequence_regulation_frontier_quality_gate.build_sequence_regulation_quality",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_alpha",
+                    "tests.test_sequence_alpha_cli",
+                    "tests.test_sequence_regulation_frontier",
+                ),
                 "evidence_note": (
                     "Declared splice motifs are scanned on aggregate reference and alternate "
                     "windows with source receipts, created and disrupted paths, context controls, "
@@ -2288,7 +2357,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
                     "glio_noncode.sequence_regulation_frontier_views.build_sequence_regulation_view",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_alpha",
+                    "tests.test_sequence_alpha_cli",
+                    "tests.test_sequence_regulation_frontier",
+                ),
                 "evidence_note": (
                     "5-prime and 3-prime UTR observations and bounded upstream patterns are "
                     "wrapped with aggregate receipts, positive and control paths, ambiguity "
@@ -2305,7 +2378,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.sequence_regulation_frontier_adapters.execute_sequence_regulation_record",
                     "glio_noncode.sequence_regulation_frontier_release.build_sequence_regulation_release",
                 ),
-                "test_modules": ("tests.test_sequence_alpha", "tests.test_sequence_alpha_cli", "tests.test_sequence_regulation_frontier"),
+                "test_modules": (
+                    "tests.test_sequence_alpha",
+                    "tests.test_sequence_alpha_cli",
+                    "tests.test_sequence_regulation_frontier",
+                ),
                 "evidence_note": (
                     "Declared promoter motif pairs are evaluated by spacing, orientation, weighted "
                     "coverage, source receipts, competing-pair controls, lineage, replay, and "
@@ -2406,7 +2483,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_context_frontier_adapters.execute_chromatin_context_frontier_record",
                     "glio_noncode.chromatin_context_frontier_pipeline.run_chromatin_context_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_context",
+                    "tests.test_chromatin_context_frontier",
+                ),
                 "evidence_note": (
                     "ATAC and DNase BED-like TSV/JSON observations retain coordinates, assay kind, "
                     "replicate IDs, source checksums, context keys, and malformed-row quarantine; "
@@ -2422,7 +2502,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_context_frontier_metrics.build_chromatin_context_frontier_metrics",
                     "glio_noncode.chromatin_context_frontier_quality_gate.build_chromatin_context_frontier_quality",
                 ),
-                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_context",
+                    "tests.test_chromatin_context_frontier",
+                ),
                 "evidence_note": (
                     "Measured ATAC/DNase reference-to-alternate deltas expose relative "
                     "normalization guards and abstain on missing measurements; the public "
@@ -2439,7 +2522,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_context_frontier_views.build_chromatin_context_frontier_view",
                     "glio_noncode.chromatin_context_frontier_review_queue.build_chromatin_context_frontier_review_queue",
                 ),
-                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_context",
+                    "tests.test_chromatin_context_frontier",
+                ),
                 "evidence_note": (
                     "Histone track observations preserve mark metadata, replicate spread, context "
                     "gating, and ambiguity; the public aggregate plane adds source registry, "
@@ -2454,7 +2540,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_context_frontier_reports.build_chromatin_context_frontier_report",
                     "glio_noncode.chromatin_context_frontier_exports.export_chromatin_context_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_chromatin_context", "tests.test_chromatin_context_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_context",
+                    "tests.test_chromatin_context_frontier",
+                ),
                 "evidence_note": (
                     "H3K27ac observations are summarized with replicate-aware ambiguity and "
                     "explicit limitations; the public aggregate plane verifies activity "
@@ -2551,7 +2640,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_alpha_frontier_public_data.default_chromatin_alpha_frontier_fixture",
                     "glio_noncode.chromatin_alpha_frontier_pipeline.run_chromatin_alpha_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_alpha",
+                    "tests.test_chromatin_alpha_cli",
+                    "tests.test_chromatin_alpha_frontier",
+                ),
                 "evidence_note": (
                     "Context-qualified chromatin intervals are split at observed boundaries and "
                     "assigned transparent open/intermediate/closed labels with replicate support, "
@@ -2567,7 +2660,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_alpha_frontier_adapters.execute_chromatin_alpha_frontier_record",
                     "glio_noncode.chromatin_alpha_frontier_quality_gate.build_chromatin_alpha_frontier_quality",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_alpha",
+                    "tests.test_chromatin_alpha_cli",
+                    "tests.test_chromatin_alpha_frontier",
+                ),
                 "evidence_note": (
                     "Reference/alternate chromatin signals are summarized per variant and assay "
                     "with replicate-aware deltas, directions, missingness, mixed-direction states, "
@@ -2583,7 +2680,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_alpha_frontier_views.build_chromatin_alpha_frontier_view",
                     "glio_noncode.chromatin_alpha_frontier_replay.replay_chromatin_alpha_frontier",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_alpha",
+                    "tests.test_chromatin_alpha_cli",
+                    "tests.test_chromatin_alpha_frontier",
+                ),
                 "evidence_note": (
                     "Declared tumor/normal epigenomic reference markers produce bounded mixture "
                     "estimates with marker denominators, clipping visibility, spread, minimum-site "
@@ -2599,7 +2700,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.chromatin_alpha_frontier_runtime.run_chromatin_alpha_frontier_runtime",
                     "glio_noncode.chromatin_alpha_frontier_release.build_chromatin_alpha_frontier_release",
                 ),
-                "test_modules": ("tests.test_chromatin_alpha", "tests.test_chromatin_alpha_cli", "tests.test_chromatin_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_chromatin_alpha",
+                    "tests.test_chromatin_alpha_cli",
+                    "tests.test_chromatin_alpha_frontier",
+                ),
                 "evidence_note": (
                     "Declared batch offsets and cell-composition coefficients retain raw signal, "
                     "batch and composition adjustment terms, target composition, missing-parameter "
@@ -3044,7 +3149,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_context_frontier_provenance.build_topology_context_frontier_provenance",
                     "glio_noncode.topology_context_frontier_pipeline.run_topology_context_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
+                "test_modules": (
+                    "tests.test_topology_context",
+                    "tests.test_topology_context_frontier",
+                ),
                 "evidence_note": (
                     "Hi-C and Micro-C long-form contacts and TAD boundary rows preserve assay, "
                     "source version, raw hashes, coordinate conversion, malformed-row issues, "
@@ -3062,7 +3170,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_context_frontier_quality_gate.build_topology_context_frontier_quality",
                     "glio_noncode.topology_context_frontier_replay.replay_topology_context_frontier",
                 ),
-                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
+                "test_modules": (
+                    "tests.test_topology_context",
+                    "tests.test_topology_context_frontier",
+                ),
                 "evidence_note": (
                     "Contact QC reports duplicates, zero rows, signal summaries, and explicit "
                     "partial states; mean/max transforms retain provenance and do not claim ICE "
@@ -3079,7 +3190,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_context_frontier_review_queue.build_topology_context_frontier_review_queue",
                     "glio_noncode.topology_context_frontier_views.build_topology_context_frontier_view",
                 ),
-                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
+                "test_modules": (
+                    "tests.test_topology_context",
+                    "tests.test_topology_context_frontier",
+                ),
                 "evidence_note": (
                     "Tolerance-bounded boundary clusters retain assay identities, competing "
                     "clusters, agreement, context gating, and ambiguity; external calibration, "
@@ -3097,7 +3211,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_context_frontier_bundle.build_topology_context_frontier_bundle",
                     "glio_noncode.topology_context_frontier_artifacts.build_topology_context_frontier_artifacts",
                 ),
-                "test_modules": ("tests.test_topology_context", "tests.test_topology_context_frontier"),
+                "test_modules": (
+                    "tests.test_topology_context",
+                    "tests.test_topology_context_frontier",
+                ),
                 "evidence_note": (
                     "Reference-to-alternate insulation deltas retain direction, missingness, "
                     "zero-baseline guards, replicate count, and research-use limitations; "
@@ -3118,7 +3235,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_beta_frontier_quality_gate.build_topology_beta_frontier_quality",
                     "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
+                "test_modules": (
+                    "tests.test_topology_beta",
+                    "tests.test_topology_beta_cli",
+                    "tests.test_topology_beta_frontier",
+                ),
                 "evidence_note": (
                     "Loop and stripe adapters preserve two-anchor coordinates, feature kind, "
                     "signal, resolution, replicate/caller metadata, source versions, hashes, and "
@@ -3139,7 +3260,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_beta_frontier_quality_gate.build_topology_beta_frontier_quality",
                     "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
+                "test_modules": (
+                    "tests.test_topology_beta",
+                    "tests.test_topology_beta_cli",
+                    "tests.test_topology_beta_frontier",
+                ),
                 "evidence_note": (
                     "Promoter-capture adapters retain promoter and target-element identity, bait, "
                     "coordinates, signal, context, source versions, hashes, and parser issues; "
@@ -3160,7 +3285,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_beta_frontier_provenance.build_topology_beta_frontier_provenance",
                     "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
+                "test_modules": (
+                    "tests.test_topology_beta",
+                    "tests.test_topology_beta_cli",
+                    "tests.test_topology_beta_frontier",
+                ),
                 "evidence_note": (
                     "Exact-context enhancer-promoter contact scoring retains every observation, "
                     "replicate spread, source versions, bounded signal normalization, and "
@@ -3181,7 +3310,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_beta_frontier_runtime.run_topology_beta_frontier_runtime",
                     "glio_noncode.topology_beta_frontier_exports.export_topology_beta_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_beta", "tests.test_topology_beta_cli", "tests.test_topology_beta_frontier"),
+                "test_modules": (
+                    "tests.test_topology_beta",
+                    "tests.test_topology_beta_cli",
+                    "tests.test_topology_beta_frontier",
+                ),
                 "evidence_note": (
                     "Activity-by-contact combines exact-context activity and contact components "
                     "with model/version receipts, missingness, ambiguity, and source lineage; the "
@@ -3202,7 +3335,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_alpha_frontier_claim_boundary.build_topology_alpha_frontier_claim_boundary",
                     "glio_noncode.topology_alpha_frontier_exports.export_topology_alpha_frontier_manifest",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
+                "test_modules": (
+                    "tests.test_topology_alpha",
+                    "tests.test_topology_alpha_cli",
+                    "tests.test_topology_alpha_frontier",
+                    "tests.test_topology_alpha_frontier_depth",
+                ),
                 "evidence_note": (
                     "Boundary-side motif observations preserve orientation, score, source version, "
                     "convergent/divergent/tandem alternatives, and mixed-orientation ambiguity; "
@@ -3224,7 +3362,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_alpha_frontier_failure_catalog.build_topology_alpha_frontier_failure_catalog",
                     "glio_noncode.topology_alpha_frontier_runtime.run_topology_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
+                "test_modules": (
+                    "tests.test_topology_alpha",
+                    "tests.test_topology_alpha_cli",
+                    "tests.test_topology_alpha_frontier",
+                    "tests.test_topology_alpha_frontier_depth",
+                ),
                 "evidence_note": (
                     "Reference/alternate CTCF and cohesin channels retain independent deltas, "
                     "combined descriptive labels, missing channels, state disagreement, contexts, "
@@ -3244,7 +3387,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_alpha_frontier_governance.build_topology_alpha_frontier_governance",
                     "glio_noncode.topology_alpha_frontier_release_notes.build_topology_alpha_frontier_release_notes",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
+                "test_modules": (
+                    "tests.test_topology_alpha",
+                    "tests.test_topology_alpha_cli",
+                    "tests.test_topology_alpha_frontier",
+                    "tests.test_topology_alpha_frontier_depth",
+                ),
                 "evidence_note": (
                     "IDH-mutant and IDH-wildtype insulator scores are compared per region with a "
                     "separate methylation channel, state gates, missingness, source versions, and "
@@ -3266,7 +3414,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.topology_alpha_frontier_replay_ledger.build_topology_alpha_frontier_replay_ledger",
                     "glio_noncode.topology_alpha_frontier_packaging.build_topology_alpha_frontier_package_manifest",
                 ),
-                "test_modules": ("tests.test_topology_alpha", "tests.test_topology_alpha_cli", "tests.test_topology_alpha_frontier", "tests.test_topology_alpha_frontier_depth"),
+                "test_modules": (
+                    "tests.test_topology_alpha",
+                    "tests.test_topology_alpha_cli",
+                    "tests.test_topology_alpha_frontier",
+                    "tests.test_topology_alpha_frontier_depth",
+                ),
                 "evidence_note": (
                     "Declared SV events simulate preserved, lost, gained, and rewired contact-edge "
                     "sets with affected nodes, contexts, edge receipts, and explicit bookkeeping; "
@@ -3282,7 +3435,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_inference_alpha.EcDNAContactReport",
                     "glio_noncode.topology_frontier_fixture_eval.evaluate_topology_frontier_fixture",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_topology_frontier_evidence",
+                ),
                 "evidence_note": (
                     "ecDNA contacts retain element/gene identity, contact score, source count, "
                     "normalized support, exact context, review reasons, public source receipts, "
@@ -3296,7 +3452,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_inference_alpha.CompartmentSwitchReport",
                     "glio_noncode.topology_frontier_fixture_eval.evaluate_topology_frontier_fixture",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_topology_frontier_evidence",
+                ),
                 "evidence_note": (
                     "Signed compartment scores produce explicit A/B transitions, deltas, confidence, "
                     "and stable or threshold-review states with exact context controls, source "
@@ -3310,7 +3469,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_inference_alpha.TopologyTransportReport",
                     "glio_noncode.topology_frontier_fixture_eval.evaluate_topology_frontier_fixture",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_topology_frontier_evidence",
+                ),
                 "evidence_note": (
                     "Topology paths transport declared signal while accumulating edge uncertainty "
                     "and path-contiguity review; public aggregate controls, policy checks, and "
@@ -3324,7 +3486,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.frontier_inference_alpha.ThreeDEvidenceBundle",
                     "glio_noncode.topology_frontier_release.build_topology_frontier_release",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_topology_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_topology_frontier_evidence",
+                ),
                 "evidence_note": (
                     "3D evidence bundles retain path IDs, assay IDs, exact context, record address, "
                     "and publication address with public source receipts, release gating, and "
@@ -3338,7 +3503,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_foundation_frontier_adapters",
                     "glio_noncode.link_graph_foundation_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph",
+                    "tests.test_link_graph_foundation_frontier",
+                ),
                 "evidence_note": (
                     "Sixteen public aggregate records and five source receipts replay coordinate "
                     "overlap with supported, ambiguous, absent, and out-of-domain controls; "
@@ -3353,7 +3521,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_foundation_frontier_adapters",
                     "glio_noncode.link_graph_foundation_frontier_regression",
                 ),
-                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph",
+                    "tests.test_link_graph_foundation_frontier",
+                ),
                 "evidence_note": (
                     "Public aggregate nearest-gene rows preserve distance ties, bounded-window "
                     "abstention, context controls, receipt coverage, and deterministic replay; "
@@ -3367,7 +3538,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_foundation_frontier_contracts",
                     "glio_noncode.link_graph_foundation_frontier_quality_dashboard",
                 ),
-                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph",
+                    "tests.test_link_graph_foundation_frontier",
+                ),
                 "evidence_note": (
                     "cCRE aggregate assignment covers positive, multiple-element, absent, and "
                     "context-mismatch rows with schema, source, invariant, and acceptance checks."
@@ -3380,7 +3554,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_foundation_frontier_decision_trace",
                     "glio_noncode.link_graph_foundation_frontier_release_readiness",
                 ),
-                "test_modules": ("tests.test_link_graph", "tests.test_link_graph_foundation_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph",
+                    "tests.test_link_graph_foundation_frontier",
+                ),
                 "evidence_note": (
                     "Consensus aggregate records retain method-specific evidence, single-method "
                     "partial status, contradiction visibility, decision traces, risk controls, "
@@ -3468,7 +3645,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
                     "glio_noncode.link_graph_alpha_frontier_pipeline.run_link_graph_alpha_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph_alpha",
+                    "tests.test_link_graph_alpha_cli",
+                    "tests.test_link_graph_alpha_frontier",
+                ),
                 "evidence_note": (
                     "CRISPR perturbation paths retain mode, direction, effect size, scale, guide "
                     "and replicate metadata, exact context, source hashes, and opposing-direction "
@@ -3485,7 +3666,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
                     "glio_noncode.link_graph_alpha_frontier_metrics.build_link_graph_alpha_frontier_metrics",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph_alpha",
+                    "tests.test_link_graph_alpha_cli",
+                    "tests.test_link_graph_alpha_frontier",
+                ),
                 "evidence_note": (
                     "3D contact paths preserve assay kind, raw and normalized signal, scale, "
                     "resolution, replicate identity, exact context, and source receipts before "
@@ -3502,7 +3687,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
                     "glio_noncode.link_graph_alpha_frontier_review_queue.build_link_graph_alpha_frontier_review_queue",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph_alpha",
+                    "tests.test_link_graph_alpha_cli",
+                    "tests.test_link_graph_alpha_frontier",
+                ),
                 "evidence_note": (
                     "Promoter-tethering baselines expose distance prior, contact, promoter, "
                     "element, and overlap components with thresholds, alternatives, abstention, "
@@ -3519,7 +3708,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_graph_alpha_frontier_adapters.execute_link_graph_alpha_frontier_record",
                     "glio_noncode.link_graph_alpha_frontier_provenance.build_link_graph_alpha_frontier_provenance",
                 ),
-                "test_modules": ("tests.test_link_graph_alpha", "tests.test_link_graph_alpha_cli", "tests.test_link_graph_alpha_frontier"),
+                "test_modules": (
+                    "tests.test_link_graph_alpha",
+                    "tests.test_link_graph_alpha_cli",
+                    "tests.test_link_graph_alpha_frontier",
+                ),
                 "evidence_note": (
                     "Multi-gene/multi-element graph slices retain every aggregate edge, evidence "
                     "path, alternative gene, node degree, connected component, context gate, and "
@@ -3535,7 +3728,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_frontier_depth",
                     "glio_noncode.link_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_link_frontier_evidence",
+                ),
                 "evidence_note": (
                     "Public aggregate dependence groups downweight correlated link support and retain "
                     "raw support, group size, corrected support, source receipts, controls, replay, "
@@ -3550,7 +3746,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_frontier_depth",
                     "glio_noncode.link_frontier_views",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_link_frontier_evidence",
+                ),
                 "evidence_note": (
                     "Public aggregate target-gene ranking retains component scores, weights, "
                     "variant/element/gene identity, deterministic ranks, alternatives, controls, "
@@ -3565,7 +3764,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_frontier_replay",
                     "glio_noncode.link_frontier_depth",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_link_frontier_evidence",
+                ),
                 "evidence_note": (
                     "Public aggregate calibration compares optional observations, declares thresholds, "
                     "abstains on uncertainty or calibration error, and is covered by adversarial "
@@ -3581,7 +3783,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.link_frontier_exports",
                     "glio_noncode.link_frontier_depth",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_link_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_link_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Public aggregate link publication binds link/source IDs, exact context, source "
                     "receipts, record and bundle addresses, sanitized review exports, and a release "
@@ -3703,7 +3908,13 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_beta_frontier_exports",
                     "glio_noncode.causal_beta_frontier_claim_boundary",
                 ),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_depth", "tests.test_causal_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_causal_beta",
+                    "tests.test_causal_beta_cli",
+                    "tests.test_causal_beta_frontier",
+                    "tests.test_causal_beta_frontier_depth",
+                    "tests.test_causal_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Sequence-to-element mediator evidence is replayed through a public aggregate "
                     "fixture with positive, minimum-source, directional-conflict, and foreign-context "
@@ -3726,7 +3937,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_beta_frontier_runtime",
                     "glio_noncode.causal_beta_frontier_release",
                 ),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_operational"),
+                "test_modules": (
+                    "tests.test_causal_beta",
+                    "tests.test_causal_beta_cli",
+                    "tests.test_causal_beta_frontier",
+                    "tests.test_causal_beta_frontier_operational",
+                ),
                 "evidence_note": (
                     "Element-to-gene paths retain exact context, source/version lineage, directional "
                     "disagreement, independent-source support, deterministic replay, and bounded "
@@ -3749,7 +3965,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_beta_frontier_runtime",
                     "glio_noncode.causal_beta_frontier_assurance",
                 ),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_depth"),
+                "test_modules": (
+                    "tests.test_causal_beta",
+                    "tests.test_causal_beta_cli",
+                    "tests.test_causal_beta_frontier",
+                    "tests.test_causal_beta_frontier_depth",
+                ),
                 "evidence_note": (
                     "Gene-to-state evidence preserves state-specific context, negative evidence, "
                     "source disagreement, uncertainty, model receipts, explicit abstention and "
@@ -3772,7 +3993,13 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_beta_frontier_release",
                     "glio_noncode.causal_beta_frontier_exports",
                 ),
-                "test_modules": ("tests.test_causal_beta", "tests.test_causal_beta_cli", "tests.test_causal_beta_frontier", "tests.test_causal_beta_frontier_depth", "tests.test_causal_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_causal_beta",
+                    "tests.test_causal_beta_cli",
+                    "tests.test_causal_beta_frontier",
+                    "tests.test_causal_beta_frontier_depth",
+                    "tests.test_causal_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Reference/alternate allele-state comparisons report exact-context values, "
                     "replicate ambiguity, allele coverage, and alternate-minus-reference deltas "
@@ -3790,7 +4017,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_alpha.MediationSensitivityAnalyzer",
                     "glio_noncode.causal_alpha.MediationSensitivityResult",
                 ),
-                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_depth", "tests.test_causal_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_causal_alpha_frontier",
+                    "tests.test_causal_alpha_frontier_depth",
+                    "tests.test_causal_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "The public aggregate C09-C12 fixture replays positive, single-source, "
                     "fragile, and foreign-context mediation cases through source omission, "
@@ -3806,7 +4037,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_alpha.ConfoundingChecklistAdjudicator",
                     "glio_noncode.causal_alpha.ConfoundingAdjudicationReport",
                 ),
-                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_depth", "tests.test_causal_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_causal_alpha_frontier",
+                    "tests.test_causal_alpha_frontier_depth",
+                    "tests.test_causal_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "The public aggregate C09-C12 fixture retains addressed, unresolved, "
                     "missing, not-applicable, and foreign-context checklist cases with "
@@ -3823,7 +4058,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_alpha.EvidenceDependenceCorrector",
                     "glio_noncode.causal_alpha.DependenceCorrectionReport",
                 ),
-                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_operational", "tests.test_causal_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_causal_alpha_frontier",
+                    "tests.test_causal_alpha_frontier_operational",
+                    "tests.test_causal_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "The public aggregate C09-C12 fixture selects one representative path per "
                     "declared group while retaining duplicate IDs, method families, uncertainty, "
@@ -3839,7 +4078,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_alpha.NegativeEvidenceIntegrator",
                     "glio_noncode.causal_alpha.NegativeEvidenceIntegrationReport",
                 ),
-                "test_modules": ("tests.test_causal_alpha_frontier", "tests.test_causal_alpha_frontier_operational", "tests.test_causal_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_causal_alpha_frontier",
+                    "tests.test_causal_alpha_frontier_operational",
+                    "tests.test_causal_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "The public aggregate C09-C12 fixture separates positive paths, negative "
                     "controls, measured-negative states, coverage, and positive/negative "
@@ -3857,7 +4100,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_frontier_fixture_eval",
                     "glio_noncode.causal_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_causal_frontier_evidence", "tests.test_causal_frontier_depth"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_causal_frontier_evidence",
+                    "tests.test_causal_frontier_depth",
+                ),
                 "evidence_note": (
                     "Posterior decomposition retains prior, likelihood, measurement, dependence "
                     "penalty, raw score, normalized score, and top-hypothesis identity. Public "
@@ -3874,7 +4121,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_frontier_policy",
                     "glio_noncode.causal_frontier_reconciliation",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_causal_frontier_evidence"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_causal_frontier_evidence",
+                ),
                 "evidence_note": (
                     "Regulatory-driver posteriors retain evidence IDs, support, priors, normalized "
                     "posterior, rank, and minimum-support review. Low-support, empty, and invalid "
@@ -3910,7 +4160,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.causal_frontier_release",
                     "glio_noncode.causal_frontier_exports",
                 ),
-                "test_modules": ("tests.test_frontier_inference_alpha", "tests.test_causal_frontier_evidence", "tests.test_causal_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_frontier_inference_alpha",
+                    "tests.test_causal_frontier_evidence",
+                    "tests.test_causal_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Causal dossiers bind hypothesis IDs and evidence addresses with a research-only "
                     "publication receipt and no causal conclusion upgrade. Bundle, release manifest, "
@@ -3927,7 +4181,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_foundation_frontier_fixture_eval",
                     "glio_noncode.cohort_foundation_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_discovery",
+                    "tests.test_cohort_foundation_frontier",
+                    "tests.test_cohort_foundation_frontier_cli",
+                ),
                 "evidence_note": (
                     "Cohort queries preserve exact context, variant/origin/sample criteria, "
                     "callable requirements, exclusion reasons, source IDs, and out-of-domain "
@@ -3945,7 +4203,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_foundation_frontier_provenance",
                     "glio_noncode.cohort_foundation_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_discovery",
+                    "tests.test_cohort_foundation_frontier",
+                    "tests.test_cohort_foundation_frontier_cli",
+                ),
                 "evidence_note": (
                     "Local background summaries retain callable bases, observed records, context "
                     "rate, target-space expectation, and small-sample uncertainty without emitting "
@@ -3963,7 +4225,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_foundation_frontier_reconciliation",
                     "glio_noncode.cohort_foundation_frontier_review",
                 ),
-                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_discovery",
+                    "tests.test_cohort_foundation_frontier",
+                    "tests.test_cohort_foundation_frontier_cli",
+                ),
                 "evidence_note": (
                     "Sequence controls use exact context and bounded normalized Hamming distance, "
                     "preserving candidate count, distances, source IDs, and abstention/OOD states."
@@ -3980,7 +4246,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_foundation_frontier_release",
                     "glio_noncode.cohort_foundation_frontier_artifacts",
                 ),
-                "test_modules": ("tests.test_cohort_discovery", "tests.test_cohort_foundation_frontier", "tests.test_cohort_foundation_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_discovery",
+                    "tests.test_cohort_foundation_frontier",
+                    "tests.test_cohort_foundation_frontier_cli",
+                ),
                 "evidence_note": (
                     "Chromatin controls use declared feature ranges and RMS distance with complete "
                     "vector requirements, context gating, candidate accounting, and explicit "
@@ -3991,8 +4261,17 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D12-C05": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.cohort_beta.RegulatoryRecurrenceTester", "glio_noncode.cohort_beta_frontier_runtime", "glio_noncode.cohort_beta_frontier_provenance", "glio_noncode.cohort_beta_frontier_release"),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
+                "implementation_modules": (
+                    "glio_noncode.cohort_beta.RegulatoryRecurrenceTester",
+                    "glio_noncode.cohort_beta_frontier_runtime",
+                    "glio_noncode.cohort_beta_frontier_provenance",
+                    "glio_noncode.cohort_beta_frontier_release",
+                ),
+                "test_modules": (
+                    "tests.test_cohort_beta",
+                    "tests.test_cohort_beta_cli",
+                    "tests.test_cohort_beta_frontier",
+                ),
                 "evidence_note": (
                     "Regulatory recurrence is verified through a public aggregate fixture with "
                     "positive, absent, partial, and foreign-context paths. The release plane "
@@ -4002,8 +4281,17 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D12-C06": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.cohort_beta.RegionalBurdenTester", "glio_noncode.cohort_beta_frontier_schema", "glio_noncode.cohort_beta_frontier_metrics", "glio_noncode.cohort_beta_frontier_quality_gate"),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
+                "implementation_modules": (
+                    "glio_noncode.cohort_beta.RegionalBurdenTester",
+                    "glio_noncode.cohort_beta_frontier_schema",
+                    "glio_noncode.cohort_beta_frontier_metrics",
+                    "glio_noncode.cohort_beta_frontier_quality_gate",
+                ),
+                "test_modules": (
+                    "tests.test_cohort_beta",
+                    "tests.test_cohort_beta_cli",
+                    "tests.test_cohort_beta_frontier",
+                ),
                 "evidence_note": (
                     "Regional burden is verified with explicit callable bases, exact-context "
                     "overlap, deduplicated variants, absent and foreign controls, comparator "
@@ -4013,8 +4301,17 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D12-C07": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.cohort_beta.FunctionalConvergenceTester", "glio_noncode.cohort_beta_frontier_contracts", "glio_noncode.cohort_beta_frontier_policy", "glio_noncode.cohort_beta_frontier_views"),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
+                "implementation_modules": (
+                    "glio_noncode.cohort_beta.FunctionalConvergenceTester",
+                    "glio_noncode.cohort_beta_frontier_contracts",
+                    "glio_noncode.cohort_beta_frontier_policy",
+                    "glio_noncode.cohort_beta_frontier_views",
+                ),
+                "test_modules": (
+                    "tests.test_cohort_beta",
+                    "tests.test_cohort_beta_cli",
+                    "tests.test_cohort_beta_frontier",
+                ),
                 "evidence_note": (
                     "Functional convergence is verified through observed/control support "
                     "contrasts, explicit no-control partial paths, foreign-context isolation, "
@@ -4030,7 +4327,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_beta_frontier_claim_boundary",
                     "glio_noncode.cohort_beta_frontier_replay",
                 ),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
+                "test_modules": (
+                    "tests.test_cohort_beta",
+                    "tests.test_cohort_beta_cli",
+                    "tests.test_cohort_beta_frontier",
+                ),
                 "evidence_note": (
                     "Pathway and regulon convergence is verified with namespace-preserving "
                     "membership aggregation, observed/control contrast, partial and foreign "
@@ -4051,7 +4352,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_alpha_frontier_governance",
                     "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_alpha",
+                    "tests.test_cohort_alpha_cli",
+                    "tests.test_cohort_alpha_frontier",
+                    "tests.test_cohort_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "Clonality and timing integration preserves CCF values, pseudonymous sample "
                     "IDs, phase labels, timepoint order, source hashes, and missing CCF/timing "
@@ -4073,7 +4379,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_alpha_frontier_governance",
                     "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_alpha",
+                    "tests.test_cohort_alpha_cli",
+                    "tests.test_cohort_alpha_frontier",
+                    "tests.test_cohort_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "Primary/recurrence comparisons retain phase-specific frequencies, sample "
                     "IDs, treatment-exposure metadata, deltas, thresholds, and partial phase "
@@ -4095,7 +4406,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_alpha_frontier_governance",
                     "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_alpha",
+                    "tests.test_cohort_alpha_cli",
+                    "tests.test_cohort_alpha_frontier",
+                    "tests.test_cohort_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "Pre/post treatment frequency signals preserve treatment ID, sample and "
                     "response metadata, phase coverage, effect direction, threshold receipts, "
@@ -4117,7 +4433,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.cohort_alpha_frontier_governance",
                     "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
+                "test_modules": (
+                    "tests.test_cohort_alpha",
+                    "tests.test_cohort_alpha_cli",
+                    "tests.test_cohort_alpha_frontier",
+                    "tests.test_cohort_alpha_frontier_cli",
+                ),
                 "evidence_note": (
                     "Cross-cohort replication retains cohort-specific effects, support, sample "
                     "counts, direction concordance, heterogeneous sources, and minimum coverage "
@@ -4317,7 +4638,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.editing_design_frontier_quality_gate",
                     "glio_noncode.editing_design_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_validation_beta",
+                    "tests.test_validation_beta_cli",
+                    "tests.test_validation_beta_frontier",
+                    "tests.test_validation_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "CRISPRi design packages generate context-gated guide candidates with declared "
                     "overlap, heuristic score, specificity, PAM, control, readout, and budget "
@@ -4335,7 +4661,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.editing_design_frontier_reconciliation",
                     "glio_noncode.editing_design_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_validation_beta",
+                    "tests.test_validation_beta_cli",
+                    "tests.test_validation_beta_frontier",
+                    "tests.test_validation_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Base-editing planning checks single-base substitution compatibility and a "
                     "declared editing window while retaining candidate guides, edit payload, "
@@ -4352,7 +4683,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.editing_design_frontier_depth",
                     "glio_noncode.editing_design_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_validation_beta",
+                    "tests.test_validation_beta_cli",
+                    "tests.test_validation_beta_frontier",
+                    "tests.test_validation_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Prime-editing packages generate declared guide, PBS, RTT, and edit payload "
                     "placeholders with flank and edit-length gates; pegRNA efficacy, nicking, "
@@ -4368,7 +4704,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.editing_design_frontier_evidence_matrix",
                     "glio_noncode.editing_design_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_validation_beta",
+                    "tests.test_validation_beta_cli",
+                    "tests.test_validation_beta_frontier",
+                    "tests.test_validation_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Allele-specific reporter packages keep reference and alternate constructs "
                     "paired under exact context, controls, readouts, and construct budgets; "
@@ -4387,7 +4728,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.planning_frontier_provenance",
                     "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
+                "test_modules": (
+                    "tests.test_planning_frontier",
+                    "tests.test_planning_frontier_cli",
+                    "tests.test_planning_frontier_depth",
+                ),
                 "evidence_note": (
                     "Model-system eligibility matches exact context, declared model support, "
                     "cell state, evidence strength, blockers, and source receipts; it is a "
@@ -4405,7 +4750,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.planning_frontier_exports",
                     "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
+                "test_modules": (
+                    "tests.test_planning_frontier",
+                    "tests.test_planning_frontier_cli",
+                    "tests.test_planning_frontier_depth",
+                ),
                 "evidence_note": (
                     "Guide and oligo adaptation preserves design IDs, target IDs, sequences, "
                     "strand, offsets, PAM, context, versions, row hashes, and malformed-row "
@@ -4424,7 +4773,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.planning_frontier_review_queue",
                     "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
+                "test_modules": (
+                    "tests.test_planning_frontier",
+                    "tests.test_planning_frontier_cli",
+                    "tests.test_planning_frontier_depth",
+                ),
                 "evidence_note": (
                     "Control and replicate plans generate deterministic content-addressed "
                     "assignments for biological and technical replicates while retaining context "
@@ -4443,7 +4796,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.planning_frontier_quality_gate",
                     "glio_noncode.planning_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_planning_frontier", "tests.test_planning_frontier_cli", "tests.test_planning_frontier_depth"),
+                "test_modules": (
+                    "tests.test_planning_frontier",
+                    "tests.test_planning_frontier_cli",
+                    "tests.test_planning_frontier_depth",
+                ),
                 "evidence_note": (
                     "Power planning exposes effect, variance, alpha, target power, replicate "
                     "requirements, blocking factors, shortfalls, assumptions, and source receipts "
@@ -4538,7 +4895,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.evidence_lifecycle_frontier_fixture_eval",
                     "glio_noncode.evidence_lifecycle_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_evidence_lifecycle", "tests.test_evidence_lifecycle_frontier_evidence", "tests.test_evidence_lifecycle_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_evidence_lifecycle",
+                    "tests.test_evidence_lifecycle_frontier_evidence",
+                    "tests.test_evidence_lifecycle_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Immutable graph snapshots preserve claims, citations, lineage, supersession, "
                     "replay addresses, and a review-required research dossier integrity envelope. "
@@ -4553,7 +4914,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.evidence_lifecycle_frontier_public_data",
                     "glio_noncode.evidence_lifecycle_frontier_fixture_eval",
                 ),
-                "test_modules": ("tests.test_evidence_lifecycle", "tests.test_evidence_lifecycle_frontier_evidence", "tests.test_evidence_lifecycle_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_evidence_lifecycle",
+                    "tests.test_evidence_lifecycle_frontier_evidence",
+                    "tests.test_evidence_lifecycle_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "TSV, CSV, and JSON citation fixtures retain source versions, row hashes, "
                     "raw records, and malformed-row quarantine. The public fixture verifies valid, malformed, duplicate, and empty-manifest paths."
@@ -4566,7 +4931,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.evidence_lifecycle_frontier_fixture_eval",
                     "glio_noncode.evidence_lifecycle_frontier_quality_gate",
                 ),
-                "test_modules": ("tests.test_evidence_lifecycle", "tests.test_evidence_lifecycle_frontier_evidence", "tests.test_evidence_lifecycle_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_evidence_lifecycle",
+                    "tests.test_evidence_lifecycle_frontier_evidence",
+                    "tests.test_evidence_lifecycle_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Edge validation checks active lineage, citation coverage, exact graph "
                     "context, "
@@ -4581,7 +4950,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.evidence_lifecycle_frontier_fixture_eval",
                     "glio_noncode.evidence_lifecycle_frontier_views",
                 ),
-                "test_modules": ("tests.test_evidence_lifecycle", "tests.test_evidence_lifecycle_frontier_evidence", "tests.test_evidence_lifecycle_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_evidence_lifecycle",
+                    "tests.test_evidence_lifecycle_frontier_evidence",
+                    "tests.test_evidence_lifecycle_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "Disagreement reports retain positive and negative claims, declared value "
                     "groups, source IDs, unresolved state, and out-of-domain handling. The public fixture verifies clear, incomplete, contradictory, and out-of-domain states."
@@ -4595,7 +4968,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_fixture_eval",
                     "glio_noncode.lifecycle_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_cli", "tests.test_lifecycle_beta_frontier_depth"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_cli",
+                    "tests.test_lifecycle_beta_frontier_depth",
+                ),
                 "evidence_note": (
                     "Evidence-tier adjudication preserves all declared tier observations, source "
                     "versions, support/against directions, highest-tier summaries, unresolved "
@@ -4609,7 +4986,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_lineage",
                     "glio_noncode.lifecycle_beta_frontier_validation_matrix",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_surfaces"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_surfaces",
+                ),
                 "evidence_note": (
                     "Provenance lineage views expose parent and supersession relations, active and "
                     "historical claims, source versions, citation nodes, hashes, and graph context "
@@ -4623,7 +5003,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_metrics",
                     "glio_noncode.lifecycle_beta_frontier_thresholds",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_depth"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_depth",
+                ),
                 "evidence_note": (
                     "Uncertainty ledgers retain dimension-labeled measurement, context, "
                     "provenance, "
@@ -4638,7 +5021,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_review_queue",
                     "glio_noncode.lifecycle_beta_frontier_operational",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_operations"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_operations",
+                ),
                 "evidence_note": (
                     "Reviewer routing maps active claims to explicit domain, provenance, "
                     "statistical, "
@@ -4654,7 +5040,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_fixture_eval",
                     "glio_noncode.lifecycle_beta_frontier_replay",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Blinded adjudication packets mask claim and source receipts, preserve exact "
                     "context and deterministic reviewer tokens, retain abstentions and split "
@@ -4669,7 +5058,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_exports",
                     "glio_noncode.lifecycle_beta_frontier_views",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_supporting"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_supporting",
+                ),
                 "evidence_note": (
                     "Reviewer comments and before/after changes are immutable, context-gated, "
                     "content-addressed, and appendable with duplicate and malformed-row checks; "
@@ -4685,7 +5077,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_release",
                     "glio_noncode.lifecycle_beta_frontier_bundle",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_mutations"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_mutations",
+                ),
                 "evidence_note": (
                     "Research-only release records retain graph address, gate results, reviewer "
                     "roles, failed conditions, comment-log address, and explicit approval or "
@@ -4700,7 +5095,10 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.lifecycle_beta_frontier_reconciliation",
                     "glio_noncode.lifecycle_beta_frontier_integrity",
                 ),
-                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_mutations"),
+                "test_modules": (
+                    "tests.test_lifecycle_beta_frontier",
+                    "tests.test_lifecycle_beta_frontier_mutations",
+                ),
                 "evidence_note": (
                     "Evidence delta reports classify added, removed, and changed claims and "
                     "citations plus graph-state or context changes with before/after addresses "
@@ -4789,7 +5187,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_frontier_fixture_eval",
                     "glio_noncode.workspace_frontier_review_queue",
                 ),
-                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_workspace",
+                    "tests.test_workspace_frontier_evidence",
+                    "tests.test_workspace_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "The public aggregate fixture verifies immutable case sections, exact context, "
                     "facets, pagination, accessibility metadata, source receipts, control states, "
@@ -4803,7 +5205,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_frontier_fixture_eval",
                     "glio_noncode.workspace_frontier_metrics",
                 ),
-                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_depth"),
+                "test_modules": (
+                    "tests.test_workspace",
+                    "tests.test_workspace_frontier_evidence",
+                    "tests.test_workspace_frontier_depth",
+                ),
                 "evidence_note": (
                     "The public aggregate fixture verifies selected records, callability exclusion, "
                     "exact-context withholding, bounded facets, section separation, source receipts, "
@@ -4817,7 +5223,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_frontier_fixture_eval",
                     "glio_noncode.workspace_frontier_contracts",
                 ),
-                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_evidence_cli"),
+                "test_modules": (
+                    "tests.test_workspace",
+                    "tests.test_workspace_frontier_evidence",
+                    "tests.test_workspace_frontier_evidence_cli",
+                ),
                 "evidence_note": (
                     "The public aggregate fixture verifies canonical variant resolution, declared "
                     "relationship grouping, absent-variant abstention, context mismatch withholding, "
@@ -4831,7 +5241,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_frontier_fixture_eval",
                     "glio_noncode.workspace_frontier_thresholds",
                 ),
-                "test_modules": ("tests.test_workspace", "tests.test_workspace_frontier_evidence", "tests.test_workspace_frontier_depth"),
+                "test_modules": (
+                    "tests.test_workspace",
+                    "tests.test_workspace_frontier_evidence",
+                    "tests.test_workspace_frontier_depth",
+                ),
                 "evidence_note": (
                     "The public aggregate fixture verifies source-accounted interval records, row "
                     "hashes, normalized coordinate overlap, parse-issue visibility, facets, exact "
@@ -4847,7 +5261,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_beta_frontier_quality_gate",
                     "glio_noncode.workspace_beta_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_beta",
+                    "tests.test_workspace_beta_cli",
+                    "tests.test_workspace_beta_frontier",
+                    "tests.test_workspace_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Topology viewports join loop/stripe anchors, promoter-capture contacts, "
                     "contact scores, and activity-by-contact summaries with exact context, "
@@ -4866,7 +5285,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_beta_frontier_reconciliation",
                     "glio_noncode.workspace_beta_frontier_observability",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_beta",
+                    "tests.test_workspace_beta_cli",
+                    "tests.test_workspace_beta_frontier",
+                    "tests.test_workspace_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Causal-chain views join all three mediator kinds, retain alternative paths, "
                     "negative evidence, source versions, missing mediator kinds, contradiction, "
@@ -4884,7 +5308,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_beta_frontier_release",
                     "glio_noncode.workspace_beta_frontier_artifacts",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_beta",
+                    "tests.test_workspace_beta_cli",
+                    "tests.test_workspace_beta_frontier",
+                    "tests.test_workspace_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Posterior decomposition views expose declared prior, exact-context support "
                     "components, normalized descriptive shares, calibration status, and an "
@@ -4902,7 +5331,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_beta_frontier_review_queue",
                     "glio_noncode.workspace_beta_frontier_exports",
                 ),
-                "test_modules": ("tests.test_workspace_beta", "tests.test_workspace_beta_cli", "tests.test_workspace_beta_frontier", "tests.test_workspace_beta_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_beta",
+                    "tests.test_workspace_beta_cli",
+                    "tests.test_workspace_beta_frontier",
+                    "tests.test_workspace_beta_frontier_cli",
+                ),
                 "evidence_note": (
                     "Evidence tables support exact-context text, channel, tier, state, source, "
                     "confidence, pagination, and deterministic facets while retaining partial "
@@ -4920,7 +5354,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_gamma_frontier_projection_assertions",
                     "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_alpha",
+                    "tests.test_workspace_alpha_cli",
+                    "tests.test_workspace_gamma_frontier",
+                    "tests.test_workspace_gamma_frontier_cli",
+                ),
                 "evidence_note": (
                     "Validation experiment boards group exact-context cards by declared status, "
                     "priority, dependencies, blockers, owners, readouts, and accessible column "
@@ -4940,7 +5379,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_gamma_frontier_projection_assertions",
                     "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_alpha",
+                    "tests.test_workspace_alpha_cli",
+                    "tests.test_workspace_gamma_frontier",
+                    "tests.test_workspace_gamma_frontier_cli",
+                ),
                 "evidence_note": (
                     "Notebook and SDK launch plans produce bounded runtime, artifact, parameter, "
                     "resource, network-policy, and source receipts without executing code or "
@@ -4960,7 +5404,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_gamma_frontier_projection_assertions",
                     "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_alpha",
+                    "tests.test_workspace_alpha_cli",
+                    "tests.test_workspace_gamma_frontier",
+                    "tests.test_workspace_gamma_frontier_cli",
+                ),
                 "evidence_note": (
                     "Shareable snapshots carry payload addresses, audience, expiry, key IDs, and "
                     "HMAC verification receipts while retaining research-use limitations; shared "
@@ -4980,7 +5429,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.workspace_gamma_frontier_policy",
                     "glio_noncode.workspace_gamma_frontier_pipeline",
                 ),
-                "test_modules": ("tests.test_workspace_alpha", "tests.test_workspace_alpha_cli", "tests.test_workspace_gamma_frontier", "tests.test_workspace_gamma_frontier_cli"),
+                "test_modules": (
+                    "tests.test_workspace_alpha",
+                    "tests.test_workspace_alpha_cli",
+                    "tests.test_workspace_gamma_frontier",
+                    "tests.test_workspace_gamma_frontier_cli",
+                ),
                 "evidence_note": (
                     "Role-based collaboration evaluation applies an explicit deny-by-default "
                     "permission matrix, exact-context gates, inactive-member handling, policy "
@@ -5065,8 +5519,16 @@ def default_capability_registry() -> CapabilityRegistry:
             },
             "GNC-D16-C01": {
                 "state": CapabilityState.VERIFIED.value,
-                "implementation_modules": ("glio_noncode.mission_runtime.MissionPlanBuilder", "glio_noncode.coordination_architecture_plan.compile_coordination_plan"),
-                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_coordination_architecture"),
+                "implementation_modules": (
+                    "glio_noncode.mission_runtime.MissionPlanBuilder",
+                    "glio_noncode.coordination_architecture_plan.compile_coordination_plan",
+                ),
+                "test_modules": (
+                    "tests.test_mission_runtime",
+                    "tests.test_platform_frontier",
+                    "tests.test_platform_frontier_depth",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "The platform frontier adds a public aggregate fixture with one positive "
                     "and three controls for planning. It verifies dependency expansion, empty "
@@ -5082,7 +5544,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.platform_frontier_depth.audit_platform_frontier_depth",
                     "glio_noncode.coordination_architecture_plan.compile_coordination_plan",
                 ),
-                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_platform_frontier_cli", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_platform_frontier",
+                    "tests.test_platform_frontier_depth",
+                    "tests.test_platform_frontier_cli",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "Workflow compilation is exercised through dependency-safe positive work, "
                     "cycle and missing-dependency controls, and network or nondeterministic "
@@ -5098,7 +5565,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.platform_frontier_compatibility.PlatformFrontierCompatibilityReport",
                     "glio_noncode.coordination_architecture_tools.build_coordination_tool_registry",
                 ),
-                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_platform_frontier",
+                    "tests.test_platform_frontier_depth",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "The registry adapter resolves typed contracts, exposes safety and mutation "
                     "metadata, verifies the 96-tool cardinality, and retains missing-tool, "
@@ -5114,7 +5585,12 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.platform_frontier_integrity.PlatformFrontierIntegrityReport",
                     "glio_noncode.coordination_architecture_sandbox.execute_coordination_sandbox",
                 ),
-                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_cli", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_mission_runtime",
+                    "tests.test_platform_frontier",
+                    "tests.test_platform_frontier_cli",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "Sandbox execution verifies registered local handlers, policy admission, "
                     "resource scheduling, provenance, event IDs, idempotent replay, local network "
@@ -5130,7 +5606,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_fixture_eval.evaluate_control_frontier_fixture",
                     "glio_noncode.coordination_architecture_policy.evaluate_coordination_policy",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_cli",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "The aggregate fixture covers claim ceilings, source allowlist gaps, mutation "
                     "scope, sensitive paths, and control visibility. Five retained checks per row "
@@ -5145,7 +5625,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_operational.build_control_frontier_operational_matrix",
                     "glio_noncode.coordination_architecture_scheduler.schedule_coordination_plan",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_depth",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "The scheduler adapter exercises dependency, capacity, network, and cycle "
                     "controls. Threshold probes, operational rows, and retained receipts make "
@@ -5160,7 +5644,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_failure_injection.run_control_frontier_failure_injections",
                     "glio_noncode.coordination_architecture_fallback.route_coordination_fallback",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_depth",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "The fallback adapter selects a deterministic eligible route and retains "
                     "non-retryable, network-only, and missing-input controls. Scenario and "
@@ -5175,7 +5663,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_handoff.build_control_frontier_handoff",
                     "glio_noncode.coordination_architecture_review.build_coordination_review_queue",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_cli",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "Review routing preserves blockers, stable priority, declared roles, source "
                     "receipts, queue bounds, SLA bands, and handoff state. The omitted and blocked "
@@ -5190,7 +5682,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_replay.replay_control_frontier_evaluation",
                     "glio_noncode.coordination_architecture_ledger.build_coordination_ledger",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_depth",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "Ledger execution retains event transitions, duplicate and foreign-context "
                     "controls, replay receipts, audit-log verification, and exact context closure. "
@@ -5205,7 +5701,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_source_registry.build_control_frontier_source_registry",
                     "glio_noncode.coordination_architecture_registries.build_coordination_compute_registry",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_depth",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "Model resolution retains digest, version, input/output contracts, exact-context "
                     "support, status, license, evaluation receipt, and explicit compatibility "
@@ -5220,7 +5720,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_data_dictionary.default_control_frontier_data_dictionary",
                     "glio_noncode.coordination_architecture_registries.build_coordination_reference_registry",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_cli",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "Reference resolution retains URI, checksum, schema, coordinate system, exact "
                     "context, license, retrieval receipt, and availability. Foreign, coordinate, "
@@ -5235,7 +5739,11 @@ def default_capability_registry() -> CapabilityRegistry:
                     "glio_noncode.control_frontier_scenario_matrix.evaluate_control_frontier_scenarios",
                     "glio_noncode.coordination_architecture_monitoring.build_coordination_observations",
                 ),
-                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth", "tests.test_coordination_architecture"),
+                "test_modules": (
+                    "tests.test_control_frontier",
+                    "tests.test_control_frontier_depth",
+                    "tests.test_coordination_architecture",
+                ),
                 "evidence_note": (
                     "Drift and out-of-domain monitoring retains watch, drift, and support-boundary "
                     "controls with declared thresholds, source receipts, and review states. The "

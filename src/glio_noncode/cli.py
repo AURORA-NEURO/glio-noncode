@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .api import create_server
+from .serialization import jsonable
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
     MethylationTrackHarmonizer,
@@ -84,12 +85,22 @@ from .module_fabric_source_registry import build_module_fabric_source_registry
 from .coordination_architecture_access import build_coordination_access_manifest
 from .coordination_architecture_contracts import CoordinationScenario, CoordinationState
 from .coordination_architecture_depth import audit_coordination_depth
-from .coordination_architecture_exports import coordination_quality_json, coordination_report_markdown, coordination_review_csv, coordination_runtime_json
+from .coordination_architecture_exports import (
+    coordination_quality_json,
+    coordination_report_markdown,
+    coordination_review_csv,
+    coordination_runtime_json,
+)
 from .coordination_architecture_failures import run_coordination_failure_injections
 from .coordination_architecture_invariants import coordination_invariants
 from .coordination_architecture_observability import build_coordination_trace
 from .coordination_architecture_plan import compile_coordination_plan
-from .coordination_architecture_public_data import audit_coordination_data, coordination_fixture_json, default_coordination_fixture, load_coordination_fixture
+from .coordination_architecture_public_data import (
+    audit_coordination_data,
+    coordination_fixture_json,
+    default_coordination_fixture,
+    load_coordination_fixture,
+)
 from .coordination_architecture_query import query_coordination
 from .coordination_architecture_quality import run_coordination_quality_gate
 from .coordination_architecture_replay import replay_coordination_runtime
@@ -102,7 +113,10 @@ from .coordination_architecture_validation import build_coordination_validation_
 from .intake_architecture_bundle import build_intake_architecture_release
 from .intake_architecture_contracts import IntakeArchitectureScenario
 from .intake_architecture_depth import audit_intake_architecture_depth
-from .intake_architecture_exports import intake_architecture_report_markdown, intake_architecture_runtime_json
+from .intake_architecture_exports import (
+    intake_architecture_report_markdown,
+    intake_architecture_runtime_json,
+)
 from .intake_architecture_failures import run_intake_architecture_failure_injections
 from .intake_architecture_invariants import intake_architecture_invariants
 from .intake_architecture_operations import evaluate_intake_architecture_fixture
@@ -121,6 +135,29 @@ from .intake_architecture_runtime import run_intake_architecture
 from .intake_architecture_schema import default_intake_architecture_schema
 from .intake_architecture_validation import build_intake_architecture_validation_matrix
 from .intake_architecture_quality import run_intake_architecture_quality_gate
+from .specimen_architecture_access import specimen_architecture_access_policy
+from .specimen_architecture_bundle import materialize_specimen_architecture_artifacts
+from .specimen_architecture_contracts import SpecimenArchitectureState
+from .specimen_architecture_depth import specimen_architecture_depth_report
+from .specimen_architecture_failures import classify_specimen_architecture_failures
+from .specimen_architecture_invariants import check_specimen_architecture_invariants
+from .specimen_architecture_lineage import build_specimen_architecture_ledger
+from .specimen_architecture_metrics import materialize_specimen_architecture_metrics
+from .specimen_architecture_operations import evaluate_specimen_architecture_fixture
+from .specimen_architecture_plan import compile_specimen_architecture_plan
+from .specimen_architecture_policy import score_specimen_architecture_policy
+from .specimen_architecture_public_data import (
+    audit_specimen_architecture_data,
+    default_specimen_architecture_fixture,
+    specimen_architecture_fixture_json,
+)
+from .specimen_architecture_query import cases_for_operation, receipts_for_state
+from .specimen_architecture_replay import replay_specimen_architecture_fixture
+from .specimen_architecture_review import build_specimen_architecture_review_queue
+from .specimen_architecture_runtime import run_specimen_architecture
+from .specimen_architecture_schema import specimen_architecture_schema
+from .specimen_architecture_validation import validate_specimen_architecture_matrix
+from .specimen_architecture_quality import assess_specimen_architecture_quality
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
     DependenceMethod,
@@ -251,53 +288,97 @@ from .cohort_beta import (
     SetKind,
 )
 from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
-from .cohort_foundation_frontier_accessibility import build_cohort_foundation_frontier_accessibility_report
+from .cohort_foundation_frontier_accessibility import (
+    build_cohort_foundation_frontier_accessibility_report,
+)
 from .cohort_foundation_frontier_audit_log import build_cohort_foundation_frontier_audit_log
-from .cohort_foundation_frontier_claim_evidence import build_cohort_foundation_frontier_claim_evidence_ledger
-from .cohort_foundation_frontier_change_control import default_cohort_foundation_frontier_change_control_report
-from .cohort_foundation_frontier_compatibility import evaluate_cohort_foundation_frontier_compatibility
-from .cohort_foundation_frontier_artifacts import build_cohort_foundation_frontier_artifact_inventory
+from .cohort_foundation_frontier_claim_evidence import (
+    build_cohort_foundation_frontier_claim_evidence_ledger,
+)
+from .cohort_foundation_frontier_change_control import (
+    default_cohort_foundation_frontier_change_control_report,
+)
+from .cohort_foundation_frontier_compatibility import (
+    evaluate_cohort_foundation_frontier_compatibility,
+)
+from .cohort_foundation_frontier_artifacts import (
+    build_cohort_foundation_frontier_artifact_inventory,
+)
 from .cohort_foundation_frontier_assurance import build_cohort_foundation_frontier_assurance
-from .cohort_foundation_frontier_claim_boundary import build_cohort_foundation_frontier_claim_boundary
+from .cohort_foundation_frontier_claim_boundary import (
+    build_cohort_foundation_frontier_claim_boundary,
+)
 from .cohort_foundation_frontier_checks import run_cohort_foundation_frontier_invariants
-from .cohort_foundation_frontier_control_coverage import build_cohort_foundation_frontier_control_coverage
+from .cohort_foundation_frontier_control_coverage import (
+    build_cohort_foundation_frontier_control_coverage,
+)
 from .cohort_foundation_frontier_contracts import default_cohort_foundation_frontier_contracts
 from .cohort_foundation_frontier_depth import audit_cohort_foundation_frontier_depth
-from .cohort_foundation_frontier_data_dictionary import default_cohort_foundation_frontier_data_dictionary
-from .cohort_foundation_frontier_dataset_manifest import build_cohort_foundation_frontier_dataset_manifest
+from .cohort_foundation_frontier_data_dictionary import (
+    default_cohort_foundation_frontier_data_dictionary,
+)
+from .cohort_foundation_frontier_dataset_manifest import (
+    build_cohort_foundation_frontier_dataset_manifest,
+)
 from .cohort_foundation_frontier_diagnostics import build_cohort_foundation_frontier_diagnostics
-from .cohort_foundation_frontier_exports import export_cohort_foundation_frontier_json, export_cohort_foundation_frontier_review_csv, export_cohort_foundation_frontier_review_markdown
+from .cohort_foundation_frontier_exports import (
+    export_cohort_foundation_frontier_json,
+    export_cohort_foundation_frontier_review_csv,
+    export_cohort_foundation_frontier_review_markdown,
+)
 from .cohort_foundation_frontier_fixture_eval import evaluate_cohort_foundation_frontier_fixture
-from .cohort_foundation_frontier_failure_injection import run_cohort_foundation_frontier_failure_injections
+from .cohort_foundation_frontier_failure_injection import (
+    run_cohort_foundation_frontier_failure_injections,
+)
 from .cohort_foundation_frontier_integrity import evaluate_cohort_foundation_frontier_integrity
 from .cohort_foundation_frontier_lineage import build_cohort_foundation_frontier_lineage
 from .cohort_foundation_frontier_metrics import measure_cohort_foundation_frontier
-from .cohort_foundation_frontier_operational import build_cohort_foundation_frontier_operational_matrix
+from .cohort_foundation_frontier_operational import (
+    build_cohort_foundation_frontier_operational_matrix,
+)
 from .cohort_foundation_frontier_observability import observe_cohort_foundation_frontier
 from .cohort_foundation_frontier_package import build_cohort_foundation_frontier_package_manifest
-from .cohort_foundation_frontier_performance import build_cohort_foundation_frontier_performance_report
+from .cohort_foundation_frontier_performance import (
+    build_cohort_foundation_frontier_performance_report,
+)
 from .cohort_foundation_frontier_policy import materialize_cohort_foundation_frontier_policy
 from .cohort_foundation_frontier_provenance import build_cohort_foundation_frontier_provenance
-from .cohort_foundation_frontier_public_data import audit_cohort_foundation_frontier_data, default_cohort_foundation_frontier_fixture, load_cohort_foundation_frontier_fixture
+from .cohort_foundation_frontier_public_data import (
+    audit_cohort_foundation_frontier_data,
+    default_cohort_foundation_frontier_fixture,
+    load_cohort_foundation_frontier_fixture,
+)
 from .cohort_foundation_frontier_quality_gate import evaluate_cohort_foundation_frontier_quality
 from .cohort_foundation_frontier_reconciliation import reconcile_cohort_foundation_frontier
 from .cohort_foundation_frontier_release import build_cohort_foundation_frontier_release_manifest
 from .cohort_foundation_frontier_recovery import build_cohort_foundation_frontier_recovery_plan
 from .cohort_foundation_frontier_review_sla import build_cohort_foundation_frontier_review_sla
-from .cohort_foundation_frontier_retention import default_cohort_foundation_frontier_retention_report
-from .cohort_foundation_frontier_reproducibility import build_cohort_foundation_frontier_reproducibility_receipt
+from .cohort_foundation_frontier_retention import (
+    default_cohort_foundation_frontier_retention_report,
+)
+from .cohort_foundation_frontier_reproducibility import (
+    build_cohort_foundation_frontier_reproducibility_receipt,
+)
 from .cohort_foundation_frontier_replay import replay_cohort_foundation_frontier
 from .cohort_foundation_frontier_report import build_cohort_foundation_frontier_report
 from .cohort_foundation_frontier_runtime import run_cohort_foundation_frontier_runtime
-from .cohort_foundation_frontier_scenario_matrix import build_cohort_foundation_frontier_scenario_matrix
+from .cohort_foundation_frontier_scenario_matrix import (
+    build_cohort_foundation_frontier_scenario_matrix,
+)
 from .cohort_foundation_frontier_schema import default_cohort_foundation_frontier_schema
-from .cohort_foundation_frontier_schema_migrations import build_cohort_foundation_frontier_schema_migration_report
+from .cohort_foundation_frontier_schema_migrations import (
+    build_cohort_foundation_frontier_schema_migration_report,
+)
 from .cohort_foundation_frontier_summary import build_cohort_foundation_frontier_summary
-from .cohort_foundation_frontier_source_registry import build_cohort_foundation_frontier_source_registry
+from .cohort_foundation_frontier_source_registry import (
+    build_cohort_foundation_frontier_source_registry,
+)
 from .cohort_foundation_frontier_thresholds import build_cohort_foundation_frontier_threshold_report
 from .cohort_foundation_frontier_traces import build_cohort_foundation_frontier_trace_ledger
 from .cohort_foundation_frontier_transcript import build_cohort_foundation_frontier_transcript
-from .cohort_foundation_frontier_validation_matrix import build_cohort_foundation_frontier_validation_matrix
+from .cohort_foundation_frontier_validation_matrix import (
+    build_cohort_foundation_frontier_validation_matrix,
+)
 from .cohort_foundation_frontier_views import build_cohort_foundation_frontier_review_view
 from .control_beta import (
     BudgetResourceScheduler,
@@ -314,7 +395,10 @@ from .control_frontier_exports import export_control_frontier_review_csv
 from .control_frontier_fixture_eval import evaluate_control_frontier_fixture
 from .control_frontier_handoff import build_control_frontier_handoff
 from .control_frontier_metrics import measure_control_frontier
-from .control_frontier_public_data import audit_control_frontier_data, default_control_frontier_fixture
+from .control_frontier_public_data import (
+    audit_control_frontier_data,
+    default_control_frontier_fixture,
+)
 from .control_frontier_report import render_control_frontier_report
 from .control_frontier_runtime import run_control_frontier_runtime
 from .control_frontier_thresholds import build_control_frontier_threshold_report
@@ -327,7 +411,10 @@ from .platform_frontier_exports import export_platform_frontier_review_csv
 from .platform_frontier_fixture_eval import evaluate_platform_frontier_fixture
 from .platform_frontier_handoff import build_platform_frontier_handoff
 from .platform_frontier_metrics import measure_platform_frontier
-from .platform_frontier_public_data import audit_platform_frontier_data, default_platform_frontier_fixture
+from .platform_frontier_public_data import (
+    audit_platform_frontier_data,
+    default_platform_frontier_fixture,
+)
 from .platform_frontier_report import render_platform_frontier_report
 from .platform_frontier_runtime import run_platform_frontier_runtime
 from .platform_frontier_thresholds import build_platform_frontier_threshold_report
@@ -341,7 +428,10 @@ from .deployment_frontier_failure_injection import run_deployment_frontier_failu
 from .deployment_frontier_fixture_eval import evaluate_deployment_frontier_fixture
 from .deployment_frontier_handoff import build_deployment_frontier_handoff
 from .deployment_frontier_metrics import measure_deployment_frontier
-from .deployment_frontier_public_data import audit_deployment_frontier_data, default_deployment_frontier_fixture
+from .deployment_frontier_public_data import (
+    audit_deployment_frontier_data,
+    default_deployment_frontier_fixture,
+)
 from .deployment_frontier_report import render_deployment_frontier_report
 from .deployment_frontier_review_queue import build_deployment_frontier_review_queue
 from .deployment_frontier_runtime import run_deployment_frontier_runtime
@@ -356,11 +446,16 @@ from .validation_release_frontier_failure_injection import run_validation_releas
 from .validation_release_frontier_fixture_eval import evaluate_validation_release_fixture
 from .validation_release_frontier_handoff import build_validation_release_handoff
 from .validation_release_frontier_metrics import measure_validation_release
-from .validation_release_frontier_public_data import audit_validation_release_frontier_data, default_validation_release_frontier_fixture
+from .validation_release_frontier_public_data import (
+    audit_validation_release_frontier_data,
+    default_validation_release_frontier_fixture,
+)
 from .validation_release_frontier_report import render_validation_release_report
 from .validation_release_frontier_review_queue import build_validation_release_review_queue
 from .validation_release_frontier_runtime import run_validation_release_runtime
-from .validation_release_frontier_validation_matrix import build_validation_release_validation_matrix
+from .validation_release_frontier_validation_matrix import (
+    build_validation_release_validation_matrix,
+)
 from .validation_release_frontier_views import build_validation_release_view
 from .validation_release_frontier_quality_gate import run_validation_release_quality_gate
 from .validation_release_frontier_adapters import build_validation_release_adapters
@@ -376,7 +471,10 @@ from .validation_design_frontier_failure_injection import run_validation_design_
 from .validation_design_frontier_fixture_eval import evaluate_validation_design_fixture
 from .validation_design_frontier_handoff import build_validation_design_handoff
 from .validation_design_frontier_metrics import measure_validation_design
-from .validation_design_frontier_public_data import audit_validation_design_frontier_data, default_validation_design_frontier_fixture
+from .validation_design_frontier_public_data import (
+    audit_validation_design_frontier_data,
+    default_validation_design_frontier_fixture,
+)
 from .validation_design_frontier_quality_gate import run_validation_design_quality_gate
 from .validation_design_frontier_reconciliation import reconcile_validation_design
 from .validation_design_frontier_report import build_validation_design_report
@@ -393,7 +491,10 @@ from .editing_design_frontier_failure_injection import build_editing_design_fail
 from .editing_design_frontier_fixture_eval import evaluate_editing_design_fixture
 from .editing_design_frontier_handoff import build_editing_design_handoff
 from .editing_design_frontier_metrics import measure_editing_design
-from .editing_design_frontier_public_data import audit_editing_design_frontier_data, default_editing_design_frontier_fixture
+from .editing_design_frontier_public_data import (
+    audit_editing_design_frontier_data,
+    default_editing_design_frontier_fixture,
+)
 from .editing_design_frontier_quality_gate import build_editing_design_quality_gate
 from .editing_design_frontier_reconciliation import build_editing_design_reconciliation
 from .editing_design_frontier_report import build_editing_design_report
@@ -412,7 +513,10 @@ from .planning_frontier_integrity import evaluate_planning_integrity
 from .planning_frontier_metrics import measure_planning
 from .planning_frontier_policy import materialize_planning_policy
 from .planning_frontier_provenance import build_planning_provenance
-from .planning_frontier_public_data import audit_planning_frontier_data, default_planning_frontier_fixture
+from .planning_frontier_public_data import (
+    audit_planning_frontier_data,
+    default_planning_frontier_fixture,
+)
 from .planning_frontier_reconciliation import reconcile_planning
 from .planning_frontier_release import build_planning_release
 from .planning_frontier_reports import build_planning_report
@@ -434,7 +538,10 @@ from .evidence_release_frontier_failure_injection import run_evidence_release_fa
 from .evidence_release_frontier_fixture_eval import evaluate_evidence_release_fixture
 from .evidence_release_frontier_handoff import build_evidence_release_handoff
 from .evidence_release_frontier_metrics import measure_evidence_release
-from .evidence_release_frontier_public_data import audit_evidence_release_frontier_data, default_evidence_release_frontier_fixture
+from .evidence_release_frontier_public_data import (
+    audit_evidence_release_frontier_data,
+    default_evidence_release_frontier_fixture,
+)
 from .evidence_release_frontier_report import render_evidence_release_report
 from .evidence_release_frontier_review_queue import build_evidence_release_review_queue
 from .evidence_release_frontier_runtime import run_evidence_release_runtime
@@ -450,7 +557,10 @@ from .workbench_release_frontier_failure_injection import run_workbench_release_
 from .workbench_release_frontier_fixture_eval import evaluate_workbench_release_fixture
 from .workbench_release_frontier_handoff import build_workbench_release_handoff
 from .workbench_release_frontier_metrics import measure_workbench_release
-from .workbench_release_frontier_public_data import audit_workbench_release_frontier_data, default_workbench_release_frontier_fixture
+from .workbench_release_frontier_public_data import (
+    audit_workbench_release_frontier_data,
+    default_workbench_release_frontier_fixture,
+)
 from .workbench_release_frontier_report import render_workbench_release_report
 from .workbench_release_frontier_review_queue import build_workbench_release_review_queue
 from .workbench_release_frontier_runtime import run_workbench_release_runtime
@@ -568,7 +678,10 @@ from .sequence_grammar_frontier_public_data import load_sequence_grammar_fixture
 from .sequence_regulation_frontier_cli import run_sequence_regulation_operation
 from .chromatin_alpha_frontier_cli import run_chromatin_alpha_frontier_operation
 from .chromatin_context_frontier_cli import run_chromatin_context_frontier_operation
-from .cell_context_frontier_cli import CELL_CONTEXT_FRONTIER_COMMANDS, run_cell_context_frontier_operation
+from .cell_context_frontier_cli import (
+    CELL_CONTEXT_FRONTIER_COMMANDS,
+    run_cell_context_frontier_operation,
+)
 from .cell_context_beta_frontier_cli import (
     CELL_CONTEXT_BETA_FRONTIER_COMMANDS,
     run_cell_context_beta_frontier_operation,
@@ -670,7 +783,9 @@ from .lifecycle_beta_frontier_handoff import build_lifecycle_beta_frontier_hando
 from .lifecycle_beta_frontier_public_data import audit_lifecycle_beta_frontier_data
 from .lifecycle_beta_frontier_runtime import run_lifecycle_beta_frontier_runtime
 from .lifecycle_beta_frontier_thresholds import build_lifecycle_beta_frontier_threshold_report
-from .lifecycle_beta_frontier_validation_matrix import build_lifecycle_beta_frontier_validation_matrix
+from .lifecycle_beta_frontier_validation_matrix import (
+    build_lifecycle_beta_frontier_validation_matrix,
+)
 from .link_frontier_bundle import build_link_frontier_bundle
 from .link_frontier_contracts import default_link_frontier_contracts
 from .link_frontier_depth import run_link_frontier_depth_audit
@@ -718,7 +833,9 @@ from .causal_frontier_replay import replay_causal_frontier
 from .causal_frontier_runtime import run_causal_frontier_runtime
 from .causal_frontier_schema import default_causal_frontier_schema
 from .causal_frontier_views import build_causal_frontier_review_view
-from .causal_foundation_frontier_artifacts import build_causal_foundation_frontier_artifact_inventory
+from .causal_foundation_frontier_artifacts import (
+    build_causal_foundation_frontier_artifact_inventory,
+)
 from .causal_foundation_frontier_contracts import build_causal_foundation_frontier_contracts
 from .causal_foundation_frontier_depth import audit_causal_foundation_frontier_depth
 from .causal_foundation_frontier_exports import (
@@ -742,15 +859,26 @@ from .causal_foundation_frontier_release import build_causal_foundation_frontier
 from .causal_foundation_frontier_replay import replay_causal_foundation_frontier
 from .causal_foundation_frontier_review import build_causal_foundation_frontier_review_queue
 from .causal_foundation_frontier_runtime import run_causal_foundation_frontier_runtime
-from .causal_foundation_frontier_scenario_matrix import build_causal_foundation_frontier_scenario_matrix
+from .causal_foundation_frontier_scenario_matrix import (
+    build_causal_foundation_frontier_scenario_matrix,
+)
 from .causal_foundation_frontier_schema import validate_causal_foundation_frontier_schema
-from .causal_foundation_frontier_validation_matrix import build_causal_foundation_frontier_validation_matrix
+from .causal_foundation_frontier_validation_matrix import (
+    build_causal_foundation_frontier_validation_matrix,
+)
 from .causal_foundation_frontier_views import (
     build_causal_foundation_frontier_review_view,
     build_causal_foundation_frontier_summary_view,
 )
-from .causal_beta_frontier_exports import export_causal_beta_frontier_json, export_causal_beta_frontier_review_csv, export_causal_beta_frontier_review_markdown
-from .causal_beta_frontier_public_data import audit_causal_beta_frontier_data, default_causal_beta_frontier_fixture
+from .causal_beta_frontier_exports import (
+    export_causal_beta_frontier_json,
+    export_causal_beta_frontier_review_csv,
+    export_causal_beta_frontier_review_markdown,
+)
+from .causal_beta_frontier_public_data import (
+    audit_causal_beta_frontier_data,
+    default_causal_beta_frontier_fixture,
+)
 from .causal_beta_frontier_runtime import run_causal_beta_frontier_runtime
 from .causal_beta_frontier_views import build_causal_beta_frontier_summary_view
 from .cohort_frontier_bundle import assemble_cohort_frontier_bundle
@@ -1369,7 +1497,10 @@ from .cohort_beta_frontier_public_data import (
     cohort_beta_frontier_fixture_json,
     default_cohort_beta_frontier_fixture,
 )
-from .cohort_beta_frontier_report import build_cohort_beta_frontier_report, render_cohort_beta_frontier_report_markdown
+from .cohort_beta_frontier_report import (
+    build_cohort_beta_frontier_report,
+    render_cohort_beta_frontier_report_markdown,
+)
 from .cohort_beta_frontier_runtime import run_cohort_beta_frontier_runtime
 
 
@@ -1406,11 +1537,27 @@ def _coordination_fixture(input_path: str | None):
 
 
 def _intake_architecture_fixture(input_path: str | None):
-    return load_intake_architecture_fixture(input_path) if input_path else default_intake_architecture_fixture()
+    return (
+        load_intake_architecture_fixture(input_path)
+        if input_path
+        else default_intake_architecture_fixture()
+    )
 
 
 def _structural_architecture_fixture(input_path: str | None):
-    return default_structural_architecture_fixture(input_path) if input_path else default_structural_architecture_fixture()
+    return (
+        default_structural_architecture_fixture(input_path)
+        if input_path
+        else default_structural_architecture_fixture()
+    )
+
+
+def _specimen_architecture_fixture(input_path: str | None):
+    return (
+        default_specimen_architecture_fixture(input_path)
+        if input_path
+        else default_specimen_architecture_fixture()
+    )
 
 
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
@@ -1482,21 +1629,29 @@ def _read_causal_foundation_frontier_fixture(path: str | None):
     """Return the pinned Domain 11 C01-C04 aggregate fixture."""
 
     if path:
-        raise ValueError("custom causal foundation fixture loading is not enabled; use the pinned public aggregate")
+        raise ValueError(
+            "custom causal foundation fixture loading is not enabled; use the pinned public aggregate"
+        )
     return default_causal_foundation_frontier_fixture()
 
 
 def _read_cohort_foundation_frontier_fixture(path: str | None):
     """Load a supplied aggregate fixture or use the pinned C01-C04 fixture."""
 
-    return load_cohort_foundation_frontier_fixture(path) if path else default_cohort_foundation_frontier_fixture()
+    return (
+        load_cohort_foundation_frontier_fixture(path)
+        if path
+        else default_cohort_foundation_frontier_fixture()
+    )
 
 
 def _read_causal_beta_frontier_fixture(path: str | None):
     """Return the pinned Domain 11 C05-C08 aggregate fixture."""
 
     if path:
-        raise ValueError("custom causal beta fixture loading is not enabled; use the pinned public aggregate")
+        raise ValueError(
+            "custom causal beta fixture loading is not enabled; use the pinned public aggregate"
+        )
     return default_causal_beta_frontier_fixture()
 
 
@@ -1993,7 +2148,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="render a module-fabric runtime report",
     )
     module_fabric_report_parser.add_argument("--input", default=None)
-    module_fabric_report_parser.add_argument("--format", choices=("json", "markdown"), default="json")
+    module_fabric_report_parser.add_argument(
+        "--format", choices=("json", "markdown"), default="json"
+    )
     module_fabric_report_parser.add_argument("--output", default=None)
     module_fabric_review_csv = subparsers.add_parser(
         "module-fabric-review-csv",
@@ -2131,8 +2288,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="query sanitized D16 coordination executions",
     )
     coordination_query.add_argument("--input", default=None)
-    coordination_query.add_argument("--state", choices=tuple(item.value for item in CoordinationState), default=None)
-    coordination_query.add_argument("--scenario", choices=tuple(item.value for item in CoordinationScenario), default=None)
+    coordination_query.add_argument(
+        "--state", choices=tuple(item.value for item in CoordinationState), default=None
+    )
+    coordination_query.add_argument(
+        "--scenario", choices=tuple(item.value for item in CoordinationScenario), default=None
+    )
     coordination_query.add_argument("--operation-id", default=None)
     coordination_query.add_argument("--issue-code", default=None)
     coordination_query.add_argument("--output", default=None)
@@ -2206,7 +2367,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="render a D01 runtime report",
     )
     intake_architecture_report_parser.add_argument("--input", default=None)
-    intake_architecture_report_parser.add_argument("--format", choices=("json", "markdown"), default="json")
+    intake_architecture_report_parser.add_argument(
+        "--format", choices=("json", "markdown"), default="json"
+    )
     intake_architecture_report_parser.add_argument("--output", default=None)
     intake_architecture_failures = subparsers.add_parser(
         "intake-architecture-failures",
@@ -2231,6 +2394,50 @@ def build_parser() -> argparse.ArgumentParser:
     )
     intake_architecture_invariants_parser.add_argument("--input", default=None)
     intake_architecture_invariants_parser.add_argument("--output", default=None)
+    specimen_architecture_fixture = subparsers.add_parser(
+        "specimen-architecture-fixture",
+        help="emit the D03 C01-C16 public aggregate specimen architecture fixture",
+    )
+    specimen_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        (
+            "specimen-architecture-data-audit",
+            "audit D03 specimen sources, context, joins, and scope",
+        ),
+        ("specimen-architecture-plan", "compile the D03 specimen dependency plan"),
+        ("evaluate-specimen-architecture", "execute D03 positive adapters and boundary controls"),
+        ("specimen-architecture-runtime", "run the twenty-stage D03 specimen runtime"),
+        ("specimen-architecture-validation", "emit the D03 seven-plane validation matrix"),
+        ("specimen-architecture-quality", "run the D03 specimen release quality gate"),
+        (
+            "specimen-architecture-depth",
+            "report D03 specimen operation, case, lineage, and stage depth",
+        ),
+        ("replay-specimen-architecture", "replay D03 specimen evaluation deterministically"),
+        ("specimen-architecture-review", "emit D03 held-control review receipts"),
+        ("specimen-architecture-metrics", "emit D03 specimen metrics"),
+        ("specimen-architecture-access", "emit D03 specimen artifact access policy"),
+        ("specimen-architecture-schema", "emit D03 specimen interchange schema"),
+        ("specimen-architecture-invariants", "emit D03 specimen cross-module invariants"),
+        ("specimen-architecture-failures", "emit D03 specimen failure classification"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    specimen_architecture_query = subparsers.add_parser(
+        "specimen-architecture-query", help="query sanitized D03 specimen receipts"
+    )
+    specimen_architecture_query.add_argument("--input", default=None)
+    specimen_architecture_query.add_argument("--operation", default=None)
+    specimen_architecture_query.add_argument(
+        "--state", choices=("accepted", "review"), default=None
+    )
+    specimen_architecture_query.add_argument("--output", default=None)
+    specimen_architecture_bundle = subparsers.add_parser(
+        "specimen-architecture-bundle", help="write a D03 specimen runtime bundle"
+    )
+    specimen_architecture_bundle.add_argument("--input", default=None)
+    specimen_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -2295,7 +2502,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="render a D02 structural architecture runtime report",
     )
     structural_architecture_report.add_argument("--input", default=None)
-    structural_architecture_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    structural_architecture_report.add_argument(
+        "--format", choices=("json", "markdown"), default="json"
+    )
     structural_architecture_report.add_argument("--output", default=None)
     structural_architecture_failures = subparsers.add_parser(
         "structural-architecture-failures",
@@ -2314,7 +2523,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     structural_architecture_query.add_argument("--input", default=None)
     structural_architecture_query.add_argument("--operation-id", default=None)
-    structural_architecture_query.add_argument("--state", choices=("accepted", "review"), default=None)
+    structural_architecture_query.add_argument(
+        "--state", choices=("accepted", "review"), default=None
+    )
     structural_architecture_query.add_argument("--issue-code", default=None)
     structural_architecture_query.add_argument("--output", default=None)
     structural_architecture_invariants = subparsers.add_parser(
@@ -2421,7 +2632,9 @@ def build_parser() -> argparse.ArgumentParser:
     cohort_alpha_frontier_report = subparsers.add_parser(
         "cohort-alpha-frontier-report", help="render the C09-C12 bounded evidence report"
     )
-    cohort_alpha_frontier_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    cohort_alpha_frontier_report.add_argument(
+        "--format", choices=("json", "markdown"), default="json"
+    )
     cohort_alpha_frontier_report.add_argument("--output", default=None)
     cohort_alpha_frontier_pipeline = subparsers.add_parser(
         "run-cohort-alpha-frontier-pipeline", help="run the complete C09-C12 release rehearsal"
@@ -5165,10 +5378,16 @@ def build_parser() -> argparse.ArgumentParser:
     causal_frontier_csv.add_argument("--output", default=None)
 
     causal_foundation_frontier_commands = (
-        ("causal-foundation-frontier-data-audit", "audit Domain 11 C01-C04 public aggregate receipts"),
+        (
+            "causal-foundation-frontier-data-audit",
+            "audit Domain 11 C01-C04 public aggregate receipts",
+        ),
         ("causal-foundation-frontier-contracts", "emit Domain 11 C01-C04 operation contracts"),
         ("causal-foundation-frontier-schema", "emit Domain 11 C01-C04 record schema"),
-        ("causal-foundation-frontier-evaluate", "evaluate Domain 11 C01-C04 positive and control rows"),
+        (
+            "causal-foundation-frontier-evaluate",
+            "evaluate Domain 11 C01-C04 positive and control rows",
+        ),
         ("causal-foundation-frontier-metrics", "emit Domain 11 C01-C04 metrics"),
         ("causal-foundation-frontier-policy", "emit Domain 11 C01-C04 policy decisions"),
         ("causal-foundation-frontier-review", "emit Domain 11 C01-C04 review queue"),
@@ -5178,7 +5397,10 @@ def build_parser() -> argparse.ArgumentParser:
         ("causal-foundation-frontier-depth-audit", "run Domain 11 C01-C04 depth audit"),
         ("causal-foundation-frontier-integrity", "run Domain 11 C01-C04 integrity checks"),
         ("causal-foundation-frontier-scenarios", "emit Domain 11 C01-C04 scenario matrix"),
-        ("causal-foundation-frontier-validation-matrix", "emit Domain 11 C01-C04 validation matrix"),
+        (
+            "causal-foundation-frontier-validation-matrix",
+            "emit Domain 11 C01-C04 validation matrix",
+        ),
         ("causal-foundation-frontier-summary", "emit Domain 11 C01-C04 summary view"),
     )
     for command_name, command_help in causal_foundation_frontier_commands:
@@ -5186,9 +5408,18 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
     for command_name, command_help in (
-        ("export-causal-foundation-frontier-review-csv", "export Domain 11 C01-C04 review rows as CSV"),
-        ("export-causal-foundation-frontier-review-markdown", "export Domain 11 C01-C04 review rows as Markdown"),
-        ("export-causal-foundation-frontier-json", "export Domain 11 C01-C04 release payload as JSON"),
+        (
+            "export-causal-foundation-frontier-review-csv",
+            "export Domain 11 C01-C04 review rows as CSV",
+        ),
+        (
+            "export-causal-foundation-frontier-review-markdown",
+            "export Domain 11 C01-C04 review rows as Markdown",
+        ),
+        (
+            "export-causal-foundation-frontier-json",
+            "export Domain 11 C01-C04 release payload as JSON",
+        ),
     ):
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("input", nargs="?", default=None)
@@ -5222,7 +5453,10 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     for command_name, command_help in (
         ("export-causal-beta-frontier-review-csv", "export Domain 11 C05-C08 review rows as CSV"),
-        ("export-causal-beta-frontier-review-markdown", "export Domain 11 C05-C08 review rows as Markdown"),
+        (
+            "export-causal-beta-frontier-review-markdown",
+            "export Domain 11 C05-C08 review rows as Markdown",
+        ),
         ("export-causal-beta-frontier-json", "export Domain 11 C05-C08 release payload as JSON"),
     ):
         command_parser = subparsers.add_parser(command_name, help=command_help)
@@ -5262,11 +5496,20 @@ def build_parser() -> argparse.ArgumentParser:
     cohort_frontier_csv.add_argument("--output", default=None)
 
     cohort_foundation_commands = (
-        ("cohort-foundation-frontier-data-audit", "audit Domain 12 C01-C04 public aggregate receipts"),
+        (
+            "cohort-foundation-frontier-data-audit",
+            "audit Domain 12 C01-C04 public aggregate receipts",
+        ),
         ("cohort-foundation-frontier-contracts", "emit Domain 12 C01-C04 operation contracts"),
         ("cohort-foundation-frontier-schema", "emit Domain 12 C01-C04 field schema"),
-        ("cohort-foundation-frontier-evaluate", "evaluate Domain 12 C01-C04 positive and control records"),
-        ("cohort-foundation-frontier-replay", "replay Domain 12 C01-C04 content-addressed receipts"),
+        (
+            "cohort-foundation-frontier-evaluate",
+            "evaluate Domain 12 C01-C04 positive and control records",
+        ),
+        (
+            "cohort-foundation-frontier-replay",
+            "replay Domain 12 C01-C04 content-addressed receipts",
+        ),
         ("cohort-foundation-frontier-metrics", "emit Domain 12 C01-C04 operation metrics"),
         ("cohort-foundation-frontier-lineage", "emit Domain 12 C01-C04 source lineage"),
         ("cohort-foundation-frontier-policy", "emit Domain 12 C01-C04 policy decisions"),
@@ -5277,7 +5520,10 @@ def build_parser() -> argparse.ArgumentParser:
         ("cohort-foundation-frontier-depth-audit", "run Domain 12 C01-C04 depth audit"),
         ("cohort-foundation-frontier-diagnostics", "emit Domain 12 C01-C04 diagnostics"),
         ("cohort-foundation-frontier-scenarios", "emit Domain 12 C01-C04 scenario matrix"),
-        ("cohort-foundation-frontier-validation-matrix", "emit Domain 12 C01-C04 validation matrix"),
+        (
+            "cohort-foundation-frontier-validation-matrix",
+            "emit Domain 12 C01-C04 validation matrix",
+        ),
         ("cohort-foundation-frontier-operational", "emit Domain 12 C01-C04 operational matrix"),
         ("cohort-foundation-frontier-boundary", "emit Domain 12 C01-C04 claim boundary"),
         ("cohort-foundation-frontier-assurance", "emit Domain 12 C01-C04 assurance statement"),
@@ -5290,20 +5536,35 @@ def build_parser() -> argparse.ArgumentParser:
         ("cohort-foundation-frontier-invariants", "run Domain 12 C01-C04 invariants"),
         ("cohort-foundation-frontier-thresholds", "emit Domain 12 C01-C04 threshold probes"),
         ("cohort-foundation-frontier-observability", "emit Domain 12 C01-C04 runtime events"),
-        ("cohort-foundation-frontier-accessibility", "emit Domain 12 C01-C04 review accessibility metadata"),
+        (
+            "cohort-foundation-frontier-accessibility",
+            "emit Domain 12 C01-C04 review accessibility metadata",
+        ),
         ("cohort-foundation-frontier-performance", "emit Domain 12 C01-C04 performance budgets"),
-        ("cohort-foundation-frontier-schema-migrations", "emit Domain 12 C01-C04 schema migrations"),
-        ("cohort-foundation-frontier-failure-injections", "run Domain 12 C01-C04 failure injections"),
+        (
+            "cohort-foundation-frontier-schema-migrations",
+            "emit Domain 12 C01-C04 schema migrations",
+        ),
+        (
+            "cohort-foundation-frontier-failure-injections",
+            "run Domain 12 C01-C04 failure injections",
+        ),
         ("cohort-foundation-frontier-recovery", "emit Domain 12 C01-C04 recovery plan"),
         ("cohort-foundation-frontier-package", "emit Domain 12 C01-C04 package manifest"),
-        ("cohort-foundation-frontier-claim-evidence", "emit Domain 12 C01-C04 claim evidence links"),
+        (
+            "cohort-foundation-frontier-claim-evidence",
+            "emit Domain 12 C01-C04 claim evidence links",
+        ),
         ("cohort-foundation-frontier-audit-log", "emit Domain 12 C01-C04 audit log"),
         ("cohort-foundation-frontier-review-sla", "emit Domain 12 C01-C04 review SLA"),
         ("cohort-foundation-frontier-data-dictionary", "emit Domain 12 C01-C04 data dictionary"),
         ("cohort-foundation-frontier-compatibility", "run Domain 12 C01-C04 compatibility checks"),
         ("cohort-foundation-frontier-change-control", "emit Domain 12 C01-C04 change controls"),
         ("cohort-foundation-frontier-retention", "emit Domain 12 C01-C04 retention rules"),
-        ("cohort-foundation-frontier-reproducibility", "emit Domain 12 C01-C04 reproducibility receipt"),
+        (
+            "cohort-foundation-frontier-reproducibility",
+            "emit Domain 12 C01-C04 reproducibility receipt",
+        ),
         ("cohort-foundation-frontier-dataset-manifest", "emit Domain 12 C01-C04 dataset manifest"),
         ("cohort-foundation-frontier-transcript", "emit Domain 12 C01-C04 stage transcript"),
         ("cohort-foundation-frontier-summary", "emit Domain 12 C01-C04 handoff summary"),
@@ -5313,9 +5574,18 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("input", nargs="?", default=None)
         command_parser.add_argument("--output", default=None)
     for command_name, command_help in (
-        ("export-cohort-foundation-frontier-review-csv", "export Domain 12 C01-C04 review rows as CSV"),
-        ("export-cohort-foundation-frontier-review-markdown", "export Domain 12 C01-C04 review rows as Markdown"),
-        ("export-cohort-foundation-frontier-json", "export Domain 12 C01-C04 runtime payload as JSON"),
+        (
+            "export-cohort-foundation-frontier-review-csv",
+            "export Domain 12 C01-C04 review rows as CSV",
+        ),
+        (
+            "export-cohort-foundation-frontier-review-markdown",
+            "export Domain 12 C01-C04 review rows as Markdown",
+        ),
+        (
+            "export-cohort-foundation-frontier-json",
+            "export Domain 12 C01-C04 runtime payload as JSON",
+        ),
     ):
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("input", nargs="?", default=None)
@@ -5416,7 +5686,9 @@ def build_parser() -> argparse.ArgumentParser:
     for command_name, command_help in control_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    control_frontier_csv = subparsers.add_parser("control-frontier-review-csv", help="export Domain 16 C05-C12 review rows")
+    control_frontier_csv = subparsers.add_parser(
+        "control-frontier-review-csv", help="export Domain 16 C05-C12 review rows"
+    )
     control_frontier_csv.add_argument("--output", default=None)
 
     platform_frontier_commands = (
@@ -5434,7 +5706,9 @@ def build_parser() -> argparse.ArgumentParser:
     for command_name, command_help in platform_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    platform_frontier_csv = subparsers.add_parser("platform-frontier-review-csv", help="export Domain 16 C01-C04 review rows")
+    platform_frontier_csv = subparsers.add_parser(
+        "platform-frontier-review-csv", help="export Domain 16 C01-C04 review rows"
+    )
     platform_frontier_csv.add_argument("--output", default=None)
 
     deployment_frontier_commands = (
@@ -5453,33 +5727,58 @@ def build_parser() -> argparse.ArgumentParser:
     for command_name, command_help in deployment_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    deployment_frontier_csv = subparsers.add_parser("deployment-frontier-review-csv", help="export Domain 16 C13-C16 review rows")
+    deployment_frontier_csv = subparsers.add_parser(
+        "deployment-frontier-review-csv", help="export Domain 16 C13-C16 review rows"
+    )
     deployment_frontier_csv.add_argument("--output", default=None)
 
     validation_release_frontier_commands = (
         ("validation-release-frontier-data-audit", "audit Domain 13 C13-C16 public aggregate data"),
-        ("validation-release-frontier-evaluate", "evaluate Domain 13 C13-C16 positive and control rows"),
-        ("validation-release-frontier-pipeline", "run the complete Domain 13 C13-C16 runtime rehearsal"),
+        (
+            "validation-release-frontier-evaluate",
+            "evaluate Domain 13 C13-C16 positive and control rows",
+        ),
+        (
+            "validation-release-frontier-pipeline",
+            "run the complete Domain 13 C13-C16 runtime rehearsal",
+        ),
         ("validation-release-frontier-depth", "run Domain 13 C13-C16 depth checks"),
-        ("validation-release-frontier-thresholds", "probe Domain 13 C13-C16 numeric and state boundaries"),
+        (
+            "validation-release-frontier-thresholds",
+            "probe Domain 13 C13-C16 numeric and state boundaries",
+        ),
         ("validation-release-frontier-quality", "run Domain 13 C13-C16 quality gate"),
-        ("validation-release-frontier-validation-matrix", "emit Domain 13 C13-C16 validation matrix"),
+        (
+            "validation-release-frontier-validation-matrix",
+            "emit Domain 13 C13-C16 validation matrix",
+        ),
         ("validation-release-frontier-handoff", "emit Domain 13 C13-C16 review handoff"),
         ("validation-release-frontier-access", "emit Domain 13 C13-C16 public access manifest"),
         ("validation-release-frontier-data-dictionary", "emit Domain 13 C13-C16 data dictionary"),
         ("validation-release-frontier-report", "render Domain 13 C13-C16 review report"),
-        ("validation-release-frontier-failure-injection", "rehearse Domain 13 C13-C16 control failures"),
+        (
+            "validation-release-frontier-failure-injection",
+            "rehearse Domain 13 C13-C16 control failures",
+        ),
     )
     for command_name, command_help in validation_release_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    validation_release_frontier_csv = subparsers.add_parser("validation-release-frontier-review-csv", help="export Domain 13 C13-C16 review rows")
+    validation_release_frontier_csv = subparsers.add_parser(
+        "validation-release-frontier-review-csv", help="export Domain 13 C13-C16 review rows"
+    )
     validation_release_frontier_csv.add_argument("--output", default=None)
 
     evidence_release_frontier_commands = (
         ("evidence-release-frontier-data-audit", "audit Domain 14 C13-C16 public aggregate data"),
-        ("evidence-release-frontier-evaluate", "evaluate Domain 14 C13-C16 positive and control rows"),
-        ("evidence-release-frontier-pipeline", "run the complete Domain 14 C13-C16 runtime rehearsal"),
+        (
+            "evidence-release-frontier-evaluate",
+            "evaluate Domain 14 C13-C16 positive and control rows",
+        ),
+        (
+            "evidence-release-frontier-pipeline",
+            "run the complete Domain 14 C13-C16 runtime rehearsal",
+        ),
         ("evidence-release-frontier-depth", "run Domain 14 C13-C16 depth checks"),
         ("evidence-release-frontier-thresholds", "probe Domain 14 C13-C16 state boundaries"),
         ("evidence-release-frontier-quality", "run Domain 14 C13-C16 quality gate"),
@@ -5488,42 +5787,67 @@ def build_parser() -> argparse.ArgumentParser:
         ("evidence-release-frontier-access", "emit Domain 14 C13-C16 public access manifest"),
         ("evidence-release-frontier-data-dictionary", "emit Domain 14 C13-C16 data dictionary"),
         ("evidence-release-frontier-report", "render Domain 14 C13-C16 review report"),
-        ("evidence-release-frontier-failure-injection", "rehearse Domain 14 C13-C16 control failures"),
+        (
+            "evidence-release-frontier-failure-injection",
+            "rehearse Domain 14 C13-C16 control failures",
+        ),
     )
     for command_name, command_help in evidence_release_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    evidence_release_frontier_csv = subparsers.add_parser("evidence-release-frontier-review-csv", help="export Domain 14 C13-C16 review rows")
+    evidence_release_frontier_csv = subparsers.add_parser(
+        "evidence-release-frontier-review-csv", help="export Domain 14 C13-C16 review rows"
+    )
     evidence_release_frontier_csv.add_argument("--output", default=None)
 
     workbench_release_frontier_commands = (
         ("workbench-release-frontier-data-audit", "audit Domain 15 C13-C16 public aggregate data"),
-        ("workbench-release-frontier-evaluate", "evaluate Domain 15 C13-C16 positive and control rows"),
-        ("workbench-release-frontier-pipeline", "run the complete Domain 15 C13-C16 runtime rehearsal"),
+        (
+            "workbench-release-frontier-evaluate",
+            "evaluate Domain 15 C13-C16 positive and control rows",
+        ),
+        (
+            "workbench-release-frontier-pipeline",
+            "run the complete Domain 15 C13-C16 runtime rehearsal",
+        ),
         ("workbench-release-frontier-depth", "run Domain 15 C13-C16 depth checks"),
         ("workbench-release-frontier-thresholds", "probe Domain 15 C13-C16 boundaries"),
         ("workbench-release-frontier-quality", "run Domain 15 C13-C16 quality gate"),
-        ("workbench-release-frontier-validation-matrix", "emit Domain 15 C13-C16 validation matrix"),
+        (
+            "workbench-release-frontier-validation-matrix",
+            "emit Domain 15 C13-C16 validation matrix",
+        ),
         ("workbench-release-frontier-handoff", "emit Domain 15 C13-C16 review handoff"),
         ("workbench-release-frontier-access", "emit Domain 15 C13-C16 public access manifest"),
         ("workbench-release-frontier-data-dictionary", "emit Domain 15 C13-C16 data dictionary"),
         ("workbench-release-frontier-report", "render Domain 15 C13-C16 review report"),
-        ("workbench-release-frontier-failure-injection", "rehearse Domain 15 C13-C16 control failures"),
+        (
+            "workbench-release-frontier-failure-injection",
+            "rehearse Domain 15 C13-C16 control failures",
+        ),
     )
     for command_name, command_help in workbench_release_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    workbench_release_frontier_csv = subparsers.add_parser("workbench-release-frontier-review-csv", help="export Domain 15 C13-C16 review rows")
+    workbench_release_frontier_csv = subparsers.add_parser(
+        "workbench-release-frontier-review-csv", help="export Domain 15 C13-C16 review rows"
+    )
     workbench_release_frontier_csv.add_argument("--output", default=None)
 
     validation_design_frontier_commands = (
-        ("validation-design-frontier-data-audit", "audit D13 C01-C04 public aggregate planning data"),
+        (
+            "validation-design-frontier-data-audit",
+            "audit D13 C01-C04 public aggregate planning data",
+        ),
         ("validation-design-frontier-evaluate", "evaluate D13 C01-C04 planning scenarios"),
         ("validation-design-frontier-pipeline", "run the complete D13 C01-C04 planning runtime"),
         ("validation-design-frontier-depth", "run D13 C01-C04 planning depth checks"),
         ("validation-design-frontier-thresholds", "emit D13 C01-C04 planning thresholds"),
         ("validation-design-frontier-quality", "run D13 C01-C04 planning quality gate"),
-        ("validation-design-frontier-validation-matrix", "emit D13 C01-C04 planning validation matrix"),
+        (
+            "validation-design-frontier-validation-matrix",
+            "emit D13 C01-C04 planning validation matrix",
+        ),
         ("validation-design-frontier-handoff", "emit D13 C01-C04 planning reviewer handoff"),
         ("validation-design-frontier-access", "emit D13 C01-C04 planning public access manifest"),
         ("validation-design-frontier-data-dictionary", "emit D13 C01-C04 planning data dictionary"),
@@ -5533,7 +5857,9 @@ def build_parser() -> argparse.ArgumentParser:
     for command_name, command_help in validation_design_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    validation_design_frontier_csv = subparsers.add_parser("validation-design-frontier-review-csv", help="export D13 C01-C04 planning review rows")
+    validation_design_frontier_csv = subparsers.add_parser(
+        "validation-design-frontier-review-csv", help="export D13 C01-C04 planning review rows"
+    )
     validation_design_frontier_csv.add_argument("--output", default=None)
 
     editing_design_frontier_commands = (
@@ -5553,7 +5879,9 @@ def build_parser() -> argparse.ArgumentParser:
     for command_name, command_help in editing_design_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    editing_design_frontier_csv = subparsers.add_parser("editing-design-frontier-review-csv", help="export D13 C05-C08 editing review rows")
+    editing_design_frontier_csv = subparsers.add_parser(
+        "editing-design-frontier-review-csv", help="export D13 C05-C08 editing review rows"
+    )
     editing_design_frontier_csv.add_argument("--output", default=None)
 
     planning_frontier_commands = (
@@ -5577,7 +5905,9 @@ def build_parser() -> argparse.ArgumentParser:
     for command_name, command_help in planning_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
-    planning_frontier_csv = subparsers.add_parser("planning-frontier-review-csv", help="export D13 C09-C12 planning review rows")
+    planning_frontier_csv = subparsers.add_parser(
+        "planning-frontier-review-csv", help="export D13 C09-C12 planning review rows"
+    )
     planning_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
@@ -5679,7 +6009,10 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     for command_name, command_help in (
         ("export-causal-alpha-frontier-review-csv", "export Domain 11 C09-C12 review rows as CSV"),
-        ("export-causal-alpha-frontier-review-markdown", "export Domain 11 C09-C12 review rows as Markdown"),
+        (
+            "export-causal-alpha-frontier-review-markdown",
+            "export Domain 11 C09-C12 review rows as Markdown",
+        ),
         ("export-causal-alpha-frontier-json", "export Domain 11 C09-C12 release envelopes as JSON"),
     ):
         command_parser = subparsers.add_parser(command_name, help=command_help)
@@ -7065,15 +7398,23 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if report.accepted else 2
         if args.command == "coordination-runbook":
             fixture = _coordination_fixture(args.input)
-            _write_json(build_coordination_runbook(run_coordination_architecture(fixture)).to_dict(), args.output)
+            _write_json(
+                build_coordination_runbook(run_coordination_architecture(fixture)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "coordination-trace":
             fixture = _coordination_fixture(args.input)
-            _write_json(build_coordination_trace(run_coordination_architecture(fixture)).to_dict(), args.output)
+            _write_json(
+                build_coordination_trace(run_coordination_architecture(fixture)).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "coordination-review-csv":
             fixture = _coordination_fixture(args.input)
-            _write_text(coordination_review_csv(run_coordination_architecture(fixture)), args.output)
+            _write_text(
+                coordination_review_csv(run_coordination_architecture(fixture)), args.output
+            )
             return 0
         if args.command == "coordination-report":
             fixture = _coordination_fixture(args.input)
@@ -7100,7 +7441,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "coordination-access":
             fixture = _coordination_fixture(args.input)
-            _write_json(build_coordination_access_manifest(run_coordination_architecture(fixture)).to_dict(), args.output)
+            _write_json(
+                build_coordination_access_manifest(
+                    run_coordination_architecture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "coordination-invariants":
             fixture = _coordination_fixture(args.input)
@@ -7163,11 +7509,20 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if report.accepted else 2
         if args.command == "intake-architecture-runbook":
             fixture = _intake_architecture_fixture(args.input)
-            _write_json(build_intake_architecture_runbook(run_intake_architecture(fixture)), args.output)
+            _write_json(
+                build_intake_architecture_runbook(run_intake_architecture(fixture)), args.output
+            )
             return 0
         if args.command == "intake-architecture-review-csv":
             fixture = _intake_architecture_fixture(args.input)
-            _write_text(intake_review_csv(build_intake_architecture_review_queue(evaluate_intake_architecture_fixture(fixture))), args.output)
+            _write_text(
+                intake_review_csv(
+                    build_intake_architecture_review_queue(
+                        evaluate_intake_architecture_fixture(fixture)
+                    )
+                ),
+                args.output,
+            )
             return 0
         if args.command == "intake-architecture-report":
             fixture = _intake_architecture_fixture(args.input)
@@ -7186,18 +7541,170 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "intake-architecture-query":
             fixture = _intake_architecture_fixture(args.input)
-            _write_json(query_intake_architecture(run_intake_architecture(fixture), args.query), args.output)
+            _write_json(
+                query_intake_architecture(run_intake_architecture(fixture), args.query), args.output
+            )
             return 0
         if args.command == "intake-architecture-invariants":
             fixture = _intake_architecture_fixture(args.input)
             issues = intake_architecture_invariants(run_intake_architecture(fixture))
             _write_json({"issues": issues, "accepted": not issues}, args.output)
             return 0 if not issues else 2
+        if args.command == "specimen-architecture-fixture":
+            _write_text(specimen_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "specimen-architecture-data-audit":
+            report = audit_specimen_architecture_data(_specimen_architecture_fixture(args.input))
+            _write_json(jsonable(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "specimen-architecture-plan":
+            report = compile_specimen_architecture_plan(_specimen_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-specimen-architecture":
+            report = evaluate_specimen_architecture_fixture(
+                _specimen_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "specimen-architecture-runtime":
+            runtime = run_specimen_architecture(_specimen_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "specimen-architecture-validation":
+            fixture = _specimen_architecture_fixture(args.input)
+            report = validate_specimen_architecture_matrix(
+                fixture, evaluate_specimen_architecture_fixture(fixture)
+            )
+            _write_json(
+                {
+                    "accepted": all(item.passed for item in report),
+                    "cells": [jsonable(item) for item in report],
+                },
+                args.output,
+            )
+            return 0 if all(item.passed for item in report) else 2
+        if args.command == "specimen-architecture-quality":
+            fixture = _specimen_architecture_fixture(args.input)
+            runtime = run_specimen_architecture(fixture)
+            quality = assess_specimen_architecture_quality(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime.artifacts,
+                runtime.release,
+                len(runtime.stages),
+            )
+            _write_json(quality.to_dict(), args.output)
+            return 0 if quality.passed else 2
+        if args.command == "specimen-architecture-depth":
+            fixture = _specimen_architecture_fixture(args.input)
+            runtime = run_specimen_architecture(fixture)
+            report = specimen_architecture_depth_report(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-specimen-architecture":
+            report = replay_specimen_architecture_fixture(
+                _specimen_architecture_fixture(args.input)
+            )
+            _write_json(jsonable(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "specimen-architecture-review":
+            fixture = _specimen_architecture_fixture(args.input)
+            report = build_specimen_architecture_review_queue(fixture.fixture_id, fixture.cases)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "specimen-architecture-metrics":
+            fixture = _specimen_architecture_fixture(args.input)
+            runtime = run_specimen_architecture(fixture)
+            matrix = validate_specimen_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_specimen_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(matrix)
+            )
+            _write_json(jsonable(metrics), args.output)
+            return 0
+        if args.command == "specimen-architecture-access":
+            fixture = _specimen_architecture_fixture(args.input)
+            runtime = run_specimen_architecture(fixture)
+            report = specimen_architecture_access_policy(runtime.artifacts)
+            _write_json(jsonable(report), args.output)
+            return 0 if all(item.passed for item in report.checks) else 2
+        if args.command == "specimen-architecture-schema":
+            _write_json(jsonable(specimen_architecture_schema()), args.output)
+            return 0
+        if args.command == "specimen-architecture-invariants":
+            fixture = _specimen_architecture_fixture(args.input)
+            runtime = run_specimen_architecture(fixture)
+            checks = check_specimen_architecture_invariants(
+                fixture, runtime.evaluation, runtime.plan, runtime.review_queue, runtime.ledger
+            )
+            _write_json(
+                {
+                    "accepted": all(item.passed for item in checks),
+                    "checks": [jsonable(item) for item in checks],
+                },
+                args.output,
+            )
+            return 0 if all(item.passed for item in checks) else 2
+        if args.command == "specimen-architecture-failures":
+            fixture = _specimen_architecture_fixture(args.input)
+            report = classify_specimen_architecture_failures(
+                evaluate_specimen_architecture_fixture(fixture)
+            )
+            _write_json(
+                {"accepted": not report.release_blocked, "report": jsonable(report)}, args.output
+            )
+            return 0 if not report.release_blocked else 2
+        if args.command == "specimen-architecture-query":
+            fixture = _specimen_architecture_fixture(args.input)
+            evaluation = evaluate_specimen_architecture_fixture(fixture)
+            if args.operation:
+                result = {
+                    "operation": args.operation,
+                    "cases": cases_for_operation(fixture, args.operation),
+                }
+            elif args.state:
+                result = {
+                    "state": args.state,
+                    "receipts": receipts_for_state(evaluation, args.state),
+                }
+            else:
+                result = {"receipts": [jsonable(item) for item in evaluation.receipts]}
+            _write_json(result, args.output)
+            return 0
+        if args.command == "specimen-architecture-bundle":
+            fixture = _specimen_architecture_fixture(args.input)
+            runtime = run_specimen_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_text(
+                specimen_architecture_fixture_json(fixture), str(output_dir / "fixture.json")
+            )
+            return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)
             return 0
         if args.command == "structural-architecture-data-audit":
-            report = audit_structural_architecture_data(_structural_architecture_fixture(args.input))
+            report = audit_structural_architecture_data(
+                _structural_architecture_fixture(args.input)
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "structural-architecture-plan":
@@ -7205,7 +7712,9 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(compile_structural_architecture_plan(fixture).to_dict(), args.output)
             return 0
         if args.command == "evaluate-structural-architecture":
-            report = evaluate_structural_architecture_fixture(_structural_architecture_fixture(args.input))
+            report = evaluate_structural_architecture_fixture(
+                _structural_architecture_fixture(args.input)
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "structural-architecture-runtime":
@@ -7218,11 +7727,17 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(report.to_dict(), args.output)
             return 0 if report.passed else 2
         if args.command == "structural-architecture-depth":
-            report = audit_structural_architecture_depth(run_structural_architecture(_structural_architecture_fixture(args.input)))
+            report = audit_structural_architecture_depth(
+                run_structural_architecture(_structural_architecture_fixture(args.input))
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "replay-structural-architecture":
-            report = replay_structural_architecture(args.input) if args.input else replay_structural_architecture()
+            report = (
+                replay_structural_architecture(args.input)
+                if args.input
+                else replay_structural_architecture()
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted and report.deterministic else 2
         if args.command == "structural-architecture-validation":
@@ -7233,7 +7748,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if report.accepted else 2
         if args.command == "structural-architecture-review-csv":
             fixture = _structural_architecture_fixture(args.input)
-            _write_text(render_structural_architecture_review_csv(evaluate_structural_architecture_fixture(fixture)), args.output)
+            _write_text(
+                render_structural_architecture_review_csv(
+                    evaluate_structural_architecture_fixture(fixture)
+                ),
+                args.output,
+            )
             return 0
         if args.command == "structural-architecture-report":
             runtime = run_structural_architecture(_structural_architecture_fixture(args.input))
@@ -7243,15 +7763,20 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(runtime.to_dict(), args.output)
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-failures":
-            report = run_structural_architecture_failure_probes(_structural_architecture_fixture(args.input))
+            report = run_structural_architecture_failure_probes(
+                _structural_architecture_fixture(args.input)
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "structural-architecture-schema":
             _write_json(default_structural_architecture_schema().to_dict(), args.output)
             return 0
         if args.command == "structural-architecture-query":
-            evaluation = evaluate_structural_architecture_fixture(_structural_architecture_fixture(args.input))
+            evaluation = evaluate_structural_architecture_fixture(
+                _structural_architecture_fixture(args.input)
+            )
             from .structural_architecture_contracts import StructuralArchitectureState
+
             result = query_structural_architecture(
                 evaluation,
                 operation_id=args.operation_id,
@@ -7261,7 +7786,9 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(result.to_dict(), args.output)
             return 0
         if args.command == "structural-architecture-invariants":
-            report = run_structural_architecture_invariants(run_structural_architecture(_structural_architecture_fixture(args.input)))
+            report = run_structural_architecture_invariants(
+                run_structural_architecture(_structural_architecture_fixture(args.input))
+            )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "structural-architecture-metrics":
@@ -7271,7 +7798,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "structural-architecture-access":
             runtime = run_structural_architecture(_structural_architecture_fixture(args.input))
-            _write_json(build_structural_architecture_access_manifest(runtime.artifacts).to_dict(), args.output)
+            _write_json(
+                build_structural_architecture_access_manifest(runtime.artifacts).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "structural-architecture-bundle":
             fixture = _structural_architecture_fixture(args.input)
@@ -7338,7 +7868,9 @@ def main(argv: list[str] | None = None) -> int:
             elif args.command == "cohort-beta-frontier-replay":
                 _write_json(runtime.replay.to_dict(), args.output)
             elif args.command == "cohort-beta-frontier-report":
-                report = build_cohort_beta_frontier_report(runtime.metrics, runtime.release, runtime.assurance, runtime.review)
+                report = build_cohort_beta_frontier_report(
+                    runtime.metrics, runtime.release, runtime.assurance, runtime.review
+                )
                 if args.format == "markdown":
                     _write_text(render_cohort_beta_frontier_report_markdown(report), args.output)
                 else:
@@ -9977,7 +10509,9 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             return 0
-        if args.command.startswith("causal-foundation-frontier") or args.command.startswith("export-causal-foundation-frontier"):
+        if args.command.startswith("causal-foundation-frontier") or args.command.startswith(
+            "export-causal-foundation-frontier"
+        ):
             fixture = _read_causal_foundation_frontier_fixture(args.input)
             if args.command == "causal-foundation-frontier-data-audit":
                 _write_json(audit_causal_foundation_frontier_data(fixture).to_dict(), args.output)
@@ -9987,24 +10521,45 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.command == "causal-foundation-frontier-schema":
                 evaluation = evaluate_causal_foundation_frontier_fixture(fixture)
-                _write_json(validate_causal_foundation_frontier_schema(fixture, evaluation).to_dict(), args.output)
+                _write_json(
+                    validate_causal_foundation_frontier_schema(fixture, evaluation).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "causal-foundation-frontier-evaluate":
-                _write_json(evaluate_causal_foundation_frontier_fixture(fixture).to_dict(), args.output)
+                _write_json(
+                    evaluate_causal_foundation_frontier_fixture(fixture).to_dict(), args.output
+                )
                 return 0
             if args.command == "causal-foundation-frontier-metrics":
                 evaluation = evaluate_causal_foundation_frontier_fixture(fixture)
-                _write_json(build_causal_foundation_frontier_metrics(evaluation, fixture).to_dict(), args.output)
+                _write_json(
+                    build_causal_foundation_frontier_metrics(evaluation, fixture).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "causal-foundation-frontier-policy":
                 evaluation = evaluate_causal_foundation_frontier_fixture(fixture)
                 policy = default_causal_foundation_frontier_policy()
-                _write_json({"policy": policy.to_dict(), "decisions": [item.to_dict() for item in policy.decide(evaluation)]}, args.output)
+                _write_json(
+                    {
+                        "policy": policy.to_dict(),
+                        "decisions": [item.to_dict() for item in policy.decide(evaluation)],
+                    },
+                    args.output,
+                )
                 return 0
             if args.command == "causal-foundation-frontier-runtime":
-                _write_json(run_causal_foundation_frontier_runtime(fixture, run_id="causal-foundation-frontier-cli").to_dict(), args.output)
+                _write_json(
+                    run_causal_foundation_frontier_runtime(
+                        fixture, run_id="causal-foundation-frontier-cli"
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
-            runtime = run_causal_foundation_frontier_runtime(fixture, run_id="causal-foundation-frontier-cli")
+            runtime = run_causal_foundation_frontier_runtime(
+                fixture, run_id="causal-foundation-frontier-cli"
+            )
             if args.command == "causal-foundation-frontier-review":
                 _write_json(runtime.review.to_dict(), args.output)
                 return 0
@@ -10018,27 +10573,49 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(runtime.depth.to_dict(), args.output)
                 return 0
             if args.command == "causal-foundation-frontier-integrity":
-                _write_json(evaluate_causal_foundation_frontier_integrity(fixture, runtime.evaluation, runtime.lineage, runtime.provenance).to_dict(), args.output)
+                _write_json(
+                    evaluate_causal_foundation_frontier_integrity(
+                        fixture, runtime.evaluation, runtime.lineage, runtime.provenance
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "causal-foundation-frontier-scenarios":
-                _write_json(build_causal_foundation_frontier_scenario_matrix(fixture, runtime.evaluation).to_dict(), args.output)
+                _write_json(
+                    build_causal_foundation_frontier_scenario_matrix(
+                        fixture, runtime.evaluation
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "causal-foundation-frontier-validation-matrix":
-                _write_json(build_causal_foundation_frontier_validation_matrix(fixture, runtime.evaluation).to_dict(), args.output)
+                _write_json(
+                    build_causal_foundation_frontier_validation_matrix(
+                        fixture, runtime.evaluation
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "causal-foundation-frontier-summary":
                 _write_json(runtime.summary_view.to_dict(), args.output)
                 return 0
             if args.command == "export-causal-foundation-frontier-review-csv":
-                _write_text(causal_foundation_frontier_export_review_csv(runtime.review_view), args.output)
+                _write_text(
+                    causal_foundation_frontier_export_review_csv(runtime.review_view), args.output
+                )
                 return 0
             if args.command == "export-causal-foundation-frontier-review-markdown":
-                _write_text(causal_foundation_frontier_export_review_markdown(runtime.review_view), args.output)
+                _write_text(
+                    causal_foundation_frontier_export_review_markdown(runtime.review_view),
+                    args.output,
+                )
                 return 0
             if args.command == "export-causal-foundation-frontier-json":
                 _write_text(causal_foundation_frontier_export_json(runtime), args.output)
                 return 0
-        if args.command.startswith("causal-alpha-frontier") or args.command.startswith("export-causal-alpha-frontier"):
+        if args.command.startswith("causal-alpha-frontier") or args.command.startswith(
+            "export-causal-alpha-frontier"
+        ):
             fixture = default_causal_alpha_frontier_fixture()
             if args.command == "causal-alpha-frontier-data-audit":
                 _write_json(audit_causal_alpha_frontier_data(fixture).to_dict(), args.output)
@@ -10069,7 +10646,13 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(runtime.provenance.to_dict(), args.output)
                 return 0
             if args.command == "causal-alpha-frontier-policy":
-                _write_json({"policy": runtime.policy.to_dict(), "decisions": [item.to_dict() for item in runtime.decisions]}, args.output)
+                _write_json(
+                    {
+                        "policy": runtime.policy.to_dict(),
+                        "decisions": [item.to_dict() for item in runtime.decisions],
+                    },
+                    args.output,
+                )
                 return 0
             if args.command == "causal-alpha-frontier-review":
                 _write_json(runtime.review.to_dict(), args.output)
@@ -10122,7 +10705,9 @@ def main(argv: list[str] | None = None) -> int:
             if args.command == "export-causal-alpha-frontier-json":
                 _write_json(runtime.exports.to_dict(), args.output)
                 return 0
-        if args.command.startswith("causal-beta-frontier") or args.command.startswith("export-causal-beta-frontier"):
+        if args.command.startswith("causal-beta-frontier") or args.command.startswith(
+            "export-causal-beta-frontier"
+        ):
             fixture = _read_causal_beta_frontier_fixture(args.input)
             if args.command == "causal-beta-frontier-data-audit":
                 _write_json(audit_causal_beta_frontier_data(fixture).to_dict(), args.output)
@@ -10147,7 +10732,13 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(runtime.metrics.to_dict(), args.output)
                 return 0
             if args.command == "causal-beta-frontier-policy":
-                _write_json({"policy": runtime.policy.to_dict(), "decisions": [item.to_dict() for item in runtime.decisions]}, args.output)
+                _write_json(
+                    {
+                        "policy": runtime.policy.to_dict(),
+                        "decisions": [item.to_dict() for item in runtime.decisions],
+                    },
+                    args.output,
+                )
                 return 0
             if args.command == "causal-beta-frontier-review":
                 _write_json(runtime.review.to_dict(), args.output)
@@ -10177,7 +10768,12 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(runtime.boundary.to_dict(), args.output)
                 return 0
             if args.command == "causal-beta-frontier-summary":
-                _write_json(build_causal_beta_frontier_summary_view(fixture, runtime.metrics, runtime.review, runtime.accepted).to_dict(), args.output)
+                _write_json(
+                    build_causal_beta_frontier_summary_view(
+                        fixture, runtime.metrics, runtime.review, runtime.accepted
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "causal-beta-frontier-assurance":
                 _write_json(runtime.assurance.to_dict(), args.output)
@@ -10186,10 +10782,14 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(runtime.runbook.to_dict(), args.output)
                 return 0
             if args.command == "export-causal-beta-frontier-review-csv":
-                _write_text(export_causal_beta_frontier_review_csv(runtime.review_view), args.output)
+                _write_text(
+                    export_causal_beta_frontier_review_csv(runtime.review_view), args.output
+                )
                 return 0
             if args.command == "export-causal-beta-frontier-review-markdown":
-                _write_text(export_causal_beta_frontier_review_markdown(runtime.review_view), args.output)
+                _write_text(
+                    export_causal_beta_frontier_review_markdown(runtime.review_view), args.output
+                )
                 return 0
             if args.command == "export-causal-beta-frontier-json":
                 _write_text(export_causal_beta_frontier_json(runtime.exports), args.output)
@@ -10334,9 +10934,13 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_text(export_cohort_frontier_review_csv(view), args.output)
             return 0
-        if args.command.startswith("cohort-foundation-frontier") or args.command.startswith("export-cohort-foundation-frontier"):
+        if args.command.startswith("cohort-foundation-frontier") or args.command.startswith(
+            "export-cohort-foundation-frontier"
+        ):
             fixture = _read_cohort_foundation_frontier_fixture(args.input)
-            runtime = run_cohort_foundation_frontier_runtime(fixture, run_id="cohort-foundation-frontier-cli")
+            runtime = run_cohort_foundation_frontier_runtime(
+                fixture, run_id="cohort-foundation-frontier-cli"
+            )
             if args.command == "cohort-foundation-frontier-data-audit":
                 _write_json(runtime.data_audit.to_dict(), args.output)
                 return 0
@@ -10440,43 +11044,85 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(runtime.package.to_dict(), args.output)
                 return 0
             if args.command == "cohort-foundation-frontier-claim-evidence":
-                _write_json(build_cohort_foundation_frontier_claim_evidence_ledger(runtime.evaluation, runtime.policy, fixture.context_key).to_dict(), args.output)
+                _write_json(
+                    build_cohort_foundation_frontier_claim_evidence_ledger(
+                        runtime.evaluation, runtime.policy, fixture.context_key
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-audit-log":
-                _write_json(build_cohort_foundation_frontier_audit_log(fixture.fixture_id, [item.output_address for item in runtime.stages]).to_dict(), args.output)
+                _write_json(
+                    build_cohort_foundation_frontier_audit_log(
+                        fixture.fixture_id, [item.output_address for item in runtime.stages]
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-review-sla":
-                _write_json(build_cohort_foundation_frontier_review_sla(runtime.review).to_dict(), args.output)
+                _write_json(
+                    build_cohort_foundation_frontier_review_sla(runtime.review).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-data-dictionary":
-                _write_json(default_cohort_foundation_frontier_data_dictionary().to_dict(), args.output)
+                _write_json(
+                    default_cohort_foundation_frontier_data_dictionary().to_dict(), args.output
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-compatibility":
-                _write_json(evaluate_cohort_foundation_frontier_compatibility(runtime.release).to_dict(), args.output)
+                _write_json(
+                    evaluate_cohort_foundation_frontier_compatibility(runtime.release).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-change-control":
-                _write_json(default_cohort_foundation_frontier_change_control_report().to_dict(), args.output)
+                _write_json(
+                    default_cohort_foundation_frontier_change_control_report().to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-retention":
-                _write_json(default_cohort_foundation_frontier_retention_report().to_dict(), args.output)
+                _write_json(
+                    default_cohort_foundation_frontier_retention_report().to_dict(), args.output
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-reproducibility":
-                _write_json(build_cohort_foundation_frontier_reproducibility_receipt(fixture.fixture_version, fixture.to_dict()["content_address"], runtime.stages).to_dict(), args.output)
+                _write_json(
+                    build_cohort_foundation_frontier_reproducibility_receipt(
+                        fixture.fixture_version,
+                        fixture.to_dict()["content_address"],
+                        runtime.stages,
+                    ).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-dataset-manifest":
-                _write_json(build_cohort_foundation_frontier_dataset_manifest(fixture).to_dict(), args.output)
+                _write_json(
+                    build_cohort_foundation_frontier_dataset_manifest(fixture).to_dict(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-transcript":
-                _write_text(build_cohort_foundation_frontier_transcript(runtime.stages).to_text(), args.output)
+                _write_text(
+                    build_cohort_foundation_frontier_transcript(runtime.stages).to_text(),
+                    args.output,
+                )
                 return 0
             if args.command == "cohort-foundation-frontier-summary":
-                _write_json(build_cohort_foundation_frontier_summary(runtime).to_dict(), args.output)
+                _write_json(
+                    build_cohort_foundation_frontier_summary(runtime).to_dict(), args.output
+                )
                 return 0
             if args.command == "export-cohort-foundation-frontier-review-csv":
-                _write_text(export_cohort_foundation_frontier_review_csv(runtime.review), args.output)
+                _write_text(
+                    export_cohort_foundation_frontier_review_csv(runtime.review), args.output
+                )
                 return 0
             if args.command == "export-cohort-foundation-frontier-review-markdown":
-                _write_text(export_cohort_foundation_frontier_review_markdown(runtime.review), args.output)
+                _write_text(
+                    export_cohort_foundation_frontier_review_markdown(runtime.review), args.output
+                )
                 return 0
             if args.command == "export-cohort-foundation-frontier-json":
                 _write_text(export_cohort_foundation_frontier_json(runtime), args.output)
@@ -10665,62 +11311,122 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(evaluate_lifecycle_beta_frontier_fixture().to_dict(), args.output)
             return 0
         if args.command == "lifecycle-beta-frontier-pipeline":
-            _write_json(run_lifecycle_beta_frontier_runtime(run_id="lifecycle-beta-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_lifecycle_beta_frontier_runtime(run_id="lifecycle-beta-frontier-cli").to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "lifecycle-beta-frontier-thresholds":
             _write_json(build_lifecycle_beta_frontier_threshold_report().to_dict(), args.output)
             return 0
         if args.command == "lifecycle-beta-frontier-validation-matrix":
-            _write_json(build_lifecycle_beta_frontier_validation_matrix(evaluate_lifecycle_beta_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_lifecycle_beta_frontier_validation_matrix(
+                    evaluate_lifecycle_beta_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "lifecycle-beta-frontier-handoff":
             _write_json(build_lifecycle_beta_frontier_handoff().to_dict(), args.output)
             return 0
         if args.command == "control-frontier-data-audit":
-            _write_json(audit_control_frontier_data(default_control_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_control_frontier_data(default_control_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-evaluate":
-            _write_json(evaluate_control_frontier_fixture(default_control_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_control_frontier_fixture(default_control_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-pipeline":
-            _write_json(run_control_frontier_runtime(default_control_frontier_fixture(), run_id="control-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_control_frontier_runtime(
+                    default_control_frontier_fixture(), run_id="control-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-depth":
             fixture = default_control_frontier_fixture()
-            _write_json(audit_control_frontier_depth(fixture, evaluate_control_frontier_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                audit_control_frontier_depth(
+                    fixture, evaluate_control_frontier_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-thresholds":
             _write_json(build_control_frontier_threshold_report().to_dict(), args.output)
             return 0
         if args.command == "control-frontier-validation-matrix":
-            _write_json(build_control_frontier_validation_matrix(evaluate_control_frontier_fixture(default_control_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_control_frontier_validation_matrix(
+                    evaluate_control_frontier_fixture(default_control_frontier_fixture())
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-handoff":
             fixture = default_control_frontier_fixture()
             evaluation = evaluate_control_frontier_fixture(fixture)
-            _write_json(build_control_frontier_handoff(fixture, evaluation, measure_control_frontier(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_control_frontier_handoff(
+                    fixture, evaluation, measure_control_frontier(evaluation)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-access":
-            _write_json(build_control_frontier_access_manifest(default_control_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_control_frontier_access_manifest(
+                    default_control_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-data-dictionary":
             _write_json(default_control_frontier_data_dictionary().to_dict(), args.output)
             return 0
         if args.command == "control-frontier-report":
-            _write_text(render_control_frontier_report(run_control_frontier_runtime(default_control_frontier_fixture(), run_id="control-frontier-report")), args.output)
+            _write_text(
+                render_control_frontier_report(
+                    run_control_frontier_runtime(
+                        default_control_frontier_fixture(), run_id="control-frontier-report"
+                    )
+                ),
+                args.output,
+            )
             return 0
         if args.command == "control-frontier-review-csv":
             evaluation = evaluate_control_frontier_fixture(default_control_frontier_fixture())
-            _write_text(export_control_frontier_review_csv(build_control_frontier_view(evaluation)), args.output)
+            _write_text(
+                export_control_frontier_review_csv(build_control_frontier_view(evaluation)),
+                args.output,
+            )
             return 0
         if args.command == "platform-frontier-data-audit":
-            _write_json(audit_platform_frontier_data(default_platform_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_platform_frontier_data(default_platform_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "platform-frontier-evaluate":
-            _write_json(evaluate_platform_frontier_fixture(default_platform_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_platform_frontier_fixture(default_platform_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "platform-frontier-pipeline":
-            _write_json(run_platform_frontier_runtime(default_platform_frontier_fixture(), run_id="platform-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_platform_frontier_runtime(
+                    default_platform_frontier_fixture(), run_id="platform-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "platform-frontier-depth":
             fixture = default_platform_frontier_fixture()
@@ -10731,15 +11437,30 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(build_platform_frontier_threshold_report().to_dict(), args.output)
             return 0
         if args.command == "platform-frontier-validation-matrix":
-            _write_json(build_platform_frontier_validation_matrix(evaluate_platform_frontier_fixture(default_platform_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_platform_frontier_validation_matrix(
+                    evaluate_platform_frontier_fixture(default_platform_frontier_fixture())
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "platform-frontier-handoff":
             fixture = default_platform_frontier_fixture()
             evaluation = evaluate_platform_frontier_fixture(fixture)
-            _write_json(build_platform_frontier_handoff(fixture, evaluation, measure_platform_frontier(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_platform_frontier_handoff(
+                    fixture, evaluation, measure_platform_frontier(evaluation)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "platform-frontier-access":
-            _write_json(build_platform_frontier_access_manifest(default_platform_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_platform_frontier_access_manifest(
+                    default_platform_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "platform-frontier-data-dictionary":
             _write_json(default_platform_frontier_data_dictionary().to_dict(), args.output)
@@ -10751,16 +11472,32 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "platform-frontier-review-csv":
             evaluation = evaluate_platform_frontier_fixture(default_platform_frontier_fixture())
-            _write_text(export_platform_frontier_review_csv(build_platform_frontier_view(evaluation)), args.output)
+            _write_text(
+                export_platform_frontier_review_csv(build_platform_frontier_view(evaluation)),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-data-audit":
-            _write_json(audit_deployment_frontier_data(default_deployment_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_deployment_frontier_data(default_deployment_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-evaluate":
-            _write_json(evaluate_deployment_frontier_fixture(default_deployment_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_deployment_frontier_fixture(
+                    default_deployment_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-pipeline":
-            _write_json(run_deployment_frontier_runtime(default_deployment_frontier_fixture(), run_id="deployment-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_deployment_frontier_runtime(
+                    default_deployment_frontier_fixture(), run_id="deployment-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-depth":
             fixture = default_deployment_frontier_fixture()
@@ -10771,21 +11508,46 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(build_deployment_frontier_threshold_report().to_dict(), args.output)
             return 0
         if args.command == "deployment-frontier-validation-matrix":
-            _write_json(build_deployment_frontier_validation_matrix(evaluate_deployment_frontier_fixture(default_deployment_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_deployment_frontier_validation_matrix(
+                    evaluate_deployment_frontier_fixture(default_deployment_frontier_fixture())
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-handoff":
             fixture = default_deployment_frontier_fixture()
             evaluation = evaluate_deployment_frontier_fixture(fixture)
-            _write_json(build_deployment_frontier_handoff(fixture, evaluation, measure_deployment_frontier(evaluation), build_deployment_frontier_review_queue(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_deployment_frontier_handoff(
+                    fixture,
+                    evaluation,
+                    measure_deployment_frontier(evaluation),
+                    build_deployment_frontier_review_queue(evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-access":
-            _write_json(build_deployment_frontier_access_manifest(default_deployment_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_deployment_frontier_access_manifest(
+                    default_deployment_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-data-dictionary":
             _write_json(default_deployment_frontier_data_dictionary().to_dict(), args.output)
             return 0
         if args.command == "deployment-frontier-report":
-            _write_text(render_deployment_frontier_report(run_deployment_frontier_runtime(default_deployment_frontier_fixture(), run_id="deployment-frontier-report").summary), args.output)
+            _write_text(
+                render_deployment_frontier_report(
+                    run_deployment_frontier_runtime(
+                        default_deployment_frontier_fixture(), run_id="deployment-frontier-report"
+                    ).summary
+                ),
+                args.output,
+            )
             return 0
         if args.command == "deployment-frontier-failure-injection":
             _write_json(run_deployment_frontier_failure_injections().to_dict(), args.output)
@@ -10795,13 +11557,29 @@ def main(argv: list[str] | None = None) -> int:
             _write_text(export_deployment_frontier_review_csv(evaluation), args.output)
             return 0
         if args.command == "validation-release-frontier-data-audit":
-            _write_json(audit_validation_release_frontier_data(default_validation_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_validation_release_frontier_data(
+                    default_validation_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-evaluate":
-            _write_json(evaluate_validation_release_fixture(default_validation_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_validation_release_fixture(
+                    default_validation_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-pipeline":
-            _write_json(run_validation_release_runtime(default_validation_release_frontier_fixture(), run_id="validation-release-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_validation_release_runtime(
+                    default_validation_release_frontier_fixture(),
+                    run_id="validation-release-frontier-cli",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-depth":
             fixture = default_validation_release_frontier_fixture()
@@ -10814,132 +11592,341 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "validation-release-frontier-quality":
             fixture = default_validation_release_frontier_fixture()
             evaluation = evaluate_validation_release_fixture(fixture)
-            _write_json(run_validation_release_quality_gate(audit_validation_release_frontier_data(fixture), evaluation, build_validation_release_adapters(), default_validation_release_frontier_schema(), reconcile_validation_release(fixture, evaluation)).to_dict(), args.output)
+            _write_json(
+                run_validation_release_quality_gate(
+                    audit_validation_release_frontier_data(fixture),
+                    evaluation,
+                    build_validation_release_adapters(),
+                    default_validation_release_frontier_schema(),
+                    reconcile_validation_release(fixture, evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-validation-matrix":
-            _write_json(build_validation_release_validation_matrix(evaluate_validation_release_fixture(default_validation_release_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_validation_release_validation_matrix(
+                    evaluate_validation_release_fixture(
+                        default_validation_release_frontier_fixture()
+                    )
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-handoff":
             fixture = default_validation_release_frontier_fixture()
             evaluation = evaluate_validation_release_fixture(fixture)
-            _write_json(build_validation_release_handoff(fixture, evaluation, measure_validation_release(evaluation), build_validation_release_review_queue(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_validation_release_handoff(
+                    fixture,
+                    evaluation,
+                    measure_validation_release(evaluation),
+                    build_validation_release_review_queue(evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-access":
-            _write_json(build_validation_release_access_manifest(default_validation_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_validation_release_access_manifest(
+                    default_validation_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-data-dictionary":
             _write_json(default_validation_release_data_dictionary().to_dict(), args.output)
             return 0
         if args.command == "validation-release-frontier-report":
-            _write_text(render_validation_release_report(run_validation_release_runtime(default_validation_release_frontier_fixture(), run_id="validation-release-frontier-report").summary), args.output)
+            _write_text(
+                render_validation_release_report(
+                    run_validation_release_runtime(
+                        default_validation_release_frontier_fixture(),
+                        run_id="validation-release-frontier-report",
+                    ).summary
+                ),
+                args.output,
+            )
             return 0
         if args.command == "validation-release-frontier-failure-injection":
             _write_json(run_validation_release_failure_injections().to_dict(), args.output)
             return 0
         if args.command == "validation-release-frontier-review-csv":
-            _write_text(export_validation_release_review_csv(evaluate_validation_release_fixture(default_validation_release_frontier_fixture())), args.output)
+            _write_text(
+                export_validation_release_review_csv(
+                    evaluate_validation_release_fixture(
+                        default_validation_release_frontier_fixture()
+                    )
+                ),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-data-audit":
-            _write_json(audit_evidence_release_frontier_data(default_evidence_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_evidence_release_frontier_data(
+                    default_evidence_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-evaluate":
-            _write_json(evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_evidence_release_fixture(
+                    default_evidence_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-pipeline":
-            _write_json(run_evidence_release_runtime(default_evidence_release_frontier_fixture(), run_id="evidence-release-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_evidence_release_runtime(
+                    default_evidence_release_frontier_fixture(),
+                    run_id="evidence-release-frontier-cli",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-depth":
             fixture = default_evidence_release_frontier_fixture()
-            _write_json(audit_evidence_release_depth(fixture, evaluate_evidence_release_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                audit_evidence_release_depth(
+                    fixture, evaluate_evidence_release_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-thresholds":
-            from .evidence_release_frontier_thresholds import build_evidence_release_threshold_report
+            from .evidence_release_frontier_thresholds import (
+                build_evidence_release_threshold_report,
+            )
+
             _write_json(build_evidence_release_threshold_report().to_dict(), args.output)
             return 0
         if args.command == "evidence-release-frontier-quality":
             fixture = default_evidence_release_frontier_fixture()
             evaluation = evaluate_evidence_release_fixture(fixture)
-            _write_json(run_evidence_release_quality_gate(audit_evidence_release_frontier_data(fixture), evaluation, build_evidence_release_adapters(), default_evidence_release_frontier_schema(), reconcile_evidence_release(fixture, evaluation)).to_dict(), args.output)
+            _write_json(
+                run_evidence_release_quality_gate(
+                    audit_evidence_release_frontier_data(fixture),
+                    evaluation,
+                    build_evidence_release_adapters(),
+                    default_evidence_release_frontier_schema(),
+                    reconcile_evidence_release(fixture, evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-validation-matrix":
-            _write_json(build_evidence_release_validation_matrix(evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_evidence_release_validation_matrix(
+                    evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture())
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-handoff":
             fixture = default_evidence_release_frontier_fixture()
             evaluation = evaluate_evidence_release_fixture(fixture)
-            _write_json(build_evidence_release_handoff(fixture, evaluation, measure_evidence_release(evaluation), build_evidence_release_review_queue(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_evidence_release_handoff(
+                    fixture,
+                    evaluation,
+                    measure_evidence_release(evaluation),
+                    build_evidence_release_review_queue(evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-access":
-            _write_json(build_evidence_release_access_manifest(default_evidence_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_evidence_release_access_manifest(
+                    default_evidence_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-data-dictionary":
             _write_json(default_evidence_release_data_dictionary().to_dict(), args.output)
             return 0
         if args.command == "evidence-release-frontier-report":
-            _write_text(render_evidence_release_report(run_evidence_release_runtime(default_evidence_release_frontier_fixture(), run_id="evidence-release-frontier-report").summary), args.output)
+            _write_text(
+                render_evidence_release_report(
+                    run_evidence_release_runtime(
+                        default_evidence_release_frontier_fixture(),
+                        run_id="evidence-release-frontier-report",
+                    ).summary
+                ),
+                args.output,
+            )
             return 0
         if args.command == "evidence-release-frontier-failure-injection":
             _write_json(run_evidence_release_failure_injections().to_dict(), args.output)
             return 0
         if args.command == "evidence-release-frontier-review-csv":
-            _write_text(export_evidence_release_review_csv(evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture())), args.output)
+            _write_text(
+                export_evidence_release_review_csv(
+                    evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture())
+                ),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-data-audit":
-            _write_json(audit_workbench_release_frontier_data(default_workbench_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_workbench_release_frontier_data(
+                    default_workbench_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-evaluate":
-            _write_json(evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_workbench_release_fixture(
+                    default_workbench_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-pipeline":
-            _write_json(run_workbench_release_runtime(default_workbench_release_frontier_fixture(), run_id="workbench-release-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_workbench_release_runtime(
+                    default_workbench_release_frontier_fixture(),
+                    run_id="workbench-release-frontier-cli",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-depth":
             fixture = default_workbench_release_frontier_fixture()
-            _write_json(audit_workbench_release_depth(fixture, evaluate_workbench_release_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                audit_workbench_release_depth(
+                    fixture, evaluate_workbench_release_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-thresholds":
-            _write_json({"boundary": "required-field,section-order,query-match,criterion-pass", "content_address": "sha256:workbench-release-threshold-boundary"}, args.output)
+            _write_json(
+                {
+                    "boundary": "required-field,section-order,query-match,criterion-pass",
+                    "content_address": "sha256:workbench-release-threshold-boundary",
+                },
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-quality":
             fixture = default_workbench_release_frontier_fixture()
             evaluation = evaluate_workbench_release_fixture(fixture)
-            _write_json(run_workbench_release_quality_gate(audit_workbench_release_frontier_data(fixture), evaluation, build_workbench_release_adapters(), default_workbench_release_frontier_schema(), reconcile_workbench_release(fixture, evaluation)).to_dict(), args.output)
+            _write_json(
+                run_workbench_release_quality_gate(
+                    audit_workbench_release_frontier_data(fixture),
+                    evaluation,
+                    build_workbench_release_adapters(),
+                    default_workbench_release_frontier_schema(),
+                    reconcile_workbench_release(fixture, evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-validation-matrix":
-            _write_json(build_workbench_release_validation_matrix(evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_workbench_release_validation_matrix(
+                    evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture())
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-handoff":
             fixture = default_workbench_release_frontier_fixture()
             evaluation = evaluate_workbench_release_fixture(fixture)
-            _write_json(build_workbench_release_handoff(fixture, evaluation, measure_workbench_release(evaluation), build_workbench_release_review_queue(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_workbench_release_handoff(
+                    fixture,
+                    evaluation,
+                    measure_workbench_release(evaluation),
+                    build_workbench_release_review_queue(evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-access":
-            _write_json(build_workbench_release_access_manifest(default_workbench_release_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_workbench_release_access_manifest(
+                    default_workbench_release_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-data-dictionary":
-            _write_json({"version": "workbench-release-data-dictionary-v1", "fields": ("context_key", "payload", "expected_state", "observed_state", "issue_codes", "content_address")}, args.output)
+            _write_json(
+                {
+                    "version": "workbench-release-data-dictionary-v1",
+                    "fields": (
+                        "context_key",
+                        "payload",
+                        "expected_state",
+                        "observed_state",
+                        "issue_codes",
+                        "content_address",
+                    ),
+                },
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-report":
-            _write_text(render_workbench_release_report(run_workbench_release_runtime(default_workbench_release_frontier_fixture(), run_id="workbench-release-frontier-report")), args.output)
+            _write_text(
+                render_workbench_release_report(
+                    run_workbench_release_runtime(
+                        default_workbench_release_frontier_fixture(),
+                        run_id="workbench-release-frontier-report",
+                    )
+                ),
+                args.output,
+            )
             return 0
         if args.command == "workbench-release-frontier-failure-injection":
             _write_json(run_workbench_release_failure_injections().to_dict(), args.output)
             return 0
         if args.command == "workbench-release-frontier-review-csv":
-            _write_text(export_workbench_release_review_csv(evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture())), args.output)
+            _write_text(
+                export_workbench_release_review_csv(
+                    evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture())
+                ),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-data-audit":
-            _write_json(audit_validation_design_frontier_data(default_validation_design_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_validation_design_frontier_data(
+                    default_validation_design_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-evaluate":
-            _write_json(evaluate_validation_design_fixture(default_validation_design_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_validation_design_fixture(
+                    default_validation_design_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-pipeline":
-            _write_json(run_validation_design_runtime(default_validation_design_frontier_fixture(), run_id="validation-design-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_validation_design_runtime(
+                    default_validation_design_frontier_fixture(),
+                    run_id="validation-design-frontier-cli",
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-depth":
             fixture = default_validation_design_frontier_fixture()
-            _write_json(audit_validation_design_depth(fixture, evaluate_validation_design_fixture(fixture)).to_dict(), args.output)
+            _write_json(
+                audit_validation_design_depth(
+                    fixture, evaluate_validation_design_fixture(fixture)
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-thresholds":
             _write_json(build_validation_design_threshold_report().to_dict(), args.output)
@@ -10947,135 +11934,291 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "validation-design-frontier-quality":
             fixture = default_validation_design_frontier_fixture()
             evaluation = evaluate_validation_design_fixture(fixture)
-            _write_json(run_validation_design_quality_gate(audit_validation_design_frontier_data(fixture), evaluation, build_validation_design_adapters(), default_validation_design_frontier_schema(), reconcile_validation_design(fixture, evaluation)).to_dict(), args.output)
+            _write_json(
+                run_validation_design_quality_gate(
+                    audit_validation_design_frontier_data(fixture),
+                    evaluation,
+                    build_validation_design_adapters(),
+                    default_validation_design_frontier_schema(),
+                    reconcile_validation_design(fixture, evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-validation-matrix":
-            _write_json(build_validation_design_validation_matrix(evaluate_validation_design_fixture(default_validation_design_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_validation_design_validation_matrix(
+                    evaluate_validation_design_fixture(default_validation_design_frontier_fixture())
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-handoff":
             fixture = default_validation_design_frontier_fixture()
             evaluation = evaluate_validation_design_fixture(fixture)
-            _write_json(build_validation_design_handoff(fixture, evaluation, measure_validation_design(evaluation), build_validation_design_review_queue(evaluation)).to_dict(), args.output)
+            _write_json(
+                build_validation_design_handoff(
+                    fixture,
+                    evaluation,
+                    measure_validation_design(evaluation),
+                    build_validation_design_review_queue(evaluation),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-access":
-            _write_json(build_validation_design_access_manifest(default_validation_design_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_validation_design_access_manifest(
+                    default_validation_design_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-data-dictionary":
-            from .validation_design_frontier_data_dictionary import build_validation_design_data_dictionary
+            from .validation_design_frontier_data_dictionary import (
+                build_validation_design_data_dictionary,
+            )
+
             _write_json(build_validation_design_data_dictionary().to_dict(), args.output)
             return 0
         if args.command == "validation-design-frontier-report":
             fixture = default_validation_design_frontier_fixture()
             evaluation = evaluate_validation_design_fixture(fixture)
-            _write_json(build_validation_design_report(evaluation=evaluation, run_id="validation-design-frontier-report").to_dict(), args.output)
+            _write_json(
+                build_validation_design_report(
+                    evaluation=evaluation, run_id="validation-design-frontier-report"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "validation-design-frontier-failure-injection":
             _write_json(run_validation_design_failure_injections().to_dict(), args.output)
             return 0
         if args.command == "validation-design-frontier-review-csv":
-            _write_text(export_validation_design_review_csv(evaluate_validation_design_fixture(default_validation_design_frontier_fixture())), args.output)
+            _write_text(
+                export_validation_design_review_csv(
+                    evaluate_validation_design_fixture(default_validation_design_frontier_fixture())
+                ),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-data-audit":
-            _write_json(audit_editing_design_frontier_data(default_editing_design_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_editing_design_frontier_data(
+                    default_editing_design_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-evaluate":
-            _write_json(evaluate_editing_design_fixture(default_editing_design_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_editing_design_fixture(
+                    default_editing_design_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-pipeline":
-            _write_json(run_editing_design_runtime(default_editing_design_frontier_fixture(), run_id="editing-design-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_editing_design_runtime(
+                    default_editing_design_frontier_fixture(), run_id="editing-design-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-depth":
-            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture)
-            _write_json(build_editing_design_depth(fixture=fixture, evaluation=evaluation).to_dict(), args.output)
+            fixture = default_editing_design_frontier_fixture()
+            evaluation = evaluate_editing_design_fixture(fixture)
+            _write_json(
+                build_editing_design_depth(fixture=fixture, evaluation=evaluation).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-thresholds":
             _write_json(build_editing_design_threshold_report().to_dict(), args.output)
             return 0
         if args.command == "editing-design-frontier-quality":
-            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture); adapters = build_editing_design_adapters(); schema = default_editing_design_frontier_schema()
-            _write_json(build_editing_design_quality_gate(audit=audit_editing_design_frontier_data(fixture), evaluation=evaluation, adapters=adapters, schema=schema).to_dict(), args.output)
+            fixture = default_editing_design_frontier_fixture()
+            evaluation = evaluate_editing_design_fixture(fixture)
+            adapters = build_editing_design_adapters()
+            schema = default_editing_design_frontier_schema()
+            _write_json(
+                build_editing_design_quality_gate(
+                    audit=audit_editing_design_frontier_data(fixture),
+                    evaluation=evaluation,
+                    adapters=adapters,
+                    schema=schema,
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-validation-matrix":
-            _write_json(build_editing_design_validation_matrix(evaluation=evaluate_editing_design_fixture(default_editing_design_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_editing_design_validation_matrix(
+                    evaluation=evaluate_editing_design_fixture(
+                        default_editing_design_frontier_fixture()
+                    )
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-handoff":
-            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture)
-            _write_json(build_editing_design_handoff(fixture=fixture, evaluation=evaluation).to_dict(), args.output)
+            fixture = default_editing_design_frontier_fixture()
+            evaluation = evaluate_editing_design_fixture(fixture)
+            _write_json(
+                build_editing_design_handoff(fixture=fixture, evaluation=evaluation).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-access":
-            _write_json(build_editing_design_access(fixture=default_editing_design_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_editing_design_access(
+                    fixture=default_editing_design_frontier_fixture()
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-data-dictionary":
-            from .editing_design_frontier_data_dictionary import build_editing_design_data_dictionary
+            from .editing_design_frontier_data_dictionary import (
+                build_editing_design_data_dictionary,
+            )
+
             _write_json(build_editing_design_data_dictionary().to_dict(), args.output)
             return 0
         if args.command == "editing-design-frontier-report":
-            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture)
-            _write_json(build_editing_design_report(evaluation=evaluation, run_id="editing-design-frontier-report").to_dict(), args.output)
+            fixture = default_editing_design_frontier_fixture()
+            evaluation = evaluate_editing_design_fixture(fixture)
+            _write_json(
+                build_editing_design_report(
+                    evaluation=evaluation, run_id="editing-design-frontier-report"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "editing-design-frontier-failure-injection":
             _write_json(build_editing_design_failure_injection().to_dict(), args.output)
             return 0
         if args.command == "editing-design-frontier-review-csv":
-            _write_text(export_editing_design_review_csv(evaluate_editing_design_fixture(default_editing_design_frontier_fixture())), args.output)
+            _write_text(
+                export_editing_design_review_csv(
+                    evaluate_editing_design_fixture(default_editing_design_frontier_fixture())
+                ),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-data-audit":
-            _write_json(audit_planning_frontier_data(default_planning_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                audit_planning_frontier_data(default_planning_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-evaluate":
-            _write_json(evaluate_planning_fixture(default_planning_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                evaluate_planning_fixture(default_planning_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-pipeline":
-            _write_json(run_planning_runtime(default_planning_frontier_fixture(), run_id="planning-frontier-cli").to_dict(), args.output)
+            _write_json(
+                run_planning_runtime(
+                    default_planning_frontier_fixture(), run_id="planning-frontier-cli"
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-depth":
-            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture); metrics = measure_planning(evaluation); quality = build_planning_quality_gate(audit=audit_planning_frontier_data(fixture), fixture=fixture, evaluation=evaluation, adapters=build_planning_adapters(), schema=default_planning_schema())
-            _write_json(build_planning_depth_report(fixture, evaluation, metrics, quality).to_dict(), args.output)
+            fixture = default_planning_frontier_fixture()
+            evaluation = evaluate_planning_fixture(fixture)
+            metrics = measure_planning(evaluation)
+            quality = build_planning_quality_gate(
+                audit=audit_planning_frontier_data(fixture),
+                fixture=fixture,
+                evaluation=evaluation,
+                adapters=build_planning_adapters(),
+                schema=default_planning_schema(),
+            )
+            _write_json(
+                build_planning_depth_report(fixture, evaluation, metrics, quality).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-quality":
-            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
-            _write_json(build_planning_quality_gate(audit=audit_planning_frontier_data(fixture), fixture=fixture, evaluation=evaluation, adapters=build_planning_adapters(), schema=default_planning_schema()).to_dict(), args.output)
+            fixture = default_planning_frontier_fixture()
+            evaluation = evaluate_planning_fixture(fixture)
+            _write_json(
+                build_planning_quality_gate(
+                    audit=audit_planning_frontier_data(fixture),
+                    fixture=fixture,
+                    evaluation=evaluation,
+                    adapters=build_planning_adapters(),
+                    schema=default_planning_schema(),
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-thresholds":
             _write_json(build_planning_threshold_report().to_dict(), args.output)
             return 0
         if args.command == "planning-frontier-validation-matrix":
-            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
-            _write_json(build_planning_validation_matrix(fixture, evaluation).to_dict(), args.output)
+            fixture = default_planning_frontier_fixture()
+            evaluation = evaluate_planning_fixture(fixture)
+            _write_json(
+                build_planning_validation_matrix(fixture, evaluation).to_dict(), args.output
+            )
             return 0
         if args.command == "planning-frontier-handoff":
-            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            fixture = default_planning_frontier_fixture()
+            evaluation = evaluate_planning_fixture(fixture)
             _write_json(build_planning_handoff(fixture, evaluation).to_dict(), args.output)
             return 0
         if args.command == "planning-frontier-run-manifest":
-            _write_json(build_planning_run_manifest(default_planning_frontier_fixture()).to_dict(), args.output)
+            _write_json(
+                build_planning_run_manifest(default_planning_frontier_fixture()).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-provenance":
-            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            fixture = default_planning_frontier_fixture()
+            evaluation = evaluate_planning_fixture(fixture)
             _write_json(build_planning_provenance(fixture, evaluation).to_dict(), args.output)
             return 0
         if args.command == "planning-frontier-replay":
             _write_json(replay_planning(default_planning_frontier_fixture()).to_dict(), args.output)
             return 0
         if args.command == "planning-frontier-integrity":
-            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
+            fixture = default_planning_frontier_fixture()
+            evaluation = evaluate_planning_fixture(fixture)
             _write_json(evaluate_planning_integrity(fixture, evaluation).to_dict(), args.output)
             return 0
         if args.command == "planning-frontier-review-queue":
-            _write_json(build_planning_review_queue(evaluate_planning_fixture(default_planning_frontier_fixture())).to_dict(), args.output)
+            _write_json(
+                build_planning_review_queue(
+                    evaluate_planning_fixture(default_planning_frontier_fixture())
+                ).to_dict(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-data-dictionary":
             _write_json(build_planning_data_dictionary().to_dict(), args.output)
             return 0
         if args.command == "planning-frontier-report":
-            fixture = default_planning_frontier_fixture(); evaluation = evaluate_planning_fixture(fixture)
-            _write_text(build_planning_report(fixture=fixture, evaluation=evaluation).markdown(), args.output)
+            fixture = default_planning_frontier_fixture()
+            evaluation = evaluate_planning_fixture(fixture)
+            _write_text(
+                build_planning_report(fixture=fixture, evaluation=evaluation).markdown(),
+                args.output,
+            )
             return 0
         if args.command == "planning-frontier-failure-injection":
             _write_json(build_planning_failure_report().to_dict(), args.output)
             return 0
         if args.command == "planning-frontier-review-csv":
-            _write_text(export_planning_review_csv(evaluate_planning_fixture(default_planning_frontier_fixture())), args.output)
+            _write_text(
+                export_planning_review_csv(
+                    evaluate_planning_fixture(default_planning_frontier_fixture())
+                ),
+                args.output,
+            )
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)
