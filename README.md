@@ -115,6 +115,24 @@ in [docs/EVIDENCE_RELEASE_FRONTIER_OPERATIONS.md](docs/EVIDENCE_RELEASE_FRONTIER
 [docs/EVIDENCE_RELEASE_FRONTIER_FAILURE_MODES.md](docs/EVIDENCE_RELEASE_FRONTIER_FAILURE_MODES.md),
 and [docs/EVIDENCE_RELEASE_FRONTIER_RELEASE.md](docs/EVIDENCE_RELEASE_FRONTIER_RELEASE.md).
 
+The D15 C13–C16 workbench-release frontier provides an independent boundary for
+structured review forms, report export, global search, and accessibility and
+human-factors evaluation. It uses 16 public aggregate rows, 80 deterministic checks,
+49 ordered runtime stages, and five HTTPS source receipts:
+
+```powershell
+glio-noncode workbench-release-frontier-data-audit --output workbench-release-data.json
+glio-noncode workbench-release-frontier-evaluate --output workbench-release-evaluation.json
+glio-noncode workbench-release-frontier-pipeline --output workbench-release-runtime.json
+glio-noncode workbench-release-frontier-review-csv --output workbench-release-review.csv
+```
+
+See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md),
+[docs/WORKBENCH_RELEASE_FRONTIER_API.md](docs/WORKBENCH_RELEASE_FRONTIER_API.md),
+[docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md](docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md),
+[docs/WORKBENCH_RELEASE_FRONTIER_FAILURE_MODES.md](docs/WORKBENCH_RELEASE_FRONTIER_FAILURE_MODES.md),
+and [docs/WORKBENCH_RELEASE_FRONTIER_RUNBOOK.md](docs/WORKBENCH_RELEASE_FRONTIER_RUNBOOK.md).
+
 ## Design boundaries
 
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.

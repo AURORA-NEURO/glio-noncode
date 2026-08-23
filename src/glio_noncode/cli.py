@@ -319,6 +319,22 @@ from .evidence_release_frontier_schema import default_evidence_release_frontier_
 from .evidence_release_frontier_reconciliation import reconcile_evidence_release
 from .evidence_release_frontier_quality_gate import run_evidence_release_quality_gate
 from .evidence_release_frontier_validation_matrix import build_evidence_release_validation_matrix
+from .workbench_release_frontier_access import build_workbench_release_access_manifest
+from .workbench_release_frontier_adapters import build_workbench_release_adapters
+from .workbench_release_frontier_depth import audit_workbench_release_depth
+from .workbench_release_frontier_exports import export_workbench_release_review_csv
+from .workbench_release_frontier_failure_injection import run_workbench_release_failure_injections
+from .workbench_release_frontier_fixture_eval import evaluate_workbench_release_fixture
+from .workbench_release_frontier_handoff import build_workbench_release_handoff
+from .workbench_release_frontier_metrics import measure_workbench_release
+from .workbench_release_frontier_public_data import audit_workbench_release_frontier_data, default_workbench_release_frontier_fixture
+from .workbench_release_frontier_report import render_workbench_release_report
+from .workbench_release_frontier_review_queue import build_workbench_release_review_queue
+from .workbench_release_frontier_runtime import run_workbench_release_runtime
+from .workbench_release_frontier_schema import default_workbench_release_frontier_schema
+from .workbench_release_frontier_reconciliation import reconcile_workbench_release
+from .workbench_release_frontier_quality_gate import run_workbench_release_quality_gate
+from .workbench_release_frontier_validation_matrix import build_workbench_release_validation_matrix
 from .control_plane import (
     ClaimCeiling,
     InvocationRequest,
@@ -4893,6 +4909,26 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     evidence_release_frontier_csv = subparsers.add_parser("evidence-release-frontier-review-csv", help="export Domain 14 C13-C16 review rows")
     evidence_release_frontier_csv.add_argument("--output", default=None)
+
+    workbench_release_frontier_commands = (
+        ("workbench-release-frontier-data-audit", "audit Domain 15 C13-C16 public aggregate data"),
+        ("workbench-release-frontier-evaluate", "evaluate Domain 15 C13-C16 positive and control rows"),
+        ("workbench-release-frontier-pipeline", "run the complete Domain 15 C13-C16 runtime rehearsal"),
+        ("workbench-release-frontier-depth", "run Domain 15 C13-C16 depth checks"),
+        ("workbench-release-frontier-thresholds", "probe Domain 15 C13-C16 boundaries"),
+        ("workbench-release-frontier-quality", "run Domain 15 C13-C16 quality gate"),
+        ("workbench-release-frontier-validation-matrix", "emit Domain 15 C13-C16 validation matrix"),
+        ("workbench-release-frontier-handoff", "emit Domain 15 C13-C16 review handoff"),
+        ("workbench-release-frontier-access", "emit Domain 15 C13-C16 public access manifest"),
+        ("workbench-release-frontier-data-dictionary", "emit Domain 15 C13-C16 data dictionary"),
+        ("workbench-release-frontier-report", "render Domain 15 C13-C16 review report"),
+        ("workbench-release-frontier-failure-injection", "rehearse Domain 15 C13-C16 control failures"),
+    )
+    for command_name, command_help in workbench_release_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    workbench_release_frontier_csv = subparsers.add_parser("workbench-release-frontier-review-csv", help="export Domain 15 C13-C16 review rows")
+    workbench_release_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9865,6 +9901,50 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "evidence-release-frontier-review-csv":
             _write_text(export_evidence_release_review_csv(evaluate_evidence_release_fixture(default_evidence_release_frontier_fixture())), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-data-audit":
+            _write_json(audit_workbench_release_frontier_data(default_workbench_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-evaluate":
+            _write_json(evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-pipeline":
+            _write_json(run_workbench_release_runtime(default_workbench_release_frontier_fixture(), run_id="workbench-release-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-depth":
+            fixture = default_workbench_release_frontier_fixture()
+            _write_json(audit_workbench_release_depth(fixture, evaluate_workbench_release_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-thresholds":
+            _write_json({"boundary": "required-field,section-order,query-match,criterion-pass", "content_address": "sha256:workbench-release-threshold-boundary"}, args.output)
+            return 0
+        if args.command == "workbench-release-frontier-quality":
+            fixture = default_workbench_release_frontier_fixture()
+            evaluation = evaluate_workbench_release_fixture(fixture)
+            _write_json(run_workbench_release_quality_gate(audit_workbench_release_frontier_data(fixture), evaluation, build_workbench_release_adapters(), default_workbench_release_frontier_schema(), reconcile_workbench_release(fixture, evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-validation-matrix":
+            _write_json(build_workbench_release_validation_matrix(evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-handoff":
+            fixture = default_workbench_release_frontier_fixture()
+            evaluation = evaluate_workbench_release_fixture(fixture)
+            _write_json(build_workbench_release_handoff(fixture, evaluation, measure_workbench_release(evaluation), build_workbench_release_review_queue(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-access":
+            _write_json(build_workbench_release_access_manifest(default_workbench_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-data-dictionary":
+            _write_json({"version": "workbench-release-data-dictionary-v1", "fields": ("context_key", "payload", "expected_state", "observed_state", "issue_codes", "content_address")}, args.output)
+            return 0
+        if args.command == "workbench-release-frontier-report":
+            _write_text(render_workbench_release_report(run_workbench_release_runtime(default_workbench_release_frontier_fixture(), run_id="workbench-release-frontier-report")), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-failure-injection":
+            _write_json(run_workbench_release_failure_injections().to_dict(), args.output)
+            return 0
+        if args.command == "workbench-release-frontier-review-csv":
+            _write_text(export_workbench_release_review_csv(evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture())), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)

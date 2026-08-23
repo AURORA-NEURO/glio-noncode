@@ -4956,69 +4956,74 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D15-C13": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.StructuredReviewForm",
-                    "glio_noncode.frontier_release_alpha.StructuredReviewResult",
+                    "glio_noncode.workbench_release_frontier_operations.evaluate_review_form",
+                    "glio_noncode.workbench_release_frontier_contracts.WorkbenchReleaseOperationResult",
+                    "glio_noncode.workbench_release_frontier_fixture_eval.evaluate_workbench_release_fixture",
+                    "glio_noncode.workbench_release_frontier_runtime.run_workbench_release_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_workbench_release_frontier",
+                    "tests.test_workbench_release_frontier_extensions",
+                    "tests.test_workbench_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Structured review forms validate required fields and choices while retaining field "
-                    "labels, values, completion, and review state. The fixture verifies a complete "
-                    "review and an incomplete-form negative control."
+                    "Structured review forms retain field identity, labels, required flags, choices, "
+                    "completion, reviewer identity, exact context, and content addresses. The public "
+                    "fixture verifies complete, missing-field, invalid-choice, and foreign-context paths."
                 ),
             },
             "GNC-D15-C14": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.ExportReportBuilder",
-                    "glio_noncode.frontier_release_alpha.ExportedReport",
+                    "glio_noncode.workbench_release_frontier_operations.evaluate_report_export",
+                    "glio_noncode.workbench_release_frontier_views.build_workbench_release_view",
+                    "glio_noncode.workbench_release_frontier_runtime.run_workbench_release_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_workbench_release_frontier",
+                    "tests.test_workbench_release_frontier_extensions",
+                    "tests.test_workbench_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Report export preserves ordered sections, format, content addresses, and line "
-                    "counts for JSON, Markdown, or CSV-oriented output. The fixture verifies stable "
-                    "ordered sections in the composed workbench pipeline."
+                    "Report export preserves JSON, Markdown, and CSV-oriented projections, ordered "
+                    "sections, line counts, section addresses, duplicate identity controls, empty "
+                    "report review, and foreign-context blocking through the release runtime."
                 ),
             },
             "GNC-D15-C15": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.GlobalSearchCommandPalette",
-                    "glio_noncode.frontier_release_alpha.SearchPaletteReport",
+                    "glio_noncode.workbench_release_frontier_operations.evaluate_search_palette",
+                    "glio_noncode.workbench_release_frontier_queue.build_workbench_release_queue",
+                    "glio_noncode.workbench_release_frontier_runtime.run_workbench_release_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_workbench_release_frontier",
+                    "tests.test_workbench_release_frontier_extensions",
+                    "tests.test_workbench_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Global search ranks field matches and command matches deterministically with type "
-                    "filters, matched fields, and bounded result counts. The fixture verifies gene "
-                    "and assay record discovery from declared public identifiers."
+                    "Global search ranks identity, title, ordinary-field, and command matches "
+                    "deterministically with bounded results and exact context. The fixture verifies "
+                    "positive matches, no-match review, malformed identity rejection, and quarantine."
                 ),
             },
             "GNC-D15-C16": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.AccessibilityHumanFactorsLayer",
-                    "glio_noncode.frontier_release_alpha.AccessibilityReport",
+                    "glio_noncode.workbench_release_frontier_operations.evaluate_accessibility",
+                    "glio_noncode.workbench_release_frontier_evidence_matrix.build_workbench_release_evidence_matrix",
+                    "glio_noncode.workbench_release_frontier_runtime.run_workbench_release_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_workbench_release_frontier",
+                    "tests.test_workbench_release_frontier_extensions",
+                    "tests.test_workbench_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Accessibility evaluation retains keyboard, labels, focus, contrast, motion, and "
-                    "reading-order findings with pass/fail counts and a score. The fixture verifies "
-                    "all criteria and a failing accessibility negative control."
+                    "Accessibility evaluation retains keyboard, labels, focus order, contrast, motion, "
+                    "reading order, severity, remediation text, pass/fail counts, score, exact context, "
+                    "and content addresses. Positive, partial, failed, and foreign controls replay."
                 ),
             },
             "GNC-D16-C01": {
