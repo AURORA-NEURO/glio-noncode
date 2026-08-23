@@ -1100,6 +1100,18 @@ from .workspace_beta import (
     PosteriorDecompositionViewer,
     TopologyViewer,
 )
+from .cohort_beta_frontier_exports import (
+    export_cohort_beta_frontier_json,
+    export_cohort_beta_frontier_review_csv,
+    render_cohort_beta_frontier_review_markdown,
+)
+from .cohort_beta_frontier_public_data import (
+    audit_cohort_beta_frontier_data,
+    cohort_beta_frontier_fixture_json,
+    default_cohort_beta_frontier_fixture,
+)
+from .cohort_beta_frontier_report import build_cohort_beta_frontier_report, render_cohort_beta_frontier_report_markdown
+from .cohort_beta_frontier_runtime import run_cohort_beta_frontier_runtime
 
 
 def _read_json(path: str) -> dict[str, Any]:
@@ -1670,6 +1682,32 @@ def build_parser() -> argparse.ArgumentParser:
     )
     frontier_quality.add_argument("input", type=str)
     frontier_quality.add_argument("--output", default=None)
+
+    cohort_beta_fixture = subparsers.add_parser(
+        "cohort-beta-frontier-fixture", help="emit the public aggregate Domain 12 C05-C08 fixture"
+    )
+    cohort_beta_fixture.add_argument("--output", default=None)
+    cohort_beta_evaluate = subparsers.add_parser(
+        "cohort-beta-frontier-evaluate", help="evaluate the C05-C08 positive and control paths"
+    )
+    cohort_beta_evaluate.add_argument("--output", default=None)
+    cohort_beta_quality = subparsers.add_parser(
+        "cohort-beta-frontier-quality", help="run the C05-C08 release quality gate"
+    )
+    cohort_beta_quality.add_argument("--output", default=None)
+    cohort_beta_replay = subparsers.add_parser(
+        "cohort-beta-frontier-replay", help="replay the C05-C08 aggregate fixture"
+    )
+    cohort_beta_replay.add_argument("--output", default=None)
+    cohort_beta_report = subparsers.add_parser(
+        "cohort-beta-frontier-report", help="render the C05-C08 bounded evidence report"
+    )
+    cohort_beta_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    cohort_beta_report.add_argument("--output", default=None)
+    cohort_beta_pipeline = subparsers.add_parser(
+        "run-cohort-beta-frontier-pipeline", help="run the complete C05-C08 release rehearsal"
+    )
+    cohort_beta_pipeline.add_argument("--output", default=None)
 
     equivalence = subparsers.add_parser(
         "resolve-variant-equivalence",
@@ -5997,6 +6035,32 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "schema":
             _write_json(schema_document(), args.output)
             return 0
+        if args.command == "cohort-beta-frontier-fixture":
+            _write_text(cohort_beta_frontier_fixture_json(), args.output)
+            return 0
+        if args.command in {
+            "cohort-beta-frontier-evaluate",
+            "cohort-beta-frontier-quality",
+            "cohort-beta-frontier-replay",
+            "cohort-beta-frontier-report",
+            "run-cohort-beta-frontier-pipeline",
+        }:
+            runtime = run_cohort_beta_frontier_runtime()
+            if args.command == "cohort-beta-frontier-evaluate":
+                _write_text(export_cohort_beta_frontier_json(runtime.evaluation), args.output)
+            elif args.command == "cohort-beta-frontier-quality":
+                _write_json(runtime.quality.to_dict(), args.output)
+            elif args.command == "cohort-beta-frontier-replay":
+                _write_json(runtime.replay.to_dict(), args.output)
+            elif args.command == "cohort-beta-frontier-report":
+                report = build_cohort_beta_frontier_report(runtime.metrics, runtime.release, runtime.assurance, runtime.review)
+                if args.format == "markdown":
+                    _write_text(render_cohort_beta_frontier_report_markdown(report), args.output)
+                else:
+                    _write_json(report, args.output)
+            else:
+                _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
         if args.command == "sources":
             _write_json(default_source_catalog().manifest(), None)
             return 0

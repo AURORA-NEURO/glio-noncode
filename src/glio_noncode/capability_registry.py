@@ -3960,47 +3960,53 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D12-C05": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.cohort_beta.RegulatoryRecurrenceTester",),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": ("glio_noncode.cohort_beta.RegulatoryRecurrenceTester", "glio_noncode.cohort_beta_frontier_runtime", "glio_noncode.cohort_beta_frontier_provenance", "glio_noncode.cohort_beta_frontier_release"),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
                 "evidence_note": (
-                    "Regulatory recurrence deduplicates variant/sample observations, applies "
-                    "exact context and callable gates, identifies thresholded recurrent variants "
-                    "and local hotspots, and retains source lineage; enrichment calibration and "
-                    "cohort transport remain."
+                    "Regulatory recurrence is verified through a public aggregate fixture with "
+                    "positive, absent, partial, and foreign-context paths. The release plane "
+                    "retains distinct-sample recurrence, hotspot thresholds, source receipts, "
+                    "lineage, reconciliation, policy, replay, and bounded claim ceilings."
                 ),
             },
             "GNC-D12-C06": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.cohort_beta.RegionalBurdenTester",),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": ("glio_noncode.cohort_beta.RegionalBurdenTester", "glio_noncode.cohort_beta_frontier_schema", "glio_noncode.cohort_beta_frontier_metrics", "glio_noncode.cohort_beta_frontier_quality_gate"),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
                 "evidence_note": (
-                    "Regional burden uses explicit callable bases, exact-context overlap, variant "
-                    "deduplication, and a declared background comparator with burden and excess "
-                    "receipts; it does not emit a p-value or significance claim."
+                    "Regional burden is verified with explicit callable bases, exact-context "
+                    "overlap, deduplicated variants, absent and foreign controls, comparator "
+                    "receipts, source closure, and quality-gated release packaging. It remains "
+                    "a descriptive callable-space comparison without a significance claim."
                 ),
             },
             "GNC-D12-C07": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.cohort_beta.FunctionalConvergenceTester",),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": ("glio_noncode.cohort_beta.FunctionalConvergenceTester", "glio_noncode.cohort_beta_frontier_contracts", "glio_noncode.cohort_beta_frontier_policy", "glio_noncode.cohort_beta_frontier_views"),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
                 "evidence_note": (
-                    "Functional convergence aggregates declared feature support by distinct "
-                    "variant, contrasts observed and control pools, retains leading ties and "
-                    "direction counts, and reports comparator absence explicitly."
+                    "Functional convergence is verified through observed/control support "
+                    "contrasts, explicit no-control partial paths, foreign-context isolation, "
+                    "state policy, review projections, deterministic replay, and a bounded "
+                    "fixture-backed release report."
                 ),
             },
             "GNC-D12-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_beta.PathwayRegulonConvergenceTester",
+                    "glio_noncode.cohort_beta_frontier_fixture_eval",
+                    "glio_noncode.cohort_beta_frontier_claim_boundary",
+                    "glio_noncode.cohort_beta_frontier_replay",
                 ),
-                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli"),
+                "test_modules": ("tests.test_cohort_beta", "tests.test_cohort_beta_cli", "tests.test_cohort_beta_frontier"),
                 "evidence_note": (
-                    "Pathway and regulon convergence aggregates gene-set membership, preserves "
-                    "pathway/regulon namespace, comparator contrast, leading-set ties, and "
-                    "opposing activation/repression directions as contradictory; gene-set "
-                    "definitions and transport require external validation."
+                    "Pathway and regulon convergence is verified with namespace-preserving "
+                    "membership aggregation, observed/control contrast, partial and foreign "
+                    "controls, opposing directions retained as contradictory, claim evidence, "
+                    "lineage, replay, and public release gates. External set transport remains "
+                    "outside the bounded fixture claim."
                 ),
             },
             "GNC-D12-C09": {

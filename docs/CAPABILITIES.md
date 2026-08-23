@@ -22,13 +22,48 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage across the sixteen
 domains. The repository ledger now has 256 of 256 capabilities started (100%);
-220 capabilities have deterministic fixture-backed verification and 36 remain
+224 capabilities have deterministic fixture-backed verification and 32 remain
 partial. The frontier surfaces are bounded research infrastructure. Current
-verified coverage is 85.94% of the 256-capability catalog; MVP implementation
+verified coverage is 87.5% of the 256-capability catalog; MVP implementation
 coverage is 93.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
+
+## Domain 12 C05-C08 aggregate evidence frontier
+
+The C05-C08 tranche is implemented as a separate public aggregate evidence
+plane over the existing typed cohort primitives:
+
+- C05 covers distinct-sample regulatory recurrence and local hotspot summaries;
+- C06 covers callable-base regional burden and a declared descriptive
+  comparator;
+- C07 covers feature-level functional convergence with observed/control
+  contrast;
+- C08 covers pathway and regulon membership convergence while retaining
+  opposing declared directions as contradictory.
+
+The release rehearsal contains sixteen pseudonymous paths: one positive and
+three controls for each operation. Every path carries an expected state,
+source receipt IDs, content addresses, and a fixed exact context. The runtime
+executes schema, adapters, evaluation, metrics, lineage, provenance, policy,
+reconciliation, review, quality, replay, release, packaging, claim-boundary,
+and operational stages. Twelve non-positive paths remain reviewable or
+quarantined; only four supported paths are publishable.
+
+Commands:
+
+```powershell
+glio-noncode cohort-beta-frontier-fixture --output c05-c08-fixture.json
+glio-noncode cohort-beta-frontier-evaluate --output c05-c08-evaluation.json
+glio-noncode cohort-beta-frontier-quality --output c05-c08-quality.json
+glio-noncode cohort-beta-frontier-report --format markdown --output c05-c08-report.md
+glio-noncode run-cohort-beta-frontier-pipeline --output c05-c08-runtime.json
+```
+
+This plane is descriptive research infrastructure. It does not emit
+significance, driver, causal, treatment, prognosis, or clinical outcome
+claims.
 
 Inspect the current ledger locally:
 

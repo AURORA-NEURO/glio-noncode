@@ -42,6 +42,18 @@ jobs:
         run: python -m glio_noncode evaluate-frontier-scenarios examples/frontier-glioma-case.json --output /tmp/glio-frontier-scenarios.json
       - name: Frontier quality gate
         run: python -m glio_noncode frontier-quality-gate examples/frontier-glioma-case.json --output /tmp/glio-frontier-quality.json
+      - name: Cohort beta frontier fixture
+        run: python -m glio_noncode cohort-beta-frontier-fixture --output /tmp/glio-cohort-beta-fixture.json
+      - name: Cohort beta frontier evaluation
+        run: python -m glio_noncode cohort-beta-frontier-evaluate --output /tmp/glio-cohort-beta-evaluation.json
+      - name: Cohort beta frontier quality
+        run: python -m glio_noncode cohort-beta-frontier-quality --output /tmp/glio-cohort-beta-quality.json
+      - name: Cohort beta frontier replay
+        run: python -m glio_noncode cohort-beta-frontier-replay --output /tmp/glio-cohort-beta-replay.json
+      - name: Cohort beta frontier report
+        run: python -m glio_noncode cohort-beta-frontier-report --format markdown --output /tmp/glio-cohort-beta-report.md
+      - name: Cohort beta frontier pipeline
+        run: python -m glio_noncode run-cohort-beta-frontier-pipeline --output /tmp/glio-cohort-beta-runtime.json
       - name: Variation data boundary audit
         run: python -m glio_noncode audit-variation-data examples/variation-public-aggregate.json --output /tmp/glio-variation-data.json
       - name: Variation fixture evaluation
