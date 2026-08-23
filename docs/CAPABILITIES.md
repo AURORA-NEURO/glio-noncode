@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage across the sixteen
 domains. The repository ledger now has 256 of 256 capabilities started (100%);
-224 capabilities have deterministic fixture-backed verification and 32 remain
+228 capabilities have deterministic fixture-backed verification and 28 remain
 partial. The frontier surfaces are bounded research infrastructure. Current
-verified coverage is 87.5% of the 256-capability catalog; MVP implementation
+verified coverage is 89.06% of the 256-capability catalog; MVP implementation
 coverage is 93.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -64,6 +64,75 @@ glio-noncode run-cohort-beta-frontier-pipeline --output c05-c08-runtime.json
 This plane is descriptive research infrastructure. It does not emit
 significance, driver, causal, treatment, prognosis, or clinical outcome
 claims.
+
+## Domain 12 C09-C12 cohort alpha depth plane
+
+The C09-C12 tranche is now a full bounded release surface around the four
+external-alpha cohort primitives. It uses a fresh public aggregate fixture and
+keeps every operation under the exact context
+`GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment`.
+
+The implementation is intentionally layered module-by-module:
+
+- `cohort_alpha_frontier_public_data` defines six public source receipts,
+  sixteen pseudonymous aggregate records, four positive paths, and twelve
+  partial, ambiguous, foreign-context, or abstained controls;
+- `cohort_alpha_frontier_fixture_eval` dispatches each record to the typed
+  C09, C10, C11, or C12 primitive and records expected versus observed state;
+- `cohort_alpha_frontier_contracts`, `adapters`, `schema`, `field_validation`,
+  `normalization`, and `operation_catalog` close the input and output surface;
+- `governance` adds metrics, lineage, provenance, policy, reconciliation,
+  review queue, quality gate, replay receipt, release bundle, and manifest;
+- `thresholds`, `calibration`, `control_coverage`, `state_distribution`,
+  `boundary_cases`, and `boundary_explanations` make evidence limits visible;
+- `failure_injection`, `recovery`, `performance`, `schema_migrations`,
+  `change_control`, `retention`, `freshness`, and `execution_plan` define the
+  operational response to drift or incomplete evidence;
+- `claim_boundary`, `claim_dictionary`, `claim_evidence`, `safety_controls`,
+  `review_sla`, `review_protocol`, and `accessibility` constrain downstream
+  wording and make review work inspectable;
+- `package`, `artifact_index`, `export_formats`, `views`, `report`, `summary`,
+  `release_notes`, `compatibility`, and `reproducibility` define handoff
+  objects without publishing raw patient-level records;
+- `runtime`, `observability`, `transcript`, `audit_log`, `provenance_ledger`,
+  `release_checks`, and `test_vectors` close the deterministic execution loop.
+
+The default fixture has these expected states:
+
+| Operation | Supported | Partial or ambiguous | Foreign | Abstained |
+| --- | ---: | ---: | ---: | ---: |
+| C09 clonality timing | 1 | 1 partial | 1 | 1 |
+| C10 primary recurrence | 1 | 1 partial | 1 | 1 |
+| C11 treatment selection | 1 | 1 partial | 1 | 1 |
+| C12 cross-cohort replication | 1 | 1 ambiguous | 1 | 1 |
+
+Only the four exact-context supported records are publishable. Partial and
+ambiguous records remain reviewable; foreign-context and abstained records are
+quarantined. The claim ceiling is descriptive aggregate evidence only: the
+surface does not establish clonal evolution, recurrence causation, prognosis,
+treatment effect, resistance, benefit, significance, transportability, or
+clinical validity.
+
+Commands:
+
+```powershell
+glio-noncode cohort-alpha-frontier-fixture --output c09-c12-fixture.json
+glio-noncode cohort-alpha-frontier-evaluate --output c09-c12-evaluation.json
+glio-noncode cohort-alpha-frontier-quality --output c09-c12-quality.json
+glio-noncode cohort-alpha-frontier-replay --output c09-c12-replay.json
+glio-noncode cohort-alpha-frontier-report --format markdown --output c09-c12-report.md
+glio-noncode run-cohort-alpha-frontier-pipeline --output c09-c12-runtime.json
+```
+
+The runtime currently emits 71 ordered accepted stages and 23 extended
+consumer-facing receipts. The complete local focused suite is in
+`tests/test_cohort_alpha_frontier.py` and
+`tests/test_cohort_alpha_frontier_cli.py`; these tests assert fixture closure,
+state reconciliation, policy partitions, schema and adapter behavior, query
+filters, claim controls, replay determinism, CLI output, and runtime ordering.
+
+This plane remains descriptive research infrastructure. It is not a clinical
+decision system and does not convert aggregate evidence into an intervention.
 
 Inspect the current ledger locally:
 

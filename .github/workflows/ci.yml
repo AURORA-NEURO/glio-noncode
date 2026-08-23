@@ -54,6 +54,18 @@ jobs:
         run: python -m glio_noncode cohort-beta-frontier-report --format markdown --output /tmp/glio-cohort-beta-report.md
       - name: Cohort beta frontier pipeline
         run: python -m glio_noncode run-cohort-beta-frontier-pipeline --output /tmp/glio-cohort-beta-runtime.json
+      - name: Cohort alpha frontier fixture
+        run: python -m glio_noncode cohort-alpha-frontier-fixture --output /tmp/glio-cohort-alpha-fixture.json
+      - name: Cohort alpha frontier evaluation
+        run: python -m glio_noncode cohort-alpha-frontier-evaluate --output /tmp/glio-cohort-alpha-evaluation.json
+      - name: Cohort alpha frontier quality
+        run: python -m glio_noncode cohort-alpha-frontier-quality --output /tmp/glio-cohort-alpha-quality.json
+      - name: Cohort alpha frontier replay
+        run: python -m glio_noncode cohort-alpha-frontier-replay --output /tmp/glio-cohort-alpha-replay.json
+      - name: Cohort alpha frontier report
+        run: python -m glio_noncode cohort-alpha-frontier-report --format markdown --output /tmp/glio-cohort-alpha-report.md
+      - name: Cohort alpha frontier pipeline
+        run: python -m glio_noncode run-cohort-alpha-frontier-pipeline --output /tmp/glio-cohort-alpha-runtime.json
       - name: Variation data boundary audit
         run: python -m glio_noncode audit-variation-data examples/variation-public-aggregate.json --output /tmp/glio-variation-data.json
       - name: Variation fixture evaluation

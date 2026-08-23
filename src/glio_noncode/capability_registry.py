@@ -4010,55 +4010,90 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D12-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_alpha.ClonalityTimingIntegrator",
                     "glio_noncode.cohort_alpha.ClonalityTimingReport",
+                    "glio_noncode.cohort_alpha_frontier_public_data",
+                    "glio_noncode.cohort_alpha_frontier_fixture_eval",
+                    "glio_noncode.cohort_alpha_frontier_contracts",
+                    "glio_noncode.cohort_alpha_frontier_schema",
+                    "glio_noncode.cohort_alpha_frontier_governance",
+                    "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
                 "evidence_note": (
                     "Clonality and timing integration preserves CCF values, pseudonymous sample "
                     "IDs, phase labels, timepoint order, source hashes, and missing CCF/timing "
-                    "states; it does not establish clonal evolution."
+                    "states. The public C09-C12 fixture adds positive, partial, foreign, and "
+                    "abstained controls with source closure, reconciliation, policy, review, "
+                    "replay, package, and 70-plus-stage runtime depth; it does not establish "
+                    "clonal evolution."
                 ),
             },
             "GNC-D12-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_alpha.PrimaryRecurrenceComparator",
                     "glio_noncode.cohort_alpha.PrimaryRecurrenceComparatorReport",
+                    "glio_noncode.cohort_alpha_frontier_public_data",
+                    "glio_noncode.cohort_alpha_frontier_fixture_eval",
+                    "glio_noncode.cohort_alpha_frontier_contracts",
+                    "glio_noncode.cohort_alpha_frontier_schema",
+                    "glio_noncode.cohort_alpha_frontier_governance",
+                    "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
                 "evidence_note": (
                     "Primary/recurrence comparisons retain phase-specific frequencies, sample "
                     "IDs, treatment-exposure metadata, deltas, thresholds, and partial phase "
-                    "coverage without turning recurrence into prognosis or treatment evidence."
+                    "coverage. The bounded public fixture exercises exact-context publication, "
+                    "missing-phase review, foreign-context quarantine, content-addressed replay, "
+                    "and explicit descriptive claim ceilings without turning recurrence into "
+                    "prognosis or treatment evidence."
                 ),
             },
             "GNC-D12-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_alpha.TreatmentSelectionSignalDetector",
                     "glio_noncode.cohort_alpha.TreatmentSelectionReport",
+                    "glio_noncode.cohort_alpha_frontier_public_data",
+                    "glio_noncode.cohort_alpha_frontier_fixture_eval",
+                    "glio_noncode.cohort_alpha_frontier_contracts",
+                    "glio_noncode.cohort_alpha_frontier_schema",
+                    "glio_noncode.cohort_alpha_frontier_governance",
+                    "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
                 "evidence_note": (
                     "Pre/post treatment frequency signals preserve treatment ID, sample and "
                     "response metadata, phase coverage, effect direction, threshold receipts, "
-                    "and context; they are not resistance, benefit, or response claims."
+                    "and context. The release plane adds positive and incomplete controls, "
+                    "policy partitions, review SLA, safety controls, report accessibility, and "
+                    "deterministic package receipts; it is not resistance, benefit, or response "
+                    "evidence."
                 ),
             },
             "GNC-D12-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.cohort_alpha.CrossCohortReplicationEngine",
                     "glio_noncode.cohort_alpha.CrossCohortReplicationReport",
+                    "glio_noncode.cohort_alpha_frontier_public_data",
+                    "glio_noncode.cohort_alpha_frontier_fixture_eval",
+                    "glio_noncode.cohort_alpha_frontier_contracts",
+                    "glio_noncode.cohort_alpha_frontier_schema",
+                    "glio_noncode.cohort_alpha_frontier_governance",
+                    "glio_noncode.cohort_alpha_frontier_runtime",
                 ),
-                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli"),
+                "test_modules": ("tests.test_cohort_alpha", "tests.test_cohort_alpha_cli", "tests.test_cohort_alpha_frontier", "tests.test_cohort_alpha_frontier_cli"),
                 "evidence_note": (
                     "Cross-cohort replication retains cohort-specific effects, support, sample "
                     "counts, direction concordance, heterogeneous sources, and minimum coverage "
-                    "without claiming transportability or generalization."
+                    "without claiming transportability or generalization. The fixture explicitly "
+                    "retains one ambiguous direction case, source matrix, boundary explanations, "
+                    "state distribution, safety gate, and reproducibility receipt."
                 ),
             },
             "GNC-D12-C13": {

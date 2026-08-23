@@ -171,6 +171,8 @@ from .cohort_alpha import (
     PrimaryRecurrenceComparator,
     TreatmentSelectionSignalDetector,
 )
+from .cohort_alpha_frontier_public_data import cohort_alpha_frontier_fixture_json
+from .cohort_alpha_frontier_runtime import run_cohort_alpha_frontier_pipeline
 from .cohort_beta import (
     FunctionalConvergenceParser,
     FunctionalConvergenceTester,
@@ -1708,6 +1710,32 @@ def build_parser() -> argparse.ArgumentParser:
         "run-cohort-beta-frontier-pipeline", help="run the complete C05-C08 release rehearsal"
     )
     cohort_beta_pipeline.add_argument("--output", default=None)
+
+    cohort_alpha_frontier_fixture = subparsers.add_parser(
+        "cohort-alpha-frontier-fixture", help="emit the public aggregate Domain 12 C09-C12 fixture"
+    )
+    cohort_alpha_frontier_fixture.add_argument("--output", default=None)
+    cohort_alpha_frontier_evaluate = subparsers.add_parser(
+        "cohort-alpha-frontier-evaluate", help="evaluate C09-C12 positive and boundary paths"
+    )
+    cohort_alpha_frontier_evaluate.add_argument("--output", default=None)
+    cohort_alpha_frontier_quality = subparsers.add_parser(
+        "cohort-alpha-frontier-quality", help="run the C09-C12 release quality gate"
+    )
+    cohort_alpha_frontier_quality.add_argument("--output", default=None)
+    cohort_alpha_frontier_replay = subparsers.add_parser(
+        "cohort-alpha-frontier-replay", help="replay the C09-C12 aggregate fixture"
+    )
+    cohort_alpha_frontier_replay.add_argument("--output", default=None)
+    cohort_alpha_frontier_report = subparsers.add_parser(
+        "cohort-alpha-frontier-report", help="render the C09-C12 bounded evidence report"
+    )
+    cohort_alpha_frontier_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    cohort_alpha_frontier_report.add_argument("--output", default=None)
+    cohort_alpha_frontier_pipeline = subparsers.add_parser(
+        "run-cohort-alpha-frontier-pipeline", help="run the complete C09-C12 release rehearsal"
+    )
+    cohort_alpha_frontier_pipeline.add_argument("--output", default=None)
 
     equivalence = subparsers.add_parser(
         "resolve-variant-equivalence",
@@ -6038,6 +6066,31 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "cohort-beta-frontier-fixture":
             _write_text(cohort_beta_frontier_fixture_json(), args.output)
             return 0
+        if args.command == "cohort-alpha-frontier-fixture":
+            _write_text(cohort_alpha_frontier_fixture_json(), args.output)
+            return 0
+        if args.command in {
+            "cohort-alpha-frontier-evaluate",
+            "cohort-alpha-frontier-quality",
+            "cohort-alpha-frontier-replay",
+            "cohort-alpha-frontier-report",
+            "run-cohort-alpha-frontier-pipeline",
+        }:
+            runtime = run_cohort_alpha_frontier_pipeline()
+            if args.command == "cohort-alpha-frontier-evaluate":
+                _write_json(runtime.evaluation.to_dict(), args.output)
+            elif args.command == "cohort-alpha-frontier-quality":
+                _write_json(runtime.quality.to_dict(), args.output)
+            elif args.command == "cohort-alpha-frontier-replay":
+                _write_json(runtime.replay.to_dict(), args.output)
+            elif args.command == "cohort-alpha-frontier-report":
+                if args.format == "markdown":
+                    _write_text(runtime.report.to_markdown(), args.output)
+                else:
+                    _write_json(runtime.report.to_dict(), args.output)
+            else:
+                _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
         if args.command in {
             "cohort-beta-frontier-evaluate",
             "cohort-beta-frontier-quality",
