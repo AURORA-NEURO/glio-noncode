@@ -325,6 +325,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D08-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.topology_architecture_operations.evaluate_topology_architecture_fixture",
+                            "glio_noncode.topology_architecture_runtime.run_topology_architecture",
+                            "glio_noncode.topology_architecture_quality.assess_topology_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D09-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -373,6 +382,14 @@ class CapabilityRegistry:
                             "tests.test_cell_state_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D08-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_topology_architecture",
+                            "tests.test_topology_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D09-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),

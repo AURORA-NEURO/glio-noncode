@@ -1,0 +1,91 @@
+"""Schema and object-level validation for the D09 aggregate."""
+
+from __future__ import annotations
+
+from collections.abc import Mapping
+from typing import Any
+
+from .errors import ValidationError
+from .serialization import jsonable
+from .topology_architecture_contracts import (
+    TOPOLOGY_ARCHITECTURE_BOUNDARY,
+    TOPOLOGY_ARCHITECTURE_CONTEXT,
+    TopologyArchitectureFixture,
+)
+
+TOPOLOGY_ARCHITECTURE_SCHEMA_ID = "topology-architecture.aggregate.v1"
+TOPOLOGY_ARCHITECTURE_REQUIRED_FIELDS = (
+    "fixture_id",
+    "version",
+    "boundary",
+    "context_key",
+    "sources",
+    "operations",
+    "cases",
+    "content_address",
+)
+
+
+def normalize_topology_architecture_mapping(raw: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(raw, Mapping):
+        raise ValidationError("D09 mapping must be an object")
+    result = {str(key): jsonable(value) for key, value in raw.items()}
+    missing = [field for field in TOPOLOGY_ARCHITECTURE_REQUIRED_FIELDS if field not in result]
+    if missing:
+        raise ValidationError(f"D09 mapping is missing: {', '.join(missing)}")
+    if not all(isinstance(result[field], list) for field in ("sources", "operations", "cases")):
+        raise ValidationError("D09 source, operation, and case fields must be arrays")
+    return result
+
+
+def validate_topology_architecture_mapping(raw: Mapping[str, Any]) -> tuple[str, ...]:
+    value = normalize_topology_architecture_mapping(raw)
+    errors: list[str] = []
+    if value["boundary"] != TOPOLOGY_ARCHITECTURE_BOUNDARY:
+        errors.append("boundary")
+    if value["context_key"] != TOPOLOGY_ARCHITECTURE_CONTEXT:
+        errors.append("context_key")
+    if len(value["sources"]) != 17:
+        errors.append("sources")
+    if len(value["operations"]) != 16:
+        errors.append("operations")
+    if len(value["cases"]) != 64:
+        errors.append("cases")
+    return tuple(errors)
+
+
+def validate_topology_architecture_fixture(fixture: TopologyArchitectureFixture) -> bool:
+    if not isinstance(fixture, TopologyArchitectureFixture):
+        raise ValidationError("D09 fixture type is required")
+    source_ids = {item.source_id for item in fixture.sources}
+    operation_ids = {item.operation_id for item in fixture.operations}
+    if any(set(item.source_ids) - source_ids for item in (*fixture.operations, *fixture.cases)):
+        raise ValidationError("D09 source join is unresolved")
+    if any(item.operation_id not in operation_ids for item in fixture.cases):
+        raise ValidationError("D09 case operation join is unresolved")
+    if tuple(item.ordinal for item in fixture.operations) != tuple(range(1, 17)):
+        raise ValidationError("D09 operation ordinals must be contiguous")
+    return True
+
+
+def topology_architecture_schema_descriptor() -> dict[str, Any]:
+    return {
+        "schema_id": TOPOLOGY_ARCHITECTURE_SCHEMA_ID,
+        "boundary": TOPOLOGY_ARCHITECTURE_BOUNDARY,
+        "context_key": TOPOLOGY_ARCHITECTURE_CONTEXT,
+        "source_count": 17,
+        "operation_count": 16,
+        "case_count": 64,
+        "cases_per_operation": 4,
+        "control_scenarios": ["foreign_context", "malformed_input", "identity_conflict"],
+    }
+
+
+__all__ = [
+    "TOPOLOGY_ARCHITECTURE_REQUIRED_FIELDS",
+    "TOPOLOGY_ARCHITECTURE_SCHEMA_ID",
+    "normalize_topology_architecture_mapping",
+    "topology_architecture_schema_descriptor",
+    "validate_topology_architecture_fixture",
+    "validate_topology_architecture_mapping",
+]

@@ -1691,6 +1691,16 @@ def _cell_state_architecture_fixture(input_path: str | None):
     )
 
 
+def _topology_architecture_fixture(input_path: str | None):
+    from .topology_architecture_public_data import default_topology_architecture_fixture
+
+    return (
+        default_topology_architecture_fixture(input_path)
+        if input_path
+        else default_topology_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2943,6 +2953,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cell_state_architecture_bundle.add_argument("--input", default=None)
     cell_state_architecture_bundle.add_argument("--output", required=True)
+    topology_architecture_fixture = subparsers.add_parser(
+        "topology-architecture-fixture",
+        help="emit the D09 C01-C16 public aggregate 3D topology fixture",
+    )
+    topology_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("topology-architecture-data-audit", "audit D09 topology sources, context, joins, and scope"),
+        ("topology-architecture-plan", "compile the D09 topology dependency plan"),
+        ("evaluate-topology-architecture", "execute D09 topology family paths and aggregate controls"),
+        ("topology-architecture-runtime", "run the D09 twenty-two-stage topology runtime"),
+        ("topology-architecture-quality", "run the D09 topology release quality gate"),
+        ("topology-architecture-depth", "report D09 topology operation and evidence depth"),
+        ("replay-topology-architecture", "replay D09 topology evaluation deterministically"),
+        ("topology-architecture-report", "emit the D09 topology runtime report"),
+        ("topology-architecture-scenarios", "emit the D09 topology scenario matrix"),
+        ("topology-architecture-sources", "emit the D09 topology source registry"),
+        ("topology-architecture-compliance", "run D09 aggregate-scope compliance checks"),
+        ("topology-architecture-validation", "run D09 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    topology_architecture_query = subparsers.add_parser(
+        "topology-architecture-query", help="query sanitized D09 topology cases"
+    )
+    topology_architecture_query.add_argument("--input", default=None)
+    topology_architecture_query.add_argument("--operation", default=None)
+    topology_architecture_query.add_argument("--family", default=None)
+    topology_architecture_query.add_argument("--scenario", default=None)
+    topology_architecture_query.add_argument("--output", default=None)
+    topology_architecture_bundle = subparsers.add_parser(
+        "topology-architecture-bundle", help="write a D09 topology runtime bundle"
+    )
+    topology_architecture_bundle.add_argument("--input", default=None)
+    topology_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -9042,6 +9087,119 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
             _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
             _write_text(cell_state_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "topology-architecture-fixture":
+            from .topology_architecture_public_data import topology_architecture_fixture_json
+
+            _write_text(topology_architecture_fixture_json(_topology_architecture_fixture(None)), args.output)
+            return 0
+        if args.command == "topology-architecture-data-audit":
+            from .topology_architecture_public_data import audit_topology_architecture_data
+
+            report = audit_topology_architecture_data(_topology_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "topology-architecture-plan":
+            from .topology_architecture_plan import build_topology_architecture_plan
+
+            report = build_topology_architecture_plan(_topology_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-topology-architecture":
+            from .topology_architecture_operations import evaluate_topology_architecture_fixture
+
+            report = evaluate_topology_architecture_fixture(_topology_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "topology-architecture-runtime":
+            from .topology_architecture_runtime import run_topology_architecture
+
+            runtime = run_topology_architecture(_topology_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "topology-architecture-quality":
+            from .topology_architecture_quality import assess_topology_architecture_quality
+            from .topology_architecture_replay import replay_topology_architecture_fixture
+            from .topology_architecture_runtime import run_topology_architecture
+
+            runtime = run_topology_architecture(_topology_architecture_fixture(args.input))
+            gate = assess_topology_architecture_quality(
+                runtime.fixture,
+                runtime.audit,
+                runtime.plan,
+                runtime.evaluation,
+                replay_topology_architecture_fixture(runtime.fixture),
+                runtime.release,
+            )
+            _write_json(gate.to_dict(), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "topology-architecture-depth":
+            from .topology_architecture_depth import assess_topology_architecture_depth, topology_architecture_depth_percent
+            from .topology_architecture_runtime import run_topology_architecture
+
+            runtime = run_topology_architecture(_topology_architecture_fixture(args.input))
+            report = assess_topology_architecture_depth(runtime.fixture, runtime.evaluation)
+            completion_percent = topology_architecture_depth_percent(report)
+            _write_json(report.to_dict() | {"completion_percent": completion_percent}, args.output)
+            return 0 if completion_percent == 100.0 else 2
+        if args.command == "replay-topology-architecture":
+            from .topology_architecture_replay import replay_topology_architecture_fixture
+
+            report = replay_topology_architecture_fixture(_topology_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "topology-architecture-report":
+            from .topology_architecture_reporting import build_topology_architecture_report
+            from .topology_architecture_runtime import run_topology_architecture
+
+            runtime = run_topology_architecture(_topology_architecture_fixture(args.input))
+            _write_json(build_topology_architecture_report(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "topology-architecture-scenarios":
+            from .topology_architecture_query import query_topology_architecture_cases
+            from .topology_architecture_runtime import run_topology_architecture
+
+            runtime = run_topology_architecture(_topology_architecture_fixture(args.input))
+            _write_json({"accepted": runtime.accepted, "cases": query_topology_architecture_cases(runtime)}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "topology-architecture-sources":
+            fixture = _topology_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "topology-architecture-compliance":
+            from .topology_architecture_compliance import assess_topology_architecture_compliance
+
+            report = assess_topology_architecture_compliance(_topology_architecture_fixture(args.input))
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "topology-architecture-validation":
+            from .topology_architecture_operations import evaluate_topology_architecture_fixture
+            from .topology_architecture_schema import validate_topology_architecture_fixture
+
+            fixture = _topology_architecture_fixture(args.input)
+            evaluation = evaluate_topology_architecture_fixture(fixture)
+            report = {"accepted": validate_topology_architecture_fixture(fixture) and evaluation.accepted, "evaluation": evaluation.to_dict()}
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "topology-architecture-query":
+            from .topology_architecture_query import query_topology_architecture_cases
+            from .topology_architecture_runtime import run_topology_architecture
+
+            runtime = run_topology_architecture(_topology_architecture_fixture(args.input))
+            rows = query_topology_architecture_cases(runtime, operation_id=args.operation, family=args.family, scenario=args.scenario)
+            _write_json({"accepted": runtime.accepted, "count": len(rows), "cases": rows}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "topology-architecture-bundle":
+            from .topology_architecture_public_data import topology_architecture_fixture_json
+            from .topology_architecture_runtime import run_topology_architecture
+
+            fixture = _topology_architecture_fixture(args.input)
+            runtime = run_topology_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_text(topology_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)
