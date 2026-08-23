@@ -22,13 +22,65 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage across the sixteen
 domains. The repository ledger now has 256 of 256 capabilities started (100%);
-244 capabilities have deterministic fixture-backed verification and 12 remain
+252 capabilities have deterministic fixture-backed verification and 4 remain
 partial. The frontier surfaces are bounded research infrastructure. Current
-verified coverage is 95.31% of the 256-capability catalog; MVP implementation
+verified coverage is 98.44% of the 256-capability catalog; MVP implementation
 coverage is 93.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
+
+## Domain 16 C05-C12 control/runtime frontier
+
+The C05-C12 tranche is a public aggregate operational plane for eight bounded
+runtime capabilities. It uses the fixed context
+`GRCh38|glioma|adult|stem_like|core|untreated` and the boundary
+`public_aggregate_control_runtime`. The fixture is deliberately synthetic
+aggregate data with public HTTPS receipt placeholders; it contains no
+patient-level rows and makes no biological, diagnostic, treatment, or outcome
+claim.
+
+Each operation has one positive path and three retained controls:
+
+| Capability | Functional operation | Positive boundary | Control families |
+| --- | --- | --- | --- |
+| C05 | Policy and claim gate | declared scope admitted | sensitive path, source gap, mutation scope |
+| C06 | Budget/resource scheduler | dependency-safe work ready | capacity, network limit, dependency cycle |
+| C07 | Deterministic fallback | eligible local route selected | non-retryable, network-only, missing input |
+| C08 | Human review router | bounded item routed | blocker, omission, empty queue |
+| C09 | Execution ledger | valid event history completed | invalid transition, duplicate, foreign context |
+| C10 | Model registry | exact contract compatible | foreign context, contract mismatch, missing version |
+| C11 | Data/reference registry | coordinate and license compatible | foreign context, coordinate, missing reference |
+| C12 | Drift/OOD monitor | in-domain feature ready | watch, drift, out-of-domain |
+
+The depth surface retains 32 records, 160 row checks, 24 runtime stages, 32
+threshold probes, 128 validation cells, and 192 evidence cells. Every receipt
+is content-addressed. The runtime includes schema, adapter, execution,
+metrics, lineage, policy, reconciliation, review, quality, replay, release,
+package, compliance, projection, controls, performance, compatibility,
+support, source, access, benchmark, audit, evidence, diagnostics, and depth
+stages. Positive results are accepted only when all five row checks pass;
+controls remain visible and are never counted as positive success.
+
+Commands:
+
+```powershell
+python -m glio_noncode control-frontier-data-audit --output control-frontier-data.json
+python -m glio_noncode control-frontier-evaluate --output control-frontier-evaluation.json
+python -m glio_noncode control-frontier-pipeline --output control-frontier-runtime.json
+python -m glio_noncode control-frontier-depth --output control-frontier-depth.json
+python -m glio_noncode control-frontier-thresholds --output control-frontier-thresholds.json
+python -m glio_noncode control-frontier-validation-matrix --output control-frontier-validation.json
+python -m glio_noncode control-frontier-handoff --output control-frontier-handoff.json
+python -m glio_noncode control-frontier-review-csv --output control-frontier-review.csv
+```
+
+The implementation is split into contracts, public fixture data, operation
+adapters, evaluation, schema, policy, lineage, reconciliation, quality,
+replay, release, access, reporting, failure injection, and runtime modules.
+The registry marks all eight capabilities verified because these modules are
+covered by focused tests, CLI execution, and the depth audit. Verification is
+limited to the declared aggregate operational boundary.
 
 ## Domain 12 C05-C08 aggregate evidence frontier
 

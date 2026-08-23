@@ -5058,112 +5058,115 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D16-C05": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_beta.PolicyClaimAuditor",
-                    "glio_noncode.control_plane.PolicyClaimGate",
+                    "glio_noncode.control_frontier.ControlFrontierPolicy",
+                    "glio_noncode.control_frontier.run_control_frontier_operation",
+                    "glio_noncode.control_frontier.evaluate_control_frontier_fixture",
                 ),
-                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
                 "evidence_note": (
-                    "Policy audits expose claim ceilings, source allowlist gaps, mutation scope, "
-                    "data scope, sensitive-key paths without raw values, violations, warnings, "
-                    "and policy version before execution; policy-schema expansion and external "
-                    "compliance review remain."
+                    "The aggregate fixture covers claim ceilings, source allowlist gaps, mutation "
+                    "scope, sensitive paths, and control visibility. Five retained checks per row "
+                    "close the positive and negative policy boundaries."
                 ),
             },
             "GNC-D16-C06": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_beta.BudgetResourceScheduler",
-                    "glio_noncode.control_beta.BudgetScheduleResult",
+                    "glio_noncode.control_frontier.run_control_frontier_operation",
+                    "glio_noncode.control_frontier.build_control_frontier_threshold_report",
+                    "glio_noncode.control_frontier.build_control_frontier_operational_matrix",
                 ),
-                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
-                    "Batch scheduling orders dependencies deterministically, accounts for CPU, "
-                    "memory, GPU, storage, network, seconds, cost, capacity rejection, and "
-                    "deferred optional work without executing handlers; concurrent runtime "
-                    "telemetry and production quota integration remain."
+                    "The scheduler adapter exercises dependency, capacity, network, and cycle "
+                    "controls. Threshold probes, operational rows, and retained receipts make "
+                    "resource admission observable without running external work."
                 ),
             },
             "GNC-D16-C07": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_beta.DeterministicFallbackRouter",
-                    "glio_noncode.control_beta.FallbackRoute",
+                    "glio_noncode.control_frontier.run_control_frontier_operation",
+                    "glio_noncode.control_frontier.evaluate_control_frontier_scenarios",
+                    "glio_noncode.control_frontier.run_control_frontier_failure_injections",
                 ),
-                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
-                    "Fallback routing selects only declared eligible alternatives, checks "
-                    "retryable "
-                    "failure, deterministic mode, network permission, required inputs, output "
-                    "contract, and remaining cost, and records every rejected candidate; live "
-                    "provider failover and service-level validation remain."
+                    "The fallback adapter selects a deterministic eligible route and retains "
+                    "non-retryable, network-only, and missing-input controls. Scenario and "
+                    "failure-injection reports verify explicit abstention paths."
                 ),
             },
             "GNC-D16-C08": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.control_beta.HumanReviewQueueRouter",
-                    "glio_noncode.control_beta.ReviewWorkItem",
+                    "glio_noncode.control_frontier.ControlFrontierReviewQueue",
+                    "glio_noncode.control_frontier.build_control_frontier_review_sla",
+                    "glio_noncode.control_frontier.build_control_frontier_handoff",
                 ),
-                "test_modules": ("tests.test_control_beta", "tests.test_control_beta_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
                 "evidence_note": (
-                    "Review queues prioritize abstentions, blockers, non-retryable failures, and "
-                    "explicit review reasons with stable ordering, reviewer roles, source IDs, "
-                    "bounded queue size, and omission warnings; reviewer identity, SLA tracking, "
-                    "and signed adjudication remain."
+                    "Review routing preserves blockers, stable priority, declared roles, source "
+                    "receipts, queue bounds, SLA bands, and handoff state. The omitted and blocked "
+                    "controls remain visible in the public review projection."
                 ),
             },
             "GNC-D16-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.platform_alpha.EventSourcedExecutionLedger",
-                    "glio_noncode.platform_alpha.ExecutionLedger",
+                    "glio_noncode.control_frontier.run_control_frontier_operation",
+                    "glio_noncode.control_frontier.verify_control_frontier_audit_log",
+                    "glio_noncode.control_frontier.replay_control_frontier_evaluation",
                 ),
-                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
-                    "Execution ledgers enforce typed event transitions, contiguous sequence, "
-                    "execution and context identity, duplicate detection, replay, terminal-state "
-                    "receipts, and retained transition issues without asserting scientific success."
+                    "Ledger execution retains event transitions, duplicate and foreign-context "
+                    "controls, replay receipts, audit-log verification, and exact context closure. "
+                    "The public runtime exposes this as an operational receipt."
                 ),
             },
             "GNC-D16-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.platform_alpha.ModelRegistry",
-                    "glio_noncode.platform_alpha.ModelRegistrySnapshot",
+                    "glio_noncode.control_frontier.run_control_frontier_operation",
+                    "glio_noncode.control_frontier.evaluate_control_frontier_compatibility",
+                    "glio_noncode.control_frontier.build_control_frontier_source_registry",
                 ),
-                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
-                    "Model registry resolution preserves artifact digest, version, input/output "
-                    "contracts, exact-context support, status, license, evaluation receipts, and "
-                    "explicit compatibility blockers; it does not validate model performance."
+                    "Model resolution retains digest, version, input/output contracts, exact-context "
+                    "support, status, license, evaluation receipt, and explicit compatibility "
+                    "blockers. This is registry compatibility evidence, not performance evidence."
                 ),
             },
             "GNC-D16-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.platform_alpha.DataReferenceRegistry",
-                    "glio_noncode.platform_alpha.DataReferenceRegistrySnapshot",
+                    "glio_noncode.control_frontier.run_control_frontier_operation",
+                    "glio_noncode.control_frontier.ControlFrontierSourceRegistry",
+                    "glio_noncode.control_frontier.default_control_frontier_data_dictionary",
                 ),
-                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_cli"),
                 "evidence_note": (
-                    "Data/reference registry resolution retains URI, checksum, schema, coordinate "
-                    "system, context, license, retrieval, source, and lifecycle receipts while "
-                    "blocking unsupported or unavailable combinations."
+                    "Reference resolution retains URI, checksum, schema, coordinate system, exact "
+                    "context, license, retrieval receipt, and availability. Foreign, coordinate, "
+                    "license, and missing-reference controls are retained."
                 ),
             },
             "GNC-D16-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.platform_alpha.DriftAndOODMonitor",
-                    "glio_noncode.platform_alpha.DriftMonitorReport",
+                    "glio_noncode.control_frontier.run_control_frontier_operation",
+                    "glio_noncode.control_frontier.build_control_frontier_threshold_report",
+                    "glio_noncode.control_frontier.evaluate_control_frontier_scenarios",
                 ),
-                "test_modules": ("tests.test_platform_alpha", "tests.test_platform_alpha_cli"),
+                "test_modules": ("tests.test_control_frontier", "tests.test_control_frontier_depth"),
                 "evidence_note": (
-                    "Drift and OOD monitoring computes declared mean-delta, PSI, KS-proxy, or "
-                    "missingness signals with watch/drift thresholds, support boundaries, source "
-                    "receipts, and review states; it is not a model-failure or clinical conclusion."
+                    "Drift and out-of-domain monitoring retains watch, drift, and support-boundary "
+                    "controls with declared thresholds, source receipts, and review states. The "
+                    "receipt does not make a model-failure or clinical claim."
                 ),
             },
             "GNC-D16-C13": {

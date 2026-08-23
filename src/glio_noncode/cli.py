@@ -240,6 +240,20 @@ from .control_beta import (
     HumanReviewQueueRouter,
     PolicyClaimAuditor,
 )
+from .control_frontier_access import build_control_frontier_access_manifest
+from .control_frontier_contracts import CONTROL_FRONTIER_CONTEXT_KEY
+from .control_frontier_data_dictionary import default_control_frontier_data_dictionary
+from .control_frontier_depth import audit_control_frontier_depth
+from .control_frontier_exports import export_control_frontier_review_csv
+from .control_frontier_fixture_eval import evaluate_control_frontier_fixture
+from .control_frontier_handoff import build_control_frontier_handoff
+from .control_frontier_metrics import measure_control_frontier
+from .control_frontier_public_data import audit_control_frontier_data, default_control_frontier_fixture
+from .control_frontier_report import render_control_frontier_report
+from .control_frontier_runtime import run_control_frontier_runtime
+from .control_frontier_thresholds import build_control_frontier_threshold_report
+from .control_frontier_validation_matrix import build_control_frontier_validation_matrix
+from .control_frontier_views import build_control_frontier_view
 from .control_plane import (
     ClaimCeiling,
     InvocationRequest,
@@ -4719,6 +4733,24 @@ def build_parser() -> argparse.ArgumentParser:
     for command_name, command_help in lifecycle_beta_frontier_commands:
         command_parser = subparsers.add_parser(command_name, help=command_help)
         command_parser.add_argument("--output", default=None)
+
+    control_frontier_commands = (
+        ("control-frontier-data-audit", "audit Domain 16 C05-C12 public aggregate data"),
+        ("control-frontier-evaluate", "evaluate Domain 16 C05-C12 positive and control rows"),
+        ("control-frontier-pipeline", "run the complete Domain 16 C05-C12 runtime rehearsal"),
+        ("control-frontier-depth", "run Domain 16 C05-C12 depth checks"),
+        ("control-frontier-thresholds", "emit Domain 16 C05-C12 threshold probes"),
+        ("control-frontier-validation-matrix", "emit Domain 16 C05-C12 validation matrix"),
+        ("control-frontier-handoff", "emit Domain 16 C05-C12 review handoff"),
+        ("control-frontier-access", "emit Domain 16 C05-C12 public access manifest"),
+        ("control-frontier-data-dictionary", "emit Domain 16 C05-C12 data dictionary"),
+        ("control-frontier-report", "render Domain 16 C05-C12 review report"),
+    )
+    for command_name, command_help in control_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    control_frontier_csv = subparsers.add_parser("control-frontier-review-csv", help="export Domain 16 C05-C12 review rows")
+    control_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9483,6 +9515,43 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "lifecycle-beta-frontier-handoff":
             _write_json(build_lifecycle_beta_frontier_handoff().to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-data-audit":
+            _write_json(audit_control_frontier_data(default_control_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-evaluate":
+            _write_json(evaluate_control_frontier_fixture(default_control_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-pipeline":
+            _write_json(run_control_frontier_runtime(default_control_frontier_fixture(), run_id="control-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-depth":
+            fixture = default_control_frontier_fixture()
+            _write_json(audit_control_frontier_depth(fixture, evaluate_control_frontier_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-thresholds":
+            _write_json(build_control_frontier_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-validation-matrix":
+            _write_json(build_control_frontier_validation_matrix(evaluate_control_frontier_fixture(default_control_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-handoff":
+            fixture = default_control_frontier_fixture()
+            evaluation = evaluate_control_frontier_fixture(fixture)
+            _write_json(build_control_frontier_handoff(fixture, evaluation, measure_control_frontier(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-access":
+            _write_json(build_control_frontier_access_manifest(default_control_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-data-dictionary":
+            _write_json(default_control_frontier_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "control-frontier-report":
+            _write_text(render_control_frontier_report(run_control_frontier_runtime(default_control_frontier_fixture(), run_id="control-frontier-report")), args.output)
+            return 0
+        if args.command == "control-frontier-review-csv":
+            evaluation = evaluate_control_frontier_fixture(default_control_frontier_fixture())
+            _write_text(export_control_frontier_review_csv(build_control_frontier_view(evaluation)), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)
