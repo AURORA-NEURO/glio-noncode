@@ -872,6 +872,12 @@ jobs:
         run: python -m glio_noncode control-frontier-depth --output /tmp/glio-control-frontier-depth.json && python -m glio_noncode control-frontier-thresholds --output /tmp/glio-control-frontier-thresholds.json && python -m glio_noncode control-frontier-validation-matrix --output /tmp/glio-control-frontier-validation.json && python -m glio_noncode control-frontier-handoff --output /tmp/glio-control-frontier-handoff.json
       - name: Control frontier review and focused tests
         run: python -m glio_noncode control-frontier-review-csv --output /tmp/glio-control-frontier-review.csv && python -m unittest tests.test_control_frontier tests.test_control_frontier_depth tests.test_control_frontier_cli
+      - name: Platform frontier aggregate and runtime
+        run: python -m glio_noncode platform-frontier-data-audit --output /tmp/glio-platform-frontier-data.json && python -m glio_noncode platform-frontier-evaluate --output /tmp/glio-platform-frontier-evaluation.json && python -m glio_noncode platform-frontier-pipeline --output /tmp/glio-platform-frontier-runtime.json
+      - name: Platform frontier depth projections
+        run: python -m glio_noncode platform-frontier-depth --output /tmp/glio-platform-frontier-depth.json && python -m glio_noncode platform-frontier-thresholds --output /tmp/glio-platform-frontier-thresholds.json && python -m glio_noncode platform-frontier-validation-matrix --output /tmp/glio-platform-frontier-validation.json && python -m glio_noncode platform-frontier-handoff --output /tmp/glio-platform-frontier-handoff.json
+      - name: Platform frontier review and focused tests
+        run: python -m glio_noncode platform-frontier-review-csv --output /tmp/glio-platform-frontier-review.csv && python -m unittest tests.test_platform_frontier tests.test_platform_frontier_depth tests.test_platform_frontier_cli tests.test_platform_frontier_extensions
       - name: Workspace frontier data boundary audit
         run: python -m glio_noncode workspace-frontier-data-audit --output /tmp/glio-workspace-frontier-data.json
       - name: Workspace frontier operation contracts

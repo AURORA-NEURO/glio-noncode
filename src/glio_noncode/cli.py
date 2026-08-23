@@ -254,6 +254,19 @@ from .control_frontier_runtime import run_control_frontier_runtime
 from .control_frontier_thresholds import build_control_frontier_threshold_report
 from .control_frontier_validation_matrix import build_control_frontier_validation_matrix
 from .control_frontier_views import build_control_frontier_view
+from .platform_frontier_access import build_platform_frontier_access_manifest
+from .platform_frontier_data_dictionary import default_platform_frontier_data_dictionary
+from .platform_frontier_depth import audit_platform_frontier_depth
+from .platform_frontier_exports import export_platform_frontier_review_csv
+from .platform_frontier_fixture_eval import evaluate_platform_frontier_fixture
+from .platform_frontier_handoff import build_platform_frontier_handoff
+from .platform_frontier_metrics import measure_platform_frontier
+from .platform_frontier_public_data import audit_platform_frontier_data, default_platform_frontier_fixture
+from .platform_frontier_report import render_platform_frontier_report
+from .platform_frontier_runtime import run_platform_frontier_runtime
+from .platform_frontier_thresholds import build_platform_frontier_threshold_report
+from .platform_frontier_validation_matrix import build_platform_frontier_validation_matrix
+from .platform_frontier_views import build_platform_frontier_view
 from .control_plane import (
     ClaimCeiling,
     InvocationRequest,
@@ -4751,6 +4764,24 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     control_frontier_csv = subparsers.add_parser("control-frontier-review-csv", help="export Domain 16 C05-C12 review rows")
     control_frontier_csv.add_argument("--output", default=None)
+
+    platform_frontier_commands = (
+        ("platform-frontier-data-audit", "audit Domain 16 C01-C04 public aggregate data"),
+        ("platform-frontier-evaluate", "evaluate Domain 16 C01-C04 positive and control rows"),
+        ("platform-frontier-pipeline", "run the complete Domain 16 C01-C04 runtime rehearsal"),
+        ("platform-frontier-depth", "run Domain 16 C01-C04 depth checks"),
+        ("platform-frontier-thresholds", "emit Domain 16 C01-C04 threshold probes"),
+        ("platform-frontier-validation-matrix", "emit Domain 16 C01-C04 validation matrix"),
+        ("platform-frontier-handoff", "emit Domain 16 C01-C04 review handoff"),
+        ("platform-frontier-access", "emit Domain 16 C01-C04 public access manifest"),
+        ("platform-frontier-data-dictionary", "emit Domain 16 C01-C04 data dictionary"),
+        ("platform-frontier-report", "render Domain 16 C01-C04 review report"),
+    )
+    for command_name, command_help in platform_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    platform_frontier_csv = subparsers.add_parser("platform-frontier-review-csv", help="export Domain 16 C01-C04 review rows")
+    platform_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9552,6 +9583,46 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "control-frontier-review-csv":
             evaluation = evaluate_control_frontier_fixture(default_control_frontier_fixture())
             _write_text(export_control_frontier_review_csv(build_control_frontier_view(evaluation)), args.output)
+            return 0
+        if args.command == "platform-frontier-data-audit":
+            _write_json(audit_platform_frontier_data(default_platform_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-evaluate":
+            _write_json(evaluate_platform_frontier_fixture(default_platform_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-pipeline":
+            _write_json(run_platform_frontier_runtime(default_platform_frontier_fixture(), run_id="platform-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-depth":
+            fixture = default_platform_frontier_fixture()
+            evaluation = evaluate_platform_frontier_fixture(fixture)
+            _write_json(audit_platform_frontier_depth(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-thresholds":
+            _write_json(build_platform_frontier_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-validation-matrix":
+            _write_json(build_platform_frontier_validation_matrix(evaluate_platform_frontier_fixture(default_platform_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-handoff":
+            fixture = default_platform_frontier_fixture()
+            evaluation = evaluate_platform_frontier_fixture(fixture)
+            _write_json(build_platform_frontier_handoff(fixture, evaluation, measure_platform_frontier(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-access":
+            _write_json(build_platform_frontier_access_manifest(default_platform_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-data-dictionary":
+            _write_json(default_platform_frontier_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "platform-frontier-report":
+            fixture = default_platform_frontier_fixture()
+            evaluation = evaluate_platform_frontier_fixture(fixture)
+            _write_text(render_platform_frontier_report(fixture, evaluation), args.output)
+            return 0
+        if args.command == "platform-frontier-review-csv":
+            evaluation = evaluate_platform_frontier_fixture(default_platform_frontier_fixture())
+            _write_text(export_platform_frontier_review_csv(build_platform_frontier_view(evaluation)), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)

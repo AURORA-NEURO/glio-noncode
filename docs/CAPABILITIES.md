@@ -22,13 +22,54 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage across the sixteen
 domains. The repository ledger now has 256 of 256 capabilities started (100%);
-252 capabilities have deterministic fixture-backed verification and 4 remain
+256 capabilities have deterministic fixture-backed verification and none remain
 partial. The frontier surfaces are bounded research infrastructure. Current
-verified coverage is 98.44% of the 256-capability catalog; MVP implementation
-coverage is 93.75%. The surfaces retain
+verified coverage is 100% of the 256-capability catalog; MVP implementation
+coverage is 100%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
+
+## Domain 16 C01-C04 platform-control frontier
+
+The W1 platform-control slice is implemented as a fresh public aggregate
+runtime over typed planning and execution contracts. It uses the exact context
+`public_platform|research|aggregate|local|v1` and the boundary
+`public_aggregate_platform_runtime`. The fixture has 16 rows: one positive and
+three controls for each of mission planning, workflow compilation, typed tool
+registry resolution, and isolated execution.
+
+| Capability | Positive path | Controls |
+| --- | --- | --- |
+| C01 Mission planner | dependency-complete plan is ready | empty request, unknown role, claim ceiling |
+| C02 Workflow compiler | dependency-safe graph is ready | cycle, missing dependency, network/nondeterminism |
+| C03 Typed tool registry | registered contracts are compatible | missing tool, input mismatch, cardinality |
+| C04 Execution sandbox | registered local handler is admitted | unregistered handler, network denial, sensitive input |
+
+The runtime retains 80 row checks, 24 ordered stages, 16 scenario cells, 16
+threshold probes, 64 validation cells, and 96 evidence cells. It includes
+policy, schema, adapters, lineage, reconciliation, quality, replay, release,
+review, handoff, integrity, depth, package, benchmark, access, and bundle
+projections. Positive paths are accepted only when their state and issue tuple
+match the fixture. Controls remain visible and never count as positive success.
+
+Commands:
+
+```powershell
+python -m glio_noncode platform-frontier-data-audit
+python -m glio_noncode platform-frontier-evaluate
+python -m glio_noncode platform-frontier-pipeline
+python -m glio_noncode platform-frontier-depth
+python -m glio_noncode platform-frontier-thresholds
+python -m glio_noncode platform-frontier-validation-matrix
+python -m glio_noncode platform-frontier-handoff
+python -m glio_noncode platform-frontier-review-csv
+```
+
+The sandbox uses local-only defaults, allowlisted typed handlers, mission
+provenance, event IDs, idempotency, and explicit policy denial. The fixture is
+aggregate operational data and does not claim scientific validity, diagnosis,
+treatment suitability, or clinical action.
 
 ## Domain 16 C05-C12 control/runtime frontier
 

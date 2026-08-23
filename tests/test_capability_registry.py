@@ -15,11 +15,11 @@ class CapabilityRegistryTests(unittest.TestCase):
         coverage = registry.coverage()
         self.assertEqual(coverage.total_capabilities, 256)
         self.assertEqual(coverage.mvp_capabilities, 64)
-        self.assertEqual(coverage.verified, 252)
-        self.assertEqual(coverage.partial, 4)
+        self.assertEqual(coverage.verified, 256)
+        self.assertEqual(coverage.partial, 0)
         self.assertEqual(coverage.planned, 0)
-        self.assertAlmostEqual(coverage.implementation_percent, 98.44)
-        self.assertAlmostEqual(coverage.mvp_implementation_percent, 93.75)
+        self.assertAlmostEqual(coverage.implementation_percent, 100.0)
+        self.assertAlmostEqual(coverage.mvp_implementation_percent, 100.0)
         self.assertEqual(coverage.started, 256)
         self.assertAlmostEqual(coverage.started_percent, 100.0)
         self.assertEqual(coverage.mvp_started, 64)
@@ -179,7 +179,7 @@ class CapabilityRegistryTests(unittest.TestCase):
         self.assertEqual(registry.record("GNC-D15-C10").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D15-C11").state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D15-C12").state, CapabilityState.VERIFIED)
-        for capability_id in ("GNC-D16-C05", "GNC-D16-C06", "GNC-D16-C07", "GNC-D16-C08", "GNC-D16-C09", "GNC-D16-C10", "GNC-D16-C11", "GNC-D16-C12"):
+        for capability_id in ("GNC-D16-C01", "GNC-D16-C02", "GNC-D16-C03", "GNC-D16-C04", "GNC-D16-C05", "GNC-D16-C06", "GNC-D16-C07", "GNC-D16-C08", "GNC-D16-C09", "GNC-D16-C10", "GNC-D16-C11", "GNC-D16-C12"):
             self.assertEqual(registry.record(capability_id).state, CapabilityState.VERIFIED)
         self.assertEqual(registry.record("GNC-D16-C04").spec.capability, "Agent execution sandbox")
         for capability_id in (

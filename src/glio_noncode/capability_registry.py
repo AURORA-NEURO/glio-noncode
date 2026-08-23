@@ -5009,52 +5009,59 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D16-C01": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": ("glio_noncode.mission_runtime.MissionPlanBuilder",),
-                "test_modules": ("tests.test_mission_runtime",),
+                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_depth"),
                 "evidence_note": (
-                    "Mission plans expand declared dependencies, claim ceilings, review "
-                    "requirements, and registry provenance into a replayable decision; "
-                    "adaptive planning benchmarks "
-                    "and production policy review remain."
+                    "The platform frontier adds a public aggregate fixture with one positive "
+                    "and three controls for planning. It verifies dependency expansion, empty "
+                    "requests, unknown roles, claim-ceiling rejection, registry addressing, "
+                    "replay, review routing, and release-boundary evidence."
                 ),
             },
             "GNC-D16-C02": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.mission_runtime.MissionPlanBuilder",
-                    "glio_noncode.workflow.WorkflowCompiler",
+                    "glio_noncode.platform_frontier_operations.run_platform_frontier_operation",
+                    "glio_noncode.platform_frontier_schema.PlatformFrontierSchema",
+                    "glio_noncode.platform_frontier_depth.audit_platform_frontier_depth",
                 ),
-                "test_modules": ("tests.test_mission_runtime", "tests.test_workflow"),
+                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth", "tests.test_platform_frontier_cli"),
                 "evidence_note": (
-                    "Mission plans compile dependency-safe workflows with resource summaries and "
-                    "nondeterminism/network warnings; scheduling performance and migration "
-                    "fixtures "
-                    "remain."
+                    "Workflow compilation is exercised through dependency-safe positive work, "
+                    "cycle and missing-dependency controls, and network or nondeterministic "
+                    "warning retention. Schema, thresholds, validation, evidence, replay, and "
+                    "runtime depth surfaces close the module boundary."
                 ),
             },
             "GNC-D16-C03": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.mission_runtime.TypedToolRegistry",),
-                "test_modules": ("tests.test_mission_runtime", "tests.test_control_plane"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.platform_frontier_adapters.PlatformFrontierAdapterRegistry",
+                    "glio_noncode.platform_frontier_operations.run_platform_frontier_operation",
+                    "glio_noncode.platform_frontier_compatibility.PlatformFrontierCompatibilityReport",
+                ),
+                "test_modules": ("tests.test_platform_frontier", "tests.test_platform_frontier_depth"),
                 "evidence_note": (
-                    "The typed registry exposes owner-checked input/output contracts, safety "
-                    "class, sources, mutation scope, determinism, and review requirements for "
-                    "all 96 tools; "
-                    "external contract consumers and version migration remain."
+                    "The registry adapter resolves typed contracts, exposes safety and mutation "
+                    "metadata, verifies the 96-tool cardinality, and retains missing-tool, "
+                    "contract-mismatch, and cardinality controls. Compatibility and migration "
+                    "receipts are deterministic."
                 ),
             },
             "GNC-D16-C04": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.mission_runtime.ExecutionSandbox",
-                    "glio_noncode.control_plane.ControlPlaneExecutor",
+                    "glio_noncode.platform_frontier_operations.run_platform_frontier_operation",
+                    "glio_noncode.platform_frontier_integrity.PlatformFrontierIntegrityReport",
                 ),
-                "test_modules": ("tests.test_mission_runtime", "tests.test_control_plane"),
+                "test_modules": ("tests.test_mission_runtime", "tests.test_platform_frontier", "tests.test_platform_frontier_cli"),
                 "evidence_note": (
-                    "Sandbox execution requires registered allowlisted handlers, local/network "
-                    "isolation, policy admission, resource scheduling, provenance, event IDs, and "
-                    "idempotent replay; process-level deployment hardening remains."
+                    "Sandbox execution verifies registered local handlers, policy admission, "
+                    "resource scheduling, provenance, event IDs, idempotent replay, local network "
+                    "denial, unregistered-handler denial, and direct-identifier rejection. "
+                    "Nested receipt integrity is recomputed before release."
                 ),
             },
             "GNC-D16-C05": {
