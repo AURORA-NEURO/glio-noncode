@@ -878,6 +878,12 @@ jobs:
         run: python -m glio_noncode platform-frontier-depth --output /tmp/glio-platform-frontier-depth.json && python -m glio_noncode platform-frontier-thresholds --output /tmp/glio-platform-frontier-thresholds.json && python -m glio_noncode platform-frontier-validation-matrix --output /tmp/glio-platform-frontier-validation.json && python -m glio_noncode platform-frontier-handoff --output /tmp/glio-platform-frontier-handoff.json
       - name: Platform frontier review and focused tests
         run: python -m glio_noncode platform-frontier-review-csv --output /tmp/glio-platform-frontier-review.csv && python -m unittest tests.test_platform_frontier tests.test_platform_frontier_depth tests.test_platform_frontier_cli tests.test_platform_frontier_extensions
+      - name: Deployment frontier aggregate and runtime
+        run: python -m glio_noncode deployment-frontier-data-audit --output /tmp/glio-deployment-frontier-data.json && python -m glio_noncode deployment-frontier-evaluate --output /tmp/glio-deployment-frontier-evaluation.json && python -m glio_noncode deployment-frontier-pipeline --output /tmp/glio-deployment-frontier-runtime.json
+      - name: Deployment frontier depth projections
+        run: python -m glio_noncode deployment-frontier-depth --output /tmp/glio-deployment-frontier-depth.json && python -m glio_noncode deployment-frontier-thresholds --output /tmp/glio-deployment-frontier-thresholds.json && python -m glio_noncode deployment-frontier-validation-matrix --output /tmp/glio-deployment-frontier-validation.json && python -m glio_noncode deployment-frontier-handoff --output /tmp/glio-deployment-frontier-handoff.json
+      - name: Deployment frontier review and focused tests
+        run: python -m glio_noncode deployment-frontier-review-csv --output /tmp/glio-deployment-frontier-review.csv && python -m glio_noncode deployment-frontier-access --output /tmp/glio-deployment-frontier-access.json && python -m glio_noncode deployment-frontier-report --output /tmp/glio-deployment-frontier-report.md && python -m glio_noncode deployment-frontier-failure-injection --output /tmp/glio-deployment-frontier-failure.json && python -m unittest tests.test_deployment_frontier tests.test_deployment_frontier_depth tests.test_deployment_frontier_cli tests.test_deployment_frontier_extensions
       - name: Workspace frontier data boundary audit
         run: python -m glio_noncode workspace-frontier-data-audit --output /tmp/glio-workspace-frontier-data.json
       - name: Workspace frontier operation contracts

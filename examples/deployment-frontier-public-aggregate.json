@@ -1,0 +1,756 @@
+{
+  "content_address": "sha256:5c67edc8f1bd9fe17d6556e6c6e5e00183569b287dd01019bb9baa6f6b32dbb2",
+  "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+  "evidence_boundary": "public_aggregate_deployment_governance",
+  "fixture_id": "deployment-frontier-public-aggregate-001",
+  "fixture_version": "2026.08.d16-c13-c16.v1",
+  "records": [
+    {
+      "content_address": "sha256:38a61166d57fea73a8dd4fbe587fe6458c21f259c120d1ddd6cbef3216508ccd",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "notes": "allow aggregate read under declared role and retention",
+      "operation": "privacy_security_policy",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "retention_days": 7,
+            "roles": [
+              "reviewer"
+            ],
+            "subject_id": "principal:research-reviewer"
+          }
+        ]
+      },
+      "record_id": "C13-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:50546fa633387390472c41c55036fe4cc73942df412daf57ea1f57e72aaa14bc",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "role_not_allowed",
+        "required_role_missing"
+      ],
+      "expected_state": "denied",
+      "notes": "role and required-role controls remain denied",
+      "operation": "privacy_security_policy",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "required_role": "reviewer",
+            "retention_days": 7,
+            "roles": [
+              "analyst"
+            ],
+            "subject_id": "principal:research-reviewer"
+          }
+        ]
+      },
+      "record_id": "C13-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:5929ea6dacf157c1a52e65fd07b46d9dbb58115385775f7f2a60fa749041266d",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "denied",
+      "notes": "context mismatch cannot cross the policy boundary",
+      "operation": "privacy_security_policy",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|other",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "retention_days": 7,
+            "roles": [
+              "reviewer"
+            ],
+            "subject_id": "principal:research-reviewer"
+          }
+        ]
+      },
+      "record_id": "C13-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:b5ea6bd47d2963cffef0a602b5e6835b356f57d17b2fe908bcb32c7c5d976d7e",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "sensitive_access_denied"
+      ],
+      "expected_state": "denied",
+      "notes": "sensitive access remains denied by default",
+      "operation": "privacy_security_policy",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "retention_days": 7,
+            "roles": [
+              "reviewer"
+            ],
+            "sensitive": true,
+            "subject_id": "principal:research-reviewer"
+          }
+        ]
+      },
+      "record_id": "C13-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:123d591b056c389c406314f7ddfe2179f72c80fc13cdfaf83ea389b8a22bdcce",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "notes": "digest-addressed offline bundle with dependency-declared services",
+      "operation": "local_deployment_bundle",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "sha256:runtime-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          },
+          {
+            "artifact_id": "schemas",
+            "digest": "sha256:schema-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 512,
+            "version": "2026.08"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": true,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": [
+          {
+            "depends_on": [],
+            "port": 8010,
+            "service_id": "local-api"
+          },
+          {
+            "depends_on": [
+              "local-api"
+            ],
+            "port": 8011,
+            "service_id": "local-worker"
+          }
+        ]
+      },
+      "record_id": "C14-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:d1629f1cd9bf90b6df0f39e0948921b750c864b15f48fc9984264f1155c35f05",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "invalid_digest"
+      ],
+      "expected_state": "hold",
+      "notes": "malformed artifact digest holds release readiness",
+      "operation": "local_deployment_bundle",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "not-a-digest",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": true,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": [
+          {
+            "depends_on": [],
+            "port": 8010,
+            "service_id": "local-api"
+          },
+          {
+            "depends_on": [
+              "local-api"
+            ],
+            "port": 8011,
+            "service_id": "local-worker"
+          }
+        ]
+      },
+      "record_id": "C14-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:b543ab0a3485970358543563d58923d215df49971617c22a7842c68140ff5db0",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "bundle_requirements_missing"
+      ],
+      "expected_state": "hold",
+      "notes": "missing service inventory cannot produce a bundle",
+      "operation": "local_deployment_bundle",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "sha256:runtime-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          },
+          {
+            "artifact_id": "schemas",
+            "digest": "sha256:schema-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 512,
+            "version": "2026.08"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": true,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": []
+      },
+      "record_id": "C14-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:b6ecb6f095ddd0f4acbaf342f4ed2e4058ab8ee693ea09fb068631ce5942f0d9",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "offline_mode_required"
+      ],
+      "expected_state": "hold",
+      "notes": "online-only deployment is outside the local boundary",
+      "operation": "local_deployment_bundle",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "sha256:runtime-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          },
+          {
+            "artifact_id": "schemas",
+            "digest": "sha256:schema-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 512,
+            "version": "2026.08"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": false,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": [
+          {
+            "depends_on": [],
+            "port": 8010,
+            "service_id": "local-api"
+          },
+          {
+            "depends_on": [
+              "local-api"
+            ],
+            "port": 8011,
+            "service_id": "local-worker"
+          }
+        ]
+      },
+      "record_id": "C14-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:075c7ccb984f434a53fa9a3c021c541d5d1b49d63aa4bd2afd3ddcfa7af5d57a",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "notes": "two eligible sites retain only aggregate assignments",
+      "operation": "federated_execution",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 5,
+        "sites": [
+          {
+            "available": true,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          },
+          {
+            "available": true,
+            "sample_count": 18,
+            "site_id": "site-aggregate-b",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "record_id": "C15-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc",
+        "depmap",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:6f2c663dc23df631c6c4cea5b72b49d8996dc21f2428da8f290cfba5b55428db",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "site_unavailable"
+      ],
+      "expected_state": "hold",
+      "notes": "an unavailable required site leaves the task in review",
+      "operation": "federated_execution",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 5,
+        "sites": [
+          {
+            "available": false,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          },
+          {
+            "available": true,
+            "sample_count": 18,
+            "site_id": "site-aggregate-b",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "site_ids": [
+              "site-aggregate-a"
+            ],
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "record_id": "C15-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "depmap",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:109596a56c96da2529cd59a29708e1682e498300734074798e2dc3e28b41c2fa",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "privacy_budget_exceeded"
+      ],
+      "expected_state": "hold",
+      "notes": "privacy cost above the declared budget is denied",
+      "operation": "federated_execution",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 1,
+        "sites": [
+          {
+            "available": true,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          },
+          {
+            "available": true,
+            "sample_count": 18,
+            "site_id": "site-aggregate-b",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "record_id": "C15-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "depmap",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:e22cfcb779630e20dfea0098f8f293f745622f28a5a6d9382a5482208163e877",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "context_not_supported"
+      ],
+      "expected_state": "hold",
+      "notes": "site context mismatch cannot receive a task",
+      "operation": "federated_execution",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 5,
+        "sites": [
+          {
+            "available": true,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "other-context"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "record_id": "C15-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "depmap",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:53bc2b03df2c46777153e21e9fa4dab6b6f781cd7e85b77159f505d958d92d60",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [],
+      "expected_state": "released",
+      "notes": "release passes tests integrity compatibility and policy gates",
+      "operation": "release_rollback",
+      "payload": {
+        "action": "release",
+        "checks": {
+          "compatibility": true,
+          "integrity": true,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": "0.9.0",
+        "release_id": "release-positive",
+        "requested_version": "1.0.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "record_id": "C16-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:f09f2fff5b8c82e7316fabaae4e670499266145a81d1421b064718fb02a3d6c6",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "failed_check:integrity"
+      ],
+      "expected_state": "denied",
+      "notes": "failed integrity gate denies release",
+      "operation": "release_rollback",
+      "payload": {
+        "action": "release",
+        "checks": {
+          "compatibility": true,
+          "integrity": false,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": "0.9.0",
+        "release_id": "release-positive",
+        "requested_version": "1.0.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "record_id": "C16-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:8ea56ff2c78ae48dc390d9909b480faeeefec87120399d5ec2c2461ab8499380",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "previous_version_missing"
+      ],
+      "expected_state": "denied",
+      "notes": "rollback requires a declared previous version",
+      "operation": "release_rollback",
+      "payload": {
+        "action": "rollback",
+        "checks": {
+          "compatibility": true,
+          "integrity": true,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": null,
+        "release_id": "release-positive",
+        "requested_version": "0.8.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "record_id": "C16-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    },
+    {
+      "content_address": "sha256:2b0787ab49d99924a1250cd23d801db737b89ab6b4604ed47bce7d73d307a763",
+      "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "expected_issue_codes": [
+        "version_already_current"
+      ],
+      "expected_state": "denied",
+      "notes": "releasing the current version is denied",
+      "operation": "release_rollback",
+      "payload": {
+        "action": "release",
+        "checks": {
+          "compatibility": true,
+          "integrity": true,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": "0.9.0",
+        "release_id": "release-positive",
+        "requested_version": "0.9.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "record_id": "C16-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "encode",
+        "ga4gh"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:39427a0e744418415f40a5c6a2fc904b281ef903c794bc1493f79f8f30a7b638",
+      "scope": "public aggregate cohort portal",
+      "source_id": "gdc",
+      "title": "NCI Genomic Data Commons",
+      "uri": "https://gdc.cancer.gov/",
+      "version": "current portal"
+    },
+    {
+      "content_address": "sha256:56a5e648f639c491e6b719a2f677b17282bea0c4ebdcfa6c351cfbd4c9b1d5fe",
+      "scope": "public assay and annotation portal",
+      "source_id": "encode",
+      "title": "ENCODE functional genomics portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "current portal"
+    },
+    {
+      "content_address": "sha256:deb8ac358d36c8b0ebd550450ff3c0098b67cdaeb906ef286e4a85a1b8155312",
+      "scope": "public genome-organization portal",
+      "source_id": "four-d",
+      "title": "4D Nucleome data portal",
+      "uri": "https://data.4dnucleome.org/",
+      "version": "current portal"
+    },
+    {
+      "content_address": "sha256:fd21ee25fd8765954ee5e94b76e5d826335e61f6ef4b1cf0e08d7eeae3913537",
+      "scope": "public aggregate comparator portal",
+      "source_id": "depmap",
+      "title": "DepMap public portal",
+      "uri": "https://depmap.org/portal/",
+      "version": "current portal"
+    },
+    {
+      "content_address": "sha256:156653ab6a108e3f683577611b42530b2c92023a7da400d01a19e15e8cba501f",
+      "scope": "public interoperability vocabulary",
+      "source_id": "ga4gh",
+      "title": "GA4GH standards portal",
+      "uri": "https://www.ga4gh.org/",
+      "version": "current portal"
+    }
+  ]
+}

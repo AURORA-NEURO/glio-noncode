@@ -723,11 +723,9 @@ uncertainty, subgroup gaps, feature overlap, privacy floors, and abstentions
 visible. None of them turns an association or posterior score into a clinical
 decision.
 
-The D13-D16 frontier completes all 256 catalog capability code paths with
-partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 244 capabilities are verified against the checked-in
-aggregate fixtures, while 12 capabilities remain partial. Partial means the
-bounded code and tests exist. Verified means the local deterministic fixture and
+The D13-D16 frontier has evidence-backed code paths for all 256 catalog
+capabilities. The current ledger reports 256 of 256 capabilities started and
+verified (100%). Verified means the local deterministic fixture and
 negative-control boundary pass; external validation, calibration, and
 institutional release evidence remain separate.
 

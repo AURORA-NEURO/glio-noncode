@@ -267,6 +267,21 @@ from .platform_frontier_runtime import run_platform_frontier_runtime
 from .platform_frontier_thresholds import build_platform_frontier_threshold_report
 from .platform_frontier_validation_matrix import build_platform_frontier_validation_matrix
 from .platform_frontier_views import build_platform_frontier_view
+from .deployment_frontier_access import build_deployment_frontier_access_manifest
+from .deployment_frontier_data_dictionary import default_deployment_frontier_data_dictionary
+from .deployment_frontier_depth import audit_deployment_frontier_depth
+from .deployment_frontier_exports import export_deployment_frontier_review_csv
+from .deployment_frontier_failure_injection import run_deployment_frontier_failure_injections
+from .deployment_frontier_fixture_eval import evaluate_deployment_frontier_fixture
+from .deployment_frontier_handoff import build_deployment_frontier_handoff
+from .deployment_frontier_metrics import measure_deployment_frontier
+from .deployment_frontier_public_data import audit_deployment_frontier_data, default_deployment_frontier_fixture
+from .deployment_frontier_report import render_deployment_frontier_report
+from .deployment_frontier_review_queue import build_deployment_frontier_review_queue
+from .deployment_frontier_runtime import run_deployment_frontier_runtime
+from .deployment_frontier_thresholds import build_deployment_frontier_threshold_report
+from .deployment_frontier_validation_matrix import build_deployment_frontier_validation_matrix
+from .deployment_frontier_views import build_deployment_frontier_view
 from .control_plane import (
     ClaimCeiling,
     InvocationRequest,
@@ -4782,6 +4797,25 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     platform_frontier_csv = subparsers.add_parser("platform-frontier-review-csv", help="export Domain 16 C01-C04 review rows")
     platform_frontier_csv.add_argument("--output", default=None)
+
+    deployment_frontier_commands = (
+        ("deployment-frontier-data-audit", "audit Domain 16 C13-C16 public aggregate data"),
+        ("deployment-frontier-evaluate", "evaluate Domain 16 C13-C16 positive and control rows"),
+        ("deployment-frontier-pipeline", "run the complete Domain 16 C13-C16 runtime rehearsal"),
+        ("deployment-frontier-depth", "run Domain 16 C13-C16 depth checks"),
+        ("deployment-frontier-thresholds", "emit Domain 16 C13-C16 threshold probes"),
+        ("deployment-frontier-validation-matrix", "emit Domain 16 C13-C16 validation matrix"),
+        ("deployment-frontier-handoff", "emit Domain 16 C13-C16 review handoff"),
+        ("deployment-frontier-access", "emit Domain 16 C13-C16 public access manifest"),
+        ("deployment-frontier-data-dictionary", "emit Domain 16 C13-C16 data dictionary"),
+        ("deployment-frontier-report", "render Domain 16 C13-C16 review report"),
+        ("deployment-frontier-failure-injection", "rehearse Domain 16 C13-C16 control failures"),
+    )
+    for command_name, command_help in deployment_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    deployment_frontier_csv = subparsers.add_parser("deployment-frontier-review-csv", help="export Domain 16 C13-C16 review rows")
+    deployment_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9623,6 +9657,47 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "platform-frontier-review-csv":
             evaluation = evaluate_platform_frontier_fixture(default_platform_frontier_fixture())
             _write_text(export_platform_frontier_review_csv(build_platform_frontier_view(evaluation)), args.output)
+            return 0
+        if args.command == "deployment-frontier-data-audit":
+            _write_json(audit_deployment_frontier_data(default_deployment_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-evaluate":
+            _write_json(evaluate_deployment_frontier_fixture(default_deployment_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-pipeline":
+            _write_json(run_deployment_frontier_runtime(default_deployment_frontier_fixture(), run_id="deployment-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-depth":
+            fixture = default_deployment_frontier_fixture()
+            evaluation = evaluate_deployment_frontier_fixture(fixture)
+            _write_json(audit_deployment_frontier_depth(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-thresholds":
+            _write_json(build_deployment_frontier_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-validation-matrix":
+            _write_json(build_deployment_frontier_validation_matrix(evaluate_deployment_frontier_fixture(default_deployment_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-handoff":
+            fixture = default_deployment_frontier_fixture()
+            evaluation = evaluate_deployment_frontier_fixture(fixture)
+            _write_json(build_deployment_frontier_handoff(fixture, evaluation, measure_deployment_frontier(evaluation), build_deployment_frontier_review_queue(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-access":
+            _write_json(build_deployment_frontier_access_manifest(default_deployment_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-data-dictionary":
+            _write_json(default_deployment_frontier_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-report":
+            _write_text(render_deployment_frontier_report(run_deployment_frontier_runtime(default_deployment_frontier_fixture(), run_id="deployment-frontier-report").summary), args.output)
+            return 0
+        if args.command == "deployment-frontier-failure-injection":
+            _write_json(run_deployment_frontier_failure_injections().to_dict(), args.output)
+            return 0
+        if args.command == "deployment-frontier-review-csv":
+            evaluation = evaluate_deployment_frontier_fixture(default_deployment_frontier_fixture())
+            _write_text(export_deployment_frontier_review_csv(evaluation), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)

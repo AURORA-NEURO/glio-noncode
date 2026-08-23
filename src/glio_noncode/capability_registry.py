@@ -5179,70 +5179,74 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D16-C13": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.PrivacySecurityPolicyEngine",
-                    "glio_noncode.frontier_release_alpha.SecurityPolicyReport",
+                    "glio_noncode.deployment_frontier_operations.run_deployment_frontier_operation",
+                    "glio_noncode.deployment_frontier_policy.DeploymentFrontierPolicy",
+                    "glio_noncode.deployment_frontier_quality_gate.run_deployment_frontier_quality_gate",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_deployment_frontier",
+                    "tests.test_deployment_frontier_depth",
+                    "tests.test_deployment_frontier_cli",
                 ),
                 "evidence_note": (
                     "Privacy/security policy evaluation is deny-by-default and retains roles, sensitive "
-                    "access, network, retention, context, matched policies, and reasons. The fixture "
-                    "verifies an allowed local read and a denied policy-boundary control."
+                    "access, network, retention, context, matched policies, and reasons. The new "
+                    "deployment frontier fixture verifies an allowed aggregate read and three distinct "
+                    "policy-boundary controls."
                 ),
             },
             "GNC-D16-C14": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.LocalDeploymentBundleBuilder",
-                    "glio_noncode.frontier_release_alpha.LocalDeploymentBundle",
+                    "glio_noncode.deployment_frontier_operations.run_deployment_frontier_operation",
+                    "glio_noncode.deployment_frontier_artifacts.DeploymentFrontierArtifactInventory",
+                    "glio_noncode.deployment_frontier_package.DeploymentFrontierPackageManifest",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_deployment_frontier",
+                    "tests.test_deployment_frontier_depth",
+                    "tests.test_deployment_frontier_cli",
                 ),
                 "evidence_note": (
                     "Local deployment bundles retain artifact digests, service manifests, runtime and "
-                    "environment requirements, offline mode, and readiness state. The fixture verifies "
-                    "a digest-addressed offline bundle and a malformed-digest hold."
+                    "environment requirements, offline mode, and readiness state. The deployment frontier "
+                    "fixture verifies a digest-addressed offline bundle and three independent hold controls."
                 ),
             },
             "GNC-D16-C15": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.FederatedExecutionCoordinator",
-                    "glio_noncode.frontier_release_alpha.FederatedExecutionPlan",
+                    "glio_noncode.deployment_frontier_operations.run_deployment_frontier_operation",
+                    "glio_noncode.deployment_frontier_lineage.DeploymentFrontierLineage",
+                    "glio_noncode.deployment_frontier_review_queue.DeploymentFrontierReviewQueue",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_deployment_frontier",
+                    "tests.test_deployment_frontier_depth",
+                    "tests.test_deployment_frontier_cli",
                 ),
                 "evidence_note": (
                     "Federated coordination retains site-local eligibility, context support, sample "
-                    "minimums, privacy costs, assignments, and denied tasks. The fixture verifies "
-                    "one eligible site and the no-site review boundary."
+                    "minimums, privacy costs, assignments, and denied tasks. The deployment frontier "
+                    "fixture verifies eligible aggregate sites plus availability, budget, and context controls."
                 ),
             },
             "GNC-D16-C16": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.ReleaseRollbackController",
-                    "glio_noncode.frontier_release_alpha.ReleaseRollbackDecision",
+                    "glio_noncode.deployment_frontier_release.DeploymentFrontierReleaseManifest",
+                    "glio_noncode.deployment_frontier_rollback.DeploymentFrontierRollbackPlan",
+                    "glio_noncode.deployment_frontier_release_checks.DeploymentFrontierReleaseCheckReport",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_release_alpha_cli",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_deployment_frontier",
+                    "tests.test_deployment_frontier_depth",
+                    "tests.test_deployment_frontier_cli",
                 ),
                 "evidence_note": (
                     "Release and rollback decisions apply explicit tests, integrity, compatibility, "
-                    "policy, version, and previous-version gates with content-addressed receipts. "
-                    "The fixture verifies a released version with the full check set."
+                    "policy, version, and previous-version gates with content-addressed receipts. The "
+                    "deployment frontier fixture verifies a released version and three failed-transition controls."
                 ),
             },
         }

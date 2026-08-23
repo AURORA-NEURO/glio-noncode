@@ -60,6 +60,22 @@ in [docs/CAPABILITIES.md](docs/CAPABILITIES.md). Regulatory tracks can be
 parsed with `parse-track`, and supported small variants can be normalized with
 `normalize`; both commands preserve explicit limitations and abstentions.
 
+The D16 C13–C16 deployment-governance depth surface can be rehearsed locally
+from its public aggregate fixture:
+
+```powershell
+glio-noncode deployment-frontier-data-audit --output deployment-data.json
+glio-noncode deployment-frontier-evaluate --output deployment-evaluation.json
+glio-noncode deployment-frontier-pipeline --output deployment-runtime.json
+glio-noncode deployment-frontier-report --output deployment-report.md
+```
+
+The four operation boundaries, data dictionary, failure modes, and release
+controls are documented in [docs/DEPLOYMENT_FRONTIER_OPERATIONS.md](docs/DEPLOYMENT_FRONTIER_OPERATIONS.md),
+[docs/DEPLOYMENT_FRONTIER_DATA_DICTIONARY.md](docs/DEPLOYMENT_FRONTIER_DATA_DICTIONARY.md),
+[docs/DEPLOYMENT_FRONTIER_FAILURE_MODES.md](docs/DEPLOYMENT_FRONTIER_FAILURE_MODES.md),
+and [docs/DEPLOYMENT_FRONTIER_RELEASE.md](docs/DEPLOYMENT_FRONTIER_RELEASE.md).
+
 ## Design boundaries
 
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.
