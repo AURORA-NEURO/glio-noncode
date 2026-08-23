@@ -282,6 +282,26 @@ from .deployment_frontier_runtime import run_deployment_frontier_runtime
 from .deployment_frontier_thresholds import build_deployment_frontier_threshold_report
 from .deployment_frontier_validation_matrix import build_deployment_frontier_validation_matrix
 from .deployment_frontier_views import build_deployment_frontier_view
+from .validation_release_frontier_access import build_validation_release_access_manifest
+from .validation_release_frontier_data_dictionary import default_validation_release_data_dictionary
+from .validation_release_frontier_depth import audit_validation_release_depth
+from .validation_release_frontier_exports import export_validation_release_review_csv
+from .validation_release_frontier_failure_injection import run_validation_release_failure_injections
+from .validation_release_frontier_fixture_eval import evaluate_validation_release_fixture
+from .validation_release_frontier_handoff import build_validation_release_handoff
+from .validation_release_frontier_metrics import measure_validation_release
+from .validation_release_frontier_public_data import audit_validation_release_frontier_data, default_validation_release_frontier_fixture
+from .validation_release_frontier_report import render_validation_release_report
+from .validation_release_frontier_review_queue import build_validation_release_review_queue
+from .validation_release_frontier_runtime import run_validation_release_runtime
+from .validation_release_frontier_validation_matrix import build_validation_release_validation_matrix
+from .validation_release_frontier_views import build_validation_release_view
+from .validation_release_frontier_quality_gate import run_validation_release_quality_gate
+from .validation_release_frontier_adapters import build_validation_release_adapters
+from .validation_release_frontier_schema import default_validation_release_frontier_schema
+from .validation_release_frontier_lineage import build_validation_release_lineage
+from .validation_release_frontier_reconciliation import reconcile_validation_release
+from .validation_release_frontier_thresholds import build_validation_release_threshold_report
 from .control_plane import (
     ClaimCeiling,
     InvocationRequest,
@@ -4816,6 +4836,26 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     deployment_frontier_csv = subparsers.add_parser("deployment-frontier-review-csv", help="export Domain 16 C13-C16 review rows")
     deployment_frontier_csv.add_argument("--output", default=None)
+
+    validation_release_frontier_commands = (
+        ("validation-release-frontier-data-audit", "audit Domain 13 C13-C16 public aggregate data"),
+        ("validation-release-frontier-evaluate", "evaluate Domain 13 C13-C16 positive and control rows"),
+        ("validation-release-frontier-pipeline", "run the complete Domain 13 C13-C16 runtime rehearsal"),
+        ("validation-release-frontier-depth", "run Domain 13 C13-C16 depth checks"),
+        ("validation-release-frontier-thresholds", "probe Domain 13 C13-C16 numeric and state boundaries"),
+        ("validation-release-frontier-quality", "run Domain 13 C13-C16 quality gate"),
+        ("validation-release-frontier-validation-matrix", "emit Domain 13 C13-C16 validation matrix"),
+        ("validation-release-frontier-handoff", "emit Domain 13 C13-C16 review handoff"),
+        ("validation-release-frontier-access", "emit Domain 13 C13-C16 public access manifest"),
+        ("validation-release-frontier-data-dictionary", "emit Domain 13 C13-C16 data dictionary"),
+        ("validation-release-frontier-report", "render Domain 13 C13-C16 review report"),
+        ("validation-release-frontier-failure-injection", "rehearse Domain 13 C13-C16 control failures"),
+    )
+    for command_name, command_help in validation_release_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    validation_release_frontier_csv = subparsers.add_parser("validation-release-frontier-review-csv", help="export Domain 13 C13-C16 review rows")
+    validation_release_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9698,6 +9738,51 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "deployment-frontier-review-csv":
             evaluation = evaluate_deployment_frontier_fixture(default_deployment_frontier_fixture())
             _write_text(export_deployment_frontier_review_csv(evaluation), args.output)
+            return 0
+        if args.command == "validation-release-frontier-data-audit":
+            _write_json(audit_validation_release_frontier_data(default_validation_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-evaluate":
+            _write_json(evaluate_validation_release_fixture(default_validation_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-pipeline":
+            _write_json(run_validation_release_runtime(default_validation_release_frontier_fixture(), run_id="validation-release-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-depth":
+            fixture = default_validation_release_frontier_fixture()
+            evaluation = evaluate_validation_release_fixture(fixture)
+            _write_json(audit_validation_release_depth(fixture, evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-thresholds":
+            _write_json(build_validation_release_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-quality":
+            fixture = default_validation_release_frontier_fixture()
+            evaluation = evaluate_validation_release_fixture(fixture)
+            _write_json(run_validation_release_quality_gate(audit_validation_release_frontier_data(fixture), evaluation, build_validation_release_adapters(), default_validation_release_frontier_schema(), reconcile_validation_release(fixture, evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-validation-matrix":
+            _write_json(build_validation_release_validation_matrix(evaluate_validation_release_fixture(default_validation_release_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-handoff":
+            fixture = default_validation_release_frontier_fixture()
+            evaluation = evaluate_validation_release_fixture(fixture)
+            _write_json(build_validation_release_handoff(fixture, evaluation, measure_validation_release(evaluation), build_validation_release_review_queue(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-access":
+            _write_json(build_validation_release_access_manifest(default_validation_release_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-data-dictionary":
+            _write_json(default_validation_release_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-report":
+            _write_text(render_validation_release_report(run_validation_release_runtime(default_validation_release_frontier_fixture(), run_id="validation-release-frontier-report").summary), args.output)
+            return 0
+        if args.command == "validation-release-frontier-failure-injection":
+            _write_json(run_validation_release_failure_injections().to_dict(), args.output)
+            return 0
+        if args.command == "validation-release-frontier-review-csv":
+            _write_text(export_validation_release_review_csv(evaluate_validation_release_fixture(default_validation_release_frontier_fixture())), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)

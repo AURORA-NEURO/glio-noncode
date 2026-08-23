@@ -1,0 +1,686 @@
+{
+  "content_address": "sha256:bef0d04ca1583771f25b005dfea69b988a5067264057bed654ab03ac9bc944f5",
+  "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+  "evidence_boundary": "public_aggregate_validation_release_planning",
+  "fixture_id": "validation-release-public-aggregate-001",
+  "fixture_version": "2026.08.d13-c13-c16.v1",
+  "records": [
+    {
+      "content_address": "sha256:d1bef023fc5df9f5fb68d8891248bc3e22f43f83fc8f9794becb1aca89c51a6c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "notes": "low weighted off-target burden remains eligible for review planning",
+      "operation": "off_target_risk",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-001",
+            "score": 0.04,
+            "weight": 1.0
+          },
+          {
+            "candidate_id": "alt-002",
+            "score": 0.08,
+            "weight": 0.5
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-001"
+      },
+      "record_id": "C13-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "ncbi",
+        "ensembl",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:2358cd4738d909700dfca30ca51aab4845c8dc5d1455f157d42f66777d721f5e",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "off_target_risk_high"
+      ],
+      "expected_state": "blocked",
+      "notes": "high maximum burden blocks the target",
+      "operation": "off_target_risk",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-high",
+            "score": 0.78,
+            "weight": 1.0
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-high"
+      },
+      "record_id": "C13-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "ncbi",
+        "ensembl",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:d4dbc5f18e7e77cedce4e138c2cb8b6012f330b43de40426c76053906c1f2c97",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign context cannot be transported",
+      "operation": "off_target_risk",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-001",
+            "score": 0.04,
+            "weight": 1.0
+          },
+          {
+            "candidate_id": "alt-002",
+            "score": 0.08,
+            "weight": 0.5
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-foreign"
+      },
+      "record_id": "C13-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "ncbi",
+        "ensembl",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:e43c6184d4bb114754ae7b5ab1e1278377584cbff8929d143d7d9b2f9c578f7d",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "invalid_payload"
+      ],
+      "expected_state": "rejected",
+      "notes": "malformed score is rejected explicitly",
+      "operation": "off_target_risk",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-bad",
+            "score": "not-a-score",
+            "weight": 1.0
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-malformed"
+      },
+      "record_id": "C13-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "ncbi",
+        "ensembl",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:cecfeeaa7be37ca04929adb89f42df74a2e04a21f57ca2dd70889aa7c63f96e9",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "notes": "dependency-safe experiments fit the declared planning budget",
+      "operation": "value_of_information",
+      "payload": {
+        "budget": 12.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "experiments": [
+          {
+            "cost": 4.0,
+            "experiment_id": "exp-baseline",
+            "information_gain": 0.45,
+            "prerequisites": [],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-functional",
+            "information_gain": 0.35,
+            "prerequisites": [
+              "exp-baseline"
+            ],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-replicate",
+            "information_gain": 0.25,
+            "prerequisites": [
+              "exp-functional"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-plan-001"
+      },
+      "record_id": "C14-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:4c4917c368b773a2a37fd8c2fefdd3efb16fda394377576c799292ff7715faf5",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "review",
+      "notes": "insufficient budget leaves an explicit review plan",
+      "operation": "value_of_information",
+      "payload": {
+        "budget": 2.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "experiments": [
+          {
+            "cost": 4.0,
+            "experiment_id": "exp-baseline",
+            "information_gain": 0.45,
+            "prerequisites": [],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-functional",
+            "information_gain": 0.35,
+            "prerequisites": [
+              "exp-baseline"
+            ],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-replicate",
+            "information_gain": 0.25,
+            "prerequisites": [
+              "exp-functional"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-low-budget"
+      },
+      "record_id": "C14-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:dc49e933eb97b22c079dd9990e31e94ca07174d0c2813a4b31e6f3d57690269f",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "prerequisite_cycle"
+      ],
+      "expected_state": "blocked",
+      "notes": "cyclic prerequisites cannot be scheduled",
+      "operation": "value_of_information",
+      "payload": {
+        "budget": 12.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "experiments": [
+          {
+            "cost": 2.0,
+            "experiment_id": "exp-a",
+            "information_gain": 0.5,
+            "prerequisites": [
+              "exp-b"
+            ],
+            "risk_reduction": 0.2
+          },
+          {
+            "cost": 2.0,
+            "experiment_id": "exp-b",
+            "information_gain": 0.4,
+            "prerequisites": [
+              "exp-a"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-cycle"
+      },
+      "record_id": "C14-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:bdcada77a886152863152c8f15b763190bae713c9e533f93e28f25c103519077",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign context cannot enter the plan",
+      "operation": "value_of_information",
+      "payload": {
+        "budget": 12.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "experiments": [
+          {
+            "cost": 4.0,
+            "experiment_id": "exp-baseline",
+            "information_gain": 0.45,
+            "prerequisites": [],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-functional",
+            "information_gain": 0.35,
+            "prerequisites": [
+              "exp-baseline"
+            ],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-replicate",
+            "information_gain": 0.25,
+            "prerequisites": [
+              "exp-functional"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-foreign"
+      },
+      "record_id": "C14-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:1e546f88830fad6f036696f9b9973228192c55bc0483576ef962977f62006d68",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "packaged",
+      "notes": "experiment, control, and protocol manifests close with addresses",
+      "operation": "experiment_package",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "ctrl-negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "ctrl-reference",
+            "type": "reference"
+          }
+        ],
+        "experiments": [
+          {
+            "experiment_id": "exp-baseline",
+            "objective": "reference assay",
+            "readout": "declared signal"
+          },
+          {
+            "experiment_id": "exp-functional",
+            "objective": "functional follow-up",
+            "readout": "replicate signal"
+          }
+        ],
+        "package_id": "validation-package-001",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "record_id": "C15-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:3fa3e2dd7c300993ed0b4641fae36b1419628c1a9a53eea3d1b4017bcb2e52aa",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "experiments_missing"
+      ],
+      "expected_state": "rejected",
+      "notes": "empty experiment set cannot be packaged",
+      "operation": "experiment_package",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "ctrl-negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "ctrl-reference",
+            "type": "reference"
+          }
+        ],
+        "experiments": [],
+        "package_id": "package-missing",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "record_id": "C15-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:b0320854542316e748b302cacedd230ebc417582ac4c4a2027619c887933b016",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "duplicate_package_id"
+      ],
+      "expected_state": "review",
+      "notes": "cross-file identity collision remains reviewable",
+      "operation": "experiment_package",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "exp-baseline",
+            "type": "collision"
+          }
+        ],
+        "experiments": [
+          {
+            "experiment_id": "exp-baseline",
+            "objective": "reference assay",
+            "readout": "declared signal"
+          },
+          {
+            "experiment_id": "exp-functional",
+            "objective": "functional follow-up",
+            "readout": "replicate signal"
+          }
+        ],
+        "package_id": "package-duplicate",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "record_id": "C15-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:863094db2a08a6f131145cc340858a6c76c48728678da65bf661dc1125dfc7b5",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign package context is blocked",
+      "operation": "experiment_package",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          {
+            "control_id": "ctrl-negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "ctrl-reference",
+            "type": "reference"
+          }
+        ],
+        "experiments": [
+          {
+            "experiment_id": "exp-baseline",
+            "objective": "reference assay",
+            "readout": "declared signal"
+          },
+          {
+            "experiment_id": "exp-functional",
+            "objective": "functional follow-up",
+            "readout": "replicate signal"
+          }
+        ],
+        "package_id": "package-foreign",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "record_id": "C15-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:f05cb8cf22838e2694c4941957784b40ba17b0bf2bc766364effd1ffff475fd3",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "updated",
+      "notes": "known claim receives an exact-context result receipt",
+      "operation": "claim_update",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "effect_direction": "increased",
+            "effect_size": 0.41,
+            "evidence_address": "sha256:evidence-001",
+            "result_id": "result-001"
+          }
+        ]
+      },
+      "record_id": "C16-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:cb2ad3707cf11d448115e126e1a40ddeeb96501d70516ec76ecc20c579dbceae",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "unknown_claim"
+      ],
+      "expected_state": "review",
+      "notes": "unknown claim remains review-only",
+      "operation": "claim_update",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-unknown",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "evidence_address": "sha256:evidence-unknown",
+            "result_id": "result-unknown"
+          }
+        ]
+      },
+      "record_id": "C16-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:c6ca41a99ebe0c9bc8e534ca02a3b08a44f29a8eb05d8e20d66b5d867a76699c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign result cannot update a claim",
+      "operation": "claim_update",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "effect_direction": "increased",
+            "effect_size": 0.41,
+            "evidence_address": "sha256:evidence-001",
+            "result_id": "result-001"
+          }
+        ]
+      },
+      "record_id": "C16-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    },
+    {
+      "content_address": "sha256:7bb004ccd9a5cec703db67ac4f1ef069ed1c389408992a8edf116a0272d70b7a",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "evidence_address_missing"
+      ],
+      "expected_state": "review",
+      "notes": "result without an evidence receipt stays review-only",
+      "operation": "claim_update",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "effect_direction": "increased",
+            "effect_size": 0.41,
+            "result_id": "result-001"
+          }
+        ]
+      },
+      "record_id": "C16-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "gdc",
+        "encode"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:12d4e666be1910e22fe5c31d9bef6345ee03e4f354bd00d4fdd2d7897401d267",
+      "scope": "public sequence and genome reference",
+      "source_id": "ncbi",
+      "title": "NCBI Gene and Genome resources",
+      "uri": "https://www.ncbi.nlm.nih.gov/",
+      "version": "current public portal"
+    },
+    {
+      "content_address": "sha256:3d8284ce11c0d5ef6e70938a0c44793e309f4651160c4c5359761b6a6876575d",
+      "scope": "public genome annotation reference",
+      "source_id": "ensembl",
+      "title": "Ensembl genome browser",
+      "uri": "https://www.ensembl.org/",
+      "version": "current public portal"
+    },
+    {
+      "content_address": "sha256:376905f194e1061bc5a64ff58c7db5c48efe2e1c04d9be2e2307ced54272245e",
+      "scope": "public regulatory assay reference",
+      "source_id": "encode",
+      "title": "ENCODE project portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "current public portal"
+    },
+    {
+      "content_address": "sha256:b45e6f5c1f59e0e58b1ce73bef7d4e6e55c92d868ffc2cbe5c4ec596e38860fc",
+      "scope": "public construct and protocol reference",
+      "source_id": "addgene",
+      "title": "Addgene plasmid repository",
+      "uri": "https://www.addgene.org/",
+      "version": "current public portal"
+    },
+    {
+      "content_address": "sha256:169019a4d5c7436c46745f8151caeea072bd3ca3f4228de784c530f2a3b1efa2",
+      "scope": "public aggregate disease reference",
+      "source_id": "gdc",
+      "title": "NCI Genomic Data Commons",
+      "uri": "https://gdc.cancer.gov/",
+      "version": "current public portal"
+    }
+  ]
+}

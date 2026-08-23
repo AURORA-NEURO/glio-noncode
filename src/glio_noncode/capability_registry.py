@@ -4418,70 +4418,79 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C13": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.OffTargetRiskEstimator",
-                    "glio_noncode.frontier_release_alpha.OffTargetRiskReport",
+                    "glio_noncode.validation_release_frontier_operations.evaluate_off_target_risk",
+                    "glio_noncode.validation_release_frontier_public_data",
+                    "glio_noncode.validation_release_frontier_fixture_eval",
+                    "glio_noncode.validation_release_frontier_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_release_alpha_cli",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_validation_release_frontier",
+                    "tests.test_validation_release_frontier_depth",
+                    "tests.test_validation_release_frontier_cli",
+                    "tests.test_validation_release_frontier_extensions",
                 ),
                 "evidence_note": (
                     "Off-target estimates retain candidate scores, weights, maximum and weighted "
-                    "burden, specificity, thresholds, and review or blocking issues. The checked-in "
-                    "glioma frontier fixture verifies an accepted path and a context-mismatch gate."
+                    "burden, specificity, thresholds, and review or blocking issues. The dedicated "
+                    "public aggregate fixture verifies low-risk, high-risk, foreign-context, and "
+                    "malformed-score controls through five checks per row."
                 ),
             },
             "GNC-D13-C14": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.ValidationValueOfInformationOptimizer",
-                    "glio_noncode.frontier_release_alpha.ValueOfInformationPlan",
+                    "glio_noncode.validation_release_frontier_operations.evaluate_value_of_information",
+                    "glio_noncode.validation_release_frontier_execution_plan",
+                    "glio_noncode.validation_release_frontier_depth",
+                    "glio_noncode.validation_release_frontier_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_validation_release_frontier",
+                    "tests.test_validation_release_frontier_depth",
+                    "tests.test_validation_release_frontier_cli",
                 ),
                 "evidence_note": (
-                    "Validation value-of-information planning selects prerequisite-safe experiments "
-                    "by information/risk value density under a declared budget. A public-identifier "
-                    "fixture verifies prerequisite ordering and a deterministic content receipt."
+                    "Validation value-of-information planning selects dependency-safe experiments "
+                    "by information/risk value density under a declared budget. Controls exercise "
+                    "budget insufficiency, missing dependencies, cycles, and foreign context."
                 ),
             },
             "GNC-D13-C15": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.ExperimentPackageExporter",
-                    "glio_noncode.frontier_release_alpha.ExperimentPackage",
+                    "glio_noncode.validation_release_frontier_operations.evaluate_experiment_package",
+                    "glio_noncode.validation_release_frontier_artifacts",
+                    "glio_noncode.validation_release_frontier_package",
+                    "glio_noncode.validation_release_frontier_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_validation_release_frontier",
+                    "tests.test_validation_release_frontier_depth",
+                    "tests.test_validation_release_frontier_cli",
                 ),
                 "evidence_note": (
                     "Experiment packages retain experiment, control, and protocol IDs with per-file "
-                    "content addresses and a deterministic manifest. The frontier fixture exercises "
-                    "the package through readiness and receipt checks."
+                    "content addresses and a deterministic manifest. Controls exercise empty input, "
+                    "identity collision, and foreign-context package boundaries."
                 ),
             },
             "GNC-D13-C16": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.frontier_release_alpha.ResultIngestionClaimUpdater",
-                    "glio_noncode.frontier_release_alpha.ClaimUpdateReport",
+                    "glio_noncode.validation_release_frontier_operations.evaluate_claim_update",
+                    "glio_noncode.validation_release_frontier_reconciliation",
+                    "glio_noncode.validation_release_frontier_release_checks",
+                    "glio_noncode.validation_release_frontier_runtime",
                 ),
                 "test_modules": (
-                    "tests.test_frontier_release_alpha",
-                    "tests.test_frontier_fixture_eval",
-                    "tests.test_frontier_fixture_cli",
+                    "tests.test_validation_release_frontier",
+                    "tests.test_validation_release_frontier_depth",
+                    "tests.test_validation_release_frontier_cli",
                 ),
                 "evidence_note": (
                     "Result ingestion updates known claims only with exact context, result identity, "
-                    "changed fields, evidence address, and unknown-claim review. The fixture verifies "
-                    "a supported research result and preserves the declared evidence boundary."
+                    "changed fields, evidence address, and unknown-claim review. Controls preserve "
+                    "unknown-claim, foreign-context, and missing-receipt states."
                 ),
             },
             "GNC-D14-C01": {

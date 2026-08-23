@@ -76,6 +76,25 @@ controls are documented in [docs/DEPLOYMENT_FRONTIER_OPERATIONS.md](docs/DEPLOYM
 [docs/DEPLOYMENT_FRONTIER_FAILURE_MODES.md](docs/DEPLOYMENT_FRONTIER_FAILURE_MODES.md),
 and [docs/DEPLOYMENT_FRONTIER_RELEASE.md](docs/DEPLOYMENT_FRONTIER_RELEASE.md).
 
+The D13 C13–C16 validation-release frontier provides independent depth for
+off-target risk, validation value-of-information planning, experiment package
+manifests, and result-to-claim updates. It uses 16 aggregate planning rows,
+80 row checks, 50 ordered runtime stages, and a checked-in public fixture:
+
+```powershell
+glio-noncode validation-release-frontier-data-audit --output validation-release-data.json
+glio-noncode validation-release-frontier-evaluate --output validation-release-evaluation.json
+glio-noncode validation-release-frontier-pipeline --output validation-release-runtime.json
+glio-noncode validation-release-frontier-review-csv --output validation-release-review.csv
+```
+
+See [docs/VALIDATION_RELEASE_FRONTIER_OPERATIONS.md](docs/VALIDATION_RELEASE_FRONTIER_OPERATIONS.md),
+[docs/VALIDATION_RELEASE_FRONTIER_DATA_DICTIONARY.md](docs/VALIDATION_RELEASE_FRONTIER_DATA_DICTIONARY.md),
+[docs/VALIDATION_RELEASE_FRONTIER_FAILURE_MODES.md](docs/VALIDATION_RELEASE_FRONTIER_FAILURE_MODES.md),
+and [docs/VALIDATION_RELEASE_FRONTIER_RELEASE.md](docs/VALIDATION_RELEASE_FRONTIER_RELEASE.md).
+The callable surface is listed in [docs/VALIDATION_RELEASE_FRONTIER_API.md](docs/VALIDATION_RELEASE_FRONTIER_API.md),
+with the release audit in [docs/VALIDATION_RELEASE_FRONTIER_CHECKLIST.md](docs/VALIDATION_RELEASE_FRONTIER_CHECKLIST.md).
+
 ## Design boundaries
 
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.
