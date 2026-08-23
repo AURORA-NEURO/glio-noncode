@@ -1,0 +1,723 @@
+{
+  "content_address": "sha256:01bfae4e829e7e1c77fe318af70706869955018af98d2b5b4e3e697a27d8b0f2",
+  "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+  "evidence_boundary": "public_aggregate_validation_design_planning",
+  "fixture_id": "validation-design-public-aggregate-001",
+  "fixture_version": "2026.08.d13-c01-c04.v1",
+  "records": [
+    {
+      "capability": "evidence-gap-analysis",
+      "content_address": "sha256:b78b6d755d0b0679f815ab6f9f61386e11a86f95a767da94cd0b4e2cfb018e5b",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "notes": "all required planning dimensions have public support receipts",
+      "operation": "gap_analysis",
+      "payload": {
+        "available_evidence": [
+          {
+            "dimension": "sequence",
+            "source_ids": [
+              "europepmc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "regulatory",
+            "source_ids": [
+              "encode",
+              "gdc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "functional",
+            "source_ids": [
+              "pubmed"
+            ],
+            "state": "supported"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C01-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "europepmc",
+        "encode",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "evidence-gap-analysis",
+      "content_address": "sha256:85492ebb479799c561fa8b5aee0678cc244bff6b4e106dfd41ed734082dc3b2f",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "gap_dimensions"
+      ],
+      "expected_state": "review",
+      "notes": "an uncovered replication dimension remains explicit",
+      "operation": "gap_analysis",
+      "payload": {
+        "available_evidence": [
+          {
+            "dimension": "sequence",
+            "source_ids": [
+              "europepmc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "regulatory",
+            "source_ids": [
+              "encode",
+              "gdc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "functional",
+            "source_ids": [
+              "pubmed"
+            ],
+            "state": "supported"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional",
+          "replication"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C01-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "encode",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "evidence-gap-analysis",
+      "content_address": "sha256:6e6307e4e9b57276bedcb551597e4d8267d46e4da5930df2d33043353a82ed86",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "gap_dimensions"
+      ],
+      "expected_state": "review",
+      "notes": "an empty evidence inventory remains review-only",
+      "operation": "gap_analysis",
+      "payload": {
+        "available_evidence": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C01-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "encode",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "evidence-gap-analysis",
+      "content_address": "sha256:855088b1a81890dff94822c84e3239b262eff8c02a8fc42a81a6363a7398d1b6",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign planning context is blocked",
+      "operation": "gap_analysis",
+      "payload": {
+        "available_evidence": [
+          {
+            "dimension": "sequence",
+            "source_ids": [
+              "europepmc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "regulatory",
+            "source_ids": [
+              "encode",
+              "gdc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "functional",
+            "source_ids": [
+              "pubmed"
+            ],
+            "state": "supported"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C01-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "europepmc",
+        "encode",
+        "gdc"
+      ]
+    },
+    {
+      "capability": "assay-eligibility-routing",
+      "content_address": "sha256:6be8f10b1ca563c5df09710fb999dfceb3e75e496cc9782b129946730cdb3eab",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "routed",
+      "notes": "the requested assay has a supported bounded capability",
+      "operation": "assay_eligibility",
+      "payload": {
+        "capabilities": [
+          {
+            "assay": "mpra",
+            "limits": {
+              "max_constructs": 24
+            },
+            "readouts": [
+              "allele_activity"
+            ],
+            "supported": true
+          },
+          {
+            "assay": "starr_seq",
+            "limits": {
+              "max_constructs": 16
+            },
+            "readouts": [
+              "element_activity"
+            ],
+            "supported": true
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "requested_assay": "mpra",
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C02-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "pubmed",
+        "addgene"
+      ]
+    },
+    {
+      "capability": "assay-eligibility-routing",
+      "content_address": "sha256:641282a72ca4173603dc52d4c9516a8232c97d07e11beeeab441b9aa551b4d27",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "assay_unsupported"
+      ],
+      "expected_state": "review",
+      "notes": "unsupported assay remains review-only",
+      "operation": "assay_eligibility",
+      "payload": {
+        "capabilities": [
+          {
+            "assay": "mpra",
+            "limits": {
+              "max_constructs": 24
+            },
+            "readouts": [
+              "allele_activity"
+            ],
+            "supported": true
+          },
+          {
+            "assay": "starr_seq",
+            "limits": {
+              "max_constructs": 16
+            },
+            "readouts": [
+              "element_activity"
+            ],
+            "supported": true
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "requested_assay": "unsupported_assay",
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C02-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "pubmed",
+        "addgene"
+      ]
+    },
+    {
+      "capability": "assay-eligibility-routing",
+      "content_address": "sha256:edab2c9e8b848c23bc5eec35485a81acb231e26712dccf101bbebcd1e976c4b1",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "assay_unsupported"
+      ],
+      "expected_state": "review",
+      "notes": "no capability receipt remains review-only",
+      "operation": "assay_eligibility",
+      "payload": {
+        "capabilities": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "requested_assay": "mpra",
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C02-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "pubmed",
+        "addgene"
+      ]
+    },
+    {
+      "capability": "assay-eligibility-routing",
+      "content_address": "sha256:6b9bdeabb95da70abd8952845e46556c6a9e32c960c64e8182e630a4a4867796",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign assay routing is blocked",
+      "operation": "assay_eligibility",
+      "payload": {
+        "capabilities": [
+          {
+            "assay": "mpra",
+            "limits": {
+              "max_constructs": 24
+            },
+            "readouts": [
+              "allele_activity"
+            ],
+            "supported": true
+          },
+          {
+            "assay": "starr_seq",
+            "limits": {
+              "max_constructs": 16
+            },
+            "readouts": [
+              "element_activity"
+            ],
+            "supported": true
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "requested_assay": "mpra",
+        "target_id": "target-regulatory-001"
+      },
+      "record_id": "D13-C02-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "pubmed",
+        "addgene"
+      ]
+    },
+    {
+      "capability": "mpra-construct-package",
+      "content_address": "sha256:1cd5f71bfc70fc3744888e7b97fd1163dc032946932813791de8bbab9c61c4d9",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "packaged",
+      "notes": "allele-paired bounded constructs and controls close the package",
+      "operation": "mpra_package",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "alternate": "G",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          },
+          {
+            "alternate": "T",
+            "construct_id": "mpra-alt",
+            "reference": "C",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "record_id": "D13-C03-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "capability": "mpra-construct-package",
+      "content_address": "sha256:a3fe8e24018b4fdad8fc338cef3c325ab5ef693039514fe64c5d54197942c3c2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "allele_unchanged"
+      ],
+      "expected_state": "review",
+      "notes": "unchanged reference/alternate pair remains review-only",
+      "operation": "mpra_package",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "alternate": "A",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "record_id": "D13-C03-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "capability": "mpra-construct-package",
+      "content_address": "sha256:44589c5999adf541b0d66a2fffd26f540036939867c78532c32c11630e2764f2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "construct_budget_exceeded"
+      ],
+      "expected_state": "review",
+      "notes": "budget overflow remains review-only",
+      "operation": "mpra_package",
+      "payload": {
+        "construct_budget": 1,
+        "constructs": [
+          {
+            "alternate": "G",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          },
+          {
+            "alternate": "T",
+            "construct_id": "mpra-alt",
+            "reference": "C",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "record_id": "D13-C03-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "capability": "mpra-construct-package",
+      "content_address": "sha256:9065139c997a12dde0a0befab783d654b2526487b467d17b055f533f64fd0153",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign MPRA package is blocked",
+      "operation": "mpra_package",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "alternate": "G",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          },
+          {
+            "alternate": "T",
+            "construct_id": "mpra-alt",
+            "reference": "C",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "record_id": "D13-C03-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "capability": "starrseq-construct-package",
+      "content_address": "sha256:941cc5aa49be242ccbaebbfb5d04c07175979a1b2cb7fde16f70c0bffeabf4fe",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [],
+      "expected_state": "packaged",
+      "notes": "bounded element constructs and controls close the package",
+      "operation": "starrseq_package",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "construct_id": "starr-enhancer-001",
+            "element_id": "enhancer-001",
+            "sequence_length": 240,
+            "strand": "+"
+          },
+          {
+            "construct_id": "starr-enhancer-002",
+            "element_id": "enhancer-002",
+            "sequence_length": 220,
+            "strand": "-"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "record_id": "D13-C04-POS-001",
+      "role": "positive",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "capability": "starrseq-construct-package",
+      "content_address": "sha256:f3b18e84de9ddc24d14e74b4cd9078f4c7d3562d819111fd8b8e616526433274",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "construct_field_missing"
+      ],
+      "expected_state": "review",
+      "notes": "unsupported strand is held for review",
+      "operation": "starrseq_package",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "construct_id": "starr-enhancer-001",
+            "element_id": "enhancer-001",
+            "sequence_length": 240,
+            "strand": "?"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "record_id": "D13-C04-CTRL-001",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "capability": "starrseq-construct-package",
+      "content_address": "sha256:537bbd9e0bc26deed0f2e4b647bb7216173c70fe2c8f24bf2a3169a55c521fdd",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "expected_issue_codes": [
+        "constructs_missing"
+      ],
+      "expected_state": "review",
+      "notes": "empty construct set remains review-only",
+      "operation": "starrseq_package",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "record_id": "D13-C04-CTRL-002",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    },
+    {
+      "capability": "starrseq-construct-package",
+      "content_address": "sha256:af7a24f0b77a19767366c848ebc784388c3c9c37799a0b773f50deacdd4e02f3",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "notes": "foreign STARR-seq package is blocked",
+      "operation": "starrseq_package",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "construct_id": "starr-enhancer-001",
+            "element_id": "enhancer-001",
+            "sequence_length": 240,
+            "strand": "+"
+          },
+          {
+            "construct_id": "starr-enhancer-002",
+            "element_id": "enhancer-002",
+            "sequence_length": 220,
+            "strand": "-"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "record_id": "D13-C04-CTRL-003",
+      "role": "control",
+      "source_ids": [
+        "addgene",
+        "encode"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:9ce0523ea867bffe70d8a6fa62d0a305d6b3f714c0fefe3f26de0e529e35de7c",
+      "scope": "public literature and citation index",
+      "source_id": "europepmc",
+      "title": "Europe PMC literature service",
+      "uri": "https://europepmc.org/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:b19ac5772c58cf22d69512317955e5dea7c8c8c7c7294e61f80649b5303942f4",
+      "scope": "public indexed article metadata",
+      "source_id": "pubmed",
+      "title": "PubMed biomedical literature",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:0a02cf94c53fe6cf7bb187b01f592e99ade20ec525e575106ad2e342f7b8bd2c",
+      "scope": "public aggregate disease and genomic reference",
+      "source_id": "gdc",
+      "title": "NCI Genomic Data Commons",
+      "uri": "https://gdc.cancer.gov/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:1e0f97ea0339ad52a92f4d0c9ae034e4245fcb6d4a628619008ade1bd29ad36b",
+      "scope": "public functional assay reference",
+      "source_id": "encode",
+      "title": "ENCODE project portal",
+      "uri": "https://www.encodeproject.org/",
+      "version": "public portal receipt"
+    },
+    {
+      "content_address": "sha256:ae6686e765610cd6547d7e32bcfdbef3735be52d7897230b4a2e16ff026f0b1f",
+      "scope": "public construct and protocol reference",
+      "source_id": "addgene",
+      "title": "Addgene repository",
+      "uri": "https://www.addgene.org/",
+      "version": "public portal receipt"
+    }
+  ]
+}

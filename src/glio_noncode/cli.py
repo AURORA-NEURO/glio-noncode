@@ -302,6 +302,23 @@ from .validation_release_frontier_schema import default_validation_release_front
 from .validation_release_frontier_lineage import build_validation_release_lineage
 from .validation_release_frontier_reconciliation import reconcile_validation_release
 from .validation_release_frontier_thresholds import build_validation_release_threshold_report
+from .validation_design_frontier_access import build_validation_design_access_manifest
+from .validation_design_frontier_adapters import build_validation_design_adapters
+from .validation_design_frontier_depth import audit_validation_design_depth
+from .validation_design_frontier_exports import export_validation_design_review_csv
+from .validation_design_frontier_failure_injection import run_validation_design_failure_injections
+from .validation_design_frontier_fixture_eval import evaluate_validation_design_fixture
+from .validation_design_frontier_handoff import build_validation_design_handoff
+from .validation_design_frontier_metrics import measure_validation_design
+from .validation_design_frontier_public_data import audit_validation_design_frontier_data, default_validation_design_frontier_fixture
+from .validation_design_frontier_quality_gate import run_validation_design_quality_gate
+from .validation_design_frontier_reconciliation import reconcile_validation_design
+from .validation_design_frontier_report import build_validation_design_report
+from .validation_design_frontier_review_queue import build_validation_design_review_queue
+from .validation_design_frontier_runtime import run_validation_design_runtime
+from .validation_design_frontier_schema import default_validation_design_frontier_schema
+from .validation_design_frontier_thresholds import build_validation_design_threshold_report
+from .validation_design_frontier_validation_matrix import build_validation_design_validation_matrix
 from .evidence_release_frontier_access import build_evidence_release_access_manifest
 from .evidence_release_frontier_adapters import build_evidence_release_adapters
 from .evidence_release_frontier_data_dictionary import default_evidence_release_data_dictionary
@@ -4929,6 +4946,26 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     workbench_release_frontier_csv = subparsers.add_parser("workbench-release-frontier-review-csv", help="export Domain 15 C13-C16 review rows")
     workbench_release_frontier_csv.add_argument("--output", default=None)
+
+    validation_design_frontier_commands = (
+        ("validation-design-frontier-data-audit", "audit D13 C01-C04 public aggregate planning data"),
+        ("validation-design-frontier-evaluate", "evaluate D13 C01-C04 planning scenarios"),
+        ("validation-design-frontier-pipeline", "run the complete D13 C01-C04 planning runtime"),
+        ("validation-design-frontier-depth", "run D13 C01-C04 planning depth checks"),
+        ("validation-design-frontier-thresholds", "emit D13 C01-C04 planning thresholds"),
+        ("validation-design-frontier-quality", "run D13 C01-C04 planning quality gate"),
+        ("validation-design-frontier-validation-matrix", "emit D13 C01-C04 planning validation matrix"),
+        ("validation-design-frontier-handoff", "emit D13 C01-C04 planning reviewer handoff"),
+        ("validation-design-frontier-access", "emit D13 C01-C04 planning public access manifest"),
+        ("validation-design-frontier-data-dictionary", "emit D13 C01-C04 planning data dictionary"),
+        ("validation-design-frontier-report", "emit D13 C01-C04 planning report"),
+        ("validation-design-frontier-failure-injection", "rehearse D13 C01-C04 planning failures"),
+    )
+    for command_name, command_help in validation_design_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    validation_design_frontier_csv = subparsers.add_parser("validation-design-frontier-review-csv", help="export D13 C01-C04 planning review rows")
+    validation_design_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9945,6 +9982,53 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "workbench-release-frontier-review-csv":
             _write_text(export_workbench_release_review_csv(evaluate_workbench_release_fixture(default_workbench_release_frontier_fixture())), args.output)
+            return 0
+        if args.command == "validation-design-frontier-data-audit":
+            _write_json(audit_validation_design_frontier_data(default_validation_design_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-evaluate":
+            _write_json(evaluate_validation_design_fixture(default_validation_design_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-pipeline":
+            _write_json(run_validation_design_runtime(default_validation_design_frontier_fixture(), run_id="validation-design-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-depth":
+            fixture = default_validation_design_frontier_fixture()
+            _write_json(audit_validation_design_depth(fixture, evaluate_validation_design_fixture(fixture)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-thresholds":
+            _write_json(build_validation_design_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-quality":
+            fixture = default_validation_design_frontier_fixture()
+            evaluation = evaluate_validation_design_fixture(fixture)
+            _write_json(run_validation_design_quality_gate(audit_validation_design_frontier_data(fixture), evaluation, build_validation_design_adapters(), default_validation_design_frontier_schema(), reconcile_validation_design(fixture, evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-validation-matrix":
+            _write_json(build_validation_design_validation_matrix(evaluate_validation_design_fixture(default_validation_design_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-handoff":
+            fixture = default_validation_design_frontier_fixture()
+            evaluation = evaluate_validation_design_fixture(fixture)
+            _write_json(build_validation_design_handoff(fixture, evaluation, measure_validation_design(evaluation), build_validation_design_review_queue(evaluation)).to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-access":
+            _write_json(build_validation_design_access_manifest(default_validation_design_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-data-dictionary":
+            from .validation_design_frontier_data_dictionary import build_validation_design_data_dictionary
+            _write_json(build_validation_design_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-report":
+            fixture = default_validation_design_frontier_fixture()
+            evaluation = evaluate_validation_design_fixture(fixture)
+            _write_json(build_validation_design_report(evaluation=evaluation, run_id="validation-design-frontier-report").to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-failure-injection":
+            _write_json(run_validation_design_failure_injections().to_dict(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-review-csv":
+            _write_text(export_validation_design_review_csv(evaluate_validation_design_fixture(default_validation_design_frontier_fixture())), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)

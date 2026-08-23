@@ -127,6 +127,22 @@ glio-noncode workbench-release-frontier-pipeline --output workbench-release-runt
 glio-noncode workbench-release-frontier-review-csv --output workbench-release-review.csv
 ```
 
+The D13 C01–C04 validation-design frontier provides an independent planning
+surface for evidence gaps, assay eligibility, MPRA packaging, and STARR-seq
+packaging. It uses five public source receipts, sixteen balanced aggregate
+scenarios, eighty row checks, and a seventy-nine-stage runtime with replay,
+reconciliation, review routing, failure rehearsal, and release assurance.
+
+```text
+glio-noncode validation-design-frontier-data-audit --output validation-design-data.json
+glio-noncode validation-design-frontier-evaluate --output validation-design-evaluation.json
+glio-noncode validation-design-frontier-pipeline --output validation-design-runtime.json
+glio-noncode validation-design-frontier-review-csv --output validation-design-review.csv
+```
+
+The planning boundary is public aggregate research use. It does not diagnose,
+claim assay efficacy, infer individual outcomes, or establish causal certainty.
+
 See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_API.md](docs/WORKBENCH_RELEASE_FRONTIER_API.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md](docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md),

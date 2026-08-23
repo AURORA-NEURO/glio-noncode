@@ -4187,11 +4187,12 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C01": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_planning.EvidenceGapAnalyzer",
-                    "glio_noncode.validation_frontier_public_data",
-                    "glio_noncode.validation_frontier_fixture_eval",
-                    "glio_noncode.validation_frontier_quality_gate",
-                    "glio_noncode.validation_frontier_release",
+                    "glio_noncode.validation_design_frontier_operations.evaluate_gap_analysis",
+                    "glio_noncode.validation_design_frontier_contracts.ValidationDesignOperationResult",
+                    "glio_noncode.validation_design_frontier_public_data",
+                    "glio_noncode.validation_design_frontier_fixture_eval",
+                    "glio_noncode.validation_design_frontier_quality_gate",
+                    "glio_noncode.validation_design_frontier_runtime",
                 ),
                 "test_modules": (
                     "tests.test_validation_planning",
@@ -4209,10 +4210,13 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C02": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_planning.AssayEligibilityRouter",
-                    "glio_noncode.validation_frontier_contracts",
-                    "glio_noncode.validation_frontier_policy",
-                    "glio_noncode.validation_frontier_reconciliation",
+                    "glio_noncode.validation_design_frontier_operations.evaluate_assay_eligibility",
+                    "glio_noncode.validation_design_frontier_contracts.ValidationDesignOperationResult",
+                    "glio_noncode.validation_design_frontier_adapters",
+                    "glio_noncode.validation_design_frontier_fixture_eval",
+                    "glio_noncode.validation_design_frontier_policy",
+                    "glio_noncode.validation_design_frontier_reconciliation",
+                    "glio_noncode.validation_design_frontier_runtime",
                 ),
                 "test_modules": (
                     "tests.test_validation_planning",
@@ -4230,10 +4234,12 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C03": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_planning.MPRAPlanner",
-                    "glio_noncode.validation_frontier_schema",
-                    "glio_noncode.validation_frontier_scenario_matrix",
-                    "glio_noncode.validation_frontier_thresholds",
+                    "glio_noncode.validation_design_frontier_operations.evaluate_mpra_package",
+                    "glio_noncode.validation_design_frontier_schema",
+                    "glio_noncode.validation_design_frontier_scenario_matrix",
+                    "glio_noncode.validation_design_frontier_thresholds",
+                    "glio_noncode.validation_design_frontier_controls",
+                    "glio_noncode.validation_design_frontier_runtime",
                 ),
                 "test_modules": (
                     "tests.test_validation_planning",
@@ -4251,10 +4257,12 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C04": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_planning.STARRSeqPlanner",
-                    "glio_noncode.validation_frontier_bundle",
-                    "glio_noncode.validation_frontier_lineage",
-                    "glio_noncode.validation_frontier_exports",
+                    "glio_noncode.validation_design_frontier_operations.evaluate_starrseq_package",
+                    "glio_noncode.validation_design_frontier_bundle",
+                    "glio_noncode.validation_design_frontier_lineage",
+                    "glio_noncode.validation_design_frontier_exports",
+                    "glio_noncode.validation_design_frontier_validation_matrix",
+                    "glio_noncode.validation_design_frontier_runtime",
                 ),
                 "test_modules": (
                     "tests.test_validation_planning",
