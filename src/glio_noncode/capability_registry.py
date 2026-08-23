@@ -4280,13 +4280,12 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C05": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_beta.CRISPRiDesignPlanner",
-                    "glio_noncode.validation_beta.CRISPRaDesignPlanner",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_contracts",
-                    "glio_noncode.validation_beta_frontier_quality_gate",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.editing_design_frontier_operations.evaluate_crispr_design",
+                    "glio_noncode.editing_design_frontier_contracts.EditingDesignOperationResult",
+                    "glio_noncode.editing_design_frontier_public_data",
+                    "glio_noncode.editing_design_frontier_fixture_eval",
+                    "glio_noncode.editing_design_frontier_quality_gate",
+                    "glio_noncode.editing_design_frontier_runtime",
                 ),
                 "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
@@ -4299,11 +4298,12 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C06": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_beta.BaseEditingDesignPlanner",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_governance",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.editing_design_frontier_operations.evaluate_base_editing",
+                    "glio_noncode.editing_design_frontier_contracts.EditingDesignOperationResult",
+                    "glio_noncode.editing_design_frontier_adapters",
+                    "glio_noncode.editing_design_frontier_fixture_eval",
+                    "glio_noncode.editing_design_frontier_reconciliation",
+                    "glio_noncode.editing_design_frontier_runtime",
                 ),
                 "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
@@ -4316,11 +4316,11 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C07": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_beta.PrimeEditingDesignPlanner",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_governance",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.editing_design_frontier_operations.evaluate_prime_editing",
+                    "glio_noncode.editing_design_frontier_schema",
+                    "glio_noncode.editing_design_frontier_fixture_eval",
+                    "glio_noncode.editing_design_frontier_depth",
+                    "glio_noncode.editing_design_frontier_runtime",
                 ),
                 "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (
@@ -4333,11 +4333,10 @@ def default_capability_registry() -> CapabilityRegistry:
             "GNC-D13-C08": {
                 "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
-                    "glio_noncode.validation_beta.AlleleSpecificReporterPlanner",
-                    "glio_noncode.validation_beta_frontier_public_data",
-                    "glio_noncode.validation_beta_frontier_fixture_eval",
-                    "glio_noncode.validation_beta_frontier_governance",
-                    "glio_noncode.validation_beta_frontier_runtime",
+                    "glio_noncode.editing_design_frontier_operations.evaluate_allele_reporter",
+                    "glio_noncode.editing_design_frontier_bundle",
+                    "glio_noncode.editing_design_frontier_evidence_matrix",
+                    "glio_noncode.editing_design_frontier_runtime",
                 ),
                 "test_modules": ("tests.test_validation_beta", "tests.test_validation_beta_cli", "tests.test_validation_beta_frontier", "tests.test_validation_beta_frontier_cli"),
                 "evidence_note": (

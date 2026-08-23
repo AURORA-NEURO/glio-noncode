@@ -319,6 +319,23 @@ from .validation_design_frontier_runtime import run_validation_design_runtime
 from .validation_design_frontier_schema import default_validation_design_frontier_schema
 from .validation_design_frontier_thresholds import build_validation_design_threshold_report
 from .validation_design_frontier_validation_matrix import build_validation_design_validation_matrix
+from .editing_design_frontier_access import build_editing_design_access
+from .editing_design_frontier_adapters import build_editing_design_adapters
+from .editing_design_frontier_depth import build_editing_design_depth
+from .editing_design_frontier_exports import export_editing_design_review_csv
+from .editing_design_frontier_failure_injection import build_editing_design_failure_injection
+from .editing_design_frontier_fixture_eval import evaluate_editing_design_fixture
+from .editing_design_frontier_handoff import build_editing_design_handoff
+from .editing_design_frontier_metrics import measure_editing_design
+from .editing_design_frontier_public_data import audit_editing_design_frontier_data, default_editing_design_frontier_fixture
+from .editing_design_frontier_quality_gate import build_editing_design_quality_gate
+from .editing_design_frontier_reconciliation import build_editing_design_reconciliation
+from .editing_design_frontier_report import build_editing_design_report
+from .editing_design_frontier_review_queue import build_editing_design_review_queue
+from .editing_design_frontier_runtime import run_editing_design_runtime
+from .editing_design_frontier_schema import default_editing_design_frontier_schema
+from .editing_design_frontier_thresholds import build_editing_design_threshold_report
+from .editing_design_frontier_validation_matrix import build_editing_design_validation_matrix
 from .evidence_release_frontier_access import build_evidence_release_access_manifest
 from .evidence_release_frontier_adapters import build_evidence_release_adapters
 from .evidence_release_frontier_data_dictionary import default_evidence_release_data_dictionary
@@ -4966,6 +4983,26 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser.add_argument("--output", default=None)
     validation_design_frontier_csv = subparsers.add_parser("validation-design-frontier-review-csv", help="export D13 C01-C04 planning review rows")
     validation_design_frontier_csv.add_argument("--output", default=None)
+
+    editing_design_frontier_commands = (
+        ("editing-design-frontier-data-audit", "audit D13 C05-C08 public aggregate editing data"),
+        ("editing-design-frontier-evaluate", "evaluate D13 C05-C08 editing scenarios"),
+        ("editing-design-frontier-pipeline", "run the complete D13 C05-C08 editing runtime"),
+        ("editing-design-frontier-depth", "run D13 C05-C08 editing depth checks"),
+        ("editing-design-frontier-thresholds", "emit D13 C05-C08 editing thresholds"),
+        ("editing-design-frontier-quality", "run D13 C05-C08 editing quality gate"),
+        ("editing-design-frontier-validation-matrix", "emit D13 C05-C08 editing validation matrix"),
+        ("editing-design-frontier-handoff", "emit D13 C05-C08 editing reviewer handoff"),
+        ("editing-design-frontier-access", "emit D13 C05-C08 editing public access manifest"),
+        ("editing-design-frontier-data-dictionary", "emit D13 C05-C08 editing data dictionary"),
+        ("editing-design-frontier-report", "emit D13 C05-C08 editing report"),
+        ("editing-design-frontier-failure-injection", "rehearse D13 C05-C08 editing failures"),
+    )
+    for command_name, command_help in editing_design_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
+    editing_design_frontier_csv = subparsers.add_parser("editing-design-frontier-review-csv", help="export D13 C05-C08 editing review rows")
+    editing_design_frontier_csv.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -10029,6 +10066,50 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "validation-design-frontier-review-csv":
             _write_text(export_validation_design_review_csv(evaluate_validation_design_fixture(default_validation_design_frontier_fixture())), args.output)
+            return 0
+        if args.command == "editing-design-frontier-data-audit":
+            _write_json(audit_editing_design_frontier_data(default_editing_design_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-evaluate":
+            _write_json(evaluate_editing_design_fixture(default_editing_design_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-pipeline":
+            _write_json(run_editing_design_runtime(default_editing_design_frontier_fixture(), run_id="editing-design-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-depth":
+            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture)
+            _write_json(build_editing_design_depth(fixture=fixture, evaluation=evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-thresholds":
+            _write_json(build_editing_design_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-quality":
+            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture); adapters = build_editing_design_adapters(); schema = default_editing_design_frontier_schema()
+            _write_json(build_editing_design_quality_gate(audit=audit_editing_design_frontier_data(fixture), evaluation=evaluation, adapters=adapters, schema=schema).to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-validation-matrix":
+            _write_json(build_editing_design_validation_matrix(evaluation=evaluate_editing_design_fixture(default_editing_design_frontier_fixture())).to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-handoff":
+            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture)
+            _write_json(build_editing_design_handoff(fixture=fixture, evaluation=evaluation).to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-access":
+            _write_json(build_editing_design_access(fixture=default_editing_design_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-data-dictionary":
+            from .editing_design_frontier_data_dictionary import build_editing_design_data_dictionary
+            _write_json(build_editing_design_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-report":
+            fixture = default_editing_design_frontier_fixture(); evaluation = evaluate_editing_design_fixture(fixture)
+            _write_json(build_editing_design_report(evaluation=evaluation, run_id="editing-design-frontier-report").to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-failure-injection":
+            _write_json(build_editing_design_failure_injection().to_dict(), args.output)
+            return 0
+        if args.command == "editing-design-frontier-review-csv":
+            _write_text(export_editing_design_review_csv(evaluate_editing_design_fixture(default_editing_design_frontier_fixture())), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)

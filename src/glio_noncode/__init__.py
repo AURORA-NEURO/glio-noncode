@@ -9984,6 +9984,89 @@ from .validation_design_frontier_boundary_report import ValidationDesignBoundary
 
 __all__ += [name for name in globals() if name.startswith("ValidationDesign") or name.startswith("VALIDATION_DESIGN_FRONTIER") or name.startswith(("audit_validation_design", "build_validation_design", "default_validation_design", "diagnose_validation_design", "evaluate_validation_design", "execute_validation_design", "export_validation_design", "load_validation_design", "measure_validation_design", "reconcile_validation_design", "replay_validation_design", "run_validation_design", "validate_validation_design"))]
 
+from .editing_design_frontier_contracts import *
+from .editing_design_frontier_support import *
+from .editing_design_frontier_operations import *
+from .editing_design_frontier_public_data import *
+from .editing_design_frontier_schema import *
+from .editing_design_frontier_adapters import *
+from .editing_design_frontier_fixture_eval import *
+from .editing_design_frontier_common import *
+from .editing_design_frontier_metrics import *
+from .editing_design_frontier_runtime import *
+from .editing_design_frontier_provenance import *
+from .editing_design_frontier_lineage import *
+from .editing_design_frontier_reconciliation import *
+from .editing_design_frontier_policy import *
+from .editing_design_frontier_quality_gate import *
+from .editing_design_frontier_replay import *
+from .editing_design_frontier_views import *
+from .editing_design_frontier_review_queue import *
+from .editing_design_frontier_handoff import *
+from .editing_design_frontier_integrity import *
+from .editing_design_frontier_depth import *
+from .editing_design_frontier_controls import *
+from .editing_design_frontier_validation_matrix import *
+from .editing_design_frontier_evidence_matrix import *
+from .editing_design_frontier_access import *
+from .editing_design_frontier_failure_injection import *
+from .editing_design_frontier_diagnostics import *
+from .editing_design_frontier_artifacts import *
+from .editing_design_frontier_release import *
+from .editing_design_frontier_release_acceptance import *
+from .editing_design_frontier_run_manifest import *
+from .editing_design_frontier_source_registry import *
+from .editing_design_frontier_freshness import *
+from .editing_design_frontier_compatibility import *
+from .editing_design_frontier_invariants import *
+from .editing_design_frontier_execution_plan import *
+from .editing_design_frontier_observability import *
+from .editing_design_frontier_audit_log import *
+from .editing_design_frontier_transcript import *
+from .editing_design_frontier_report import *
+from .editing_design_frontier_exports import *
+from .editing_design_frontier_data_dictionary import *
+from .editing_design_frontier_claim_boundary import *
+from .editing_design_frontier_recovery import *
+from .editing_design_frontier_performance import *
+from .editing_design_frontier_operational import *
+from .editing_design_frontier_compliance import *
+from .editing_design_frontier_query import *
+from .editing_design_frontier_partitions import *
+from .editing_design_frontier_scenario_matrix import *
+from .editing_design_frontier_resources import *
+from .editing_design_frontier_bundle import *
+from .editing_design_frontier_public_data_boundary import *
+from .editing_design_frontier_assurance import *
+from .editing_design_frontier_provenance_graph import *
+from .editing_design_frontier_decision_ledger import *
+from .editing_design_frontier_review_assignment import *
+from .editing_design_frontier_schema_diagnostics import *
+from .editing_design_frontier_context_boundary import *
+from .editing_design_frontier_source_receipt_index import *
+from .editing_design_frontier_thresholds import *
+from .editing_design_frontier_review_metrics import *
+from .editing_design_frontier_review_sla import *
+from .editing_design_frontier_review_protocol import *
+from .editing_design_frontier_provenance_check import *
+from .editing_design_frontier_reproducibility import *
+from .editing_design_frontier_attestation import *
+from .editing_design_frontier_publication_policy import *
+from .editing_design_frontier_operator_console import *
+from .editing_design_frontier_contract_migrations import *
+from .editing_design_frontier_package_manifest import *
+from .editing_design_frontier_source_citations import *
+from .editing_design_frontier_outcome_summary import *
+from .editing_design_frontier_artifact_manifest import *
+from .editing_design_frontier_release_transcript import *
+from .editing_design_frontier_scenario_replay import *
+from .editing_design_frontier_safety_projection import *
+from .editing_design_frontier_state_transition import *
+from .editing_design_frontier_boundary_report import *
+from .editing_design_frontier_runbook import *
+from .editing_design_frontier_summary import *
+__all__ += [name for name in globals() if name.startswith("EditingDesign") or name.startswith("EDITING_DESIGN") or name.startswith(("audit_editing_design", "build_editing_design", "default_editing_design", "evaluate_editing_design", "execute_editing_design", "export_editing_design", "load_editing_design", "measure_editing_design", "replay_editing_design", "run_editing_design", "validate_editing_design"))]
+
 from .workbench_release_frontier_access import WorkbenchReleaseAccessManifest, build_workbench_release_access_manifest
 from .workbench_release_frontier_adapters import WorkbenchReleaseAdapter, WorkbenchReleaseAdapterRegistry, build_workbench_release_adapters, execute_workbench_release_adapter
 from .workbench_release_frontier_artifacts import WorkbenchReleaseArtifactInventory, build_workbench_release_artifact_inventory

@@ -143,6 +143,17 @@ glio-noncode validation-design-frontier-review-csv --output validation-design-re
 The planning boundary is public aggregate research use. It does not diagnose,
 claim assay efficacy, infer individual outcomes, or establish causal certainty.
 
+The D13 C05–C08 editing-design frontier independently covers CRISPRi/CRISPRa,
+base-editing, prime-editing, and allele-specific reporter design. It executes
+16 aggregate scenarios, 80 checks, 70 assurance planes, and a 79-stage runtime.
+
+```text
+glio-noncode editing-design-frontier-data-audit --output editing-design-data.json
+glio-noncode editing-design-frontier-evaluate --output editing-design-evaluation.json
+glio-noncode editing-design-frontier-pipeline --output editing-design-runtime.json
+glio-noncode editing-design-frontier-review-csv --output editing-design-review.csv
+```
+
 See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_API.md](docs/WORKBENCH_RELEASE_FRONTIER_API.md),
 [docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md](docs/WORKBENCH_RELEASE_FRONTIER_SCHEMA.md),
