@@ -289,6 +289,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D04-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.atlas_architecture_operations.evaluate_atlas_architecture_fixture",
+                            "glio_noncode.atlas_architecture_runtime.run_atlas_architecture",
+                            "glio_noncode.atlas_architecture_quality.assess_atlas_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D05-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -305,6 +314,14 @@ class CapabilityRegistry:
                             "tests.test_reference_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D04-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_atlas_architecture",
+                            "tests.test_atlas_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D05-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),

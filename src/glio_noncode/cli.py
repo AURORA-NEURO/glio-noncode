@@ -180,6 +180,38 @@ from .reference_architecture_runtime import run_reference_architecture
 from .reference_architecture_schema import reference_architecture_schema
 from .reference_architecture_validation import validate_reference_architecture_matrix
 from .reference_architecture_quality import assess_reference_architecture_quality
+from .atlas_architecture_access import atlas_architecture_access_policy
+from .atlas_architecture_data_dictionary import atlas_architecture_data_dictionary
+from .atlas_architecture_depth import atlas_architecture_depth_report
+from .atlas_architecture_failures import classify_atlas_architecture_failures
+from .atlas_architecture_invariants import check_atlas_architecture_invariants
+from .atlas_architecture_metrics import materialize_atlas_architecture_metrics
+from .atlas_architecture_operations import evaluate_atlas_architecture_fixture
+from .atlas_architecture_plan import compile_atlas_architecture_plan
+from .atlas_architecture_public_data import (
+    atlas_architecture_fixture_json,
+    audit_atlas_architecture_data,
+    default_atlas_architecture_fixture,
+)
+from .atlas_architecture_query import atlas_cases_for_operation, atlas_receipts_for_state
+from .atlas_architecture_replay import replay_atlas_architecture_fixture
+from .atlas_architecture_review import build_atlas_architecture_review_queue
+from .atlas_architecture_runtime import run_atlas_architecture
+from .atlas_architecture_schema import atlas_architecture_schema
+from .atlas_architecture_validation import validate_atlas_architecture_matrix
+from .atlas_architecture_quality import assess_atlas_architecture_quality
+from .atlas_architecture_reporting import (
+    atlas_architecture_receipts_csv,
+    atlas_architecture_review_csv,
+    atlas_architecture_sources_csv,
+    build_atlas_architecture_report,
+    render_atlas_architecture_markdown,
+)
+from .atlas_architecture_scenarios import (
+    atlas_architecture_scenario_summary,
+    build_atlas_architecture_scenario_matrix,
+)
+from .atlas_architecture_source_registry import build_atlas_architecture_source_registry
 from .causal_alpha import (
     ConfoundingChecklistAdjudicator,
     DependenceMethod,
@@ -1590,6 +1622,14 @@ def _reference_architecture_fixture(input_path: str | None):
     )
 
 
+def _atlas_architecture_fixture(input_path: str | None):
+    return (
+        default_atlas_architecture_fixture(input_path)
+        if input_path
+        else default_atlas_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2544,6 +2584,118 @@ def build_parser() -> argparse.ArgumentParser:
     )
     reference_architecture_bundle.add_argument("--input", default=None)
     reference_architecture_bundle.add_argument("--output", required=True)
+    atlas_architecture_fixture = subparsers.add_parser(
+        "atlas-architecture-fixture",
+        help="emit the D05 C01-C16 public aggregate atlas architecture fixture",
+    )
+    atlas_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        (
+            "atlas-architecture-data-audit",
+            "audit D05 atlas sources, context, joins, and aggregate scope",
+        ),
+        ("atlas-architecture-plan", "compile the D05 C01-C16 atlas dependency plan"),
+        (
+            "evaluate-atlas-architecture",
+            "execute D05 positive atlas adapters and boundary controls",
+        ),
+        ("atlas-architecture-runtime", "run the twenty-stage D05 atlas architecture"),
+        (
+            "atlas-architecture-validation",
+            "emit the five-plane by sixteen-operation D05 validation matrix",
+        ),
+        (
+            "atlas-architecture-quality",
+            "run the D05 atlas architecture release quality gate",
+        ),
+        (
+            "atlas-architecture-depth",
+            "report D05 operation, case, stage, artifact, and lineage depth",
+        ),
+        (
+            "replay-atlas-architecture",
+            "replay D05 atlas evaluation deterministically",
+        ),
+        (
+            "atlas-architecture-review",
+            "emit D05 held-control review receipts",
+        ),
+        ("atlas-architecture-metrics", "emit D05 atlas architecture metrics"),
+        ("atlas-architecture-access", "emit D05 atlas artifact access policy"),
+        ("atlas-architecture-schema", "emit D05 atlas architecture interchange schema"),
+        (
+            "atlas-architecture-invariants",
+            "emit D05 atlas architecture cross-module invariants",
+        ),
+        (
+            "atlas-architecture-failures",
+            "emit D05 atlas architecture failure classification",
+        ),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    atlas_architecture_query = subparsers.add_parser(
+        "atlas-architecture-query",
+        help="query sanitized D05 atlas architecture receipts",
+    )
+    atlas_architecture_query.add_argument("--input", default=None)
+    atlas_architecture_query.add_argument("--operation", default=None)
+    atlas_architecture_query.add_argument(
+        "--state", choices=("accepted", "review"), default=None
+    )
+    atlas_architecture_query.add_argument("--output", default=None)
+    atlas_architecture_bundle = subparsers.add_parser(
+        "atlas-architecture-bundle",
+        help="write a D05 atlas architecture runtime bundle",
+    )
+    atlas_architecture_bundle.add_argument("--input", default=None)
+    atlas_architecture_bundle.add_argument("--output", required=True)
+    atlas_architecture_dictionary = subparsers.add_parser(
+        "atlas-architecture-dictionary",
+        help="emit the D05 field-level public data dictionary",
+    )
+    atlas_architecture_dictionary.add_argument("--input", default=None)
+    atlas_architecture_dictionary.add_argument("--output", default=None)
+    atlas_architecture_report = subparsers.add_parser(
+        "atlas-architecture-report",
+        help="render a D05 release report",
+    )
+    atlas_architecture_report.add_argument("--input", default=None)
+    atlas_architecture_report.add_argument(
+        "--format", choices=("json", "markdown"), default="json"
+    )
+    atlas_architecture_report.add_argument("--output", default=None)
+    atlas_architecture_scenarios = subparsers.add_parser(
+        "atlas-architecture-scenarios",
+        help="emit the D05 positive and control scenario matrix",
+    )
+    atlas_architecture_scenarios.add_argument("--input", default=None)
+    atlas_architecture_scenarios.add_argument("--output", default=None)
+    atlas_architecture_sources = subparsers.add_parser(
+        "atlas-architecture-sources",
+        help="emit the D05 source-to-operation registry",
+    )
+    atlas_architecture_sources.add_argument("--input", default=None)
+    atlas_architecture_sources.add_argument("--output", default=None)
+    atlas_architecture_receipts = subparsers.add_parser(
+        "atlas-architecture-receipts-csv",
+        help="export D05 receipts as CSV",
+    )
+    atlas_architecture_receipts.add_argument("--input", default=None)
+    atlas_architecture_receipts.add_argument("--output", required=True)
+    atlas_architecture_review_csv_parser = subparsers.add_parser(
+        "atlas-architecture-review-csv",
+        help="export D05 held controls as CSV",
+    )
+    atlas_architecture_review_csv_parser.add_argument("--input", default=None)
+    atlas_architecture_review_csv_parser.add_argument("--output", required=True)
+    atlas_architecture_sources_csv_parser = subparsers.add_parser(
+        "atlas-architecture-sources-csv",
+        help="export D05 public sources as CSV",
+    )
+    atlas_architecture_sources_csv_parser.add_argument("--input", default=None)
+    atlas_architecture_sources_csv_parser.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -7958,6 +8110,201 @@ def main(argv: list[str] | None = None) -> int:
                 str(output_dir / "fixture.json"),
             )
             return 0 if runtime.accepted else 2
+        if args.command == "atlas-architecture-fixture":
+            _write_text(atlas_architecture_fixture_json(), args.output)
+            return 0
+        if args.command == "atlas-architecture-data-audit":
+            report = audit_atlas_architecture_data(_atlas_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "atlas-architecture-plan":
+            report = compile_atlas_architecture_plan(_atlas_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-atlas-architecture":
+            report = evaluate_atlas_architecture_fixture(_atlas_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "atlas-architecture-runtime":
+            runtime = run_atlas_architecture(_atlas_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "atlas-architecture-validation":
+            fixture = _atlas_architecture_fixture(args.input)
+            report = validate_atlas_architecture_matrix(
+                fixture, evaluate_atlas_architecture_fixture(fixture)
+            )
+            accepted = all(item.passed for item in report)
+            _write_json(
+                {"accepted": accepted, "cells": [jsonable(item) for item in report]},
+                args.output,
+            )
+            return 0 if accepted else 2
+        if args.command == "atlas-architecture-quality":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            quality = assess_atlas_architecture_quality(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime.artifacts,
+                runtime.release,
+                len(runtime.stages),
+            )
+            _write_json(quality.to_dict(), args.output)
+            return 0 if quality.passed else 2
+        if args.command == "atlas-architecture-depth":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            report = atlas_architecture_depth_report(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+                runtime,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "replay-atlas-architecture":
+            report = replay_atlas_architecture_fixture(_atlas_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "atlas-architecture-review":
+            fixture = _atlas_architecture_fixture(args.input)
+            report = build_atlas_architecture_review_queue(fixture.fixture_id, fixture.cases)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "atlas-architecture-metrics":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            matrix = validate_atlas_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_atlas_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(matrix)
+            )
+            _write_json(jsonable(metrics), args.output)
+            return 0
+        if args.command == "atlas-architecture-access":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            report = atlas_architecture_access_policy(runtime.artifacts)
+            _write_json(jsonable(report), args.output)
+            return 0 if all(item.passed for item in report.checks) else 2
+        if args.command == "atlas-architecture-schema":
+            _write_json(jsonable(atlas_architecture_schema()), args.output)
+            return 0
+        if args.command == "atlas-architecture-invariants":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            checks = check_atlas_architecture_invariants(
+                fixture,
+                runtime.evaluation,
+                runtime.plan,
+                runtime.review_queue,
+                runtime.ledger,
+            )
+            accepted = all(item.passed for item in checks)
+            _write_json(
+                {"accepted": accepted, "checks": [jsonable(item) for item in checks]},
+                args.output,
+            )
+            return 0 if accepted else 2
+        if args.command == "atlas-architecture-failures":
+            fixture = _atlas_architecture_fixture(args.input)
+            report = classify_atlas_architecture_failures(
+                evaluate_atlas_architecture_fixture(fixture)
+            )
+            _write_json(
+                {"accepted": not report.release_blocked, "report": jsonable(report)},
+                args.output,
+            )
+            return 0 if not report.release_blocked else 2
+        if args.command == "atlas-architecture-query":
+            fixture = _atlas_architecture_fixture(args.input)
+            evaluation = evaluate_atlas_architecture_fixture(fixture)
+            if args.operation:
+                result = {
+                    "operation": args.operation,
+                    "cases": atlas_cases_for_operation(fixture, args.operation),
+                }
+            elif args.state:
+                result = {
+                    "state": args.state,
+                    "receipts": atlas_receipts_for_state(evaluation, args.state),
+                }
+            else:
+                result = {"receipts": [jsonable(item) for item in evaluation.receipts]}
+            _write_json(result, args.output)
+            return 0
+        if args.command == "atlas-architecture-bundle":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_text(
+                atlas_architecture_fixture_json(fixture),
+                str(output_dir / "fixture.json"),
+            )
+            return 0 if runtime.accepted else 2
+        if args.command == "atlas-architecture-dictionary":
+            fixture = _atlas_architecture_fixture(args.input)
+            report = atlas_architecture_data_dictionary(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "atlas-architecture-report":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            validation = validate_atlas_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_atlas_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(validation)
+            )
+            dictionary = atlas_architecture_data_dictionary(fixture)
+            report = build_atlas_architecture_report(fixture, runtime, metrics, dictionary)
+            if args.format == "markdown":
+                _write_text(render_atlas_architecture_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if runtime.accepted and dictionary.accepted else 2
+        if args.command == "atlas-architecture-scenarios":
+            fixture = _atlas_architecture_fixture(args.input)
+            runtime = run_atlas_architecture(fixture)
+            matrix = build_atlas_architecture_scenario_matrix(fixture, runtime.evaluation)
+            _write_json(
+                {
+                    "accepted": matrix.accepted,
+                    "matrix": matrix.to_dict(),
+                    "summary": atlas_architecture_scenario_summary(matrix),
+                },
+                args.output,
+            )
+            return 0 if matrix.accepted else 2
+        if args.command == "atlas-architecture-sources":
+            fixture = _atlas_architecture_fixture(args.input)
+            report = build_atlas_architecture_source_registry(fixture)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "atlas-architecture-receipts-csv":
+            runtime = run_atlas_architecture(_atlas_architecture_fixture(args.input))
+            _write_text(atlas_architecture_receipts_csv(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "atlas-architecture-review-csv":
+            runtime = run_atlas_architecture(_atlas_architecture_fixture(args.input))
+            _write_text(atlas_architecture_review_csv(runtime.review_queue), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "atlas-architecture-sources-csv":
+            fixture = _atlas_architecture_fixture(args.input)
+            _write_text(atlas_architecture_sources_csv(fixture), args.output)
+            return 0
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)
             return 0
