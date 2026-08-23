@@ -860,6 +860,12 @@ jobs:
         run: python -m glio_noncode export-evidence-lifecycle-review-csv --output /tmp/glio-evidence-lifecycle-review.csv
       - name: Evidence lifecycle depth audit
         run: python -m glio_noncode evidence-lifecycle-depth-audit --output /tmp/glio-evidence-lifecycle-depth.json
+      - name: Lifecycle beta frontier aggregate and pipeline
+        run: python -m glio_noncode lifecycle-beta-frontier-data-audit --output /tmp/glio-lifecycle-beta-data.json && python -m glio_noncode lifecycle-beta-frontier-evaluate --output /tmp/glio-lifecycle-beta-evaluation.json && python -m glio_noncode lifecycle-beta-frontier-pipeline --output /tmp/glio-lifecycle-beta-runtime.json
+      - name: Lifecycle beta frontier depth projections
+        run: python -m glio_noncode lifecycle-beta-frontier-thresholds --output /tmp/glio-lifecycle-beta-thresholds.json && python -m glio_noncode lifecycle-beta-frontier-validation-matrix --output /tmp/glio-lifecycle-beta-matrix.json && python -m glio_noncode lifecycle-beta-frontier-handoff --output /tmp/glio-lifecycle-beta-handoff.json
+      - name: Lifecycle beta frontier focused tests
+        run: python -m unittest tests.test_lifecycle_beta_frontier tests.test_lifecycle_beta_frontier_depth tests.test_lifecycle_beta_frontier_cli tests.test_lifecycle_beta_frontier_operations
       - name: Workspace frontier data boundary audit
         run: python -m glio_noncode workspace-frontier-data-audit --output /tmp/glio-workspace-frontier-data.json
       - name: Workspace frontier operation contracts

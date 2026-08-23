@@ -4542,9 +4542,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C05": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.lifecycle_beta.EvidenceTierAdjudicator",),
-                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_beta.EvidenceTierAdjudicator",
+                    "glio_noncode.lifecycle_beta_frontier_adapters",
+                    "glio_noncode.lifecycle_beta_frontier_fixture_eval",
+                    "glio_noncode.lifecycle_beta_frontier_runtime",
+                ),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_cli", "tests.test_lifecycle_beta_frontier_depth"),
                 "evidence_note": (
                     "Evidence-tier adjudication preserves all declared tier observations, source "
                     "versions, support/against directions, highest-tier summaries, unresolved "
@@ -4552,9 +4557,13 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C06": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.lifecycle_beta.ProvenanceLineageViewer",),
-                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_beta.ProvenanceLineageViewer",
+                    "glio_noncode.lifecycle_beta_frontier_lineage",
+                    "glio_noncode.lifecycle_beta_frontier_validation_matrix",
+                ),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_evidence"),
                 "evidence_note": (
                     "Provenance lineage views expose parent and supersession relations, active and "
                     "historical claims, source versions, citation nodes, hashes, and graph context "
@@ -4562,9 +4571,13 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C07": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.lifecycle_beta.UncertaintyLedgerBuilder",),
-                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_beta.UncertaintyLedgerBuilder",
+                    "glio_noncode.lifecycle_beta_frontier_metrics",
+                    "glio_noncode.lifecycle_beta_frontier_thresholds",
+                ),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_depth"),
                 "evidence_note": (
                     "Uncertainty ledgers retain dimension-labeled measurement, context, "
                     "provenance, "
@@ -4573,9 +4586,13 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C08": {
-                "state": CapabilityState.PARTIAL.value,
-                "implementation_modules": ("glio_noncode.lifecycle_beta.ReviewerAssignmentRouter",),
-                "test_modules": ("tests.test_lifecycle_beta", "tests.test_lifecycle_beta_cli"),
+                "state": CapabilityState.VERIFIED.value,
+                "implementation_modules": (
+                    "glio_noncode.lifecycle_beta.ReviewerAssignmentRouter",
+                    "glio_noncode.lifecycle_beta_frontier_review_queue",
+                    "glio_noncode.lifecycle_beta_frontier_operational",
+                ),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_operational"),
                 "evidence_note": (
                     "Reviewer routing maps active claims to explicit domain, provenance, "
                     "statistical, "
@@ -4584,12 +4601,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C09": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.lifecycle_alpha.BlindedAdjudicationWorkflow",
                     "glio_noncode.lifecycle_alpha.BlindedAdjudicationPlan",
+                    "glio_noncode.lifecycle_beta_frontier_fixture_eval",
+                    "glio_noncode.lifecycle_beta_frontier_replay",
                 ),
-                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_cli"),
                 "evidence_note": (
                     "Blinded adjudication packets mask claim and source receipts, preserve exact "
                     "context and deterministic reviewer tokens, retain abstentions and split "
@@ -4597,12 +4616,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C10": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.lifecycle_alpha.ReviewerCommentChangeLogger",
                     "glio_noncode.lifecycle_alpha.ReviewerCommentChangeLog",
+                    "glio_noncode.lifecycle_beta_frontier_exports",
+                    "glio_noncode.lifecycle_beta_frontier_views",
                 ),
-                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_exports"),
                 "evidence_note": (
                     "Reviewer comments and before/after changes are immutable, context-gated, "
                     "content-addressed, and appendable with duplicate and malformed-row checks; "
@@ -4610,12 +4631,15 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C11": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.lifecycle_alpha.ReleaseDecisionRecorder",
                     "glio_noncode.lifecycle_alpha.ReleaseDecisionRecord",
+                    "glio_noncode.lifecycle_beta_frontier_policy",
+                    "glio_noncode.lifecycle_beta_frontier_release",
+                    "glio_noncode.lifecycle_beta_frontier_bundle",
                 ),
-                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_release"),
                 "evidence_note": (
                     "Research-only release records retain graph address, gate results, reviewer "
                     "roles, failed conditions, comment-log address, and explicit approval or "
@@ -4623,12 +4647,14 @@ def default_capability_registry() -> CapabilityRegistry:
                 ),
             },
             "GNC-D14-C12": {
-                "state": CapabilityState.PARTIAL.value,
+                "state": CapabilityState.VERIFIED.value,
                 "implementation_modules": (
                     "glio_noncode.lifecycle_alpha.EvidenceDeltaDetector",
                     "glio_noncode.lifecycle_alpha.EvidenceDeltaReport",
+                    "glio_noncode.lifecycle_beta_frontier_reconciliation",
+                    "glio_noncode.lifecycle_beta_frontier_integrity",
                 ),
-                "test_modules": ("tests.test_lifecycle_alpha", "tests.test_lifecycle_alpha_cli"),
+                "test_modules": ("tests.test_lifecycle_beta_frontier", "tests.test_lifecycle_beta_frontier_delta"),
                 "evidence_note": (
                     "Evidence delta reports classify added, removed, and changed claims and "
                     "citations plus graph-state or context changes with before/after addresses "

@@ -22,9 +22,9 @@ separately so a single percentage cannot hide unfinished work.
 
 The frontier expansion waves add test-backed coverage across the sixteen
 domains. The repository ledger now has 256 of 256 capabilities started (100%);
-236 capabilities have deterministic fixture-backed verification and 20 remain
+244 capabilities have deterministic fixture-backed verification and 12 remain
 partial. The frontier surfaces are bounded research infrastructure. Current
-verified coverage is 92.19% of the 256-capability catalog; MVP implementation
+verified coverage is 95.31% of the 256-capability catalog; MVP implementation
 coverage is 93.75%. The surfaces retain
 source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
@@ -632,8 +632,8 @@ decision.
 
 The D13-D16 frontier completes all 256 catalog capability code paths with
 partial, test-backed implementations. The current ledger reports 256 of 256
-capabilities started (100%); 236 capabilities are verified against the checked-in
-aggregate fixtures, while 20 capabilities remain partial. Partial means the
+capabilities started (100%); 244 capabilities are verified against the checked-in
+aggregate fixtures, while 12 capabilities remain partial. Partial means the
 bounded code and tests exist. Verified means the local deterministic fixture and
 negative-control boundary pass; external validation, calibration, and
 institutional release evidence remain separate.
@@ -3522,6 +3522,53 @@ glio-noncode record-review-log review-log.json --context-key "GRCh38|glioma|adul
 glio-noncode record-release-decision release-input.json --requested-decision approved --output release-decision.json
 glio-noncode detect-evidence-delta graph-delta.json --expected-context-key "GRCh38|glioma|adult|stem_like|core|untreated" --output evidence-delta.json
 ```
+
+### Domain 14 C05-C12 lifecycle beta frontier
+
+The C05-C12 tranche adds a separate public aggregate package for the eight
+scientific-beta and external-alpha review surfaces. It contains 32 records:
+one positive and three controls for each operation, nine HTTPS source receipts,
+and the exact context GRCh38|glioma|adult|stem_like|core|untreated.
+
+The operation surfaces are:
+
+- C05 evidence-tier adjudication, retaining directional conflict and
+  unclassified-tier partialness;
+- C06 provenance lineage, retaining parent and supersession edges;
+- C07 uncertainty ledger, retaining dimension-labeled drivers without
+  presenting a calibrated probability;
+- C08 reviewer routing, retaining role, priority, contradiction, and context
+  blockers;
+- C09 blinded adjudication, retaining masked receipts, missing decisions, and
+  split verdicts;
+- C10 comment/change log, retaining append-only comments and before/after
+  changes;
+- C11 research-only release decisions, retaining gates, roles, rejection, and
+  review-required states;
+- C12 evidence deltas, retaining added, changed, and context-shifted records.
+
+The accepted runtime has 25 ordered stages, 166 evaluation checks, 40
+threshold probes, a 32-cell validation matrix across six evidence planes,
+32 scenario cells, deterministic replay, a 73-edge source/execution lineage
+graph, an eight-check quality gate, review queue and SLA projections, a
+research-only release bundle, and a depth audit. The runtime is accepted only
+when the positive rows reconcile, controls remain visible, all content
+addresses close, and policy boundaries remain explicit.
+
+The beta-frontier commands are:
+
+~~~powershell
+glio-noncode lifecycle-beta-frontier-data-audit --output lifecycle-beta-data.json
+glio-noncode lifecycle-beta-frontier-evaluate --output lifecycle-beta-evaluation.json
+glio-noncode lifecycle-beta-frontier-pipeline --output lifecycle-beta-runtime.json
+glio-noncode lifecycle-beta-frontier-thresholds --output lifecycle-beta-thresholds.json
+glio-noncode lifecycle-beta-frontier-validation-matrix --output lifecycle-beta-matrix.json
+glio-noncode lifecycle-beta-frontier-handoff --output lifecycle-beta-handoff.json
+~~~
+
+These commands are aggregate research infrastructure. They do not produce
+patient-level inference, diagnosis, treatment selection, causal authorization,
+or automatic dossier publication.
 
 ## Domain 15 research workspaces
 

@@ -447,6 +447,12 @@ from .lifecycle_beta import (
     ReviewerRole,
     UncertaintyLedgerBuilder,
 )
+from .lifecycle_beta_frontier_fixture_eval import evaluate_lifecycle_beta_frontier_fixture
+from .lifecycle_beta_frontier_handoff import build_lifecycle_beta_frontier_handoff
+from .lifecycle_beta_frontier_public_data import audit_lifecycle_beta_frontier_data
+from .lifecycle_beta_frontier_runtime import run_lifecycle_beta_frontier_runtime
+from .lifecycle_beta_frontier_thresholds import build_lifecycle_beta_frontier_threshold_report
+from .lifecycle_beta_frontier_validation_matrix import build_lifecycle_beta_frontier_validation_matrix
 from .link_frontier_bundle import build_link_frontier_bundle
 from .link_frontier_contracts import default_link_frontier_contracts
 from .link_frontier_depth import run_link_frontier_depth_audit
@@ -4701,6 +4707,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evidence_lifecycle_csv.add_argument("input", nargs="?", default=None)
     evidence_lifecycle_csv.add_argument("--output", default=None)
+
+    lifecycle_beta_frontier_commands = (
+        ("lifecycle-beta-frontier-data-audit", "audit public Domain 14 C05-C12 aggregate receipts"),
+        ("lifecycle-beta-frontier-evaluate", "evaluate Domain 14 C05-C12 operations"),
+        ("lifecycle-beta-frontier-pipeline", "run Domain 14 C05-C12 depth pipeline"),
+        ("lifecycle-beta-frontier-thresholds", "emit Domain 14 C05-C12 threshold probes"),
+        ("lifecycle-beta-frontier-validation-matrix", "emit Domain 14 C05-C12 validation matrix"),
+        ("lifecycle-beta-frontier-handoff", "emit Domain 14 C05-C12 research handoff"),
+    )
+    for command_name, command_help in lifecycle_beta_frontier_commands:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--output", default=None)
 
     workspace_frontier_commands = (
         ("workspace-frontier-data-audit", "audit public Domain 15 workspace receipts"),
@@ -9447,6 +9465,24 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "evidence-lifecycle-depth-audit":
             _write_json(audit_evidence_lifecycle_depth().to_dict(), args.output)
+            return 0
+        if args.command == "lifecycle-beta-frontier-data-audit":
+            _write_json(audit_lifecycle_beta_frontier_data().to_dict(), args.output)
+            return 0
+        if args.command == "lifecycle-beta-frontier-evaluate":
+            _write_json(evaluate_lifecycle_beta_frontier_fixture().to_dict(), args.output)
+            return 0
+        if args.command == "lifecycle-beta-frontier-pipeline":
+            _write_json(run_lifecycle_beta_frontier_runtime(run_id="lifecycle-beta-frontier-cli").to_dict(), args.output)
+            return 0
+        if args.command == "lifecycle-beta-frontier-thresholds":
+            _write_json(build_lifecycle_beta_frontier_threshold_report().to_dict(), args.output)
+            return 0
+        if args.command == "lifecycle-beta-frontier-validation-matrix":
+            _write_json(build_lifecycle_beta_frontier_validation_matrix(evaluate_lifecycle_beta_frontier_fixture()).to_dict(), args.output)
+            return 0
+        if args.command == "lifecycle-beta-frontier-handoff":
+            _write_json(build_lifecycle_beta_frontier_handoff().to_dict(), args.output)
             return 0
         if args.command == "export-evidence-lifecycle-review-csv":
             fixture = _read_evidence_lifecycle_fixture(args.input)
