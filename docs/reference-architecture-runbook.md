@@ -21,6 +21,10 @@ python -m glio_noncode evaluate-reference-architecture --input examples/referenc
 python -m glio_noncode reference-architecture-validation --input examples/reference-architecture-public-aggregate.json --output .\out\validation.json
 python -m glio_noncode reference-architecture-runtime --input examples/reference-architecture-public-aggregate.json --output .\out\runtime.json
 python -m glio_noncode reference-architecture-quality --input examples/reference-architecture-public-aggregate.json --output .\out\quality.json
+python -m glio_noncode reference-architecture-compliance --input examples/reference-architecture-public-aggregate.json --output .\out\compliance.json
+python -m glio_noncode reference-architecture-report --input examples/reference-architecture-public-aggregate.json --output .\out\report.json
+python -m glio_noncode reference-architecture-receipts-csv --input examples/reference-architecture-public-aggregate.json --output .\out\receipts.csv
+python -m glio_noncode reference-architecture-review-csv --input examples/reference-architecture-public-aggregate.json --output .\out\review.csv
 python -m glio_noncode replay-reference-architecture --input examples/reference-architecture-public-aggregate.json --output .\out\replay.json
 python -m glio_noncode reference-architecture-bundle --input examples/reference-architecture-public-aggregate.json --output .\out\bundle
 ```
@@ -38,10 +42,14 @@ Confirm these values before publication:
 | cases | 64 |
 | positive cases | 16 |
 | held controls | 48 |
-| evaluation checks | 325 |
+| evaluation checks | 458 |
 | validation cells | 80 |
 | lineage events | 64 |
-| runtime stages | 20 |
+| runtime stages | 24 |
+| quality checks | 12 |
+| result states | 6 |
+| compliance checks | 8 |
+| depth completion | 100.0% |
 | release artifacts | 6 |
 | release state | `published` |
 
@@ -53,12 +61,13 @@ If the run is blocked, inspect in this order:
 
 1. Data audit: version, boundary, source scope, context, and sensitive-field checks.
 2. Plan: missing operation, dependency order, or source join.
-3. Evaluation: the first failed case receipt and its five checks.
+3. Evaluation: the first failed case receipt and its seven checks.
 4. Policy: a control dispatched unexpectedly or a positive held unexpectedly.
 5. Lineage: missing case event, broken previous address, or mismatched output address.
 6. Replay: changed receipt projection or content address.
 7. Schema and access: missing field, media type, retention, or source address.
-8. Quality and release: aggregate summary after upstream correction.
+8. Compliance: public markers, delegated contexts, and forbidden-field paths.
+9. Quality and release: aggregate summary after upstream correction.
 
 Do not repair a failing address by editing only the expected value. Reconstruct the affected record from its source receipts, rerun the canonical fixture, and inspect the resulting diff.
 

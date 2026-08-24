@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 
 from glio_noncode.reference_architecture_access import reference_architecture_access_policy
+from glio_noncode.reference_architecture_compliance import assess_reference_architecture_compliance
 from glio_noncode.reference_architecture_contracts import (
     REFERENCE_ARCHITECTURE_CASE_COUNT,
     REFERENCE_ARCHITECTURE_CONTEXT,
@@ -49,7 +50,7 @@ class ReferenceArchitectureFixtureTests(unittest.TestCase):
         self.assertEqual(len(self.fixture.control_cases), 48)
         report = audit_reference_architecture_data(self.fixture)
         self.assertTrue(report.accepted)
-        self.assertEqual(len(report.checks), 13)
+        self.assertEqual(len(report.checks), 16)
         self.assertTrue(all(item.content_address for item in report.checks))
 
     def test_operations_are_four_scenario_contracts(self) -> None:
@@ -72,7 +73,7 @@ class ReferenceArchitectureFixtureTests(unittest.TestCase):
         self.assertTrue(all(item.passed for item in self.evaluation.receipts))
         self.assertEqual(self.evaluation.positive_count, 16)
         self.assertEqual(self.evaluation.control_count, 48)
-        self.assertEqual(len(self.evaluation.checks), 325)
+        self.assertEqual(len(self.evaluation.checks), 458)
 
     def test_controls_are_conservative_and_positive_codes_are_retained(self) -> None:
         controls = [
@@ -118,9 +119,11 @@ class ReferenceArchitectureRuntimeTests(unittest.TestCase):
     def test_published_runtime_depth(self) -> None:
         self.assertTrue(self.runtime.accepted)
         self.assertEqual(self.runtime.state, ReferenceArchitectureState.PUBLISHED)
-        self.assertEqual(len(self.runtime.stages), 20)
-        self.assertEqual(tuple(item.ordinal for item in self.runtime.stages), tuple(range(1, 21)))
+        self.assertEqual(len(self.runtime.stages), 24)
+        self.assertEqual(tuple(item.ordinal for item in self.runtime.stages), tuple(range(1, 25)))
         self.assertEqual(len(self.runtime.artifacts), 6)
+        self.assertEqual(self.runtime.depth.check_count, 458)
+        self.assertTrue(self.runtime.compliance.accepted)
 
     def test_plan_matrix_review_and_lineage(self) -> None:
         evaluation = self.runtime.evaluation
@@ -149,6 +152,9 @@ class ReferenceArchitectureRuntimeTests(unittest.TestCase):
             self.fixture, evaluation, queue, len(validation)
         )
         self.assertEqual(metrics.case_count, 64)
+        self.assertEqual(metrics.check_count, 458)
+        self.assertEqual(metrics.state_count, 6)
+        self.assertEqual(metrics.issue_code_count, 7)
         self.assertEqual(metrics.control_issue_count, 48)
         self.assertGreater(metrics.positive_issue_count, 0)
         self.assertTrue(
@@ -162,7 +168,8 @@ class ReferenceArchitectureRuntimeTests(unittest.TestCase):
             self.runtime.ledger,
             self.runtime.artifacts,
             self.runtime.release,
-            20,
+            24,
+            self.runtime.compliance,
         )
         depth = reference_architecture_depth_report(
             self.fixture, evaluation, self.runtime.plan, queue, self.runtime.ledger, self.runtime
@@ -170,6 +177,7 @@ class ReferenceArchitectureRuntimeTests(unittest.TestCase):
         self.assertTrue(quality.passed)
         self.assertTrue(depth.accepted)
         self.assertEqual(depth.addressed_count, 228)
+        self.assertEqual(len(assess_reference_architecture_compliance(self.fixture).checks), 8)
 
     def test_replay_schema_failures_and_invariants(self) -> None:
         replay = replay_reference_architecture_fixture(self.fixture, self.runtime.evaluation)

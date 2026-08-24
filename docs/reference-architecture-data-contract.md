@@ -31,6 +31,7 @@ Each source record carries:
 | `version` | source release or page boundary |
 | `scope` | required to be `public_aggregate` |
 | `license` | human-readable use boundary |
+| `public_aggregate` | explicit public aggregate marker; must be `true` |
 | `content_address` | source receipt address |
 
 The source floor is 12; the checked-in fixture carries 20 sources spanning assembly, chain format, pangenome, transcript catalogs, ontologies, nomenclature, frequencies, and license references. Source records are receipts, not copies of upstream datasets.
@@ -67,6 +68,7 @@ capability_id
 operation
 scenario
 context_key
+delegate_context_key
 source_ids
 payload
 expected_state
@@ -101,12 +103,12 @@ The policy module makes the same decision before any positive adapter dispatch. 
 
 ## Evaluation contract
 
-The evaluation has one receipt per case and five global checks. Each case contributes checks for state, result, issue codes, bounded counts, and output addressing. The expected 325 checks are:
+The evaluation has one receipt per case and ten global checks. Each case contributes checks for state, result, issue codes, bounded counts, output addressing, sanitized summary, and delegated context. The expected 458 checks are:
 
 ```text
-64 cases × 5 case checks = 320
-5 global closure checks = 5
-total = 325
+64 cases × 7 case checks = 448
+10 global closure checks = 10
+total = 458
 ```
 
 The evaluation is accepted only when every receipt and every check passes. A control receipt passes when its held state and declared issue match exactly; the control remains a review item after evaluation.
@@ -116,8 +118,11 @@ The evaluation is accepted only when every receipt and every check passes. A con
 The metrics projection intentionally separates positive and control issue counts. Coordinate positives can retain informative issue codes, while every control contributes one policy issue. The default fixture therefore reports:
 
 ```text
+source_count = 20
 operation_count = 16
 case_count = 64
+evaluation_check_count = 458
+result_state_count = 6
 positive_count = 16
 control_count = 48
 control_issue_count = 48
@@ -128,7 +133,7 @@ The aggregate issue count is not used as a failure threshold; receipt closure an
 
 ## Schema projection
 
-The schema manifest requires eight fixture fields, at least twelve case fields, and eight receipt fields. Receipt fields intentionally omit raw payload. `reference_architecture_schema()` returns the required field tuples and its own content address.
+The schema manifest requires eight fixture fields, eight source fields, at least fourteen case fields, and eight receipt fields. Receipt fields intentionally omit raw payload. `reference_architecture_schema()` returns the required field tuples and its own content address.
 
 ## Canonicalization and replay
 

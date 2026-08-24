@@ -42,7 +42,7 @@ Each positive payload is derived from a verified public fixture in the correspon
 
 ## Runtime sequence
 
-`run_reference_architecture` closes the composition in 20 ordered stages:
+`run_reference_architecture` closes the composition in 24 ordered stages:
 
 1. Load the fixture.
 2. Audit source receipts and scope.
@@ -62,8 +62,12 @@ Each positive payload is derived from a verified public fixture in the correspon
 16. Materialize six artifacts.
 17. Close public access policy.
 18. Replay evaluation and compare addresses.
-19. Apply release checks.
-20. Finalize the runtime.
+19. Account for operation, case, family, check, state, and lineage depth.
+20. Close public aggregate compliance and forbidden-field checks.
+21. Apply release checks.
+22. Apply the 12-check quality gate.
+23. Close observability projections.
+24. Finalize the runtime.
 
 The runtime publishes only when evaluation, plan, review queue, lineage, artifacts, access, replay, invariants, schema, runbook, observability, and quality checks all pass. The published state does not mean that controls were accepted; it means the controls were held and accounted for according to the contract.
 
@@ -81,6 +85,9 @@ The runtime publishes only when evaluation, plan, review queue, lineage, artifac
 - content addressing on sources, cases, and fixture;
 - aggregate-only payload scope;
 - a direct-identity field scan.
+- explicit public aggregate markers on all sources;
+- delegated context keys on all cases;
+- foreign-context separation between case and delegated context.
 
 The fixture is loaded through `default_reference_architecture_fixture()` or `ReferenceArchitectureFixture.from_file()`. `reference_architecture_fixture_json()` returns the canonical serialized representation for reproducibility checks and bundle exports.
 
@@ -88,7 +95,7 @@ The fixture is loaded through `default_reference_architecture_fixture()` or `Ref
 
 Every case creates one `ReferenceArchitectureCaseReceipt`. A receipt compares expected and observed architecture state, family result state, issue codes, bounded counts, and content-addressed output identity.
 
-There are five checks per case and five global checks, producing 325 evaluation checks. Positive coordinate results can include informative issue codes such as chain parsing or unique ambiguity outcomes. Those codes are retained and compared; they do not demote a successful family result. Control issue codes are one-for-one with their declared policy scenario.
+There are seven checks per case and ten global checks, producing 458 evaluation checks. Positive coordinate results can include informative issue codes such as chain parsing or unique ambiguity outcomes. Those codes are retained and compared; they do not demote a successful family result. Control issue codes are one-for-one with their declared policy scenario. The expanded checks also close sanitized summaries, delegated contexts, family coverage, source joins, operation balance, foreign-context controls, and result-state coverage.
 
 ## Review and lineage
 
@@ -111,7 +118,7 @@ The access policy exposes only public aggregate artifacts, permits JSON and Mark
 
 ## Quality gates
 
-The release quality gate requires 16 operations, 64 cases, 64 passing receipts, 16 plan nodes, 48 review items, 64 ledger events, six addressed artifacts, at least 20 stages, and a published release. Independent validation, replay, schema, invariant, failure, access, and observability checks are also retained in the runtime computation.
+The release quality gate requires 20 public sources, 16 operations, 64 cases, 64 passing receipts, 458 evaluation checks, 16 plan nodes, 48 review items, 64 ledger events, six addressed artifacts, 24 stages, six result states, accepted public aggregate compliance, and a published release. The depth report exposes a 100.0% default completion score. Independent validation, replay, schema, invariant, failure, access, and observability checks are also retained in the runtime computation.
 
 ## CLI examples
 
@@ -121,8 +128,12 @@ python -m glio_noncode reference-architecture-data-audit --input .\out\fixture.j
 python -m glio_noncode evaluate-reference-architecture --input .\out\fixture.json
 python -m glio_noncode reference-architecture-runtime --input .\out\fixture.json
 python -m glio_noncode reference-architecture-quality --input .\out\fixture.json
+python -m glio_noncode reference-architecture-compliance --input .\out\fixture.json
+python -m glio_noncode reference-architecture-report --input .\out\fixture.json
+python -m glio_noncode reference-architecture-receipts-csv --input .\out\fixture.json
+python -m glio_noncode reference-architecture-review-csv --input .\out\fixture.json
 python -m glio_noncode reference-architecture-query --state review --input .\out\fixture.json
 python -m glio_noncode reference-architecture-bundle --input .\out\fixture.json --output .\out\bundle
 ```
 
-Commands return zero only when their requested contract is closed. A failing audit, evaluation, runtime, validation, quality, replay, review, access, invariant, or failure command returns a nonzero result so it can be used directly in CI.
+Commands return zero only when their requested contract is closed. A failing audit, evaluation, runtime, validation, quality, compliance, depth, replay, review, access, invariant, or failure command returns a nonzero result so it can be used directly in CI. The bundle additionally writes JSON and Markdown summaries plus receipt and review CSV projections.

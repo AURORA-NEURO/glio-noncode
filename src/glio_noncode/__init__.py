@@ -10101,8 +10101,11 @@ from .reference_architecture_exports import (
     REFERENCE_ARCHITECTURE_CASES_PER_OPERATION,
     REFERENCE_ARCHITECTURE_CONTEXT,
     REFERENCE_ARCHITECTURE_FOREIGN_CONTEXT,
+    REFERENCE_ARCHITECTURE_FAMILY_COUNT,
     REFERENCE_ARCHITECTURE_OPERATION_COUNT,
+    REFERENCE_ARCHITECTURE_SOURCE_COUNT,
     REFERENCE_ARCHITECTURE_VERSION,
+    REFERENCE_ARCHITECTURE_DEPTH_TARGETS,
     REFERENCE_ARCHITECTURE_STAGE_IDS,
     ReferenceArchitectureAccessPolicy,
     ReferenceArchitectureArtifact,
@@ -10110,6 +10113,7 @@ from .reference_architecture_exports import (
     ReferenceArchitectureCaseReceipt,
     ReferenceArchitectureCheck,
     ReferenceArchitectureCheckKind,
+    ReferenceArchitectureComplianceReport,
     ReferenceArchitectureDataAudit,
     ReferenceArchitectureDepthReport,
     ReferenceArchitectureEvaluation,
@@ -10134,6 +10138,7 @@ from .reference_architecture_exports import (
     ReferenceArchitectureReviewItem,
     ReferenceArchitectureReviewQueue,
     ReferenceArchitectureRunbook,
+    ReferenceArchitectureReport,
     ReferenceArchitectureRuntime,
     ReferenceArchitectureRuntimeStage,
     ReferenceArchitectureScenario,
@@ -10141,6 +10146,7 @@ from .reference_architecture_exports import (
     ReferenceArchitectureSource,
     ReferenceArchitectureState,
     assess_reference_architecture_quality,
+    assess_reference_architecture_compliance,
     audit_reference_architecture_data,
     build_reference_architecture_ledger,
     build_reference_architecture_review_queue,
@@ -10156,8 +10162,13 @@ from .reference_architecture_exports import (
     observe_reference_architecture_run,
     reference_architecture_access_policy,
     reference_architecture_depth_report,
+    reference_architecture_depth_percent,
     reference_architecture_fixture_json,
     reference_architecture_runbook,
+    build_reference_architecture_report,
+    render_reference_architecture_markdown,
+    reference_architecture_receipts_csv,
+    reference_architecture_review_csv,
     reference_architecture_schema,
     reference_cases_for_operation,
     reference_control_case_ids,
@@ -10174,9 +10185,9 @@ from .reference_architecture_exports import (
 )
 
 __all__ += [
-    "REFERENCE_ARCHITECTURE_ARTIFACT_COUNT", "REFERENCE_ARCHITECTURE_BOUNDARY", "REFERENCE_ARCHITECTURE_CASE_COUNT", "REFERENCE_ARCHITECTURE_CASES_PER_OPERATION", "REFERENCE_ARCHITECTURE_CONTEXT", "REFERENCE_ARCHITECTURE_FOREIGN_CONTEXT", "REFERENCE_ARCHITECTURE_OPERATION_COUNT", "REFERENCE_ARCHITECTURE_VERSION", "REFERENCE_ARCHITECTURE_STAGE_IDS",
-    "ReferenceArchitectureAccessPolicy", "ReferenceArchitectureArtifact", "ReferenceArchitectureCase", "ReferenceArchitectureCaseReceipt", "ReferenceArchitectureCheck", "ReferenceArchitectureCheckKind", "ReferenceArchitectureDataAudit", "ReferenceArchitectureDepthReport", "ReferenceArchitectureEvaluation", "ReferenceArchitectureExecution", "ReferenceArchitectureFailure", "ReferenceArchitectureFailureReport", "ReferenceArchitectureFixture", "ReferenceArchitectureLedger", "ReferenceArchitectureLedgerEvent", "ReferenceArchitectureMetrics", "ReferenceArchitectureObservation", "ReferenceArchitectureOperation", "ReferenceArchitectureOperationSpec", "ReferenceArchitecturePlan", "ReferenceArchitecturePlanNode", "ReferenceArchitecturePlane", "ReferenceArchitecturePolicyDecision", "ReferenceArchitecturePolicyReport", "ReferenceArchitectureQualityGate", "ReferenceArchitectureReplayReport", "ReferenceArchitectureRelease", "ReferenceArchitectureReviewItem", "ReferenceArchitectureReviewQueue", "ReferenceArchitectureRunbook", "ReferenceArchitectureRuntime", "ReferenceArchitectureRuntimeStage", "ReferenceArchitectureScenario", "ReferenceArchitectureSchema", "ReferenceArchitectureSource", "ReferenceArchitectureState",
-    "assess_reference_architecture_quality", "audit_reference_architecture_data", "build_reference_architecture_ledger", "build_reference_architecture_review_queue", "check_reference_architecture_invariants", "classify_reference_architecture_failures", "compile_reference_architecture_plan", "default_reference_architecture_fixture", "evaluate_reference_architecture_fixture", "execute_reference_architecture_case", "materialize_reference_architecture_artifacts", "materialize_reference_architecture_metrics", "normalize_reference_architecture_mapping", "observe_reference_architecture_run", "reference_architecture_access_policy", "reference_architecture_depth_report", "reference_architecture_fixture_json", "reference_architecture_runbook", "reference_architecture_schema", "reference_cases_for_operation", "reference_control_case_ids", "reference_ledger_state_counts", "reference_metrics_to_dict", "reference_receipts_for_state", "reference_review_priority_counts", "reference_validation_summary", "replay_reference_architecture_fixture", "run_reference_architecture", "score_reference_architecture_policy", "strip_reference_architecture_payloads", "validate_reference_architecture_matrix",
+    "REFERENCE_ARCHITECTURE_ARTIFACT_COUNT", "REFERENCE_ARCHITECTURE_BOUNDARY", "REFERENCE_ARCHITECTURE_CASE_COUNT", "REFERENCE_ARCHITECTURE_CASES_PER_OPERATION", "REFERENCE_ARCHITECTURE_CONTEXT", "REFERENCE_ARCHITECTURE_FOREIGN_CONTEXT", "REFERENCE_ARCHITECTURE_FAMILY_COUNT", "REFERENCE_ARCHITECTURE_OPERATION_COUNT", "REFERENCE_ARCHITECTURE_SOURCE_COUNT", "REFERENCE_ARCHITECTURE_VERSION", "REFERENCE_ARCHITECTURE_STAGE_IDS", "REFERENCE_ARCHITECTURE_DEPTH_TARGETS",
+    "ReferenceArchitectureAccessPolicy", "ReferenceArchitectureArtifact", "ReferenceArchitectureCase", "ReferenceArchitectureCaseReceipt", "ReferenceArchitectureCheck", "ReferenceArchitectureCheckKind", "ReferenceArchitectureComplianceReport", "ReferenceArchitectureDataAudit", "ReferenceArchitectureDepthReport", "ReferenceArchitectureEvaluation", "ReferenceArchitectureExecution", "ReferenceArchitectureFailure", "ReferenceArchitectureFailureReport", "ReferenceArchitectureFixture", "ReferenceArchitectureLedger", "ReferenceArchitectureLedgerEvent", "ReferenceArchitectureMetrics", "ReferenceArchitectureObservation", "ReferenceArchitectureOperation", "ReferenceArchitectureOperationSpec", "ReferenceArchitecturePlan", "ReferenceArchitecturePlanNode", "ReferenceArchitecturePlane", "ReferenceArchitecturePolicyDecision", "ReferenceArchitecturePolicyReport", "ReferenceArchitectureQualityGate", "ReferenceArchitectureReplayReport", "ReferenceArchitectureRelease", "ReferenceArchitectureReport", "ReferenceArchitectureReviewItem", "ReferenceArchitectureReviewQueue", "ReferenceArchitectureRunbook", "ReferenceArchitectureRuntime", "ReferenceArchitectureRuntimeStage", "ReferenceArchitectureScenario", "ReferenceArchitectureSchema", "ReferenceArchitectureSource", "ReferenceArchitectureState",
+    "assess_reference_architecture_compliance", "assess_reference_architecture_quality", "audit_reference_architecture_data", "build_reference_architecture_ledger", "build_reference_architecture_report", "build_reference_architecture_review_queue", "check_reference_architecture_invariants", "classify_reference_architecture_failures", "compile_reference_architecture_plan", "default_reference_architecture_fixture", "evaluate_reference_architecture_fixture", "execute_reference_architecture_case", "materialize_reference_architecture_artifacts", "materialize_reference_architecture_metrics", "normalize_reference_architecture_mapping", "observe_reference_architecture_run", "reference_architecture_access_policy", "reference_architecture_depth_percent", "reference_architecture_depth_report", "reference_architecture_fixture_json", "reference_architecture_receipts_csv", "reference_architecture_review_csv", "reference_architecture_runbook", "reference_architecture_schema", "reference_cases_for_operation", "reference_control_case_ids", "reference_ledger_state_counts", "reference_metrics_to_dict", "reference_receipts_for_state", "reference_review_priority_counts", "reference_validation_summary", "render_reference_architecture_markdown", "replay_reference_architecture_fixture", "run_reference_architecture", "score_reference_architecture_policy", "strip_reference_architecture_payloads", "validate_reference_architecture_matrix",
 ]
 
 from .atlas_architecture_exports import (

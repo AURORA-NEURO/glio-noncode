@@ -16,6 +16,7 @@ class ReferenceArchitectureSchema:
     schema_id: str
     version: str
     required_fixture_fields: tuple[str, ...]
+    required_source_fields: tuple[str, ...]
     required_case_fields: tuple[str, ...]
     required_receipt_fields: tuple[str, ...]
     checks: tuple[ReferenceArchitectureCheck, ...]
@@ -26,6 +27,7 @@ class ReferenceArchitectureSchema:
             "schema_id": self.schema_id,
             "version": self.version,
             "required_fixture_fields": self.required_fixture_fields,
+            "required_source_fields": self.required_source_fields,
             "required_case_fields": self.required_case_fields,
             "required_receipt_fields": self.required_receipt_fields,
             "checks": self.checks,
@@ -51,12 +53,23 @@ def reference_architecture_schema() -> ReferenceArchitectureSchema:
         "operation",
         "scenario",
         "context_key",
+        "delegate_context_key",
         "source_ids",
         "payload",
         "expected_state",
         "expected_result_state",
         "expected_issue_codes",
         "expected_counts",
+        "content_address",
+    )
+    source_fields = (
+        "source_id",
+        "title",
+        "uri",
+        "version",
+        "scope",
+        "license",
+        "public_aggregate",
         "content_address",
     )
     receipt_fields = (
@@ -79,10 +92,10 @@ def reference_architecture_schema() -> ReferenceArchitectureSchema:
         ),
         _check(
             "case-fields",
-            len(case_fields) >= 12,
+            len(case_fields) >= 14,
             case_fields,
-            ">=12",
-            "case contract retains expected outcomes",
+            ">=14",
+            "case contract retains delegated context and expected outcomes",
         ),
         _check(
             "receipt-fields",
@@ -91,11 +104,29 @@ def reference_architecture_schema() -> ReferenceArchitectureSchema:
             8,
             "receipt excludes raw payload",
         ),
+        _check(
+            "source-fields",
+            len(source_fields) == 8 and "public_aggregate" in source_fields,
+            source_fields,
+            8,
+            "source scope and public marker are explicit",
+        ),
+        _check(
+            "address-fields",
+            all(
+                "content_address" in fields
+                for fields in (fixture_fields, source_fields, case_fields, receipt_fields)
+            ),
+            True,
+            True,
+            "persisted schema entities are content addressed",
+        ),
     )
     body = {
         "schema_id": "glio-noncode.reference-architecture",
         "version": "v1",
         "fixture_fields": fixture_fields,
+        "source_fields": source_fields,
         "case_fields": case_fields,
         "receipt_fields": receipt_fields,
         "checks": checks,
@@ -104,6 +135,7 @@ def reference_architecture_schema() -> ReferenceArchitectureSchema:
         body["schema_id"],
         body["version"],
         fixture_fields,
+        source_fields,
         case_fields,
         receipt_fields,
         checks,

@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+from .reference_architecture_compliance import assess_reference_architecture_compliance
 from .reference_architecture_contracts import (
     ReferenceArchitectureArtifact,
     ReferenceArchitectureCheck,
@@ -13,6 +16,7 @@ from .reference_architecture_contracts import (
     ReferenceArchitectureQualityGate,
     ReferenceArchitectureRelease,
     ReferenceArchitectureReviewQueue,
+    ReferenceArchitectureScenario,
     ReferenceArchitectureState,
     addressed,
 )
@@ -27,7 +31,18 @@ def assess_reference_architecture_quality(
     artifacts: tuple[ReferenceArchitectureArtifact, ...],
     release: ReferenceArchitectureRelease,
     stage_count: int,
+    compliance: Any | None = None,
 ) -> ReferenceArchitectureQualityGate:
+    compliance_report = compliance or assess_reference_architecture_compliance(fixture)
+    context_closed = all(
+        bool(item.delegate_context_key)
+        and (
+            item.scenario is not ReferenceArchitectureScenario.FOREIGN_CONTEXT
+            or item.context_key != item.delegate_context_key
+        )
+        for item in fixture.cases
+    )
+    state_count = len({item.observed_result_state for item in evaluation.receipts})
     checks = (
         _check(
             "fixture",
@@ -72,9 +87,37 @@ def assess_reference_architecture_quality(
             6,
             "six artifacts are addressed",
         ),
-        _check("runtime", stage_count >= 20, stage_count, 20, "runtime has complete depth"),
+        _check("runtime", stage_count == 24, stage_count, 24, "runtime has complete depth"),
         _check(
             "release", release.published, release.state.value, "published", "release is publishable"
+        ),
+        _check(
+            "evaluation-check-count",
+            len(evaluation.checks) == 458,
+            len(evaluation.checks),
+            458,
+            "case and global evaluation checks are closed",
+        ),
+        _check(
+            "result-state-count",
+            state_count >= 6,
+            state_count,
+            ">=6",
+            "result states cover positive and held outcomes",
+        ),
+        _check(
+            "context-boundary",
+            context_closed,
+            context_closed,
+            True,
+            "delegated contexts and foreign controls are explicit",
+        ),
+        _check(
+            "compliance",
+            compliance_report.accepted,
+            compliance_report.accepted,
+            True,
+            "public aggregate compliance is accepted",
         ),
     )
     state = (

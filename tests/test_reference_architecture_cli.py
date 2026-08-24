@@ -49,6 +49,10 @@ class ReferenceArchitectureCliTests(unittest.TestCase):
                 "reference-architecture-runtime",
                 "reference-architecture-quality",
                 "reference-architecture-depth",
+                "reference-architecture-compliance",
+                "reference-architecture-report",
+                "reference-architecture-receipts-csv",
+                "reference-architecture-review-csv",
                 "replay-reference-architecture",
                 "reference-architecture-validation",
             ):
@@ -65,6 +69,18 @@ class ReferenceArchitectureCliTests(unittest.TestCase):
             )
             self.assertTrue(
                 json.loads((root / "reference-architecture-depth.json").read_text())["accepted"]
+            )
+            self.assertTrue(
+                json.loads((root / "reference-architecture-compliance.json").read_text())[
+                    "accepted"
+                ]
+            )
+            report = json.loads((root / "reference-architecture-report.json").read_text())
+            self.assertEqual(report["summary"]["evaluation_checks"], 458)
+            self.assertTrue(
+                (root / "reference-architecture-receipts-csv.json")
+                .read_text()
+                .startswith("case_id,operation_id")
             )
             self.assertTrue(
                 json.loads((root / "replay-reference-architecture.json").read_text())["accepted"]
@@ -90,6 +106,9 @@ class ReferenceArchitectureCliTests(unittest.TestCase):
             self.assertEqual(len(json.loads((root / "query.json").read_text())["receipts"]), 48)
             self.assertTrue((root / "bundle" / "runtime.json").exists())
             self.assertTrue((root / "bundle" / "release.json").exists())
+            self.assertTrue((root / "bundle" / "report.md").exists())
+            self.assertTrue((root / "bundle" / "receipts.csv").exists())
+            self.assertTrue((root / "bundle" / "review.csv").exists())
 
 
 if __name__ == "__main__":

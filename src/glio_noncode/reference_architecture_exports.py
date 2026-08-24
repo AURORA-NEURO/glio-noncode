@@ -10,8 +10,16 @@ from .reference_architecture_bundle import (
     materialize_reference_architecture_artifacts,
     release_reference_architecture,
 )
+from .reference_architecture_compliance import (
+    ReferenceArchitectureComplianceReport,
+    assess_reference_architecture_compliance,
+)
 from .reference_architecture_contracts import *
-from .reference_architecture_depth import reference_architecture_depth_report
+from .reference_architecture_depth import (
+    REFERENCE_ARCHITECTURE_DEPTH_TARGETS,
+    reference_architecture_depth_percent,
+    reference_architecture_depth_report,
+)
 from .reference_architecture_failures import (
     ReferenceArchitectureFailure,
     ReferenceArchitectureFailureReport,
@@ -82,3 +90,10 @@ from .reference_architecture_validation import (
     validate_reference_architecture_matrix,
 )
 from .reference_architecture_quality import assess_reference_architecture_quality
+from .reference_architecture_reporting import (
+    ReferenceArchitectureReport,
+    build_reference_architecture_report,
+    reference_architecture_receipts_csv,
+    reference_architecture_review_csv,
+    render_reference_architecture_markdown,
+)

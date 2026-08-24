@@ -1,4 +1,4 @@
-"""End-to-end 20-stage runtime for composed D04 reference operations."""
+"""End-to-end 24-stage runtime for composed D04 reference operations."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from .reference_architecture_bundle import (
     materialize_reference_architecture_artifacts,
     release_reference_architecture,
 )
+from .reference_architecture_compliance import assess_reference_architecture_compliance
 from .reference_architecture_contracts import (
     ReferenceArchitectureCheck,
     ReferenceArchitectureFixture,
@@ -15,6 +16,7 @@ from .reference_architecture_contracts import (
     ReferenceArchitectureState,
     addressed,
 )
+from .reference_architecture_depth import reference_architecture_depth_report
 from .reference_architecture_failures import classify_reference_architecture_failures
 from .reference_architecture_invariants import check_reference_architecture_invariants
 from .reference_architecture_lineage import build_reference_architecture_ledger
@@ -53,7 +55,11 @@ REFERENCE_ARCHITECTURE_STAGE_IDS = (
     "artifacts-materialized",
     "access-closed",
     "replay-closed",
+    "depth-accounted",
+    "compliance-closed",
     "release-gated",
+    "quality-gated",
+    "observability-closed",
     "runtime-finalized",
 )
 
@@ -87,6 +93,7 @@ def run_reference_architecture(
     )
     access = reference_architecture_access_policy(artifacts)
     replay = replay_reference_architecture_fixture(value, evaluation)
+    compliance = assess_reference_architecture_compliance(value)
     invariants = check_reference_architecture_invariants(
         value, evaluation, plan, review_queue, ledger
     )
@@ -101,6 +108,7 @@ def run_reference_architecture(
         + policy.checks
         + validation
         + schema.checks
+        + compliance.checks
         + access.checks
         + replay_checks(replay)
         + invariants
@@ -119,6 +127,10 @@ def run_reference_architecture(
         artifacts,
         release,
         len(REFERENCE_ARCHITECTURE_STAGE_IDS),
+        compliance,
+    )
+    depth = reference_architecture_depth_report(
+        value, evaluation, plan, review_queue, ledger, None
     )
     stages = _stages(
         value,
@@ -135,12 +147,17 @@ def run_reference_architecture(
         artifacts,
         access,
         replay,
+        depth,
+        compliance,
         release,
         quality,
     )
     state = (
         ReferenceArchitectureState.PUBLISHED
-        if quality.passed and not failures.release_blocked
+        if quality.passed
+        and not failures.release_blocked
+        and depth.accepted
+        and compliance.accepted
         else ReferenceArchitectureState.BLOCKED
     )
     body = {
@@ -154,6 +171,9 @@ def run_reference_architecture(
         "ledger": ledger,
         "artifacts": artifacts,
         "release": release,
+        "depth": depth,
+        "quality": quality,
+        "compliance": compliance,
     }
     return ReferenceArchitectureRuntime(
         run_id,
@@ -166,6 +186,9 @@ def run_reference_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
+        compliance,
         addressed(body, "reference-runtime"),
     )
 
@@ -224,6 +247,8 @@ def _stages(
     artifacts: tuple[object, ...],
     access: object,
     replay: object,
+    depth: object,
+    compliance: object,
     release: object,
     quality: object,
 ) -> list[ReferenceArchitectureRuntimeStage]:
@@ -246,10 +271,28 @@ def _stages(
         addressed(artifacts, "reference-artifacts"),
         access.content_address,
         replay.content_address,
+        depth.content_address,
+        compliance.content_address,
         release.content_address,
         quality.content_address,
+        addressed(
+            {
+                "metrics": metrics.content_address,
+                "validation": addressed(validation, "reference-validation"),
+            },
+            "reference-observability",
+        ),
+        addressed(
+            {"run_id": run_id, "stage_count": len(REFERENCE_ARCHITECTURE_STAGE_IDS)},
+            "reference-final",
+        ),
     )
-    states = [ReferenceArchitectureState.ACCEPTED] * 18 + [release.state, quality.state]
+    states = [ReferenceArchitectureState.ACCEPTED] * 20 + [
+        release.state,
+        quality.state,
+        ReferenceArchitectureState.ACCEPTED,
+        ReferenceArchitectureState.ACCEPTED,
+    ]
     stages: list[ReferenceArchitectureRuntimeStage] = []
     previous = f"sha256:{run_id}"
     for ordinal, (stage_id, output, state) in enumerate(

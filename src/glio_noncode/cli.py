@@ -159,7 +159,11 @@ from .specimen_architecture_schema import specimen_architecture_schema
 from .specimen_architecture_validation import validate_specimen_architecture_matrix
 from .specimen_architecture_quality import assess_specimen_architecture_quality
 from .reference_architecture_access import reference_architecture_access_policy
-from .reference_architecture_depth import reference_architecture_depth_report
+from .reference_architecture_compliance import assess_reference_architecture_compliance
+from .reference_architecture_depth import (
+    reference_architecture_depth_percent,
+    reference_architecture_depth_report,
+)
 from .reference_architecture_failures import classify_reference_architecture_failures
 from .reference_architecture_invariants import check_reference_architecture_invariants
 from .reference_architecture_metrics import materialize_reference_architecture_metrics
@@ -180,6 +184,12 @@ from .reference_architecture_runtime import run_reference_architecture
 from .reference_architecture_schema import reference_architecture_schema
 from .reference_architecture_validation import validate_reference_architecture_matrix
 from .reference_architecture_quality import assess_reference_architecture_quality
+from .reference_architecture_reporting import (
+    build_reference_architecture_report,
+    reference_architecture_receipts_csv,
+    reference_architecture_review_csv,
+    render_reference_architecture_markdown,
+)
 from .atlas_architecture_access import atlas_architecture_access_policy
 from .atlas_architecture_compliance import assess_atlas_architecture_compliance
 from .atlas_architecture_data_dictionary import atlas_architecture_data_dictionary
@@ -2678,7 +2688,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
         (
             "reference-architecture-runtime",
-            "run the twenty-stage D04 reference architecture",
+            "run the twenty-four-stage D04 reference architecture",
         ),
         (
             "reference-architecture-validation",
@@ -2691,6 +2701,22 @@ def build_parser() -> argparse.ArgumentParser:
         (
             "reference-architecture-depth",
             "report D04 operation, case, stage, artifact, and lineage depth",
+        ),
+        (
+            "reference-architecture-compliance",
+            "audit D04 public aggregate boundary and context compliance",
+        ),
+        (
+            "reference-architecture-report",
+            "emit D04 deterministic summary and section report",
+        ),
+        (
+            "reference-architecture-receipts-csv",
+            "emit D04 evaluation receipts as CSV",
+        ),
+        (
+            "reference-architecture-review-csv",
+            "emit D04 held-control review items as CSV",
         ),
         (
             "replay-reference-architecture",
@@ -8684,6 +8710,30 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "reference-architecture-compliance":
+            report = assess_reference_architecture_compliance(
+                _reference_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-architecture-report":
+            fixture = _reference_architecture_fixture(args.input)
+            runtime = run_reference_architecture(fixture)
+            validation = validate_reference_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_reference_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(validation)
+            )
+            report = build_reference_architecture_report(fixture, runtime, metrics)
+            _write_json(report.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "reference-architecture-receipts-csv":
+            runtime = run_reference_architecture(_reference_architecture_fixture(args.input))
+            _write_text(reference_architecture_receipts_csv(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "reference-architecture-review-csv":
+            runtime = run_reference_architecture(_reference_architecture_fixture(args.input))
+            _write_text(reference_architecture_review_csv(runtime.review_queue), args.output)
+            return 0 if runtime.accepted else 2
         if args.command == "replay-reference-architecture":
             report = replay_reference_architecture_fixture(
                 _reference_architecture_fixture(args.input)
@@ -8773,6 +8823,26 @@ def main(argv: list[str] | None = None) -> int:
                 reference_architecture_fixture_json(fixture),
                 str(output_dir / "fixture.json"),
             )
+            validation = validate_reference_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_reference_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(validation)
+            )
+            report = build_reference_architecture_report(fixture, runtime, metrics)
+            _write_json(report.to_dict(), str(output_dir / "report.json"))
+            _write_text(
+                render_reference_architecture_markdown(report),
+                str(output_dir / "report.md"),
+            )
+            _write_text(
+                reference_architecture_receipts_csv(runtime),
+                str(output_dir / "receipts.csv"),
+            )
+            _write_text(
+                reference_architecture_review_csv(runtime.review_queue),
+                str(output_dir / "review.csv"),
+            )
+            _write_json(runtime.compliance.to_dict(), str(output_dir / "compliance.json"))
+            _write_json(runtime.depth.to_dict(), str(output_dir / "depth.json"))
             return 0 if runtime.accepted else 2
         if args.command == "atlas-architecture-fixture":
             _write_text(atlas_architecture_fixture_json(), args.output)

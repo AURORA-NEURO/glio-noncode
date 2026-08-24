@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from .errors import ValidationError
@@ -68,6 +69,17 @@ _RELEASE = {
     ReferenceArchitectureOperation.REFERENCE_BUNDLE,
     ReferenceArchitectureOperation.RELEASE_GATE,
 }
+
+
+def _sanitize(value: Any) -> Any:
+    hidden = {"payload", "input_text", "track_text", "raw_text", "records_text"}
+    if isinstance(value, Mapping):
+        return {
+            str(key): _sanitize(item) for key, item in value.items() if str(key) not in hidden
+        }
+    if isinstance(value, (list, tuple)):
+        return [_sanitize(item) for item in value]
+    return value
 
 
 def evaluate_reference_architecture_fixture(
@@ -166,6 +178,9 @@ def execute_reference_architecture_case(
         if result_state in accepted_states
         else ReferenceArchitectureState.REVIEW
     )
+    summary = _sanitize(dict(domain["summary"]))
+    summary["context_key"] = case.context_key
+    summary["delegate_context_key"] = case.delegate_context_key
     return ReferenceArchitectureExecution(
         case_id=case.case_id,
         operation=case.operation,
@@ -180,7 +195,7 @@ def execute_reference_architecture_case(
             "result_state": result_state,
             "counts": counts,
             "issue_codes": issue_codes,
-            **dict(domain["summary"]),
+            **summary,
         },
         detail=str(domain["detail"]),
     )
@@ -312,6 +327,8 @@ def _control_execution(case: ReferenceArchitectureCase) -> ReferenceArchitecture
         "scenario": case.scenario.value,
         "held_before_adapter": True,
         "aggregate_only": bool(case.payload.get("aggregate_only", False)),
+        "context_key": case.context_key,
+        "delegate_context_key": case.delegate_context_key,
     }
     return ReferenceArchitectureExecution(
         case.case_id,
@@ -339,7 +356,11 @@ def _failed(
         (issue,),
         {},
         content_hash({"case_id": case.case_id, "issue": issue}),
-        {"failure": issue},
+        {
+            "failure": issue,
+            "context_key": case.context_key,
+            "delegate_context_key": case.delegate_context_key,
+        },
         detail,
     )
 
@@ -378,6 +399,25 @@ def _checks_for_case(
             execution.output_address.startswith("sha256:"),
             True,
             "execution output is content addressed",
+        ),
+        (
+            "sanitized",
+            not any(
+                key in execution.summary
+                for key in ("payload", "input_text", "track_text", "raw_text")
+            ),
+            True,
+            "receipt summary excludes raw input markers",
+        ),
+        (
+            "context",
+            bool(execution.summary.get("delegate_context_key"))
+            and (
+                case.scenario is not ReferenceArchitectureScenario.FOREIGN_CONTEXT
+                or "context_mismatch" in execution.issue_codes
+            ),
+            True,
+            "delegated context is retained and foreign controls are explicit",
         ),
     ):
         checks.append(
@@ -438,6 +478,81 @@ def _global_checks(
             all(item.passed for item in receipts),
             True,
             "all expected-versus-observed receipts close",
+        ),
+        _check(
+            "global-family-coverage",
+            ReferenceArchitectureCheckKind.INVARIANT,
+            len(
+                {
+                    next(
+                        operation.family
+                        for operation in fixture.operations
+                        if operation.operation_id == item.operation_id
+                    )
+                    for item in receipts
+                }
+            )
+            == 4,
+            len(
+                {
+                    next(
+                        operation.family
+                        for operation in fixture.operations
+                        if operation.operation_id == item.operation_id
+                    )
+                    for item in receipts
+                }
+            ),
+            4,
+            "all four reference planes are represented",
+        ),
+        _check(
+            "global-source-joins",
+            ReferenceArchitectureCheckKind.INVARIANT,
+            all(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            sum(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            80,
+            "all operation and case source joins resolve",
+        ),
+        _check(
+            "global-operation-balance",
+            ReferenceArchitectureCheckKind.INVARIANT,
+            all(
+                sum(item.operation_id == operation_id for item in receipts) == 4
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            sorted(
+                sum(item.operation_id == operation_id for item in receipts)
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            [4] * 16,
+            "each operation has one positive and three controls",
+        ),
+        _check(
+            "global-foreign-context",
+            ReferenceArchitectureCheckKind.INVARIANT,
+            all(
+                "context_mismatch" in item.observed_issue_codes
+                for item in receipts
+                if item.case_id.endswith("-foreign_context")
+            ),
+            True,
+            True,
+            "foreign controls retain context mismatch",
+        ),
+        _check(
+            "global-result-state-coverage",
+            ReferenceArchitectureCheckKind.INVARIANT,
+            len({item.observed_result_state for item in receipts}) >= 6,
+            len({item.observed_result_state for item in receipts}),
+            ">=6",
+            "result states cover positive and held outcomes",
         ),
     )
 
