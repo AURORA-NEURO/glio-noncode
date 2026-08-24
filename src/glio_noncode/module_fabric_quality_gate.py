@@ -3,7 +3,17 @@
 from __future__ import annotations
 
 from .capability_registry import CapabilityRegistry, default_capability_registry
-from .module_fabric_contracts import FabricFixture, FabricQualityReport, make_quality_check
+from .module_fabric_contracts import (
+    MODULE_FABRIC_ARTIFACT_COUNT,
+    MODULE_FABRIC_CHECK_COUNT,
+    MODULE_FABRIC_GLOBAL_CHECK_COUNT,
+    MODULE_FABRIC_STAGE_COUNT,
+    FabricFixture,
+    FabricQualityReport,
+    FabricRole,
+    FabricState,
+    make_quality_check,
+)
 from .module_fabric_depth import audit_module_fabric_depth
 from .module_fabric_fixture_eval import evaluate_module_fabric_fixture
 from .module_fabric_lineage import build_module_fabric_lineage, verify_module_fabric_lineage
@@ -38,6 +48,14 @@ def run_module_fabric_quality_gate(
         make_quality_check("reference-closure", metrics.failed_reference_count == 0, metrics.failed_reference_count, 0, "no declared reference is unresolved"),
         make_quality_check("fixture-address", value.content_address.startswith("sha256:"), value.content_address[:7], "sha256:", "fixture address is stable"),
         make_quality_check("evaluation-address", evaluation.content_address.startswith("module-fabric-evaluation:"), evaluation.content_address[:24], "module-fabric-evaluation:", "evaluation address is stable"),
+        make_quality_check("evaluation-check-denominator", len(evaluation.checks) == MODULE_FABRIC_CHECK_COUNT, len(evaluation.checks), MODULE_FABRIC_CHECK_COUNT, "record and global evaluation checks are closed"),
+        make_quality_check("global-check-denominator", sum(item.record_id == "__fixture__" for item in evaluation.checks) == MODULE_FABRIC_GLOBAL_CHECK_COUNT, sum(item.record_id == "__fixture__" for item in evaluation.checks), MODULE_FABRIC_GLOBAL_CHECK_COUNT, "global evaluation checks are retained"),
+        make_quality_check("depth-check-denominator", len(depth.checks) == 30 and depth.accepted, len(depth.checks), 30, "depth audit closes the expanded foundation surface"),
+        make_quality_check("positive-role-state", all(item.role is FabricRole.POSITIVE and item.observed_state is FabricState.ACCEPTED for item in evaluation.executions if item.role is FabricRole.POSITIVE), 16, 16, "positive role rows are accepted"),
+        make_quality_check("control-role-state", all(item.role is FabricRole.CONTROL and item.observed_state is FabricState.REVIEW for item in evaluation.executions if item.role is FabricRole.CONTROL), 16, 16, "control role rows remain review"),
+        make_quality_check("artifact-denominator", MODULE_FABRIC_ARTIFACT_COUNT == 8, MODULE_FABRIC_ARTIFACT_COUNT, 8, "release materializes eight artifacts"),
+        make_quality_check("stage-denominator", MODULE_FABRIC_STAGE_COUNT == 24, MODULE_FABRIC_STAGE_COUNT, 24, "runtime foundation denominator is twenty-four"),
+        make_quality_check("source-addresses", all(item.content_address.startswith("sha256:") for item in value.sources), len(value.sources), 5, "all public sources are addressed"),
     )
     accepted = all(item.passed for item in checks)
     body = {"fixture_id": value.fixture_id, "checks": checks, "accepted": accepted}

@@ -9,7 +9,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).parents[1]
 
 
@@ -38,6 +37,14 @@ class ModuleFabricCliTests(unittest.TestCase):
             result = run_cli(command)
             self.assertEqual(result.returncode, 0, f"{command}: {result.stderr}")
             self.assertTrue(json.loads(result.stdout)["accepted"], command)
+
+    def test_compliance_and_check_projection_commands(self) -> None:
+        compliance = run_cli("module-fabric-compliance")
+        self.assertEqual(compliance.returncode, 0, compliance.stderr)
+        self.assertEqual(json.loads(compliance.stdout)["passed_checks"], 12)
+        checks = run_cli("module-fabric-checks-csv")
+        self.assertEqual(checks.returncode, 0, checks.stderr)
+        self.assertEqual(len(checks.stdout.splitlines()), 395)
 
     def test_runtime_and_report_formats(self) -> None:
         runtime = run_cli("module-fabric-runtime")

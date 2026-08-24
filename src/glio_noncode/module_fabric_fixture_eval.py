@@ -15,7 +15,7 @@ from .module_fabric_contracts import (
 )
 from .module_fabric_operations import evaluate_module_fabric_record
 from .module_fabric_public_data import default_module_fabric_fixture
-from .module_fabric_support import contains_private_key, all_resolved
+from .module_fabric_support import all_resolved, contains_private_key
 from .serialization import content_hash
 
 
@@ -137,6 +137,76 @@ def evaluate_module_fabric_fixture(
                 "execution receipt is content addressed",
             )
         )
+        source_ids = {item.source_id for item in value.sources}
+        checks.append(
+            make_fabric_check(
+                f"{record.record_id}:source-joins",
+                record.record_id,
+                FabricCheckPlane.PUBLIC_BOUNDARY,
+                bool(record.source_ids) and set(record.source_ids) <= source_ids,
+                record.source_ids,
+                "known public source IDs",
+                "record retains resolvable source joins",
+            )
+        )
+        checks.append(
+            make_fabric_check(
+                f"{record.record_id}:reference-counts",
+                record.record_id,
+                FabricCheckPlane.REFERENCE_RESOLUTION,
+                execution.output.get("implementation_reference_count") == len(execution.implementation_receipts)
+                and execution.output.get("test_reference_count") == len(execution.test_receipts),
+                {
+                    "implementation": execution.output.get("implementation_reference_count"),
+                    "tests": execution.output.get("test_reference_count"),
+                },
+                {
+                    "implementation": len(execution.implementation_receipts),
+                    "tests": len(execution.test_receipts),
+                },
+                "reference counts conserve receipts",
+            )
+        )
+        checks.append(
+            make_fabric_check(
+                f"{record.record_id}:public-identity",
+                record.record_id,
+                FabricCheckPlane.IDENTITY,
+                execution.output.get("record_id") == record.record_id
+                and execution.output.get("capability_id") == record.capability_id,
+                {
+                    "record_id": execution.output.get("record_id"),
+                    "capability_id": execution.output.get("capability_id"),
+                },
+                {"record_id": record.record_id, "capability_id": record.capability_id},
+                "execution retains public record identity",
+            )
+        )
+        checks.append(
+            make_fabric_check(
+                f"{record.record_id}:receipt-addresses",
+                record.record_id,
+                FabricCheckPlane.INTEGRITY,
+                all(item.content_address.startswith("sha256:") for item in (*execution.implementation_receipts, *execution.test_receipts)),
+                len(execution.implementation_receipts) + len(execution.test_receipts),
+                "addressed receipts",
+                "all reference receipts are content addressed",
+            )
+        )
+    fixture_checks = (
+        ("fixture-id", bool(value.fixture_id), value.fixture_id, "non-empty", "fixture identity is retained"),
+        ("execution-count", len(executions) == len(value.records), len(executions), len(value.records), "every fixture record executes"),
+        ("check-count", len(checks) + 10 == len(value.records) * 12 + 10, len(checks) + 10, len(value.records) * 12 + 10, "record and global check denominator is closed"),
+        ("execution-ids", len({item.record_id for item in executions}) == len(executions), len({item.record_id for item in executions}), len(executions), "execution identifiers are unique"),
+        ("domain-coverage", {item.domain_id for item in executions} == {item.domain_id for item in value.records}, len({item.domain_id for item in executions}), len({item.domain_id for item in value.records}), "all fixture domains execute"),
+        ("role-balance", sum(item.role is FabricRole.POSITIVE for item in executions) == 16 and sum(item.role is FabricRole.CONTROL for item in executions) == 16, {"positive": sum(item.role is FabricRole.POSITIVE for item in executions), "control": sum(item.role is FabricRole.CONTROL for item in executions)}, {"positive": 16, "control": 16}, "positive and control rows are balanced"),
+        ("state-partition", sum(item.observed_state is FabricState.ACCEPTED for item in executions) == 16 and sum(item.observed_state is FabricState.REVIEW for item in executions) == 16, {"accepted": sum(item.observed_state is FabricState.ACCEPTED for item in executions), "review": sum(item.observed_state is FabricState.REVIEW for item in executions)}, {"accepted": 16, "review": 16}, "observed states conserve fixture roles"),
+        ("reference-resolution", all(item.state.value == "resolved" for execution in executions for item in (*execution.implementation_receipts, *execution.test_receipts)), True, True, "all reference declarations resolve"),
+        ("public-output", all(not contains_private_key(item.output) for item in executions), True, True, "all execution projections are aggregate only"),
+        ("addressed-executions", all(item.content_address.startswith("sha256:") for item in executions), len(executions), len(executions), "all execution receipts are addressed"),
+    )
+    for check_id, passed_check, observed, required, detail in fixture_checks:
+        checks.append(make_fabric_check(f"__fixture__:{check_id}", "__fixture__", FabricCheckPlane.INTEGRITY, passed_check, observed, required, detail))
     passed = sum(item.passed for item in checks)
     body = {
         "fixture_id": value.fixture_id,

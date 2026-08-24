@@ -5,7 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .capability_registry import CapabilityRegistry, default_capability_registry
-from .module_fabric_contracts import FabricFixture, FabricRuntimeReport, FabricRuntimeStage, FabricState
+from .module_fabric_compliance import run_module_fabric_compliance
+from .module_fabric_contracts import (
+    FabricFixture,
+    FabricRuntimeReport,
+    FabricRuntimeStage,
+    FabricState,
+)
 from .module_fabric_depth import audit_module_fabric_depth
 from .module_fabric_fixture_eval import evaluate_module_fabric_fixture
 from .module_fabric_lineage import build_module_fabric_lineage
@@ -68,9 +74,39 @@ def run_module_fabric_runtime(
     stages.append(_stage("public-projection-sanitized", 18, FabricState.ACCEPTED, evaluation.to_dict(), {"fields": ["domain_id", "capability_id", "state", "reference_counts"]}, "emit aggregate-only projection"))
     stages.append(_stage("runtime-receipt-addressed", 19, FabricState.ACCEPTED, {"stage_count": len(stages)}, {"stage_count": len(stages)}, "address every stage input and output"))
     stages.append(_stage("release-decision", 20, release.state, {"quality": quality.accepted, "release": release.release_id}, {"state": release.state.value}, "publish only when all release gates pass"))
+    stages.append(_stage("evaluation-checks-closed", 21, FabricState.ACCEPTED if len(evaluation.checks) == 394 and all(item.passed for item in evaluation.checks) else FabricState.REVIEW, evaluation.to_dict(), {"check_count": len(evaluation.checks)}, "close record and global evaluation checks"))
+    partial_body = {
+        "run_id": settings.run_id,
+        "stages": stages,
+        "state": FabricState.ACCEPTED,
+        "evaluation": evaluation,
+        "metrics": metrics,
+        "depth": depth,
+        "lineage": lineage,
+        "replay": replay,
+        "quality": quality,
+        "release": release,
+    }
+    partial_runtime = FabricRuntimeReport(
+        settings.run_id,
+        tuple(stages),
+        FabricState.ACCEPTED,
+        evaluation,
+        metrics,
+        depth,
+        lineage,
+        replay,
+        quality,
+        release,
+        content_hash(partial_body, prefix="module-fabric-runtime"),
+    )
+    compliance = run_module_fabric_compliance(partial_runtime)
+    stages.append(_stage("compliance-closed", 22, FabricState.ACCEPTED if compliance.accepted else FabricState.REVIEW, partial_runtime.to_dict(), compliance.to_dict(), "close public projection and release compliance"))
+    stages.append(_stage("observability-closed", 23, FabricState.ACCEPTED, tuple(item.stage_id for item in stages), {"stage_count": len(stages), "addressed_stage_count": sum(bool(item.input_address and item.output_address) for item in stages)}, "close the addressed stage trace"))
     state = FabricState.ACCEPTED if all(item.state is FabricState.ACCEPTED for item in stages) else FabricState.REVIEW
     if settings.strict and state is not FabricState.ACCEPTED:
         state = FabricState.REVIEW
+    stages.append(_stage("runtime-finalized", 24, state, {"stage_count": len(stages)}, {"state": state.value, "compliance": compliance.accepted}, "finalize the D01 runtime receipt"))
     body = {
         "run_id": settings.run_id,
         "stages": stages,
@@ -82,8 +118,9 @@ def run_module_fabric_runtime(
         "replay": replay,
         "quality": quality,
         "release": release,
+        "compliance": compliance,
     }
-    return FabricRuntimeReport(settings.run_id, tuple(stages), state, evaluation, metrics, depth, lineage, replay, quality, release, content_hash(body, prefix="module-fabric-runtime"))
+    return FabricRuntimeReport(settings.run_id, tuple(stages), state, evaluation, metrics, depth, lineage, replay, quality, release, content_hash(body, prefix="module-fabric-runtime"), compliance)
 
 
 __all__ = ["ModuleFabricRuntimeOptions", "run_module_fabric_runtime"]

@@ -14,12 +14,12 @@ receipt is therefore replayable without copying a raw domain payload.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Mapping
+from typing import Any
 
 from .serialization import content_hash, jsonable, require_non_empty
-
 
 MODULE_FABRIC_VERSION = "2026.08.module-fabric.v1"
 MODULE_FABRIC_BOUNDARY = "public_aggregate_module_integration"
@@ -32,6 +32,12 @@ MODULE_FABRIC_FOREIGN_CONTEXT = (
 FABRIC_CONTEXT_KEY = MODULE_FABRIC_CONTEXT_KEY
 FABRIC_FOREIGN_CONTEXT = MODULE_FABRIC_FOREIGN_CONTEXT
 MODULE_FABRIC_DOMAIN_IDS = tuple(f"D{index:02d}" for index in range(1, 17))
+MODULE_FABRIC_CHECKS_PER_RECORD = 12
+MODULE_FABRIC_GLOBAL_CHECK_COUNT = 10
+MODULE_FABRIC_CHECK_COUNT = 394
+MODULE_FABRIC_STAGE_COUNT = 24
+MODULE_FABRIC_QUALITY_CHECK_COUNT = 20
+MODULE_FABRIC_ARTIFACT_COUNT = 8
 MODULE_FABRIC_DOMAIN_NAMES = {
     "D01": "Variant Identity & Intake",
     "D02": "Structural Variation, Copy Number & Haplotype",
@@ -404,6 +410,44 @@ class FabricQualityReport:
 
 
 @dataclass(frozen=True, slots=True)
+class FabricComplianceCheck:
+    check_id: str
+    category: str
+    passed: bool
+    observed: Any
+    required: Any
+    detail: str
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class FabricComplianceReport:
+    report_id: str
+    fixture_id: str
+    checks: tuple[FabricComplianceCheck, ...]
+    forbidden_paths: tuple[str, ...]
+    accepted: bool
+    content_address: str
+
+    @property
+    def passed_checks(self) -> int:
+        return sum(item.passed for item in self.checks)
+
+    @property
+    def failed_checks(self) -> int:
+        return len(self.checks) - self.passed_checks
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {
+            "passed_checks": self.passed_checks,
+            "failed_checks": self.failed_checks,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class FabricReleaseArtifact:
     artifact_id: str
     artifact_kind: str
@@ -453,9 +497,13 @@ class FabricRuntimeReport:
     quality: FabricQualityReport
     release: FabricReleaseManifest
     content_address: str
+    compliance: Any = None
 
     def to_dict(self) -> dict[str, Any]:
-        return jsonable(self)
+        value = jsonable(self)
+        if self.compliance is not None and hasattr(self.compliance, "to_dict"):
+            value["compliance"] = self.compliance.to_dict()
+        return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -564,13 +612,21 @@ __all__ = [
     "FABRIC_CONTEXT_KEY",
     "FABRIC_FOREIGN_CONTEXT",
     "MODULE_FABRIC_BOUNDARY",
+    "MODULE_FABRIC_ARTIFACT_COUNT",
+    "MODULE_FABRIC_CHECK_COUNT",
+    "MODULE_FABRIC_CHECKS_PER_RECORD",
     "MODULE_FABRIC_CONTEXT_KEY",
     "MODULE_FABRIC_DOMAIN_IDS",
     "MODULE_FABRIC_DOMAIN_NAMES",
     "MODULE_FABRIC_FOREIGN_CONTEXT",
+    "MODULE_FABRIC_GLOBAL_CHECK_COUNT",
+    "MODULE_FABRIC_QUALITY_CHECK_COUNT",
+    "MODULE_FABRIC_STAGE_COUNT",
     "MODULE_FABRIC_VERSION",
     "FabricCheck",
     "FabricCheckPlane",
+    "FabricComplianceCheck",
+    "FabricComplianceReport",
     "FabricDepthAudit",
     "FabricDepthCheck",
     "FabricEvaluation",

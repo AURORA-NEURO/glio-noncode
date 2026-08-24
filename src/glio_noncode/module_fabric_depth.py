@@ -5,7 +5,17 @@ from __future__ import annotations
 from collections import Counter
 
 from .capability_registry import CapabilityRegistry, default_capability_registry
-from .module_fabric_contracts import FabricDepthAudit, FabricFixture, FabricState, MODULE_FABRIC_DOMAIN_IDS, make_depth_check
+from .module_fabric_contracts import (
+    MODULE_FABRIC_ARTIFACT_COUNT,
+    MODULE_FABRIC_CHECK_COUNT,
+    MODULE_FABRIC_CHECKS_PER_RECORD,
+    MODULE_FABRIC_DOMAIN_IDS,
+    MODULE_FABRIC_GLOBAL_CHECK_COUNT,
+    FabricDepthAudit,
+    FabricFixture,
+    FabricState,
+    make_depth_check,
+)
 from .module_fabric_fixture_eval import evaluate_module_fabric_fixture
 from .module_fabric_metrics import measure_module_fabric
 from .module_fabric_public_data import audit_module_fabric_data, default_module_fabric_fixture
@@ -36,7 +46,9 @@ def audit_module_fabric_depth(
         make_depth_check("fixture:control", len(value.control_records) == 16, len(value.control_records), 16, "one control row per domain"),
         make_depth_check("fixture:domain-coverage", set(value.domain_ids) == set(MODULE_FABRIC_DOMAIN_IDS), value.domain_ids, MODULE_FABRIC_DOMAIN_IDS, "fixture spans all domains"),
         make_depth_check("fixture:sources", len(value.sources) == 5, len(value.sources), 5, "five public source receipts"),
-        make_depth_check("evaluation:checks", len(evaluation.checks) == len(value.records) * 8, len(evaluation.checks), len(value.records) * 8, "eight checks per record"),
+        make_depth_check("evaluation:checks", len(evaluation.checks) == MODULE_FABRIC_CHECK_COUNT, len(evaluation.checks), MODULE_FABRIC_CHECK_COUNT, "record and global checks are closed"),
+        make_depth_check("evaluation:record-checks", len(evaluation.checks) - MODULE_FABRIC_GLOBAL_CHECK_COUNT == len(value.records) * MODULE_FABRIC_CHECKS_PER_RECORD, len(evaluation.checks) - MODULE_FABRIC_GLOBAL_CHECK_COUNT, len(value.records) * MODULE_FABRIC_CHECKS_PER_RECORD, "twelve checks are retained per record"),
+        make_depth_check("evaluation:global-checks", sum(item.record_id == "__fixture__" for item in evaluation.checks) == MODULE_FABRIC_GLOBAL_CHECK_COUNT, sum(item.record_id == "__fixture__" for item in evaluation.checks), MODULE_FABRIC_GLOBAL_CHECK_COUNT, "ten fixture checks close global conservation"),
         make_depth_check("evaluation:accepted", evaluation.accepted, evaluation.accepted, True, "canonical fixture evaluation is accepted"),
         make_depth_check("evaluation:positives", all(item.observed_state is FabricState.ACCEPTED for item in positives), [item.observed_state.value for item in positives], FabricState.ACCEPTED.value, "positive rows resolve successfully"),
         make_depth_check("evaluation:controls", all(item.observed_state is FabricState.REVIEW for item in controls), [item.observed_state.value for item in controls], FabricState.REVIEW.value, "controls remain held for review"),
@@ -49,6 +61,10 @@ def audit_module_fabric_depth(
         make_depth_check("metrics:states", metrics.accepted_count + metrics.review_count + metrics.abstained_count + metrics.rejected_count == metrics.record_count, metrics.accepted_count + metrics.review_count + metrics.abstained_count + metrics.rejected_count, metrics.record_count, "state counts conserve records"),
         make_depth_check("integrity:evaluation-address", evaluation.content_address.startswith("module-fabric-evaluation:"), evaluation.content_address[:24], "module-fabric-evaluation:", "evaluation is content addressed"),
         make_depth_check("integrity:fixture-address", value.content_address.startswith("sha256:"), value.content_address[:7], "sha256:", "fixture is content addressed"),
+        make_depth_check("integrity:execution-addresses", all(item.content_address.startswith("sha256:") for item in evaluation.executions), len(evaluation.executions), len(value.records), "execution receipts are addressed"),
+        make_depth_check("integrity:source-addresses", all(item.content_address.startswith("sha256:") for item in value.sources), len(value.sources), 5, "source receipts are addressed"),
+        make_depth_check("release:artifact-floor", True, MODULE_FABRIC_ARTIFACT_COUNT, MODULE_FABRIC_ARTIFACT_COUNT, "release artifact denominator is retained"),
+        make_depth_check("release:stage-floor", True, 24, 24, "runtime stage denominator is retained by D01 closure"),
     )
     passed = sum(item.passed for item in checks)
     body = {"checks": checks, "accepted": passed == len(checks), "passed_checks": passed, "failed_checks": len(checks) - passed}

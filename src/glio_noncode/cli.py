@@ -57,9 +57,11 @@ from .atlas_beta import (
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
 from .module_fabric_catalog import default_module_fabric_catalog
+from .module_fabric_compliance import run_module_fabric_compliance
 from .module_fabric_data_dictionary import default_module_fabric_data_dictionary
 from .module_fabric_depth import audit_module_fabric_depth
 from .module_fabric_exports import (
+    module_fabric_checks_csv,
     export_module_fabric_review_csv,
 )
 from .module_fabric_failures import run_module_fabric_failure_injections
@@ -2351,6 +2353,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     module_fabric_data.add_argument("--input", default=None)
     module_fabric_data.add_argument("--output", default=None)
+    module_fabric_compliance = subparsers.add_parser(
+        "module-fabric-compliance",
+        help="audit the module-fabric public runtime boundary",
+    )
+    module_fabric_compliance.add_argument("--input", default=None)
+    module_fabric_compliance.add_argument("--output", default=None)
     module_fabric_evaluate = subparsers.add_parser(
         "module-fabric-evaluate",
         help="resolve every declared implementation and test reference in the fixture",
@@ -2402,6 +2410,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     module_fabric_review_csv.add_argument("--input", default=None)
     module_fabric_review_csv.add_argument("--output", default=None)
+    module_fabric_checks_csv_parser = subparsers.add_parser(
+        "module-fabric-checks-csv",
+        help="export all module-fabric evaluation checks as CSV",
+    )
+    module_fabric_checks_csv_parser.add_argument("--input", default=None)
+    module_fabric_checks_csv_parser.add_argument("--output", default=None)
     module_fabric_failures = subparsers.add_parser(
         "module-fabric-failures",
         help="run module-fabric failure-injection controls",
@@ -8291,6 +8305,11 @@ def main(argv: list[str] | None = None) -> int:
             report = audit_module_fabric_data(fixture)
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "module-fabric-compliance":
+            fixture = _module_fabric_fixture(args.input)
+            report = run_module_fabric_compliance(run_module_fabric_runtime(fixture))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "module-fabric-evaluate":
             fixture = _module_fabric_fixture(args.input)
             report = evaluate_module_fabric_fixture(fixture)
@@ -8332,6 +8351,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "module-fabric-review-csv":
             fixture = _module_fabric_fixture(args.input)
             _write_text(export_module_fabric_review_csv(fixture), args.output)
+            return 0
+        if args.command == "module-fabric-checks-csv":
+            fixture = _module_fabric_fixture(args.input)
+            _write_text(module_fabric_checks_csv(run_module_fabric_runtime(fixture)), args.output)
             return 0
         if args.command == "module-fabric-failures":
             report = run_module_fabric_failure_injections()

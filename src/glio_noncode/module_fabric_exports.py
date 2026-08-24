@@ -71,6 +71,31 @@ def module_fabric_runtime_json(report: FabricRuntimeReport) -> str:
     return json.dumps(report.to_dict(), indent=2, sort_keys=True) + "\n"
 
 
+def module_fabric_compliance_json(report: FabricRuntimeReport) -> str:
+    return json.dumps(report.compliance.to_dict(), indent=2, sort_keys=True) + "\n"
+
+
+def module_fabric_checks_csv(report: FabricRuntimeReport) -> str:
+    fields = ("check_id", "record_id", "plane", "passed", "observed", "required", "detail", "content_address")
+    stream = io.StringIO()
+    writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
+    writer.writeheader()
+    for item in report.evaluation.checks:
+        writer.writerow(
+            {
+                "check_id": item.check_id,
+                "record_id": item.record_id,
+                "plane": item.plane.value,
+                "passed": str(item.passed).lower(),
+                "observed": json.dumps(item.observed, sort_keys=True),
+                "required": json.dumps(item.required, sort_keys=True),
+                "detail": item.detail,
+                "content_address": item.content_address,
+            }
+        )
+    return stream.getvalue()
+
+
 def render_module_fabric_review_markdown(
     fixture: FabricFixture | None = None,
     evaluation: FabricEvaluation | None = None,
@@ -106,12 +131,16 @@ def module_fabric_summary(
         "accepted": report.accepted,
         "passed_checks": report.passed_checks,
         "failed_checks": report.failed_checks,
+        "evaluation_check_count": len(report.checks),
+        "compliance_check_count": 0,
         "evaluation_address": report.content_address,
     }
 
 
 __all__ = [
     "export_module_fabric_review_csv",
+    "module_fabric_checks_csv",
+    "module_fabric_compliance_json",
     "module_fabric_json",
     "module_fabric_review_rows",
     "module_fabric_runtime_json",
