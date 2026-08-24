@@ -1711,6 +1711,16 @@ def _link_graph_architecture_fixture(input_path: str | None):
     )
 
 
+def _causal_architecture_fixture(input_path: str | None):
+    from .causal_architecture_public_data import default_causal_architecture_fixture
+
+    return (
+        default_causal_architecture_fixture(input_path)
+        if input_path
+        else default_causal_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -3033,6 +3043,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     link_graph_architecture_bundle.add_argument("--input", default=None)
     link_graph_architecture_bundle.add_argument("--output", required=True)
+    causal_architecture_fixture = subparsers.add_parser(
+        "causal-architecture-fixture",
+        help="emit the D11 C01-C16 public aggregate causal evidence fixture",
+    )
+    causal_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("causal-architecture-data-audit", "audit D11 causal sources, joins, and scope"),
+        ("causal-architecture-plan", "compile the D11 causal dependency plan"),
+        ("evaluate-causal-architecture", "execute D11 causal family delegates"),
+        ("causal-architecture-runtime", "run the D11 twenty-two-stage causal runtime"),
+        ("causal-architecture-quality", "run the D11 causal release quality gate"),
+        ("causal-architecture-depth", "report D11 causal operation and evidence depth"),
+        ("replay-causal-architecture", "replay D11 causal evaluation deterministically"),
+        ("causal-architecture-report", "emit the D11 causal runtime report"),
+        ("causal-architecture-scenarios", "emit the D11 causal scenario matrix"),
+        ("causal-architecture-sources", "emit the D11 causal source registry"),
+        ("causal-architecture-compliance", "run D11 public-boundary compliance checks"),
+        ("causal-architecture-validation", "run D11 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    causal_architecture_query = subparsers.add_parser(
+        "causal-architecture-query", help="query sanitized D11 causal cases"
+    )
+    causal_architecture_query.add_argument("--input", default=None)
+    causal_architecture_query.add_argument("--operation", default=None)
+    causal_architecture_query.add_argument("--family", default=None)
+    causal_architecture_query.add_argument("--scenario", default=None)
+    causal_architecture_query.add_argument("--output", default=None)
+    causal_architecture_bundle = subparsers.add_parser(
+        "causal-architecture-bundle", help="write a D11 causal runtime bundle"
+    )
+    causal_architecture_bundle.add_argument("--input", default=None)
+    causal_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -9351,6 +9396,123 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
             _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
             _write_text(link_graph_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "causal-architecture-fixture":
+            from .causal_architecture_public_data import causal_architecture_fixture_json
+
+            _write_text(causal_architecture_fixture_json(_causal_architecture_fixture(None)), args.output)
+            return 0
+        if args.command == "causal-architecture-data-audit":
+            from .causal_architecture_public_data import audit_causal_architecture_data
+
+            report = audit_causal_architecture_data(_causal_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "causal-architecture-plan":
+            from .causal_architecture_plan import build_causal_architecture_plan
+
+            report = build_causal_architecture_plan(_causal_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-causal-architecture":
+            from .causal_architecture_operations import evaluate_causal_architecture_fixture
+
+            report = evaluate_causal_architecture_fixture(_causal_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "causal-architecture-runtime":
+            from .causal_architecture_runtime import run_causal_architecture
+
+            runtime = run_causal_architecture(_causal_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "causal-architecture-quality":
+            from .causal_architecture_quality import assess_causal_architecture_quality
+            from .causal_architecture_replay import replay_causal_architecture_fixture
+            from .causal_architecture_runtime import run_causal_architecture
+
+            runtime = run_causal_architecture(_causal_architecture_fixture(args.input))
+            gate = assess_causal_architecture_quality(
+                runtime.fixture,
+                runtime.audit,
+                runtime.plan,
+                runtime.evaluation,
+                replay_causal_architecture_fixture(runtime.fixture),
+                runtime.release,
+                runtime.artifacts,
+            )
+            _write_json(gate.to_dict(), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "causal-architecture-depth":
+            from .causal_architecture_depth import assess_causal_architecture_depth, causal_architecture_depth_percent
+            from .causal_architecture_runtime import run_causal_architecture
+
+            runtime = run_causal_architecture(_causal_architecture_fixture(args.input))
+            report = assess_causal_architecture_depth(runtime.fixture, runtime.evaluation)
+            completion_percent = causal_architecture_depth_percent(report)
+            _write_json(report.to_dict() | {"completion_percent": completion_percent}, args.output)
+            return 0 if completion_percent == 100.0 else 2
+        if args.command == "replay-causal-architecture":
+            from .causal_architecture_replay import replay_causal_architecture_fixture
+
+            report = replay_causal_architecture_fixture(_causal_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "causal-architecture-report":
+            from .causal_architecture_reporting import build_causal_architecture_report
+            from .causal_architecture_runtime import run_causal_architecture
+
+            runtime = run_causal_architecture(_causal_architecture_fixture(args.input))
+            _write_json(build_causal_architecture_report(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "causal-architecture-scenarios":
+            from .causal_architecture_query import query_causal_architecture_cases
+            from .causal_architecture_runtime import run_causal_architecture
+
+            runtime = run_causal_architecture(_causal_architecture_fixture(args.input))
+            _write_json(
+                {"accepted": runtime.accepted, "cases": query_causal_architecture_cases(runtime)},
+                args.output,
+            )
+            return 0 if runtime.accepted else 2
+        if args.command == "causal-architecture-sources":
+            fixture = _causal_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "causal-architecture-compliance":
+            from .causal_architecture_compliance import assess_causal_architecture_compliance
+
+            report = assess_causal_architecture_compliance(_causal_architecture_fixture(args.input))
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "causal-architecture-validation":
+            from .causal_architecture_operations import evaluate_causal_architecture_fixture
+            from .causal_architecture_schema import validate_causal_architecture_fixture
+
+            fixture = _causal_architecture_fixture(args.input)
+            evaluation = evaluate_causal_architecture_fixture(fixture)
+            report = {"accepted": validate_causal_architecture_fixture(fixture) and evaluation.accepted, "evaluation": evaluation.to_dict()}
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "causal-architecture-query":
+            from .causal_architecture_query import query_causal_architecture_cases
+            from .causal_architecture_runtime import run_causal_architecture
+
+            runtime = run_causal_architecture(_causal_architecture_fixture(args.input))
+            rows = query_causal_architecture_cases(runtime, operation_id=args.operation, family=args.family, scenario=args.scenario)
+            _write_json({"accepted": runtime.accepted, "count": len(rows), "cases": rows}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "causal-architecture-bundle":
+            from .causal_architecture_public_data import causal_architecture_fixture_json
+            from .causal_architecture_runtime import run_causal_architecture
+
+            fixture = _causal_architecture_fixture(args.input)
+            runtime = run_causal_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_text(causal_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)

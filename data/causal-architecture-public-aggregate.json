@@ -1,0 +1,4610 @@
+{
+  "boundary": "public_aggregate_non_patient",
+  "cases": [
+    {
+      "case_id": "D11-C01-positive",
+      "content_address": "sha256:d00d44752ad18bddb673b9cfd7d685236e5a8415a51ea635e19b0fa59a893f0a",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C01-P",
+      "description": "causal_foundation_frontier public record D11-C01-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C01",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "typed_hypothesis_object",
+        "delegate_output_address": "sha256:a21c919456c92b86c41fe750ea401ecf854046b21286d84e402bb6c7eabf26bc",
+        "delegate_payload": {
+          "element_id": "enh-1",
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c01"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01",
+              "factor_id": "c01-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:e1eea70af857189f672a8dee6f07f4237054dd15aa570cd79f932df8c06e24c9",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            }
+          ],
+          "features": {
+            "chromatin_score": 0.75,
+            "stem_signal": 0.8
+          },
+          "gene_id": "GENE1",
+          "hypothesis_id": "h-c01-p",
+          "measurements": [
+            {
+              "channel": "accessibility",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01",
+              "measurement_id": "c01-m1",
+              "raw_hash": "sha256:2d23a7c663503b1ae4d2a6ec7c10392e3940f260951198f7efb6b973cf897318",
+              "score": 0.84,
+              "source_id": "encode",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            },
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01",
+              "measurement_id": "c01-m2",
+              "raw_hash": "sha256:4c76de5323298a60a546458e791177d145eec54b9be1c88fba60d4ba11d5b891",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ],
+          "mechanism": "regulatory_link",
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c01-p",
+            "raw_hash": "sha256:fe1a74b7d77d8f33a2ca017d6811c557e0746583ff31e757551a1e2f8297a625",
+            "source_version": "context-profile-2025.1"
+          },
+          "state_id": "stem_like",
+          "variant_id": "v-1"
+        },
+        "delegate_record_id": "D11-C01-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C01-control_a",
+      "content_address": "sha256:ee77acf5cb836cad92470fa8ea6d80e829be18eaf1605cea166f4abaa24643fb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C01-C1",
+      "description": "causal_foundation_frontier public record D11-C01-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_prior_feature"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C01",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "typed_hypothesis_object",
+        "delegate_output_address": "sha256:bb2bfa837e5856d7d18c92967c551f2d5e0eaec5bda75677eb50e5c3ff2461ad",
+        "delegate_payload": {
+          "element_id": "enh-1",
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c01-c1"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01-c1",
+              "factor_id": "c01-c1-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:1bdf46144b6039dcd675f84b8b658575ff73c7e500a737ba7bb2479ff7a7ff8b",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            }
+          ],
+          "features": {
+            "stem_signal": 0.8
+          },
+          "gene_id": "GENE1",
+          "hypothesis_id": "h-c01-c1",
+          "measurements": [
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01-c1",
+              "measurement_id": "c01-c1-m1",
+              "raw_hash": "sha256:b588a36dccf25edaa105726c083399591e7f73cb54b0a00a296924b6a5db691e",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ],
+          "mechanism": "regulatory_link",
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c01-c1",
+            "raw_hash": "sha256:1da4b23854dedbe1c038e2e3e33889a7683ffd94c46f51d18b92b0cc7658a828",
+            "source_version": "context-profile-2025.1"
+          },
+          "state_id": "stem_like",
+          "variant_id": "v-1"
+        },
+        "delegate_record_id": "D11-C01-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C01-control_b",
+      "content_address": "sha256:d3749e4224674ef335a2d17c016031d9e5b31185f34b381262c856ad0623ffc5",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C01-C2",
+      "description": "causal_foundation_frontier public record D11-C01-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_factor_edge"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C01",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "typed_hypothesis_object",
+        "delegate_output_address": "sha256:4832608da1f655e4a4fe47f10d1856d746ec357716357e6ed3a05ee38b2611e2",
+        "delegate_payload": {
+          "element_id": "enh-1",
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c01-c2"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01-c2",
+              "factor_id": "c01-c2-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:55831b5a8a33e222b8f37fdb0e7306a022320675fcf7a0b619f47616818417d4",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            },
+            {
+              "claim_ids": [
+                "claim:edge-c01-c2"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01-c2",
+              "factor_id": "c01-c2-f2",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:9b1fa4cb0bd80fba12e2128eebd32d39486330862c691f302827bd64f1eaf9d6",
+              "source_id": "geo",
+              "source_version": "public-aggregate-2025.1",
+              "state": "measured_negative",
+              "support": 0.1,
+              "uncertainty": 0.2
+            }
+          ],
+          "features": {
+            "chromatin_score": 0.75,
+            "stem_signal": 0.8
+          },
+          "gene_id": "GENE1",
+          "hypothesis_id": "h-c01-c2",
+          "measurements": [
+            {
+              "channel": "accessibility",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01-c2",
+              "measurement_id": "c01-c2-m1",
+              "raw_hash": "sha256:103668e24694ce9a25ad6aa586f0accfad011bd84daea45df757593be97381e1",
+              "score": 0.84,
+              "source_id": "encode",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            },
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c01-c2",
+              "measurement_id": "c01-c2-m2",
+              "raw_hash": "sha256:6294e1a6ca9701f896640b20155eb2055e7107289231bd91b6cace87941d657f",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ],
+          "mechanism": "regulatory_link",
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c01-c2",
+            "raw_hash": "sha256:9c6784a879c67d52a339c31ed31de58c3c3f71f81704cf8f07f9ce02c02f0ee4",
+            "source_version": "context-profile-2025.1"
+          },
+          "state_id": "stem_like",
+          "variant_id": "v-1"
+        },
+        "delegate_record_id": "D11-C01-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C01-control_c",
+      "content_address": "sha256:7155cf318ee900a480f3fd86651da4ab9387d515298331b71644a8f3ea3b756f",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C01-C3",
+      "description": "causal_foundation_frontier public record D11-C01-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C01",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "typed_hypothesis_object",
+        "delegate_output_address": "sha256:da1d78d65141e0e6fc2b393d08a8ef8d2bd96c1fdb9019f52d23eddfa9990b61",
+        "delegate_payload": {
+          "element_id": "enh-1",
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c01-c3"
+              ],
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "edge_id": "edge-c01-c3",
+              "factor_id": "c01-c3-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:312ec6d0118b1874266d8b77c05a90fe9463dac615c583647d3e091f0f16672e",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            }
+          ],
+          "features": {
+            "chromatin_score": 0.75,
+            "stem_signal": 0.8
+          },
+          "gene_id": "GENE1",
+          "hypothesis_id": "h-c01-c3",
+          "measurements": [
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "edge_id": "edge-c01-c3",
+              "measurement_id": "c01-c3-m1",
+              "raw_hash": "sha256:bde0a05cf519054c25ec4ae0b53deec51a4f95a968c239150d06450979192963",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ],
+          "mechanism": "regulatory_link",
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c01-c3",
+            "raw_hash": "sha256:0d39794e6b473b2012733541abdbaa64c8b20a5f9fa1f50f1d9f7e0ac5afa1e9",
+            "source_version": "context-profile-2025.1"
+          },
+          "state_id": "differentiated",
+          "variant_id": "v-1"
+        },
+        "delegate_record_id": "D11-C01-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C02-positive",
+      "content_address": "sha256:308a2e434ec64e90ec46f5bd2a31993622c5a9407284c4ffe9efae9edad558b3",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C02-P",
+      "description": "causal_foundation_frontier public record D11-C02-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C02",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "factor_graph_constructor",
+        "delegate_output_address": "sha256:688d5f7ac6f8edd5671bf8427e6e07f361ac4e8e66d1f1c58ef72b842b5b9c24",
+        "delegate_payload": {
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c02"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c02",
+              "factor_id": "c02-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:381bb2dffd8b030a6a3c72d761eada0470094ac3f94aba6e22952624085ed041",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            },
+            {
+              "claim_ids": [
+                "claim:edge-c02"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c02",
+              "factor_id": "c02-f2",
+              "factor_type": "topology",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:ebda0ab464b5e713d7fcfc486bd46e2b9dcf95b06d4c606322963c8048c8b045",
+              "source_id": "four-d",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.76,
+              "uncertainty": 0.2
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C02-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C02-control_a",
+      "content_address": "sha256:f0a6f03c4a819b15645ac5a4494e5e478129943f0e281ca76f0775b0ba79094c",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C02-C1",
+      "description": "causal_foundation_frontier public record D11-C02-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "orphan_factor_lineage"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C02",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "factor_graph_constructor",
+        "delegate_output_address": "sha256:6fa601e03846663f380d103980829917cbd1b867e100e4fd6eb1cd7f9e26f74a",
+        "delegate_payload": {
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c02-c1"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c02-c1",
+              "factor_id": "c02-c1-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [
+                "missing-parent"
+              ],
+              "raw_hash": "sha256:815eb61359165edcf837db626fda5a6e7ef01a43dd6398e392b40157f6f8a645",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C02-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C02-control_b",
+      "content_address": "sha256:b446563ea34d2205cf148cc5a88a063e4fcc2df63c93fc001f43d421527ee5a9",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C02-C2",
+      "description": "causal_foundation_frontier public record D11-C02-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_factor_edge"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C02",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "factor_graph_constructor",
+        "delegate_output_address": "sha256:7cf69bca5e9d65ee95479381829f498d73660f02845a62b878e7c3dc3ea74d84",
+        "delegate_payload": {
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c02-c2"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c02-c2",
+              "factor_id": "c02-c2-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:54b7afc7d74ac679bb65ffab170d4fb162c4fbe1de8e1f4b0744cc332daa14f0",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            },
+            {
+              "claim_ids": [
+                "claim:edge-c02-c2"
+              ],
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c02-c2",
+              "factor_id": "c02-c2-f2",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:8540114e1b1e2f625f01edaf69bef8b528ec476e0d8567a92d2c6ae13d7d2024",
+              "source_id": "four-d",
+              "source_version": "public-aggregate-2025.1",
+              "state": "measured_negative",
+              "support": 0.1,
+              "uncertainty": 0.2
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C02-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C02-control_c",
+      "content_address": "sha256:52b46b5d31408576dd660f6a54b26962c2451308e731fc71441c80c6bf57939b",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C02-C3",
+      "description": "causal_foundation_frontier public record D11-C02-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C02",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "factor_graph_constructor",
+        "delegate_output_address": "sha256:fb889c7ae252b9f94b45decdf0cc262386bde92e30b7af3d8cf37818293cd7f6",
+        "delegate_payload": {
+          "factors": [
+            {
+              "claim_ids": [
+                "claim:edge-c02-c3"
+              ],
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "edge_id": "edge-c02-c3",
+              "factor_id": "c02-c3-f1",
+              "factor_type": "link",
+              "parent_factor_ids": [],
+              "raw_hash": "sha256:eb0e7590a8fb7685e2d773dee8825de590cd8dd37d38db0deac8d76de64549c5",
+              "source_id": "encode",
+              "source_version": "public-aggregate-2025.1",
+              "state": "supported",
+              "support": 0.82,
+              "uncertainty": 0.2
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C02-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C03-positive",
+      "content_address": "sha256:e10e76caba56cf2e71626c97f8b4df67b0cd797904e351101256570d1b7289cb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C03-P",
+      "description": "causal_foundation_frontier public record D11-C03-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C03",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "context_conditioned_prior",
+        "delegate_output_address": "sha256:e84d2439f52c2fce5cc1d4d48e8dca66f2119e46c38f5f6e42124c258a5f4184",
+        "delegate_payload": {
+          "features": {
+            "chromatin_score": 0.75,
+            "stem_signal": 0.8
+          },
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c03-p",
+            "raw_hash": "sha256:3564fc8c2b2808f3620502d3d378021bba070055e8c8532db2455c882fb6616a",
+            "source_version": "context-profile-2025.1"
+          }
+        },
+        "delegate_record_id": "D11-C03-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C03-control_a",
+      "content_address": "sha256:71d1e8bd605bbf30e9a30e45753089073b929459cbfb647f25239a672fe904d6",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C03-C1",
+      "description": "causal_foundation_frontier public record D11-C03-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_prior_feature"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C03",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "context_conditioned_prior",
+        "delegate_output_address": "sha256:6523921475f1e98a7e2eae908f37e0e68611f33b632a7df181e0ac53ffffb76c",
+        "delegate_payload": {
+          "features": {
+            "stem_signal": 0.8
+          },
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c03-c1",
+            "raw_hash": "sha256:0d9c6d072d3ff7bf419e4d217d10c7ee620b075d82da1973d79f4ebde86d19b1",
+            "source_version": "context-profile-2025.1"
+          }
+        },
+        "delegate_record_id": "D11-C03-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C03-control_b",
+      "content_address": "sha256:676780a6599f05979ef5f03272b15c874f01d708fc4c07c40b54a706cd633654",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C03-C2",
+      "description": "causal_foundation_frontier public record D11-C03-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "prior_feature_out_of_range"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C03",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "context_conditioned_prior",
+        "delegate_output_address": "sha256:a80e037b3aecdf8c8708bc6d8f774c28d4795908471b19423b1deb28c8cacd5b",
+        "delegate_payload": {
+          "features": {
+            "chromatin_score": 0.75,
+            "stem_signal": 1.4
+          },
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c03-c2",
+            "raw_hash": "sha256:6249e29eda653335188a7c93ec91b0951fa11c3ec36b50bd11f88c811c1d0f14",
+            "source_version": "context-profile-2025.1"
+          }
+        },
+        "delegate_record_id": "D11-C03-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C03-control_c",
+      "content_address": "sha256:91432869e9a76745dca8e713a8ba51cf1e71324ead58b5286cf09ea855cff6c5",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C03-C3",
+      "description": "causal_foundation_frontier public record D11-C03-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C03",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "context_conditioned_prior",
+        "delegate_output_address": "sha256:85404865c3d2ab51d64a783333df2b8bd7cfa9eb2cadaa1f86adb564413209a6",
+        "delegate_payload": {
+          "features": {
+            "chromatin_score": 0.75,
+            "stem_signal": 0.8
+          },
+          "profile": {
+            "base_score": 0.45,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "feature_ranges": {
+              "chromatin_score": [
+                0.0,
+                1.0
+              ],
+              "stem_signal": [
+                0.0,
+                1.0
+              ]
+            },
+            "feature_weights": {
+              "chromatin_score": 0.18,
+              "stem_signal": 0.22
+            },
+            "profile_id": "prior-c03-c3",
+            "raw_hash": "sha256:0e311b6df8e24755eb498efa824fffb42d58a9a21e998e2b2b75047579b3b12e",
+            "source_version": "context-profile-2025.1"
+          }
+        },
+        "delegate_record_id": "D11-C03-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C04-positive",
+      "content_address": "sha256:bfa554da5b758f7481031f54a8479322adf9c3f57d29cdc32c4c282ab86ee1f9",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C04-P",
+      "description": "causal_foundation_frontier public record D11-C04-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C04",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "measurement_likelihood",
+        "delegate_output_address": "sha256:f719f52e65af64daa9a4129d89176ad899e612a8716906f39423ea5d51e9a074",
+        "delegate_payload": {
+          "edge_id": "edge-c04-p",
+          "measurements": [
+            {
+              "channel": "accessibility",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c04-p",
+              "measurement_id": "c04-m1",
+              "raw_hash": "sha256:9c49e703d6e488aee26b55c3dac1ce7db4b7a37138540d64314f082777e1f3c3",
+              "score": 0.84,
+              "source_id": "encode",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            },
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c04-p",
+              "measurement_id": "c04-m2",
+              "raw_hash": "sha256:641f3081dd97a446c3b7efd5f09538e25e44e7bb0df679307608d3e848fabc38",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            },
+            {
+              "channel": "qtl",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c04-p",
+              "measurement_id": "c04-m3",
+              "raw_hash": "sha256:75e66c3e98561db9bb38fc2a27f30164fcf10b8b3469c466f15c8ff4fa049af3",
+              "score": 0.84,
+              "source_id": "geo",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C04-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C04-control_a",
+      "content_address": "sha256:331dffac84d6016fc7383f102442382115fd9b725fc37bf96546783d20f8edba",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C04-C1",
+      "description": "causal_foundation_frontier public record D11-C04-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_measurement_group"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C04",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "measurement_likelihood",
+        "delegate_output_address": "sha256:d78f53a15091aa0c9284324793c760577183ef72a313b4de255b01b5bb41e978",
+        "delegate_payload": {
+          "edge_id": "edge-c04-c1",
+          "measurements": [
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c04-c1",
+              "measurement_id": "c04-c1-m1",
+              "raw_hash": "sha256:a3a96cf4e361a06d7242edf424d36d5231a44a3b73a780c043b0c26fab49f929",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C04-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C04-control_b",
+      "content_address": "sha256:39b98a71571ffec6d94d3ca059c752b94484564f451efe12731a6c691792655e",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C04-C2",
+      "description": "causal_foundation_frontier public record D11-C04-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_measurement"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C04",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "measurement_likelihood",
+        "delegate_output_address": "sha256:3c38c0f57863921f6d0c5bfc5ef4cd6957ee0f4b2d5f491116b8b7092bd06644",
+        "delegate_payload": {
+          "edge_id": "edge-c04-c2",
+          "measurements": [
+            {
+              "channel": "accessibility",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c04-c2",
+              "measurement_id": "c04-c2-m1",
+              "raw_hash": "sha256:26813648546bd9a6b45803e9d6afae1115e31cacf213b2e0fcc78e19a675e20d",
+              "score": null,
+              "source_id": "encode",
+              "source_version": "public-measurement-2025.1",
+              "state": "contradictory"
+            },
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge-c04-c2",
+              "measurement_id": "c04-c2-m2",
+              "raw_hash": "sha256:7449fef590ed37843ed75373aab883b16f6745640fd36f30aa2086cfd2a55f07",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C04-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C04-control_c",
+      "content_address": "sha256:b2026fbc6153fed652a9fca1dba06cf4beada8c918f1bec0537773dedf0cce48",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+      "delegate_record_id": "D11-C04-C3",
+      "description": "causal_foundation_frontier public record D11-C04-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_foundation_frontier",
+      "operation_id": "D11-C04",
+      "payload": {
+        "delegate_family": "causal_foundation_frontier",
+        "delegate_fixture_id": "causal-foundation-frontier-public-aggregate",
+        "delegate_operation": "measurement_likelihood",
+        "delegate_output_address": "sha256:1af99a977eb74d1d1b16d02e6334752dbe1289a792d939ad14d81c826095d4f1",
+        "delegate_payload": {
+          "edge_id": "edge-c04-c3",
+          "measurements": [
+            {
+              "channel": "contact",
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "edge_id": "edge-c04-c3",
+              "measurement_id": "c04-c3-m1",
+              "raw_hash": "sha256:f95fcf67a02a46e3ee5cb5df2de42959a1b183177b86530f40c96a1affda1296",
+              "score": 0.84,
+              "source_id": "four-d",
+              "source_version": "public-measurement-2025.1",
+              "state": "supported"
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C04-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C05-positive",
+      "content_address": "sha256:1f26598ab3e5339fae6f07cc574edbb59a7fcc6ca7ae2a1994b017d5947d95af",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C05-P",
+      "description": "causal_beta_frontier public record D11-C05-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C05",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "sequence_to_element",
+        "delegate_output_address": "sha256:a80f51ccb91987e5f8d9a604844f292299493a852b4f660e962588170acee7eb",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c05-p-a",
+              "mediator_kind": "sequence_to_element",
+              "negative_control": false,
+              "raw_hash": "sha256:ede73d3393b0c45f858bb7fe510094aad5291598f6a6eb68fcf72c407501c192",
+              "sensitivity": 0.72,
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c05-p-b",
+              "mediator_kind": "sequence_to_element",
+              "negative_control": false,
+              "raw_hash": "sha256:43ead43eec0f9ce8835978104dd596bdacbd9e215d16f090bebe2227931e2ee2",
+              "sensitivity": 0.72,
+              "source_id": "pubmed",
+              "source_node": "variant:v1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.74,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C05-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_mediator",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C05-control_a",
+      "content_address": "sha256:2628f59225fe6cde7576444ab7b95e431451ce70d293c79b6ab2ba9eeac08152",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C05-C1",
+      "description": "causal_beta_frontier public record D11-C05-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "minimum_independent_sources"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C05",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "sequence_to_element",
+        "delegate_output_address": "sha256:6e1fab48265bef4288b857b8015151daeb8f38862299ec03f27808a9003f03b8",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c05-c1-a",
+              "mediator_kind": "sequence_to_element",
+              "negative_control": false,
+              "raw_hash": "sha256:5815d105e96612b6213cd2a93f11327b3cbcde0ea79988443e7ba3609eec4216",
+              "sensitivity": 0.72,
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C05-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C05-control_b",
+      "content_address": "sha256:ba96e39015a41a0cddb9fd8243f1423d1e169873947cd54dc13e0f8a969d059d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C05-C2",
+      "description": "causal_beta_frontier public record D11-C05-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_direction"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C05",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "sequence_to_element",
+        "delegate_output_address": "sha256:5b8d1a9e4250b9ecce8f47a737dd456bb9b0b7074ddaab4efd56edc450688c67",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c05-c2-a",
+              "mediator_kind": "sequence_to_element",
+              "negative_control": false,
+              "raw_hash": "sha256:1b96fb34efd1511d2af3be0c257f98f7fa38ad466e37f37d45e8e327a9dd53b0",
+              "sensitivity": 0.72,
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "against",
+              "evidence_id": "c05-c2-b",
+              "mediator_kind": "sequence_to_element",
+              "negative_control": false,
+              "raw_hash": "sha256:582f4217c09b469e0c86bad022064b3c6605d50f399b9d910283a1fd36ea4bb3",
+              "sensitivity": 0.72,
+              "source_id": "pubmed",
+              "source_node": "variant:v1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.2,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C05-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C05-control_c",
+      "content_address": "sha256:453d1e359376b072e966f0a8db6d92c21e291b6d9f8c087e4e274047e3067e36",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C05-C3",
+      "description": "causal_beta_frontier public record D11-C05-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C05",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "sequence_to_element",
+        "delegate_output_address": "sha256:2202d8c07ef4453e78a7443d6a2c53c97984d184f5e536b75ef2a4af4c26c898",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c05-c3-a",
+              "mediator_kind": "sequence_to_element",
+              "negative_control": false,
+              "raw_hash": "sha256:78de0af2b1298dbe01857742dbd91da643b2b972865f102490227e04ba89b5cf",
+              "sensitivity": 0.72,
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C05-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C06-positive",
+      "content_address": "sha256:f47a36f79813e9f0aed6a49703681e1cb3ea7f462b1337b2bb619b36aac7cb37",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C06-P",
+      "description": "causal_beta_frontier public record D11-C06-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C06",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "element_to_gene",
+        "delegate_output_address": "sha256:bb7c4e41fbcb79905d2335a2ef0daa8f6e9ccfc8088d7c5272307554ae39de7f",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c06-p-a",
+              "mediator_kind": "element_to_gene",
+              "negative_control": false,
+              "raw_hash": "sha256:eaca49057ccb44ee235567c82b285e5c48bde8349a86ae01ace0d8bd340ba5b4",
+              "sensitivity": 0.72,
+              "source_id": "four-d",
+              "source_node": "element:enh-1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "gene:GENE1",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c06-p-b",
+              "mediator_kind": "element_to_gene",
+              "negative_control": false,
+              "raw_hash": "sha256:e870a846ebadac3172e6994e6b7b627bb920854c8832bd76c7b127573e71431d",
+              "sensitivity": 0.72,
+              "source_id": "geo",
+              "source_node": "element:enh-1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.76,
+              "target_node": "gene:GENE1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "element:enh-1",
+          "target_node": "gene:GENE1"
+        },
+        "delegate_record_id": "D11-C06-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_mediator",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C06-control_a",
+      "content_address": "sha256:44d9c933cbddcb531b1ed0da2f7b9b4d314aa9e89ea7b54b9048867360e2a82c",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C06-C1",
+      "description": "causal_beta_frontier public record D11-C06-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "minimum_independent_sources"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C06",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "element_to_gene",
+        "delegate_output_address": "sha256:72e0b7592e317222b93ca42e8ce70ab7eb85dc50574e038310bdc224a0089855",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c06-c1-a",
+              "mediator_kind": "element_to_gene",
+              "negative_control": false,
+              "raw_hash": "sha256:706a3714ee541eeccee39e0c55a1e8a94f56ce9f632d301f855055880100b72b",
+              "sensitivity": 0.72,
+              "source_id": "four-d",
+              "source_node": "element:enh-1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "gene:GENE1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "element:enh-1",
+          "target_node": "gene:GENE1"
+        },
+        "delegate_record_id": "D11-C06-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C06-control_b",
+      "content_address": "sha256:f492d10867046d5f464129c119fb609d45b1fa4af6b1b3bccd5e5ea3a5b729c4",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C06-C2",
+      "description": "causal_beta_frontier public record D11-C06-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_direction"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C06",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "element_to_gene",
+        "delegate_output_address": "sha256:2d6f43c3b9cfa69ffdce1131f3de973223c7bbe8fea77bb8d14a114dd9ec22b2",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c06-c2-a",
+              "mediator_kind": "element_to_gene",
+              "negative_control": false,
+              "raw_hash": "sha256:7f5aa013ff89f786e6502e653484aba0b2455fdefdca2509c299f065fbff8500",
+              "sensitivity": 0.72,
+              "source_id": "four-d",
+              "source_node": "element:enh-1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "gene:GENE1",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "against",
+              "evidence_id": "c06-c2-b",
+              "mediator_kind": "element_to_gene",
+              "negative_control": false,
+              "raw_hash": "sha256:c340e1544da3aaaccf20b3733ee40fac6bedec9976a82ceae982073cc3425cda",
+              "sensitivity": 0.72,
+              "source_id": "geo",
+              "source_node": "element:enh-1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "gene:GENE1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "element:enh-1",
+          "target_node": "gene:GENE1"
+        },
+        "delegate_record_id": "D11-C06-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C06-control_c",
+      "content_address": "sha256:4541af550cd03a883551d3c3e6ef5f6ee0db6369ba6a064dc4956e8a963bac6f",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C06-C3",
+      "description": "causal_beta_frontier public record D11-C06-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C06",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "element_to_gene",
+        "delegate_output_address": "sha256:25e53fcd4957641e75443f2a2bc74cbc069d56e8e18507249fab44789c3d21d5",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c06-c3-a",
+              "mediator_kind": "element_to_gene",
+              "negative_control": false,
+              "raw_hash": "sha256:26ec0fb77f08d2bc3d828188abea05d53cb7e67d941290ad060ac9234c206e64",
+              "sensitivity": 0.72,
+              "source_id": "four-d",
+              "source_node": "element:enh-1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "gene:GENE1",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "element:enh-1",
+          "target_node": "gene:GENE1"
+        },
+        "delegate_record_id": "D11-C06-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C07-positive",
+      "content_address": "sha256:709e80328793eca236d8b37131a5567d5f914fc458edfc38fcb8a733f4bd057d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C07-P",
+      "description": "causal_beta_frontier public record D11-C07-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C07",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "gene_to_state",
+        "delegate_output_address": "sha256:39f8ea7d06cf71451faa555d75bb6c698083c7b4061b05608258bdbe87d39424",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c07-p-a",
+              "mediator_kind": "gene_to_state",
+              "negative_control": false,
+              "raw_hash": "sha256:407b7bbf93057beaa95f998e8f0606968f521fdb2f036ce58b3c81d507209296",
+              "sensitivity": 0.72,
+              "source_id": "geo",
+              "source_node": "gene:GENE1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "state:stem_like",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c07-p-b",
+              "mediator_kind": "gene_to_state",
+              "negative_control": false,
+              "raw_hash": "sha256:5676377e1e104c09e1ce65b44a5702008ca29e9956afeccbb344f146e83d7047",
+              "sensitivity": 0.72,
+              "source_id": "gtex",
+              "source_node": "gene:GENE1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.78,
+              "target_node": "state:stem_like",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "gene:GENE1",
+          "target_node": "state:stem_like"
+        },
+        "delegate_record_id": "D11-C07-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_mediator",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C07-control_a",
+      "content_address": "sha256:592b247d594af21344b90754b6695757a1544aeb2dad54618ea73e9f0972d3e3",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C07-C1",
+      "description": "causal_beta_frontier public record D11-C07-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "minimum_independent_sources"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C07",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "gene_to_state",
+        "delegate_output_address": "sha256:4fc4b266b5f68846fc533411793f5191770fbfe2c7d02d510c3fd17eb1a9b8ae",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c07-c1-a",
+              "mediator_kind": "gene_to_state",
+              "negative_control": false,
+              "raw_hash": "sha256:cb270bfe298b5f621323d117af94e82fd07f6f67994754b203c62b4a690e25c7",
+              "sensitivity": 0.72,
+              "source_id": "geo",
+              "source_node": "gene:GENE1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "state:stem_like",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "gene:GENE1",
+          "target_node": "state:stem_like"
+        },
+        "delegate_record_id": "D11-C07-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C07-control_b",
+      "content_address": "sha256:862c88f33478acd5c1170965278a1645fd7b07ff03cb64ff83b9a56a256823d6",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C07-C2",
+      "description": "causal_beta_frontier public record D11-C07-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "negative_control_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C07",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "gene_to_state",
+        "delegate_output_address": "sha256:b0aa2107d0a015404040559c5bb3e1330cbb0c3a9a579cd053c3181afde19690",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c07-c2-a",
+              "mediator_kind": "gene_to_state",
+              "negative_control": false,
+              "raw_hash": "sha256:a79891995f4ee3388c7e37989e0b7b54fbfb9aad0ed9da70a33318920bb8c44d",
+              "sensitivity": 0.72,
+              "source_id": "geo",
+              "source_node": "gene:GENE1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "state:stem_like",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c07-c2-b",
+              "mediator_kind": "gene_to_state",
+              "negative_control": true,
+              "raw_hash": "sha256:98a20216e9c1d821ca83a5dbe131140c10255b724eb0eeda78cf3fb82f88916d",
+              "sensitivity": 0.72,
+              "source_id": "gtex",
+              "source_node": "gene:GENE1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "state:stem_like",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "gene:GENE1",
+          "target_node": "state:stem_like"
+        },
+        "delegate_record_id": "D11-C07-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C07-control_c",
+      "content_address": "sha256:2832250cd987861a1b22615b67e4332ac699208af016cb9041d6100a19f71ee4",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C07-C3",
+      "description": "causal_beta_frontier public record D11-C07-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C07",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "gene_to_state",
+        "delegate_output_address": "sha256:0f24de9eb4a90f66396711fd9c89cc6c61f5f8febf9b0d5c0b4e17fd0289bcd7",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c07-c3-a",
+              "mediator_kind": "gene_to_state",
+              "negative_control": false,
+              "raw_hash": "sha256:5ff4157a27ef352e2fa4b4d01b51d5f451147a4975ecd56fe6a7934260d9b76b",
+              "sensitivity": 0.72,
+              "source_id": "geo",
+              "source_node": "gene:GENE1",
+              "source_version": "public-beta-2025.1",
+              "support": 0.82,
+              "target_node": "state:stem_like",
+              "uncertainty": 0.12
+            }
+          ],
+          "source_node": "gene:GENE1",
+          "target_node": "state:stem_like"
+        },
+        "delegate_record_id": "D11-C07-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C08-positive",
+      "content_address": "sha256:79c76902a3988572591d34a43d77bb21d376edc5649d4c141e682e60e72377fa",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C08-P",
+      "description": "causal_beta_frontier public record D11-C08-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C08",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "counterfactual_allele_state",
+        "delegate_output_address": "sha256:fa1ab361804df38ba98a91e4a4d78964b08ff64af2e836fef41983c386a684f1",
+        "delegate_payload": {
+          "observations": [
+            {
+              "allele": "reference",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "observation_id": "c08-p-ref",
+              "raw_hash": "sha256:a75d941b9cf70a2136ebb16e73b694951879f0fb59504bddd48a75b5d335d116",
+              "source_id": "encode",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.22
+            },
+            {
+              "allele": "alternate",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "observation_id": "c08-p-alt",
+              "raw_hash": "sha256:d14976113f7f1d1ff20cf2ff7dee6a9a0b78073d36d148f1365f68f786b1dd08",
+              "source_id": "geo",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.81
+            }
+          ],
+          "state_id": "state:open"
+        },
+        "delegate_record_id": "D11-C08-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_mediator",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C08-control_a",
+      "content_address": "sha256:3b1f2d06929a35535d6ee4c21a7ff49d090cff0082824b1f62a3f080cd03ac98",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C08-C1",
+      "description": "causal_beta_frontier public record D11-C08-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_alternate_allele"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C08",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "counterfactual_allele_state",
+        "delegate_output_address": "sha256:e4c3927f2c905cd18dcc506a1b2217de30ae36e7bbc2ef63b15fd9284fa62d0e",
+        "delegate_payload": {
+          "observations": [
+            {
+              "allele": "reference",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "observation_id": "c08-c1-ref",
+              "raw_hash": "sha256:a826c8ba1e46f3a54c12c934a5b5953e07dda6a83a4fde8cab48bbce931accd2",
+              "source_id": "encode",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.22
+            }
+          ],
+          "state_id": "state:open"
+        },
+        "delegate_record_id": "D11-C08-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C08-control_b",
+      "content_address": "sha256:afe75c2c27c573ab0eb409a1a86611b007cb35aff48341b75b71a15ec04d8d71",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C08-C2",
+      "description": "causal_beta_frontier public record D11-C08-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "replicate_ambiguity"
+      ],
+      "expected_result_state": "ambiguous",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C08",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "counterfactual_allele_state",
+        "delegate_output_address": "sha256:78c27f3f5e98005a967e1ad3f7a8d0de59e24ec309502eb820ba6057c68d00bf",
+        "delegate_payload": {
+          "observations": [
+            {
+              "allele": "reference",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "observation_id": "c08-c2-ref-a",
+              "raw_hash": "sha256:d9fa1886cd51a608047e4bb3023ffce5d9760e05796bbea2a041c49f96474118",
+              "source_id": "encode",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.1
+            },
+            {
+              "allele": "reference",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "observation_id": "c08-c2-ref-b",
+              "raw_hash": "sha256:def713af0ef97e1624c1cc4646a749342c3140b08d10fee62be81f114072ac50",
+              "source_id": "geo",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.82
+            },
+            {
+              "allele": "alternate",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "observation_id": "c08-c2-alt",
+              "raw_hash": "sha256:8e85136620c8fdec1f06b245d1b4084d3dd158ffaecf6a2e488f630c97118a40",
+              "source_id": "geo",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.9
+            }
+          ],
+          "state_id": "state:open"
+        },
+        "delegate_record_id": "D11-C08-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C08-control_c",
+      "content_address": "sha256:c18f25893f54492ef1e6b3aec2a34f397a1aa0a387edd1c1d1af7b838fc1e45d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+      "delegate_record_id": "D11-C08-C3",
+      "description": "causal_beta_frontier public record D11-C08-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_beta_frontier",
+      "operation_id": "D11-C08",
+      "payload": {
+        "delegate_family": "causal_beta_frontier",
+        "delegate_fixture_id": "causal-beta-frontier-public-aggregate",
+        "delegate_operation": "counterfactual_allele_state",
+        "delegate_output_address": "sha256:11c984c004fabe5400e4f3289d83854b412ca9464c7126c540ac101bc0c52d77",
+        "delegate_payload": {
+          "observations": [
+            {
+              "allele": "reference",
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "observation_id": "c08-c3-ref",
+              "raw_hash": "sha256:ca9a6c5905610b7c8d1f0cce9a30e3fed9332349f2296f7e2f9e42be7b6eb476",
+              "source_id": "geo",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.2
+            },
+            {
+              "allele": "alternate",
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "observation_id": "c08-c3-alt",
+              "raw_hash": "sha256:3caff0d3ac8fd103c5d586a4a422e0933ef0341e40b38b9c4f9d605b2286a977",
+              "source_id": "geo",
+              "source_version": "public-allele-2025.1",
+              "state_id": "state:open",
+              "uncertainty": 0.1,
+              "value": 0.8
+            }
+          ],
+          "state_id": "state:open"
+        },
+        "delegate_record_id": "D11-C08-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_mediator",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "case_id": "D11-C09-positive",
+      "content_address": "sha256:60719f036fe1baada3c42a819bc38dfb34d5dc3ed0b5cfd366b0fcb6134dea6a",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C09-P",
+      "description": "causal_alpha_frontier public record D11-C09-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C09",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "mediation_sensitivity",
+        "delegate_output_address": "sha256:ad7e0795bfec364a1f8d04f5157b7bfeabeae1d66c6fda55ad4af336b9904cdb",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c09-p-a",
+              "mediator_kind": "sequence_to_element",
+              "raw_hash": "sha256:38738de4b11f5fc2a1399944332b01554afe2cf74794ed39dd9bf97b17657128",
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-alpha-2025.1",
+              "support": 0.82,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c09-p-b",
+              "mediator_kind": "sequence_to_element",
+              "raw_hash": "sha256:d77dc4f26751ebd988f8db60833b10a74676925b183e7dfdcc1460125da00bb9",
+              "source_id": "pubmed",
+              "source_node": "variant:v1",
+              "source_version": "public-alpha-2025.1",
+              "support": 0.74,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "mediator_kind": "sequence_to_element",
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C09-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C09-control_a",
+      "content_address": "sha256:c49bb98eb4b96fc84e643ae9304ff79b11844706ede71b05173fe4ad2ee0151f",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C09-C1",
+      "description": "causal_alpha_frontier public record D11-C09-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C09",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "mediation_sensitivity",
+        "delegate_output_address": "sha256:7a15653ad4011244a2d63bb95f19cf44786cb8db0c8cc1ec41482bb9294feaaf",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c09-c1-a",
+              "mediator_kind": "sequence_to_element",
+              "raw_hash": "sha256:557f6411e162910582502a698eb74c46dcb7263e702c97a180ff11bde5e87409",
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-alpha-2025.1",
+              "support": 0.82,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "mediator_kind": "sequence_to_element",
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C09-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C09-control_b",
+      "content_address": "sha256:5d7ffb419a839e485bd7d8ace23b46175addbda7fde3504999a7da60943b0e96",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C09-C2",
+      "description": "causal_alpha_frontier public record D11-C09-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C09",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "mediation_sensitivity",
+        "delegate_output_address": "sha256:fe581606918616d9790daa1d1f767008b98f7edd93460d0c4f1878e69680e6a0",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c09-c2-a",
+              "mediator_kind": "sequence_to_element",
+              "raw_hash": "sha256:0841ae89869fcfc8f2eb53ef98fbcbbefc51d75dc7e176ccb31214fc5a6528c3",
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-alpha-2025.1",
+              "support": 0.98,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c09-c2-b",
+              "mediator_kind": "sequence_to_element",
+              "raw_hash": "sha256:4fb70b5b6b846555c5047084c4ffa3cc45fd4e6b783a2c4b56d76fae0694e4a3",
+              "source_id": "pubmed",
+              "source_node": "variant:v1",
+              "source_version": "public-alpha-2025.1",
+              "support": 0.2,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "mediator_kind": "sequence_to_element",
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C09-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C09-control_c",
+      "content_address": "sha256:6502cb6205d0fd91663b06b6dc96a70fdaaa56453b66fe0cea9eaaeb778d856b",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C09-C3",
+      "description": "causal_alpha_frontier public record D11-C09-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C09",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "mediation_sensitivity",
+        "delegate_output_address": "sha256:36efc45b5d0595c8820245fa2c1b1ec4a5ce9ad0c9608282e553c8cffc640200",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "direction": "supports",
+              "evidence_id": "c09-c3-a",
+              "mediator_kind": "sequence_to_element",
+              "raw_hash": "sha256:0e4f869791cb1ae679ca2bcc9e593fee00e143b6ae46822aebf69f0b044f0a04",
+              "source_id": "encode",
+              "source_node": "variant:v1",
+              "source_version": "public-alpha-2025.1",
+              "support": 0.82,
+              "target_node": "element:enh-1",
+              "uncertainty": 0.12
+            }
+          ],
+          "mediator_kind": "sequence_to_element",
+          "source_node": "variant:v1",
+          "target_node": "element:enh-1"
+        },
+        "delegate_record_id": "D11-C09-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C10-positive",
+      "content_address": "sha256:136a2839b90dd55041c4ca7ece7b1342e7db57abf78900c9cc4552b4f2f104ec",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C10-P",
+      "description": "causal_alpha_frontier public record D11-C10-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C10",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "confounding_checklist",
+        "delegate_output_address": "sha256:f2997060cd541d90c5e86f6406487f9b6bd95f22b7590b5e8cd1e30da1d58663",
+        "delegate_payload": {
+          "observations": [
+            {
+              "addressed": true,
+              "adjustment_method": "stratification",
+              "confounder_id": "batch",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "label": "batch",
+              "observation_id": "c10-p-batch",
+              "raw_hash": "sha256:f0226526a94fd5e88e18d2294a5bccd96be5a2ff6859bd3781b5e19d3af90e2a",
+              "severity": 0.3,
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "status": "addressed"
+            },
+            {
+              "addressed": true,
+              "adjustment_method": "stratification",
+              "confounder_id": "purity",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "label": "purity",
+              "observation_id": "c10-p-purity",
+              "raw_hash": "sha256:cb3c303177ac66d548df65c2115c268ba9a14cd3708a77ce62785938e5a4ff53",
+              "severity": 0.3,
+              "source_id": "gtex",
+              "source_version": "public-alpha-2025.1",
+              "status": "addressed"
+            },
+            {
+              "addressed": null,
+              "adjustment_method": "design_scope",
+              "confounder_id": "sex",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "label": "sex",
+              "observation_id": "c10-p-sex",
+              "raw_hash": "sha256:5c7845fda811211c6be87ace91071ff7c2a6b517282497ef4dcaf17efaf2826f",
+              "severity": 0.3,
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "status": "not_applicable"
+            }
+          ],
+          "required_confounder_ids": [
+            "batch",
+            "purity",
+            "sex"
+          ]
+        },
+        "delegate_record_id": "D11-C10-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C10-control_a",
+      "content_address": "sha256:c5bfc22284f6d562447a7b2e0e330d9724f4e42344575b6868fb698afca484bf",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C10-C1",
+      "description": "causal_alpha_frontier public record D11-C10-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C10",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "confounding_checklist",
+        "delegate_output_address": "sha256:c7f0326fefd3159eff71a0a4e1cc2a328ccd08157f6695d7e211db977c833b32",
+        "delegate_payload": {
+          "observations": [
+            {
+              "addressed": true,
+              "adjustment_method": "stratification",
+              "confounder_id": "batch",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "label": "batch",
+              "observation_id": "c10-c1-batch",
+              "raw_hash": "sha256:32586fbde07873972b91f100e2de1e535db02eb9e798b31a65edcdf824e12829",
+              "severity": 0.3,
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "status": "addressed"
+            }
+          ],
+          "required_confounder_ids": [
+            "batch",
+            "purity",
+            "sex"
+          ]
+        },
+        "delegate_record_id": "D11-C10-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C10-control_b",
+      "content_address": "sha256:405a6f7147a43f0beccd8875eb04bc8200439901b375f3acf3ba4813750d5257",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C10-C2",
+      "description": "causal_alpha_frontier public record D11-C10-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C10",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "confounding_checklist",
+        "delegate_output_address": "sha256:8f93dedcc2acfda64b78c2557280757f821de2e4a189213fddd59900d95f58f8",
+        "delegate_payload": {
+          "observations": [
+            {
+              "addressed": true,
+              "adjustment_method": "stratification",
+              "confounder_id": "batch",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "label": "batch",
+              "observation_id": "c10-c2-batch",
+              "raw_hash": "sha256:a136bf7e31f6ae51ed85f1a5f2e97788116188b5f1cddfd65d45d1690ae0f74b",
+              "severity": 0.3,
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "status": "addressed"
+            },
+            {
+              "addressed": false,
+              "adjustment_method": "not_yet_selected",
+              "confounder_id": "purity",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "label": "purity",
+              "observation_id": "c10-c2-purity",
+              "raw_hash": "sha256:aae4cdd04a211ad208105b0d10a3816b557094c87bec29e69a926a9bc6d0cd00",
+              "severity": 0.9,
+              "source_id": "gtex",
+              "source_version": "public-alpha-2025.1",
+              "status": "unresolved"
+            }
+          ],
+          "required_confounder_ids": [
+            "batch",
+            "purity"
+          ]
+        },
+        "delegate_record_id": "D11-C10-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C10-control_c",
+      "content_address": "sha256:993fb4881b84e287b0a735050efe50d759e0e05d534fcc691a5fabeaa06e98d0",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C10-C3",
+      "description": "causal_alpha_frontier public record D11-C10-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C10",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "confounding_checklist",
+        "delegate_output_address": "sha256:51f1237aa73cd7088021f61ec854b878c956b2ddb88f38bebcfeef7d218f6c36",
+        "delegate_payload": {
+          "observations": [
+            {
+              "addressed": true,
+              "adjustment_method": "stratification",
+              "confounder_id": "batch",
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "label": "batch",
+              "observation_id": "c10-c3-batch",
+              "raw_hash": "sha256:10eb06b701bded68cb37752ef338c33dde83101742bb557e532ccad4d7ac80f5",
+              "severity": 0.3,
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "status": "addressed"
+            }
+          ],
+          "required_confounder_ids": [
+            "batch"
+          ]
+        },
+        "delegate_record_id": "D11-C10-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C11-positive",
+      "content_address": "sha256:fefd0abe516309482b7659cc5c071f1ffb7fb2f9830190b7042da58e16470c33",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C11-P",
+      "description": "causal_alpha_frontier public record D11-C11-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C11",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "dependence_correction",
+        "delegate_output_address": "sha256:5b56cf808695d1970a7c68c02e1e485abbc4738fe4e69308e12acb9aba393102",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "dependence_group": "functional-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-p-a",
+              "method_family": "functional",
+              "raw_hash": "sha256:fac673aab990a33ea71d0aff4b83ed14cdf39f387c60ffb25d79c2cb68ad7086",
+              "source_id": "encode",
+              "source_version": "public-alpha-2025.1",
+              "state": "supported",
+              "support": 0.72,
+              "uncertainty": 0.1
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "dependence_group": "expression-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-p-b",
+              "method_family": "expression",
+              "raw_hash": "sha256:3d5583abdbb7f6c634bc9a381dfb5de2ace5739efd6daf3b01bc12d28debb289",
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "state": "supported",
+              "support": 0.84,
+              "uncertainty": 0.1
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "dependence_group": "topology-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-p-c",
+              "method_family": "topology",
+              "raw_hash": "sha256:be95e0fd1b29f384077945cf3bd625dd2b7e8fbce4b5a9e5b06e7d7af35f1ad1",
+              "source_id": "4dn",
+              "source_version": "public-alpha-2025.1",
+              "state": "supported",
+              "support": 0.78,
+              "uncertainty": 0.1
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C11-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C11-control_a",
+      "content_address": "sha256:acf1a3aacbc8c924c586b8a32aa6ba773f825fc604d5448527698f7e316bed5e",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C11-C1",
+      "description": "causal_alpha_frontier public record D11-C11-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C11",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "dependence_correction",
+        "delegate_output_address": "sha256:c54feb6484ea896f20ca0011218906c9d4e3332c3a06077f5337608fc50016dd",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "dependence_group": "functional-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-c1-a",
+              "method_family": "functional",
+              "raw_hash": "sha256:3a5c54e6df3a6dfdcf960302d9c2c421d637920571f01a245852ea1d2e1e79f3",
+              "source_id": "encode",
+              "source_version": "public-alpha-2025.1",
+              "state": "supported",
+              "support": 0.8,
+              "uncertainty": 0.1
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "dependence_group": "functional-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-c1-b",
+              "method_family": "functional",
+              "raw_hash": "sha256:9be1b096dd5fb069fc7e15cd44f40c7826d7ccb42c8d7ccee59953c15d6f94d3",
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "state": "supported",
+              "support": 0.7,
+              "uncertainty": 0.1
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C11-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C11-control_b",
+      "content_address": "sha256:2083e8a42f653794a86a820a57df00598241068342148a24bda86a98dc84deeb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C11-C2",
+      "description": "causal_alpha_frontier public record D11-C11-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C11",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "dependence_correction",
+        "delegate_output_address": "sha256:58b405fc121979e017c1933e18c8666039feb0c43e3e4c0f78212d2ff371a627",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "dependence_group": "functional-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-c2-a",
+              "method_family": "functional",
+              "raw_hash": "sha256:86600066562db01dc7b95d95e3989098d692edc17fe50052c6c263ef59bd1a28",
+              "source_id": "encode",
+              "source_version": "public-alpha-2025.1",
+              "state": "supported",
+              "support": 0.8,
+              "uncertainty": 0.1
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "dependence_group": "expression-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-c2-b",
+              "method_family": "functional",
+              "raw_hash": "sha256:0930c766386f852ac31a598660d84424118d5ef2786c161b330831b7e7f8adb9",
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "state": "contradictory",
+              "support": 0.8,
+              "uncertainty": 0.1
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C11-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C11-control_c",
+      "content_address": "sha256:681ab56e4d514def58df6210df657913a5083ce11826c64ce7d262c43b977b12",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C11-C3",
+      "description": "causal_alpha_frontier public record D11-C11-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C11",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "dependence_correction",
+        "delegate_output_address": "sha256:bf8b4870854579223e9baf021e2970d83d3e261f8a79bd452420a011256ff456",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "dependence_group": "functional-replicates",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c11-c3-a",
+              "method_family": "functional",
+              "raw_hash": "sha256:2257c6cc34e0c78824db6c8e74fda5bd6b7afed06b879dc9122f3ab5592511ca",
+              "source_id": "encode",
+              "source_version": "public-alpha-2025.1",
+              "state": "supported",
+              "support": 0.8,
+              "uncertainty": 0.1
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C11-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C12-positive",
+      "content_address": "sha256:40458dde56e48ffb2312d7bfca8c721603810b41d51737001d354e3b7cec0b79",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C12-P",
+      "description": "causal_alpha_frontier public record D11-C12-P retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "partial",
+      "expected_state": "accepted",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C12",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "negative_evidence",
+        "delegate_output_address": "sha256:679ed4548decd8dc2b9a61fb8f4d8fbb76a5999141e12916283a6f7ed315feb8",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_label": "aggregate_assay",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c12-p-a",
+              "negative_control": false,
+              "polarity": "positive",
+              "raw_hash": "sha256:38ef92302be4b84f4a83241f4eb8187b9a3f06072ee9845587bdf9b4b9b879e2",
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "strength": 0.84
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C12-P",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C12-control_a",
+      "content_address": "sha256:aadb45bc1a86649c0c1a77007f9f38747d5b3395cd2573aa331a4aac7dc4f929",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C12-C1",
+      "description": "causal_alpha_frontier public record D11-C12-C1 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "measured_negative",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C12",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "negative_evidence",
+        "delegate_output_address": "sha256:c75ab0db734af37a4a79c6ea6bb348c514336b218ebdf499e7418e3f56d9ffa5",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_label": "aggregate_assay",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c12-c1-a",
+              "negative_control": false,
+              "polarity": "negative",
+              "raw_hash": "sha256:0b96302ea9d2b83df1d9119d4ba5679adec2ed33bfd87e9a5abad700ba33c508",
+              "source_id": "encode",
+              "source_version": "public-alpha-2025.1",
+              "strength": 0.9
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C12-C1",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C12-control_b",
+      "content_address": "sha256:113143b81ad4f938659f92b8ddbfbe74e85d345b78ccbec168754dc8d03b869e",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C12-C2",
+      "description": "causal_alpha_frontier public record D11-C12-C2 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C12",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "negative_evidence",
+        "delegate_output_address": "sha256:d71a4dbf827a199fb83ea2e7d0b99bb139240d8e75f1c51bc6455838549276ba",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_label": "aggregate_assay",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c12-c2-a",
+              "negative_control": false,
+              "polarity": "positive",
+              "raw_hash": "sha256:06c7317189985dcafdf2158dd57a72ad4295d4be74f96509eeff640caa9be1b4",
+              "source_id": "geo",
+              "source_version": "public-alpha-2025.1",
+              "strength": 0.8
+            },
+            {
+              "assay_label": "aggregate_assay",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c12-c2-b",
+              "negative_control": true,
+              "polarity": "negative_control",
+              "raw_hash": "sha256:19e5621c10b1b697010d47e050d15b97476034fbb78708567a087061723d1f26",
+              "source_id": "encode",
+              "source_version": "public-alpha-2025.1",
+              "strength": 0.88
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C12-C2",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C12-control_c",
+      "content_address": "sha256:07667e8f8d193956e7911b7ab5e5e3e623409a4a8d0995a644a8fb75f635b805",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+      "delegate_record_id": "D11-C12-C3",
+      "description": "causal_alpha_frontier public record D11-C12-C3 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "causal_alpha_frontier",
+      "operation_id": "D11-C12",
+      "payload": {
+        "delegate_family": "causal_alpha_frontier",
+        "delegate_fixture_id": "causal-alpha-frontier-public-aggregate",
+        "delegate_operation": "negative_evidence",
+        "delegate_output_address": "sha256:d2c7286dd6d2e73021e721894357880b1668f7acd00277919aded8fd472aa2cb",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_label": "aggregate_assay",
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "edge_id": "edge:variant-to-state",
+              "evidence_id": "c12-c3-a",
+              "negative_control": true,
+              "polarity": "negative_control",
+              "raw_hash": "sha256:97f7b22024181a85f4d6a976c80e51b4166a3a7095331cec322e20d97fcd1f6f",
+              "source_id": "encode",
+              "source_version": "public-alpha-2025.1",
+              "strength": 0.8
+            }
+          ]
+        },
+        "delegate_record_id": "D11-C12-C3",
+        "delegate_role": "control"
+      },
+      "plane": "causal_sensitivity",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "case_id": "D11-C13-positive",
+      "content_address": "sha256:9a6024ab397bc2b276705b132e229e0fa48e77e480a07a7ed243499872ed8104",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C13-POS-001",
+      "description": "causal_frontier public record C13-POS-001 retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_frontier",
+      "operation_id": "D11-C13",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "posterior_decomposition",
+        "delegate_output_address": "sha256:21475f5d9df05921446e72aaf30aad9705a4278a741cc683a35690c1285ee2d7",
+        "delegate_payload": {
+          "input_hash": "sha256:c0727cb1535b242afef9a60aa19ba9bf74e5217789e0fe743aab82a64d0492f9",
+          "input_records": [
+            {
+              "dependency_penalty": 0.1,
+              "hypothesis_id": "h1",
+              "likelihood": 0.9,
+              "measurement": 0.8,
+              "prior": 0.6
+            },
+            {
+              "dependency_penalty": 0.2,
+              "hypothesis_id": "h2",
+              "likelihood": 0.5,
+              "measurement": 0.6,
+              "prior": 0.4
+            }
+          ]
+        },
+        "delegate_record_id": "C13-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C13-control_a",
+      "content_address": "sha256:3e4364442412cc0f1b5da10f1911e0fdb5eab0d0ce93e190e8fac7782f6bd2fe",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C13-CTRL-001",
+      "description": "causal_frontier public record C13-CTRL-001 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "zero_posterior_mass"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C13",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "posterior_decomposition",
+        "delegate_output_address": "sha256:baa0949f8f93223db73fe347a29958b90364bf17f6926b32dd7d9373c9c5f900",
+        "delegate_payload": {
+          "input_hash": "sha256:ac4003a10015b5a93ebed4941e48782aa43ea0b5e88c5f001fd06353c000b2c8",
+          "input_records": [
+            {
+              "dependency_penalty": 1.0,
+              "hypothesis_id": "h-zero",
+              "likelihood": 0.0,
+              "measurement": 0.0,
+              "prior": 0.0
+            }
+          ]
+        },
+        "delegate_record_id": "C13-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C13-control_b",
+      "content_address": "sha256:474566cba96b9d0e6225bb5df5bf0dbbfdc429b63fb8e138b503271a89eebc6a",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C13-CTRL-002",
+      "description": "causal_frontier public record C13-CTRL-002 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_posterior_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C13",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "posterior_decomposition",
+        "delegate_output_address": "sha256:bef5903a98e3aed8c2e5267e876117523108e4e6112793ba8f81947102750271",
+        "delegate_payload": {
+          "input_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "input_records": []
+        },
+        "delegate_record_id": "C13-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C13-control_c",
+      "content_address": "sha256:6a1e4d210b7eea43142a477ab8271c7c58ebcb5f9c31c22dcc2371cf8ee2f496",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C13-CTRL-003",
+      "description": "causal_frontier public record C13-CTRL-003 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_posterior_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C13",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "posterior_decomposition",
+        "delegate_output_address": "sha256:14e9beaf48432fba859bc82e23ad7e146b3e76d3a601d20a33806d1d170b6368",
+        "delegate_payload": {
+          "input_hash": "sha256:3394bdda84ede4b3ded9a7b9d8ff950b2529cd462fe74da34032d0b43f35beca",
+          "input_records": [
+            {
+              "dependency_penalty": 0.0,
+              "hypothesis_id": "h-bad",
+              "likelihood": 0.4,
+              "measurement": 0.5,
+              "prior": 1.2
+            }
+          ]
+        },
+        "delegate_record_id": "C13-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C14-positive",
+      "content_address": "sha256:3a51480bc9ef66f3f78e8da69f20bd419d0567edcb6d1203e309dc005552bd57",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C14-POS-001",
+      "description": "causal_frontier public record C14-POS-001 retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_frontier",
+      "operation_id": "D11-C14",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "regulatory_driver_posterior",
+        "delegate_output_address": "sha256:5cbcc9e41fd82db943f8d549bc86cfb1acce269737f2e5741a48ec547e9b834f",
+        "delegate_payload": {
+          "input_hash": "sha256:6806f18e8965157643068e21265352ce558657dccdce559246fbbf250ed1f455",
+          "input_records": [
+            {
+              "driver_id": "driver-1",
+              "evidence_ids": [
+                "e1",
+                "e2"
+              ],
+              "evidence_support": 0.85,
+              "prior": 0.7
+            },
+            {
+              "driver_id": "driver-2",
+              "evidence_ids": [
+                "e3"
+              ],
+              "evidence_support": 0.6,
+              "prior": 0.5
+            }
+          ],
+          "minimum_support": 0.2
+        },
+        "delegate_record_id": "C14-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C14-control_a",
+      "content_address": "sha256:88b64ade7ff1b4d08ff8968dfc9780f51caef3026ec4c14660d7ff491472f913",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C14-CTRL-001",
+      "description": "causal_frontier public record C14-CTRL-001 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "low_driver_support"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C14",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "regulatory_driver_posterior",
+        "delegate_output_address": "sha256:230898dc0557457b816c3ad5d0e6f22cac780629f06f58f65f123937ae728eb6",
+        "delegate_payload": {
+          "input_hash": "sha256:0c27c1123d3310a8488401149ae1743615f4c0a91c4bd8b8980dd372b030c283",
+          "input_records": [
+            {
+              "driver_id": "driver-low",
+              "evidence_ids": [
+                "e-low"
+              ],
+              "evidence_support": 0.05,
+              "prior": 0.5
+            }
+          ],
+          "minimum_support": 0.2
+        },
+        "delegate_record_id": "C14-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C14-control_b",
+      "content_address": "sha256:2ea8609ea4e3ccc4351343e6a0fc389b44b2359e327acc3b7f717ae15c75f817",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C14-CTRL-002",
+      "description": "causal_frontier public record C14-CTRL-002 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_driver_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C14",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "regulatory_driver_posterior",
+        "delegate_output_address": "sha256:881983e2b6251d7835e3141b0ec792b312e3b2b718e08dddb2937d183f3013f3",
+        "delegate_payload": {
+          "input_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "input_records": [],
+          "minimum_support": 0.2
+        },
+        "delegate_record_id": "C14-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C14-control_c",
+      "content_address": "sha256:796dcc4526ec5fba68f693456d90e136556e1739c592f81a25c81eff6f91a063",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C14-CTRL-003",
+      "description": "causal_frontier public record C14-CTRL-003 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_driver_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C14",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "regulatory_driver_posterior",
+        "delegate_output_address": "sha256:61dc4d8bdc089641920744a10cc4e0029ba61b88bfa7d0d25b19a9138b8d11ba",
+        "delegate_payload": {
+          "input_hash": "sha256:4c6385f4db37065a3305c876ab44aab53bf2dd9a2d05212ea58e8e96e9d389f5",
+          "input_records": [
+            {
+              "driver_id": "driver-bad",
+              "evidence_ids": [],
+              "evidence_support": 0.8,
+              "prior": -0.1
+            }
+          ],
+          "minimum_support": 0.2
+        },
+        "delegate_record_id": "C14-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C15-positive",
+      "content_address": "sha256:b36a75c923356494fa02a208b184549a1e70eff38857b723392402c2e854c747",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C15-POS-001",
+      "description": "causal_frontier public record C15-POS-001 retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "causal_frontier",
+      "operation_id": "D11-C15",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "selective_prediction_abstention",
+        "delegate_output_address": "sha256:c32f4100ba4b6d451c6a00a755ebc6dc06cb21c77f9d1525934660a7f6451185",
+        "delegate_payload": {
+          "input_hash": "sha256:434d47f436b2d8a0ea3cd299558741e964887b37ad600e058a82d27dff990300",
+          "input_records": [
+            {
+              "prediction_id": "pred-1",
+              "score": 0.9,
+              "uncertainty": 0.05
+            }
+          ],
+          "maximum_uncertainty": 0.25,
+          "minimum_score": 0.6
+        },
+        "delegate_record_id": "C15-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C15-control_a",
+      "content_address": "sha256:158ab002c0ccdd1ddfeae7e2ef46dc77bba3b50952d5fa3034cb1559888a498c",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C15-CTRL-001",
+      "description": "causal_frontier public record C15-CTRL-001 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "selective_prediction_abstention"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C15",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "selective_prediction_abstention",
+        "delegate_output_address": "sha256:bd9839725479d415dc3880f61fc96eafed5630b83d149c4f0105decc97d95c4a",
+        "delegate_payload": {
+          "input_hash": "sha256:3e2c7305eea43777833544712a3ca44821826190ce13de48e268025a0b677e0a",
+          "input_records": [
+            {
+              "prediction_id": "pred-low",
+              "score": 0.2,
+              "uncertainty": 0.05
+            }
+          ],
+          "maximum_uncertainty": 0.25,
+          "minimum_score": 0.6
+        },
+        "delegate_record_id": "C15-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C15-control_b",
+      "content_address": "sha256:9ccb98273fae563821841b488db3dd5db389367f2e305142edc685a3b3806348",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C15-CTRL-002",
+      "description": "causal_frontier public record C15-CTRL-002 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 2
+      },
+      "expected_issue_codes": [
+        "prediction_uncertainty_high",
+        "selective_prediction_abstention"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C15",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "selective_prediction_abstention",
+        "delegate_output_address": "sha256:cae134c720e03f737539bb6291c071a7ed8ab1871a797c748f014593f503750c",
+        "delegate_payload": {
+          "input_hash": "sha256:ea09f2cc384bfe4ac31628ea869bd1491beb90ca22b39c41aa95bc7d110d1ab5",
+          "input_records": [
+            {
+              "prediction_id": "pred-uncertain",
+              "score": 0.9,
+              "uncertainty": 0.8
+            }
+          ],
+          "maximum_uncertainty": 0.25,
+          "minimum_score": 0.6
+        },
+        "delegate_record_id": "C15-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C15-control_c",
+      "content_address": "sha256:092603f6b020409be7ccbeae37199e73d51b76005d969cb3cba4740741f72132",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C15-CTRL-003",
+      "description": "causal_frontier public record C15-CTRL-003 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_prediction_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C15",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "selective_prediction_abstention",
+        "delegate_output_address": "sha256:fa565d6d70f583c359baf2dfa2a475431a4b88d0ab5116d8004b8544dd9332a6",
+        "delegate_payload": {
+          "input_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "input_records": [],
+          "maximum_uncertainty": 0.25,
+          "minimum_score": 0.6
+        },
+        "delegate_record_id": "C15-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C16-positive",
+      "content_address": "sha256:14e133001f2835b7bf7b783deae0f522d9961686785610645be7659e2c7a8bdf",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C16-POS-001",
+      "description": "causal_frontier public record C16-POS-001 retained as D11 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "published",
+      "expected_state": "accepted",
+      "family": "causal_frontier",
+      "operation_id": "D11-C16",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "causal_dossier_publication",
+        "delegate_output_address": "sha256:609bf3e0cb97383981cf99ecb621d50bd8ffed93054b7d0e60678774efe8b36c",
+        "delegate_payload": {
+          "dossier_id": "dossier-1",
+          "evidence_addresses": [
+            "sha256:evidence-1",
+            "sha256:evidence-2"
+          ],
+          "hypothesis_ids": [
+            "h1",
+            "h2"
+          ],
+          "input_hash": "sha256:4a504dda87a24ac9a3b8d108c7579542dca86a1cd2a26228e6ebdb0b54429fcd",
+          "input_records": [
+            {
+              "evidence_address": "sha256:evidence-1",
+              "hypothesis_id": "h1"
+            },
+            {
+              "evidence_address": "sha256:evidence-2",
+              "hypothesis_id": "h2"
+            }
+          ],
+          "top_hypothesis_id": "h1"
+        },
+        "delegate_record_id": "C16-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "causal_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C16-control_a",
+      "content_address": "sha256:b147526911df5f253122f409ebe245f08b7d4de5ada3552693e46a245ec63be4",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C16-CTRL-001",
+      "description": "causal_frontier public record C16-CTRL-001 retained as D11 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_dossier_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C16",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "causal_dossier_publication",
+        "delegate_output_address": "sha256:b465d4c31f758df6733fa66da945abeb19670e84bdc52435474c3a4f1d89404e",
+        "delegate_payload": {
+          "dossier_id": "dossier-bad-top",
+          "evidence_addresses": [
+            "sha256:evidence-1"
+          ],
+          "hypothesis_ids": [
+            "h1"
+          ],
+          "input_hash": "sha256:a1c2cba554b7c11924510ab9550819e8d947b0bdc794bad4c0e327254d162411",
+          "input_records": [
+            {
+              "evidence_address": "sha256:evidence-1",
+              "hypothesis_id": "h1"
+            }
+          ],
+          "top_hypothesis_id": "h2"
+        },
+        "delegate_record_id": "C16-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C16-control_b",
+      "content_address": "sha256:c420a2e38caf614e4f0162c73291db84d8be59a69bb1c738ffd615967ef60a9d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C16-CTRL-002",
+      "description": "causal_frontier public record C16-CTRL-002 retained as D11 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_dossier_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C16",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "causal_dossier_publication",
+        "delegate_output_address": "sha256:2e5150d709ad0319587bd19f72c5228191379c90141c7550dca45c09d01fa603",
+        "delegate_payload": {
+          "dossier_id": "dossier-empty",
+          "evidence_addresses": [],
+          "hypothesis_ids": [],
+          "input_hash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "input_records": [],
+          "top_hypothesis_id": null
+        },
+        "delegate_record_id": "C16-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "case_id": "D11-C16-control_c",
+      "content_address": "sha256:06530f320ff9a874017bf6071a414625b9ffbe6de5f8767167f4b2628a972868",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "causal-frontier-public-aggregate",
+      "delegate_record_id": "C16-CTRL-003",
+      "description": "causal_frontier public record C16-CTRL-003 retained as D11 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_dossier_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "causal_frontier",
+      "operation_id": "D11-C16",
+      "payload": {
+        "delegate_family": "causal_frontier",
+        "delegate_fixture_id": "causal-frontier-public-aggregate",
+        "delegate_operation": "causal_dossier_publication",
+        "delegate_output_address": "sha256:6a3e30ff9c99baf11201b01501114f0295c3bbf9747fcfc6ce122d937c90d5eb",
+        "delegate_payload": {
+          "dossier_id": "dossier-missing-address",
+          "evidence_addresses": [],
+          "hypothesis_ids": [
+            "h1"
+          ],
+          "input_hash": "sha256:f5f475b0d4c39e61efa42755b4a31a59bdd9cc5aee016329e8c19471b9e06378",
+          "input_records": [
+            {
+              "hypothesis_id": "h1"
+            }
+          ],
+          "top_hypothesis_id": "h1"
+        },
+        "delegate_record_id": "C16-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "causal_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    }
+  ],
+  "content_address": "sha256:0c13de117bdbd689ba36677a369e141b4c2abcdccb28e11c1f14566157facf17",
+  "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+  "fixture_id": "d11-causal-architecture-public-aggregate",
+  "foreign_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+  "operations": [
+    {
+      "capability_id": "GNC-D11-C01",
+      "content_address": "sha256:4a8dcc20228b1c2ea1f12f3a8557734557f41f5e738a45ba5123ef2e1c5695fb",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [],
+      "family": "causal_foundation_frontier",
+      "input_contract": "causal.typed_hypothesis_object.public_record.v1",
+      "operation": "typed_hypothesis_object",
+      "operation_id": "D11-C01",
+      "ordinal": 1,
+      "output_contract": "causal.typed_hypothesis_object.receipt.v1",
+      "plane": "causal_foundation",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C02",
+      "content_address": "sha256:47e554cff6405b7f6cf8c620b480c8961c1a6cc9992bd6e73ad22836099f5dbe",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C01"
+      ],
+      "family": "causal_foundation_frontier",
+      "input_contract": "causal.factor_graph_constructor.public_record.v1",
+      "operation": "factor_graph_constructor",
+      "operation_id": "D11-C02",
+      "ordinal": 2,
+      "output_contract": "causal.factor_graph_constructor.receipt.v1",
+      "plane": "causal_foundation",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C03",
+      "content_address": "sha256:5922c6b4a2b0b22316ea944f72261dcfa087b84e25258b3048a05824a622f9fa",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C02"
+      ],
+      "family": "causal_foundation_frontier",
+      "input_contract": "causal.context_conditioned_prior.public_record.v1",
+      "operation": "context_conditioned_prior",
+      "operation_id": "D11-C03",
+      "ordinal": 3,
+      "output_contract": "causal.context_conditioned_prior.receipt.v1",
+      "plane": "causal_foundation",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C04",
+      "content_address": "sha256:7e50fe6701d5d02bbf61b9f9fe29b1f5cef11193f4e05e086662d6fb861e67a9",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C03"
+      ],
+      "family": "causal_foundation_frontier",
+      "input_contract": "causal.measurement_likelihood.public_record.v1",
+      "operation": "measurement_likelihood",
+      "operation_id": "D11-C04",
+      "ordinal": 4,
+      "output_contract": "causal.measurement_likelihood.receipt.v1",
+      "plane": "causal_foundation",
+      "source_ids": [
+        "D11-foundation-encode",
+        "D11-foundation-four-d",
+        "D11-foundation-geo",
+        "D11-foundation-gtex",
+        "D11-foundation-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C05",
+      "content_address": "sha256:f57b9c0aca022c4ac4dfa48911edeb8d0e82f67d42742de061aa7115a39eab4b",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C04"
+      ],
+      "family": "causal_beta_frontier",
+      "input_contract": "causal.sequence_to_element.public_record.v1",
+      "operation": "sequence_to_element",
+      "operation_id": "D11-C05",
+      "ordinal": 5,
+      "output_contract": "causal.sequence_to_element.receipt.v1",
+      "plane": "causal_mediator",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C06",
+      "content_address": "sha256:f8833698422a12d269da1ba549d2ce6aff140dbdea0a6a35726d5eb908b81a62",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C05"
+      ],
+      "family": "causal_beta_frontier",
+      "input_contract": "causal.element_to_gene.public_record.v1",
+      "operation": "element_to_gene",
+      "operation_id": "D11-C06",
+      "ordinal": 6,
+      "output_contract": "causal.element_to_gene.receipt.v1",
+      "plane": "causal_mediator",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C07",
+      "content_address": "sha256:837f14a3ea1145b7f83c58c42c37f781f5a343a86e49b4d7556ff6f786a12c3b",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C06"
+      ],
+      "family": "causal_beta_frontier",
+      "input_contract": "causal.gene_to_state.public_record.v1",
+      "operation": "gene_to_state",
+      "operation_id": "D11-C07",
+      "ordinal": 7,
+      "output_contract": "causal.gene_to_state.receipt.v1",
+      "plane": "causal_mediator",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C08",
+      "content_address": "sha256:c4d459d3e0591ce5e21683b6e513275b62e624ce1935aa9462dd5e7cec235228",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C07"
+      ],
+      "family": "causal_beta_frontier",
+      "input_contract": "causal.counterfactual_allele_state.public_record.v1",
+      "operation": "counterfactual_allele_state",
+      "operation_id": "D11-C08",
+      "ordinal": 8,
+      "output_contract": "causal.counterfactual_allele_state.receipt.v1",
+      "plane": "causal_mediator",
+      "source_ids": [
+        "D11-beta-encode",
+        "D11-beta-four-d",
+        "D11-beta-geo",
+        "D11-beta-gtex",
+        "D11-beta-pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C09",
+      "content_address": "sha256:304c456f6daffd324935df49858bb4daadb1e7c55b38ee7da1737c762babd249",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C08"
+      ],
+      "family": "causal_alpha_frontier",
+      "input_contract": "causal.mediation_sensitivity.public_record.v1",
+      "operation": "mediation_sensitivity",
+      "operation_id": "D11-C09",
+      "ordinal": 9,
+      "output_contract": "causal.mediation_sensitivity.receipt.v1",
+      "plane": "causal_sensitivity",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C10",
+      "content_address": "sha256:5731c6345b92e56fd7e8187e7745468e47d0eb939da088788e56263c27eae7c4",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C09"
+      ],
+      "family": "causal_alpha_frontier",
+      "input_contract": "causal.confounding_checklist.public_record.v1",
+      "operation": "confounding_checklist",
+      "operation_id": "D11-C10",
+      "ordinal": 10,
+      "output_contract": "causal.confounding_checklist.receipt.v1",
+      "plane": "causal_sensitivity",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C11",
+      "content_address": "sha256:cdf5478f6c581d196efa26e600419ec81a0b202aaf1f1ef4843970ef26ba7747",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C10"
+      ],
+      "family": "causal_alpha_frontier",
+      "input_contract": "causal.dependence_correction.public_record.v1",
+      "operation": "dependence_correction",
+      "operation_id": "D11-C11",
+      "ordinal": 11,
+      "output_contract": "causal.dependence_correction.receipt.v1",
+      "plane": "causal_sensitivity",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C12",
+      "content_address": "sha256:271f565e7257e12f276702df893779311e5c15b6fd7bf870b7397f030c97555f",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C11"
+      ],
+      "family": "causal_alpha_frontier",
+      "input_contract": "causal.negative_evidence.public_record.v1",
+      "operation": "negative_evidence",
+      "operation_id": "D11-C12",
+      "ordinal": 12,
+      "output_contract": "causal.negative_evidence.receipt.v1",
+      "plane": "causal_sensitivity",
+      "source_ids": [
+        "D11-alpha-encode",
+        "D11-alpha-geo",
+        "D11-alpha-gtex",
+        "D11-alpha-pubmed",
+        "D11-alpha-4dn"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C13",
+      "content_address": "sha256:82664fb442724d3818bb888d29f12d4b72709e92d06b26d9067d087fe64a1412",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C12"
+      ],
+      "family": "causal_frontier",
+      "input_contract": "causal.posterior_decomposition.public_record.v1",
+      "operation": "posterior_decomposition",
+      "operation_id": "D11-C13",
+      "ordinal": 13,
+      "output_contract": "causal.posterior_decomposition.receipt.v1",
+      "plane": "causal_release",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C14",
+      "content_address": "sha256:99bdec0eff3828099d0b1c34bfedc8191696a01327ce31c398374dd4c232b9e5",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C13"
+      ],
+      "family": "causal_frontier",
+      "input_contract": "causal.regulatory_driver_posterior.public_record.v1",
+      "operation": "regulatory_driver_posterior",
+      "operation_id": "D11-C14",
+      "ordinal": 14,
+      "output_contract": "causal.regulatory_driver_posterior.receipt.v1",
+      "plane": "causal_release",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C15",
+      "content_address": "sha256:d46c16879ba295643c3dfd43b78f68959518ecb0a43ac29e04220fda15a770f6",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C14"
+      ],
+      "family": "causal_frontier",
+      "input_contract": "causal.selective_prediction_abstention.public_record.v1",
+      "operation": "selective_prediction_abstention",
+      "operation_id": "D11-C15",
+      "ordinal": 15,
+      "output_contract": "causal.selective_prediction_abstention.receipt.v1",
+      "plane": "causal_release",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    },
+    {
+      "capability_id": "GNC-D11-C16",
+      "content_address": "sha256:5fbd7fad0e818ec5989173b82aaab8baedb2ce26df211d2d3f1b943874cf646b",
+      "control_policy": "retain causal evidence as a bounded research proxy with exact context, source lineage, and explicit review states",
+      "dependencies": [
+        "D11-C15"
+      ],
+      "family": "causal_frontier",
+      "input_contract": "causal.causal_dossier_publication.public_record.v1",
+      "operation": "causal_dossier_publication",
+      "operation_id": "D11-C16",
+      "ordinal": 16,
+      "output_contract": "causal.causal_dossier_publication.receipt.v1",
+      "plane": "causal_release",
+      "source_ids": [
+        "D11-frontier-encode-project",
+        "D11-frontier-four-d-nucleome",
+        "D11-frontier-ncbi-geo",
+        "D11-frontier-pubmed",
+        "D11-frontier-nih-common-fund"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:57032ab01ef939039fbccdbd2037dea772cb77a1988b72e1ab07c5aa8918dd35",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "encode",
+      "family": "causal_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-foundation-encode",
+      "source_kind": "public_assay_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:591af1606e0e2fce32e978a3e7c775e921fc3bcd7b8ae758068f6c446d27069e",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "four-d",
+      "family": "causal_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-foundation-four-d",
+      "source_kind": "public_topology_archive",
+      "source_version": "2025-01",
+      "uri": "https://data.4dnucleome.org/"
+    },
+    {
+      "content_address": "sha256:15efcc8914d2654c2e5da093d6db6ebc934831b3d4dcf8c52c2026d1879bff78",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "geo",
+      "family": "causal_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-foundation-geo",
+      "source_kind": "public_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/"
+    },
+    {
+      "content_address": "sha256:0b8e09fe0628e768fc8276070c9b21e90945ef1757034efe1dd7505594b0dc86",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "gtex",
+      "family": "causal_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-foundation-gtex",
+      "source_kind": "public_expression_archive",
+      "source_version": "v8",
+      "uri": "https://gtexportal.org/home/"
+    },
+    {
+      "content_address": "sha256:9310883d68a042d68c749cb044ff1fb60fe28c0246daa2053330bfaea4cb49a2",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "pubmed",
+      "family": "causal_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-foundation-pubmed",
+      "source_kind": "public_literature_index",
+      "source_version": "2025-01",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:c92819b0854a73ccb126950fae763ad85edda6bb5dcc6d6b5519a9db511fe026",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "encode",
+      "family": "causal_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-beta-encode",
+      "source_kind": "public_assay_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:95184d8cb74cf119262c870e70ad8b99d2e4cbb58651cc665a028e906d0c158a",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "four-d",
+      "family": "causal_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-beta-four-d",
+      "source_kind": "public_topology_archive",
+      "source_version": "2025-01",
+      "uri": "https://data.4dnucleome.org/"
+    },
+    {
+      "content_address": "sha256:e083e208c3921fdf2469b14bba6cdbca8b157ad9382b5cf045df6c3248919643",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "geo",
+      "family": "causal_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-beta-geo",
+      "source_kind": "public_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/"
+    },
+    {
+      "content_address": "sha256:3ceb67fd3ea5b034535cc475eb322148091830ac3a0445b1026f83631a7dbdbd",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "gtex",
+      "family": "causal_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-beta-gtex",
+      "source_kind": "public_expression_archive",
+      "source_version": "v8",
+      "uri": "https://gtexportal.org/home/"
+    },
+    {
+      "content_address": "sha256:c24fb0c292cba520fe4080c010a3dc9f558a71a08d25899d6af7bda5975cf618",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "pubmed",
+      "family": "causal_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-beta-pubmed",
+      "source_kind": "public_literature_index",
+      "source_version": "2025-01",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:1048b39fe641427bee0c4859a30160afa06e4b71500844f037ee90bfa81183b4",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "encode",
+      "family": "causal_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-alpha-encode",
+      "source_kind": "public_assay_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:d10bf7bb669cde4c0c576a64e1e257c670c48d587f1bcefcfa4bd5d3d59c8819",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "geo",
+      "family": "causal_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-alpha-geo",
+      "source_kind": "public_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/"
+    },
+    {
+      "content_address": "sha256:8655e86635c0933248d81e4ef34a1e78c11b2e5c69ee46766829939fef7deae0",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "gtex",
+      "family": "causal_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-alpha-gtex",
+      "source_kind": "public_expression_archive",
+      "source_version": "v8",
+      "uri": "https://gtexportal.org/home/"
+    },
+    {
+      "content_address": "sha256:73a1ed6c1f32c904652c658873fff661faa3d0acc768122b0e1fddf2a66adbf8",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "pubmed",
+      "family": "causal_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-alpha-pubmed",
+      "source_kind": "public_literature_index",
+      "source_version": "2025-01",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:374ae3c14b17264d794710afe5f8f23111886b97b75a70cd3ba275831def14c0",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "4dn",
+      "family": "causal_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-alpha-4dn",
+      "source_kind": "public_topology_archive",
+      "source_version": "2025-01",
+      "uri": "https://data.4dnucleome.org/"
+    },
+    {
+      "content_address": "sha256:4e3fff95e9c5730118395f34bf498dc82093f3f8df74bc9f28964aa3cf1464b8",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "encode-project",
+      "family": "causal_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-frontier-encode-project",
+      "source_kind": "public_assay_archive",
+      "source_version": "2024-01",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:0cd130d0c1e163e499c2e928fac7828194e348c15493b038cea7296d640818e0",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "four-d-nucleome",
+      "family": "causal_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-frontier-four-d-nucleome",
+      "source_kind": "public_topology_archive",
+      "source_version": "2024-01",
+      "uri": "https://data.4dnucleome.org/"
+    },
+    {
+      "content_address": "sha256:809de123326cc9b5ab212d8aa0db782c679d40a332f83b60d881966d04be300d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "ncbi-geo",
+      "family": "causal_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-frontier-ncbi-geo",
+      "source_kind": "public_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/"
+    },
+    {
+      "content_address": "sha256:b7ccbcdd7ffd35b86ff66098f2e822ee69dc1830c5f120d2eac1715430d2a4bd",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "pubmed",
+      "family": "causal_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-frontier-pubmed",
+      "source_kind": "public_literature_index",
+      "source_version": "2025-01",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:a1f666dcb1c39973601989427e44567fe672f5c305b185bfd9fa95fafda5ac51",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "nih-common-fund",
+      "family": "causal_frontier",
+      "public_aggregate": true,
+      "source_id": "D11-frontier-nih-common-fund",
+      "source_kind": "public_program_archive",
+      "source_version": "2024",
+      "uri": "https://commonfund.nih.gov/"
+    }
+  ],
+  "version": "2026.08.d11-causal-architecture.v1"
+}
