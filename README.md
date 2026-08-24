@@ -60,6 +60,24 @@ in [docs/CAPABILITIES.md](docs/CAPABILITIES.md). Regulatory tracks can be
 parsed with `parse-track`, and supported small variants can be normalized with
 `normalize`; both commands preserve explicit limitations and abstentions.
 
+The full capability ledger can also be certified against the live checkout. The
+certification resolves all implementation and test references, closes the 256-
+row/16-domain denominator, and emits addressed JSON, CSV, Markdown, replay, and
+negative-control projections:
+
+```powershell
+glio-noncode capability-certification
+glio-noncode capability-certification-runtime --output capability-runtime.json
+glio-noncode capability-certification-report --format markdown --output capability-report.md
+glio-noncode capability-certification-query --domain-id D05
+glio-noncode capability-certification-replay
+glio-noncode capability-certification-failures
+```
+
+See [docs/CAPABILITY_CERTIFICATION.md](docs/CAPABILITY_CERTIFICATION.md) for
+the row checks, global denominators, runtime stages, projection contract, and
+extension rules.
+
 The D16 C13–C16 deployment-governance depth surface can be rehearsed locally
 from its public aggregate fixture:
 

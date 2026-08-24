@@ -9897,6 +9897,60 @@ __all__ += [
     "validate_cohort_foundation_frontier_schema",
 ]
 
+from .capability_certification import (
+    CAPABILITIES_PER_DOMAIN,
+    CATALOG_CAPABILITY_COUNT,
+    CATALOG_DOMAIN_COUNT,
+    CATALOG_MVP_COUNT,
+    CHECKS_PER_CAPABILITY,
+    GLOBAL_CHECK_COUNT,
+    capability_certification_domain_matrix,
+    capability_certification_percent,
+    certify_capability_catalog,
+    diff_capability_certifications,
+    query_capability_certification,
+)
+from .capability_certification_contracts import (
+    CapabilityCertificationCategory,
+    CapabilityCertificationCheck,
+    CapabilityCertificationQualityCheck,
+    CapabilityCertificationQualityReport,
+    CapabilityCertificationReport,
+    CapabilityCertificationRuntime,
+    CapabilityCertificationStage,
+    CapabilityCertificationState,
+    CapabilityCertificate,
+    CapabilityDomainSummary,
+)
+from .capability_certification_exports import (
+    export_capability_certification_checks_csv,
+    export_capability_certification_csv,
+    export_capability_certification_domains_csv,
+    export_capability_certification_json,
+    export_capability_certification_summary_json,
+    render_capability_certification_markdown,
+)
+from .capability_certification_quality import QUALITY_CHECK_COUNT, run_capability_certification_quality_gate
+from .capability_certification_replay import (
+    CapabilityCertificationFailureProbe,
+    CapabilityCertificationFailureReport,
+    CapabilityCertificationReplayReport,
+    replay_capability_certification,
+    replay_is_deterministic,
+    run_capability_certification_failure_injections,
+)
+from .capability_certification_runtime import (
+    RUNTIME_STAGE_COUNT,
+    capability_certification_runtime_json,
+    run_capability_certification,
+)
+
+__all__ += [
+    "CAPABILITIES_PER_DOMAIN", "CATALOG_CAPABILITY_COUNT", "CATALOG_DOMAIN_COUNT", "CATALOG_MVP_COUNT", "CHECKS_PER_CAPABILITY", "GLOBAL_CHECK_COUNT", "QUALITY_CHECK_COUNT", "RUNTIME_STAGE_COUNT",
+    "CapabilityCertificationCategory", "CapabilityCertificationCheck", "CapabilityCertificationFailureProbe", "CapabilityCertificationFailureReport", "CapabilityCertificationQualityCheck", "CapabilityCertificationQualityReport", "CapabilityCertificationReplayReport", "CapabilityCertificationReport", "CapabilityCertificationRuntime", "CapabilityCertificationStage", "CapabilityCertificationState", "CapabilityCertificate", "CapabilityDomainSummary",
+    "capability_certification_domain_matrix", "capability_certification_percent", "capability_certification_runtime_json", "certify_capability_catalog", "diff_capability_certifications", "export_capability_certification_checks_csv", "export_capability_certification_csv", "export_capability_certification_domains_csv", "export_capability_certification_json", "export_capability_certification_summary_json", "query_capability_certification", "render_capability_certification_markdown", "replay_capability_certification", "replay_is_deterministic", "run_capability_certification", "run_capability_certification_failure_injections", "run_capability_certification_quality_gate",
+]
+
 from .planning_architecture_exports import *  # noqa: F401,F403
 
 __all__ += [

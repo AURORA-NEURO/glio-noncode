@@ -56,6 +56,24 @@ from .atlas_beta import (
 )
 from .atlas_extensions import CcreAtlasProfile, CcreTrackParser
 from .capability_registry import default_capability_registry
+from .capability_certification import (
+    capability_certification_percent,
+    certify_capability_catalog,
+    query_capability_certification,
+)
+from .capability_certification_exports import (
+    export_capability_certification_checks_csv,
+    export_capability_certification_csv,
+    export_capability_certification_domains_csv,
+    export_capability_certification_json,
+    export_capability_certification_summary_json,
+    render_capability_certification_markdown,
+)
+from .capability_certification_replay import (
+    replay_capability_certification,
+    run_capability_certification_failure_injections,
+)
+from .capability_certification_runtime import capability_certification_runtime_json, run_capability_certification
 from .module_fabric_catalog import default_module_fabric_catalog
 from .module_fabric_compliance import run_module_fabric_compliance
 from .module_fabric_data_dictionary import default_module_fabric_data_dictionary
@@ -2441,6 +2459,62 @@ def build_parser() -> argparse.ArgumentParser:
         help="print the module-fabric data dictionary",
     )
     module_fabric_dictionary.add_argument("--output", default=None)
+    capability_certification = subparsers.add_parser(
+        "capability-certification",
+        help="certify all 256 catalog capabilities against live repository evidence",
+    )
+    capability_certification.add_argument("--output", default=None)
+    capability_certification_summary = subparsers.add_parser(
+        "capability-certification-summary",
+        help="emit the compact capability certification dashboard projection",
+    )
+    capability_certification_summary.add_argument("--output", default=None)
+    capability_certification_csv = subparsers.add_parser(
+        "capability-certification-csv",
+        help="export one certification row per catalog capability",
+    )
+    capability_certification_csv.add_argument("--output", default=None)
+    capability_certification_checks_csv = subparsers.add_parser(
+        "capability-certification-checks-csv",
+        help="export global and row-level capability certification checks",
+    )
+    capability_certification_checks_csv.add_argument("--output", default=None)
+    capability_certification_domains_csv = subparsers.add_parser(
+        "capability-certification-domains-csv",
+        help="export domain readiness rows for capability certification",
+    )
+    capability_certification_domains_csv.add_argument("--output", default=None)
+    capability_certification_runtime = subparsers.add_parser(
+        "capability-certification-runtime",
+        help="run the twelve-stage live capability certification runtime",
+    )
+    capability_certification_runtime.add_argument("--output", default=None)
+    capability_certification_report = subparsers.add_parser(
+        "capability-certification-report",
+        help="render a capability certification report",
+    )
+    capability_certification_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    capability_certification_report.add_argument("--output", default=None)
+    capability_certification_replay = subparsers.add_parser(
+        "capability-certification-replay",
+        help="replay capability certification and compare content addresses",
+    )
+    capability_certification_replay.add_argument("--output", default=None)
+    capability_certification_failures = subparsers.add_parser(
+        "capability-certification-failures",
+        help="run negative controls for missing capability evidence planes",
+    )
+    capability_certification_failures.add_argument("--output", default=None)
+    capability_certification_query = subparsers.add_parser(
+        "capability-certification-query",
+        help="filter certified capabilities by domain, MVP scope, state, or text",
+    )
+    capability_certification_query.add_argument("--capability-id", default=None)
+    capability_certification_query.add_argument("--domain-id", default=None)
+    capability_certification_query.add_argument("--mvp-only", action="store_true")
+    capability_certification_query.add_argument("--state", choices=("accepted", "review", "blocked"), default=None)
+    capability_certification_query.add_argument("--text", default=None)
+    capability_certification_query.add_argument("--output", default=None)
     coordination_fixture = subparsers.add_parser(
         "coordination-fixture",
         help="emit the D16 public aggregate coordination architecture fixture",
@@ -8371,6 +8445,70 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "module-fabric-data-dictionary":
             _write_json(default_module_fabric_data_dictionary().to_dict(), args.output)
+            return 0
+        if args.command == "capability-certification":
+            report = certify_capability_catalog()
+            _write_text(export_capability_certification_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-summary":
+            report = certify_capability_catalog()
+            _write_text(export_capability_certification_summary_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-csv":
+            report = certify_capability_catalog()
+            _write_text(export_capability_certification_csv(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-checks-csv":
+            report = certify_capability_catalog()
+            _write_text(export_capability_certification_checks_csv(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-domains-csv":
+            report = certify_capability_catalog()
+            _write_text(export_capability_certification_domains_csv(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-runtime":
+            runtime = run_capability_certification()
+            _write_text(capability_certification_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "capability-certification-report":
+            report = certify_capability_catalog()
+            if args.format == "markdown":
+                _write_text(render_capability_certification_markdown(report), args.output)
+            else:
+                _write_text(export_capability_certification_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-replay":
+            replay = replay_capability_certification()
+            _write_json(replay.to_dict(), args.output)
+            return 0 if replay.accepted else 2
+        if args.command == "capability-certification-failures":
+            failures = run_capability_certification_failure_injections()
+            _write_json(failures.to_dict(), args.output)
+            return 0 if failures.accepted else 2
+        if args.command == "capability-certification-query":
+            report = certify_capability_catalog()
+            state = None
+            if args.state is not None:
+                from .capability_certification_contracts import CapabilityCertificationState
+
+                state = CapabilityCertificationState(args.state)
+            rows = query_capability_certification(
+                report,
+                capability_id=args.capability_id,
+                domain_id=args.domain_id,
+                mvp_only=args.mvp_only,
+                state=state,
+                text=args.text,
+            )
+            _write_json(
+                {
+                    "report_address": report.content_address,
+                    "certification_percent": capability_certification_percent(report),
+                    "count": len(rows),
+                    "rows": [item.to_dict() for item in rows],
+                },
+                args.output,
+            )
             return 0
         if args.command == "coordination-fixture":
             _write_text(coordination_fixture_json(), args.output)
