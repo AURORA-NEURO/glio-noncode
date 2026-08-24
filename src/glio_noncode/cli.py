@@ -3107,7 +3107,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("causal-architecture-data-audit", "audit D11 causal sources, joins, and scope"),
         ("causal-architecture-plan", "compile the D11 causal dependency plan"),
         ("evaluate-causal-architecture", "execute D11 causal family delegates"),
-        ("causal-architecture-runtime", "run the D11 twenty-two-stage causal runtime"),
+        ("causal-architecture-runtime", "run the D11 twenty-four-stage causal runtime"),
         ("causal-architecture-quality", "run the D11 causal release quality gate"),
         ("causal-architecture-depth", "report D11 causal operation and evidence depth"),
         ("replay-causal-architecture", "replay D11 causal evaluation deterministically"),
@@ -9772,6 +9772,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if runtime.accepted else 2
         if args.command == "causal-architecture-bundle":
             from .causal_architecture_public_data import causal_architecture_fixture_json
+            from .causal_architecture_reporting import build_causal_architecture_report
             from .causal_architecture_runtime import run_causal_architecture
 
             fixture = _causal_architecture_fixture(args.input)
@@ -9779,7 +9780,19 @@ def main(argv: list[str] | None = None) -> int:
             output_dir = Path(args.output)
             output_dir.mkdir(parents=True, exist_ok=True)
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
-            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_json(
+                build_causal_architecture_report(runtime),
+                str(output_dir / "report.json"),
+            )
             _write_text(causal_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "cohort-architecture-fixture":

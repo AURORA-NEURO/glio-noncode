@@ -1,8 +1,9 @@
-"""Twenty-two-stage D11 causal evidence runtime."""
+"""Twenty-four-stage D11 causal evidence runtime."""
 
 from __future__ import annotations
 
 from .causal_architecture_artifacts import build_causal_architecture_artifacts
+from .causal_architecture_compliance import assess_causal_architecture_compliance
 from .causal_architecture_contracts import (
     CausalArchitectureFixture,
     CausalArchitectureRuntime,
@@ -11,6 +12,7 @@ from .causal_architecture_contracts import (
 )
 from .causal_architecture_depth import assess_causal_architecture_depth
 from .causal_architecture_ledger import build_causal_architecture_ledger
+from .causal_architecture_metrics import causal_architecture_metrics
 from .causal_architecture_operations import evaluate_causal_architecture_fixture
 from .causal_architecture_plan import build_causal_architecture_plan
 from .causal_architecture_public_data import (
@@ -21,6 +23,7 @@ from .causal_architecture_quality import assess_causal_architecture_quality
 from .causal_architecture_release import build_causal_architecture_release
 from .causal_architecture_replay import replay_causal_architecture_fixture
 from .causal_architecture_review import build_causal_architecture_review_queue
+from .causal_architecture_schema import validate_causal_architecture_fixture
 
 CAUSAL_ARCHITECTURE_STAGE_IDS = (
     "fixture-loaded",
@@ -42,9 +45,11 @@ CAUSAL_ARCHITECTURE_STAGE_IDS = (
     "release-built",
     "quality-gated",
     "depth-accounted",
-    "runtime-finalized",
     "controls-closed",
-    "observability-closed",
+    "compliance-closed",
+    "report-materialized",
+    "runtime-seeded",
+    "runtime-finalized",
 )
 
 
@@ -68,6 +73,7 @@ def run_causal_architecture(
 ) -> CausalArchitectureRuntime:
     selected = fixture or default_causal_architecture_fixture()
     audit = audit_causal_architecture_data(selected)
+    validate_causal_architecture_fixture(selected)
     plan = build_causal_architecture_plan(selected)
     evaluation = evaluate_causal_architecture_fixture(selected)
     review = build_causal_architecture_review_queue(evaluation)
@@ -79,10 +85,12 @@ def run_causal_architecture(
         selected, audit, plan, evaluation, replay, release, artifacts
     )
     depth = assess_causal_architecture_depth(selected, evaluation)
+    compliance = assess_causal_architecture_compliance(selected)
+    metrics = causal_architecture_metrics(selected, evaluation)
     outputs = (
         selected.content_address,
         audit.content_address,
-        selected.content_address,
+        addressed(selected.to_dict(include_payload=False), "causal-schema"),
         plan.content_address,
         selected.operations[3].content_address,
         selected.operations[7].content_address,
@@ -99,9 +107,25 @@ def run_causal_architecture(
         release.content_address,
         quality.content_address,
         depth.content_address,
-        addressed({"fixture": selected.content_address}, "causal-runtime-seed"),
         addressed({"review": review.content_address}, "causal-controls"),
-        addressed({"ledger": ledger.content_address}, "causal-observability"),
+        addressed(compliance, "causal-compliance"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "evaluation": evaluation.content_address,
+                "metrics": metrics,
+            },
+            "causal-report-stage",
+        ),
+        addressed({"fixture": selected.content_address}, "causal-runtime-seed"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "quality": quality.content_address,
+                "release": release.content_address,
+            },
+            "causal-runtime-final",
+        ),
     )
     details = (
         "fixture constructed from four causal evidence families",
@@ -112,7 +136,7 @@ def run_causal_architecture(
         "beta mediator and counterfactual paths joined",
         "alpha sensitivity, confounding, dependence, and negative paths joined",
         "frontier posterior, driver, abstention, and dossier paths joined",
-        "64 causal cases executed with 392 checks",
+        "64 causal cases executed with 458 checks",
         "48 causal controls routed",
         "causal source lineage closed",
         "causal ledger closed",
@@ -123,9 +147,11 @@ def run_causal_architecture(
         "causal release built",
         "causal quality gate passed",
         "causal depth accounted",
-        "runtime address seeded",
         "causal controls closed",
-        "causal observability closed",
+        "public aggregate compliance closed",
+        "causal report projection materialized",
+        "runtime address seeded",
+        "runtime final address closed",
     )
     stages = tuple(
         _stage(
@@ -147,6 +173,7 @@ def run_causal_architecture(
         and review.accepted
         and replay.accepted
         and quality.accepted
+        and compliance["accepted"]
         and release.state.value == "published"
     )
     body = {
@@ -165,6 +192,8 @@ def run_causal_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
         stages,
         accepted,
         addressed(body, "causal-runtime"),

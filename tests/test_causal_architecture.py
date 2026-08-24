@@ -74,7 +74,7 @@ class CausalArchitectureTests(unittest.TestCase):
     def test_family_results_are_retained(self) -> None:
         self.assertTrue(self.evaluation.accepted)
         self.assertEqual(len(self.evaluation.receipts), 64)
-        self.assertEqual(len(self.evaluation.checks), 392)
+        self.assertEqual(len(self.evaluation.checks), 458)
         positive = {
             item.case_id: item
             for item in self.evaluation.receipts
@@ -128,10 +128,15 @@ class CausalArchitectureTests(unittest.TestCase):
     def test_runtime_release_depth_compliance_and_replay_close(self) -> None:
         runtime = run_causal_architecture(self.fixture)
         self.assertTrue(runtime.accepted)
-        self.assertEqual(len(runtime.stages), 22)
+        self.assertEqual(len(runtime.stages), 24)
         self.assertEqual(len(runtime.artifacts), 6)
         self.assertEqual(runtime.release.state.value, "published")
-        self.assertEqual(runtime.stages[-1].stage_id, "observability-closed")
+        self.assertEqual(runtime.stages[-1].stage_id, "runtime-finalized")
+        self.assertEqual(runtime.depth.check_count, 458)
+        self.assertGreaterEqual(runtime.depth.state_count, 2)
+        self.assertGreaterEqual(runtime.depth.issue_code_count, 15)
+        self.assertEqual(len(runtime.quality.checks), 10)
+        self.assertTrue(runtime.quality.accepted)
         self.assertTrue(replay_causal_architecture_fixture(self.fixture).accepted)
         self.assertTrue(assess_causal_architecture_compliance(self.fixture)["accepted"])
         self.assertEqual(

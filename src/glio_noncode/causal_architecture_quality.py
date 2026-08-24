@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .causal_architecture_artifacts import causal_architecture_artifacts_are_safe
+from .causal_architecture_compliance import assess_causal_architecture_compliance
 from .causal_architecture_contracts import (
     CausalArchitectureCheck,
     CausalArchitectureCheckKind,
@@ -14,6 +15,7 @@ from .causal_architecture_contracts import (
     CausalArchitectureRelease,
     addressed,
 )
+from .causal_architecture_metrics import causal_architecture_metrics
 from .causal_architecture_replay import CausalArchitectureReplay
 
 
@@ -40,6 +42,8 @@ def assess_causal_architecture_quality(
     release: CausalArchitectureRelease,
     artifacts: tuple = (),
 ) -> CausalArchitectureQualityGate:
+    compliance = assess_causal_architecture_compliance(fixture)
+    metrics = causal_architecture_metrics(fixture, evaluation)
     checks = (
         _check("quality:audit", audit.accepted, audit.accepted, True, "data audit accepted"),
         _check("quality:plan", plan.accepted, plan.accepted, True, "dependency plan accepted"),
@@ -71,6 +75,27 @@ def assess_causal_architecture_quality(
             fixture.boundary,
             "public_aggregate_non_patient",
             "research aggregate boundary is explicit",
+        ),
+        _check(
+            "quality:compliance",
+            bool(compliance["accepted"]),
+            compliance["accepted"],
+            True,
+            "recursive public aggregate compliance closes",
+        ),
+        _check(
+            "quality:state-coverage",
+            len(metrics["state_counts"]) >= 8,
+            metrics["state_counts"],
+            "at least eight result states",
+            "causal result vocabulary remains visible",
+        ),
+        _check(
+            "quality:control-surface",
+            len(metrics["issue_counts"]) >= 15,
+            len(metrics["issue_counts"]),
+            "at least fifteen issue controls",
+            "causal control vocabulary remains broad",
         ),
     )
     return CausalArchitectureQualityGate(

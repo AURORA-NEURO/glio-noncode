@@ -109,6 +109,10 @@ class CausalArchitectureCliTests(unittest.TestCase):
             self.assertTrue(json.loads(validation.read_text(encoding="utf-8"))["accepted"])
             self.assertEqual(json.loads(query.read_text(encoding="utf-8"))["count"], 4)
             self.assertTrue((bundle / "runtime.json").is_file())
+            release = json.loads((bundle / "release.json").read_text(encoding="utf-8"))
+            self.assertEqual(release["depth"]["check_count"], 458)
+            self.assertTrue(release["quality"]["accepted"])
+            self.assertTrue((bundle / "report.json").is_file())
 
 
 if __name__ == "__main__":

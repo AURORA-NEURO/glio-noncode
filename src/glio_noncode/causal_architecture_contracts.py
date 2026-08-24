@@ -473,6 +473,8 @@ class CausalArchitectureRuntime:
     ledger: CausalArchitectureLedger
     artifacts: tuple[CausalArchitectureArtifact, ...]
     release: CausalArchitectureRelease
+    depth: CausalArchitectureDepthReport
+    quality: CausalArchitectureQualityGate
     stages: tuple[CausalArchitectureRuntimeStage, ...]
     accepted: bool
     content_address: str
@@ -487,6 +489,8 @@ class CausalArchitectureRuntime:
             "ledger": self.ledger.to_dict(),
             "artifacts": [item.to_dict() for item in self.artifacts],
             "release": self.release.to_dict(),
+            "depth": self.depth.to_dict(),
+            "quality": self.quality.to_dict(),
             "stages": [item.to_dict() for item in self.stages],
             "accepted": self.accepted,
             "content_address": self.content_address,
@@ -501,8 +505,11 @@ class CausalArchitectureDepthReport:
     case_count: int
     positive_count: int
     control_count: int
+    family_count: int
     check_count: int
     addressed_count: int
+    state_count: int
+    issue_code_count: int
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:

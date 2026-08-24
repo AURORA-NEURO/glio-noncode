@@ -36,7 +36,7 @@ class CausalArchitectureReportingTests(unittest.TestCase):
     def test_report_lines_runbook_and_dictionary(self) -> None:
         self.assertEqual(len(causal_architecture_report_lines(self.runtime)), 5)
         self.assertEqual(len(causal_architecture_runbook(self.runtime.fixture)), 16)
-        self.assertEqual(len(causal_architecture_stage_runbook()), 22)
+        self.assertEqual(len(causal_architecture_stage_runbook()), 24)
         self.assertEqual(len(causal_architecture_module_inventory()), 25)
         self.assertIn("fixture", causal_architecture_data_dictionary())
 
