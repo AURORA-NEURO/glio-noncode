@@ -19,6 +19,7 @@ from .reference_release_frontier_fixture_eval import evaluate_reference_release_
 from .reference_release_frontier_lineage import build_reference_release_lineage
 from .reference_release_frontier_metrics import build_reference_release_metrics
 from .reference_release_frontier_observability import observe_reference_release
+from .reference_release_frontier_operational import build_reference_release_operational_trace
 from .reference_release_frontier_pipeline import run_reference_release_pipeline
 from .reference_release_frontier_policy import evaluate_reference_release_policy
 from .reference_release_frontier_public_data import (
@@ -48,6 +49,7 @@ REFERENCE_RELEASE_COMMANDS = (
     "reference-release-quality-gate",
     "reference-release-runtime",
     "reference-release-observability",
+    "reference-release-operational",
     "reference-release-release",
     "reference-release-bundle",
     "reference-release-artifacts",
@@ -130,6 +132,9 @@ def run_reference_release_operation(command: str, fixture: Any = None) -> Any:
         return _runtime(fixture, "runtime")
     if command == "reference-release-observability":
         return observe_reference_release(_runtime(fixture, "observability"))
+    if command == "reference-release-operational":
+        runtime = _runtime(fixture, "operational")
+        return build_reference_release_operational_trace(runtime)
     if command == "reference-release-release":
         return _release(_runtime(fixture, "release"), "release")
     if command == "reference-release-bundle":

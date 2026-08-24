@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
 import unittest
+from dataclasses import replace
+from pathlib import Path
 
 from glio_noncode.reference_release_frontier_accessibility import (
     evaluate_reference_release_accessibility,
@@ -34,6 +37,12 @@ from glio_noncode.reference_release_frontier_metrics import (
 from glio_noncode.reference_release_frontier_observability import (
     observe_reference_release,
     verify_reference_release_observability,
+)
+from glio_noncode.reference_release_frontier_operational import (
+    REFERENCE_RELEASE_OPERATIONAL_CHECK_COUNT,
+    REFERENCE_RELEASE_OPERATIONAL_STAGE_COUNT,
+    build_reference_release_operational_trace,
+    verify_reference_release_operational_trace,
 )
 from glio_noncode.reference_release_frontier_pipeline import run_reference_release_pipeline
 from glio_noncode.reference_release_frontier_policy import (
@@ -263,6 +272,7 @@ class ReferenceReleaseOperationsTests(unittest.TestCase):
 
     def test_observability_scenarios_thresholds_validation_and_runbook_accept(self) -> None:
         observations = observe_reference_release(self.runtime)
+        operational = build_reference_release_operational_trace(self.runtime, observations)
         scenarios = build_reference_release_scenario_matrix()
         thresholds = build_reference_release_threshold_report(
             self.fixture, self.runtime.evaluation, self.runtime.metrics, self.runtime.lineage
@@ -274,6 +284,18 @@ class ReferenceReleaseOperationsTests(unittest.TestCase):
         adapters = default_reference_release_adapters()
         self.assertTrue(observations.accepted)
         self.assertEqual(verify_reference_release_observability(observations), ())
+        self.assertTrue(operational.accepted)
+        self.assertEqual(len(operational.stages), REFERENCE_RELEASE_OPERATIONAL_STAGE_COUNT)
+        self.assertEqual(len(operational.checks), REFERENCE_RELEASE_OPERATIONAL_CHECK_COUNT)
+        self.assertEqual(operational.failed_check_ids, ())
+        self.assertEqual(verify_reference_release_operational_trace(operational), ())
+        self.assertGreater(operational.counter_map["total_work_units"], 0)
+
+        edited_receipt = replace(operational.stages[0], work_units=operational.stages[0].work_units + 1)
+        edited_trace = replace(operational, stages=(edited_receipt,) + operational.stages[1:])
+        failures = verify_reference_release_operational_trace(edited_trace)
+        self.assertIn("stage-address:data-audit", failures)
+        self.assertIn("operational-address-integrity", failures)
         self.assertTrue(scenarios.accepted)
         self.assertEqual(verify_reference_release_scenarios(scenarios), ())
         self.assertTrue(thresholds.accepted)
@@ -296,9 +318,21 @@ class ReferenceReleaseOperationsTests(unittest.TestCase):
     def test_root_pipeline_is_accepted(self) -> None:
         report = run_reference_release_pipeline(self.fixture)
         self.assertTrue(report.accepted)
-        self.assertEqual(len(report.addresses()), 15)
+        self.assertEqual(len(report.addresses()), 16)
+        self.assertTrue(report.operational.accepted)
         self.assertEqual(report.release.state.value, "ready")
         self.assertEqual(len(report.artifacts.artifacts), 11)
+
+    def test_checked_in_operational_closure_matches_runtime(self) -> None:
+        path = Path(__file__).parents[1] / "data" / "reference-release-frontier-operational-closure.json"
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        self.assertTrue(payload["accepted"])
+        self.assertTrue(payload["operational"]["accepted"])
+        self.assertEqual(payload["operational"]["stage_count"], 9)
+        self.assertEqual(payload["operational"]["check_count"], 18)
+        self.assertEqual(payload["operational"]["failed_check_ids"], [])
+        self.assertEqual(payload["addresses"]["operational"], payload["operational"]["content_address"])
+        self.assertGreater(payload["operational"]["counters"]["total_work_units"], 0)
 
 
 if __name__ == "__main__":

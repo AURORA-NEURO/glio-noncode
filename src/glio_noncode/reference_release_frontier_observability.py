@@ -26,7 +26,7 @@ class ReferenceReleaseObservation:
 
 @dataclass(frozen=True, slots=True)
 class ReferenceReleaseObservabilityReport:
-    """Counters, stage timings placeholders, and issue observations."""
+    """Stable counters, stage observations, and issue observations."""
 
     run_id: str
     observations: tuple[ReferenceReleaseObservation, ...]

@@ -37,6 +37,11 @@ from .reference_release_frontier_observability import (
     ReferenceReleaseObservabilityReport,
     observe_reference_release,
 )
+from .reference_release_frontier_operational import (
+    ReferenceReleaseOperationalTrace,
+    build_reference_release_operational_trace,
+    verify_reference_release_operational_trace,
+)
 from .reference_release_frontier_public_data import (
     ReferenceReleaseFixture,
     default_reference_release_fixture,
@@ -95,6 +100,7 @@ class ReferenceReleasePipelineReport:
     review_view: ReferenceReleaseReviewView
     review_queue: ReferenceReleaseReviewQueue
     observability: ReferenceReleaseObservabilityReport
+    operational: ReferenceReleaseOperationalTrace
     accessibility: ReferenceReleaseAccessibilityReport
     boundary: ReferenceReleaseBoundaryReport
     invariants: ReferenceReleaseInvariantReport
@@ -118,6 +124,7 @@ class ReferenceReleasePipelineReport:
             "review_view": self.review_view.content_address,
             "review_queue": self.review_queue.content_address,
             "observability": self.observability.content_address,
+            "operational": self.operational.content_address,
             "accessibility": self.accessibility.content_address,
             "boundary": self.boundary.content_address,
             "invariants": self.invariants.content_address,
@@ -138,6 +145,7 @@ class ReferenceReleasePipelineReport:
             "review_view": self.review_view.to_dict(),
             "review_queue": self.review_queue.to_dict(),
             "observability": self.observability.to_dict(),
+            "operational": self.operational.to_dict(),
             "accessibility": self.accessibility.to_dict(),
             "boundary": self.boundary.to_dict(),
             "invariants": self.invariants.to_dict(),
@@ -175,6 +183,7 @@ def run_reference_release_pipeline(
         review_view, release, queue_id=f"{pipeline_id}:review"
     )
     observability = observe_reference_release(runtime)
+    operational = build_reference_release_operational_trace(runtime, observability)
     accessibility = evaluate_reference_release_accessibility(
         fixture, runtime.evaluation, review_view
     )
@@ -206,6 +215,8 @@ def run_reference_release_pipeline(
             review_queue.accepted,
             not verify_reference_release_review_queue(review_queue),
             observability.accepted,
+            operational.accepted,
+            not verify_reference_release_operational_trace(operational),
             accessibility.accepted,
             boundary.accepted,
             not boundary.failed_check_ids,
@@ -229,6 +240,7 @@ def run_reference_release_pipeline(
         "review_view": review_view,
         "review_queue": review_queue,
         "observability": observability,
+        "operational": operational,
         "accessibility": accessibility,
         "boundary": boundary,
         "invariants": invariants,
@@ -250,6 +262,7 @@ def run_reference_release_pipeline(
             "review_view": review_view.content_address,
             "review_queue": review_queue.content_address,
             "observability": observability.content_address,
+            "operational": operational.content_address,
             "accessibility": accessibility.content_address,
             "boundary": boundary.content_address,
             "invariants": invariants.content_address,

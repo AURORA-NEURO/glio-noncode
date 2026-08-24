@@ -42,7 +42,8 @@ assert pipeline.accepted
 The pipeline returns a `ReferenceReleasePipelineReport`. Its `addresses()`
 method gives the content address for runtime, release, bundle, artifacts,
 review view, queue, observability, accessibility, boundary, invariants,
-scenarios, thresholds, validation, runbook, and adapter registry outputs.
+operational trace, scenarios, thresholds, validation, runbook, and adapter
+registry outputs.
 
 ## Operation adapters
 
@@ -93,6 +94,11 @@ The package separates execution from release packaging:
     execution and check tuples plus content addresses.
 12. `reference_release_frontier_runtime.py` orders those views into nine
     stages with input and output addresses.
+13. `reference_release_frontier_observability.py` records stable stage and
+    issue observations without wall-clock or subject-level data.
+14. `reference_release_frontier_operational.py` converts the nine runtime
+    stages into deterministic work receipts, explicit workload budgets,
+    utilization counters, and eighteen operational acceptance checks.
 
 ## Projection and safety rules
 
@@ -108,6 +114,8 @@ Every report has a content address. Prefixes identify the report family:
 for runtime reports, `release-manifest:` for release manifests,
 `release-bundle:` for bundles, `artifact-inventory:` for inventories,
 `review-view:` for review tables, and `review-queue:` for queue reports.
+Operational receipts use `release-stage-work:`, `release-operational-check:`,
+and `release-operational:` prefixes.
 
 ## CLI commands
 
@@ -125,6 +133,7 @@ python -m glio_noncode reference-release-policy
 python -m glio_noncode reference-release-quality-gate
 python -m glio_noncode reference-release-runtime
 python -m glio_noncode reference-release-observability
+python -m glio_noncode reference-release-operational
 python -m glio_noncode reference-release-release
 python -m glio_noncode reference-release-bundle
 python -m glio_noncode reference-release-artifacts
