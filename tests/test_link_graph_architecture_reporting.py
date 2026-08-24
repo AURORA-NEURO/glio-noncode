@@ -21,7 +21,7 @@ class LinkGraphArchitectureReportingTests(unittest.TestCase):
         report = build_link_graph_architecture_report(runtime)
         self.assertTrue(report["accepted"])
         self.assertEqual(report["metrics"]["case_count"], 64)
-        self.assertEqual(report["stage_count"], 22)
+        self.assertEqual(report["stage_count"], 24)
         self.assertEqual(report["artifact_count"], 6)
         self.assertTrue(link_graph_architecture_artifacts_are_safe(runtime.artifacts))
 

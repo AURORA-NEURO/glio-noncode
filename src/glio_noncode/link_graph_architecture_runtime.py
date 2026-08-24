@@ -1,8 +1,9 @@
-"""Twenty-two-stage D10 link-graph runtime."""
+"""Twenty-four-stage D10 link-graph runtime."""
 
 from __future__ import annotations
 
 from .link_graph_architecture_artifacts import build_link_graph_architecture_artifacts
+from .link_graph_architecture_compliance import assess_link_graph_architecture_compliance
 from .link_graph_architecture_contracts import (
     LinkGraphArchitectureFixture,
     LinkGraphArchitectureRuntime,
@@ -11,6 +12,7 @@ from .link_graph_architecture_contracts import (
 )
 from .link_graph_architecture_depth import assess_link_graph_architecture_depth
 from .link_graph_architecture_ledger import build_link_graph_architecture_ledger
+from .link_graph_architecture_metrics import link_graph_architecture_metrics
 from .link_graph_architecture_operations import evaluate_link_graph_architecture_fixture
 from .link_graph_architecture_plan import build_link_graph_architecture_plan
 from .link_graph_architecture_public_data import (
@@ -21,6 +23,7 @@ from .link_graph_architecture_quality import assess_link_graph_architecture_qual
 from .link_graph_architecture_release import build_link_graph_architecture_release
 from .link_graph_architecture_replay import replay_link_graph_architecture_fixture
 from .link_graph_architecture_review import build_link_graph_architecture_review_queue
+from .link_graph_architecture_schema import validate_link_graph_architecture_fixture
 
 LINK_GRAPH_ARCHITECTURE_STAGE_IDS = (
     "fixture-loaded",
@@ -42,9 +45,11 @@ LINK_GRAPH_ARCHITECTURE_STAGE_IDS = (
     "release-built",
     "quality-gated",
     "depth-accounted",
-    "runtime-finalized",
     "controls-closed",
-    "observability-closed",
+    "compliance-closed",
+    "report-materialized",
+    "runtime-seeded",
+    "runtime-finalized",
 )
 
 
@@ -68,6 +73,7 @@ def run_link_graph_architecture(
 ) -> LinkGraphArchitectureRuntime:
     selected = fixture or default_link_graph_architecture_fixture()
     audit = audit_link_graph_architecture_data(selected)
+    validate_link_graph_architecture_fixture(selected)
     plan = build_link_graph_architecture_plan(selected)
     evaluation = evaluate_link_graph_architecture_fixture(selected)
     review = build_link_graph_architecture_review_queue(evaluation)
@@ -79,10 +85,12 @@ def run_link_graph_architecture(
         selected, audit, plan, evaluation, replay, release, artifacts
     )
     depth = assess_link_graph_architecture_depth(selected, evaluation)
+    compliance = assess_link_graph_architecture_compliance(selected)
+    metrics = link_graph_architecture_metrics(selected, evaluation)
     outputs = (
         selected.content_address,
         audit.content_address,
-        selected.content_address,
+        addressed(selected.to_dict(include_payload=False), "link-schema"),
         plan.content_address,
         selected.operations[3].content_address,
         selected.operations[7].content_address,
@@ -99,9 +107,25 @@ def run_link_graph_architecture(
         release.content_address,
         quality.content_address,
         depth.content_address,
-        addressed({"fixture": selected.content_address}, "link-runtime-seed"),
         addressed({"review": review.content_address}, "link-controls"),
-        addressed({"ledger": ledger.content_address}, "link-observability"),
+        addressed(compliance, "link-compliance"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "evaluation": evaluation.content_address,
+                "metrics": metrics,
+            },
+            "link-report-stage",
+        ),
+        addressed({"fixture": selected.content_address}, "link-runtime-seed"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "quality": quality.content_address,
+                "release": release.content_address,
+            },
+            "link-runtime-final",
+        ),
     )
     details = (
         "fixture constructed from four public link families",
@@ -112,7 +136,7 @@ def run_link_graph_architecture(
         "beta activity, coaccessibility, QTL, and allele paths joined",
         "alpha perturbation, contact, tethering, and graph paths joined",
         "frontier correction, ranking, calibration, and publication joined",
-        "64 link cases executed with 392 checks",
+        "64 link cases executed with 458 checks",
         "48 link controls routed",
         "link source lineage closed",
         "link ledger closed",
@@ -123,9 +147,11 @@ def run_link_graph_architecture(
         "link release built",
         "link quality gate passed",
         "link depth accounted",
-        "runtime address seeded",
         "link controls closed",
-        "link observability closed",
+        "public aggregate compliance closed",
+        "link report projection materialized",
+        "runtime address seeded",
+        "runtime final address closed",
     )
     stages = tuple(
         _stage(
@@ -147,6 +173,7 @@ def run_link_graph_architecture(
         and review.accepted
         and replay.accepted
         and quality.accepted
+        and compliance["accepted"]
         and release.state.value == "published"
     )
     body = {
@@ -165,6 +192,8 @@ def run_link_graph_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
         stages,
         accepted,
         addressed(body, "link-runtime"),

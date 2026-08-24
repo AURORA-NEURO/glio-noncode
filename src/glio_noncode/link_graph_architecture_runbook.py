@@ -43,9 +43,11 @@ def link_graph_architecture_stage_runbook() -> tuple[dict[str, object], ...]:
         "release-built",
         "quality-gated",
         "depth-accounted",
-        "runtime-finalized",
         "controls-closed",
-        "observability-closed",
+        "compliance-closed",
+        "report-materialized",
+        "runtime-seeded",
+        "runtime-finalized",
     )
     return tuple(
         {"ordinal": index, "stage_id": name, "state": "accepted"}

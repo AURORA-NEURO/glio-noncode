@@ -65,6 +65,7 @@ def execute_link_graph_architecture_case(
         "summary": {
             "delegate_fixture_id": case.delegate_fixture_id,
             "delegate_record_id": case.delegate_record_id,
+            "delegate_context_key": case.delegate_context_key,
             "delegate_state": row["state"],
             "delegate_output_address": row["output_address"],
         },
@@ -174,6 +175,15 @@ def _case_checks(
             LinkGraphArchitectureCheckKind.SOURCE,
         ),
         _check(
+            f"{case.case_id}:context",
+            case.delegate_context_key == case.context_key
+            or "context_mismatch" in execution.observed_issue_codes,
+            case.delegate_context_key,
+            case.context_key,
+            "delegate context is exact or mismatch is explicit",
+            LinkGraphArchitectureCheckKind.CONTROL,
+        ),
+        _check(
             f"{case.case_id}:receipt",
             receipt.passed and execution.output_address.startswith("sha256:"),
             receipt.passed,
@@ -253,6 +263,32 @@ def _global_checks(
             4,
             "all four family planes execute",
             LinkGraphArchitectureCheckKind.INVARIANT,
+        ),
+        _check(
+            "global:operation-balance",
+            all(
+                sum(item.operation_id == operation.operation_id for item in fixture.cases) == 4
+                for operation in fixture.operations
+            ),
+            tuple(
+                sum(item.operation_id == operation.operation_id for item in fixture.cases)
+                for operation in fixture.operations
+            ),
+            4,
+            "each link operation owns four cases",
+            LinkGraphArchitectureCheckKind.OPERATION,
+        ),
+        _check(
+            "global:context-controls",
+            all(
+                case.delegate_context_key == case.context_key
+                or "context_mismatch" in receipt.observed_issue_codes
+                for case, receipt in zip(fixture.cases, receipts, strict=True)
+            ),
+            True,
+            True,
+            "foreign link contexts are explicit controls",
+            LinkGraphArchitectureCheckKind.CONTROL,
         ),
     )
 

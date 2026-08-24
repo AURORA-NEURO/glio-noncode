@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .link_graph_architecture_artifacts import link_graph_architecture_artifacts_are_safe
+from .link_graph_architecture_compliance import assess_link_graph_architecture_compliance
 from .link_graph_architecture_contracts import (
     LinkGraphArchitectureCheck,
     LinkGraphArchitectureCheckKind,
@@ -14,6 +15,7 @@ from .link_graph_architecture_contracts import (
     LinkGraphArchitectureRelease,
     addressed,
 )
+from .link_graph_architecture_metrics import link_graph_architecture_metrics
 from .link_graph_architecture_replay import LinkGraphArchitectureReplay
 
 
@@ -40,6 +42,8 @@ def assess_link_graph_architecture_quality(
     release: LinkGraphArchitectureRelease,
     artifacts: tuple = (),
 ) -> LinkGraphArchitectureQualityGate:
+    compliance = assess_link_graph_architecture_compliance(fixture)
+    metrics = link_graph_architecture_metrics(fixture, evaluation)
     checks = (
         _check("quality:audit", audit.accepted, audit.accepted, True, "data audit accepted"),
         _check("quality:plan", plan.accepted, plan.accepted, True, "dependency plan accepted"),
@@ -71,6 +75,27 @@ def assess_link_graph_architecture_quality(
             fixture.boundary,
             "public_aggregate_non_patient",
             "aggregate boundary is explicit",
+        ),
+        _check(
+            "quality:compliance",
+            bool(compliance["accepted"]),
+            compliance["accepted"],
+            True,
+            "recursive public aggregate compliance closes",
+        ),
+        _check(
+            "quality:state-coverage",
+            len(metrics["state_counts"]) >= 8,
+            metrics["state_counts"],
+            "at least eight link result states",
+            "link result vocabulary remains visible",
+        ),
+        _check(
+            "quality:control-surface",
+            len(metrics["issue_counts"]) >= 15,
+            len(metrics["issue_counts"]),
+            "at least fifteen issue controls",
+            "link control vocabulary remains broad",
         ),
     )
     return LinkGraphArchitectureQualityGate(

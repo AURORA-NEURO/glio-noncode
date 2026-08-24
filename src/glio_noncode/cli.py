@@ -3072,7 +3072,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("link-graph-architecture-data-audit", "audit D10 link-graph sources, joins, and scope"),
         ("link-graph-architecture-plan", "compile the D10 link-graph dependency plan"),
         ("evaluate-link-graph-architecture", "execute D10 link-graph family delegates"),
-        ("link-graph-architecture-runtime", "run the D10 twenty-two-stage link-graph runtime"),
+        ("link-graph-architecture-runtime", "run the D10 twenty-four-stage link-graph runtime"),
         ("link-graph-architecture-quality", "run the D10 link-graph release quality gate"),
         ("link-graph-architecture-depth", "report D10 link-graph operation and evidence depth"),
         ("replay-link-graph-architecture", "replay D10 link-graph evaluation deterministically"),
@@ -9655,6 +9655,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if runtime.accepted else 2
         if args.command == "link-graph-architecture-bundle":
             from .link_graph_architecture_public_data import link_graph_architecture_fixture_json
+            from .link_graph_architecture_reporting import build_link_graph_architecture_report
             from .link_graph_architecture_runtime import run_link_graph_architecture
 
             fixture = _link_graph_architecture_fixture(args.input)
@@ -9662,7 +9663,19 @@ def main(argv: list[str] | None = None) -> int:
             output_dir = Path(args.output)
             output_dir.mkdir(parents=True, exist_ok=True)
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
-            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_json(
+                build_link_graph_architecture_report(runtime),
+                str(output_dir / "report.json"),
+            )
             _write_text(link_graph_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "causal-architecture-fixture":
