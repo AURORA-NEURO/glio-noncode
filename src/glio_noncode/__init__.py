@@ -9987,6 +9987,29 @@ from .program_runtime_execution import (
     run_program_runtime,
 )
 from .program_runtime_quality import PROGRAM_QUALITY_CHECK_COUNT, run_program_runtime_quality_gate
+from .program_runtime_bundle import (
+    PROGRAM_RELEASE_ARTIFACT_COUNT,
+    PROGRAM_RELEASE_CHECK_COUNT,
+    PROGRAM_RELEASE_DESCRIPTOR_FILENAME,
+    PROGRAM_RELEASE_MANIFEST_FILENAME,
+    build_program_release,
+    load_program_release_manifest,
+    program_release_json,
+    program_release_manifest_json,
+    program_release_payloads,
+    verify_program_release,
+    write_program_release,
+)
+from .program_runtime_release_contracts import (
+    ProgramArtifactKind,
+    ProgramRelease,
+    ProgramReleaseArtifact,
+    ProgramReleaseCheck,
+    ProgramReleaseCheckCategory,
+    ProgramReleaseManifest,
+    ProgramReleaseState,
+    ProgramReleaseVerification,
+)
 from .program_runtime_replay import (
     ProgramRuntimeFailureProbe,
     ProgramRuntimeFailureReport,
@@ -9996,9 +10019,9 @@ from .program_runtime_replay import (
 )
 
 __all__ += [
-    "PROGRAM_CHECKS_PER_DOMAIN", "PROGRAM_DOMAIN_COUNT", "PROGRAM_QUALITY_CHECK_COUNT", "PROGRAM_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_STAGE_IDS",
-    "ArchitectureProgramReceipt", "ArchitectureProgramReport", "ArchitectureProgramSpec", "ProgramRuntime", "ProgramRuntimeCheck", "ProgramRuntimeCheckCategory", "ProgramRuntimeFailureProbe", "ProgramRuntimeFailureReport", "ProgramRuntimeQualityCheck", "ProgramRuntimeQualityReport", "ProgramRuntimeReplayReport", "ProgramRuntimeStage", "ProgramRuntimeState",
-    "architecture_program_checks_csv", "architecture_program_domain_matrix", "architecture_program_domains_csv", "architecture_program_percent", "architecture_program_receipts_csv", "architecture_program_report_json", "architecture_program_report_markdown", "architecture_program_runtime_json", "architecture_program_summary_json", "default_architecture_program_specs", "query_architecture_program", "replay_architecture_program", "run_architecture_program", "run_program_runtime", "run_program_runtime_failure_injections", "run_program_runtime_quality_gate",
+    "PROGRAM_CHECKS_PER_DOMAIN", "PROGRAM_DOMAIN_COUNT", "PROGRAM_QUALITY_CHECK_COUNT", "PROGRAM_RELEASE_ARTIFACT_COUNT", "PROGRAM_RELEASE_CHECK_COUNT", "PROGRAM_RELEASE_DESCRIPTOR_FILENAME", "PROGRAM_RELEASE_MANIFEST_FILENAME", "PROGRAM_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_STAGE_IDS",
+    "ArchitectureProgramReceipt", "ArchitectureProgramReport", "ArchitectureProgramSpec", "ProgramArtifactKind", "ProgramRelease", "ProgramReleaseArtifact", "ProgramReleaseCheck", "ProgramReleaseCheckCategory", "ProgramReleaseManifest", "ProgramReleaseState", "ProgramReleaseVerification", "ProgramRuntime", "ProgramRuntimeCheck", "ProgramRuntimeCheckCategory", "ProgramRuntimeFailureProbe", "ProgramRuntimeFailureReport", "ProgramRuntimeQualityCheck", "ProgramRuntimeQualityReport", "ProgramRuntimeReplayReport", "ProgramRuntimeStage", "ProgramRuntimeState",
+    "architecture_program_checks_csv", "architecture_program_domain_matrix", "architecture_program_domains_csv", "architecture_program_percent", "architecture_program_receipts_csv", "architecture_program_report_json", "architecture_program_report_markdown", "architecture_program_runtime_json", "architecture_program_summary_json", "build_program_release", "default_architecture_program_specs", "load_program_release_manifest", "program_release_json", "program_release_manifest_json", "program_release_payloads", "query_architecture_program", "replay_architecture_program", "run_architecture_program", "run_program_runtime", "run_program_runtime_failure_injections", "run_program_runtime_quality_gate", "verify_program_release", "write_program_release",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403

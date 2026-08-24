@@ -98,6 +98,18 @@ glio-noncode architecture-program-failures
 See [docs/PROGRAM_RUNTIME.md](docs/PROGRAM_RUNTIME.md) for the stage contract,
 public-boundary controls, denominators, closure artifact, and extension rules.
 
+An accepted program run can also be packaged and reopened as a portable offline
+release bundle:
+
+```text
+glio-noncode architecture-program-bundle --output .glio/architecture-program-release
+glio-noncode architecture-program-verify-bundle .glio/architecture-program-release
+```
+
+The bundle contains the complete runtime/report, compact and tabular exports,
+replay and failure controls, specifications, a content-addressed manifest, and
+filesystem verification receipts.
+
 The D16 C13–C16 deployment-governance depth surface can be rehearsed locally
 from its public aggregate fixture:
 

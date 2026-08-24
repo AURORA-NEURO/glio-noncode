@@ -81,6 +81,23 @@ python -m glio_noncode architecture-program-failures
 Commands return `0` for an accepted projection and `2` when a reference,
 runtime, quality, or public-boundary control is held for review.
 
+## Offline release bundle
+
+The runtime can be packaged into an eleven-artifact, self-describing release
+directory. The bundle includes the complete runtime and report, compact summary,
+domain receipts, all checks, the domain matrix, Markdown review, deterministic
+replay, failure controls, specifications, and a machine-readable manifest.
+
+```powershell
+python -m glio_noncode architecture-program-bundle --output .glio/architecture-program-release
+python -m glio_noncode architecture-program-verify-bundle .glio/architecture-program-release
+```
+
+Every artifact records a UTF-8 byte hash, byte count, line count, media type,
+and public-aggregate disposition. Verification reopens the manifest, checks
+each artifact's bytes and dimensions, parses JSON projections, and re-runs the
+private-key boundary scan. A changed or missing artifact returns exit code `2`.
+
 ## Extension rules
 
 To add or change a domain adapter:

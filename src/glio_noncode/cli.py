@@ -89,6 +89,10 @@ from .program_runtime_exports import (
     architecture_program_summary_json,
 )
 from .program_runtime_execution import run_program_runtime
+from .program_runtime_bundle import (
+    verify_program_release,
+    write_program_release,
+)
 from .program_runtime_replay import (
     replay_architecture_program,
     run_program_runtime_failure_injections,
@@ -2583,6 +2587,17 @@ def build_parser() -> argparse.ArgumentParser:
     architecture_program_query.add_argument("--accepted-only", action="store_true")
     architecture_program_query.add_argument("--text", default=None)
     architecture_program_query.add_argument("--output", default=None)
+    architecture_program_bundle = subparsers.add_parser(
+        "architecture-program-bundle",
+        help="write a portable offline release bundle for all sixteen domains",
+    )
+    architecture_program_bundle.add_argument("--output", required=True)
+    architecture_program_verify_bundle = subparsers.add_parser(
+        "architecture-program-verify-bundle",
+        help="reopen and verify a portable architecture program release bundle",
+    )
+    architecture_program_verify_bundle.add_argument("input", type=str)
+    architecture_program_verify_bundle.add_argument("--output", default=None)
     coordination_fixture = subparsers.add_parser(
         "coordination-fixture",
         help="emit the D16 public aggregate coordination architecture fixture",
@@ -8631,6 +8646,15 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             return 0
+        if args.command == "architecture-program-bundle":
+            runtime = run_program_runtime()
+            release = write_program_release(args.output, runtime=runtime)
+            _write_json(release.to_dict(), None)
+            return 0 if release.accepted else 2
+        if args.command == "architecture-program-verify-bundle":
+            verification = verify_program_release(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "coordination-fixture":
             _write_text(coordination_fixture_json(), args.output)
             return 0
