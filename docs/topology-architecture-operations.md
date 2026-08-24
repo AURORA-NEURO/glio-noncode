@@ -1,6 +1,6 @@
 # D09 Operation Catalog
 
-Each D09 operation is a separately addressable contract. The family evaluator supplies the positive observation; the aggregate retains the public source receipts and applies the shared context, identity, input, and release controls.
+Each D09 operation is a separately addressable contract. The family evaluator supplies the positive observation; the aggregate retains the public source receipts and applies the shared context, identity, input, and release controls. A receipt also retains the aggregate context and the delegated family context so context transport can be inspected rather than inferred.
 
 | ID | Family | Plane | Operation | Public evidence focus |
 | --- | --- | --- | --- | --- |
@@ -33,4 +33,4 @@ Control cases are intentionally uniform so every operation is tested against the
 
 ## Coverage invariants
 
-The contract matrix requires four families, four planes, 16 operations, and four cases per operation. Control coverage requires 16 observations for each held scenario. The evaluation requires 64 passing receipts and 392 passing checks. Any deviation blocks the release.
+The contract matrix requires four families, four planes, 16 operations, and four cases per operation. Control coverage requires 16 observations for each held scenario. The evaluation requires 64 passing receipts and 458 passing checks: seven checks for each case and ten global checks for source, operation, case, state, family, balance, and context closure. Any deviation blocks the release.

@@ -18,13 +18,13 @@ The public aggregate has a fixed boundary:
 - territory: `tumor`
 - unresolved dimension: `unknown`
 
-The release contains 17 source records, 16 operation contracts, and four cases for every operation. Each operation has one accepted positive case and three held controls: foreign context, malformed input, and identity conflict. This produces 16 positive cases, 48 control cases, and 392 deterministic checks.
+The release contains 17 source records, 16 operation contracts, and four cases for every operation. Each operation has one accepted positive case and three held controls: foreign context, malformed input, and identity conflict. This produces 16 positive cases, 48 control cases, and 458 deterministic checks: seven case checks per receipt plus ten global closure checks. Every source is explicitly marked public aggregate, and every case retains both its aggregate context and delegated family context.
 
 ## Execution shape
 
 The aggregate delegates positive records to the public family evaluators. Controls are held at the aggregate boundary before delegation. Every receipt retains the operation, family, plane, scenario, expected state, observed state, result state, issue codes, expected counts, observed counts, output address, and content address.
 
-The runtime has 22 ordered stages:
+The runtime has 24 ordered stages:
 
 1. fixture loaded
 2. sources audited
@@ -45,11 +45,13 @@ The runtime has 22 ordered stages:
 17. release built
 18. quality gated
 19. depth accounted
-20. runtime finalized
-21. controls closed
-22. observability closed
+20. controls closed
+21. compliance closed
+22. report materialized
+23. runtime seeded
+24. runtime finalized
 
-The release is published only when typed validation, source joins, operation joins, positive receipts, control routing, replay, lineage, metrics, artifact safety, and the quality gate all pass.
+The release is published only when typed validation, source joins, operation joins, positive receipts, control routing, replay, lineage, metric invariants, recursive aggregate compliance, artifact safety, delegate-context retention, and the quality gate all pass. The depth report accounts for source, operation, case, family, check, result-state, issue-code, and address coverage.
 
 ## Public entry points
 

@@ -20,7 +20,8 @@ class TopologyArchitectureReportingTests(unittest.TestCase):
         self.assertTrue(report["accepted"])
         self.assertEqual(report["metrics"]["case_count"], 64)
         self.assertEqual(report["metrics"]["operation_count"], 16)
-        self.assertEqual(report["stage_count"], 22)
+        self.assertEqual(report["stage_count"], 24)
+        self.assertEqual(report["depth"]["check_count"], 458)
         self.assertEqual(len(report["release"]["artifact_ids"]), 6)
         self.assertTrue(topology_architecture_artifacts_are_safe(runtime.artifacts))
 

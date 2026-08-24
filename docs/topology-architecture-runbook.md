@@ -22,7 +22,7 @@ python -m glio_noncode topology-architecture-depth --input data/topology-archite
 python -m glio_noncode replay-topology-architecture --input data/topology-architecture-public-aggregate.json --output .runtime/topology-replay.json
 ```
 
-The expected evaluation has 64 receipts and 392 checks. The runtime has 22 accepted stages, six artifacts, a published release, and a 100 percent depth report. Replay must be accepted and deterministic.
+The expected evaluation has 64 receipts and 458 checks. The runtime has 24 accepted stages, six artifacts, a published release, twelve quality checks, and a 100 percent depth report. Replay must be accepted and deterministic.
 
 ## Review and query
 
@@ -34,7 +34,7 @@ python -m glio_noncode topology-architecture-report --input data/topology-archit
 python -m glio_noncode topology-architecture-bundle --input data/topology-architecture-public-aggregate.json --output .runtime/topology-bundle
 ```
 
-The query returns four cases for one operation: one positive and three controls. The bundle contains `fixture.json`, `runtime.json`, and `release.json`.
+The query returns four cases for one operation: one positive and three controls. The bundle contains `fixture.json`, `runtime.json`, `release.json`, and `report.json`. The release projection retains quality and depth receipts.
 
 ## Verification
 

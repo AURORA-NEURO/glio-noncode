@@ -182,6 +182,7 @@ def _source_registry(
                 ),
                 "scope": "public_aggregate",
                 "license": "public source receipt",
+                "public_aggregate": True,
             }
             sources.append(
                 TopologyArchitectureSource(
@@ -234,6 +235,7 @@ def _case(
     scenario: TopologyArchitectureScenario,
     context_key: str,
     source_ids: tuple[str, ...],
+    delegate_context_key: str,
     payload: dict[str, Any],
     expected_state: TopologyArchitectureState,
     expected_result_state: str,
@@ -250,6 +252,7 @@ def _case(
         "plane": operation.plane,
         "scenario": scenario,
         "context_key": context_key,
+        "delegate_context_key": delegate_context_key,
         "source_ids": source_ids,
         "payload": payload,
         "expected_state": expected_state,
@@ -295,6 +298,7 @@ def _cases(
                 TopologyArchitectureScenario.POSITIVE,
                 TOPOLOGY_ARCHITECTURE_CONTEXT,
                 source_ids,
+                str(getattr(record, "context_key", TOPOLOGY_ARCHITECTURE_CONTEXT)),
                 positive_payload,
                 TopologyArchitectureState.ACCEPTED,
                 result_state,
@@ -340,6 +344,7 @@ def _cases(
                     scenario,
                     control_context,
                     source_ids,
+                    str(getattr(record, "context_key", TOPOLOGY_ARCHITECTURE_CONTEXT)),
                     control_payload,
                     TopologyArchitectureState.REVIEW,
                     state,

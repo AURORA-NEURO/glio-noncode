@@ -1,8 +1,9 @@
-"""Twenty-two-stage D09 topology architecture runtime."""
+"""Twenty-four-stage D09 topology architecture runtime."""
 
 from __future__ import annotations
 
 from .topology_architecture_artifacts import build_topology_architecture_artifacts
+from .topology_architecture_compliance import assess_topology_architecture_compliance
 from .topology_architecture_contracts import (
     TopologyArchitectureFixture,
     TopologyArchitectureRuntime,
@@ -45,9 +46,11 @@ TOPOLOGY_ARCHITECTURE_STAGE_IDS = (
     "release-built",
     "quality-gated",
     "depth-accounted",
-    "runtime-finalized",
     "controls-closed",
-    "observability-closed",
+    "compliance-closed",
+    "report-materialized",
+    "runtime-seeded",
+    "runtime-finalized",
 )
 
 
@@ -72,8 +75,8 @@ def run_topology_architecture(
     fixture: TopologyArchitectureFixture | None = None,
 ) -> TopologyArchitectureRuntime:
     selected = fixture or default_topology_architecture_fixture()
-    validate_topology_architecture_fixture(selected)
     audit = audit_topology_architecture_data(selected)
+    validate_topology_architecture_fixture(selected)
     plan = build_topology_architecture_plan(selected)
     evaluation = evaluate_topology_architecture_fixture(selected)
     review = build_topology_architecture_review_queue(evaluation)
@@ -84,13 +87,15 @@ def run_topology_architecture(
     artifacts = build_topology_architecture_artifacts(selected, audit, evaluation, review, ledger)
     release = build_topology_architecture_release(selected, evaluation, artifacts)
     quality = assess_topology_architecture_quality(
-        selected, audit, plan, evaluation, replay, release
+        selected, audit, plan, evaluation, replay, release, artifacts, ledger
     )
     depth = assess_topology_architecture_depth(selected, evaluation)
+    compliance = assess_topology_architecture_compliance(selected)
+    metrics = topology_architecture_metrics(selected, evaluation)
     outputs = (
         selected.content_address,
         audit.content_address,
-        selected.content_address,
+        addressed(selected.to_dict(include_payload=False), "topology-schema"),
         plan.content_address,
         selected.operations[3].content_address,
         selected.operations[7].content_address,
@@ -107,9 +112,25 @@ def run_topology_architecture(
         release.content_address,
         quality.content_address,
         depth.content_address,
-        addressed({"fixture": selected.content_address}, "topology-runtime-seed"),
         addressed({"review": review.content_address}, "topology-controls"),
-        addressed({"ledger": ledger.content_address}, "topology-observability"),
+        addressed(compliance, "topology-compliance"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "evaluation": evaluation.content_address,
+                "metrics": metrics,
+            },
+            "topology-report-stage",
+        ),
+        addressed({"fixture": selected.content_address}, "topology-runtime-seed"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "quality": quality.content_address,
+                "release": release.content_address,
+            },
+            "topology-runtime-final",
+        ),
     )
     details = (
         "fixture constructed from four topology tranches",
@@ -120,7 +141,7 @@ def run_topology_architecture(
         "C05-C08 loop, capture, and contact scoring joined",
         "C09-C12 motif, factor, IDH, and SV topology joined",
         "C13-C16 ecDNA, compartment, transport, and publication joined",
-        "64 topology cases executed with 392 checks",
+        "64 topology cases executed with 458 checks",
         "48 topology controls routed",
         "topology source lineage closed",
         "topology ledger closed",
@@ -131,9 +152,11 @@ def run_topology_architecture(
         "topology release built",
         "topology quality gate passed",
         "topology depth accounted",
-        "runtime address seeded",
         "topology controls closed",
-        "topology observability closed",
+        "public aggregate compliance closed",
+        "topology report projection materialized",
+        "runtime address seeded",
+        "runtime final address closed",
     )
     stages = tuple(
         _stage(
@@ -155,6 +178,7 @@ def run_topology_architecture(
         and review.accepted
         and replay.accepted
         and quality.accepted
+        and compliance["accepted"]
         and release.state.value == "published"
     )
     body = {
@@ -174,6 +198,8 @@ def run_topology_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
         stages,
         accepted,
         addressed(body, "topology-runtime"),

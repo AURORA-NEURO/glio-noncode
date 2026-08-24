@@ -30,6 +30,8 @@ class TopologyArchitectureExportTests(unittest.TestCase):
         self.assertEqual(len(payload["sources"]), 17)
         self.assertEqual(len(payload["operations"]), 16)
         self.assertEqual(len(payload["cases"]), 64)
+        self.assertTrue(all(item["public_aggregate"] for item in payload["sources"]))
+        self.assertTrue(all(item["delegate_context_key"] for item in payload["cases"]))
 
     def test_case_views_keep_all_receipts_and_addresses(self) -> None:
         runtime = glio_noncode.run_topology_architecture(default_topology_architecture_fixture())

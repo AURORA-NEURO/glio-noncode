@@ -29,6 +29,7 @@ def topology_architecture_invariants(fixture: TopologyArchitectureFixture) -> di
         "source_count": len(source_ids) == 17,
         "operation_count": len(operation_ids) == 16,
         "case_count": len(fixture.cases) == 64,
+        "public_source_visibility": all(item.public_aggregate for item in fixture.sources),
         "source_joins": all(
             set(item.source_ids) <= source_ids for item in (*fixture.operations, *fixture.cases)
         ),
@@ -38,6 +39,8 @@ def topology_architecture_invariants(fixture: TopologyArchitectureFixture) -> di
             for operation in fixture.operations
         ),
         "scenario_balance": (len(fixture.positive_cases), len(fixture.control_cases)) == (16, 48),
+        "family_coverage": len({item.family for item in fixture.operations}) == 4,
+        "delegate_contexts": all(item.delegate_context_key for item in fixture.cases),
     }
 
 

@@ -60,6 +60,9 @@ class TopologyArchitectureCliTests(unittest.TestCase):
             self.assertEqual(
                 json.loads(report.read_text(encoding="utf-8"))["metrics"]["case_count"], 64
             )
+            self.assertEqual(
+                json.loads(report.read_text(encoding="utf-8"))["depth"]["check_count"], 458
+            )
 
     def test_bundle_validation_and_query_commands(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -110,6 +113,10 @@ class TopologyArchitectureCliTests(unittest.TestCase):
             self.assertTrue(json.loads(validation.read_text(encoding="utf-8"))["accepted"])
             self.assertEqual(json.loads(query.read_text(encoding="utf-8"))["count"], 4)
             self.assertTrue((bundle / "runtime.json").is_file())
+            self.assertTrue((bundle / "report.json").is_file())
+            release = json.loads((bundle / "release.json").read_text(encoding="utf-8"))
+            self.assertEqual(release["depth"]["check_count"], 458)
+            self.assertTrue(release["quality"]["accepted"])
 
 
 if __name__ == "__main__":

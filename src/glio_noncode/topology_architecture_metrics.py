@@ -27,7 +27,22 @@ def topology_architecture_metrics(
         ),
         "family_counts": dict(sorted(Counter(item.family.value for item in fixture.cases).items())),
         "plane_counts": dict(sorted(Counter(item.plane.value for item in fixture.cases).items())),
+        "state_counts": dict(
+            sorted(Counter(item.observed_result_state for item in evaluation.executions).items())
+        )
+        if evaluation
+        else {},
+        "issue_counts": dict(
+            sorted(
+                Counter(
+                    issue for item in evaluation.executions for issue in item.issue_codes
+                ).items()
+            )
+        )
+        if evaluation
+        else {},
         "evaluation_accepted": evaluation.accepted if evaluation else None,
+        "check_count": len(evaluation.checks) if evaluation else 0,
         "receipt_pass_rate": sum(item.passed for item in evaluation.receipts)
         / len(evaluation.receipts)
         if evaluation and evaluation.receipts
@@ -44,6 +59,7 @@ def topology_architecture_metric_invariants(metrics: dict[str, Any]) -> tuple[st
         ("case_count", 64),
         ("positive_count", 16),
         ("control_count", 48),
+        ("check_count", 458),
     ):
         if metrics.get(key) != expected:
             failures.append(key)

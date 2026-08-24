@@ -3037,7 +3037,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("topology-architecture-data-audit", "audit D09 topology sources, context, joins, and scope"),
         ("topology-architecture-plan", "compile the D09 topology dependency plan"),
         ("evaluate-topology-architecture", "execute D09 topology family paths and aggregate controls"),
-        ("topology-architecture-runtime", "run the D09 twenty-two-stage topology runtime"),
+        ("topology-architecture-runtime", "run the D09 twenty-four-stage topology runtime"),
         ("topology-architecture-quality", "run the D09 topology release quality gate"),
         ("topology-architecture-depth", "report D09 topology operation and evidence depth"),
         ("replay-topology-architecture", "replay D09 topology evaluation deterministically"),
@@ -9488,6 +9488,8 @@ def main(argv: list[str] | None = None) -> int:
                 runtime.evaluation,
                 replay_topology_architecture_fixture(runtime.fixture),
                 runtime.release,
+                runtime.artifacts,
+                runtime.ledger,
             )
             _write_json(gate.to_dict(), args.output)
             return 0 if gate.accepted else 2
@@ -9549,6 +9551,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if runtime.accepted else 2
         if args.command == "topology-architecture-bundle":
             from .topology_architecture_public_data import topology_architecture_fixture_json
+            from .topology_architecture_reporting import build_topology_architecture_report
             from .topology_architecture_runtime import run_topology_architecture
 
             fixture = _topology_architecture_fixture(args.input)
@@ -9556,7 +9559,19 @@ def main(argv: list[str] | None = None) -> int:
             output_dir = Path(args.output)
             output_dir.mkdir(parents=True, exist_ok=True)
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
-            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_json(
+                build_topology_architecture_report(runtime),
+                str(output_dir / "report.json"),
+            )
             _write_text(topology_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "link-graph-architecture-fixture":

@@ -96,7 +96,13 @@ def _family_outcomes() -> dict[tuple[TopologyArchitectureFamily, str], dict[str,
 def _control(
     case: TopologyArchitectureCase, result_state: str, issues: tuple[str, ...], detail: str
 ) -> TopologyArchitectureExecution:
-    summary = {"state": result_state, "scenario": case.scenario.value, "delegated": False}
+    summary = {
+        "state": result_state,
+        "scenario": case.scenario.value,
+        "delegated": False,
+        "context_key": case.context_key,
+        "delegate_context_key": case.delegate_context_key,
+    }
     return TopologyArchitectureExecution(
         case.case_id,
         case.operation,
@@ -162,6 +168,8 @@ def execute_topology_architecture_case(
         )
     summary = dict(selected.get("summary", {}))
     summary["delegated"] = True
+    summary["context_key"] = case.context_key
+    summary["delegate_context_key"] = case.delegate_context_key
     result_state = str(selected.get("result_state", "supported"))
     return TopologyArchitectureExecution(
         case.case_id,
@@ -270,6 +278,18 @@ def _case_checks(
             "topology output is addressed",
         ),
         _check(
+            f"{case.case_id}:context",
+            bool(execution.summary.get("delegate_context_key"))
+            and (
+                case.scenario is not TopologyArchitectureScenario.FOREIGN_CONTEXT
+                or "context_mismatch" in execution.issue_codes
+            ),
+            execution.summary.get("delegate_context_key", ""),
+            "retained or explicitly mismatched",
+            "delegate context is retained and control mismatches remain explicit",
+            TopologyArchitectureCheckKind.CONTEXT,
+        ),
+        _check(
             f"{case.case_id}:receipt",
             receipt.passed,
             receipt.passed,
@@ -351,6 +371,35 @@ def _global_checks(
             True,
             "topology positive paths do not silently abstain",
             TopologyArchitectureCheckKind.CONTROL,
+        ),
+        _check(
+            "global:operation-balance",
+            all(
+                sum(item.operation_id == operation.operation_id for item in fixture.cases) == 4
+                for operation in fixture.operations
+            ),
+            tuple(
+                sum(item.operation_id == operation.operation_id for item in fixture.cases)
+                for operation in fixture.operations
+            ),
+            4,
+            "each topology operation owns one positive and three controls",
+            TopologyArchitectureCheckKind.OPERATION,
+        ),
+        _check(
+            "global:context-controls",
+            all(
+                bool(case.delegate_context_key)
+                and (
+                    case.scenario is not TopologyArchitectureScenario.FOREIGN_CONTEXT
+                    or "context_mismatch" in receipt.observed_issue_codes
+                )
+                for case, receipt in zip(fixture.cases, receipts, strict=True)
+            ),
+            True,
+            True,
+            "topology delegate contexts are retained and foreign contexts are held",
+            TopologyArchitectureCheckKind.CONTEXT,
         ),
     )
 

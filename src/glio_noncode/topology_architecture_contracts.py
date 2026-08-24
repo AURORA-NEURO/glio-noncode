@@ -104,6 +104,7 @@ class TopologyArchitectureSource:
     version: str
     scope: str
     license: str
+    public_aggregate: bool
     content_address: str
 
     def __post_init__(self) -> None:
@@ -121,6 +122,8 @@ class TopologyArchitectureSource:
             raise ValidationError("D09 source URI must be HTTP(S)")
         if self.scope != "public_aggregate":
             raise ValidationError("D09 sources must be public aggregate receipts")
+        if not self.public_aggregate:
+            raise ValidationError("D09 sources must be marked public aggregate")
         if not self.content_address.startswith("sha256:"):
             raise ValidationError("D09 source address must be SHA-256")
 
@@ -170,6 +173,7 @@ class TopologyArchitectureCase:
     plane: TopologyArchitecturePlane
     scenario: TopologyArchitectureScenario
     context_key: str
+    delegate_context_key: str
     source_ids: tuple[str, ...]
     payload: dict[str, Any]
     expected_state: TopologyArchitectureState
@@ -185,6 +189,7 @@ class TopologyArchitectureCase:
             "operation_id",
             "capability_id",
             "context_key",
+            "delegate_context_key",
             "expected_result_state",
             "description",
             "content_address",
@@ -526,6 +531,8 @@ class TopologyArchitectureRuntime:
     ledger: TopologyArchitectureLedger
     artifacts: tuple[TopologyArchitectureArtifact, ...]
     release: TopologyArchitectureRelease
+    depth: TopologyArchitectureDepthReport
+    quality: TopologyArchitectureQualityGate
     stages: tuple[TopologyArchitectureRuntimeStage, ...]
     accepted: bool
     content_address: str
@@ -542,10 +549,13 @@ class TopologyArchitectureDepthReport:
     positive_count: int
     control_count: int
     source_count: int
+    family_count: int
     addressed_count: int
     family_counts: Mapping[str, int]
     plane_counts: Mapping[str, int]
     check_count: int
+    state_count: int
+    issue_code_count: int
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -575,6 +585,7 @@ def _source(raw: Mapping[str, Any]) -> TopologyArchitectureSource:
         "version": str(raw.get("version", raw.get("release", "public"))),
         "scope": str(raw.get("scope", "public_aggregate")),
         "license": "public source receipt",
+        "public_aggregate": bool(raw.get("public_aggregate", True)),
     }
     return TopologyArchitectureSource(**body, content_address=addressed(body, "topology-source"))
 
@@ -610,6 +621,14 @@ def _case(raw: Mapping[str, Any]) -> TopologyArchitectureCase:
         "plane": TopologyArchitecturePlane(str(raw.get("plane", ""))),
         "scenario": TopologyArchitectureScenario(str(raw.get("scenario", ""))),
         "context_key": str(raw.get("context_key", "")),
+        "delegate_context_key": str(
+            raw.get(
+                "delegate_context_key",
+                dict(raw.get("payload", {})).get(
+                    "family_context_key", TOPOLOGY_ARCHITECTURE_CONTEXT
+                ),
+            )
+        ),
         "source_ids": _strings(raw.get("source_ids", ()), "source_ids"),
         "payload": dict(raw.get("payload", {})),
         "expected_state": TopologyArchitectureState(str(raw.get("expected_state", ""))),
