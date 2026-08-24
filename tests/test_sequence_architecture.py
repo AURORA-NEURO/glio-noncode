@@ -49,8 +49,9 @@ class SequenceArchitectureFixtureTests(unittest.TestCase):
         self.assertEqual(len(self.fixture.control_cases), 48)
         report = audit_sequence_architecture_data(self.fixture)
         self.assertTrue(report.accepted)
-        self.assertEqual(len(report.checks), 13)
-        self.assertTrue(all(item.content_address for item in report.checks))
+        self.assertEqual(len(report.checks), 16)
+        self.assertTrue(all(item.public_aggregate for item in self.fixture.sources))
+        self.assertTrue(all(item.delegate_context_key for item in self.fixture.cases))
 
     def test_operations_are_four_scenario_contracts(self) -> None:
         for operation in self.fixture.operation_ids:
@@ -72,7 +73,7 @@ class SequenceArchitectureFixtureTests(unittest.TestCase):
         self.assertTrue(all(item.passed for item in self.evaluation.receipts))
         self.assertEqual(self.evaluation.positive_count, 16)
         self.assertEqual(self.evaluation.control_count, 48)
-        self.assertEqual(len(self.evaluation.checks), 325)
+        self.assertEqual(len(self.evaluation.checks), 458)
 
     def test_controls_are_conservative(self) -> None:
         controls = [
@@ -115,9 +116,12 @@ class SequenceArchitectureRuntimeTests(unittest.TestCase):
     def test_published_runtime_depth(self) -> None:
         self.assertTrue(self.runtime.accepted)
         self.assertEqual(self.runtime.state, SequenceArchitectureState.PUBLISHED)
-        self.assertEqual(len(self.runtime.stages), 20)
-        self.assertEqual(tuple(item.ordinal for item in self.runtime.stages), tuple(range(1, 21)))
+        self.assertEqual(len(self.runtime.stages), 24)
+        self.assertEqual(tuple(item.ordinal for item in self.runtime.stages), tuple(range(1, 25)))
         self.assertEqual(len(self.runtime.artifacts), 6)
+        self.assertTrue(self.runtime.compliance.accepted)
+        self.assertEqual(self.runtime.depth.check_count, 458)
+        self.assertEqual(len(self.runtime.quality.checks), 12)
 
     def test_plan_matrix_review_and_lineage(self) -> None:
         evaluation = self.runtime.evaluation
@@ -148,6 +152,8 @@ class SequenceArchitectureRuntimeTests(unittest.TestCase):
         self.assertEqual(metrics.case_count, 64)
         self.assertEqual(metrics.control_issue_count, 48)
         self.assertGreater(metrics.positive_issue_count, 0)
+        self.assertEqual(metrics.check_count, 458)
+        self.assertEqual(metrics.state_count, 6)
         self.assertTrue(sequence_architecture_access_policy(self.runtime.artifacts).accepted)
         quality = assess_sequence_architecture_quality(
             self.fixture,
@@ -157,7 +163,7 @@ class SequenceArchitectureRuntimeTests(unittest.TestCase):
             self.runtime.ledger,
             self.runtime.artifacts,
             self.runtime.release,
-            20,
+            24,
         )
         depth = sequence_architecture_depth_report(
             self.fixture, evaluation, self.runtime.plan, queue, self.runtime.ledger, self.runtime
@@ -165,6 +171,9 @@ class SequenceArchitectureRuntimeTests(unittest.TestCase):
         self.assertTrue(quality.passed)
         self.assertTrue(depth.accepted)
         self.assertEqual(depth.addressed_count, 225)
+        self.assertEqual(depth.family_count, 4)
+        self.assertEqual(depth.check_count, 458)
+        self.assertEqual(depth.state_count, 6)
 
     def test_replay_schema_failures_and_invariants(self) -> None:
         replay = replay_sequence_architecture_fixture(self.fixture, self.runtime.evaluation)

@@ -31,6 +31,17 @@ from .sequence_regulation_frontier_public_data import default_sequence_regulatio
 from .serialization import jsonable
 
 
+def _sanitize(value: Any) -> Any:
+    hidden = {"payload", "input_text", "track_text", "raw_text", "records_text"}
+    if isinstance(value, Mapping):
+        return {
+            str(key): _sanitize(item) for key, item in value.items() if str(key) not in hidden
+        }
+    if isinstance(value, (list, tuple)):
+        return [_sanitize(item) for item in value]
+    return value
+
+
 def evaluate_sequence_architecture_fixture(
     fixture: SequenceArchitectureFixture,
 ) -> SequenceArchitectureEvaluation:
@@ -126,7 +137,9 @@ def execute_sequence_architecture_case(
         else SequenceArchitectureState.REVIEW
     )
     counts = {"primary": 1, "secondary": 1}
-    summary = dict(outcome["summary"])
+    summary = _sanitize(dict(outcome["summary"]))
+    summary["context_key"] = case.context_key
+    summary["delegate_context_key"] = case.delegate_context_key
     output_address = addressed({"case_id": case.case_id, "summary": summary}, "sequence-execution")
     return SequenceArchitectureExecution(
         case_id=case.case_id,
@@ -222,6 +235,8 @@ def _control_execution(
         "issue_codes": issue_codes,
         "counts": {"primary": 0, "secondary": 0},
         "detail": detail,
+        "context_key": case.context_key,
+        "delegate_context_key": case.delegate_context_key,
     }
     return SequenceArchitectureExecution(
         case_id=case.case_id,
@@ -233,7 +248,12 @@ def _control_execution(
         issue_codes=issue_codes,
         counts={"primary": 0, "secondary": 0},
         output_address=addressed(body, "sequence-control"),
-        summary={"control": True, "detail": detail},
+        summary={
+            "control": True,
+            "detail": detail,
+            "context_key": case.context_key,
+            "delegate_context_key": case.delegate_context_key,
+        },
         detail=detail,
     )
 
@@ -323,6 +343,28 @@ def _case_checks(
             True,
             "receipt is addressed and passed",
         ),
+        _check(
+            f"{case.case_id}-sanitized",
+            not any(
+                key in jsonable(execution.summary)
+                for key in ("payload", "input_text", "track_text", "raw_text")
+            ),
+            True,
+            "review summary excludes raw input",
+            SequenceArchitectureCheckKind.REVIEW,
+        ),
+        _check(
+            f"{case.case_id}-context",
+            bool(execution.summary.get("delegate_context_key"))
+            and (
+                case.scenario is not SequenceArchitectureScenario.FOREIGN_CONTEXT
+                or "context_mismatch" in execution.issue_codes
+            ),
+            execution.summary.get("delegate_context_key", ""),
+            "retained or explicitly mismatched",
+            "delegated context is retained and foreign controls remain explicit",
+            SequenceArchitectureCheckKind.CONTEXT,
+        ),
     )
 
 
@@ -366,15 +408,76 @@ def _global_checks(
             len(fixture.operations),
             "every operation has receipt closure",
         ),
+        _check(
+            "global-family-coverage",
+            len({item.family for item in receipts}) == 4,
+            len({item.family for item in receipts}),
+            4,
+            "all four sequence family tranches are represented",
+            SequenceArchitectureCheckKind.OPERATION,
+        ),
+        _check(
+            "global-source-joins",
+            all(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            sum(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            80,
+            "all operation and case source joins resolve",
+            SequenceArchitectureCheckKind.LINEAGE,
+        ),
+        _check(
+            "global-operation-balance",
+            all(
+                sum(item.operation_id == operation_id for item in receipts) == 4
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            sorted(
+                sum(item.operation_id == operation_id for item in receipts)
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            [4] * 16,
+            "each operation has one positive and three controls",
+            SequenceArchitectureCheckKind.OPERATION,
+        ),
+        _check(
+            "global-context-controls",
+            all(
+                "context_mismatch" in item.observed_issue_codes
+                for item in receipts
+                if item.case_id.endswith("-foreign_context")
+            ),
+            True,
+            True,
+            "foreign controls retain explicit context mismatch",
+            SequenceArchitectureCheckKind.CONTEXT,
+        ),
+        _check(
+            "global-result-state-coverage",
+            len({item.observed_result_state for item in receipts}) >= 6,
+            len({item.observed_result_state for item in receipts}),
+            ">=6",
+            "sequence results cover accepted and held state vocabulary",
+            SequenceArchitectureCheckKind.OPERATION,
+        ),
     )
 
 
 def _check(
-    check_id: str, passed: bool, observed: Any, required: Any, detail: str
+    check_id: str,
+    passed: bool,
+    observed: Any,
+    required: Any,
+    detail: str,
+    kind: SequenceArchitectureCheckKind = SequenceArchitectureCheckKind.OPERATION,
 ) -> SequenceArchitectureCheck:
     body = {
         "check_id": check_id,
-        "kind": SequenceArchitectureCheckKind.OPERATION,
+        "kind": kind,
         "passed": passed,
         "observed": observed,
         "required": required,
@@ -382,7 +485,7 @@ def _check(
     }
     return SequenceArchitectureCheck(
         check_id=check_id,
-        kind=SequenceArchitectureCheckKind.OPERATION,
+        kind=kind,
         passed=passed,
         observed=observed,
         required=required,

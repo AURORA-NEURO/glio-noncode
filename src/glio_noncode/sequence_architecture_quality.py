@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .sequence_architecture_compliance import assess_sequence_architecture_compliance
 from .sequence_architecture_contracts import (
     SequenceArchitectureArtifact,
     SequenceArchitectureCheck,
@@ -29,7 +30,18 @@ def assess_sequence_architecture_quality(
     artifacts: tuple[SequenceArchitectureArtifact, ...],
     release: SequenceArchitectureRelease,
     stage_count: int,
+    compliance: Any | None = None,
 ) -> SequenceArchitectureQualityGate:
+    compliance_report = compliance or assess_sequence_architecture_compliance(fixture)
+    context_closed = all(
+        bool(item.delegate_context_key)
+        and (
+            not item.case_id.endswith("-foreign_context")
+            or item.context_key != item.delegate_context_key
+        )
+        for item in fixture.cases
+    )
+    state_count = len({item.observed_result_state for item in evaluation.receipts})
     checks = (
         _check(
             "quality-evaluation",
@@ -70,10 +82,10 @@ def assess_sequence_architecture_quality(
         ),
         _check(
             "quality-stage-count",
-            stage_count == 20,
+            stage_count == 24,
             stage_count,
-            20,
-            "twenty ordered stages are closed",
+            24,
+            "twenty-four ordered stages are closed",
         ),
         _check(
             "quality-source-count",
@@ -81,6 +93,34 @@ def assess_sequence_architecture_quality(
             len(fixture.sources),
             17,
             "all public family source receipts are retained",
+        ),
+        _check(
+            "quality-check-count",
+            len(evaluation.checks) == 458,
+            len(evaluation.checks),
+            458,
+            "case and global evaluation checks cover the full matrix",
+        ),
+        _check(
+            "quality-result-state-count",
+            state_count >= 6,
+            state_count,
+            ">=6",
+            "result states retain positive and held sequence outcomes",
+        ),
+        _check(
+            "quality-context-boundary",
+            context_closed,
+            context_closed,
+            True,
+            "delegated contexts are explicit and foreign controls stay distinct",
+        ),
+        _check(
+            "quality-compliance",
+            compliance_report.accepted,
+            compliance_report.accepted,
+            True,
+            "public aggregate compliance is accepted",
         ),
     )
     passed = all(item.passed for item in checks)

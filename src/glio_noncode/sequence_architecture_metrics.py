@@ -18,8 +18,12 @@ from .serialization import jsonable
 @dataclass(frozen=True, slots=True)
 class SequenceArchitectureMetrics:
     fixture_id: str
+    source_count: int
     operation_count: int
     case_count: int
+    check_count: int
+    state_count: int
+    issue_code_count: int
     positive_count: int
     control_count: int
     accepted_case_count: int
@@ -60,8 +64,14 @@ def materialize_sequence_architecture_metrics(
     }
     body = {
         "fixture_id": fixture.fixture_id,
+        "source_count": len(fixture.sources),
         "operation_count": len(fixture.operations),
         "case_count": len(fixture.cases),
+        "check_count": len(evaluation.checks),
+        "state_count": len({item.observed_result_state for item in evaluation.receipts}),
+        "issue_code_count": len(
+            {code for item in evaluation.receipts for code in item.observed_issue_codes}
+        ),
         "positive_count": len(positives),
         "control_count": len(controls),
         "accepted_case_count": sum(

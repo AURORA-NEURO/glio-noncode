@@ -66,6 +66,12 @@ class SequenceArchitectureCliTests(unittest.TestCase):
             self.assertTrue(
                 json.loads((root / "sequence-architecture-depth.json").read_text())["accepted"]
             )
+            self.assertEqual(
+                json.loads((root / "sequence-architecture-depth.json").read_text())[
+                    "completion_percent"
+                ],
+                100.0,
+            )
             self.assertTrue(
                 json.loads((root / "replay-sequence-architecture.json").read_text())["accepted"]
             )
@@ -101,6 +107,9 @@ class SequenceArchitectureCliTests(unittest.TestCase):
             self.assertTrue(json.loads((root / "runbook.json").read_text())["accepted"])
             self.assertTrue((root / "bundle" / "runtime.json").exists())
             self.assertTrue((root / "bundle" / "release.json").exists())
+            self.assertTrue((root / "bundle" / "report.json").exists())
+            bundle_release = json.loads((root / "bundle" / "release.json").read_text())
+            self.assertEqual(len(bundle_release["quality"]["checks"]), 12)
 
 
 if __name__ == "__main__":

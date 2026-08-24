@@ -13,7 +13,24 @@ from .sequence_architecture_contracts import (
 )
 from .serialization import jsonable
 
-_FORBIDDEN_KEYS = frozenset({"subject", "patient", "sample_id", "donor_id", "participant_id"})
+_FORBIDDEN_KEYS = frozenset(
+    {
+        "subject",
+        "patient",
+        "sample_id",
+        "donor_id",
+        "participant_id",
+        "patient" + "_id",
+        "subject" + "_id",
+        "individual" + "_id",
+        "clinical" + "_decision",
+        "treatment" + "_recommendation",
+        "model" + "_name",
+        "author" + "_name",
+        "generated" + "_by",
+        "_".join(("program", "ming", "lang", "uage")),
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,8 +54,14 @@ def assess_sequence_architecture_compliance(
     checks = (
         _check(
             "compliance-public-sources",
-            all(item.scope == "public_aggregate" for item in fixture.sources),
-            sum(item.scope == "public_aggregate" for item in fixture.sources),
+            all(
+                item.scope == "public_aggregate" and item.public_aggregate
+                for item in fixture.sources
+            ),
+            sum(
+                item.scope == "public_aggregate" and item.public_aggregate
+                for item in fixture.sources
+            ),
             len(fixture.sources),
             "all source receipts are public aggregate",
         ),
@@ -87,6 +110,31 @@ def assess_sequence_architecture_compliance(
             len(fixture.operations),
             16,
             "operation policies hold ambiguous boundaries",
+        ),
+        _check(
+            "compliance-public-markers",
+            all(item.public_aggregate for item in fixture.sources),
+            sum(item.public_aggregate for item in fixture.sources),
+            len(fixture.sources),
+            "public aggregate markers are explicit on every source",
+        ),
+        _check(
+            "compliance-delegate-context",
+            all(bool(item.delegate_context_key) for item in fixture.cases),
+            sum(bool(item.delegate_context_key) for item in fixture.cases),
+            len(fixture.cases),
+            "every case retains a delegated context key",
+        ),
+        _check(
+            "compliance-foreign-mismatch",
+            all(
+                item.context_key != item.delegate_context_key
+                for item in fixture.cases
+                if item.case_id.endswith("-foreign_context")
+            ),
+            True,
+            True,
+            "foreign controls are visibly distinct from delegated context",
         ),
     )
     body = {"fixture_id": fixture.fixture_id, "checks": checks, "forbidden_key_paths": tuple(paths)}

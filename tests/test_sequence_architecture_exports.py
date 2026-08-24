@@ -48,7 +48,7 @@ class SequenceArchitectureExportTests(unittest.TestCase):
         self.assertEqual(summary["scenario_counts"]["positive"], 16)
         self.assertEqual(summary["scenario_counts"]["identity_conflict"], 16)
         self.assertTrue(runtime.accepted)
-        self.assertEqual(runtime.to_dict()["stage_count"], 20)
+        self.assertEqual(runtime.to_dict()["stage_count"], 24)
         self.assertEqual(runtime.to_dict()["release"]["state"], "published")
         self.assertTrue(replay_sequence_architecture_fixture(fixture, runtime.evaluation).accepted)
 

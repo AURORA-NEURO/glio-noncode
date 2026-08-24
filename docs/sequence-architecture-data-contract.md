@@ -8,11 +8,11 @@ The D06 architecture key is:
 GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline
 ```
 
-The fields are assembly, disease class, age band, tissue state, sequence territory, and treatment state. Family fixtures have narrower contexts; their original contexts remain inside family summaries, while the aggregate case boundary is fixed to the D06 key.
+The fields are assembly, disease class, age band, tissue state, sequence territory, and treatment state. Family fixtures have narrower contexts; their original contexts remain inside family summaries, while the aggregate case boundary is fixed to the D06 key. Each case also carries a delegated context key so cross-family execution remains inspectable.
 
 ## Source rules
 
-Sources require a public URI, release or version, family provenance, public aggregate scope, and a SHA-256 content address. Source identifiers are unique after family prefixing. Every operation and case must join at least one D06 source receipt.
+Sources require a public URI, release or version, family provenance, public aggregate scope, an explicit public aggregate marker, and a SHA-256 content address. Source identifiers are unique after family prefixing. Every operation and case must join at least one D06 source receipt.
 
 ## Sequence payload rules
 
@@ -36,8 +36,8 @@ Canonical JSON content hashes address sources, operations, cases, receipts, ledg
 | Positive cases | 16 |
 | Control cases | 48 |
 | Receipts | 64 |
-| Evaluation checks | 325 |
+| Evaluation checks | 458 |
 | Validation cells | 80 |
 | Ledger events | 64 |
-| Runtime stages | 20 |
+| Runtime stages | 24 |
 | Release artifacts | 6 |

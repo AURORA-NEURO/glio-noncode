@@ -180,6 +180,33 @@ def audit_sequence_architecture_data(
             17,
             "public source receipts are addressed",
         ),
+        _check(
+            "source-public-markers",
+            all(item.public_aggregate for item in fixture.sources),
+            sum(item.public_aggregate for item in fixture.sources),
+            17,
+            "every source carries an explicit public aggregate marker",
+        ),
+        _check(
+            "family-coverage",
+            {item.family for item in fixture.sources}
+            == {
+                SequenceArchitectureFamily.EFFECT,
+                SequenceArchitectureFamily.GRAMMAR,
+                SequenceArchitectureFamily.REGULATION,
+                SequenceArchitectureFamily.FRONTIER,
+            },
+            sorted(item.value for item in {item.family for item in fixture.sources}),
+            sorted(item.value for item in _FAMILY_ORDER),
+            "all sequence family tranches are represented",
+        ),
+        _check(
+            "delegate-contexts",
+            all(bool(item.delegate_context_key) for item in fixture.cases),
+            sum(bool(item.delegate_context_key) for item in fixture.cases),
+            64,
+            "cases retain an explicit delegated context key",
+        ),
     )
     body = {"fixture_id": fixture.fixture_id, "checks": checks}
     from .sequence_architecture_contracts import SequenceArchitectureDataAudit
@@ -255,6 +282,7 @@ def _sources(
                 "version": version,
                 "scope": scope,
                 "license": license_label,
+                "public_aggregate": True,
             }
             result.append(
                 SequenceArchitectureSource(
@@ -359,6 +387,7 @@ def _cases(
                 SequenceArchitectureScenario.POSITIVE,
                 SEQUENCE_ARCHITECTURE_CONTEXT,
                 source_ids,
+                str(getattr(record, "context_key", SEQUENCE_ARCHITECTURE_CONTEXT)),
                 positive_payload,
                 result_state,
                 issue_codes,
@@ -408,6 +437,7 @@ def _cases(
                     scenario,
                     context_key,
                     source_ids,
+                    str(getattr(record, "context_key", SEQUENCE_ARCHITECTURE_CONTEXT)),
                     payload,
                     result,
                     issues,
@@ -423,6 +453,7 @@ def _case(
     scenario: SequenceArchitectureScenario,
     context_key: str,
     source_ids: tuple[str, ...],
+    delegate_context_key: str,
     payload: dict[str, Any],
     result_state: str,
     issue_codes: tuple[str, ...],
@@ -438,6 +469,7 @@ def _case(
         "plane": operation.plane,
         "scenario": scenario,
         "context_key": context_key,
+        "delegate_context_key": delegate_context_key,
         "source_ids": source_ids,
         "payload": payload,
         "expected_state": SequenceArchitectureState.ACCEPTED

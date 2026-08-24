@@ -42,14 +42,16 @@ Every operation has one public positive and three explicit controls: foreign con
 
 ## Runtime
 
-The runtime closes twenty stages from fixture loading through release finalization. It materializes six artifacts: fixture, evaluation, review, lineage, metrics, and validation. The quality gate requires:
+The runtime closes twenty-four stages from fixture loading through release finalization. It materializes six artifacts: fixture, evaluation, review, lineage, metrics, and validation. The quality gate requires:
 
-- 325 passed evaluation checks;
+- 458 passed evaluation checks: seven per case plus ten global closure checks;
 - 80 passed validation cells across ingestion, effect, grammar, regulation, and frontier planes;
 - 48 controls remaining in review;
 - 64 hash-linked ledger events;
+- four represented family tranches and six observed result states;
 - deterministic replay;
 - six addressed artifacts;
+- twelve quality checks and accepted public-scope compliance;
 - a published release state.
 
 Family outputs are preserved in positive receipt summaries. The D06 layer does not reinterpret a motif hit, sequence index, delta, disagreement value, or grammar match as calibrated probability, clinical consequence, binding, expression, or causality.
@@ -82,4 +84,4 @@ python -m glio_noncode sequence-architecture-sources --input .artifacts/sequence
 python -m glio_noncode sequence-architecture-report --input .artifacts/sequence-fixture.json --format markdown --output .artifacts/sequence-report.md
 ```
 
-The dictionary covers 30 fields across seven persisted entities. Compliance walks nested family payloads for subject-level keys and verifies public scope, exact context boundaries, addressed identities, and held controls. The source registry keeps catalog-only source receipts visible while requiring all operational sources to join cases.
+The dictionary covers 32 fields across seven persisted entities. Compliance walks nested family payloads for restricted identity and decision fields and verifies public scope markers, exact context boundaries, delegated contexts, addressed identities, and held controls. The source registry keeps catalog-only source receipts visible while requiring all operational sources to join cases.

@@ -48,6 +48,7 @@ def sequence_architecture_schema() -> SequenceArchitectureSchema:
         "version",
         "scope",
         "license",
+        "public_aggregate",
         "content_address",
     )
     operation = (
@@ -73,6 +74,7 @@ def sequence_architecture_schema() -> SequenceArchitectureSchema:
         "plane",
         "scenario",
         "context_key",
+        "delegate_context_key",
         "source_ids",
         "payload",
         "expected_state",
@@ -109,10 +111,10 @@ def sequence_architecture_schema() -> SequenceArchitectureSchema:
         ),
         _check(
             "schema-case-fields",
-            len(case) == 16,
+            len(case) == 17,
             len(case),
-            16,
-            "case fields retain payload and expectations",
+            17,
+            "case fields retain payload, context delegation, and expectations",
         ),
         _check(
             "schema-receipt-fields",
@@ -120,6 +122,20 @@ def sequence_architecture_schema() -> SequenceArchitectureSchema:
             len(receipt),
             15,
             "receipt fields retain expected and observed values",
+        ),
+        _check(
+            "schema-source-public-marker",
+            "public_aggregate" in source,
+            "public_aggregate" in source,
+            True,
+            "source scope is explicit in the interchange schema",
+        ),
+        _check(
+            "schema-case-context-delegation",
+            "delegate_context_key" in case,
+            "delegate_context_key" in case,
+            True,
+            "case context delegation is explicit in the interchange schema",
         ),
         _check(
             "schema-address-fields",

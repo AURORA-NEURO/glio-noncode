@@ -1,0 +1,3000 @@
+{
+  "boundary": "public_aggregate_sequence_grammar_variant_effect",
+  "cases": [
+    {
+      "capability_id": "GNC-D06-C01",
+      "case_id": "D06-C01-positive",
+      "content_address": "sha256:3ecb4c4a31a5e15fa2a71bf0f9ea3b607670b4f3bd8f566dcb6955620fefdf48",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "public positive context_encoding family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_effect_frontier",
+      "operation": "context_encoding",
+      "operation_id": "D06-C01",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:4df46057bba2cf44e018184bef67b7fa0e321088bf36235c7661a99117b8599b",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "context_encoding",
+          "payload": {
+            "kmer_size": 3,
+            "sequence": "ACGTACGTACGTACGT",
+            "sequence_id": "aggregate-context-1",
+            "source_id": "seq-refseq"
+          },
+          "record_id": "C01-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "seq-refseq"
+          ]
+        },
+        "record_id": "C01-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_effect_frontier:seq-refseq"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C01",
+      "case_id": "D06-C01-foreign_context",
+      "content_address": "sha256:1c57103e6d7c2b630bb77f466cc1e15559310da5c94e24cdeb0492c37d39bd27",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for context_encoding",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "context_encoding",
+      "operation_id": "D06-C01",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C01-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_effect_frontier:seq-refseq"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C01",
+      "case_id": "D06-C01-malformed_input",
+      "content_address": "sha256:272489123bc82a81bbc88d786690c8b27fc2760ed0e3de659e19df36fef77b03",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for context_encoding",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "context_encoding",
+      "operation_id": "D06-C01",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C01-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_effect_frontier:seq-refseq"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C01",
+      "case_id": "D06-C01-identity_conflict",
+      "content_address": "sha256:c53f3f91df49cca37a5330b2d7e18039fa92ee2ca594b5b93900d5656a067e11",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for context_encoding",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "context_encoding",
+      "operation_id": "D06-C01",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C01-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_effect_frontier:seq-refseq"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C02",
+      "case_id": "D06-C02-positive",
+      "content_address": "sha256:4c67bd0d7b430447b95d15fb7dce8e13f0bf2e3e5ab4580b925f0d40f5f4ae22",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "public positive foundation_model_adapter family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_effect_frontier",
+      "operation": "foundation_model_adapter",
+      "operation_id": "D06-C02",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:20143655cead5944cd5750dbf6d32ce0d7cc7524b29a155f67c3885314463b9f",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "foundation_model_adapter",
+          "payload": {
+            "source_id": "seq-model-card",
+            "text": "model_id\tmodel_version\tvariant_id\treference_score\talternate_score\tcontext_length\nm1\t1.0\tvar-1\t0.20\t0.80\t512\nm2\t1.1\tvar-1\t0.25\t0.75\t512"
+          },
+          "record_id": "C02-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "seq-model-card"
+          ]
+        },
+        "record_id": "C02-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C02",
+      "case_id": "D06-C02-foreign_context",
+      "content_address": "sha256:2164f8e36a731441574da2142dae36bb97ffbde430ef49f1a9b9c10d16e19b0a",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for foundation_model_adapter",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "foundation_model_adapter",
+      "operation_id": "D06-C02",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C02-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C02",
+      "case_id": "D06-C02-malformed_input",
+      "content_address": "sha256:40f02a84a071ff4627a7ad5951a5f0e8b6269fd0f011f3092c5bc43d38f7b176",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for foundation_model_adapter",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "foundation_model_adapter",
+      "operation_id": "D06-C02",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C02-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C02",
+      "case_id": "D06-C02-identity_conflict",
+      "content_address": "sha256:95e71a339d64eeedfff059c4ea7ba89631f4bf27ff17fcad118107a7649cd933",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for foundation_model_adapter",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "foundation_model_adapter",
+      "operation_id": "D06-C02",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C02-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C03",
+      "case_id": "D06-C03-positive",
+      "content_address": "sha256:5ea04bac231bb3c038fb424027a0196e179a8024545cb26f363342540735f90d",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "public positive long_context_variant_effect family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_effect_frontier",
+      "operation": "long_context_variant_effect",
+      "operation_id": "D06-C03",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:be6ac0b84aefafa0297c643eb61e468daa4dbc9ad457bb0d312418dc80c45f89",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "long_context_variant_effect",
+          "payload": {
+            "source_id": "seq-model-card",
+            "text": "model_id\tmodel_version\tvariant_id\treference_score\talternate_score\tcontext_length\nm-long\t2.0\tvar-5\t0.10\t0.70\t2048"
+          },
+          "record_id": "C03-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "seq-model-card"
+          ]
+        },
+        "record_id": "C03-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C03",
+      "case_id": "D06-C03-foreign_context",
+      "content_address": "sha256:5eb69d9046e47d706964a2ec4b30521c96f82d4b7a10db00251e43bf81efadee",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for long_context_variant_effect",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "long_context_variant_effect",
+      "operation_id": "D06-C03",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C03-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C03",
+      "case_id": "D06-C03-malformed_input",
+      "content_address": "sha256:038bcddaeadeed0dbc60e3de5773b93b2f75cc6ac9abf0fcb5211942c1c8d0a9",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for long_context_variant_effect",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "long_context_variant_effect",
+      "operation_id": "D06-C03",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C03-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C03",
+      "case_id": "D06-C03-identity_conflict",
+      "content_address": "sha256:cac1f82b9880d18e858a3f64a1ffb816a1bfa9b782e4171ffb2ead7ef1a805b7",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for long_context_variant_effect",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "long_context_variant_effect",
+      "operation_id": "D06-C03",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C03-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_effect_frontier:seq-model-card"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C04",
+      "case_id": "D06-C04-positive",
+      "content_address": "sha256:17f5d7ad761d39bede7b9b61554bcc781adaae5296feb64f8052210d450a2ffb",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "public positive regulatory_track_delta_ensemble family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_effect_frontier",
+      "operation": "regulatory_track_delta_ensemble",
+      "operation_id": "D06-C04",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:c2c6582f89e8913a352c2fc64ecedce0357c914b9acd04ba5a146262391be302",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "regulatory_track_delta_ensemble",
+          "payload": {
+            "observations": [
+              {
+                "alternate_score": 0.8,
+                "context_length": 1024,
+                "model_id": "m1",
+                "model_version": "1",
+                "observation_id": "o1",
+                "raw_hash": "r1",
+                "reference_score": 0.1,
+                "source_id": "seq-regulatory-track",
+                "variant_id": "var-8"
+              },
+              {
+                "alternate_score": 0.85,
+                "context_length": 1024,
+                "model_id": "m2",
+                "model_version": "1",
+                "observation_id": "o2",
+                "raw_hash": "r2",
+                "reference_score": 0.2,
+                "source_id": "seq-regulatory-track",
+                "variant_id": "var-8"
+              }
+            ]
+          },
+          "record_id": "C04-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "seq-regulatory-track"
+          ]
+        },
+        "record_id": "C04-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C04",
+      "case_id": "D06-C04-foreign_context",
+      "content_address": "sha256:7df64dd2e4249d84c829a11e303e37e39d2bcfd12b7bc4b44c38af4e0326e3f5",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for regulatory_track_delta_ensemble",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "regulatory_track_delta_ensemble",
+      "operation_id": "D06-C04",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C04-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C04",
+      "case_id": "D06-C04-malformed_input",
+      "content_address": "sha256:54e033e9db78b96d9abcb6f4a711d8bb4594d1faca0c404d1c93482974560ac9",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for regulatory_track_delta_ensemble",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "regulatory_track_delta_ensemble",
+      "operation_id": "D06-C04",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C04-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C04",
+      "case_id": "D06-C04-identity_conflict",
+      "content_address": "sha256:2ea356730c9f4bf2fb87087efe41d6540ba62bf50abd62d8885df463913738ba",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|regulatory_sequence|baseline",
+      "description": "aggregate boundary control for regulatory_track_delta_ensemble",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_effect_frontier",
+      "operation": "regulatory_track_delta_ensemble",
+      "operation_id": "D06-C04",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C04-POS-001"
+      },
+      "plane": "effect",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C05",
+      "case_id": "D06-C05-positive",
+      "content_address": "sha256:fbd173cde6c807bfda6ae23bc0333d2f62d61a4ac5be15eb229b719c79976fb5",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "public positive motif_disruption family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "motif_loss"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_disruption",
+      "operation_id": "D06-C05",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:66703e432d8752e3d0c01eee011d8dafcc1cc791de0a11f18524ccbed5b50a07",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+          "expected_issue_codes": [
+            "motif_loss"
+          ],
+          "expected_state": "supported",
+          "operation": "motif_disruption",
+          "payload": {
+            "alternate": "TTTGCTATTT",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+            "motifs": [
+              {
+                "consensus": "GATA",
+                "motif_id": "TF:GATA",
+                "name": "GATA factor",
+                "source_id": "jaspar-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": true,
+                "threshold": 1.0
+              },
+              {
+                "consensus": "ACGT",
+                "motif_id": "TF:ACGT",
+                "name": "ACGT factor",
+                "source_id": "jaspar-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": true,
+                "threshold": 1.0
+              }
+            ],
+            "reference": "TTTGATATTT",
+            "variant_id": "aggregate-disruption-1",
+            "window_start": 101
+          },
+          "record_id": "C05-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "jaspar-aggregate",
+            "encode-cis-regulatory"
+          ]
+        },
+        "record_id": "C05-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C05",
+      "case_id": "D06-C05-foreign_context",
+      "content_address": "sha256:a039a10fe891f4dd24f06d2a1ad4a1d90eae8dc0c602040277f90b08fa9a2a20",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_disruption",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_disruption",
+      "operation_id": "D06-C05",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C05-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C05",
+      "case_id": "D06-C05-malformed_input",
+      "content_address": "sha256:e173f85d9764ed428c4236cf0ba3127aeb5853cc1224156f05a4bc5e32b0d2db",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_disruption",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_disruption",
+      "operation_id": "D06-C05",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C05-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C05",
+      "case_id": "D06-C05-identity_conflict",
+      "content_address": "sha256:4ba5a6cb2a8cdb229b64e96f36d17f9532afd0864802232fba839efb2c1c366a",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_disruption",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_disruption",
+      "operation_id": "D06-C05",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C05-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C06",
+      "case_id": "D06-C06-positive",
+      "content_address": "sha256:335237d9987dc81f8ce3ed37a1b0534fbc8ba57ad58fb7612f67c29815a8e653",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "public positive motif_creation family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "motif_gain"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_creation",
+      "operation_id": "D06-C06",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:b9a613234d4c89a26f07b1ef427af703d5c9caf982beefc7c0b92f905b6151a5",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+          "expected_issue_codes": [
+            "motif_gain"
+          ],
+          "expected_state": "supported",
+          "operation": "motif_creation",
+          "payload": {
+            "alternate": "TTTGATAAAA",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+            "motifs": [
+              {
+                "consensus": "GATA",
+                "motif_id": "TF:GATA",
+                "name": "GATA factor",
+                "source_id": "jaspar-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": true,
+                "threshold": 1.0
+              }
+            ],
+            "reference": "TTTCCCCAAA",
+            "variant_id": "aggregate-creation-1",
+            "window_start": 201
+          },
+          "record_id": "C06-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "jaspar-aggregate",
+            "encode-cis-regulatory"
+          ]
+        },
+        "record_id": "C06-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C06",
+      "case_id": "D06-C06-foreign_context",
+      "content_address": "sha256:557bdbe55090a9457e739d678da0dd964887ee84bcf836acdef6e56bbea375a3",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_creation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_creation",
+      "operation_id": "D06-C06",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C06-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C06",
+      "case_id": "D06-C06-malformed_input",
+      "content_address": "sha256:bb059ff5164da53f03a7531f84e328b1c6bac73185938b23d5d053f9064c2d3b",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_creation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_creation",
+      "operation_id": "D06-C06",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C06-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C06",
+      "case_id": "D06-C06-identity_conflict",
+      "content_address": "sha256:8ce1a5a48cafcc66bc9c533110c79b3a2be1cd502f7b1d4be4b83acb061585a4",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_creation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_creation",
+      "operation_id": "D06-C06",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C06-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_grammar_frontier:jaspar-aggregate",
+        "sequence_grammar_frontier:encode-cis-regulatory"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C07",
+      "case_id": "D06-C07-positive",
+      "content_address": "sha256:81db901dab4a7aa09bd6b81673ab50395df285779f8a779833c65715b592ac18",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "public positive motif_spacing_grammar family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "compatible_spacing"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_spacing_grammar",
+      "operation_id": "D06-C07",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:96a6515626997b69e3b6bddd41e54f82267c443a16b6898a8c1a66f1fc37091c",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+          "expected_issue_codes": [
+            "compatible_spacing"
+          ],
+          "expected_state": "supported",
+          "operation": "motif_spacing_grammar",
+          "payload": {
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+            "hits": [
+              {
+                "end": 13,
+                "matched_sequence": "ACGT",
+                "motif_id": "TF:GATA",
+                "motif_name": "TF:GATA",
+                "score": 1.0,
+                "source_id": "jaspar-aggregate",
+                "source_version": "2026.1",
+                "start": 10,
+                "strand": "+"
+              },
+              {
+                "end": 25,
+                "matched_sequence": "ACGT",
+                "motif_id": "TF:ACGT",
+                "motif_name": "TF:ACGT",
+                "score": 1.0,
+                "source_id": "jaspar-aggregate",
+                "source_version": "2026.1",
+                "start": 22,
+                "strand": "+"
+              }
+            ],
+            "rules": [
+              {
+                "allowed_orientations": [
+                  "same"
+                ],
+                "maximum_spacing": 10,
+                "minimum_spacing": 6,
+                "motif_a": "TF:GATA",
+                "motif_b": "TF:ACGT",
+                "rule_id": "enhancer-pair-1",
+                "source_id": "grammar-benchmark",
+                "source_version": "aggregate-2026.1"
+              }
+            ]
+          },
+          "record_id": "C07-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "grammar-benchmark",
+            "jaspar-aggregate"
+          ]
+        },
+        "record_id": "C07-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C07",
+      "case_id": "D06-C07-foreign_context",
+      "content_address": "sha256:aca166b6fc09bdc809f40d2d67bed645f772373a18df5fab28ee0d92d06ecec9",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_spacing_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_spacing_grammar",
+      "operation_id": "D06-C07",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C07-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C07",
+      "case_id": "D06-C07-malformed_input",
+      "content_address": "sha256:e691d1b7afbbc754082c7fdd6d59c063b64c17902eb41b1ecaf6b7bbc027b708",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_spacing_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_spacing_grammar",
+      "operation_id": "D06-C07",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C07-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C07",
+      "case_id": "D06-C07-identity_conflict",
+      "content_address": "sha256:f39a2ded8b02e0b6450a73721e24bcc4b12de546e78b24b4534e60fa9ea774d3",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for motif_spacing_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "motif_spacing_grammar",
+      "operation_id": "D06-C07",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C07-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C08",
+      "case_id": "D06-C08-positive",
+      "content_address": "sha256:039a69f6f074c712cb91804618530d5414dd10f3ac1480a50217ad027230a075",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "public positive cooperative_tf_grammar family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "interaction_supported"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_grammar_frontier",
+      "operation": "cooperative_tf_grammar",
+      "operation_id": "D06-C08",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:ed725501531e6759ee22f4ebfa1fe0a39581ddba8fdd8a157fda1481eb99bc7b",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+          "expected_issue_codes": [
+            "interaction_supported"
+          ],
+          "expected_state": "supported",
+          "operation": "cooperative_tf_grammar",
+          "payload": {
+            "baseline": 0.15,
+            "hits": [
+              {
+                "end": 13,
+                "matched_sequence": "ACGT",
+                "motif_id": "TF:GATA",
+                "motif_name": "TF:GATA",
+                "score": 1.0,
+                "source_id": "jaspar-aggregate",
+                "source_version": "2026.1",
+                "start": 10,
+                "strand": "+"
+              },
+              {
+                "end": 25,
+                "matched_sequence": "ACGT",
+                "motif_id": "TF:ACGT",
+                "motif_name": "TF:ACGT",
+                "score": 1.0,
+                "source_id": "jaspar-aggregate",
+                "source_version": "2026.1",
+                "start": 22,
+                "strand": "+"
+              }
+            ],
+            "interactions": [
+              {
+                "interaction_id": "pair-activation",
+                "maximum_spacing": 10,
+                "motif_a": "TF:GATA",
+                "motif_b": "TF:ACGT",
+                "required": true,
+                "source_id": "grammar-benchmark",
+                "source_version": "aggregate-2026.1",
+                "weight": 0.7
+              }
+            ],
+            "model_id": "grammar-model-aggregate",
+            "model_version": "2.1",
+            "sequence": "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT",
+            "sequence_id": "aggregate-cooperative-1"
+          },
+          "record_id": "C08-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "grammar-benchmark",
+            "hocomoco-motif-set"
+          ]
+        },
+        "record_id": "C08-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C08",
+      "case_id": "D06-C08-foreign_context",
+      "content_address": "sha256:cd6f20d83c5e499f19ce4d0abf45782149e45d09316750e682785ce2647f748c",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for cooperative_tf_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "cooperative_tf_grammar",
+      "operation_id": "D06-C08",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C08-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C08",
+      "case_id": "D06-C08-malformed_input",
+      "content_address": "sha256:6addd8bc7e7562ebbe2dc5dc54c43caffe1f3bb3dfa69f5feefad92bb4495b10",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for cooperative_tf_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "cooperative_tf_grammar",
+      "operation_id": "D06-C08",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C08-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C08",
+      "case_id": "D06-C08-identity_conflict",
+      "content_address": "sha256:b9797c98d49b7da9f786e91321c484a30301265eb1b6a71f92c9dba9592e4933",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|cis_regulatory_grammar|baseline",
+      "description": "aggregate boundary control for cooperative_tf_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_grammar_frontier",
+      "operation": "cooperative_tf_grammar",
+      "operation_id": "D06-C08",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C08-POS-001"
+      },
+      "plane": "grammar",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C09",
+      "case_id": "D06-C09-positive",
+      "content_address": "sha256:a3f9e85c283bd0b1bab8eb7368cf305afb3394a0e4d9de967fa1f0424608cd00",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "public positive nucleosome_propensity family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "propensity_observed"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_regulation_frontier",
+      "operation": "nucleosome_propensity",
+      "operation_id": "D06-C09",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:621b55c7a05177ba2506f98825399db63769572f1a44c30606283b1dfaf0fbe1",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+          "expected_issue_codes": [
+            "propensity_observed"
+          ],
+          "expected_state": "supported",
+          "operation": "nucleosome_propensity",
+          "payload": {
+            "chrom": "7",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+            "sequence": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "sequence_id": "aggregate-nucleosome-1",
+            "source_id": "ncbi-reference",
+            "source_version": "2026.1",
+            "start": 1001
+          },
+          "record_id": "C09-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ncbi-reference",
+            "ensembl-reference"
+          ]
+        },
+        "record_id": "C09-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_regulation_frontier:ncbi-reference",
+        "sequence_regulation_frontier:ensembl-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C09",
+      "case_id": "D06-C09-foreign_context",
+      "content_address": "sha256:b39ada1b4a56879a9b16047224b18774a0dd98f38eac1f2e37cc3fa2df47eb0d",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for nucleosome_propensity",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "nucleosome_propensity",
+      "operation_id": "D06-C09",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C09-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_regulation_frontier:ncbi-reference",
+        "sequence_regulation_frontier:ensembl-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C09",
+      "case_id": "D06-C09-malformed_input",
+      "content_address": "sha256:b01fb2b62c9101b4b112a5cee90fee072cad1a7c50f51f2d9e9fa1ac4a449829",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for nucleosome_propensity",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "nucleosome_propensity",
+      "operation_id": "D06-C09",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C09-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_regulation_frontier:ncbi-reference",
+        "sequence_regulation_frontier:ensembl-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C09",
+      "case_id": "D06-C09-identity_conflict",
+      "content_address": "sha256:1add701c630906dbe67ac081eca9f0de27edcc94d456098257301553752bd764",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for nucleosome_propensity",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "nucleosome_propensity",
+      "operation_id": "D06-C09",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C09-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_regulation_frontier:ncbi-reference",
+        "sequence_regulation_frontier:ensembl-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C10",
+      "case_id": "D06-C10-positive",
+      "content_address": "sha256:635eebc480757105529e5074c083042672a4de6ed607093ce708f678e2caec1a",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "public positive splice_regulation family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "motif_disrupted"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_regulation_frontier",
+      "operation": "splice_regulation",
+      "operation_id": "D06-C10",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:7dbe5ab57dc9d64036276e1e5c331bc0f75514d60e9d82a73e037b6dac06205e",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+          "expected_issue_codes": [
+            "motif_disrupted"
+          ],
+          "expected_state": "supported",
+          "operation": "splice_regulation",
+          "payload": {
+            "alternate_sequence": "AACATAA",
+            "chrom": "7",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+            "motifs": [
+              {
+                "consensus": "GT",
+                "motif_id": "splice-donor",
+                "name": "aggregate splice donor pattern",
+                "role": "donor",
+                "source_id": "splice-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": false,
+                "threshold": 1.0
+              }
+            ],
+            "reference_sequence": "AACGTAA",
+            "sequence_id": "aggregate-splice-1",
+            "start": 2001
+          },
+          "record_id": "C10-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-regulation",
+            "jaspar-motifs"
+          ]
+        },
+        "record_id": "C10-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:jaspar-motifs"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C10",
+      "case_id": "D06-C10-foreign_context",
+      "content_address": "sha256:296864ac469ac2d0ff6106fefafab727fa117e99bab0a5d41cc95d57ee88ff81",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for splice_regulation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "splice_regulation",
+      "operation_id": "D06-C10",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C10-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:jaspar-motifs"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C10",
+      "case_id": "D06-C10-malformed_input",
+      "content_address": "sha256:8ed8a9dcab783cbd58a169f1f2a6cdda28c33d972bf619e9aed30b13368a2896",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for splice_regulation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "splice_regulation",
+      "operation_id": "D06-C10",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C10-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:jaspar-motifs"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C10",
+      "case_id": "D06-C10-identity_conflict",
+      "content_address": "sha256:2138996fa20ffcc98bf4c4223d4f86fb58c969288a4d3e704a21329d6df4c474",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for splice_regulation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "splice_regulation",
+      "operation_id": "D06-C10",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C10-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:jaspar-motifs"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C11",
+      "case_id": "D06-C11-positive",
+      "content_address": "sha256:461b41f92dc25d802f6e66a9d7358bf475e0621a70f2c8bba994538f45441dc4",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "public positive utr_regulation family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "utr_element_observed",
+        "uorf_observed"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_regulation_frontier",
+      "operation": "utr_regulation",
+      "operation_id": "D06-C11",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:0f7c62949a13becaa8521dd56e7cce236bb067065e2d030ce4cedc350fec144f",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+          "expected_issue_codes": [
+            "utr_element_observed",
+            "uorf_observed"
+          ],
+          "expected_state": "supported",
+          "operation": "utr_regulation",
+          "payload": {
+            "chrom": "7",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+            "motifs": [
+              {
+                "consensus": "ATG",
+                "element_kind": "uorf_start",
+                "motif_id": "utr-uorf-start",
+                "name": "aggregate upstream start",
+                "region": "5utr",
+                "source_id": "utr-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": false,
+                "threshold": 1.0
+              },
+              {
+                "consensus": "TGTA",
+                "element_kind": "mirna_seed",
+                "motif_id": "utr-mirna-seed",
+                "name": "aggregate seed pattern",
+                "region": "3utr",
+                "source_id": "utr-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": false,
+                "threshold": 1.0
+              }
+            ],
+            "region": "5utr",
+            "sequence": "CCCATGAAATAACCC",
+            "start": 3001,
+            "utr_id": "aggregate-utr-1"
+          },
+          "record_id": "C11-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-regulation",
+            "ncbi-reference"
+          ]
+        },
+        "record_id": "C11-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C11",
+      "case_id": "D06-C11-foreign_context",
+      "content_address": "sha256:b75c7be9c66f50709515083c60ec4c7e51b9ec6fb665e03e2fd06af47409cd3b",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for utr_regulation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "utr_regulation",
+      "operation_id": "D06-C11",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C11-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C11",
+      "case_id": "D06-C11-malformed_input",
+      "content_address": "sha256:3604a8b9d6ea5d7966fc866ea5a14f4d858088bdd7a7a09eeb9edd8318d7849e",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for utr_regulation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "utr_regulation",
+      "operation_id": "D06-C11",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C11-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C11",
+      "case_id": "D06-C11-identity_conflict",
+      "content_address": "sha256:93f2c8ecee98efb66c2ddcc1ddfc3bbada7e7f197c3a6a56691f83167b060960",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for utr_regulation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "utr_regulation",
+      "operation_id": "D06-C11",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C11-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C12",
+      "case_id": "D06-C12-positive",
+      "content_address": "sha256:f16dc67023a35a00e57776538e4b0ca95c5678414e44233b971d55eeccfa0836",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "public positive promoter_grammar family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "grammar_rule_matched"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "sequence_regulation_frontier",
+      "operation": "promoter_grammar",
+      "operation_id": "D06-C12",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:3d63ac71f1ab614b3ebd473ab97769dfe80b0c0311720a57460b37a83f99045e",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+          "expected_issue_codes": [
+            "grammar_rule_matched"
+          ],
+          "expected_state": "supported",
+          "operation": "promoter_grammar",
+          "payload": {
+            "chrom": "7",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+            "motifs": [
+              {
+                "consensus": "TATA",
+                "element_kind": "tata",
+                "motif_id": "prom-tata",
+                "name": "aggregate TATA pattern",
+                "source_id": "promoter-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": false,
+                "threshold": 1.0
+              },
+              {
+                "consensus": "CA",
+                "element_kind": "initiator",
+                "motif_id": "prom-inr",
+                "name": "aggregate initiator pattern",
+                "source_id": "promoter-aggregate",
+                "source_version": "2026.1",
+                "strand_aware": false,
+                "threshold": 1.0
+              }
+            ],
+            "promoter_id": "aggregate-promoter-1",
+            "rules": [
+              {
+                "allowed_orientations": [
+                  "same"
+                ],
+                "maximum_spacing": 4,
+                "minimum_spacing": 2,
+                "motif_a": "prom-tata",
+                "motif_b": "prom-inr",
+                "rule_id": "prom-tata-inr",
+                "source_id": "promoter-grammar-aggregate",
+                "source_version": "2026.1"
+              }
+            ],
+            "sequence": "AAAATATAAAACAGG",
+            "start": 4001
+          },
+          "record_id": "C12-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "jaspar-motifs",
+            "encode-regulation"
+          ]
+        },
+        "record_id": "C12-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:encode-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C12",
+      "case_id": "D06-C12-foreign_context",
+      "content_address": "sha256:7a4390a89ca904d9bebc0b6fc26190a48f03621c8fb34a485bec9f22094a0dd6",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for promoter_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "promoter_grammar",
+      "operation_id": "D06-C12",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C12-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:encode-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C12",
+      "case_id": "D06-C12-malformed_input",
+      "content_address": "sha256:53fb698c5c12e1631b7e3bd28cb38de5a46cf06660f8fbfc97395d4fb3c6d7f9",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for promoter_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "promoter_grammar",
+      "operation_id": "D06-C12",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C12-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:encode-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C12",
+      "case_id": "D06-C12-identity_conflict",
+      "content_address": "sha256:3dce633b8417115025be3c33b292523bed3b1f102cd94c8a7d94f2a43343fcf7",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|noncoding_sequence|baseline",
+      "description": "aggregate boundary control for promoter_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_regulation_frontier",
+      "operation": "promoter_grammar",
+      "operation_id": "D06-C12",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C12-POS-001"
+      },
+      "plane": "regulation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:encode-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C13",
+      "case_id": "D06-C13-positive",
+      "content_address": "sha256:02864218faecccbf46e5aa0df91ed6987cc6ebd0357ac7f8b8500d999667c266",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "public positive enhancer_grammar family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "sequence_frontier",
+      "operation": "enhancer_grammar",
+      "operation_id": "D06-C13",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:818d9eca9a5dda0fdb7dd5f3b4928b42fa2ca708735aa08171f3398f807ffe41",
+          "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+          "description": "compatible enhancer motif pair satisfies the declared spacing and coverage floor",
+          "expected_issue_codes": [],
+          "expected_state": "accepted",
+          "operation": "enhancer_grammar",
+          "payload": {
+            "input_format": "json",
+            "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"grammar_id\":\"enhancer-egfr\",\"motif_hits\":[{\"end\":110,\"motif_id\":\"M1\",\"start\":100},{\"end\":160,\"motif_id\":\"M2\",\"start\":150}],\"rules\":[{\"left_motif\":\"M1\",\"max_gap\":60,\"min_gap\":40,\"right_motif\":\"M2\"}]}]",
+            "minimum_coverage": 0.6,
+            "source_id": "fixture-grammar",
+            "source_version": "v1"
+          },
+          "record_id": "C13-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-screen",
+            "encode-tf"
+          ]
+        },
+        "record_id": "C13-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C13",
+      "case_id": "D06-C13-foreign_context",
+      "content_address": "sha256:a553bc9eee645b20a8ee9d74338ec182a715166f83b832d8a4cdcdd9f9c41942",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for enhancer_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "enhancer_grammar",
+      "operation_id": "D06-C13",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C13-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C13",
+      "case_id": "D06-C13-malformed_input",
+      "content_address": "sha256:db24f8fdc6b2f0e817898d9f98b90da9ecc8799b218b04b0bd27e4b517bf08e6",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for enhancer_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "enhancer_grammar",
+      "operation_id": "D06-C13",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C13-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C13",
+      "case_id": "D06-C13-identity_conflict",
+      "content_address": "sha256:1d9beffe37dafaf92aba64f4c84ea5fa16374e26f1977bee4030133d7823dad0",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for enhancer_grammar",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "enhancer_grammar",
+      "operation_id": "D06-C13",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C13-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C14",
+      "case_id": "D06-C14-positive",
+      "content_address": "sha256:d5dc2ec389c89e4b86bd1b607ffb197e8e8f549b4aca7b82605ada5f9dfead80",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "public positive allele_saturation family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "sequence_frontier",
+      "operation": "allele_saturation",
+      "operation_id": "D06-C14",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:20f57dc784300aec712a48633180516cb2984a23a61cb750a9e6bd613e5d8f52",
+          "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+          "description": "declared alternate alleles show effects above the reference floor with bounded uncertainty",
+          "expected_issue_codes": [],
+          "expected_state": "accepted",
+          "operation": "allele_saturation",
+          "payload": {
+            "input_format": "json",
+            "input_text": "[{\"alternate_alleles\":[\"A\",\"C\"],\"alternate_scores\":{\"A\":0.72,\"C\":0.58},\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"reference_score\":0.2,\"uncertainty\":0.08,\"variant_id\":\"var-egfr-1\"}]",
+            "minimum_effect": 0.2,
+            "source_id": "fixture-saturation",
+            "source_version": "v1"
+          },
+          "record_id": "C14-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ncbi-refseq",
+            "ga4gh-va-spec"
+          ]
+        },
+        "record_id": "C14-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:ga4gh-va-spec"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C14",
+      "case_id": "D06-C14-foreign_context",
+      "content_address": "sha256:6241d3d0b53756f52fb93364a5fbc97e41650352d92c632c8493424aadfe7056",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for allele_saturation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "allele_saturation",
+      "operation_id": "D06-C14",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C14-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:ga4gh-va-spec"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C14",
+      "case_id": "D06-C14-malformed_input",
+      "content_address": "sha256:75259c5b3a01ccea4a676a8b5e0da8f0e586109c9ebdecec890ee23b231bb3c9",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for allele_saturation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "allele_saturation",
+      "operation_id": "D06-C14",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C14-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:ga4gh-va-spec"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C14",
+      "case_id": "D06-C14-identity_conflict",
+      "content_address": "sha256:6c9ae61be5843062e8ed76c6f61eabe4ac16696fd5a7e6d5765cb6a73a1cb952",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for allele_saturation",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "allele_saturation",
+      "operation_id": "D06-C14",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C14-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:ga4gh-va-spec"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C15",
+      "case_id": "D06-C15-positive",
+      "content_address": "sha256:1f78d901696accfa6e15b4a8bad90b69dcc97cc760fd56909a938b43f302ad0d",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "public positive ensemble_disagreement family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "sequence_frontier",
+      "operation": "ensemble_disagreement",
+      "operation_id": "D06-C15",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:6b1663442ae468505d60b3e777499713dd18ea8426a2cee7c0c5b6eec6c4953b",
+          "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+          "description": "three close predictions retain a stable descriptive ensemble summary",
+          "expected_issue_codes": [],
+          "expected_state": "accepted",
+          "operation": "ensemble_disagreement",
+          "payload": {
+            "disagreement_threshold": 0.1,
+            "input_format": "json",
+            "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"prediction_id\":\"var-egfr-1\",\"predictions\":[0.6,0.62,0.61]}]",
+            "interval_multiplier": 1.96,
+            "source_id": "fixture-ensemble",
+            "source_version": "v1"
+          },
+          "record_id": "C15-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ga4gh-va-spec",
+            "encode-tf",
+            "ensembl-regulation"
+          ]
+        },
+        "record_id": "C15-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C15",
+      "case_id": "D06-C15-foreign_context",
+      "content_address": "sha256:5b2e238f0a4429604ddc93dab93b44021fa31517454760cce4152c9275d0fd80",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for ensemble_disagreement",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "ensemble_disagreement",
+      "operation_id": "D06-C15",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C15-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C15",
+      "case_id": "D06-C15-malformed_input",
+      "content_address": "sha256:4766d88c918e92eda15c15d421a51f1cf66d3093488dabddb4a791fda84cfc89",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for ensemble_disagreement",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "ensemble_disagreement",
+      "operation_id": "D06-C15",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C15-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C15",
+      "case_id": "D06-C15-identity_conflict",
+      "content_address": "sha256:637d6cff5023e968aac94a37008bb5eba0f81099bf9663ef84c9b2f850a85a30",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for ensemble_disagreement",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "ensemble_disagreement",
+      "operation_id": "D06-C15",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C15-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C16",
+      "case_id": "D06-C16-positive",
+      "content_address": "sha256:1fdd52a0cbb0d6b6d3e2b83e521f940527831a10fc15ef6e16e0a715f94ecd2a",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "public positive sequence_evidence_publish family record",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "published",
+      "expected_state": "accepted",
+      "family": "sequence_frontier",
+      "operation": "sequence_evidence_publish",
+      "operation_id": "D06-C16",
+      "payload": {
+        "family_record": {
+          "content_address": "sha256:f065f330f34f90993c66279315082f1df020e79de160704cd0214b3746258e55",
+          "context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+          "description": "context-bound sequence observations publish with model and record addresses",
+          "expected_issue_codes": [],
+          "expected_state": "published",
+          "operation": "sequence_evidence_publish",
+          "payload": {
+            "bundle_id": "sequence-evidence-adult",
+            "input_format": "json",
+            "input_text": "[{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"sequence_id\":\"seq-egfr-ref\",\"variant_id\":\"var-egfr-1\"},{\"context_key\":\"GRCh38|diffuse_glioma|adult|stem_like|core|untreated\",\"sequence_id\":\"seq-egfr-alt\",\"variant_id\":\"var-egfr-1\"}]",
+            "model_ids": [
+              "model-grammar-v1",
+              "model-saturation-v1"
+            ],
+            "source_id": "fixture-evidence",
+            "source_version": "v1"
+          },
+          "record_id": "C16-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ga4gh-va-spec",
+            "ncbi-refseq",
+            "encode-screen"
+          ]
+        },
+        "record_id": "C16-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "positive",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:encode-screen"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C16",
+      "case_id": "D06-C16-foreign_context",
+      "content_address": "sha256:7ba9dec9044b49e9e88fe3a80aa63dc148f7c07c66126b9a62d6cfd1d4062e9f",
+      "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for sequence_evidence_publish",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "sequence_evidence_publish",
+      "operation_id": "D06-C16",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|pediatric|bulk_tumor|sequence|baseline",
+        "record_id": "C16-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:encode-screen"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C16",
+      "case_id": "D06-C16-malformed_input",
+      "content_address": "sha256:cfb31f68237e15a9d6febd2d2afba5f2130e9f0686ebafd38eb5ad2b09457a15",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for sequence_evidence_publish",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "sequence_evidence_publish",
+      "operation_id": "D06-C16",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "malformed": true,
+        "record_id": "C16-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:encode-screen"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C16",
+      "case_id": "D06-C16-identity_conflict",
+      "content_address": "sha256:1d58d54adc3bb22e04a7ce2083b13134a9010d07602f91b7ff17f9f77389c22e",
+      "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|stem_like|core|untreated",
+      "description": "aggregate boundary control for sequence_evidence_publish",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "sequence_frontier",
+      "operation": "sequence_evidence_publish",
+      "operation_id": "D06-C16",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+        "declared_operation": "different_operation",
+        "identity_conflict": true,
+        "record_id": "C16-POS-001"
+      },
+      "plane": "frontier",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq",
+        "sequence_frontier:encode-screen"
+      ]
+    }
+  ],
+  "content_address": "sha256:a5f16be8733c2545d1623d86e4e40550f2dd8eaf09a81c768d02da8e4de295d2",
+  "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|sequence|baseline",
+  "fixture_id": "sequence-grammar-variant-effect-public-aggregate",
+  "operations": [
+    {
+      "capability_id": "GNC-D06-C01",
+      "content_address": "sha256:e6a08a1b80ef299bf08a8071f652faf25128793e098ca0525dffa8a53ecf4de9",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [],
+      "family": "sequence_effect_frontier",
+      "input_contract": "sequence.context_encoding.public_record.v1",
+      "operation": "context_encoding",
+      "operation_id": "D06-C01",
+      "ordinal": 1,
+      "output_contract": "sequence.context_encoding.receipt.v1",
+      "plane": "effect",
+      "source_ids": [
+        "sequence_effect_frontier:seq-ensembl",
+        "sequence_effect_frontier:seq-model-card",
+        "sequence_effect_frontier:seq-refseq",
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C02",
+      "content_address": "sha256:151ce8fffdeaf4f2350c5fc9db7d6af8f95a1823819d2fb8933ba510ea51b3e5",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C01"
+      ],
+      "family": "sequence_effect_frontier",
+      "input_contract": "sequence.foundation_model_adapter.public_record.v1",
+      "operation": "foundation_model_adapter",
+      "operation_id": "D06-C02",
+      "ordinal": 2,
+      "output_contract": "sequence.foundation_model_adapter.receipt.v1",
+      "plane": "effect",
+      "source_ids": [
+        "sequence_effect_frontier:seq-ensembl",
+        "sequence_effect_frontier:seq-model-card",
+        "sequence_effect_frontier:seq-refseq",
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C03",
+      "content_address": "sha256:e1823f0fea1311aa6bad92a43be54dda96cf982fec568b3b63b76b85c61742b9",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C02"
+      ],
+      "family": "sequence_effect_frontier",
+      "input_contract": "sequence.long_context_variant_effect.public_record.v1",
+      "operation": "long_context_variant_effect",
+      "operation_id": "D06-C03",
+      "ordinal": 3,
+      "output_contract": "sequence.long_context_variant_effect.receipt.v1",
+      "plane": "effect",
+      "source_ids": [
+        "sequence_effect_frontier:seq-ensembl",
+        "sequence_effect_frontier:seq-model-card",
+        "sequence_effect_frontier:seq-refseq",
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C04",
+      "content_address": "sha256:00717d6eafb5c762b96b3c584a18ee6224b7025c165bb57648365cda749aca82",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C03"
+      ],
+      "family": "sequence_effect_frontier",
+      "input_contract": "sequence.regulatory_track_delta_ensemble.public_record.v1",
+      "operation": "regulatory_track_delta_ensemble",
+      "operation_id": "D06-C04",
+      "ordinal": 4,
+      "output_contract": "sequence.regulatory_track_delta_ensemble.receipt.v1",
+      "plane": "effect",
+      "source_ids": [
+        "sequence_effect_frontier:seq-ensembl",
+        "sequence_effect_frontier:seq-model-card",
+        "sequence_effect_frontier:seq-refseq",
+        "sequence_effect_frontier:seq-regulatory-track"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C05",
+      "content_address": "sha256:e7b62808992a99d6f97d08b169585cc804ff00c35093ad4bd4562787809d55ba",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C04"
+      ],
+      "family": "sequence_grammar_frontier",
+      "input_contract": "sequence.motif_disruption.public_record.v1",
+      "operation": "motif_disruption",
+      "operation_id": "D06-C05",
+      "ordinal": 5,
+      "output_contract": "sequence.motif_disruption.receipt.v1",
+      "plane": "grammar",
+      "source_ids": [
+        "sequence_grammar_frontier:encode-cis-regulatory",
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C06",
+      "content_address": "sha256:54a3ca2bb7da68b73959d4ff033e53ff5944b2f0249832175097883b48c32ccb",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C05"
+      ],
+      "family": "sequence_grammar_frontier",
+      "input_contract": "sequence.motif_creation.public_record.v1",
+      "operation": "motif_creation",
+      "operation_id": "D06-C06",
+      "ordinal": 6,
+      "output_contract": "sequence.motif_creation.receipt.v1",
+      "plane": "grammar",
+      "source_ids": [
+        "sequence_grammar_frontier:encode-cis-regulatory",
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C07",
+      "content_address": "sha256:5e24b7926cf6170d2390ef74ae59ce7dae2a524eab6ceb1d175a84fe36182a76",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C06"
+      ],
+      "family": "sequence_grammar_frontier",
+      "input_contract": "sequence.motif_spacing_grammar.public_record.v1",
+      "operation": "motif_spacing_grammar",
+      "operation_id": "D06-C07",
+      "ordinal": 7,
+      "output_contract": "sequence.motif_spacing_grammar.receipt.v1",
+      "plane": "grammar",
+      "source_ids": [
+        "sequence_grammar_frontier:encode-cis-regulatory",
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C08",
+      "content_address": "sha256:091003eedb370b932d39408f16c3e0c0c90cbcd0275bd74e8e31d2a847efaa46",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C07"
+      ],
+      "family": "sequence_grammar_frontier",
+      "input_contract": "sequence.cooperative_tf_grammar.public_record.v1",
+      "operation": "cooperative_tf_grammar",
+      "operation_id": "D06-C08",
+      "ordinal": 8,
+      "output_contract": "sequence.cooperative_tf_grammar.receipt.v1",
+      "plane": "grammar",
+      "source_ids": [
+        "sequence_grammar_frontier:encode-cis-regulatory",
+        "sequence_grammar_frontier:grammar-benchmark",
+        "sequence_grammar_frontier:hocomoco-motif-set",
+        "sequence_grammar_frontier:jaspar-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C09",
+      "content_address": "sha256:d776096a007f6113edf821d1a557c74dd3b7cc36fc9ce345193ca2f8c5886dff",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C08"
+      ],
+      "family": "sequence_regulation_frontier",
+      "input_contract": "sequence.nucleosome_propensity.public_record.v1",
+      "operation": "nucleosome_propensity",
+      "operation_id": "D06-C09",
+      "ordinal": 9,
+      "output_contract": "sequence.nucleosome_propensity.receipt.v1",
+      "plane": "regulation",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ensembl-reference",
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C10",
+      "content_address": "sha256:ad8772f65849a564fb8af31538ee31820bb68aa8f23ec91ebcd1f96f20dfe050",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C09"
+      ],
+      "family": "sequence_regulation_frontier",
+      "input_contract": "sequence.splice_regulation.public_record.v1",
+      "operation": "splice_regulation",
+      "operation_id": "D06-C10",
+      "ordinal": 10,
+      "output_contract": "sequence.splice_regulation.receipt.v1",
+      "plane": "regulation",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ensembl-reference",
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C11",
+      "content_address": "sha256:4e70f0fad22c0a1fcce62b80e1e69ce574d82a7f2e4ad4e738862397cd284964",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C10"
+      ],
+      "family": "sequence_regulation_frontier",
+      "input_contract": "sequence.utr_regulation.public_record.v1",
+      "operation": "utr_regulation",
+      "operation_id": "D06-C11",
+      "ordinal": 11,
+      "output_contract": "sequence.utr_regulation.receipt.v1",
+      "plane": "regulation",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ensembl-reference",
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C12",
+      "content_address": "sha256:b13a03b63f6efac2d8e43a3e029ae2b10b979e726229854ee1af32da69021ee7",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C11"
+      ],
+      "family": "sequence_regulation_frontier",
+      "input_contract": "sequence.promoter_grammar.public_record.v1",
+      "operation": "promoter_grammar",
+      "operation_id": "D06-C12",
+      "ordinal": 12,
+      "output_contract": "sequence.promoter_grammar.receipt.v1",
+      "plane": "regulation",
+      "source_ids": [
+        "sequence_regulation_frontier:encode-regulation",
+        "sequence_regulation_frontier:ensembl-reference",
+        "sequence_regulation_frontier:jaspar-motifs",
+        "sequence_regulation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C13",
+      "content_address": "sha256:506fdca0dc89428971b2ac32cbda166b9f49518c60499cc2a9e7faf565fd1ab6",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C12"
+      ],
+      "family": "sequence_frontier",
+      "input_contract": "sequence.enhancer_grammar.public_record.v1",
+      "operation": "enhancer_grammar",
+      "operation_id": "D06-C13",
+      "ordinal": 13,
+      "output_contract": "sequence.enhancer_grammar.receipt.v1",
+      "plane": "frontier",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation",
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C14",
+      "content_address": "sha256:d02965ea5640367d3306f58600911aca2028d165ab21e99fcb71d81f835a6a39",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C13"
+      ],
+      "family": "sequence_frontier",
+      "input_contract": "sequence.allele_saturation.public_record.v1",
+      "operation": "allele_saturation",
+      "operation_id": "D06-C14",
+      "ordinal": 14,
+      "output_contract": "sequence.allele_saturation.receipt.v1",
+      "plane": "frontier",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation",
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C15",
+      "content_address": "sha256:d81afb14a6b441f9368d51fd31a22b1ce73ccd0fa237343dd86e5bf4b9d02558",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C14"
+      ],
+      "family": "sequence_frontier",
+      "input_contract": "sequence.ensemble_disagreement.public_record.v1",
+      "operation": "ensemble_disagreement",
+      "operation_id": "D06-C15",
+      "ordinal": 15,
+      "output_contract": "sequence.ensemble_disagreement.receipt.v1",
+      "plane": "frontier",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation",
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq"
+      ]
+    },
+    {
+      "capability_id": "GNC-D06-C16",
+      "content_address": "sha256:c6ddfdee416f195f90114563fbe8c75d8f1fdf62119966067470593b6272d73e",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation",
+      "dependencies": [
+        "D06-C15"
+      ],
+      "family": "sequence_frontier",
+      "input_contract": "sequence.sequence_evidence_publish.public_record.v1",
+      "operation": "sequence_evidence_publish",
+      "operation_id": "D06-C16",
+      "ordinal": 16,
+      "output_contract": "sequence.sequence_evidence_publish.receipt.v1",
+      "plane": "frontier",
+      "source_ids": [
+        "sequence_frontier:encode-screen",
+        "sequence_frontier:encode-tf",
+        "sequence_frontier:ensembl-regulation",
+        "sequence_frontier:ga4gh-va-spec",
+        "sequence_frontier:ncbi-refseq"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:4af697c169f0412856b7c2f63fc4e15e09b7bb1366e44ef354f8291de3927ae9",
+      "family": "sequence_effect_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_effect_frontier:seq-refseq",
+      "title": "seq-refseq",
+      "uri": "https://www.ncbi.nlm.nih.gov/refseq/",
+      "version": "2026-01"
+    },
+    {
+      "content_address": "sha256:364e33279d0451f2284aa443d53221d7ff46496abbaf795b7e2ee168fb15b90a",
+      "family": "sequence_effect_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_effect_frontier:seq-ensembl",
+      "title": "seq-ensembl",
+      "uri": "https://www.ensembl.org/info/data/",
+      "version": "release-114"
+    },
+    {
+      "content_address": "sha256:3bdc7b39dd5e6c972933843b4a85dfec562fabc2a8e2c52b0d44ebcca9513e7c",
+      "family": "sequence_effect_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_effect_frontier:seq-model-card",
+      "title": "seq-model-card",
+      "uri": "https://example.org/sequence-model-card",
+      "version": "v1"
+    },
+    {
+      "content_address": "sha256:a0f9bac0941e5092247e00cfcdd3862462290b322a8c57958b0f46be529463ab",
+      "family": "sequence_effect_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_effect_frontier:seq-regulatory-track",
+      "title": "seq-regulatory-track",
+      "uri": "https://example.org/regulatory-track",
+      "version": "2026.1"
+    },
+    {
+      "content_address": "sha256:1796c81669acbb78e82be455750a487a413ab7a972051f2f715df184a0576108",
+      "family": "sequence_grammar_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_grammar_frontier:jaspar-aggregate",
+      "title": "jaspar-aggregate",
+      "uri": "https://jaspar.genereg.net/",
+      "version": "2026.1"
+    },
+    {
+      "content_address": "sha256:de541ec4f316c38691986d58f6dfa8d68a078d56ca85127cd2f5bc5830505fd0",
+      "family": "sequence_grammar_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_grammar_frontier:encode-cis-regulatory",
+      "title": "encode-cis-regulatory",
+      "uri": "https://www.encodeproject.org/",
+      "version": "2025.4"
+    },
+    {
+      "content_address": "sha256:0d87d0de059c15ad1a6a8ea0f376f5d1eac39a33a2982205ced17a21eb035b18",
+      "family": "sequence_grammar_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_grammar_frontier:hocomoco-motif-set",
+      "title": "hocomoco-motif-set",
+      "uri": "https://hocomoco11.autosome.org/",
+      "version": "11.0"
+    },
+    {
+      "content_address": "sha256:cde5c39b63c565ead0f5158d283cf2db7473eb05ca2b2ba80182195a65898c96",
+      "family": "sequence_grammar_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_grammar_frontier:grammar-benchmark",
+      "title": "grammar-benchmark",
+      "uri": "https://www.ncbi.nlm.nih.gov/pmc/",
+      "version": "aggregate-2026.1"
+    },
+    {
+      "content_address": "sha256:3275e6ef1a2dab673895664ef9ef8f123495513078205937a50fb1a99b99795b",
+      "family": "sequence_regulation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_regulation_frontier:encode-regulation",
+      "title": "encode-regulation",
+      "uri": "https://www.encodeproject.org/",
+      "version": "2025.4"
+    },
+    {
+      "content_address": "sha256:eb2bcc9ad16a7eb002364641347b9796cb09a01a7dc9f4fd9b4c5f115c27cc23",
+      "family": "sequence_regulation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_regulation_frontier:jaspar-motifs",
+      "title": "jaspar-motifs",
+      "uri": "https://jaspar.genereg.net/",
+      "version": "2026.1"
+    },
+    {
+      "content_address": "sha256:710cf15d25e2af8b3236b5f872d3d76b4e9253a9df5451e2e6014c0d14d6a0db",
+      "family": "sequence_regulation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_regulation_frontier:ncbi-reference",
+      "title": "ncbi-reference",
+      "uri": "https://www.ncbi.nlm.nih.gov/",
+      "version": "2026.1"
+    },
+    {
+      "content_address": "sha256:ac7eb9746abe119c4eddc61d8be0a2b6dd126b6905396fa4a305f7ecaf2abae7",
+      "family": "sequence_regulation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_regulation_frontier:ensembl-reference",
+      "title": "ensembl-reference",
+      "uri": "https://www.ensembl.org/",
+      "version": "release-114"
+    },
+    {
+      "content_address": "sha256:4da06e0ced40c51bcd9078aed920cf5db9d1cf61b0114e3b98ff0f6d6b37fdc2",
+      "family": "sequence_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_frontier:ncbi-refseq",
+      "title": "NCBI Reference Sequence Database",
+      "uri": "https://www.ncbi.nlm.nih.gov/refseq/",
+      "version": "release-236"
+    },
+    {
+      "content_address": "sha256:085ad75b3980be8e5575dbedeadafe330609b8922e26ec52cff986fc19d24a98",
+      "family": "sequence_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_frontier:ga4gh-va-spec",
+      "title": "GA4GH Variant Annotation Specification",
+      "uri": "https://va-spec.ga4gh.org/",
+      "version": "1.0"
+    },
+    {
+      "content_address": "sha256:783b58637f966c79c3cad5ef86828142b7165509c51e26cbac3337831c878984",
+      "family": "sequence_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_frontier:encode-screen",
+      "title": "ENCODE SCREEN regulatory elements",
+      "uri": "https://screen.encodeproject.org/index/about",
+      "version": "current-public-catalog"
+    },
+    {
+      "content_address": "sha256:1aa3ca283597b124cd81d8fbaab59026072b9f24875b9c54a10a72c9f08d9f48",
+      "family": "sequence_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_frontier:encode-tf",
+      "title": "ENCODE transcription-factor assay boundary",
+      "uri": "https://www.encodeproject.org/chip-seq/transcription-factor/",
+      "version": "current-public-catalog"
+    },
+    {
+      "content_address": "sha256:b4748e178e32f5bc20a51c53eadfd62e16bb27ffff293acce57e33b648fc2279",
+      "family": "sequence_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "sequence_frontier:ensembl-regulation",
+      "title": "Ensembl regulation resources",
+      "uri": "https://www.ensembl.org/info/genome/funcgen/regulation.html",
+      "version": "current-public-catalog"
+    }
+  ],
+  "version": "2026.08.d06-sequence-architecture.v1"
+}

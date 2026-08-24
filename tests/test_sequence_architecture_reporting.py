@@ -32,7 +32,7 @@ class SequenceArchitectureReportingTests(unittest.TestCase):
     def test_dictionary_covers_every_persisted_entity(self) -> None:
         dictionary = sequence_architecture_data_dictionary(self.fixture)
         self.assertTrue(dictionary.accepted)
-        self.assertEqual(len(dictionary.fields), 30)
+        self.assertEqual(len(dictionary.fields), 32)
         self.assertEqual(len(dictionary.checks), 6)
         self.assertEqual(
             {item.entity for item in dictionary.fields},

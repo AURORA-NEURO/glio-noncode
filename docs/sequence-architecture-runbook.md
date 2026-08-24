@@ -16,6 +16,7 @@ python -m glio_noncode sequence-architecture-report --input .artifacts/sequence-
 python -m glio_noncode sequence-architecture-bundle --input .artifacts/sequence-fixture.json --output .artifacts/sequence-bundle
 python -m glio_noncode sequence-architecture-compliance --input .artifacts/sequence-fixture.json --output .artifacts/compliance.json
 python -m glio_noncode sequence-architecture-sources --input .artifacts/sequence-fixture.json --output .artifacts/sources.json
+python -m glio_noncode sequence-architecture-depth --input .artifacts/sequence-fixture.json --output .artifacts/depth.json
 ```
 
 ## Triage
@@ -25,7 +26,7 @@ python -m glio_noncode sequence-architecture-sources --input .artifacts/sequence
 3. Evaluation failure: inspect the named receipt, then the family summary and expected issue codes.
 4. Validation failure: locate the plane/operation cell and confirm all four receipts pass.
 5. Replay failure: compare receipt projections and first/second evaluation addresses.
-6. Quality failure: inspect the eight quality checks; publication remains held until all pass.
+6. Quality failure: inspect the twelve quality checks and the linked compliance report; publication remains held until all pass.
 
 ## Control review
 
@@ -43,10 +44,12 @@ Foreign sequence context, malformed payload, and identity conflict are expected 
 - [ ] 17 public source receipts are joined and addressed.
 - [ ] 16 operations have four cases each.
 - [ ] 16 positives and 48 controls are present.
-- [ ] 325 evaluation checks pass.
+- [ ] 458 evaluation checks pass.
 - [ ] 80 validation cells pass.
 - [ ] all controls remain in review.
 - [ ] 64 ledger events are hash-linked.
 - [ ] six artifacts are addressed.
+- [ ] depth reports four family tranches, six result states, and 100% completion.
+- [ ] public aggregate compliance is accepted.
 - [ ] replay, schema, access, and invariant checks pass.
 - [ ] final release state is published.

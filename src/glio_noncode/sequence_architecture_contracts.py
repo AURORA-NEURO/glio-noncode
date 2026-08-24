@@ -22,6 +22,7 @@ SEQUENCE_ARCHITECTURE_OPERATION_COUNT = 16
 SEQUENCE_ARCHITECTURE_CASES_PER_OPERATION = 4
 SEQUENCE_ARCHITECTURE_CASE_COUNT = 64
 SEQUENCE_ARCHITECTURE_SOURCE_COUNT = 17
+SEQUENCE_ARCHITECTURE_FAMILY_COUNT = 4
 SEQUENCE_ARCHITECTURE_ARTIFACT_COUNT = 6
 
 
@@ -108,6 +109,7 @@ class SequenceArchitectureSource:
     version: str
     scope: str
     license: str
+    public_aggregate: bool
     content_address: str
 
     def __post_init__(self) -> None:
@@ -117,6 +119,8 @@ class SequenceArchitectureSource:
             raise ValidationError("sequence source URI must be HTTP(S)")
         if self.scope != "public_aggregate":
             raise ValidationError("D06 sources must be public aggregate receipts")
+        if not self.public_aggregate:
+            raise ValidationError("D06 sources must be marked public aggregate")
         if not self.content_address.startswith("sha256:"):
             raise ValidationError("sequence source address must be SHA-256")
 
@@ -166,6 +170,7 @@ class SequenceArchitectureCase:
     plane: SequenceArchitecturePlane
     scenario: SequenceArchitectureScenario
     context_key: str
+    delegate_context_key: str
     source_ids: tuple[str, ...]
     payload: dict[str, Any]
     expected_state: SequenceArchitectureState
@@ -181,6 +186,7 @@ class SequenceArchitectureCase:
             "operation_id",
             "capability_id",
             "context_key",
+            "delegate_context_key",
             "expected_result_state",
             "description",
             "content_address",
@@ -536,6 +542,9 @@ class SequenceArchitectureRuntime:
     validation: tuple[SequenceArchitectureCheck, ...]
     artifacts: tuple[SequenceArchitectureArtifact, ...]
     release: SequenceArchitectureRelease
+    depth: SequenceArchitectureDepthReport
+    quality: SequenceArchitectureQualityGate
+    compliance: Any
     content_address: str
 
     @property
@@ -558,6 +567,10 @@ class SequenceArchitectureDepthReport:
     ledger_count: int
     stage_count: int
     artifact_count: int
+    family_count: int
+    check_count: int
+    state_count: int
+    issue_code_count: int
     addressed_count: int
     accepted: bool
     content_address: str
@@ -581,6 +594,7 @@ class SequenceArchitectureQualityGate:
 def _source(raw: Any) -> SequenceArchitectureSource:
     data = dict(raw)
     data["family"] = SequenceArchitectureFamily(str(data["family"]))
+    data["public_aggregate"] = bool(data.get("public_aggregate", True))
     return SequenceArchitectureSource(**data)
 
 
@@ -600,6 +614,7 @@ def _case(raw: Any) -> SequenceArchitectureCase:
     data["family"] = SequenceArchitectureFamily(str(data["family"]))
     data["plane"] = SequenceArchitecturePlane(str(data["plane"]))
     data["scenario"] = SequenceArchitectureScenario(str(data["scenario"]))
+    data["delegate_context_key"] = str(data.get("delegate_context_key", data["context_key"]))
     data["expected_state"] = SequenceArchitectureState(str(data["expected_state"]))
     data["source_ids"] = _text_tuple(data.get("source_ids", ()), "case.source_ids")
     data["expected_issue_codes"] = _text_tuple(

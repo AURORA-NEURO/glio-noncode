@@ -1,4 +1,4 @@
-"""Twenty-stage end-to-end D06 sequence architecture runtime."""
+"""Twenty-four-stage end-to-end D06 sequence architecture runtime."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from .sequence_architecture_bundle import (
     materialize_sequence_architecture_artifacts,
     release_sequence_architecture,
 )
+from .sequence_architecture_compliance import assess_sequence_architecture_compliance
 from .sequence_architecture_contracts import (
     SequenceArchitectureCheck,
     SequenceArchitectureCheckKind,
@@ -16,6 +17,7 @@ from .sequence_architecture_contracts import (
     SequenceArchitectureState,
     addressed,
 )
+from .sequence_architecture_depth import sequence_architecture_depth_report
 from .sequence_architecture_failures import classify_sequence_architecture_failures
 from .sequence_architecture_invariants import check_sequence_architecture_invariants
 from .sequence_architecture_lineage import build_sequence_architecture_ledger
@@ -53,7 +55,11 @@ SEQUENCE_ARCHITECTURE_STAGE_IDS = (
     "artifacts-materialized",
     "access-closed",
     "replay-closed",
+    "depth-accounted",
+    "compliance-closed",
     "release-gated",
+    "quality-gated",
+    "observability-closed",
     "runtime-finalized",
 )
 
@@ -85,6 +91,7 @@ def run_sequence_architecture(
     )
     access = sequence_architecture_access_policy(artifacts)
     replay = replay_sequence_architecture_fixture(value, evaluation)
+    compliance = assess_sequence_architecture_compliance(value)
     invariants = check_sequence_architecture_invariants(
         value, evaluation, plan, review_queue, ledger
     )
@@ -96,6 +103,7 @@ def run_sequence_architecture(
         + policy.checks
         + validation
         + schema.checks
+        + compliance.checks
         + access.checks
         + replay_checks(replay)
         + invariants
@@ -107,6 +115,9 @@ def run_sequence_architecture(
         review_queue,
         all(item.passed for item in all_checks) and not failures.release_blocked,
     )
+    depth = sequence_architecture_depth_report(
+        value, evaluation, plan, review_queue, ledger, None
+    )
     quality = assess_sequence_architecture_quality(
         value,
         evaluation,
@@ -116,6 +127,7 @@ def run_sequence_architecture(
         artifacts,
         release,
         len(SEQUENCE_ARCHITECTURE_STAGE_IDS),
+        compliance,
     )
     stages = _stages(
         value,
@@ -132,12 +144,17 @@ def run_sequence_architecture(
         artifacts,
         access,
         replay,
+        depth,
+        compliance,
         release,
         quality,
     )
     state = (
         SequenceArchitectureState.PUBLISHED
-        if quality.passed and not failures.release_blocked
+        if quality.passed
+        and compliance.accepted
+        and depth.accepted
+        and not failures.release_blocked
         else SequenceArchitectureState.BLOCKED
     )
     body = {
@@ -151,6 +168,9 @@ def run_sequence_architecture(
         "ledger": ledger,
         "artifacts": artifacts,
         "release": release,
+        "depth": depth,
+        "quality": quality,
+        "compliance": compliance,
     }
     return SequenceArchitectureRuntime(
         fixture_id=value.fixture_id,
@@ -166,6 +186,9 @@ def run_sequence_architecture(
         validation=validation,
         artifacts=artifacts,
         release=release,
+        depth=depth,
+        quality=quality,
+        compliance=compliance,
         content_address=addressed(body, "sequence-runtime"),
     )
 
@@ -222,6 +245,8 @@ def _stages(
     artifacts: tuple[object, ...],
     access: object,
     replay: object,
+    depth: object,
+    compliance: object,
     release: object,
     quality: object,
 ) -> list[SequenceArchitectureRuntimeStage]:
@@ -244,10 +269,29 @@ def _stages(
         addressed(artifacts, "sequence-artifacts"),
         access.content_address,
         replay.content_address,
+        depth.content_address,
+        compliance.content_address,
         release.content_address,
         quality.content_address,
+        addressed(
+            {
+                "metrics": metrics.content_address,
+                "validation": addressed(validation, "sequence-validation"),
+                "audit": audit.content_address,
+            },
+            "sequence-observability",
+        ),
+        addressed(
+            {"run_id": run_id, "stage_count": len(SEQUENCE_ARCHITECTURE_STAGE_IDS)},
+            "sequence-runtime-final",
+        ),
     )
-    states = [SequenceArchitectureState.ACCEPTED] * 18 + [release.state, quality.release_state]
+    states = [SequenceArchitectureState.ACCEPTED] * 20 + [
+        release.state,
+        quality.release_state,
+        SequenceArchitectureState.ACCEPTED,
+        SequenceArchitectureState.ACCEPTED,
+    ]
     stages: list[SequenceArchitectureRuntimeStage] = []
     previous = f"sha256:{run_id}"
     for ordinal, (stage_id, output, state) in enumerate(

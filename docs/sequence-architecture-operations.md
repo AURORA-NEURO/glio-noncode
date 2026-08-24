@@ -2,7 +2,7 @@
 
 ## Case structure
 
-Each case contains a stable case ID, operation ID, capability ID, family, plane, scenario, exact context key, prefixed public source IDs, family record payload, expected aggregate state, expected family result, expected issue codes, bounded expected counts, description, and content address.
+Each case contains a stable case ID, operation ID, capability ID, family, plane, scenario, exact context key, delegated context key, prefixed public source IDs, family record payload, expected aggregate state, expected family result, expected issue codes, bounded expected counts, description, and content address.
 
 Positive payloads retain the original public family record. Controls use aggregate-only payloads and are held before family delegation. The control paths are:
 
@@ -36,4 +36,4 @@ Each of the five planes checks every operation for four passing receipts. This y
 
 ## Release semantics
 
-The release remains blocked if any receipt, evaluation check, audit check, policy check, validation cell, schema check, access check, replay check, invariant, or runbook check fails. A held control is expected and does not block publication when it passes its declared control receipt. A malformed positive or missing family receipt does block release.
+The release remains blocked if any receipt, evaluation check, audit check, policy check, compliance check, validation cell, schema check, access check, replay check, invariant, or runbook check fails. A held control is expected and does not block publication when it passes its declared control receipt. A malformed positive or missing family receipt does block release.

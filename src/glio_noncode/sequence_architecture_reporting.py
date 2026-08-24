@@ -15,6 +15,7 @@ from .sequence_architecture_contracts import (
     addressed,
 )
 from .sequence_architecture_data_dictionary import SequenceArchitectureDataDictionary
+from .sequence_architecture_depth import sequence_architecture_depth_percent
 from .sequence_architecture_metrics import SequenceArchitectureMetrics
 from .serialization import jsonable
 
@@ -44,6 +45,14 @@ def build_sequence_architecture_report(
         "source_count": len(fixture.sources),
         "operation_count": len(fixture.operations),
         "case_count": len(fixture.cases),
+        "evaluation_checks": len(runtime.evaluation.checks),
+        "quality_checks": len(runtime.quality.checks),
+        "result_state_count": metrics.state_count,
+        "issue_code_count": metrics.issue_code_count,
+        "depth_percent": sequence_architecture_depth_percent(
+            fixture, runtime.evaluation
+        ),
+        "compliance_accepted": runtime.compliance.accepted,
         "positive_count": runtime.evaluation.positive_count,
         "control_count": runtime.evaluation.control_count,
         "validation_cells": metrics.validation_cell_count,

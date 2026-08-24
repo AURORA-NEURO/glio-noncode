@@ -203,7 +203,10 @@ from .atlas_architecture_quality import assess_atlas_architecture_quality
 from .sequence_architecture_access import sequence_architecture_access_policy
 from .sequence_architecture_compliance import assess_sequence_architecture_compliance
 from .sequence_architecture_data_dictionary import sequence_architecture_data_dictionary
-from .sequence_architecture_depth import sequence_architecture_depth_report
+from .sequence_architecture_depth import (
+    sequence_architecture_depth_percent,
+    sequence_architecture_depth_report,
+)
 from .sequence_architecture_failures import classify_sequence_architecture_failures
 from .sequence_architecture_invariants import check_sequence_architecture_invariants
 from .sequence_architecture_metrics import materialize_sequence_architecture_metrics
@@ -2857,7 +2860,7 @@ def build_parser() -> argparse.ArgumentParser:
             "evaluate-sequence-architecture",
             "execute D06 family-backed positives and aggregate controls",
         ),
-        ("sequence-architecture-runtime", "run the twenty-stage D06 sequence architecture"),
+        ("sequence-architecture-runtime", "run the twenty-four-stage D06 sequence architecture"),
         (
             "sequence-architecture-validation",
             "emit the five-plane by sixteen-operation D06 validation matrix",
@@ -8998,6 +9001,7 @@ def main(argv: list[str] | None = None) -> int:
                 runtime.artifacts,
                 runtime.release,
                 len(runtime.stages),
+                runtime.compliance,
             )
             _write_json(quality.to_dict(), args.output)
             return 0 if quality.passed else 2
@@ -9012,7 +9016,15 @@ def main(argv: list[str] | None = None) -> int:
                 runtime.ledger,
                 runtime,
             )
-            _write_json(report.to_dict(), args.output)
+            _write_json(
+                report.to_dict()
+                | {
+                    "completion_percent": sequence_architecture_depth_percent(
+                        fixture, runtime.evaluation
+                    )
+                },
+                args.output,
+            )
             return 0 if report.accepted else 2
         if args.command == "replay-sequence-architecture":
             report = replay_sequence_architecture_fixture(_sequence_architecture_fixture(args.input))
@@ -9147,9 +9159,18 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "artifacts": [jsonable(item) for item in runtime.artifacts],
                     "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                    "compliance": jsonable(runtime.compliance),
                 },
                 str(output_dir / "release.json"),
             )
+            metrics = materialize_sequence_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(runtime.validation)
+            )
+            dictionary = sequence_architecture_data_dictionary(fixture)
+            report = build_sequence_architecture_report(fixture, runtime, metrics, dictionary)
+            _write_json(report.to_dict(), str(output_dir / "report.json"))
             _write_text(
                 sequence_architecture_fixture_json(fixture),
                 str(output_dir / "fixture.json"),
