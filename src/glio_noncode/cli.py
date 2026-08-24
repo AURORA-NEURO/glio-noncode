@@ -1701,6 +1701,16 @@ def _topology_architecture_fixture(input_path: str | None):
     )
 
 
+def _link_graph_architecture_fixture(input_path: str | None):
+    from .link_graph_architecture_public_data import default_link_graph_architecture_fixture
+
+    return (
+        default_link_graph_architecture_fixture(input_path)
+        if input_path
+        else default_link_graph_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -2988,6 +2998,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     topology_architecture_bundle.add_argument("--input", default=None)
     topology_architecture_bundle.add_argument("--output", required=True)
+    link_graph_architecture_fixture = subparsers.add_parser(
+        "link-graph-architecture-fixture",
+        help="emit the D10 C01-C16 public aggregate regulatory link-graph fixture",
+    )
+    link_graph_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("link-graph-architecture-data-audit", "audit D10 link-graph sources, joins, and scope"),
+        ("link-graph-architecture-plan", "compile the D10 link-graph dependency plan"),
+        ("evaluate-link-graph-architecture", "execute D10 link-graph family delegates"),
+        ("link-graph-architecture-runtime", "run the D10 twenty-two-stage link-graph runtime"),
+        ("link-graph-architecture-quality", "run the D10 link-graph release quality gate"),
+        ("link-graph-architecture-depth", "report D10 link-graph operation and evidence depth"),
+        ("replay-link-graph-architecture", "replay D10 link-graph evaluation deterministically"),
+        ("link-graph-architecture-report", "emit the D10 link-graph runtime report"),
+        ("link-graph-architecture-scenarios", "emit the D10 link-graph scenario matrix"),
+        ("link-graph-architecture-sources", "emit the D10 link-graph source registry"),
+        ("link-graph-architecture-compliance", "run D10 public-boundary compliance checks"),
+        ("link-graph-architecture-validation", "run D10 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    link_graph_architecture_query = subparsers.add_parser(
+        "link-graph-architecture-query", help="query sanitized D10 link-graph cases"
+    )
+    link_graph_architecture_query.add_argument("--input", default=None)
+    link_graph_architecture_query.add_argument("--operation", default=None)
+    link_graph_architecture_query.add_argument("--family", default=None)
+    link_graph_architecture_query.add_argument("--scenario", default=None)
+    link_graph_architecture_query.add_argument("--output", default=None)
+    link_graph_architecture_bundle = subparsers.add_parser(
+        "link-graph-architecture-bundle", help="write a D10 link-graph runtime bundle"
+    )
+    link_graph_architecture_bundle.add_argument("--input", default=None)
+    link_graph_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -9200,6 +9245,112 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
             _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
             _write_text(topology_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "link-graph-architecture-fixture":
+            from .link_graph_architecture_public_data import link_graph_architecture_fixture_json
+
+            _write_text(link_graph_architecture_fixture_json(_link_graph_architecture_fixture(None)), args.output)
+            return 0
+        if args.command == "link-graph-architecture-data-audit":
+            from .link_graph_architecture_public_data import audit_link_graph_architecture_data
+
+            report = audit_link_graph_architecture_data(_link_graph_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "link-graph-architecture-plan":
+            from .link_graph_architecture_plan import build_link_graph_architecture_plan
+
+            report = build_link_graph_architecture_plan(_link_graph_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-link-graph-architecture":
+            from .link_graph_architecture_operations import evaluate_link_graph_architecture_fixture
+
+            report = evaluate_link_graph_architecture_fixture(_link_graph_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "link-graph-architecture-runtime":
+            from .link_graph_architecture_runtime import run_link_graph_architecture
+
+            runtime = run_link_graph_architecture(_link_graph_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "link-graph-architecture-quality":
+            from .link_graph_architecture_quality import assess_link_graph_architecture_quality
+            from .link_graph_architecture_replay import replay_link_graph_architecture_fixture
+            from .link_graph_architecture_runtime import run_link_graph_architecture
+
+            runtime = run_link_graph_architecture(_link_graph_architecture_fixture(args.input))
+            gate = assess_link_graph_architecture_quality(runtime.fixture, runtime.audit, runtime.plan, runtime.evaluation, replay_link_graph_architecture_fixture(runtime.fixture), runtime.release, runtime.artifacts)
+            _write_json(gate.to_dict(), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "link-graph-architecture-depth":
+            from .link_graph_architecture_depth import assess_link_graph_architecture_depth, link_graph_architecture_depth_percent
+            from .link_graph_architecture_runtime import run_link_graph_architecture
+
+            runtime = run_link_graph_architecture(_link_graph_architecture_fixture(args.input))
+            report = assess_link_graph_architecture_depth(runtime.fixture, runtime.evaluation)
+            completion_percent = link_graph_architecture_depth_percent(report)
+            _write_json(report.to_dict() | {"completion_percent": completion_percent}, args.output)
+            return 0 if completion_percent == 100.0 else 2
+        if args.command == "replay-link-graph-architecture":
+            from .link_graph_architecture_replay import replay_link_graph_architecture_fixture
+
+            report = replay_link_graph_architecture_fixture(_link_graph_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "link-graph-architecture-report":
+            from .link_graph_architecture_reporting import build_link_graph_architecture_report
+            from .link_graph_architecture_runtime import run_link_graph_architecture
+
+            runtime = run_link_graph_architecture(_link_graph_architecture_fixture(args.input))
+            _write_json(build_link_graph_architecture_report(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "link-graph-architecture-scenarios":
+            from .link_graph_architecture_query import query_link_graph_architecture_cases
+            from .link_graph_architecture_runtime import run_link_graph_architecture
+
+            runtime = run_link_graph_architecture(_link_graph_architecture_fixture(args.input))
+            _write_json({"accepted": runtime.accepted, "cases": query_link_graph_architecture_cases(runtime)}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "link-graph-architecture-sources":
+            fixture = _link_graph_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "link-graph-architecture-compliance":
+            from .link_graph_architecture_compliance import assess_link_graph_architecture_compliance
+
+            report = assess_link_graph_architecture_compliance(_link_graph_architecture_fixture(args.input))
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "link-graph-architecture-validation":
+            from .link_graph_architecture_operations import evaluate_link_graph_architecture_fixture
+            from .link_graph_architecture_schema import validate_link_graph_architecture_fixture
+
+            fixture = _link_graph_architecture_fixture(args.input)
+            evaluation = evaluate_link_graph_architecture_fixture(fixture)
+            report = {"accepted": validate_link_graph_architecture_fixture(fixture) and evaluation.accepted, "evaluation": evaluation.to_dict()}
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "link-graph-architecture-query":
+            from .link_graph_architecture_query import query_link_graph_architecture_cases
+            from .link_graph_architecture_runtime import run_link_graph_architecture
+
+            runtime = run_link_graph_architecture(_link_graph_architecture_fixture(args.input))
+            rows = query_link_graph_architecture_cases(runtime, operation_id=args.operation, family=args.family, scenario=args.scenario)
+            _write_json({"accepted": runtime.accepted, "count": len(rows), "cases": rows}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "link-graph-architecture-bundle":
+            from .link_graph_architecture_public_data import link_graph_architecture_fixture_json
+            from .link_graph_architecture_runtime import run_link_graph_architecture
+
+            fixture = _link_graph_architecture_fixture(args.input)
+            runtime = run_link_graph_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_text(link_graph_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)

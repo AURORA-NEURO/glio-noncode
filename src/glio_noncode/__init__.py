@@ -9913,6 +9913,10 @@ from .topology_architecture_exports import *  # noqa: F401,F403
 
 __all__ += [name for name in globals() if name.startswith("TopologyArchitecture") or name.startswith("TOPOLOGY_ARCHITECTURE") or name.startswith(("assess_topology_architecture", "audit_topology_architecture", "build_topology_architecture", "default_topology_architecture", "evaluate_topology_architecture", "execute_topology_architecture", "load_topology_architecture", "query_topology_architecture", "replay_topology_architecture", "run_topology_architecture", "topology_architecture", "validate_topology_architecture"))]
 
+from .link_graph_architecture_exports import *  # noqa: F401,F403
+
+__all__ += [name for name in globals() if name.startswith("LinkGraphArchitecture") or name.startswith("LINK_GRAPH_ARCHITECTURE") or name.startswith(("assess_link_graph_architecture", "audit_link_graph_architecture", "build_link_graph_architecture", "default_link_graph_architecture", "deep_audit_link_graph_architecture", "evaluate_link_graph_architecture", "execute_link_graph_architecture", "link_graph_architecture", "load_link_graph_architecture", "query_link_graph_architecture", "replay_link_graph_architecture", "run_link_graph_architecture", "validate_link_graph_architecture"))]
+
 from .specimen_architecture_exports import (
     SPECIMEN_ARCHITECTURE_ARTIFACT_COUNT,
     SPECIMEN_ARCHITECTURE_BOUNDARY,

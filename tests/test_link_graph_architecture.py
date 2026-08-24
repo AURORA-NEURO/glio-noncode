@@ -1,0 +1,157 @@
+"""Comprehensive tests for the D10 regulatory link-graph aggregate."""
+
+from __future__ import annotations
+
+import unittest
+
+from glio_noncode.link_graph_architecture_audit import deep_audit_link_graph_architecture
+from glio_noncode.link_graph_architecture_compliance import (
+    assess_link_graph_architecture_compliance,
+)
+from glio_noncode.link_graph_architecture_contract_matrix import (
+    build_link_graph_architecture_contract_matrix,
+    link_graph_architecture_contract_matrix_is_closed,
+    link_graph_architecture_contract_matrix_summary,
+)
+from glio_noncode.link_graph_architecture_controls import (
+    link_graph_architecture_control_coverage,
+    link_graph_architecture_controls_are_closed,
+)
+from glio_noncode.link_graph_architecture_depth import (
+    assess_link_graph_architecture_depth,
+    link_graph_architecture_depth_percent,
+)
+from glio_noncode.link_graph_architecture_ledger import (
+    build_link_graph_architecture_ledger,
+    link_graph_architecture_ledger_is_closed,
+)
+from glio_noncode.link_graph_architecture_lineage import (
+    build_link_graph_architecture_lineage,
+    link_graph_architecture_lineage_gaps,
+)
+from glio_noncode.link_graph_architecture_metrics import (
+    link_graph_architecture_metric_invariants,
+    link_graph_architecture_metrics,
+)
+from glio_noncode.link_graph_architecture_operations import evaluate_link_graph_architecture_fixture
+from glio_noncode.link_graph_architecture_plan import (
+    build_link_graph_architecture_plan,
+    link_graph_architecture_operation_order,
+)
+from glio_noncode.link_graph_architecture_public_data import (
+    audit_link_graph_architecture_data,
+    default_link_graph_architecture_fixture,
+)
+from glio_noncode.link_graph_architecture_query import query_link_graph_architecture_cases
+from glio_noncode.link_graph_architecture_replay import replay_link_graph_architecture_fixture
+from glio_noncode.link_graph_architecture_review import build_link_graph_architecture_review_queue
+from glio_noncode.link_graph_architecture_runtime import run_link_graph_architecture
+from glio_noncode.link_graph_architecture_schema import (
+    link_graph_architecture_schema_descriptor,
+    validate_link_graph_architecture_fixture,
+)
+
+
+class LinkGraphArchitectureTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.fixture = default_link_graph_architecture_fixture()
+        cls.evaluation = evaluate_link_graph_architecture_fixture(cls.fixture)
+
+    def test_fixture_cardinality_and_four_family_balance(self) -> None:
+        self.assertEqual(len(self.fixture.sources), 19)
+        self.assertEqual(len(self.fixture.operations), 16)
+        self.assertEqual(len(self.fixture.cases), 64)
+        self.assertEqual(len(self.fixture.positive_cases), 16)
+        self.assertEqual(len(self.fixture.control_cases), 48)
+        self.assertEqual(len({item.family for item in self.fixture.operations}), 4)
+
+    def test_data_audit_and_schema_close(self) -> None:
+        audit = audit_link_graph_architecture_data(self.fixture)
+        self.assertTrue(audit.accepted)
+        self.assertEqual(tuple(item.check_id for item in audit.checks if not item.passed), ())
+        self.assertTrue(validate_link_graph_architecture_fixture(self.fixture))
+        self.assertEqual(link_graph_architecture_schema_descriptor()["source_count"], 19)
+
+    def test_real_family_results_are_retained(self) -> None:
+        self.assertTrue(self.evaluation.accepted)
+        self.assertEqual(len(self.evaluation.receipts), 64)
+        self.assertEqual(len(self.evaluation.checks), 392)
+        positive = {
+            item.case_id: item
+            for item in self.evaluation.receipts
+            if item.expected_state.value == "accepted"
+        }
+        self.assertEqual(len(positive), 16)
+        self.assertEqual(positive["D10-C01-positive"].observed_result_state, "supported")
+        self.assertEqual(positive["D10-C05-positive"].observed_result_state, "partial")
+        self.assertEqual(positive["D10-C09-positive"].observed_result_state, "partial")
+        self.assertEqual(positive["D10-C16-positive"].observed_result_state, "published")
+
+    def test_controls_preserve_family_issue_vocabulary(self) -> None:
+        controls = {
+            item.case_id: item
+            for item in self.evaluation.receipts
+            if item.expected_state.value == "review"
+        }
+        self.assertEqual(len(controls), 48)
+        self.assertEqual(controls["D10-C01-control_c"].observed_issue_codes, ("context_mismatch",))
+        self.assertEqual(controls["D10-C08-control_b"].observed_issue_codes, ("missing_evidence",))
+        self.assertEqual(
+            controls["D10-C12-control_b"].observed_issue_codes, ("contradictory_evidence",)
+        )
+        self.assertEqual(
+            controls["D10-C16-control_a"].observed_issue_codes, ("publication_context_mismatch",)
+        )
+
+    def test_plan_review_lineage_ledger_and_metrics_close(self) -> None:
+        plan = build_link_graph_architecture_plan(self.fixture)
+        review = build_link_graph_architecture_review_queue(self.evaluation)
+        lineage = build_link_graph_architecture_lineage(self.fixture)
+        ledger = build_link_graph_architecture_ledger(self.fixture, self.evaluation)
+        metrics = link_graph_architecture_metrics(self.fixture, self.evaluation)
+        self.assertTrue(plan.accepted)
+        self.assertEqual(len(link_graph_architecture_operation_order(plan)), 16)
+        self.assertEqual(len(review.items), 48)
+        self.assertEqual(sum(len(value) for value in lineage["operation_cases"].values()), 64)
+        self.assertEqual(link_graph_architecture_lineage_gaps(self.fixture), ())
+        self.assertTrue(link_graph_architecture_ledger_is_closed(ledger))
+        self.assertEqual(metrics["receipt_pass_rate"], 1.0)
+        self.assertEqual(link_graph_architecture_metric_invariants(metrics), ())
+
+    def test_runtime_release_depth_compliance_and_replay_close(self) -> None:
+        runtime = run_link_graph_architecture(self.fixture)
+        self.assertTrue(runtime.accepted)
+        self.assertEqual(len(runtime.stages), 22)
+        self.assertEqual(len(runtime.artifacts), 6)
+        self.assertEqual(runtime.release.state.value, "published")
+        self.assertEqual(runtime.stages[-1].stage_id, "observability-closed")
+        self.assertTrue(replay_link_graph_architecture_fixture(self.fixture).accepted)
+        self.assertTrue(assess_link_graph_architecture_compliance(self.fixture)["accepted"])
+        self.assertEqual(
+            link_graph_architecture_depth_percent(
+                assess_link_graph_architecture_depth(self.fixture, self.evaluation)
+            ),
+            100.0,
+        )
+
+    def test_query_matrix_controls_and_deep_audit_close(self) -> None:
+        runtime = run_link_graph_architecture(self.fixture)
+        self.assertEqual(
+            len(query_link_graph_architecture_cases(runtime, operation_id="D10-C13")), 4
+        )
+        matrix = build_link_graph_architecture_contract_matrix(self.fixture)
+        self.assertTrue(link_graph_architecture_contract_matrix_is_closed(self.fixture))
+        self.assertEqual(
+            link_graph_architecture_contract_matrix_summary(matrix)["operation_count"], 16
+        )
+        self.assertTrue(link_graph_architecture_controls_are_closed(self.fixture, self.evaluation))
+        self.assertEqual(
+            link_graph_architecture_control_coverage(self.fixture, self.evaluation)["held_paths"],
+            48,
+        )
+        self.assertTrue(all(deep_audit_link_graph_architecture(self.fixture)["checks"].values()))
+
+
+if __name__ == "__main__":
+    unittest.main()

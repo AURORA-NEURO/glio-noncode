@@ -1,0 +1,4220 @@
+{
+  "boundary": "public_aggregate_non_patient",
+  "cases": [
+    {
+      "case_id": "D10-C01-positive",
+      "content_address": "sha256:1ec2aefe0b399ae1160b7b995f231012088124468b5aef21cb27f07ed0107d71",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C01-P",
+      "description": "link_graph_foundation_frontier public link record D10-C01-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C01",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "coordinate_overlap",
+        "delegate_output_address": "sha256:2e88fe68634c6b21a5b0a5ceb56e3b4e6f948589542e18779684fb9148cd78b0",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "element_type": "enhancer",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C01-P",
+        "delegate_role": "positive"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C01-control_a",
+      "content_address": "sha256:19d9e9d6c9c3e3afaadcd7abc27016340df1c011e6d3fbb3d4b7259dcfc16286",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C01-C1",
+      "description": "link_graph_foundation_frontier public link record D10-C01-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "multiple_overlaps"
+      ],
+      "expected_result_state": "ambiguous",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C01",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "coordinate_overlap",
+        "delegate_output_address": "sha256:03b95334255d75043285016fa24d8a0f43c1edad2d0ddb1c75fb0da8bf09dd7c",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "element_type": "enhancer",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            },
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-2",
+              "element_type": "enhancer",
+              "end": 1005,
+              "source_id": "element-aggregate",
+              "start": 995,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C01-C1",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C01-control_b",
+      "content_address": "sha256:c6bfb04f3cebdb10755bdf563ad826e9905f452d66f2e5f859aa3308014ea071",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C01-C2",
+      "description": "link_graph_foundation_frontier public link record D10-C01-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "no_overlap"
+      ],
+      "expected_result_state": "absent",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C01",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "coordinate_overlap",
+        "delegate_output_address": "sha256:6c0ef04ff2662349d80a651924fb7b321a7ab97098b55c5cccbc2c18fb236422",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "element_type": "enhancer",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 5000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 5000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C01-C2",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C01-control_c",
+      "content_address": "sha256:e7cccf9194ba82e3d43d22a5d24a466f4ff90fe50cef742d00da62a438f65fad",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C01-C3",
+      "description": "link_graph_foundation_frontier public link record D10-C01-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C01",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "coordinate_overlap",
+        "delegate_output_address": "sha256:ee6fee0a1779017b3075ddea285b42b677647c1f8da937e3c3fd9553e107c4ff",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "differentiated",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "element_type": "enhancer",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C01-C3",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C02-positive",
+      "content_address": "sha256:8eec70fc46a31234349ac2579526d72ee88eb618cad5c0d3c63763294f17c212",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C02-P",
+      "description": "link_graph_foundation_frontier public link record D10-C02-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C02",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "nearest_gene",
+        "delegate_output_address": "sha256:a35e2c4f5723ae5d28f7e1a30399f01fa3666824533e4498ccdb37a406f130a7",
+        "delegate_payload": {
+          "genes": [
+            {
+              "chromosome": "7",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "end": 900,
+              "gene_id": "GENE1",
+              "genome_build": "GRCh38",
+              "raw_hash": "sha256:ae9e35d82140433625a1016043b03450c64c7a0c122c2d540a0381969f38c742",
+              "source_version": "gene-v2",
+              "start": 800,
+              "symbol": "GENE1"
+            }
+          ],
+          "max_distance_bp": 1000,
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C02-P",
+        "delegate_role": "positive"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C02-control_a",
+      "content_address": "sha256:72c5b8a63f5cb33be9810bb564b40c86b8fecf626040e3a04af749d896c81f7a",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C02-C1",
+      "description": "link_graph_foundation_frontier public link record D10-C02-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "distance_tie"
+      ],
+      "expected_result_state": "ambiguous",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C02",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "nearest_gene",
+        "delegate_output_address": "sha256:a3688cc9246e5e5660d37264151760fddec77731fd8b06a018c82cebbb10c046",
+        "delegate_payload": {
+          "genes": [
+            {
+              "chromosome": "7",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "end": 900,
+              "gene_id": "GENE1",
+              "genome_build": "GRCh38",
+              "raw_hash": "sha256:ae9e35d82140433625a1016043b03450c64c7a0c122c2d540a0381969f38c742",
+              "source_version": "gene-v2",
+              "start": 800,
+              "symbol": "GENE1"
+            },
+            {
+              "chromosome": "7",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "end": 900,
+              "gene_id": "GENE2",
+              "genome_build": "GRCh38",
+              "raw_hash": "sha256:460a7790ba376c42661fa57dda9817d84244a4913de656b7b01a4b7aaf980755",
+              "source_version": "gene-v2",
+              "start": 800,
+              "symbol": "GENE2"
+            }
+          ],
+          "max_distance_bp": 1000,
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C02-C1",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C02-control_b",
+      "content_address": "sha256:aff9db1828534cd7ccd3a7caf5ac2eb5b38b003082e102e567e7547189ce6801",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C02-C2",
+      "description": "link_graph_foundation_frontier public link record D10-C02-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "distance_window"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C02",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "nearest_gene",
+        "delegate_output_address": "sha256:db4be969b8461afe31ec3abf861561077872caeb614985cf68147274d6df1b21",
+        "delegate_payload": {
+          "genes": [
+            {
+              "chromosome": "7",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "end": 10,
+              "gene_id": "GENE1",
+              "genome_build": "GRCh38",
+              "raw_hash": "sha256:c56f43a6a4847964a565c6a83d27cab5bb6cc0bb10d81cc47fbb67d4fcc1a8bc",
+              "source_version": "gene-v2",
+              "start": 1,
+              "symbol": "GENE1"
+            }
+          ],
+          "max_distance_bp": 10,
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C02-C2",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C02-control_c",
+      "content_address": "sha256:80a0ffb8d468d04ecbd82ea70ff4551b7472fbf4ebd5f8c427d039bd94926961",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C02-C3",
+      "description": "link_graph_foundation_frontier public link record D10-C02-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C02",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "nearest_gene",
+        "delegate_output_address": "sha256:3966ebf285c17dbce1f81671c43d7d18f43d64fd73adafc6c27132528c01c753",
+        "delegate_payload": {
+          "genes": [
+            {
+              "chromosome": "7",
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "end": 900,
+              "gene_id": "GENE1",
+              "genome_build": "GRCh38",
+              "raw_hash": "sha256:ae9e35d82140433625a1016043b03450c64c7a0c122c2d540a0381969f38c742",
+              "source_version": "gene-v2",
+              "start": 800,
+              "symbol": "GENE1"
+            }
+          ],
+          "max_distance_bp": 1000,
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C02-C3",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C03-positive",
+      "content_address": "sha256:c49b8a2c8e4378921e989677c46b285f17ff657a66706b9b29c586df8be1348e",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C03-P",
+      "description": "link_graph_foundation_frontier public link record D10-C03-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C03",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "ccre_assignment",
+        "delegate_output_address": "sha256:2e50728ed029112b19e12824d07d79764903eafd16b63dc9530bdd61a622b66b",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "element_type": "ccre",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C03-P",
+        "delegate_role": "positive"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C03-control_a",
+      "content_address": "sha256:a197d1ef8b8c1b320bc27d53c9b1b4b8598bcc5bfb2261311a534a2c2f0b2180",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C03-C1",
+      "description": "link_graph_foundation_frontier public link record D10-C03-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "multiple_ccres"
+      ],
+      "expected_result_state": "ambiguous",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C03",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "ccre_assignment",
+        "delegate_output_address": "sha256:1fd7b98b241873906a1dd6c736b797c0707a4ca631a2e03a1938d17c0585ae69",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "ccre-1",
+              "element_type": "ccre",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            },
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "ccre-2",
+              "element_type": "ccre",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C03-C1",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C03-control_b",
+      "content_address": "sha256:a9cd20283f0d4007156c83e8df812f2343268a2d60787b1c369c28bf2e5606aa",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C03-C2",
+      "description": "link_graph_foundation_frontier public link record D10-C03-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "no_ccre"
+      ],
+      "expected_result_state": "absent",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C03",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "ccre_assignment",
+        "delegate_output_address": "sha256:a198c6cdceffdf78767389a17aecc08603ca9f634ef65142577ebc589021de9b",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "element_type": "enhancer",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C03-C2",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C03-control_c",
+      "content_address": "sha256:3e74c10d9ba8c3e902409092707eab5bb588aeaf3686882b57677ac65d9abb1d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C03-C3",
+      "description": "link_graph_foundation_frontier public link record D10-C03-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C03",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "ccre_assignment",
+        "delegate_output_address": "sha256:6a9cedbd376d90395d99dd3fb37284da0d0948ffac3a65bd76a59cc575c24415",
+        "delegate_payload": {
+          "elements": [
+            {
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "differentiated",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "unknown"
+              },
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "element_type": "ccre",
+              "end": 1010,
+              "source_id": "element-aggregate",
+              "start": 990,
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "variant": {
+            "alternate": "T",
+            "chromosome": "7",
+            "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+            "end": 1000,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "start": 1000,
+            "variant_id": "v-1"
+          }
+        },
+        "delegate_record_id": "D10-C03-C3",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C04-positive",
+      "content_address": "sha256:5f8a146cd73f7366b676afa4eafcaeec7610050eba40942fdb8b5a5f14dcbcf3",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C04-P",
+      "description": "link_graph_foundation_frontier public link record D10-C04-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C04",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "enhancer_gene_consensus",
+        "delegate_output_address": "sha256:7604449bac686c7ecf766b7edae6f5acd3dce4aad3e86bd267a0ef271f794af9",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ev-1",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "consensus-contact",
+              "source_version": "consensus-v2",
+              "support": 0.8,
+              "variant": "v-1",
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ev-2",
+              "gene_id": "GENE1",
+              "link_type": "coaccessibility",
+              "source_id": "consensus-activity",
+              "source_version": "consensus-v2",
+              "support": 0.8,
+              "variant": "v-1",
+              "variant_id": "v-1"
+            }
+          ],
+          "variant_id": "v-1"
+        },
+        "delegate_record_id": "D10-C04-P",
+        "delegate_role": "positive"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C04-control_a",
+      "content_address": "sha256:7329c90cb3c45d207b340fb23bee4fe92105cc3315c83598ea414a11adc0ef43",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C04-C1",
+      "description": "link_graph_foundation_frontier public link record D10-C04-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_method"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C04",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "enhancer_gene_consensus",
+        "delegate_output_address": "sha256:12e81acd5a14c7314dee69caebf4905482d9c2479e6b4935743c4c3a4b278607",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ev-1",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "consensus-contact",
+              "source_version": "consensus-v2",
+              "support": 0.8,
+              "variant": "v-1",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C04-C1",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C04-control_b",
+      "content_address": "sha256:9c1dfe9b273d9d77ba069d63ebb7f07a47c9daa3b3b20bb50e9ca13c23bed3a6",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C04-C2",
+      "description": "link_graph_foundation_frontier public link record D10-C04-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_evidence"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C04",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "enhancer_gene_consensus",
+        "delegate_output_address": "sha256:1e1ec79e944b510b63ae9050e39daf18889221a317c9dce6ad00d7e5a188b800",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ev-a",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "consensus-contact",
+              "source_version": "consensus-v2",
+              "support": 0.8,
+              "variant": "v-1",
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ev-b",
+              "gene_id": "GENE1",
+              "link_type": "coaccessibility",
+              "source_id": "consensus-activity",
+              "source_version": "consensus-v2",
+              "state": "contradictory",
+              "support": 0.8,
+              "variant": "v-1",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C04-C2",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C04-control_c",
+      "content_address": "sha256:cb27830d12b9dd553b13b09b71114f9e38e29d0bad4e74989e252530b43bd07d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+      "delegate_record_id": "D10-C04-C3",
+      "description": "link_graph_foundation_frontier public link record D10-C04-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_foundation_frontier",
+      "operation_id": "D10-C04",
+      "payload": {
+        "delegate_family": "link_graph_foundation_frontier",
+        "delegate_fixture_id": "link-graph-foundation-frontier-fixture",
+        "delegate_operation": "enhancer_gene_consensus",
+        "delegate_output_address": "sha256:bb28f445c65236831e3e532bdf7d1a5ef2ae287b25963a141eaf54d45b889e37",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ev-1",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "consensus-contact",
+              "source_version": "consensus-v2",
+              "support": 0.8,
+              "variant": "v-1",
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ev-2",
+              "gene_id": "GENE1",
+              "link_type": "coaccessibility",
+              "source_id": "consensus-activity",
+              "source_version": "consensus-v2",
+              "support": 0.8,
+              "variant": "v-1",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C04-C3",
+        "delegate_role": "control"
+      },
+      "plane": "foundation_baseline",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "case_id": "D10-C05-positive",
+      "content_address": "sha256:d47889b4d717fb939d1f6d6db9f8400d4a4437b32f049cf3be0576edf223898c",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C05-P",
+      "description": "link_graph_beta_frontier public link record D10-C05-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_method"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "accepted",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C05",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "activity_by_contact",
+        "delegate_output_address": "sha256:d03553ac11acedfa2e452d77d0c865df0643c654d7941682ecdfb335aa4a2abf",
+        "delegate_payload": {
+          "observations": [
+            {
+              "activity_signal": 0.8,
+              "confidence": 0.9,
+              "contact_scale": 10.0,
+              "contact_signal": 5.0,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "abc-1",
+              "gene_id": "GENE1",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C05-P",
+        "delegate_role": "positive"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C05-control_a",
+      "content_address": "sha256:ad76547e52f170c1c20a6d98f2d7e79fc4d69c493c59bb736ed6637289dda666",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C05-C1",
+      "description": "link_graph_beta_frontier public link record D10-C05-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "replicate_pair"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C05",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "activity_by_contact",
+        "delegate_output_address": "sha256:a1e7691c2f3cc75e77869cd3d8f3246e883568b5b560fa51cc6914c788d0336c",
+        "delegate_payload": {
+          "observations": [
+            {
+              "activity_signal": 0.8,
+              "confidence": 0.9,
+              "contact_scale": 10.0,
+              "contact_signal": 5.0,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "abc-r1",
+              "gene_id": "GENE1",
+              "replicate_id": "r1",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            },
+            {
+              "activity_signal": 0.8,
+              "confidence": 0.9,
+              "contact_scale": 10.0,
+              "contact_signal": 5.0,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "abc-r2",
+              "gene_id": "GENE1",
+              "replicate_id": "r2",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C05-C1",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C05-control_b",
+      "content_address": "sha256:262bcc6d3f57d462a885e6bbb18f5743f43474c0eb2db3ce832b7b63774a549f",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C05-C2",
+      "description": "link_graph_beta_frontier public link record D10-C05-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_evidence"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C05",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "activity_by_contact",
+        "delegate_output_address": "sha256:03d71bdaf4f3d41b95b5f122c237f3a96e7c2f5add00a32352c94162775b6f44",
+        "delegate_payload": {
+          "observations": []
+        },
+        "delegate_record_id": "D10-C05-C2",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C05-control_c",
+      "content_address": "sha256:b93ea9853f2a29adc5bdbc588eb6da85150f29ab7945f0613a202faeb7d75393",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C05-C3",
+      "description": "link_graph_beta_frontier public link record D10-C05-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C05",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "activity_by_contact",
+        "delegate_output_address": "sha256:52f3b7f081ae5cdaab58700d0bdba6a054b86a5b90c16a30016aa04241667bb5",
+        "delegate_payload": {
+          "observations": [
+            {
+              "activity_signal": 0.8,
+              "confidence": 0.9,
+              "contact_scale": 10.0,
+              "contact_signal": 5.0,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "abc-foreign",
+              "gene_id": "GENE1",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C05-C3",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C06-positive",
+      "content_address": "sha256:81bb02df99f1c7768bfa362b2823c27b41c3274966710c453c589d35a3ffd340",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C06-P",
+      "description": "link_graph_beta_frontier public link record D10-C06-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_method"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "accepted",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C06",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "coaccessibility",
+        "delegate_output_address": "sha256:e9b50f34d9abd302d3d31ddfb8015e1daa51c73b529ba41ca6a02f479829c70f",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "co-1",
+              "gene_id": "GENE1",
+              "score": 0.75,
+              "source_id": "coaccess-public",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C06-P",
+        "delegate_role": "positive"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C06-control_a",
+      "content_address": "sha256:7ad81cc6067f32f0c9969a376f92449a8545e5684e07a2e31f2836350c253d19",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C06-C1",
+      "description": "link_graph_beta_frontier public link record D10-C06-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "alternative_gene"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C06",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "coaccessibility",
+        "delegate_output_address": "sha256:4387603013aed607fced9b3173339425cfa173046bf4cca9f6367f236fe9e621",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "co-1",
+              "gene_id": "GENE1",
+              "score": 0.75,
+              "source_id": "coaccess-public",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "co-2",
+              "gene_id": "GENE2",
+              "score": 0.75,
+              "source_id": "coaccess-public",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C06-C1",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C06-control_b",
+      "content_address": "sha256:fea2e5fb9371cfe4e50ff4517a3006eb7ab5483725c1d8d38fe5a45663e7abb6",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C06-C2",
+      "description": "link_graph_beta_frontier public link record D10-C06-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_evidence"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C06",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "coaccessibility",
+        "delegate_output_address": "sha256:65ec853fa7fadecd79304efd15523c8646c252a16369d5295342bdbfa697cd75",
+        "delegate_payload": {
+          "observations": []
+        },
+        "delegate_record_id": "D10-C06-C2",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C06-control_c",
+      "content_address": "sha256:2b867a2ffe75811e378045c80d87ef72c4208e419ca12e203b92716f1bb17ccf",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C06-C3",
+      "description": "link_graph_beta_frontier public link record D10-C06-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C06",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "coaccessibility",
+        "delegate_output_address": "sha256:577cb2882aabe8b944e6b99404b4cb63cb71f73a9dc4dfd6b46b6c145e8bdaf9",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "co-foreign",
+              "gene_id": "GENE1",
+              "score": 0.75,
+              "source_id": "coaccess-public",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C06-C3",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C07-positive",
+      "content_address": "sha256:4d1ccce1d1ae871c32731e83509239b29d7c725d4e88e2b760b5d542f10ba5eb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C07-P",
+      "description": "link_graph_beta_frontier public link record D10-C07-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_method"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "accepted",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C07",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "molecular_qtl",
+        "delegate_output_address": "sha256:64ac253c310ec777cb56fcc2f2b4bbd3abf2df635719171ab472076485a5d718",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "effect_size": 0.42,
+              "element_id": "enh-1",
+              "evidence_id": "qtl-1",
+              "gene_id": "GENE1",
+              "q_value": 0.001,
+              "source_id": "qtl-public",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C07-P",
+        "delegate_role": "positive"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C07-control_a",
+      "content_address": "sha256:2659e2bc3b241c39a326c5d862a4894ccb9f46a3089320e3c6b6311caf864b07",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C07-C1",
+      "description": "link_graph_beta_frontier public link record D10-C07-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "weak_q_value"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C07",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "molecular_qtl",
+        "delegate_output_address": "sha256:bf479976cd1b52523abaa2cb7a534f21e1f8a402bea84409d4ffa29bb9203b60",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "effect_size": 0.42,
+              "element_id": "enh-1",
+              "evidence_id": "qtl-weak",
+              "gene_id": "GENE1",
+              "q_value": 0.5,
+              "source_id": "qtl-public",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C07-C1",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C07-control_b",
+      "content_address": "sha256:993ded9c2142ce9079b2b5b845971ec107836fd5c47f0980cc78a6dd387aa512",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C07-C2",
+      "description": "link_graph_beta_frontier public link record D10-C07-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_evidence"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C07",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "molecular_qtl",
+        "delegate_output_address": "sha256:609f95d12c7ddc90f14e181293f7f2bfedf6f86996d0bc6e2a186387ad60dae0",
+        "delegate_payload": {
+          "observations": []
+        },
+        "delegate_record_id": "D10-C07-C2",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C07-control_c",
+      "content_address": "sha256:ab77009d4282f829819556d3800ebb8b28b3587a4cada9fe1a8c5ad00c3c0280",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C07-C3",
+      "description": "link_graph_beta_frontier public link record D10-C07-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C07",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "molecular_qtl",
+        "delegate_output_address": "sha256:8684f4f513207111e5ba36c131de0a4fc6f48f4db0666b54fdfdfbf0f6ed8248",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "effect_size": 0.42,
+              "element_id": "enh-1",
+              "evidence_id": "qtl-foreign",
+              "gene_id": "GENE1",
+              "q_value": 0.001,
+              "source_id": "qtl-public",
+              "source_version": "v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C07-C3",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C08-positive",
+      "content_address": "sha256:7fb910deaf291cc7f3ffd1815b6ad3ca7195174054588318ad5b356bac952223",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C08-P",
+      "description": "link_graph_beta_frontier public link record D10-C08-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_direction"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "accepted",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C08",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "allele_specific",
+        "delegate_output_address": "sha256:8691932f41e4b040bada2ae764e98b005d4362c0c0d3417b92ad43135903ce9d",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "gain",
+              "element_id": "enh-1",
+              "evidence_id": "allele-gain",
+              "gene_id": "GENE1",
+              "source_id": "allele-public",
+              "source_version": "v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C08-P",
+        "delegate_role": "positive"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C08-control_a",
+      "content_address": "sha256:d990cab19dcff93cf6263c7811340d86c412aedeb6fc489a43744e2700d7b44c",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C08-C1",
+      "description": "link_graph_beta_frontier public link record D10-C08-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "direction_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C08",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "allele_specific",
+        "delegate_output_address": "sha256:a605232331210e5c73503a53779d4f8363e5df0331578cb33465e427e39f6051",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "gain",
+              "element_id": "enh-1",
+              "evidence_id": "allele-gain",
+              "gene_id": "GENE1",
+              "source_id": "allele-public",
+              "source_version": "v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "loss",
+              "element_id": "enh-1",
+              "evidence_id": "allele-loss",
+              "gene_id": "GENE1",
+              "source_id": "allele-public",
+              "source_version": "v2",
+              "support": 0.7,
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C08-C1",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C08-control_b",
+      "content_address": "sha256:11435320412b48d57299e1b525aedf6507c1e9ac855d10531d01db798ae376b0",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C08-C2",
+      "description": "link_graph_beta_frontier public link record D10-C08-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_evidence"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C08",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "allele_specific",
+        "delegate_output_address": "sha256:ea3b4afbf6ec0d9679b0e1b74e5e3aeedffc9d437d36a0a05519a3181341c459",
+        "delegate_payload": {
+          "observations": []
+        },
+        "delegate_record_id": "D10-C08-C2",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C08-control_c",
+      "content_address": "sha256:a6f7b6af8415cfb6f2c05574fcd55c79a7e07a98f2c295de005b9fb70936c6f9",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+      "delegate_record_id": "D10-C08-C3",
+      "description": "link_graph_beta_frontier public link record D10-C08-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_beta_frontier",
+      "operation_id": "D10-C08",
+      "payload": {
+        "delegate_family": "link_graph_beta_frontier",
+        "delegate_fixture_id": "link-graph-beta-frontier-fixture",
+        "delegate_operation": "allele_specific",
+        "delegate_output_address": "sha256:b2150a0ed2fb5682a176b6c56e3ee7ef474d2b5809900d0b3dcbd68410c4fe98",
+        "delegate_payload": {
+          "observations": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "direction": "gain",
+              "element_id": "enh-1",
+              "evidence_id": "allele-foreign",
+              "gene_id": "GENE1",
+              "source_id": "allele-public",
+              "source_version": "v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C08-C3",
+        "delegate_role": "control"
+      },
+      "plane": "beta_regulatory_evidence",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "case_id": "D10-C09-positive",
+      "content_address": "sha256:a5208815f2069a160a0e005f290fdab3d8a78357f0aab0bf32076b34614ed9ee",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C09-P",
+      "description": "link_graph_alpha_frontier public link record D10-C09-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_method"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "accepted",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C09",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "crispr_perturbation",
+        "delegate_output_address": "sha256:8c559490f4762cee949979983d88d0885900c83be0e4a85806a4963dc6de740c",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "repressing",
+              "effect_scale": 1.0,
+              "effect_size": -0.8,
+              "element_id": "enh-1",
+              "evidence_id": "cr-1",
+              "gene_id": "GENE1",
+              "perturbation_mode": "CRISPRi",
+              "source_id": "crispr-aggregate",
+              "source_version": "crispr-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C09-P",
+        "delegate_role": "positive"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C09-control_a",
+      "content_address": "sha256:65fb243265def0221bb4de8e0ec538bb274eb9c0b51adece994c5267366c9178",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C09-C1",
+      "description": "link_graph_alpha_frontier public link record D10-C09-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 2
+      },
+      "expected_issue_codes": [
+        "single_method",
+        "low_support"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C09",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "crispr_perturbation",
+        "delegate_output_address": "sha256:bba53a9da3de2473c73b56d050a12ace56ba533c2b349dba57180f0ec35153e6",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "unknown",
+              "effect_scale": 1.0,
+              "effect_size": 0.1,
+              "element_id": "enh-1",
+              "evidence_id": "cr-weak",
+              "gene_id": "GENE1",
+              "perturbation_mode": "CRISPRi",
+              "source_id": "crispr-aggregate",
+              "source_version": "crispr-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C09-C1",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C09-control_b",
+      "content_address": "sha256:2491cfd2187a920791201bfb13a12780413b40a3413346d6a7f4be81be0c0362",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C09-C2",
+      "description": "link_graph_alpha_frontier public link record D10-C09-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "direction_disagreement"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C09",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "crispr_perturbation",
+        "delegate_output_address": "sha256:42fc90e1d2b0deab41d366d2fa1d6bae6642dcdd3ff45754705ff8675f0c06ab",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "activating",
+              "effect_scale": 1.0,
+              "effect_size": 0.8,
+              "element_id": "enh-1",
+              "evidence_id": "cr-a",
+              "gene_id": "GENE1",
+              "perturbation_mode": "CRISPRi",
+              "source_id": "crispr-aggregate",
+              "source_version": "crispr-v2",
+              "variant_id": "v-1"
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "direction": "repressing",
+              "effect_scale": 1.0,
+              "effect_size": -0.8,
+              "element_id": "enh-1",
+              "evidence_id": "cr-b",
+              "gene_id": "GENE1",
+              "perturbation_mode": "CRISPRi",
+              "source_id": "crispr-aggregate",
+              "source_version": "crispr-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C09-C2",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C09-control_c",
+      "content_address": "sha256:31a792e193687b809062306e19d7f17fb162f7475d28c458aeaa38034b57c155",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C09-C3",
+      "description": "link_graph_alpha_frontier public link record D10-C09-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C09",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "crispr_perturbation",
+        "delegate_output_address": "sha256:4969bc3b6748b2890de215f46aeeaeb7d8b56803fb2e76a4cafa26fe8bdf7950",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "direction": "repressing",
+              "effect_scale": 1.0,
+              "effect_size": -0.8,
+              "element_id": "enh-1",
+              "evidence_id": "cr-1",
+              "gene_id": "GENE1",
+              "perturbation_mode": "CRISPRi",
+              "source_id": "crispr-aggregate",
+              "source_version": "crispr-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C09-C3",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C10-positive",
+      "content_address": "sha256:a500389a1cc9a546341256924947afb8210a05177d9e8b0bd34f44ac809423eb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C10-P",
+      "description": "link_graph_alpha_frontier public link record D10-C10-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_assay"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "accepted",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C10",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "contact_3d",
+        "delegate_output_address": "sha256:268a5199330d437ac09bde22623a8552d28037b385279b83d4033c1b601d2613",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_kind": "hic",
+              "contact_scale": 1.0,
+              "contact_signal": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ct-1",
+              "gene_id": "GENE1",
+              "resolution_bp": 5000,
+              "source_id": "contact-aggregate",
+              "source_version": "contact-v3",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C10-P",
+        "delegate_role": "positive"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C10-control_a",
+      "content_address": "sha256:c27965c6b01369b02208b31624e8c29a1e9acba3d0eec75ad28e74cabb80641c",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C10-C1",
+      "description": "link_graph_alpha_frontier public link record D10-C10-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 2
+      },
+      "expected_issue_codes": [
+        "single_assay",
+        "weak_contact"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C10",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "contact_3d",
+        "delegate_output_address": "sha256:b47ab4f4196f953c73dadc77ab8ce5660e7c98de8b307feb3299e27ec7683ff5",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_kind": "hic",
+              "contact_scale": 1.0,
+              "contact_signal": 0.2,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ct-weak",
+              "gene_id": "GENE1",
+              "resolution_bp": 5000,
+              "source_id": "contact-aggregate",
+              "source_version": "contact-v3",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C10-C1",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C10-control_b",
+      "content_address": "sha256:1d8ec9a4f5cb9cd525a06058225666d7fa527a3818ab55ac8f18c559df76fd20",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C10-C2",
+      "description": "link_graph_alpha_frontier public link record D10-C10-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 2
+      },
+      "expected_issue_codes": [
+        "single_assay",
+        "alternative_gene"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C10",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "contact_3d",
+        "delegate_output_address": "sha256:3a202a3988b3647b2bc9a60b8613c3fe0e87e7a10cd9e7a393b83fab6130954b",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_kind": "hic",
+              "contact_scale": 1.0,
+              "contact_signal": 0.8,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ct-1",
+              "gene_id": "GENE1",
+              "resolution_bp": 5000,
+              "source_id": "contact-aggregate",
+              "source_version": "contact-v3",
+              "variant_id": "v-1"
+            },
+            {
+              "assay_kind": "hic",
+              "contact_scale": 1.0,
+              "contact_signal": 0.8,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ct-2",
+              "gene_id": "GENE2",
+              "resolution_bp": 5000,
+              "source_id": "contact-aggregate",
+              "source_version": "contact-v3",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C10-C2",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C10-control_c",
+      "content_address": "sha256:47d4b9d08a4f2c311d702422210348d4843d5fb2a4d335c420edc7e9e125867e",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C10-C3",
+      "description": "link_graph_alpha_frontier public link record D10-C10-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C10",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "contact_3d",
+        "delegate_output_address": "sha256:581d9d37b09c5fd95baa2f639c88ce6a38f1e0588d11fdc4640a0cd81c772955",
+        "delegate_payload": {
+          "observations": [
+            {
+              "assay_kind": "hic",
+              "contact_scale": 1.0,
+              "contact_signal": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ct-1",
+              "gene_id": "GENE1",
+              "resolution_bp": 5000,
+              "source_id": "contact-aggregate",
+              "source_version": "contact-v3",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C10-C3",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C11-positive",
+      "content_address": "sha256:4b45c70f2296ef6ffad01e062f09b5073922d08d927643804f9148d54b992e9b",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C11-P",
+      "description": "link_graph_alpha_frontier public link record D10-C11-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C11",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "promoter_tethering",
+        "delegate_output_address": "sha256:b8422392eba6fe02853b52903ce672a2745a916d868aa6b1f92bbf2c9106219d",
+        "delegate_payload": {
+          "observations": [
+            {
+              "contact_support": 0.8,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "distance_bp": 1000,
+              "element_activity": 0.8,
+              "element_id": "enh-1",
+              "gene_id": "GENE1",
+              "observation_id": "th-1",
+              "promoter_activity": 0.8,
+              "promoter_overlap": true,
+              "source_id": "tether-aggregate",
+              "source_version": "tether-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C11-P",
+        "delegate_role": "positive"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C11-control_a",
+      "content_address": "sha256:1eec408bd5a095c3745ebf13ed907d91d7b39e0447eb9b7713bde531d024e2eb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C11-C1",
+      "description": "link_graph_alpha_frontier public link record D10-C11-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_components"
+      ],
+      "expected_result_state": "abstained",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C11",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "promoter_tethering",
+        "delegate_output_address": "sha256:7fe1d19ce5a1c455c65f9038ed5356fe81c7ab7613af2be253b84f1b228a1393",
+        "delegate_payload": {
+          "observations": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "distance_bp": 1000,
+              "element_id": "enh-1",
+              "gene_id": "GENE1",
+              "observation_id": "th-1",
+              "source_id": "tether-aggregate",
+              "source_version": "tether-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C11-C1",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C11-control_b",
+      "content_address": "sha256:0cadf8b1085e20b204d6f886c12177aea9d45db0062e25877eff8228d35bd6cb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C11-C2",
+      "description": "link_graph_alpha_frontier public link record D10-C11-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "tethering_ambiguity"
+      ],
+      "expected_result_state": "ambiguous",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C11",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "promoter_tethering",
+        "delegate_output_address": "sha256:8795c5aac9753ba78e9fab33a92bb1e80fa037cf0d8bc5bd55fad40875af6762",
+        "delegate_payload": {
+          "observations": [
+            {
+              "contact_support": 0.8,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "distance_bp": 1000,
+              "element_id": "enh-1",
+              "gene_id": "GENE1",
+              "observation_id": "th-1",
+              "promoter_activity": 0.8,
+              "source_id": "tether-aggregate",
+              "source_version": "tether-v2",
+              "variant_id": "v-1"
+            },
+            {
+              "contact_support": 0.8,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "distance_bp": 1000,
+              "element_id": "enh-1",
+              "gene_id": "GENE2",
+              "observation_id": "th-2",
+              "promoter_activity": 0.8,
+              "source_id": "tether-aggregate",
+              "source_version": "tether-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C11-C2",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C11-control_c",
+      "content_address": "sha256:8784cfc38284d277d6f945556a1a1fc9c84fd216f5637bac624634bc9dc74a3e",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C11-C3",
+      "description": "link_graph_alpha_frontier public link record D10-C11-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C11",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "promoter_tethering",
+        "delegate_output_address": "sha256:c352ee5f92e5b07837cecbc6f6b6eac5d3e1620e98000573c35cf05fe8d1aa7f",
+        "delegate_payload": {
+          "observations": [
+            {
+              "contact_support": 0.8,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "distance_bp": 1000,
+              "element_activity": 0.8,
+              "element_id": "enh-1",
+              "gene_id": "GENE1",
+              "observation_id": "th-1",
+              "promoter_activity": 0.8,
+              "promoter_overlap": true,
+              "source_id": "tether-aggregate",
+              "source_version": "tether-v2",
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C11-C3",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C12-positive",
+      "content_address": "sha256:e6cc8ce10cd0860b280dca73de1158fe552abf158e1c6a8b56cdbdd56b9f1c99",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C12-P",
+      "description": "link_graph_alpha_frontier public link record D10-C12-P retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C12",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "multi_gene_graph",
+        "delegate_output_address": "sha256:abf9df5f05d799ce18e9e66516ffd2baa52a43e2ebb054ea2a3d290504735d29",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ge-1",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "graph-contact",
+              "source_version": "graph-v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ge-2",
+              "gene_id": "GENE1",
+              "link_type": "coaccessibility",
+              "source_id": "graph-coaccess",
+              "source_version": "graph-v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C12-P",
+        "delegate_role": "positive"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C12-control_a",
+      "content_address": "sha256:fae0ee16e8a220daa17de715f1be318ec470ea8dbe2ad0c83519052985c65ba4",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C12-C1",
+      "description": "link_graph_alpha_frontier public link record D10-C12-C1 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "single_evidence"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C12",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "multi_gene_graph",
+        "delegate_output_address": "sha256:5a9c23e7b60beaf901862a1788dfefdd56a791c211b91476522ce5b6f24bd504",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ge-1",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "graph-contact",
+              "source_version": "graph-v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C12-C1",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C12-control_b",
+      "content_address": "sha256:60431282976f966b09ad3ecde999710891ac4de21abdd7a2a7abd0ed30e9ca38",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C12-C2",
+      "description": "link_graph_alpha_frontier public link record D10-C12-C2 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_evidence"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C12",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "multi_gene_graph",
+        "delegate_output_address": "sha256:a905ec2ee11726358bdf4b9d2dc0fe383e7420f0216a8d22d1a975f85b193370",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ge-a",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "graph-contact",
+              "source_version": "graph-v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ge-b",
+              "gene_id": "GENE1",
+              "link_type": "coaccessibility",
+              "source_id": "graph-coaccess",
+              "source_version": "graph-v2",
+              "state": "contradictory",
+              "support": 0.8,
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C12-C2",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C12-control_c",
+      "content_address": "sha256:eca8e4d8d29742f5a351d2e0593a389e9c4229b08aa0a774808925b52f823f0d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+      "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+      "delegate_record_id": "D10-C12-C3",
+      "description": "link_graph_alpha_frontier public link record D10-C12-C3 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "link_graph_alpha_frontier",
+      "operation_id": "D10-C12",
+      "payload": {
+        "delegate_family": "link_graph_alpha_frontier",
+        "delegate_fixture_id": "link-graph-alpha-frontier-fixture",
+        "delegate_operation": "multi_gene_graph",
+        "delegate_output_address": "sha256:7affb6c3d9402b667dd5f6bd6f4fd59e4c3a88af5fe6b2be27b4dbc6c7ab6bcf",
+        "delegate_payload": {
+          "evidence": [
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ge-1",
+              "gene_id": "GENE1",
+              "link_type": "contact",
+              "source_id": "graph-contact",
+              "source_version": "graph-v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            },
+            {
+              "confidence": 0.9,
+              "context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+              "element_id": "enh-1",
+              "evidence_id": "ge-2",
+              "gene_id": "GENE1",
+              "link_type": "coaccessibility",
+              "source_id": "graph-coaccess",
+              "source_version": "graph-v2",
+              "support": 0.8,
+              "variant_id": "v-1"
+            }
+          ]
+        },
+        "delegate_record_id": "D10-C12-C3",
+        "delegate_role": "control"
+      },
+      "plane": "alpha_link_inference",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "case_id": "D10-C13-positive",
+      "content_address": "sha256:a1e1d35e8ea96110307a2d08bca3349993efa4160c19060414be182b9761e317",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C13-POS-001",
+      "description": "link_frontier public link record C13-POS-001 retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_frontier",
+      "operation_id": "D10-C13",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_dependence_correction",
+        "delegate_output_address": "sha256:49bfbb87af843f1304945b0533557e6fdd2fdd7883709ded9777f74d1e863c5e",
+        "delegate_payload": {
+          "input_hash": "sha256:1c9ed1a2a957aefcd1a984e79670fba1fb137947ebefb46448591141735d663f",
+          "input_records": [
+            {
+              "dependence_group": "contact-1",
+              "link_id": "link-a",
+              "support": 0.9
+            },
+            {
+              "dependence_group": "contact-1",
+              "link_id": "link-b",
+              "support": 0.8
+            },
+            {
+              "dependence_group": "activity-1",
+              "link_id": "link-c",
+              "support": 0.6
+            }
+          ]
+        },
+        "delegate_record_id": "C13-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "frontier_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C13-control_a",
+      "content_address": "sha256:b026a078ea1f1f59a6d44aabf80580ba1d33d852fea4cdee156a43b1d63d8fbb",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C13-CTRL-001",
+      "description": "link_frontier public link record C13-CTRL-001 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "zero_corrected_support"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C13",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_dependence_correction",
+        "delegate_output_address": "sha256:dd122f5e49c22ea8ec568ff06ecbd7ed57975cc400af001568b539b4183a8d01",
+        "delegate_payload": {
+          "input_hash": "sha256:a0fcfdfbd72f8baa74910e1ba131e2f59b2b45361dacce2571980b946ba290a8",
+          "input_records": [
+            {
+              "dependence_group": "empty",
+              "link_id": "link-zero",
+              "support": 0.0
+            }
+          ]
+        },
+        "delegate_record_id": "C13-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C13-control_b",
+      "content_address": "sha256:80b3b0e72e67df3dc5060ff79db210fa014c51ceab86e0d601f7dc6d2ba3ea7d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C13-CTRL-002",
+      "description": "link_frontier public link record C13-CTRL-002 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_dependence_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C13",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_dependence_correction",
+        "delegate_output_address": "sha256:a23c772c3a9aac487b630b8bd640651211ca7a4fe6c1717692abfac3986b5fd0",
+        "delegate_payload": {
+          "input_hash": "sha256:b3283bf184bb082f364b8537776bc6b15fce2ff9f9acb3fb11ae87da394bfd4b",
+          "input_records": []
+        },
+        "delegate_record_id": "C13-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C13-control_c",
+      "content_address": "sha256:66c0d0a255080114ee0e8d03f9960708dc7aa90279ed2e08ff351f363750bc26",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C13-CTRL-003",
+      "description": "link_frontier public link record C13-CTRL-003 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_dependence_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C13",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_dependence_correction",
+        "delegate_output_address": "sha256:652f1c964abc71af99f7ffa6662fc9660cc1c5d74a8c415fff2673296b4b91d8",
+        "delegate_payload": {
+          "input_hash": "sha256:c81568f0f38d29a9bb5c15f487f9e7f19de76a4f7a0bf4c548989d0a1c4b24fb",
+          "input_records": [
+            {
+              "dependence_group": "bad",
+              "link_id": "link-bad",
+              "support": 1.4
+            }
+          ]
+        },
+        "delegate_record_id": "C13-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C14-positive",
+      "content_address": "sha256:68384b64ddd9d423f69695c98969809c3142f24eb3f73ebff8022382ffa4d292",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C14-POS-001",
+      "description": "link_frontier public link record C14-POS-001 retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_frontier",
+      "operation_id": "D10-C14",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "target_gene_ranking",
+        "delegate_output_address": "sha256:90afdd5a78f8e1e5bcea94544159195cfd9a24c7d2d3ae62ecc4fa5a8f4e7fb4",
+        "delegate_payload": {
+          "input_hash": "sha256:62b25417f37b98e0ecd98752b0ab365332cbdcc6124ff4ca0527e0ba298d7de8",
+          "input_records": [
+            {
+              "component_scores": {
+                "activity": 0.8,
+                "contact": 0.9,
+                "distance": 0.7
+              },
+              "element_id": "enh-1",
+              "gene_id": "GENE1",
+              "link_id": "rank-1",
+              "variant_id": "v1"
+            },
+            {
+              "component_scores": {
+                "activity": 0.5,
+                "contact": 0.5
+              },
+              "element_id": "enh-1",
+              "gene_id": "GENE2",
+              "link_id": "rank-2",
+              "variant_id": "v1"
+            }
+          ]
+        },
+        "delegate_record_id": "C14-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "frontier_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C14-control_a",
+      "content_address": "sha256:441a8ad2175b1b6ea8174190583965daa1bbff879e7bfcb34f8635e11c6ec3b5",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C14-CTRL-001",
+      "description": "link_frontier public link record C14-CTRL-001 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "zero_rank_support"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C14",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "target_gene_ranking",
+        "delegate_output_address": "sha256:3a3d9778eaca63e8a0b6a40a19f703ee0cbd4f0784f630efec788ed7a6ab290d",
+        "delegate_payload": {
+          "input_hash": "sha256:c0bee5ea5b7dbbb5dc806d5417371eebedb0b02fca4eb997446fcb238dbe7473",
+          "input_records": [
+            {
+              "component_scores": {},
+              "element_id": "enh-1",
+              "gene_id": "GENE1",
+              "link_id": "rank-zero",
+              "variant_id": "v1"
+            }
+          ]
+        },
+        "delegate_record_id": "C14-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C14-control_b",
+      "content_address": "sha256:51eba70a5b2133e13001718ee06ecbfe78b50f36fd2be5f4e5deec233ba00024",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C14-CTRL-002",
+      "description": "link_frontier public link record C14-CTRL-002 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_rank_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C14",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "target_gene_ranking",
+        "delegate_output_address": "sha256:b8cd6433d40e1f8db6d430dfc3ac82398a59426b1faeabe5cef0dab7dd3719d2",
+        "delegate_payload": {
+          "input_hash": "sha256:9f2e1eb73a3c120a66292d532e89bd6917c2abe0d5b448c0ca622caceb3950fe",
+          "input_records": [
+            {
+              "element_id": "enh-1",
+              "link_id": "rank-missing",
+              "variant_id": "v1"
+            }
+          ]
+        },
+        "delegate_record_id": "C14-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C14-control_c",
+      "content_address": "sha256:f567b8512a6d1e132b0787c48ed9469bee5c3d18e7a40260e1dafb030b2e5577",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C14-CTRL-003",
+      "description": "link_frontier public link record C14-CTRL-003 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_rank_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C14",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "target_gene_ranking",
+        "delegate_output_address": "sha256:fc22659b3fda2d05d30d8e872d999516446d430cbd32e49ef1f80b69178f9409",
+        "delegate_payload": {
+          "input_hash": "sha256:b3283bf184bb082f364b8537776bc6b15fce2ff9f9acb3fb11ae87da394bfd4b",
+          "input_records": []
+        },
+        "delegate_record_id": "C14-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C15-positive",
+      "content_address": "sha256:e762e2fef85d4d70f7b34eaadfad124f36544e439e6b0673a453a6e824f9eeab",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C15-POS-001",
+      "description": "link_frontier public link record C15-POS-001 retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "link_frontier",
+      "operation_id": "D10-C15",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_calibration_abstention",
+        "delegate_output_address": "sha256:98cedff6eaab7dbd49e5d9d8f66db4029c7a4986c73686fb30991a62018f2f4c",
+        "delegate_payload": {
+          "input_hash": "sha256:b4871a3574ed1a514504aa21eca386c11dbbba0a1e1537f64d317d4f729d106e",
+          "input_records": [
+            {
+              "link_id": "cal-1",
+              "observed_score": 0.75,
+              "predicted_score": 0.8,
+              "uncertainty": 0.05
+            }
+          ],
+          "maximum_calibration_error": 0.3,
+          "maximum_uncertainty": 0.25
+        },
+        "delegate_record_id": "C15-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "frontier_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C15-control_a",
+      "content_address": "sha256:1f11d4c103d7154b4954c5afad6321f6d96aea6e01640344e50a3f062058b609",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C15-CTRL-001",
+      "description": "link_frontier public link record C15-CTRL-001 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "link_uncertainty_high"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C15",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_calibration_abstention",
+        "delegate_output_address": "sha256:10b57df95c2913cd54141bfc6f24b53aaa0d34351a1d6160431d102c06eb4a47",
+        "delegate_payload": {
+          "input_hash": "sha256:8b26fd8265efc0d0a4201470237d164e22e348212e351c544b527fbab16e915b",
+          "input_records": [
+            {
+              "link_id": "cal-high-u",
+              "observed_score": 0.75,
+              "predicted_score": 0.8,
+              "uncertainty": 0.7
+            }
+          ]
+        },
+        "delegate_record_id": "C15-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C15-control_b",
+      "content_address": "sha256:29cad538ae15386899b0642b4b566c5b5c97271f0eb405f144b6b618ffb74c69",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C15-CTRL-002",
+      "description": "link_frontier public link record C15-CTRL-002 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "link_calibration_error_high"
+      ],
+      "expected_result_state": "partial",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C15",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_calibration_abstention",
+        "delegate_output_address": "sha256:7f430f06759bbb2eae0e82de35171fcc0d5d38690b0ef7adfac57d8e31c378ce",
+        "delegate_payload": {
+          "input_hash": "sha256:6575864522d34540bf4e5fca132eb419656b09a85f04eb6199bdb31c69ea5a49",
+          "input_records": [
+            {
+              "link_id": "cal-high-e",
+              "observed_score": 0.2,
+              "predicted_score": 0.95,
+              "uncertainty": 0.05
+            }
+          ]
+        },
+        "delegate_record_id": "C15-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C15-control_c",
+      "content_address": "sha256:0848a0422cbe502992a556200b3dbcd93079e44f62eb767ea6621468df747a07",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C15-CTRL-003",
+      "description": "link_frontier public link record C15-CTRL-003 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_calibration_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C15",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_calibration_abstention",
+        "delegate_output_address": "sha256:e691e4c8a4baae5e78793e210b0b5982ad88c878f34007a7c73e5aa2c7f50631",
+        "delegate_payload": {
+          "input_hash": "sha256:b3283bf184bb082f364b8537776bc6b15fce2ff9f9acb3fb11ae87da394bfd4b",
+          "input_records": []
+        },
+        "delegate_record_id": "C15-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C16-positive",
+      "content_address": "sha256:c3bbd476723d876c2a939799e440aa97e1c031f2d3060a97c7025fe1aeae7b44",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C16-POS-001",
+      "description": "link_frontier public link record C16-POS-001 retained as D10 positive",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 0
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "published",
+      "expected_state": "accepted",
+      "family": "link_frontier",
+      "operation_id": "D10-C16",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_evidence_publication",
+        "delegate_output_address": "sha256:cc1c336d458b3c1fdd596777a8c92099ac36a0b8e7ad4e1ac7dab07b8c543ace",
+        "delegate_payload": {
+          "bundle_id": "link-bundle-1",
+          "input_hash": "sha256:937ef48b28f30e9d50f90cc4cc49ed7d02d85c8137ecc4c6c22668ff661f09ba",
+          "input_records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "link_id": "pub-1",
+              "source_id": "encode-project"
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "link_id": "pub-2",
+              "source_id": "four-d-nucleome"
+            }
+          ]
+        },
+        "delegate_record_id": "C16-POS-001",
+        "delegate_role": "positive"
+      },
+      "plane": "frontier_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C16-control_a",
+      "content_address": "sha256:af5044707f67b2448ff29a659ff52e7cfae77050833e2b555367b0370993fb7b",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C16-CTRL-001",
+      "description": "link_frontier public link record C16-CTRL-001 retained as D10 control_a",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "publication_context_mismatch"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C16",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_evidence_publication",
+        "delegate_output_address": "sha256:f51a064ef6865f97c0928506f7eab807514a291b792d1347b929df5ddca6376a",
+        "delegate_payload": {
+          "bundle_id": "link-bundle-bad-context",
+          "input_hash": "sha256:73c53eec89133d3a81f94d89c440e6670b67598a65158da27d782fe5234a8bae",
+          "input_records": [
+            {
+              "context_key": "other",
+              "link_id": "pub-other",
+              "source_id": "encode-project"
+            }
+          ]
+        },
+        "delegate_record_id": "C16-CTRL-001",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C16-control_b",
+      "content_address": "sha256:e1c6c1b73939725cb9954a1d0f92a14275a06c3b5b2af5e963ac2364b60ef336",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C16-CTRL-002",
+      "description": "link_frontier public link record C16-CTRL-002 retained as D10 control_b",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_publication_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C16",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_evidence_publication",
+        "delegate_output_address": "sha256:a9cf781331702244366ab8b11bb6a3e1dc40be854ef9c769699e2db8558a3a98",
+        "delegate_payload": {
+          "bundle_id": "link-bundle-bad-source",
+          "input_hash": "sha256:cf7b6dcf17b05606f5791cdec4a60af49e8eca9fd521a84522ee8d66b735f344",
+          "input_records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+              "link_id": "pub-no-source"
+            }
+          ]
+        },
+        "delegate_record_id": "C16-CTRL-002",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "case_id": "D10-C16-control_c",
+      "content_address": "sha256:4e4f35b4a354aa2804775d49e5d09aecba490ee43790a0fce2db47fca7d8b53a",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_fixture_id": "link-frontier-public-aggregate",
+      "delegate_record_id": "C16-CTRL-003",
+      "description": "link_frontier public link record C16-CTRL-003 retained as D10 control_c",
+      "expected_counts": {
+        "delegate_case": 1,
+        "issue_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_publication_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "link_frontier",
+      "operation_id": "D10-C16",
+      "payload": {
+        "delegate_family": "link_frontier",
+        "delegate_fixture_id": "link-frontier-public-aggregate",
+        "delegate_operation": "link_evidence_publication",
+        "delegate_output_address": "sha256:622394ce22c130b60753ec13e029b56e312b2fabd72665950a975f9141635825",
+        "delegate_payload": {
+          "bundle_id": "link-bundle-empty",
+          "input_hash": "sha256:b3283bf184bb082f364b8537776bc6b15fce2ff9f9acb3fb11ae87da394bfd4b",
+          "input_records": []
+        },
+        "delegate_record_id": "C16-CTRL-003",
+        "delegate_role": "control"
+      },
+      "plane": "frontier_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    }
+  ],
+  "content_address": "sha256:18a1f91007b2d844c24910d0b80d4d04ccaabf8afe2f43fd8d127a8991ccf9b5",
+  "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+  "fixture_id": "d10-link-graph-architecture-public-aggregate",
+  "foreign_context_key": "GRCh38|glioma|adult|differentiated|core|unknown",
+  "operations": [
+    {
+      "capability_id": "GNC-D10-C01",
+      "content_address": "sha256:efbba4e774464d261516f64220f8b00f2ae2ed95b5474494e794ab8e1105f888",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [],
+      "family": "link_graph_foundation_frontier",
+      "input_contract": "link_graph.coordinate_overlap.public_record.v1",
+      "operation": "coordinate_overlap",
+      "operation_id": "D10-C01",
+      "ordinal": 1,
+      "output_contract": "link_graph.coordinate_overlap.receipt.v1",
+      "plane": "foundation_baseline",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C02",
+      "content_address": "sha256:a1c82dfa5741afb15493bfaa07c403f78ad21b7e5bc0481dcde2e39f591e6917",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C01"
+      ],
+      "family": "link_graph_foundation_frontier",
+      "input_contract": "link_graph.nearest_gene.public_record.v1",
+      "operation": "nearest_gene",
+      "operation_id": "D10-C02",
+      "ordinal": 2,
+      "output_contract": "link_graph.nearest_gene.receipt.v1",
+      "plane": "foundation_baseline",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C03",
+      "content_address": "sha256:71f2a7f6870fa9f02560436787be6926fa13996952218d9dc0a84dafb78ae4a8",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C02"
+      ],
+      "family": "link_graph_foundation_frontier",
+      "input_contract": "link_graph.ccre_assignment.public_record.v1",
+      "operation": "ccre_assignment",
+      "operation_id": "D10-C03",
+      "ordinal": 3,
+      "output_contract": "link_graph.ccre_assignment.receipt.v1",
+      "plane": "foundation_baseline",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C04",
+      "content_address": "sha256:165bb98ee897f3989c517a94e86342dd817295f405c2dfc92e2b402a939f28b1",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C03"
+      ],
+      "family": "link_graph_foundation_frontier",
+      "input_contract": "link_graph.enhancer_gene_consensus.public_record.v1",
+      "operation": "enhancer_gene_consensus",
+      "operation_id": "D10-C04",
+      "ordinal": 4,
+      "output_contract": "link_graph.enhancer_gene_consensus.receipt.v1",
+      "plane": "foundation_baseline",
+      "source_ids": [
+        "D10-foundation-element-aggregate",
+        "D10-foundation-gene-aggregate",
+        "D10-foundation-ccre-aggregate",
+        "D10-foundation-consensus-contact",
+        "D10-foundation-consensus-activity"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C05",
+      "content_address": "sha256:5f96aca8337bb8659a5d8718a5cad68bb32528eae585cd659203d85d83787511",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C04"
+      ],
+      "family": "link_graph_beta_frontier",
+      "input_contract": "link_graph.activity_by_contact.public_record.v1",
+      "operation": "activity_by_contact",
+      "operation_id": "D10-C05",
+      "ordinal": 5,
+      "output_contract": "link_graph.activity_by_contact.receipt.v1",
+      "plane": "beta_regulatory_evidence",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C06",
+      "content_address": "sha256:ccfb91b9aaa2e28682ee2e632a0ecb41e6cf9f18cb8fbdebd7757e2767086e19",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C05"
+      ],
+      "family": "link_graph_beta_frontier",
+      "input_contract": "link_graph.coaccessibility.public_record.v1",
+      "operation": "coaccessibility",
+      "operation_id": "D10-C06",
+      "ordinal": 6,
+      "output_contract": "link_graph.coaccessibility.receipt.v1",
+      "plane": "beta_regulatory_evidence",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C07",
+      "content_address": "sha256:cf5fb18f3e66e930e70b703491d24518c2ca102a0a77fb3361f82150f122a054",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C06"
+      ],
+      "family": "link_graph_beta_frontier",
+      "input_contract": "link_graph.molecular_qtl.public_record.v1",
+      "operation": "molecular_qtl",
+      "operation_id": "D10-C07",
+      "ordinal": 7,
+      "output_contract": "link_graph.molecular_qtl.receipt.v1",
+      "plane": "beta_regulatory_evidence",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C08",
+      "content_address": "sha256:2f0ee2760276cd573195eaca2b5f82aeae4031d926500ef9fa57f650abacda8f",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C07"
+      ],
+      "family": "link_graph_beta_frontier",
+      "input_contract": "link_graph.allele_specific.public_record.v1",
+      "operation": "allele_specific",
+      "operation_id": "D10-C08",
+      "ordinal": 8,
+      "output_contract": "link_graph.allele_specific.receipt.v1",
+      "plane": "beta_regulatory_evidence",
+      "source_ids": [
+        "D10-beta-activity-public",
+        "D10-beta-coaccess-public",
+        "D10-beta-qtl-public",
+        "D10-beta-allele-public"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C09",
+      "content_address": "sha256:bd28a0462083b8f99cc0b9d42811873aab5e5148e6360d5cb20304d9a3637fe7",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C08"
+      ],
+      "family": "link_graph_alpha_frontier",
+      "input_contract": "link_graph.crispr_perturbation.public_record.v1",
+      "operation": "crispr_perturbation",
+      "operation_id": "D10-C09",
+      "ordinal": 9,
+      "output_contract": "link_graph.crispr_perturbation.receipt.v1",
+      "plane": "alpha_link_inference",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C10",
+      "content_address": "sha256:98d985538e7a68fb304ccc460bc23b6385228f55fd1ead051a7b509a0f4fa406",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C09"
+      ],
+      "family": "link_graph_alpha_frontier",
+      "input_contract": "link_graph.contact_3d.public_record.v1",
+      "operation": "contact_3d",
+      "operation_id": "D10-C10",
+      "ordinal": 10,
+      "output_contract": "link_graph.contact_3d.receipt.v1",
+      "plane": "alpha_link_inference",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C11",
+      "content_address": "sha256:d43d38098a6b6b928101c1a801d1b705cc4f67af606ad4a29d7d40dbaffbf967",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C10"
+      ],
+      "family": "link_graph_alpha_frontier",
+      "input_contract": "link_graph.promoter_tethering.public_record.v1",
+      "operation": "promoter_tethering",
+      "operation_id": "D10-C11",
+      "ordinal": 11,
+      "output_contract": "link_graph.promoter_tethering.receipt.v1",
+      "plane": "alpha_link_inference",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C12",
+      "content_address": "sha256:9812bfec018f92a79c2d228946126606db52828a2e1f2571fe5d20165281c435",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C11"
+      ],
+      "family": "link_graph_alpha_frontier",
+      "input_contract": "link_graph.multi_gene_graph.public_record.v1",
+      "operation": "multi_gene_graph",
+      "operation_id": "D10-C12",
+      "ordinal": 12,
+      "output_contract": "link_graph.multi_gene_graph.receipt.v1",
+      "plane": "alpha_link_inference",
+      "source_ids": [
+        "D10-alpha-crispr-aggregate",
+        "D10-alpha-contact-aggregate",
+        "D10-alpha-tether-aggregate",
+        "D10-alpha-graph-contact",
+        "D10-alpha-graph-coaccess"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C13",
+      "content_address": "sha256:b40999766477d1835648c9df6af82a719f1dfca7822a0b31035b6d4a1a875353",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C12"
+      ],
+      "family": "link_frontier",
+      "input_contract": "link_graph.link_dependence_correction.public_record.v1",
+      "operation": "link_dependence_correction",
+      "operation_id": "D10-C13",
+      "ordinal": 13,
+      "output_contract": "link_graph.link_dependence_correction.receipt.v1",
+      "plane": "frontier_release",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C14",
+      "content_address": "sha256:bd76febf461dd4f4016e0e78f2651e80a14b441381b37bcd78f5ce8a88fd0a8f",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C13"
+      ],
+      "family": "link_frontier",
+      "input_contract": "link_graph.target_gene_ranking.public_record.v1",
+      "operation": "target_gene_ranking",
+      "operation_id": "D10-C14",
+      "ordinal": 14,
+      "output_contract": "link_graph.target_gene_ranking.receipt.v1",
+      "plane": "frontier_release",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C15",
+      "content_address": "sha256:9099e64b49aa7c015bdbcc727ed2806e30fb3b6cea6436501094410cb05f2fe8",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C14"
+      ],
+      "family": "link_frontier",
+      "input_contract": "link_graph.link_calibration_abstention.public_record.v1",
+      "operation": "link_calibration_abstention",
+      "operation_id": "D10-C15",
+      "ordinal": 15,
+      "output_contract": "link_graph.link_calibration_abstention.receipt.v1",
+      "plane": "frontier_release",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D10-C16",
+      "content_address": "sha256:1b5859c30056d53b2449ae7b20b704ebd7c8a93ab5ca98752b5a72d8d0cdd761",
+      "control_policy": "retain every aggregate control outcome and require explicit source/context receipt coverage",
+      "dependencies": [
+        "D10-C15"
+      ],
+      "family": "link_frontier",
+      "input_contract": "link_graph.link_evidence_publication.public_record.v1",
+      "operation": "link_evidence_publication",
+      "operation_id": "D10-C16",
+      "ordinal": 16,
+      "output_contract": "link_graph.link_evidence_publication.receipt.v1",
+      "plane": "frontier_release",
+      "source_ids": [
+        "D10-frontier-encode-project",
+        "D10-frontier-four-d-nucleome",
+        "D10-frontier-ebi-expression-atlas",
+        "D10-frontier-ncbi-geo",
+        "D10-frontier-ucsc-genome-browser"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:9a5149df1009e73e34097c07a17756046b942460cfc80ad44f01544842f02acd",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "element-aggregate",
+      "family": "link_graph_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-foundation-element-aggregate",
+      "source_kind": "regulatory_element_aggregate",
+      "source_version": "element-v2",
+      "uri": "https://data.example.org/links/elements-v2"
+    },
+    {
+      "content_address": "sha256:9a6a3428ecc284b5249cc59b3efa7164f2c8175cc180ba37bf709cd2c7961b7d",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "gene-aggregate",
+      "family": "link_graph_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-foundation-gene-aggregate",
+      "source_kind": "gene_interval_aggregate",
+      "source_version": "gene-v2",
+      "uri": "https://data.example.org/links/genes-v2"
+    },
+    {
+      "content_address": "sha256:fd744c697844cac8dfb989a966a486f9dc0e49bb87d93b020ba7d2b7f05394c6",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "ccre-aggregate",
+      "family": "link_graph_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-foundation-ccre-aggregate",
+      "source_kind": "ccre_aggregate",
+      "source_version": "ccre-v2",
+      "uri": "https://data.example.org/links/ccre-v2"
+    },
+    {
+      "content_address": "sha256:6ed0cd92b3ddc70d6369050ef047675cc123d04706744734edc34275fb763585",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "consensus-contact",
+      "family": "link_graph_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-foundation-consensus-contact",
+      "source_kind": "contact_aggregate",
+      "source_version": "consensus-v2",
+      "uri": "https://data.example.org/links/consensus-contact-v2"
+    },
+    {
+      "content_address": "sha256:4181392a1cb51e92e7025900e0053eb8d3aee7a904e9986c8cd0c68aea3b0dd3",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "consensus-activity",
+      "family": "link_graph_foundation_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-foundation-consensus-activity",
+      "source_kind": "activity_aggregate",
+      "source_version": "consensus-v2",
+      "uri": "https://data.example.org/links/consensus-activity-v2"
+    },
+    {
+      "content_address": "sha256:032bf8a792ade4c358a3e211a1fe9d4c7b7dc1ae312676c4974ec5b13e2b0348",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "activity-public",
+      "family": "link_graph_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-beta-activity-public",
+      "source_kind": "activity_by_contact_aggregate",
+      "source_version": "activity-v2",
+      "uri": "https://data.example.org/links/activity-by-contact-v2"
+    },
+    {
+      "content_address": "sha256:4968b14637e7fb2e6464423ecaf64a4c282056140ec76609c7edce1214d330b2",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "coaccess-public",
+      "family": "link_graph_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-beta-coaccess-public",
+      "source_kind": "coaccessibility_aggregate",
+      "source_version": "coaccess-v2",
+      "uri": "https://data.example.org/links/coaccessibility-v2"
+    },
+    {
+      "content_address": "sha256:470f94f65379da7430f8d1617e05a05fe0bcb618603b68e6180082f82a113dc0",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "qtl-public",
+      "family": "link_graph_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-beta-qtl-public",
+      "source_kind": "molecular_qtl_aggregate",
+      "source_version": "qtl-v2",
+      "uri": "https://data.example.org/links/molecular-qtl-v2"
+    },
+    {
+      "content_address": "sha256:b772652dfe5c6b124789ac098ad0d54b2be24b5ee2a0d8205f4863168386b2b1",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "allele-public",
+      "family": "link_graph_beta_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-beta-allele-public",
+      "source_kind": "allele_specific_aggregate",
+      "source_version": "allele-v2",
+      "uri": "https://data.example.org/links/allele-specific-v2"
+    },
+    {
+      "content_address": "sha256:2fe14bf5d758608ad568151b2be1743b15c37f6a2bf112ebbedaab0b3122b21f",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "crispr-aggregate",
+      "family": "link_graph_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-alpha-crispr-aggregate",
+      "source_kind": "crispr_perturbation_aggregate",
+      "source_version": "crispr-v2",
+      "uri": "https://data.example.org/links/crispr-v2"
+    },
+    {
+      "content_address": "sha256:607bb308ad99326fa09a77aea3f37e2d9d75f37b4c206d28499f053933fdd918",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "contact-aggregate",
+      "family": "link_graph_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-alpha-contact-aggregate",
+      "source_kind": "contact_3d_aggregate",
+      "source_version": "contact-v3",
+      "uri": "https://data.example.org/links/contact-v3"
+    },
+    {
+      "content_address": "sha256:4f97f1231f8130424c17ce54f43559faafb51ce3a0ab2e55d25db00c7ebc44b0",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "tether-aggregate",
+      "family": "link_graph_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-alpha-tether-aggregate",
+      "source_kind": "promoter_tethering_aggregate",
+      "source_version": "tether-v2",
+      "uri": "https://data.example.org/links/tether-v2"
+    },
+    {
+      "content_address": "sha256:391f6b1e358ff97a9bd4e47323d0d56d7db3c38d92273c0dd8fa603871ebb777",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "graph-contact",
+      "family": "link_graph_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-alpha-graph-contact",
+      "source_kind": "graph_contact_aggregate",
+      "source_version": "graph-v2",
+      "uri": "https://data.example.org/links/graph-contact-v2"
+    },
+    {
+      "content_address": "sha256:7b63e7cc3b1b9783cc0f9bd7c7b9b7cd123b9737112630f3fd640d1923269e75",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "graph-coaccess",
+      "family": "link_graph_alpha_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-alpha-graph-coaccess",
+      "source_kind": "graph_coaccessibility_aggregate",
+      "source_version": "graph-v2",
+      "uri": "https://data.example.org/links/graph-coaccess-v2"
+    },
+    {
+      "content_address": "sha256:3e76b99c4ae84cd3563d2c467570d2f3c199a7226ea369e18cb54637222911f9",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "encode-project",
+      "family": "link_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-frontier-encode-project",
+      "source_kind": "public_assay_archive",
+      "source_version": "2024-01",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:03f7e38721c0f6cd92b85b91c6eb763c98cb12b3c4ddb9a37c25508fe528d65a",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "four-d-nucleome",
+      "family": "link_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-frontier-four-d-nucleome",
+      "source_kind": "public_topology_archive",
+      "source_version": "2024-01",
+      "uri": "https://data.4dnucleome.org/"
+    },
+    {
+      "content_address": "sha256:0221f0380d7b8b0798ccf63da458adf9631c131f4e86a000bf29382bf8319202",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "ebi-expression-atlas",
+      "family": "link_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-frontier-ebi-expression-atlas",
+      "source_kind": "public_expression_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.ebi.ac.uk/gxa/home"
+    },
+    {
+      "content_address": "sha256:954079eca931c9d0bab98416abc3e47c768e54fbe0aaaa096f811df89d1dd31f",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "ncbi-geo",
+      "family": "link_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-frontier-ncbi-geo",
+      "source_kind": "public_archive",
+      "source_version": "2025-01",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/"
+    },
+    {
+      "content_address": "sha256:d8f7c84926e93d429ea3a15efff8ac7fd12957ed70bbef57d2c348d8303ef981",
+      "context_key": "GRCh38|glioma|adult|stem_like|core|unknown",
+      "delegate_source_id": "ucsc-genome-browser",
+      "family": "link_frontier",
+      "public_aggregate": true,
+      "source_id": "D10-frontier-ucsc-genome-browser",
+      "source_kind": "reference_browser",
+      "source_version": "GRCh38",
+      "uri": "https://genome.ucsc.edu/"
+    }
+  ],
+  "version": "2026.08.d10-link-graph-architecture.v1"
+}
