@@ -297,24 +297,10 @@ def run_intake_architecture(
             "close case-level and fixture-level evaluation checks",
         )
     )
-    compliance_placeholder_body = {
-        "fixture_id": value.fixture_id,
-        "evaluation_address": evaluation.content_address,
-        "release_address": release.content_address,
-    }
-    stages.append(
-        _stage(
-            "compliance-preflight",
-            21,
-            IntakeArchitectureState.ACCEPTED,
-            compliance_placeholder_body,
-            {"private_field_scan": "scheduled", "attribution_scan": "scheduled"},
-            "prepare independent public-boundary compliance scan",
-        )
-    )
     # The compliance report only depends on the canonical runtime projection.
     # It is computed before the final stages so its receipt is included in the
-    # runtime body and can be consumed offline.
+    # runtime body and can be consumed offline.  The preflight stage below
+    # exposes the actual scan result instead of a deferred placeholder.
     partial_body = {
         "run_id": run_id,
         "fixture_id": value.fixture_id,
@@ -331,6 +317,27 @@ def run_intake_architecture(
         **partial_body, content_address=addressed(partial_body, "intake-runtime-partial")
     )
     compliance = run_intake_architecture_compliance(partial_runtime)
+    compliance_preflight = {
+        "private_field_paths": compliance.forbidden_paths,
+        "attribution_paths": compliance.attribution_paths,
+        "source_count": len(value.sources),
+        "artifact_count": len(artifacts),
+        "evaluation_address": evaluation.content_address,
+        "release_address": release.content_address,
+        "scan_accepted": compliance.accepted,
+    }
+    stages.append(
+        _stage(
+            "compliance-preflight",
+            21,
+            IntakeArchitectureState.ACCEPTED
+            if compliance.accepted
+            else IntakeArchitectureState.REVIEW,
+            partial_runtime.to_dict(),
+            compliance_preflight,
+            "run the actual independent public-boundary scan before final runtime closure",
+        )
+    )
     stages.append(
         _stage(
             "compliance-closed",
@@ -385,6 +392,7 @@ def run_intake_architecture(
         "artifacts": artifacts,
         "release": release,
         "compliance": compliance,
+        "compliance_preflight": compliance_preflight,
     }
     return IntakeArchitectureRuntime(**body, content_address=addressed(body, "intake-runtime"))
 

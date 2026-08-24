@@ -78,6 +78,26 @@ See [docs/CAPABILITY_CERTIFICATION.md](docs/CAPABILITY_CERTIFICATION.md) for
 the row checks, global denominators, runtime stages, projection contract, and
 extension rules.
 
+The sixteen architecture domains can now be executed through one normalized
+program runtime. It resolves and runs D01–D16, reconciles 172 domain/global
+checks, preserves each domain's stage/evaluation/artifact denominators, scans
+all public projections for private keys, and emits deterministic replay and
+missing-reference controls:
+
+```text
+glio-noncode architecture-program-report --format markdown --output architecture-program-report.md
+glio-noncode architecture-program-runtime --output architecture-program-runtime.json
+glio-noncode architecture-program-summary
+glio-noncode architecture-program-receipts-csv --output architecture-program-receipts.csv
+glio-noncode architecture-program-checks-csv --output architecture-program-checks.csv
+glio-noncode architecture-program-query --domain-id D08
+glio-noncode architecture-program-replay
+glio-noncode architecture-program-failures
+```
+
+See [docs/PROGRAM_RUNTIME.md](docs/PROGRAM_RUNTIME.md) for the stage contract,
+public-boundary controls, denominators, closure artifact, and extension rules.
+
 The D16 C13–C16 deployment-governance depth surface can be rehearsed locally
 from its public aggregate fixture:
 

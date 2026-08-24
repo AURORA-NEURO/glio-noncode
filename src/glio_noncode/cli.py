@@ -74,6 +74,25 @@ from .capability_certification_replay import (
     run_capability_certification_failure_injections,
 )
 from .capability_certification_runtime import capability_certification_runtime_json, run_capability_certification
+from .program_runtime import (
+    architecture_program_percent,
+    query_architecture_program,
+    run_architecture_program,
+)
+from .program_runtime_exports import (
+    architecture_program_checks_csv,
+    architecture_program_domains_csv,
+    architecture_program_receipts_csv,
+    architecture_program_report_json,
+    architecture_program_report_markdown,
+    architecture_program_runtime_json,
+    architecture_program_summary_json,
+)
+from .program_runtime_execution import run_program_runtime
+from .program_runtime_replay import (
+    replay_architecture_program,
+    run_program_runtime_failure_injections,
+)
 from .module_fabric_catalog import default_module_fabric_catalog
 from .module_fabric_compliance import run_module_fabric_compliance
 from .module_fabric_data_dictionary import default_module_fabric_data_dictionary
@@ -2515,6 +2534,55 @@ def build_parser() -> argparse.ArgumentParser:
     capability_certification_query.add_argument("--state", choices=("accepted", "review", "blocked"), default=None)
     capability_certification_query.add_argument("--text", default=None)
     capability_certification_query.add_argument("--output", default=None)
+    architecture_program_report = subparsers.add_parser(
+        "architecture-program-report",
+        help="execute and report the sixteen canonical architecture runtimes",
+    )
+    architecture_program_report.add_argument("--format", choices=("json", "markdown"), default="json")
+    architecture_program_report.add_argument("--output", default=None)
+    architecture_program_runtime = subparsers.add_parser(
+        "architecture-program-runtime",
+        help="run the twelve-stage sixteen-domain architecture program runtime",
+    )
+    architecture_program_runtime.add_argument("--output", default=None)
+    architecture_program_summary = subparsers.add_parser(
+        "architecture-program-summary",
+        help="emit the compact sixteen-domain architecture program summary",
+    )
+    architecture_program_summary.add_argument("--output", default=None)
+    architecture_program_receipts = subparsers.add_parser(
+        "architecture-program-receipts-csv",
+        help="export one normalized receipt per architecture domain",
+    )
+    architecture_program_receipts.add_argument("--output", default=None)
+    architecture_program_checks = subparsers.add_parser(
+        "architecture-program-checks-csv",
+        help="export all architecture program checks",
+    )
+    architecture_program_checks.add_argument("--output", default=None)
+    architecture_program_domains = subparsers.add_parser(
+        "architecture-program-domains-csv",
+        help="export the architecture program domain matrix",
+    )
+    architecture_program_domains.add_argument("--output", default=None)
+    architecture_program_replay = subparsers.add_parser(
+        "architecture-program-replay",
+        help="replay the complete architecture program deterministically",
+    )
+    architecture_program_replay.add_argument("--output", default=None)
+    architecture_program_failures = subparsers.add_parser(
+        "architecture-program-failures",
+        help="run missing-reference controls for the architecture program",
+    )
+    architecture_program_failures.add_argument("--output", default=None)
+    architecture_program_query = subparsers.add_parser(
+        "architecture-program-query",
+        help="query normalized architecture program receipts",
+    )
+    architecture_program_query.add_argument("--domain-id", default=None)
+    architecture_program_query.add_argument("--accepted-only", action="store_true")
+    architecture_program_query.add_argument("--text", default=None)
+    architecture_program_query.add_argument("--output", default=None)
     coordination_fixture = subparsers.add_parser(
         "coordination-fixture",
         help="emit the D16 public aggregate coordination architecture fixture",
@@ -8504,6 +8572,59 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "report_address": report.content_address,
                     "certification_percent": capability_certification_percent(report),
+                    "count": len(rows),
+                    "rows": [item.to_dict() for item in rows],
+                },
+                args.output,
+            )
+            return 0
+        if args.command == "architecture-program-report":
+            report = run_architecture_program()
+            if args.format == "markdown":
+                _write_text(architecture_program_report_markdown(report), args.output)
+            else:
+                _write_text(architecture_program_report_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-runtime":
+            runtime = run_program_runtime()
+            _write_text(architecture_program_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "architecture-program-summary":
+            report = run_architecture_program()
+            _write_text(architecture_program_summary_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-receipts-csv":
+            report = run_architecture_program()
+            _write_text(architecture_program_receipts_csv(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-checks-csv":
+            report = run_architecture_program()
+            _write_text(architecture_program_checks_csv(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-domains-csv":
+            report = run_architecture_program()
+            _write_text(architecture_program_domains_csv(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-replay":
+            replay = replay_architecture_program()
+            _write_json(replay.to_dict(), args.output)
+            return 0 if replay.accepted else 2
+        if args.command == "architecture-program-failures":
+            failures = run_program_runtime_failure_injections()
+            _write_json(failures.to_dict(), args.output)
+            return 0 if failures.accepted else 2
+        if args.command == "architecture-program-query":
+            report = run_architecture_program()
+            rows = query_architecture_program(
+                report,
+                domain_id=args.domain_id,
+                accepted_only=args.accepted_only,
+                text=args.text,
+            )
+            _write_json(
+                {
+                    "report_address": report.content_address,
+                    "certification_percent": architecture_program_percent(report),
                     "count": len(rows),
                     "rows": [item.to_dict() for item in rows],
                 },

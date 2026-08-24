@@ -159,11 +159,11 @@
       {
         "category": "release",
         "check_id": "runtime-address-closed",
-        "content_address": "intake-compliance-check:ab7b1adeb8eaa976a29e86cdbdc913609d4ad494949f9d6c73159f7ea631e847",
+        "content_address": "intake-compliance-check:4e723913f36ef32ea104424e98aa8206b3a80670e7d19a35b8a0abf1ac3baab5",
         "detail": "runtime and stage receipts are addressed",
-        "observed": 21,
+        "observed": 20,
         "passed": true,
-        "required": 21
+        "required": 20
       },
       {
         "category": "privacy",
@@ -184,7 +184,7 @@
         "required": 48
       }
     ],
-    "content_address": "intake-compliance:76da940e1adac9910c6598758281c30adbe4b77f3a13208c92cfb1d138d26f12",
+    "content_address": "intake-compliance:fed2b0c71d106b4c3ec5ac4a554528dd3986bd7701eb51408cd7697ef5b8f0af",
     "failed_checks": 0,
     "fixture_id": "intake-architecture-d01",
     "forbidden_paths": [],
@@ -11101,7 +11101,8 @@
     "fixture_id": "intake-architecture-d01",
     "passed_checks": 24
   },
-  "report_markdown": "# D02 Variant Identity and Intake Architecture\n\nThis report is a deterministic public-aggregate intake receipt and release gate.\n\n- Runtime state: `accepted`\n- Fixture: `intake-architecture-d01`\n- Cases: `64` (16 positive, 48 held controls)\n- Stages: `24`\n- Evaluation checks: `458`\n- Compliance checks: `12`\n- Artifacts: `8` offline-capable\n- Release: `d02.2026.08.1` / `accepted`\n- Depth: `True` with `16` primitive receipts\n\n## Operation coverage\n\n| Operation | Cases | Accepted | Held | Receipts |\n| --- | ---: | ---: | ---: | ---: |\n| `INTAKE-D01-C01` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C02` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C03` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C04` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C05` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C06` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C07` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C08` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C09` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C10` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C11` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C12` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C13` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C14` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C15` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C16` | 4 | 1 | 3 | 1 |\n\n## Runtime stages\n\n| Ordinal | Stage | State | Receipt |\n| ---: | --- | --- | --- |\n| 1 | `fixture-loaded` | `accepted` | `intake-stage:b46d3c6b3176a5596be95b9b56e300bd518ae1d574bf9f1300cd2cbf35230743` |\n| 2 | `sources-audited` | `accepted` | `intake-stage:8b21e3492b9b4f3d80b42dd112f7bec0d50bcd24214b508d52a648327d3d2306` |\n| 3 | `plan-compiled` | `accepted` | `intake-stage:f092b654b04947dc316fbf2836738ffe5a9fef7b3e00055c3244d1ab73f66689` |\n| 4 | `formats-admitted` | `accepted` | `intake-stage:cd07ed6974561ffe996722f51c53bfb6a2e3d719d01c12b2ecc022a1e9e01712` |\n| 5 | `variant-parsing-closed` | `accepted` | `intake-stage:130d49a13797ecb0b05130d797b1db4219ade42d74feb72a4ee020187741379f` |\n| 6 | `normalization-closed` | `accepted` | `intake-stage:aef9e43a4cf64bdd490a7790be931f9cda2f64939d9505d71f2a48e0837d0d75` |\n| 7 | `completeness-scored` | `accepted` | `intake-stage:212ba6d99a3df36777a6fbc24ad52b38c43d7faa2e4f56c572ca4e9eda691a08` |\n| 8 | `anomalies-quarantined` | `accepted` | `intake-stage:2c08a65a89dd7f2a1c8bfac3fa62d70fa4cf1e3b09e7eea138b45f29508c02b3` |\n| 9 | `cases-evaluated` | `accepted` | `intake-stage:34471e36456cc61f0a93b2181058620ecbcca36fd676ccd6301a157cbb817357` |\n| 10 | `review-routed` | `accepted` | `intake-stage:46ebee2754f459b425b94f61dea1168b992c2e26c4603e5d03f9e9936aead947` |\n| 11 | `policy-gated` | `accepted` | `intake-stage:c0823b9b4619b4e38833d3810a502481693927b08cda1b42a3bd0842721316ff` |\n| 12 | `ledger-linked` | `accepted` | `intake-stage:8574d4d9eff5588df9cfdadca77ead5102f6ce20810c53597541a297e0f6cfa6` |\n| 13 | `bundle-materialized` | `accepted` | `intake-stage:238d4ba2f54ba9575ef4c313c6a330d365d9ff40fee16f41046e396f89f4fa84` |\n| 14 | `release-gated` | `accepted` | `intake-stage:3f16d4d3c4ded7baabf62802884873103527ebfd50518e4c76dadf216356f138` |\n| 15 | `validation-matrix-closed` | `accepted` | `intake-stage:0351a0720ef1953f82934afe187bb1ca853d8d5851029375c8f37af941f4c45c` |\n| 16 | `schema-closed` | `accepted` | `intake-stage:f62380c1188f78e95e4cb2cfa28aa78aefc57028b3aa0ea5d0766942f61264b9` |\n| 17 | `replay-closed` | `accepted` | `intake-stage:fb7ad1e35348654cc176648a4f388e1d411fb17b95feb301cb9ee9ce7663b72f` |\n| 18 | `source-registry-closed` | `accepted` | `intake-stage:51bd00fdad3c21a9b78a451ebfcc1dcc80f37f6e47a4c83e9d618f1260dcff24` |\n| 19 | `control-boundary-closed` | `accepted` | `intake-stage:7c17d763b31e82125aab8259db83965f564c8b9568087ace8e247ca64e5c5c52` |\n| 20 | `evaluation-checks-closed` | `accepted` | `intake-stage:3e9fcdeef19293c204c33255c7e0234dfa7e51f2f3a928a81ffab2e77eda15a3` |\n| 21 | `compliance-preflight` | `accepted` | `intake-stage:ce87f8e8578e090245ec4d53df31f1d9b04fb76affabfe9c83f06a84e9b9ce67` |\n| 22 | `compliance-closed` | `accepted` | `intake-stage:a7595439d8a91a28eb048034e301eab2381946fe0f432081dbf34423099cbb93` |\n| 23 | `observability-closed` | `accepted` | `intake-stage:4bb8033dd9acdf653b4b5c01ba0c0fcf4f6e8fddeb6d658cab7af443c259e14e` |\n| 24 | `runtime-finalized` | `accepted` | `intake-stage:a6f9b3114223d19cefeaa17cb8889de573d825bc3ab392f5f30539ed633956d9` |\n\n## Boundary\n\nNo subject-level fields, external attribution metadata, or clinical interpretation are represented by this receipt.\n",
+  "release_verification": [],
+  "report_markdown": "# D02 Variant Identity and Intake Architecture\n\nThis report is a deterministic public-aggregate intake receipt and release gate.\n\n- Runtime state: `accepted`\n- Fixture: `intake-architecture-d01`\n- Cases: `64` (16 positive, 48 held controls)\n- Stages: `24`\n- Evaluation checks: `458`\n- Compliance checks: `12`\n- Artifacts: `8` offline-capable\n- Release: `d02.2026.08.1` / `accepted`\n- Depth: `True` with `16` primitive receipts\n\n## Operation coverage\n\n| Operation | Cases | Accepted | Held | Receipts |\n| --- | ---: | ---: | ---: | ---: |\n| `INTAKE-D01-C01` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C02` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C03` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C04` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C05` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C06` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C07` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C08` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C09` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C10` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C11` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C12` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C13` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C14` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C15` | 4 | 1 | 3 | 1 |\n| `INTAKE-D01-C16` | 4 | 1 | 3 | 1 |\n\n## Runtime stages\n\n| Ordinal | Stage | State | Receipt |\n| ---: | --- | --- | --- |\n| 1 | `fixture-loaded` | `accepted` | `intake-stage:b46d3c6b3176a5596be95b9b56e300bd518ae1d574bf9f1300cd2cbf35230743` |\n| 2 | `sources-audited` | `accepted` | `intake-stage:8b21e3492b9b4f3d80b42dd112f7bec0d50bcd24214b508d52a648327d3d2306` |\n| 3 | `plan-compiled` | `accepted` | `intake-stage:f092b654b04947dc316fbf2836738ffe5a9fef7b3e00055c3244d1ab73f66689` |\n| 4 | `formats-admitted` | `accepted` | `intake-stage:cd07ed6974561ffe996722f51c53bfb6a2e3d719d01c12b2ecc022a1e9e01712` |\n| 5 | `variant-parsing-closed` | `accepted` | `intake-stage:130d49a13797ecb0b05130d797b1db4219ade42d74feb72a4ee020187741379f` |\n| 6 | `normalization-closed` | `accepted` | `intake-stage:aef9e43a4cf64bdd490a7790be931f9cda2f64939d9505d71f2a48e0837d0d75` |\n| 7 | `completeness-scored` | `accepted` | `intake-stage:212ba6d99a3df36777a6fbc24ad52b38c43d7faa2e4f56c572ca4e9eda691a08` |\n| 8 | `anomalies-quarantined` | `accepted` | `intake-stage:2c08a65a89dd7f2a1c8bfac3fa62d70fa4cf1e3b09e7eea138b45f29508c02b3` |\n| 9 | `cases-evaluated` | `accepted` | `intake-stage:34471e36456cc61f0a93b2181058620ecbcca36fd676ccd6301a157cbb817357` |\n| 10 | `review-routed` | `accepted` | `intake-stage:46ebee2754f459b425b94f61dea1168b992c2e26c4603e5d03f9e9936aead947` |\n| 11 | `policy-gated` | `accepted` | `intake-stage:c0823b9b4619b4e38833d3810a502481693927b08cda1b42a3bd0842721316ff` |\n| 12 | `ledger-linked` | `accepted` | `intake-stage:8574d4d9eff5588df9cfdadca77ead5102f6ce20810c53597541a297e0f6cfa6` |\n| 13 | `bundle-materialized` | `accepted` | `intake-stage:238d4ba2f54ba9575ef4c313c6a330d365d9ff40fee16f41046e396f89f4fa84` |\n| 14 | `release-gated` | `accepted` | `intake-stage:3f16d4d3c4ded7baabf62802884873103527ebfd50518e4c76dadf216356f138` |\n| 15 | `validation-matrix-closed` | `accepted` | `intake-stage:0351a0720ef1953f82934afe187bb1ca853d8d5851029375c8f37af941f4c45c` |\n| 16 | `schema-closed` | `accepted` | `intake-stage:f62380c1188f78e95e4cb2cfa28aa78aefc57028b3aa0ea5d0766942f61264b9` |\n| 17 | `replay-closed` | `accepted` | `intake-stage:fb7ad1e35348654cc176648a4f388e1d411fb17b95feb301cb9ee9ce7663b72f` |\n| 18 | `source-registry-closed` | `accepted` | `intake-stage:51bd00fdad3c21a9b78a451ebfcc1dcc80f37f6e47a4c83e9d618f1260dcff24` |\n| 19 | `control-boundary-closed` | `accepted` | `intake-stage:7c17d763b31e82125aab8259db83965f564c8b9568087ace8e247ca64e5c5c52` |\n| 20 | `evaluation-checks-closed` | `accepted` | `intake-stage:3e9fcdeef19293c204c33255c7e0234dfa7e51f2f3a928a81ffab2e77eda15a3` |\n| 21 | `compliance-preflight` | `accepted` | `intake-stage:5fe7a836b283e98a3c03bc45f0cef7b355f36936c35bbb08306e24d88ee020f1` |\n| 22 | `compliance-closed` | `accepted` | `intake-stage:65653204fb23026a38739e180cd660b16882e0f5f8d48f56ad3aab938c1ce72a` |\n| 23 | `observability-closed` | `accepted` | `intake-stage:4bb8033dd9acdf653b4b5c01ba0c0fcf4f6e8fddeb6d658cab7af443c259e14e` |\n| 24 | `runtime-finalized` | `accepted` | `intake-stage:a6f9b3114223d19cefeaa17cb8889de573d825bc3ab392f5f30539ed633956d9` |\n\n## Boundary\n\nNo subject-level fields, external attribution metadata, or clinical interpretation are represented by this receipt.\n",
   "runbook": {
     "accepted": true,
     "content_address": "intake-runbook:b8bad50e374dbb96ca2be2b879c1d2ec66975093f16c7f7c087a1c2c6995a6be",
@@ -11270,11 +11271,11 @@
         {
           "category": "release",
           "check_id": "runtime-address-closed",
-          "content_address": "intake-compliance-check:ab7b1adeb8eaa976a29e86cdbdc913609d4ad494949f9d6c73159f7ea631e847",
+          "content_address": "intake-compliance-check:4e723913f36ef32ea104424e98aa8206b3a80670e7d19a35b8a0abf1ac3baab5",
           "detail": "runtime and stage receipts are addressed",
-          "observed": 21,
+          "observed": 20,
           "passed": true,
-          "required": 21
+          "required": 20
         },
         {
           "category": "privacy",
@@ -11295,12 +11296,21 @@
           "required": 48
         }
       ],
-      "content_address": "intake-compliance:76da940e1adac9910c6598758281c30adbe4b77f3a13208c92cfb1d138d26f12",
+      "content_address": "intake-compliance:fed2b0c71d106b4c3ec5ac4a554528dd3986bd7701eb51408cd7697ef5b8f0af",
       "fixture_id": "intake-architecture-d01",
       "forbidden_paths": [],
       "report_id": "intake-compliance-d02"
     },
-    "content_address": "intake-runtime:2d7800319d81e59101b51c3d502d1e9e5452628c2df3ace1b231d08079976d9a",
+    "compliance_preflight": {
+      "artifact_count": 8,
+      "attribution_paths": [],
+      "evaluation_address": "intake-evaluation:48a4cce6dd60ca9042d5db2a5717a2174629988c3d75731115e8f32a3934eff1",
+      "private_field_paths": [],
+      "release_address": "intake-release:7a10db8d6b059dc11b0cb3228627e00ea1dbece429d0b6a063c0e16d80f36121",
+      "scan_accepted": true,
+      "source_count": 6
+    },
+    "content_address": "intake-runtime:d3a53641b9d12bb14cdd65f292e49df5d0de673ba370270b53211d6928d069ff",
     "evaluation": {
       "accepted": true,
       "checks": [
@@ -19074,20 +19084,20 @@
         "state": "accepted"
       },
       {
-        "content_address": "intake-stage:ce87f8e8578e090245ec4d53df31f1d9b04fb76affabfe9c83f06a84e9b9ce67",
-        "detail": "prepare independent public-boundary compliance scan",
-        "input_address": "intake-stage-input:7120ef8941e48846f26ce7933b7aadc79d1456d4e8ea8edb0bf0e88e12cd8783",
+        "content_address": "intake-stage:5fe7a836b283e98a3c03bc45f0cef7b355f36936c35bbb08306e24d88ee020f1",
+        "detail": "run the actual independent public-boundary scan before final runtime closure",
+        "input_address": "intake-stage-input:e7ccc4bd9f6044c02b04741bfd1ab9a28abc9d54f983ade4b9d6ad1b4a9cb4c9",
         "ordinal": 21,
-        "output_address": "intake-stage-output:deba6d6eb602680dc032fa3296e34154cf1e73716af23f4ff95bce0555ff0c7d",
+        "output_address": "intake-stage-output:db797afa130df6593d517ed60cf07c2b4e19ee42acb67eb2d194b924bf435629",
         "stage_id": "compliance-preflight",
         "state": "accepted"
       },
       {
-        "content_address": "intake-stage:a7595439d8a91a28eb048034e301eab2381946fe0f432081dbf34423099cbb93",
+        "content_address": "intake-stage:65653204fb23026a38739e180cd660b16882e0f5f8d48f56ad3aab938c1ce72a",
         "detail": "close privacy, attribution, transport, and release-boundary checks",
-        "input_address": "intake-stage-input:00ca65c505877672b5a2d2c85754a92aff5235038baa44e262c0f252a80b2fc5",
+        "input_address": "intake-stage-input:e7ccc4bd9f6044c02b04741bfd1ab9a28abc9d54f983ade4b9d6ad1b4a9cb4c9",
         "ordinal": 22,
-        "output_address": "intake-stage-output:2f84dace521bf357494a7249ac30660b2fa8b645ea961a301efd0b449b6eca54",
+        "output_address": "intake-stage-output:97895e76b6f33f0214dd02a34dfd3b25cb6e2a103ce72193efcc95ded7bf52cc",
         "stage_id": "compliance-closed",
         "state": "accepted"
       },
@@ -19266,7 +19276,7 @@
   },
   "trace": {
     "accepted": true,
-    "content_address": "intake-trace:9e9c9b225b6f09d737eabeb1e7ff9aabcd65c771a11330afea575bf9b4e00e2d",
+    "content_address": "intake-trace:560ceec043a78e8536e07db6f3d1b6d6848451dec2224706052b2ad810627068",
     "events": [
       {
         "content_address": "intake-trace-event:2fa5895e48dbce2ff8bdf460bf4d7202014ae90362fb6b8d3ce1a23d4c20a86a",
@@ -19469,22 +19479,22 @@
         "state": "accepted"
       },
       {
-        "content_address": "intake-trace-event:bd8ca5db6827b06603219bb0f3090d5729b22d043f5d8154661cd7a7e99c6bb6",
+        "content_address": "intake-trace-event:05736277d2dfbbdac57711cdc522624beaa4421162c5878f45ce813ef4407ba3",
         "event_id": "intake-trace:021",
         "event_type": "runtime_stage",
-        "input_address": "intake-stage-input:7120ef8941e48846f26ce7933b7aadc79d1456d4e8ea8edb0bf0e88e12cd8783",
+        "input_address": "intake-stage-input:e7ccc4bd9f6044c02b04741bfd1ab9a28abc9d54f983ade4b9d6ad1b4a9cb4c9",
         "ordinal": 21,
-        "output_address": "intake-stage-output:deba6d6eb602680dc032fa3296e34154cf1e73716af23f4ff95bce0555ff0c7d",
+        "output_address": "intake-stage-output:db797afa130df6593d517ed60cf07c2b4e19ee42acb67eb2d194b924bf435629",
         "stage_key": "compliance-preflight",
         "state": "accepted"
       },
       {
-        "content_address": "intake-trace-event:ec394d93b997ba780c7f9d33d5aa8d0985a5faced14f1d86b9121a1fde101401",
+        "content_address": "intake-trace-event:864d58066f4a58149ea3b001ffe964db50c910d0b13051b283350cdfa7f0d2f5",
         "event_id": "intake-trace:022",
         "event_type": "runtime_stage",
-        "input_address": "intake-stage-input:00ca65c505877672b5a2d2c85754a92aff5235038baa44e262c0f252a80b2fc5",
+        "input_address": "intake-stage-input:e7ccc4bd9f6044c02b04741bfd1ab9a28abc9d54f983ade4b9d6ad1b4a9cb4c9",
         "ordinal": 22,
-        "output_address": "intake-stage-output:2f84dace521bf357494a7249ac30660b2fa8b645ea961a301efd0b449b6eca54",
+        "output_address": "intake-stage-output:97895e76b6f33f0214dd02a34dfd3b25cb6e2a103ce72193efcc95ded7bf52cc",
         "stage_key": "compliance-closed",
         "state": "accepted"
       },

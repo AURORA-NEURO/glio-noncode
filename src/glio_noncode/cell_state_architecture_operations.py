@@ -47,7 +47,18 @@ def _rows(evaluation: Any) -> tuple[Any, ...]:
 
 
 def _sanitize(value: Any) -> Any:
-    hidden = {"payload", "input_text", "track_text", "raw_text", "records_text"}
+    hidden = {
+        "payload",
+        "input_text",
+        "track_text",
+        "raw_text",
+        "records_text",
+        "subject_id",
+        "patient_id",
+        "participant_id",
+        "individual_id",
+        "donor_id",
+    }
     if isinstance(value, Mapping):
         return {str(key): _sanitize(item) for key, item in value.items() if str(key) not in hidden}
     if isinstance(value, (list, tuple)):

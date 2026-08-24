@@ -177,7 +177,7 @@ separable from the 448 case-level checks.
 | 18 | source registry closed | source join denominator is six |
 | 19 | control boundary closed | no non-positive result is accepted |
 | 20 | evaluation checks closed | 458 checks pass |
-| 21 | compliance preflight | release projection scan is prepared |
+| 21 | compliance preflight | actual private, attribution, source, and release scan is materialized |
 | 22 | compliance closed | 12 independent boundary checks pass |
 | 23 | observability closed | every stage has an addressed trace |
 | 24 | runtime finalized | final state and compliance are accepted |
@@ -211,7 +211,11 @@ review queue cardinality.
 
 A failed compliance check is a release blocker. The result is not converted to
 `accepted` by deleting the offending path. The compliance report is included in
-the runtime closure and receives its own address.
+the runtime closure and receives its own address. The preflight result is also
+retained on the runtime as `compliance_preflight`, including empty forbidden
+and attribution paths, source/artifact denominators, and the scan disposition.
+This makes the stage observable before the final compliance receipt is closed;
+it is not a deferred or scheduled marker.
 
 ## 10. Failure and recovery behavior
 

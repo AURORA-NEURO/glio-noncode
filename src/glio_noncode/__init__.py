@@ -9951,6 +9951,56 @@ __all__ += [
     "capability_certification_domain_matrix", "capability_certification_percent", "capability_certification_runtime_json", "certify_capability_catalog", "diff_capability_certifications", "export_capability_certification_checks_csv", "export_capability_certification_csv", "export_capability_certification_domains_csv", "export_capability_certification_json", "export_capability_certification_summary_json", "query_capability_certification", "render_capability_certification_markdown", "replay_capability_certification", "replay_is_deterministic", "run_capability_certification", "run_capability_certification_failure_injections", "run_capability_certification_quality_gate",
 ]
 
+from .program_runtime import (
+    PROGRAM_CHECKS_PER_DOMAIN,
+    PROGRAM_DOMAIN_COUNT,
+    architecture_program_domain_matrix,
+    architecture_program_percent,
+    default_architecture_program_specs,
+    query_architecture_program,
+    run_architecture_program,
+)
+from .program_runtime_contracts import (
+    ArchitectureProgramReceipt,
+    ArchitectureProgramReport,
+    ArchitectureProgramSpec,
+    ProgramRuntime,
+    ProgramRuntimeCheck,
+    ProgramRuntimeCheckCategory,
+    ProgramRuntimeQualityCheck,
+    ProgramRuntimeQualityReport,
+    ProgramRuntimeStage,
+    ProgramRuntimeState,
+)
+from .program_runtime_exports import (
+    architecture_program_checks_csv,
+    architecture_program_domains_csv,
+    architecture_program_receipts_csv,
+    architecture_program_report_json,
+    architecture_program_report_markdown,
+    architecture_program_runtime_json,
+    architecture_program_summary_json,
+)
+from .program_runtime_execution import (
+    PROGRAM_RUNTIME_STAGE_COUNT,
+    PROGRAM_RUNTIME_STAGE_IDS,
+    run_program_runtime,
+)
+from .program_runtime_quality import PROGRAM_QUALITY_CHECK_COUNT, run_program_runtime_quality_gate
+from .program_runtime_replay import (
+    ProgramRuntimeFailureProbe,
+    ProgramRuntimeFailureReport,
+    ProgramRuntimeReplayReport,
+    replay_architecture_program,
+    run_program_runtime_failure_injections,
+)
+
+__all__ += [
+    "PROGRAM_CHECKS_PER_DOMAIN", "PROGRAM_DOMAIN_COUNT", "PROGRAM_QUALITY_CHECK_COUNT", "PROGRAM_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_STAGE_IDS",
+    "ArchitectureProgramReceipt", "ArchitectureProgramReport", "ArchitectureProgramSpec", "ProgramRuntime", "ProgramRuntimeCheck", "ProgramRuntimeCheckCategory", "ProgramRuntimeFailureProbe", "ProgramRuntimeFailureReport", "ProgramRuntimeQualityCheck", "ProgramRuntimeQualityReport", "ProgramRuntimeReplayReport", "ProgramRuntimeStage", "ProgramRuntimeState",
+    "architecture_program_checks_csv", "architecture_program_domain_matrix", "architecture_program_domains_csv", "architecture_program_percent", "architecture_program_receipts_csv", "architecture_program_report_json", "architecture_program_report_markdown", "architecture_program_runtime_json", "architecture_program_summary_json", "default_architecture_program_specs", "query_architecture_program", "replay_architecture_program", "run_architecture_program", "run_program_runtime", "run_program_runtime_failure_injections", "run_program_runtime_quality_gate",
+]
+
 from .planning_architecture_exports import *  # noqa: F401,F403
 
 __all__ += [

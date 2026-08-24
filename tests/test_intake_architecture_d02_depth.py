@@ -172,6 +172,18 @@ class D02ComplianceTests(unittest.TestCase):
             self.assertNotIn(token, encoded)
         self.assertIn("public aggregate intake identity only", encoded)
 
+    def test_compliance_preflight_is_executed_and_materialized(self) -> None:
+        preflight = self.runtime.compliance_preflight
+        self.assertIsInstance(preflight, dict)
+        self.assertEqual(preflight["private_field_paths"], ())
+        self.assertEqual(preflight["attribution_paths"], ())
+        self.assertEqual(preflight["source_count"], 6)
+        self.assertEqual(preflight["artifact_count"], 8)
+        self.assertTrue(preflight["scan_accepted"])
+        stage = next(item for item in self.runtime.stages if item.stage_id == "compliance-preflight")
+        self.assertNotIn("scheduled", stage.detail.lower())
+        self.assertIn("actual", stage.detail.lower())
+
     def test_compliance_json_is_stable(self) -> None:
         first = intake_architecture_compliance_json(self.runtime)
         second = intake_architecture_compliance_json(self.runtime)
@@ -383,6 +395,12 @@ class D02ClosureArtifactTests(unittest.TestCase):
         self.assertEqual(len(self.payload["runtime"]["artifacts"]), 8)
         self.assertEqual(len(self.payload["compliance"]["checks"]), 12)
         self.assertEqual(self.payload["quality"]["passed_checks"], 24)
+        preflight = self.payload["runtime"]["compliance_preflight"]
+        self.assertEqual(preflight["source_count"], 6)
+        self.assertEqual(preflight["artifact_count"], 8)
+        self.assertEqual(preflight["private_field_paths"], [])
+        self.assertEqual(preflight["attribution_paths"], [])
+        self.assertTrue(preflight["scan_accepted"])
 
     def test_closure_is_accepted_end_to_end(self) -> None:
         for key in (

@@ -15,7 +15,6 @@ from typing import Any
 
 from .serialization import content_hash, jsonable, require_non_empty
 
-
 INTAKE_ARCHITECTURE_VERSION = "2026.08.intake-architecture.v1"
 INTAKE_ARCHITECTURE_BOUNDARY = "public_aggregate_variant_identity_and_intake"
 INTAKE_ARCHITECTURE_CONTEXT = "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment"
@@ -484,6 +483,7 @@ class IntakeArchitectureRuntime:
     release: IntakeArchitectureRelease
     content_address: str
     compliance: Any = None
+    compliance_preflight: Any = None
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
