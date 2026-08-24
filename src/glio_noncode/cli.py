@@ -93,6 +93,10 @@ from .program_runtime_bundle import (
     verify_program_release,
     write_program_release,
 )
+from .program_runtime_operational import (
+    build_program_operational_closure,
+    build_program_operational_trace,
+)
 from .program_runtime_replay import (
     replay_architecture_program,
     run_program_runtime_failure_injections,
@@ -2598,6 +2602,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     architecture_program_verify_bundle.add_argument("input", type=str)
     architecture_program_verify_bundle.add_argument("--output", default=None)
+    architecture_program_operational = subparsers.add_parser(
+        "architecture-program-operational",
+        help="emit deterministic workload and handoff evidence for the architecture program",
+    )
+    architecture_program_operational.add_argument("--output", default=None)
+    architecture_program_operational.add_argument(
+        "--closure",
+        action="store_true",
+        help="include runtime, release, replay, controls, and artifact line sets",
+    )
     coordination_fixture = subparsers.add_parser(
         "coordination-fixture",
         help="emit the D16 public aggregate coordination architecture fixture",
@@ -8655,6 +8669,14 @@ def main(argv: list[str] | None = None) -> int:
             verification = verify_program_release(args.input)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
+        if args.command == "architecture-program-operational":
+            if args.closure:
+                operational = build_program_operational_closure()
+                _write_json(operational, args.output)
+                return 0 if operational["accepted"] else 2
+            operational = build_program_operational_trace()
+            _write_json(operational.to_dict(), args.output)
+            return 0 if operational.accepted else 2
         if args.command == "coordination-fixture":
             _write_text(coordination_fixture_json(), args.output)
             return 0

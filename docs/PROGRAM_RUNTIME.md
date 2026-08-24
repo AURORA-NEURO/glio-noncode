@@ -60,6 +60,8 @@ The Python surface provides:
 - `replay_architecture_program()` for deterministic report/runtime addresses;
 - `run_program_runtime_failure_injections()` for missing fixture/runtime
   reference controls; and
+- `build_program_operational_trace()` for deterministic stage workload,
+  release-artifact budget, handoff, and public-boundary evidence; and
 - JSON, summary JSON, receipts CSV, checks CSV, domain CSV, and Markdown
   projections.
 
@@ -76,6 +78,8 @@ python -m glio_noncode architecture-program-domains-csv
 python -m glio_noncode architecture-program-query --domain-id D08
 python -m glio_noncode architecture-program-replay
 python -m glio_noncode architecture-program-failures
+python -m glio_noncode architecture-program-operational
+python -m glio_noncode architecture-program-operational --closure
 ```
 
 Commands return `0` for an accepted projection and `2` when a reference,
@@ -97,6 +101,16 @@ Every artifact records a UTF-8 byte hash, byte count, line count, media type,
 and public-aggregate disposition. Verification reopens the manifest, checks
 each artifact's bytes and dimensions, parses JSON projections, and re-runs the
 private-key boundary scan. A changed or missing artifact returns exit code `2`.
+
+The operational command closes the handoff outside the release directory. It
+emits twelve stage workload receipts, eleven artifact byte-budget receipts,
+twenty-six addressed checks, and conserved utilization counters. Work units are
+derived only from deterministic cardinalities; no wall-clock or subject-level
+data is recorded. The checked-in closure is
+`data/architecture-program-operational-closure.json`.
+The `--closure` form additionally embeds the runtime, release descriptor,
+replay and failure-control receipts, and each portable artifact as an ordered
+line set so the handoff can be inspected without reopening the release code.
 
 ## Extension rules
 

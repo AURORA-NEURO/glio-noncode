@@ -87,6 +87,8 @@ missing-reference controls:
 ```text
 glio-noncode architecture-program-report --format markdown --output architecture-program-report.md
 glio-noncode architecture-program-runtime --output architecture-program-runtime.json
+glio-noncode architecture-program-operational --output architecture-program-operational.json
+glio-noncode architecture-program-operational --closure --output architecture-program-operational-closure.json
 glio-noncode architecture-program-summary
 glio-noncode architecture-program-receipts-csv --output architecture-program-receipts.csv
 glio-noncode architecture-program-checks-csv --output architecture-program-checks.csv
@@ -109,6 +111,12 @@ glio-noncode architecture-program-verify-bundle .glio/architecture-program-relea
 The bundle contains the complete runtime/report, compact and tabular exports,
 replay and failure controls, specifications, a content-addressed manifest, and
 filesystem verification receipts.
+
+The operational trace closes the handoff between the twelve-stage program
+runtime and its eleven-artifact release. It records deterministic workload
+budgets, artifact byte budgets, 26 integrity and boundary checks, utilization
+counters, and a tamper-evident public projection in
+`data/architecture-program-operational-closure.json`.
 
 The D16 C13–C16 deployment-governance depth surface can be rehearsed locally
 from its public aggregate fixture:
