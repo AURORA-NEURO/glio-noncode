@@ -1,0 +1,4312 @@
+{
+  "boundary": "public_aggregate_non_patient",
+  "cases": [
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C01-POSITIVE-001",
+      "content_address": "sha256:aab3412310462c1f4c990902999122e1b19469e17deceef43184092922ccfb57",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C01-POS-001",
+      "description": "D16-C01 positive retains C01-POS-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 9,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "platform_frontier",
+      "operation": "mission_planner",
+      "operation_id": "D16-C01",
+      "payload": {
+        "allowed_data_scopes": [
+          "synthetic",
+          "public_reference"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log",
+          "content_addressed_store"
+        ],
+        "allowed_source_ids": [],
+        "claim_ceiling": "hypothesis",
+        "intended_use": "research hypothesis exploration",
+        "mission_id": "platform-mission-positive",
+        "project_id": "glio-noncode",
+        "requested_question": "Which declared observations warrant review?",
+        "requested_roles": [
+          "A01",
+          "A02"
+        ],
+        "workflow_id": "platform-workflow-positive"
+      },
+      "plane": "platform_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-platform_frontier:src-planning"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C01-CONTROL-A-001",
+      "content_address": "sha256:db44aa38b4e493d0fe747fd107c0d66b83a22787065a669d4b49df8c4119c389",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C01-CTRL-001",
+      "description": "D16-C01 control_a retains C01-CTRL-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_roles_requested"
+      ],
+      "expected_state": "abstained",
+      "family": "platform_frontier",
+      "operation": "mission_planner",
+      "operation_id": "D16-C01",
+      "payload": {
+        "allowed_data_scopes": [
+          "synthetic",
+          "public_reference"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log",
+          "content_addressed_store"
+        ],
+        "allowed_source_ids": [],
+        "claim_ceiling": "hypothesis",
+        "intended_use": "research hypothesis exploration",
+        "mission_id": "platform-mission-empty",
+        "project_id": "glio-noncode",
+        "requested_question": "Which declared observations warrant review?",
+        "requested_roles": [],
+        "workflow_id": "platform-workflow-empty"
+      },
+      "plane": "platform_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C01-CONTROL-B-001",
+      "content_address": "sha256:b9668b7eaaf94acb1465453df3639ef50de52dbcd0f0c027e4acc018732657af",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C01-CTRL-002",
+      "description": "D16-C01 control_b retains C01-CTRL-002 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "unknown_role"
+      ],
+      "expected_state": "rejected",
+      "family": "platform_frontier",
+      "operation": "mission_planner",
+      "operation_id": "D16-C01",
+      "payload": {
+        "allowed_data_scopes": [
+          "synthetic",
+          "public_reference"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log",
+          "content_addressed_store"
+        ],
+        "allowed_source_ids": [],
+        "claim_ceiling": "hypothesis",
+        "intended_use": "research hypothesis exploration",
+        "mission_id": "platform-mission-unknown",
+        "project_id": "glio-noncode",
+        "requested_question": "Which declared observations warrant review?",
+        "requested_roles": [
+          "A99"
+        ],
+        "workflow_id": "platform-workflow-unknown"
+      },
+      "plane": "platform_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C01-CONTROL-C-001",
+      "content_address": "sha256:9520f5c3fe9d02ff64f5fa6e6c18eb035f754aa09a2ebaff41f1b7787f69ffe0",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C01-CTRL-003",
+      "description": "D16-C01 control_c retains C01-CTRL-003 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "claim_ceiling_exceeded"
+      ],
+      "expected_state": "rejected",
+      "family": "platform_frontier",
+      "operation": "mission_planner",
+      "operation_id": "D16-C01",
+      "payload": {
+        "allowed_data_scopes": [
+          "synthetic",
+          "public_reference"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log",
+          "content_addressed_store"
+        ],
+        "allowed_source_ids": [],
+        "claim_ceiling": "observation",
+        "intended_use": "research hypothesis exploration",
+        "mission_id": "platform-mission-ceiling",
+        "project_id": "glio-noncode",
+        "requested_question": "Which declared observations warrant review?",
+        "requested_roles": [
+          "A46"
+        ],
+        "workflow_id": "platform-workflow-ceiling"
+      },
+      "plane": "platform_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C02-POSITIVE-001",
+      "content_address": "sha256:d28f6c9961d78d253bf8c4a055bd0b0c82ecfd534af0e0a5ac5da7a06e487a89",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C02-POS-001",
+      "description": "D16-C02 positive retains C02-POS-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "platform_frontier",
+      "operation": "workflow_compiler",
+      "operation_id": "D16-C02",
+      "payload": {
+        "kind": "positive",
+        "steps": [
+          {
+            "depends_on": [],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "ingest",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "ingest"
+          },
+          {
+            "depends_on": [
+              "ingest"
+            ],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "normalize",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "normalize"
+          },
+          {
+            "depends_on": [
+              "normalize"
+            ],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "review",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "review"
+          }
+        ],
+        "workflow_id": "platform-workflow-positive"
+      },
+      "plane": "platform_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-platform_frontier:src-workflow"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C02-CONTROL-A-001",
+      "content_address": "sha256:53d0c22f6a0679edd680f1bdba5a8b0428e56e292f27933aeba9cc3983207b97",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C02-CTRL-001",
+      "description": "D16-C02 control_a retains C02-CTRL-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "dependency_cycle"
+      ],
+      "expected_state": "blocked",
+      "family": "platform_frontier",
+      "operation": "workflow_compiler",
+      "operation_id": "D16-C02",
+      "payload": {
+        "kind": "cycle",
+        "steps": [
+          {
+            "depends_on": [
+              "right"
+            ],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "ingest",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "left"
+          },
+          {
+            "depends_on": [
+              "left"
+            ],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "normalize",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "right"
+          }
+        ],
+        "workflow_id": "platform-workflow-cycle"
+      },
+      "plane": "platform_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C02-CONTROL-B-001",
+      "content_address": "sha256:ac2bf4f4f73faf70d2c5b4649642a3de1073558834d99e12a1d4720825380ed7",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C02-CTRL-002",
+      "description": "D16-C02 control_b retains C02-CTRL-002 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_dependency"
+      ],
+      "expected_state": "blocked",
+      "family": "platform_frontier",
+      "operation": "workflow_compiler",
+      "operation_id": "D16-C02",
+      "payload": {
+        "kind": "missing",
+        "steps": [
+          {
+            "depends_on": [
+              "missing-step"
+            ],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "review",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "review"
+          }
+        ],
+        "workflow_id": "platform-workflow-missing"
+      },
+      "plane": "platform_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C02-CONTROL-C-001",
+      "content_address": "sha256:afc2aed00a370ffe6b57ce971f3dc942b06306c8b4d794d7f5c25296f484f52a",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C02-CTRL-003",
+      "description": "D16-C02 control_c retains C02-CTRL-003 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "network_or_nondeterminism"
+      ],
+      "expected_state": "partial",
+      "family": "platform_frontier",
+      "operation": "workflow_compiler",
+      "operation_id": "D16-C02",
+      "payload": {
+        "kind": "warning",
+        "steps": [
+          {
+            "depends_on": [],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "ingest",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "ingest"
+          },
+          {
+            "depends_on": [
+              "ingest"
+            ],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "normalize",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "normalize"
+          },
+          {
+            "depends_on": [
+              "normalize"
+            ],
+            "deterministic": true,
+            "input_contract": "aggregate_input",
+            "kind": "review",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": false,
+              "storage_gb": 1.0
+            },
+            "step_id": "review"
+          },
+          {
+            "depends_on": [
+              "review"
+            ],
+            "deterministic": false,
+            "input_contract": "aggregate_input",
+            "kind": "evidence",
+            "optional": false,
+            "output_contract": "aggregate_output",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 60,
+              "memory_gb": 1.0,
+              "network_egress": true,
+              "storage_gb": 1.0
+            },
+            "step_id": "remote"
+          }
+        ],
+        "workflow_id": "platform-workflow-warning"
+      },
+      "plane": "platform_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C03-POSITIVE-001",
+      "content_address": "sha256:cc66e5289635c7eb80bde8c012e4f5a85c03186391956b171d7f48340450f472",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C03-POS-001",
+      "description": "D16-C03 positive retains C03-POS-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "compatible",
+      "family": "platform_frontier",
+      "operation": "typed_tool_registry",
+      "operation_id": "D16-C03",
+      "payload": {
+        "expected_input_contract": "mission_context",
+        "expected_output_contract": "inspection_record",
+        "expected_tool_count": 96,
+        "kind": "positive",
+        "tool_id": "A01.inspect"
+      },
+      "plane": "platform_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-platform_frontier:src-registry"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C03-CONTROL-A-001",
+      "content_address": "sha256:ef3f2b40453fc21e8053572724276a6cdde7fa6551f9a8f39174fbb3b7283cda",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C03-CTRL-001",
+      "description": "D16-C03 control_a retains C03-CTRL-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "tool_not_registered"
+      ],
+      "expected_state": "rejected",
+      "family": "platform_frontier",
+      "operation": "typed_tool_registry",
+      "operation_id": "D16-C03",
+      "payload": {
+        "expected_input_contract": "mission_context",
+        "expected_output_contract": "inspection_record",
+        "expected_tool_count": 96,
+        "kind": "missing",
+        "tool_id": "A99.inspect"
+      },
+      "plane": "platform_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C03-CONTROL-B-001",
+      "content_address": "sha256:0afc4e20a8cff0db0d8bc665770a5fd2dc72a8749fe61c348630f3428e2939f0",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C03-CTRL-002",
+      "description": "D16-C03 control_b retains C03-CTRL-002 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "input_contract_mismatch"
+      ],
+      "expected_state": "incompatible",
+      "family": "platform_frontier",
+      "operation": "typed_tool_registry",
+      "operation_id": "D16-C03",
+      "payload": {
+        "expected_input_contract": "different_contract",
+        "expected_output_contract": "inspection_record",
+        "expected_tool_count": 96,
+        "kind": "contract",
+        "tool_id": "A01.inspect"
+      },
+      "plane": "platform_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C03-CONTROL-C-001",
+      "content_address": "sha256:bc69e13fb1226dea1ae29d5047683f7adcd189917cdc4834b124a77caf0f74a4",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C03-CTRL-003",
+      "description": "D16-C03 control_c retains C03-CTRL-003 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "registry_cardinality_mismatch"
+      ],
+      "expected_state": "incompatible",
+      "family": "platform_frontier",
+      "operation": "typed_tool_registry",
+      "operation_id": "D16-C03",
+      "payload": {
+        "expected_input_contract": "mission_context",
+        "expected_output_contract": "inspection_record",
+        "expected_tool_count": 95,
+        "kind": "count",
+        "tool_id": "A01.inspect"
+      },
+      "plane": "platform_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C04-POSITIVE-001",
+      "content_address": "sha256:e00fa4c344d3f490734d493ac9f0d3963a93430511f5d18543c87bf00cf1f8e5",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C04-POS-001",
+      "description": "D16-C04 positive retains C04-POS-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 6,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "admitted",
+      "family": "platform_frontier",
+      "operation": "execution_sandbox",
+      "operation_id": "D16-C04",
+      "payload": {
+        "input_payload": {
+          "data_scope": "synthetic",
+          "question": "bounded"
+        },
+        "kind": "positive",
+        "register_handler": true,
+        "request_id": "sandbox-positive",
+        "role_id": "A01",
+        "tool_id": "A01.publish"
+      },
+      "plane": "platform_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-platform_frontier:src-sandbox"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C04-CONTROL-A-001",
+      "content_address": "sha256:9a3fd1b50555e68f19fca87426d532b83518b13c9620da8fed1762d6650a933e",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C04-CTRL-001",
+      "description": "D16-C04 control_a retains C04-CTRL-001 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 6,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "handler_not_registered"
+      ],
+      "expected_state": "denied",
+      "family": "platform_frontier",
+      "operation": "execution_sandbox",
+      "operation_id": "D16-C04",
+      "payload": {
+        "input_payload": {
+          "data_scope": "synthetic",
+          "question": "bounded"
+        },
+        "kind": "unregistered",
+        "register_handler": false,
+        "request_id": "sandbox-unregistered",
+        "role_id": "A01",
+        "tool_id": "A01.publish"
+      },
+      "plane": "platform_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C04-CONTROL-B-001",
+      "content_address": "sha256:597a1ccb23d0288f38b6af252a6436ddb167d0386df9ab78ac31d9eda80f5367",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C04-CTRL-002",
+      "description": "D16-C04 control_b retains C04-CTRL-002 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 6,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "network_egress_disabled"
+      ],
+      "expected_state": "denied",
+      "family": "platform_frontier",
+      "operation": "execution_sandbox",
+      "operation_id": "D16-C04",
+      "payload": {
+        "input_payload": {
+          "data_scope": "synthetic",
+          "question": "bounded"
+        },
+        "kind": "network",
+        "register_handler": false,
+        "request_id": "sandbox-network",
+        "role_id": "A09",
+        "tool_id": "A09.inspect"
+      },
+      "plane": "platform_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C04-CONTROL-C-001",
+      "content_address": "sha256:9699b7d7a150ba3b85e0eef207b8bc058820fd16d96ad1076d8a31ca6dd894f3",
+      "delegate_class": "PlatformFrontierRecord",
+      "delegate_context_key": "public_platform|research|aggregate|local|v1",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_record_id": "C04-CTRL-003",
+      "description": "D16-C04 control_c retains C04-CTRL-003 from platform_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 6,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "direct_identifier"
+      ],
+      "expected_state": "rejected",
+      "family": "platform_frontier",
+      "operation": "execution_sandbox",
+      "operation_id": "D16-C04",
+      "payload": {
+        "input_payload": {
+          "data_scope": "synthetic",
+          "name": "hidden"
+        },
+        "kind": "sensitive",
+        "register_handler": true,
+        "request_id": "sandbox-sensitive",
+        "role_id": "A01",
+        "tool_id": "A01.publish"
+      },
+      "plane": "platform_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C05-POSITIVE-001",
+      "content_address": "sha256:144556d9908e80b961963ae5db37065ab2b1f33d073fab9f3843334c6d5050e3",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C05-POS-001",
+      "description": "D16-C05 positive retains C05-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 15,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "control_frontier",
+      "operation": "policy_claim_gate",
+      "operation_id": "D16-C05",
+      "payload": {
+        "allowed_data_scopes": [
+          "public_reference",
+          "aggregate_operational"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log"
+        ],
+        "allowed_source_ids": [
+          "src-policy"
+        ],
+        "claim_ceiling": "hypothesis",
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "data_scope": "public_reference",
+        "kind": "positive",
+        "mission_ceiling": "hypothesis",
+        "mutation_scope": "none",
+        "network_requested": false,
+        "request_id": "policy-positive",
+        "request_source_ids": [
+          "src-policy"
+        ],
+        "role_id": "role-policy-review",
+        "sensitive_paths": [],
+        "tool_id": "control.policy.inspect"
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-policy"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C05-CONTROL-A-001",
+      "content_address": "sha256:f6317ba756eff9a18ecf06623ffa826a047f43677bf3f7648a403b3f8fdbc5e0",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C05-CTRL-001",
+      "description": "D16-C05 control_a retains C05-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 15,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "sensitive_input"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "policy_claim_gate",
+      "operation_id": "D16-C05",
+      "payload": {
+        "allowed_data_scopes": [
+          "public_reference",
+          "aggregate_operational"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log"
+        ],
+        "allowed_source_ids": [
+          "src-policy"
+        ],
+        "claim_ceiling": "hypothesis",
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "data_scope": "public_reference",
+        "kind": "sensitive",
+        "mission_ceiling": "hypothesis",
+        "mutation_scope": "none",
+        "network_requested": false,
+        "request_id": "policy-sensitive",
+        "request_source_ids": [
+          "src-policy"
+        ],
+        "role_id": "role-policy-review",
+        "sensitive_paths": [
+          "payload.private_value"
+        ],
+        "tool_id": "control.policy.inspect"
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C05-CONTROL-B-001",
+      "content_address": "sha256:2b25ec1263f98b1a501012144e9f1354c9997536c54842983b753bbaa9ddb6a3",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C05-CTRL-002",
+      "description": "D16-C05 control_b retains C05-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 15,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "source_allowlist_gap"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "policy_claim_gate",
+      "operation_id": "D16-C05",
+      "payload": {
+        "allowed_data_scopes": [
+          "public_reference",
+          "aggregate_operational"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log"
+        ],
+        "allowed_source_ids": [
+          "src-policy"
+        ],
+        "claim_ceiling": "hypothesis",
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "data_scope": "public_reference",
+        "kind": "source_gap",
+        "mission_ceiling": "hypothesis",
+        "mutation_scope": "none",
+        "network_requested": false,
+        "request_id": "policy-source_gap",
+        "request_source_ids": [
+          "src-undeclared"
+        ],
+        "role_id": "role-policy-review",
+        "sensitive_paths": [],
+        "tool_id": "control.policy.inspect"
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C05-CONTROL-C-001",
+      "content_address": "sha256:8d2274162ea5acec7c6fbda0f177e4050e4c2bd5f317abc637d573984204cede",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C05-CTRL-003",
+      "description": "D16-C05 control_c retains C05-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 15,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "mutation_scope_denied"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "policy_claim_gate",
+      "operation_id": "D16-C05",
+      "payload": {
+        "allowed_data_scopes": [
+          "public_reference",
+          "aggregate_operational"
+        ],
+        "allowed_mutations": [
+          "none",
+          "event_log"
+        ],
+        "allowed_source_ids": [
+          "src-policy"
+        ],
+        "claim_ceiling": "hypothesis",
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "data_scope": "public_reference",
+        "kind": "mutation",
+        "mission_ceiling": "hypothesis",
+        "mutation_scope": "write_private_store",
+        "network_requested": false,
+        "request_id": "policy-mutation",
+        "request_source_ids": [
+          "src-policy"
+        ],
+        "role_id": "role-policy-review",
+        "sensitive_paths": [],
+        "tool_id": "control.policy.inspect"
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C06-POSITIVE-001",
+      "content_address": "sha256:77724f05d2a00bc27d7d4b6ba386c97af7bf60ee3edc091fd4c3a057df6fe981",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C06-POS-001",
+      "description": "D16-C06 positive retains C06-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 16,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "control_frontier",
+      "operation": "budget_resource_scheduler",
+      "operation_id": "D16-C06",
+      "payload": {
+        "capacity": {
+          "cpu": 2.0,
+          "gpu_count": 0,
+          "max_seconds": 60,
+          "memory_gb": 4.0,
+          "network_egress": false,
+          "storage_gb": 10.0
+        },
+        "items": [
+          {
+            "cost_units": 1.0,
+            "item_id": "budget-root",
+            "output_contract": "receipt",
+            "priority": 10,
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 10,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          },
+          {
+            "cost_units": 1.0,
+            "depends_on": [
+              "budget-root"
+            ],
+            "item_id": "budget-child",
+            "output_contract": "receipt",
+            "priority": 8,
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 15,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          }
+        ],
+        "kind": "positive",
+        "limits": {
+          "max_cost_units": 8.0,
+          "max_invocations": 4,
+          "max_network_requests": 0,
+          "max_seconds": 60
+        },
+        "schedule_id": "schedule-positive"
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-budget"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C06-CONTROL-A-001",
+      "content_address": "sha256:d1d830832450cfda38ee31ddbe893b033b0639075a0614681f71cca09f964834",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C06-CTRL-001",
+      "description": "D16-C06 control_a retains C06-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 16,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "capacity_exceeded"
+      ],
+      "expected_state": "partial",
+      "family": "control_frontier",
+      "operation": "budget_resource_scheduler",
+      "operation_id": "D16-C06",
+      "payload": {
+        "capacity": {
+          "cpu": 2.0,
+          "gpu_count": 0,
+          "max_seconds": 60,
+          "memory_gb": 4.0,
+          "network_egress": false,
+          "storage_gb": 10.0
+        },
+        "items": [
+          {
+            "cost_units": 1.0,
+            "item_id": "budget-root",
+            "output_contract": "receipt",
+            "priority": 10,
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 10,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          },
+          {
+            "cost_units": 1.0,
+            "depends_on": [
+              "budget-root"
+            ],
+            "item_id": "budget-child",
+            "output_contract": "receipt",
+            "priority": 8,
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 15,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          },
+          {
+            "cost_units": 1.0,
+            "item_id": "budget-too-large",
+            "output_contract": "receipt",
+            "priority": 20,
+            "resource": {
+              "cpu": 8.0,
+              "gpu_count": 0,
+              "max_seconds": 10,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          }
+        ],
+        "kind": "capacity",
+        "limits": {
+          "max_cost_units": 8.0,
+          "max_invocations": 4,
+          "max_network_requests": 0,
+          "max_seconds": 60
+        },
+        "schedule_id": "schedule-capacity"
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C06-CONTROL-B-001",
+      "content_address": "sha256:e95f4284af02867ae0a41d80245ed9038f43a9e0fa6dbc4623a1452a3c988240",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C06-CTRL-002",
+      "description": "D16-C06 control_b retains C06-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 16,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "network_limit"
+      ],
+      "expected_state": "partial",
+      "family": "control_frontier",
+      "operation": "budget_resource_scheduler",
+      "operation_id": "D16-C06",
+      "payload": {
+        "capacity": {
+          "cpu": 2.0,
+          "gpu_count": 0,
+          "max_seconds": 60,
+          "memory_gb": 4.0,
+          "network_egress": false,
+          "storage_gb": 10.0
+        },
+        "items": [
+          {
+            "cost_units": 1.0,
+            "item_id": "budget-root",
+            "output_contract": "receipt",
+            "priority": 10,
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 10,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          },
+          {
+            "cost_units": 1.0,
+            "depends_on": [
+              "budget-root"
+            ],
+            "item_id": "budget-child",
+            "output_contract": "receipt",
+            "priority": 8,
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 15,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          },
+          {
+            "cost_units": 1.0,
+            "item_id": "budget-network",
+            "network_egress": true,
+            "output_contract": "receipt",
+            "priority": 5,
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 10,
+              "memory_gb": 1.0,
+              "network_egress": true,
+              "storage_gb": 1.0
+            }
+          }
+        ],
+        "kind": "network",
+        "limits": {
+          "max_cost_units": 8.0,
+          "max_invocations": 4,
+          "max_network_requests": 0,
+          "max_seconds": 60
+        },
+        "schedule_id": "schedule-network"
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C06-CONTROL-C-001",
+      "content_address": "sha256:3247323503db33c3e03b6fe100aab583edb77c9e2954054d4500c6104036cacf",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C06-CTRL-003",
+      "description": "D16-C06 control_c retains C06-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 2,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "dependency_cycle"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "budget_resource_scheduler",
+      "operation_id": "D16-C06",
+      "payload": {
+        "capacity": {
+          "cpu": 2.0,
+          "gpu_count": 0,
+          "max_seconds": 60,
+          "memory_gb": 4.0,
+          "network_egress": false,
+          "storage_gb": 10.0
+        },
+        "items": [
+          {
+            "depends_on": [
+              "budget-b"
+            ],
+            "item_id": "budget-a",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 10,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          },
+          {
+            "depends_on": [
+              "budget-a"
+            ],
+            "item_id": "budget-b",
+            "resource": {
+              "cpu": 1.0,
+              "gpu_count": 0,
+              "max_seconds": 10,
+              "memory_gb": 1.0,
+              "storage_gb": 1.0
+            }
+          }
+        ],
+        "kind": "cycle",
+        "limits": {
+          "max_cost_units": 8.0,
+          "max_invocations": 4,
+          "max_network_requests": 0,
+          "max_seconds": 60
+        },
+        "schedule_id": "schedule-cycle"
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C07-POSITIVE-001",
+      "content_address": "sha256:96000d8bdbc3ff7c8afd70bc4ee9e470056ce42736d720f6d47b6c2798b43abe",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C07-POS-001",
+      "description": "D16-C07 positive retains C07-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "selected",
+      "family": "control_frontier",
+      "operation": "deterministic_fallback",
+      "operation_id": "D16-C07",
+      "payload": {
+        "candidates": [
+          {
+            "candidate_id": "fallback-repeat",
+            "operation_id": "primary.operation",
+            "output_contract": "receipt",
+            "priority": 100
+          },
+          {
+            "candidate_id": "fallback-network",
+            "network_egress": true,
+            "operation_id": "network.operation",
+            "output_contract": "receipt",
+            "priority": 80
+          },
+          {
+            "candidate_id": "fallback-selected",
+            "cost_units": 1.0,
+            "operation_id": "local.operation",
+            "output_contract": "receipt",
+            "priority": 60,
+            "required_inputs": [
+              "case"
+            ]
+          }
+        ],
+        "kind": "positive",
+        "request": {
+          "available_inputs": [
+            "case",
+            "context"
+          ],
+          "failed_operation_id": "primary.operation",
+          "failure_code": "source_unavailable",
+          "network_allowed": false,
+          "remaining_cost_units": 4.0,
+          "request_id": "fallback-positive",
+          "requested_output_contract": "receipt",
+          "require_deterministic": true,
+          "retryable": true
+        }
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-fallback"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C07-CONTROL-A-001",
+      "content_address": "sha256:c19d8fddf00326aabf9ef871f0f202865cbb0ddcd828baae1405b1b75f0786cc",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C07-CTRL-001",
+      "description": "D16-C07 control_a retains C07-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "non_retryable_failure"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "deterministic_fallback",
+      "operation_id": "D16-C07",
+      "payload": {
+        "candidates": [
+          {
+            "candidate_id": "fallback-repeat",
+            "operation_id": "primary.operation",
+            "output_contract": "receipt",
+            "priority": 100
+          },
+          {
+            "candidate_id": "fallback-network",
+            "network_egress": true,
+            "operation_id": "network.operation",
+            "output_contract": "receipt",
+            "priority": 80
+          },
+          {
+            "candidate_id": "fallback-selected",
+            "cost_units": 1.0,
+            "operation_id": "local.operation",
+            "output_contract": "receipt",
+            "priority": 60,
+            "required_inputs": [
+              "case"
+            ]
+          }
+        ],
+        "kind": "non_retryable",
+        "request": {
+          "available_inputs": [
+            "case",
+            "context"
+          ],
+          "failed_operation_id": "primary.operation",
+          "failure_code": "handler_failure",
+          "network_allowed": false,
+          "remaining_cost_units": 4.0,
+          "request_id": "fallback-non_retryable",
+          "requested_output_contract": "receipt",
+          "require_deterministic": true,
+          "retryable": false
+        }
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C07-CONTROL-B-001",
+      "content_address": "sha256:e0fdbf255e6dcd01a6de9fe50466034691215d80aa9ccc47408ff6a5e1cc5e14",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C07-CTRL-002",
+      "description": "D16-C07 control_b retains C07-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_eligible_candidate"
+      ],
+      "expected_state": "abstained",
+      "family": "control_frontier",
+      "operation": "deterministic_fallback",
+      "operation_id": "D16-C07",
+      "payload": {
+        "candidates": [
+          {
+            "candidate_id": "fallback-network-only",
+            "network_egress": true,
+            "operation_id": "network.operation",
+            "output_contract": "receipt",
+            "priority": 100
+          }
+        ],
+        "kind": "network",
+        "request": {
+          "available_inputs": [
+            "case",
+            "context"
+          ],
+          "failed_operation_id": "primary.operation",
+          "failure_code": "source_unavailable",
+          "network_allowed": false,
+          "remaining_cost_units": 4.0,
+          "request_id": "fallback-network",
+          "requested_output_contract": "receipt",
+          "require_deterministic": true,
+          "retryable": true
+        }
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C07-CONTROL-C-001",
+      "content_address": "sha256:70f735eba9d7f9f3dfb4b6ccfa719842fdd34f4a42c99e0d54bde95a1a4e7fa5",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C07-CTRL-003",
+      "description": "D16-C07 control_c retains C07-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_eligible_candidate"
+      ],
+      "expected_state": "abstained",
+      "family": "control_frontier",
+      "operation": "deterministic_fallback",
+      "operation_id": "D16-C07",
+      "payload": {
+        "candidates": [
+          {
+            "candidate_id": "fallback-missing-input",
+            "operation_id": "local.operation",
+            "output_contract": "receipt",
+            "priority": 100,
+            "required_inputs": [
+              "missing"
+            ]
+          }
+        ],
+        "kind": "missing_input",
+        "request": {
+          "available_inputs": [
+            "case",
+            "context"
+          ],
+          "failed_operation_id": "primary.operation",
+          "failure_code": "source_unavailable",
+          "network_allowed": false,
+          "remaining_cost_units": 4.0,
+          "request_id": "fallback-missing_input",
+          "requested_output_contract": "receipt",
+          "require_deterministic": true,
+          "retryable": true
+        }
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C08-POSITIVE-001",
+      "content_address": "sha256:3fb3208f7e2858688c3d14c6abc89b75d79b6f23e638732a983c34a1df8fdcff",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C08-POS-001",
+      "description": "D16-C08 positive retains C08-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 6,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "control_frontier",
+      "operation": "human_review_router",
+      "operation_id": "D16-C08",
+      "payload": {
+        "items": [
+          {
+            "blockers": [],
+            "execution_role_id": "role-review",
+            "item_id": "review-ready",
+            "priority": 80,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-ready",
+            "requires_review": true,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          }
+        ],
+        "kind": "positive",
+        "max_review_candidates": 2,
+        "queue_id": "queue-positive",
+        "required_roles": [
+          "domain_reviewer"
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-review"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C08-CONTROL-A-001",
+      "content_address": "sha256:3afccf572c6ed363eaba1398bb90198d78dfeda5231ea0d94bbc57004b6fa095",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C08-CTRL-001",
+      "description": "D16-C08 control_a retains C08-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "review_blocker"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "human_review_router",
+      "operation_id": "D16-C08",
+      "payload": {
+        "items": [
+          {
+            "blockers": [
+              "source_boundary"
+            ],
+            "execution_role_id": "role-review",
+            "item_id": "review-ready",
+            "priority": 80,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-ready",
+            "requires_review": true,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          }
+        ],
+        "kind": "blocked",
+        "max_review_candidates": 2,
+        "queue_id": "queue-blocked",
+        "required_roles": [
+          "domain_reviewer"
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C08-CONTROL-B-001",
+      "content_address": "sha256:420b8689aa3eb77efef7e03052d84696e6b75f26ddb6d186889f09774617f320",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C08-CTRL-002",
+      "description": "D16-C08 control_b retains C08-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "queue_bounded"
+      ],
+      "expected_state": "partial",
+      "family": "control_frontier",
+      "operation": "human_review_router",
+      "operation_id": "D16-C08",
+      "payload": {
+        "items": [
+          {
+            "blockers": [],
+            "execution_role_id": "role-review",
+            "item_id": "review-ready",
+            "priority": 80,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-ready",
+            "requires_review": true,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          },
+          {
+            "blockers": [],
+            "execution_role_id": "role-review",
+            "item_id": "review-1",
+            "priority": 1,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-1",
+            "requires_review": true,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          },
+          {
+            "blockers": [],
+            "execution_role_id": "role-review",
+            "item_id": "review-2",
+            "priority": 2,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-2",
+            "requires_review": true,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          },
+          {
+            "blockers": [],
+            "execution_role_id": "role-review",
+            "item_id": "review-3",
+            "priority": 3,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-3",
+            "requires_review": true,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          },
+          {
+            "blockers": [],
+            "execution_role_id": "role-review",
+            "item_id": "review-4",
+            "priority": 4,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-4",
+            "requires_review": true,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          }
+        ],
+        "kind": "omitted",
+        "max_review_candidates": 2,
+        "queue_id": "queue-omitted",
+        "required_roles": [
+          "domain_reviewer"
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C08-CONTROL-C-001",
+      "content_address": "sha256:58c0bb5e61a47d5b4d763fd6e14a4ddabebacdc903b74ace72eb721d66ff8bd5",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C08-CTRL-003",
+      "description": "D16-C08 control_c retains C08-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_review_items"
+      ],
+      "expected_state": "empty",
+      "family": "control_frontier",
+      "operation": "human_review_router",
+      "operation_id": "D16-C08",
+      "payload": {
+        "items": [
+          {
+            "blockers": [],
+            "execution_role_id": "role-review",
+            "item_id": "review-ready",
+            "priority": 80,
+            "reasons": [
+              "declared_review"
+            ],
+            "request_id": "review-ready",
+            "requires_review": false,
+            "reviewer_roles": [
+              "domain_reviewer"
+            ],
+            "source_ids": [
+              "src-review"
+            ],
+            "state": "abstained",
+            "summary": "aggregate review item",
+            "tool_id": "control.review.route"
+          }
+        ],
+        "kind": "empty",
+        "max_review_candidates": 2,
+        "queue_id": "queue-empty",
+        "required_roles": [
+          "domain_reviewer"
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C09-POSITIVE-001",
+      "content_address": "sha256:331f38d57e9af1b7f8af76a7ff7c9f4299d4edd4256a87b37e86e9ca911b5788",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C09-POS-001",
+      "description": "D16-C09 positive retains C09-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "completed",
+      "family": "control_frontier",
+      "operation": "execution_ledger",
+      "operation_id": "D16-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "events": [
+          {
+            "event_id": "ledger-1",
+            "kind": "requested",
+            "message": "request received"
+          },
+          {
+            "event_id": "ledger-2",
+            "kind": "planned",
+            "message": "plan retained"
+          },
+          {
+            "event_id": "ledger-3",
+            "kind": "admitted",
+            "message": "policy admitted"
+          },
+          {
+            "event_id": "ledger-4",
+            "kind": "started",
+            "message": "execution started"
+          },
+          {
+            "event_id": "ledger-5",
+            "kind": "completed",
+            "message": "receipt completed"
+          }
+        ],
+        "execution_id": "execution-positive",
+        "kind": "positive"
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-ledger"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C09-CONTROL-A-001",
+      "content_address": "sha256:0e9a7c500d8d08131063308c9306cf6d6e32fe529676f65f60ad1666d176a143",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C09-CTRL-001",
+      "description": "D16-C09 control_a retains C09-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_event_transition"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "execution_ledger",
+      "operation_id": "D16-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "events": [
+          {
+            "event_id": "ledger-1",
+            "kind": "requested",
+            "message": "request received"
+          },
+          {
+            "event_id": "ledger-2",
+            "kind": "planned",
+            "message": "plan retained"
+          },
+          {
+            "event_id": "ledger-3",
+            "kind": "admitted",
+            "message": "policy admitted"
+          },
+          {
+            "event_id": "ledger-4",
+            "kind": "started",
+            "message": "execution started"
+          },
+          {
+            "event_id": "ledger-5",
+            "kind": "requested",
+            "message": "invalid restart"
+          }
+        ],
+        "execution_id": "execution-invalid_transition",
+        "kind": "invalid_transition"
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C09-CONTROL-B-001",
+      "content_address": "sha256:2ccdfe14409c7167d958174357e4f449c1776508221661ae0844b6ae922894e1",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C09-CTRL-002",
+      "description": "D16-C09 control_b retains C09-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "duplicate_event_id"
+      ],
+      "expected_state": "partial",
+      "family": "control_frontier",
+      "operation": "execution_ledger",
+      "operation_id": "D16-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "events": [
+          {
+            "event_id": "ledger-1",
+            "kind": "requested",
+            "message": "request received"
+          },
+          {
+            "event_id": "ledger-2",
+            "kind": "planned",
+            "message": "plan retained"
+          },
+          {
+            "event_id": "ledger-3",
+            "kind": "admitted",
+            "message": "policy admitted"
+          },
+          {
+            "event_id": "ledger-4",
+            "kind": "started",
+            "message": "execution started"
+          },
+          {
+            "event_id": "ledger-5",
+            "kind": "completed",
+            "message": "receipt completed"
+          },
+          {
+            "event_id": "ledger-4",
+            "kind": "checkpoint",
+            "message": "duplicate ID"
+          }
+        ],
+        "execution_id": "execution-duplicate",
+        "kind": "duplicate"
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C09-CONTROL-C-001",
+      "content_address": "sha256:22a88ab5bbd50cc05ab7bddb682758ff1a8624dcb932b8d40f4afbace0b02a86",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C09-CTRL-003",
+      "description": "D16-C09 control_c retains C09-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "control_frontier",
+      "operation": "execution_ledger",
+      "operation_id": "D16-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "events": [
+          {
+            "event_id": "ledger-1",
+            "kind": "requested",
+            "message": "request received"
+          },
+          {
+            "event_id": "ledger-2",
+            "kind": "planned",
+            "message": "plan retained"
+          },
+          {
+            "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+            "event_id": "ledger-3",
+            "kind": "admitted",
+            "message": "policy admitted"
+          },
+          {
+            "event_id": "ledger-4",
+            "kind": "started",
+            "message": "execution started"
+          },
+          {
+            "event_id": "ledger-5",
+            "kind": "completed",
+            "message": "receipt completed"
+          }
+        ],
+        "execution_id": "execution-foreign",
+        "kind": "foreign"
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C10-POSITIVE-001",
+      "content_address": "sha256:e392507dec5ff47e4300d06174c43ad771451f2d69c989e6b71ae8036ca45c33",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C10-POS-001",
+      "description": "D16-C10 positive retains C10-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "compatible",
+      "family": "control_frontier",
+      "operation": "model_registry",
+      "operation_id": "D16-C10",
+      "payload": {
+        "kind": "positive",
+        "query": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "input_contract": "aggregate-input",
+          "model_id": "model-control-frontier",
+          "output_contract": "aggregate-receipt"
+        },
+        "records": [
+          {
+            "artifact_digest": "sha256:model-control-frontier-v2",
+            "evaluation_receipt": "sha256:model-evaluation",
+            "input_contract": "aggregate-input",
+            "license_id": "research",
+            "model_family": "bounded-evidence",
+            "model_id": "model-control-frontier",
+            "output_contract": "aggregate-receipt",
+            "source_ids": [
+              "src-model"
+            ],
+            "status": "validated",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v2"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-model"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C10-CONTROL-A-001",
+      "content_address": "sha256:643678fd67aab4cd8a726b39b673e98d3ae279afa0daac584762ff68113b83a6",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C10-CTRL-001",
+      "description": "D16-C10 control_a retains C10-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_not_supported"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "control_frontier",
+      "operation": "model_registry",
+      "operation_id": "D16-C10",
+      "payload": {
+        "kind": "foreign",
+        "query": {
+          "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+          "input_contract": "aggregate-input",
+          "model_id": "model-control-frontier",
+          "output_contract": "aggregate-receipt"
+        },
+        "records": [
+          {
+            "artifact_digest": "sha256:model-control-frontier-v2",
+            "evaluation_receipt": "sha256:model-evaluation",
+            "input_contract": "aggregate-input",
+            "license_id": "research",
+            "model_family": "bounded-evidence",
+            "model_id": "model-control-frontier",
+            "output_contract": "aggregate-receipt",
+            "source_ids": [
+              "src-model"
+            ],
+            "status": "validated",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v2"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C10-CONTROL-B-001",
+      "content_address": "sha256:0fa9d9cd59be6fa8e42e96e0a111a6c6b592602b58658f122dce61abacfa49d8",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C10-CTRL-002",
+      "description": "D16-C10 control_b retains C10-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "input_contract_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "model_registry",
+      "operation_id": "D16-C10",
+      "payload": {
+        "kind": "contract",
+        "query": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "input_contract": "different-input",
+          "model_id": "model-control-frontier",
+          "output_contract": "aggregate-receipt"
+        },
+        "records": [
+          {
+            "artifact_digest": "sha256:model-control-frontier-v2",
+            "evaluation_receipt": "sha256:model-evaluation",
+            "input_contract": "aggregate-input",
+            "license_id": "research",
+            "model_family": "bounded-evidence",
+            "model_id": "model-control-frontier",
+            "output_contract": "aggregate-receipt",
+            "source_ids": [
+              "src-model"
+            ],
+            "status": "validated",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v2"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C10-CONTROL-C-001",
+      "content_address": "sha256:cf3c628cfbf9069d05bbf5f75203be5c54fb20e8cb1b306bfc686d900bc79ce3",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C10-CTRL-003",
+      "description": "D16-C10 control_c retains C10-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "model_version_not_registered"
+      ],
+      "expected_state": "abstained",
+      "family": "control_frontier",
+      "operation": "model_registry",
+      "operation_id": "D16-C10",
+      "payload": {
+        "kind": "missing",
+        "query": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "input_contract": "aggregate-input",
+          "model_id": "missing-model",
+          "output_contract": "aggregate-receipt"
+        },
+        "records": [
+          {
+            "artifact_digest": "sha256:model-control-frontier-v2",
+            "evaluation_receipt": "sha256:model-evaluation",
+            "input_contract": "aggregate-input",
+            "license_id": "research",
+            "model_family": "bounded-evidence",
+            "model_id": "model-control-frontier",
+            "output_contract": "aggregate-receipt",
+            "source_ids": [
+              "src-model"
+            ],
+            "status": "validated",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v2"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C11-POSITIVE-001",
+      "content_address": "sha256:88158a1ad7cf717ff23c572be5e392c0069e4d96b1d619da928f488bede3fd9d",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C11-POS-001",
+      "description": "D16-C11 positive retains C11-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "compatible",
+      "family": "control_frontier",
+      "operation": "data_reference_registry",
+      "operation_id": "D16-C11",
+      "payload": {
+        "kind": "positive",
+        "query": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "coordinate_system": "GRCh38",
+          "dataset_id": "reference-control-frontier",
+          "license_id": "research"
+        },
+        "records": [
+          {
+            "checksum": "sha256:reference-control-frontier",
+            "coordinate_system": "GRCh38",
+            "dataset_id": "reference-control-frontier",
+            "format": "json",
+            "license_id": "research",
+            "reference_kind": "aggregate-reference",
+            "retrieval_receipt": "sha256:reference-retrieval",
+            "schema_hash": "sha256:reference-schema",
+            "source_ids": [
+              "src-reference"
+            ],
+            "source_uri": "https://example.org/glio-noncode/reference/control-frontier",
+            "status": "available",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-reference"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C11-CONTROL-A-001",
+      "content_address": "sha256:b26613749e3bc63e3ac86dd5e005684e6a162e71a11e269869710a6997546bbd",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C11-CTRL-001",
+      "description": "D16-C11 control_a retains C11-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_not_supported"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "control_frontier",
+      "operation": "data_reference_registry",
+      "operation_id": "D16-C11",
+      "payload": {
+        "kind": "foreign",
+        "query": {
+          "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+          "coordinate_system": "GRCh38",
+          "dataset_id": "reference-control-frontier",
+          "license_id": "research"
+        },
+        "records": [
+          {
+            "checksum": "sha256:reference-control-frontier",
+            "coordinate_system": "GRCh38",
+            "dataset_id": "reference-control-frontier",
+            "format": "json",
+            "license_id": "research",
+            "reference_kind": "aggregate-reference",
+            "retrieval_receipt": "sha256:reference-retrieval",
+            "schema_hash": "sha256:reference-schema",
+            "source_ids": [
+              "src-reference"
+            ],
+            "source_uri": "https://example.org/glio-noncode/reference/control-frontier",
+            "status": "available",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C11-CONTROL-B-001",
+      "content_address": "sha256:57d5ee9d4c51f9fa96de061916d95975232a2291aafd0a4c74d86ee3695cf248",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C11-CTRL-002",
+      "description": "D16-C11 control_b retains C11-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "coordinate_system_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "control_frontier",
+      "operation": "data_reference_registry",
+      "operation_id": "D16-C11",
+      "payload": {
+        "kind": "coordinate",
+        "query": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "coordinate_system": "hg19",
+          "dataset_id": "reference-control-frontier",
+          "license_id": "research"
+        },
+        "records": [
+          {
+            "checksum": "sha256:reference-control-frontier",
+            "coordinate_system": "GRCh38",
+            "dataset_id": "reference-control-frontier",
+            "format": "json",
+            "license_id": "research",
+            "reference_kind": "aggregate-reference",
+            "retrieval_receipt": "sha256:reference-retrieval",
+            "schema_hash": "sha256:reference-schema",
+            "source_ids": [
+              "src-reference"
+            ],
+            "source_uri": "https://example.org/glio-noncode/reference/control-frontier",
+            "status": "available",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C11-CONTROL-C-001",
+      "content_address": "sha256:71b9aa5dc48e91fc94f05598348054272e47659bd5703a3957e8bc5034d8906f",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C11-CTRL-003",
+      "description": "D16-C11 control_c retains C11-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "dataset_version_not_registered"
+      ],
+      "expected_state": "abstained",
+      "family": "control_frontier",
+      "operation": "data_reference_registry",
+      "operation_id": "D16-C11",
+      "payload": {
+        "kind": "missing",
+        "query": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "coordinate_system": "GRCh38",
+          "dataset_id": "missing-reference",
+          "license_id": "research"
+        },
+        "records": [
+          {
+            "checksum": "sha256:reference-control-frontier",
+            "coordinate_system": "GRCh38",
+            "dataset_id": "reference-control-frontier",
+            "format": "json",
+            "license_id": "research",
+            "reference_kind": "aggregate-reference",
+            "retrieval_receipt": "sha256:reference-retrieval",
+            "schema_hash": "sha256:reference-schema",
+            "source_ids": [
+              "src-reference"
+            ],
+            "source_uri": "https://example.org/glio-noncode/reference/control-frontier",
+            "status": "available",
+            "supported_contexts": [
+              "GRCh38|glioma|adult|stem_like|core|untreated"
+            ],
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C12-POSITIVE-001",
+      "content_address": "sha256:8fd8b88912a6e607565db7e14c96f1af453de4bd3a505969949724680a359d94",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C12-POS-001",
+      "description": "D16-C12 positive retains C12-POS-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "control_frontier",
+      "operation": "drift_ood_monitor",
+      "operation_id": "D16-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "kind": "positive",
+        "monitor_id": "monitor-control-frontier",
+        "observations": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "current_value": 0.12,
+            "drift_threshold": 0.3,
+            "feature_id": "feature-stable",
+            "in_domain": true,
+            "metric": "mean_delta",
+            "monitor_id": "monitor-control-frontier",
+            "observation_id": "drift-ready",
+            "raw_hash": "sha256:drift-ready",
+            "reference_value": 0.1,
+            "source_ids": [
+              "src-monitor"
+            ],
+            "support_score": 0.92,
+            "watch_threshold": 0.1
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-control_frontier:src-monitor"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C12-CONTROL-A-001",
+      "content_address": "sha256:e44503698194ab076c730b4942e75e74e1a18a495569887e74b0c47ea3b589e5",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C12-CTRL-001",
+      "description": "D16-C12 control_a retains C12-CTRL-001 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "metric_exceeds_watch_threshold"
+      ],
+      "expected_state": "watch",
+      "family": "control_frontier",
+      "operation": "drift_ood_monitor",
+      "operation_id": "D16-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "kind": "watch",
+        "monitor_id": "monitor-control-frontier",
+        "observations": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "current_value": 0.25,
+            "drift_threshold": 0.3,
+            "feature_id": "feature-watch",
+            "in_domain": true,
+            "metric": "mean_delta",
+            "monitor_id": "monitor-control-frontier",
+            "observation_id": "drift-ready",
+            "raw_hash": "sha256:drift-watch",
+            "reference_value": 0.1,
+            "source_ids": [
+              "src-monitor"
+            ],
+            "support_score": 0.92,
+            "watch_threshold": 0.1
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C12-CONTROL-B-001",
+      "content_address": "sha256:763623921ec46140eb1d29504d844c27bf69fbbe08f448c0d8a569b902b7f031",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C12-CTRL-002",
+      "description": "D16-C12 control_b retains C12-CTRL-002 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "metric_exceeds_drift_threshold"
+      ],
+      "expected_state": "drift",
+      "family": "control_frontier",
+      "operation": "drift_ood_monitor",
+      "operation_id": "D16-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "kind": "drift",
+        "monitor_id": "monitor-control-frontier",
+        "observations": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "current_value": 0.7,
+            "drift_threshold": 0.3,
+            "feature_id": "feature-drift",
+            "in_domain": true,
+            "metric": "mean_delta",
+            "monitor_id": "monitor-control-frontier",
+            "observation_id": "drift-ready",
+            "raw_hash": "sha256:drift-drift",
+            "reference_value": 0.1,
+            "source_ids": [
+              "src-monitor"
+            ],
+            "support_score": 0.92,
+            "watch_threshold": 0.1
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C12-CONTROL-C-001",
+      "content_address": "sha256:cbcdbe58403be495bdaeba98ffa1dd839751fe59fc8acf4b8c4a317dad2cccc8",
+      "delegate_class": "ControlFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_record_id": "C12-CTRL-003",
+      "description": "D16-C12 control_c retains C12-CTRL-003 from control_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "declared_out_of_domain"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "control_frontier",
+      "operation": "drift_ood_monitor",
+      "operation_id": "D16-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "kind": "ood",
+        "monitor_id": "monitor-control-frontier",
+        "observations": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "current_value": 0.12,
+            "drift_threshold": 0.3,
+            "feature_id": "feature-ood",
+            "in_domain": false,
+            "metric": "mean_delta",
+            "monitor_id": "monitor-control-frontier",
+            "observation_id": "drift-ready",
+            "raw_hash": "sha256:drift-ood",
+            "reference_value": 0.1,
+            "source_ids": [
+              "src-monitor"
+            ],
+            "support_score": 0.92,
+            "watch_threshold": 0.1
+          }
+        ]
+      },
+      "plane": "quality_control",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C13-POSITIVE-001",
+      "content_address": "sha256:71b6aa1f530d6b894ecb1e2ed9b13f505df74bf4c300c4be7f76b6137cfdca7c",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C13-POS-001",
+      "description": "D16-C13 positive retains C13-POS-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 6,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "deployment_frontier",
+      "operation": "privacy_security_policy",
+      "operation_id": "D16-C13",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "retention_days": 7,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C13-CONTROL-A-001",
+      "content_address": "sha256:ebe2c0a1cfb64f6f0ee912b81992014b308240e589019fe020c99e0636200572",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C13-CTRL-001",
+      "description": "D16-C13 control_a retains C13-CTRL-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 2,
+        "output_field_count": 6,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "required_role_missing",
+        "role_not_allowed"
+      ],
+      "expected_state": "denied",
+      "family": "deployment_frontier",
+      "operation": "privacy_security_policy",
+      "operation_id": "D16-C13",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "required_role": "reviewer",
+            "retention_days": 7,
+            "roles": [
+              "analyst"
+            ]
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C13-CONTROL-B-001",
+      "content_address": "sha256:238c538bdc8871ad9e35bd110ca12f47b689fb27ccb0100f89ba2c916d4996a8",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C13-CTRL-002",
+      "description": "D16-C13 control_b retains C13-CTRL-002 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "denied",
+      "family": "deployment_frontier",
+      "operation": "privacy_security_policy",
+      "operation_id": "D16-C13",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|other",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "retention_days": 7,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C13-CONTROL-C-001",
+      "content_address": "sha256:abca764336b064d3a0a628db5b585884cb01459da2d2d401f547898c9ae843a9",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C13-CTRL-003",
+      "description": "D16-C13 control_c retains C13-CTRL-003 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "sensitive_access_denied"
+      ],
+      "expected_state": "denied",
+      "family": "deployment_frontier",
+      "operation": "privacy_security_policy",
+      "operation_id": "D16-C13",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "policies": {
+          "research-read": {
+            "actions": [
+              "read"
+            ],
+            "maximum_retention_days": 30,
+            "network_access": false,
+            "roles": [
+              "reviewer"
+            ]
+          }
+        },
+        "requests": [
+          {
+            "action": "read",
+            "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+            "data_scope": "public_reference",
+            "request_id": "policy-request-positive",
+            "retention_days": 7,
+            "roles": [
+              "reviewer"
+            ],
+            "sensitive": true
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C14-POSITIVE-001",
+      "content_address": "sha256:d4e9067096b373d40505eb4aa2daec9f14c026d3c9f556a480316d2633d86f65",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C14-POS-001",
+      "description": "D16-C14 positive retains C14-POS-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "deployment_frontier",
+      "operation": "local_deployment_bundle",
+      "operation_id": "D16-C14",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "sha256:runtime-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          },
+          {
+            "artifact_id": "schemas",
+            "digest": "sha256:schema-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 512,
+            "version": "2026.08"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": true,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": [
+          {
+            "depends_on": [],
+            "port": 8010,
+            "service_id": "local-api"
+          },
+          {
+            "depends_on": [
+              "local-api"
+            ],
+            "port": 8011,
+            "service_id": "local-worker"
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C14-CONTROL-A-001",
+      "content_address": "sha256:f0713013cad1bd2a9da45b0ac43349b3f5a6146597ea6f3c8abfda005483998f",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C14-CTRL-001",
+      "description": "D16-C14 control_a retains C14-CTRL-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "invalid_digest"
+      ],
+      "expected_state": "hold",
+      "family": "deployment_frontier",
+      "operation": "local_deployment_bundle",
+      "operation_id": "D16-C14",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "not-a-digest",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": true,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": [
+          {
+            "depends_on": [],
+            "port": 8010,
+            "service_id": "local-api"
+          },
+          {
+            "depends_on": [
+              "local-api"
+            ],
+            "port": 8011,
+            "service_id": "local-worker"
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C14-CONTROL-B-001",
+      "content_address": "sha256:bab73f6293e50dc6c97ebaee465278592f0768647306bef700cd1b02e19b72d3",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C14-CTRL-002",
+      "description": "D16-C14 control_b retains C14-CTRL-002 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 2,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "bundle_requirements_missing"
+      ],
+      "expected_state": "hold",
+      "family": "deployment_frontier",
+      "operation": "local_deployment_bundle",
+      "operation_id": "D16-C14",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "sha256:runtime-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          },
+          {
+            "artifact_id": "schemas",
+            "digest": "sha256:schema-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 512,
+            "version": "2026.08"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": true,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": []
+      },
+      "plane": "deployment",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C14-CONTROL-C-001",
+      "content_address": "sha256:8d0842e77e1a8e74bcc0ad8cfb26758dc935197f7532177e0ad0411f2c1288ab",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C14-CTRL-003",
+      "description": "D16-C14 control_c retains C14-CTRL-003 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "offline_mode_required"
+      ],
+      "expected_state": "hold",
+      "family": "deployment_frontier",
+      "operation": "local_deployment_bundle",
+      "operation_id": "D16-C14",
+      "payload": {
+        "artifacts": [
+          {
+            "artifact_id": "runtime",
+            "digest": "sha256:runtime-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 1024,
+            "version": "0.1.0"
+          },
+          {
+            "artifact_id": "schemas",
+            "digest": "sha256:schema-artifact",
+            "local_only": true,
+            "required_runtime": "python3.11",
+            "size_bytes": 512,
+            "version": "2026.08"
+          }
+        ],
+        "bundle_id": "bundle-positive",
+        "environment_requirements": {
+          "GLIO_DATA_MODE": "aggregate-only"
+        },
+        "offline": false,
+        "platform": "windows-x86_64",
+        "runtime_version": "python3.11",
+        "services": [
+          {
+            "depends_on": [],
+            "port": 8010,
+            "service_id": "local-api"
+          },
+          {
+            "depends_on": [
+              "local-api"
+            ],
+            "port": 8011,
+            "service_id": "local-worker"
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C15-POSITIVE-001",
+      "content_address": "sha256:fc4a6d5fbc9a10dff8eac268f64756ba2963ecc4f28e93e39905059a2ce7c5ba",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C15-POS-001",
+      "description": "D16-C15 positive retains C15-POS-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "deployment_frontier",
+      "operation": "federated_execution",
+      "operation_id": "D16-C15",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 5,
+        "sites": [
+          {
+            "available": true,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          },
+          {
+            "available": true,
+            "sample_count": 18,
+            "site_id": "site-aggregate-b",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-deployment_frontier:depmap",
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C15-CONTROL-A-001",
+      "content_address": "sha256:b693ac2ff83c88f7e5fb6ff63427ff84226cf1ce5048ac9894171b42d7462574",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C15-CTRL-001",
+      "description": "D16-C15 control_a retains C15-CTRL-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "site_unavailable"
+      ],
+      "expected_state": "hold",
+      "family": "deployment_frontier",
+      "operation": "federated_execution",
+      "operation_id": "D16-C15",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 5,
+        "sites": [
+          {
+            "available": false,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          },
+          {
+            "available": true,
+            "sample_count": 18,
+            "site_id": "site-aggregate-b",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "site_ids": [
+              "site-aggregate-a"
+            ],
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-deployment_frontier:depmap",
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C15-CONTROL-B-001",
+      "content_address": "sha256:73c68d5e776b7e52a23ec42225eab92ab953313f7b50e2e59c80c7de406394cd",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C15-CTRL-002",
+      "description": "D16-C15 control_b retains C15-CTRL-002 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "privacy_budget_exceeded"
+      ],
+      "expected_state": "hold",
+      "family": "deployment_frontier",
+      "operation": "federated_execution",
+      "operation_id": "D16-C15",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 1,
+        "sites": [
+          {
+            "available": true,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          },
+          {
+            "available": true,
+            "sample_count": 18,
+            "site_id": "site-aggregate-b",
+            "supported_contexts": [
+              "GRCh38|diffuse_glioma|adult|aggregate|platform|research"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-deployment_frontier:depmap",
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C15-CONTROL-C-001",
+      "content_address": "sha256:42380a98aff6bfbbacdba7589d2188498a3dc6d0c563d0130078e4c5990411b4",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C15-CTRL-003",
+      "description": "D16-C15 control_c retains C15-CTRL-003 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_not_supported"
+      ],
+      "expected_state": "hold",
+      "family": "deployment_frontier",
+      "operation": "federated_execution",
+      "operation_id": "D16-C15",
+      "payload": {
+        "context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+        "minimum_site_count": 1,
+        "plan_id": "federated-positive",
+        "privacy_budget": 5,
+        "sites": [
+          {
+            "available": true,
+            "sample_count": 24,
+            "site_id": "site-aggregate-a",
+            "supported_contexts": [
+              "other-context"
+            ]
+          }
+        ],
+        "tasks": [
+          {
+            "minimum_sample_count": 10,
+            "privacy_cost": 2,
+            "task_id": "aggregate-summary"
+          }
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-deployment_frontier:depmap",
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C16-POSITIVE-001",
+      "content_address": "sha256:310d34140a015f067e4eb66cdc7247ba4fb234789e8ed4d296681b71626b0c5a",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C16-POS-001",
+      "description": "D16-C16 positive retains C16-POS-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "released",
+      "family": "deployment_frontier",
+      "operation": "release_rollback",
+      "operation_id": "D16-C16",
+      "payload": {
+        "action": "release",
+        "checks": {
+          "compatibility": true,
+          "integrity": true,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": "0.9.0",
+        "release_id": "release-positive",
+        "requested_version": "1.0.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "positive",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C16-CONTROL-A-001",
+      "content_address": "sha256:189f6278adb416ef9e8499738835004b08bf91cb92a5c327455661b93827d847",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C16-CTRL-001",
+      "description": "D16-C16 control_a retains C16-CTRL-001 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "failed_check:integrity"
+      ],
+      "expected_state": "denied",
+      "family": "deployment_frontier",
+      "operation": "release_rollback",
+      "operation_id": "D16-C16",
+      "payload": {
+        "action": "release",
+        "checks": {
+          "compatibility": true,
+          "integrity": false,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": "0.9.0",
+        "release_id": "release-positive",
+        "requested_version": "1.0.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_a",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C16-CONTROL-B-001",
+      "content_address": "sha256:f177f5427d4fc0f98887990e4bd3b45a7bcc9a2d3d7725abe30bf74eca4dd705",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C16-CTRL-002",
+      "description": "D16-C16 control_b retains C16-CTRL-002 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "previous_version_missing"
+      ],
+      "expected_state": "denied",
+      "family": "deployment_frontier",
+      "operation": "release_rollback",
+      "operation_id": "D16-C16",
+      "payload": {
+        "action": "rollback",
+        "checks": {
+          "compatibility": true,
+          "integrity": true,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": null,
+        "release_id": "release-positive",
+        "requested_version": "0.8.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_b",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D16-C16-CONTROL-C-001",
+      "content_address": "sha256:772f8ebdf6d9f04de3304c29f931463795b0db0c92ded7b2bf38abf62f9f1e72",
+      "delegate_class": "DeploymentFrontierRecord",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_record_id": "C16-CTRL-003",
+      "description": "D16-C16 control_c retains C16-CTRL-003 from deployment_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "version_already_current"
+      ],
+      "expected_state": "denied",
+      "family": "deployment_frontier",
+      "operation": "release_rollback",
+      "operation_id": "D16-C16",
+      "payload": {
+        "action": "release",
+        "checks": {
+          "compatibility": true,
+          "integrity": true,
+          "policy": true,
+          "tests": true
+        },
+        "current_version": "0.9.0",
+        "previous_version": "0.9.0",
+        "release_id": "release-positive",
+        "requested_version": "0.9.0",
+        "required_checks": [
+          "tests",
+          "integrity",
+          "compatibility",
+          "policy"
+        ]
+      },
+      "plane": "deployment",
+      "scenario": "control_c",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    }
+  ],
+  "content_address": "sha256:d147f9990d8f24f399ef617cc24ee57cf659d50a2beb5fb6880dd54c639c74f4",
+  "context_key": "multi_context_public_aggregate",
+  "family_contexts": {
+    "control_frontier": "GRCh38|glioma|adult|stem_like|core|untreated",
+    "deployment_frontier": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+    "platform_frontier": "public_platform|research|aggregate|local|v1"
+  },
+  "fixture_id": "platform-execution-architecture-public-aggregate-001",
+  "foreign_context_key": "foreign_context_control",
+  "operations": [
+    {
+      "capability_id": "D16-C01",
+      "content_address": "sha256:58626910963064759cc7fef41147cc5633b5dea340ef7047182c83d446dbe1b2",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "mission_planner",
+      "dependencies": [],
+      "family": "platform_frontier",
+      "input_contract": "mission request",
+      "operation": "mission_planner",
+      "operation_id": "D16-C01",
+      "ordinal": 1,
+      "output_contract": "mission plan",
+      "plane": "platform_control",
+      "source_ids": [
+        "D16-platform_frontier:src-planning",
+        "D16-platform_frontier:src-platform-control"
+      ]
+    },
+    {
+      "capability_id": "D16-C02",
+      "content_address": "sha256:73b7aa3aa18311979f4ec6e34944bf1e04584fc577506f9f80f38d17b83548c9",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "workflow_compiler",
+      "dependencies": [
+        "D16-C01"
+      ],
+      "family": "platform_frontier",
+      "input_contract": "mission plan",
+      "operation": "workflow_compiler",
+      "operation_id": "D16-C02",
+      "ordinal": 2,
+      "output_contract": "workflow graph",
+      "plane": "platform_control",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control",
+        "D16-platform_frontier:src-workflow"
+      ]
+    },
+    {
+      "capability_id": "D16-C03",
+      "content_address": "sha256:598a721a3f3d16a09ac9f6083bf91ec6203cdfa1a29260d72a631fc7b1320b21",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "typed_tool_registry",
+      "dependencies": [
+        "D16-C02"
+      ],
+      "family": "platform_frontier",
+      "input_contract": "workflow tool references",
+      "operation": "typed_tool_registry",
+      "operation_id": "D16-C03",
+      "ordinal": 3,
+      "output_contract": "typed registry",
+      "plane": "platform_control",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control",
+        "D16-platform_frontier:src-registry"
+      ]
+    },
+    {
+      "capability_id": "D16-C04",
+      "content_address": "sha256:76f4f254cb7987c4993f28abce5e6ad11bc3132de34e0d4ef4622433813d14d9",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "execution_sandbox",
+      "dependencies": [
+        "D16-C03"
+      ],
+      "family": "platform_frontier",
+      "input_contract": "admitted tool call",
+      "operation": "execution_sandbox",
+      "operation_id": "D16-C04",
+      "ordinal": 4,
+      "output_contract": "sandbox admission",
+      "plane": "platform_control",
+      "source_ids": [
+        "D16-platform_frontier:src-platform-control",
+        "D16-platform_frontier:src-sandbox"
+      ]
+    },
+    {
+      "capability_id": "D16-C05",
+      "content_address": "sha256:747cf4105d0ce32183dc9ab225c9792017eba2f5abafacc9625fd06cdcb57b32",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "policy_claim_gate",
+      "dependencies": [
+        "D16-C04"
+      ],
+      "family": "control_frontier",
+      "input_contract": "claim and source policy",
+      "operation": "policy_claim_gate",
+      "operation_id": "D16-C05",
+      "ordinal": 5,
+      "output_contract": "policy decision",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-control",
+        "D16-control_frontier:src-policy"
+      ]
+    },
+    {
+      "capability_id": "D16-C06",
+      "content_address": "sha256:999835ad9c021b94e93a418eac106279051861a0d5c2e08fedf143c48daef128",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "budget_resource_scheduler",
+      "dependencies": [
+        "D16-C05"
+      ],
+      "family": "control_frontier",
+      "input_contract": "budget and resource request",
+      "operation": "budget_resource_scheduler",
+      "operation_id": "D16-C06",
+      "ordinal": 6,
+      "output_contract": "schedule decision",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-budget",
+        "D16-control_frontier:src-control"
+      ]
+    },
+    {
+      "capability_id": "D16-C07",
+      "content_address": "sha256:0e77edf2f8da50582b47e8c997fac986cd7798414a88be5e5395076f429cf19a",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "deterministic_fallback",
+      "dependencies": [
+        "D16-C06"
+      ],
+      "family": "control_frontier",
+      "input_contract": "failed execution candidates",
+      "operation": "deterministic_fallback",
+      "operation_id": "D16-C07",
+      "ordinal": 7,
+      "output_contract": "fallback selection",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-control",
+        "D16-control_frontier:src-fallback"
+      ]
+    },
+    {
+      "capability_id": "D16-C08",
+      "content_address": "sha256:c364f1c717374fb03c6025548b962c56ee7a5e066453097c975ae14b1c0ee1c0",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "human_review_router",
+      "dependencies": [
+        "D16-C07"
+      ],
+      "family": "control_frontier",
+      "input_contract": "review items",
+      "operation": "human_review_router",
+      "operation_id": "D16-C08",
+      "ordinal": 8,
+      "output_contract": "review route",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-control",
+        "D16-control_frontier:src-review"
+      ]
+    },
+    {
+      "capability_id": "D16-C09",
+      "content_address": "sha256:cb35cfa61a349a35a331f3b4a8c3b228d30c8196994d7fe6ff24ed872057325a",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "execution_ledger",
+      "dependencies": [
+        "D16-C08"
+      ],
+      "family": "control_frontier",
+      "input_contract": "execution events",
+      "operation": "execution_ledger",
+      "operation_id": "D16-C09",
+      "ordinal": 9,
+      "output_contract": "ledger transition",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-control",
+        "D16-control_frontier:src-ledger"
+      ]
+    },
+    {
+      "capability_id": "D16-C10",
+      "content_address": "sha256:a370ba2628b720cbc1e6657121654216b64e219d24cf97dec805c21669827ab5",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "model_registry",
+      "dependencies": [
+        "D16-C09"
+      ],
+      "family": "control_frontier",
+      "input_contract": "registry card",
+      "operation": "model_registry",
+      "operation_id": "D16-C10",
+      "ordinal": 10,
+      "output_contract": "compatibility result",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-control",
+        "D16-control_frontier:src-model"
+      ]
+    },
+    {
+      "capability_id": "D16-C11",
+      "content_address": "sha256:5e4458374a270e47824d8fefa393a7950cf7cd4eeef0a70c527d479751705173",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "data_reference_registry",
+      "dependencies": [
+        "D16-C10"
+      ],
+      "family": "control_frontier",
+      "input_contract": "reference card",
+      "operation": "data_reference_registry",
+      "operation_id": "D16-C11",
+      "ordinal": 11,
+      "output_contract": "reference compatibility",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-control",
+        "D16-control_frontier:src-reference"
+      ]
+    },
+    {
+      "capability_id": "D16-C12",
+      "content_address": "sha256:668bd3d5cccb820538bdf8db620f7803192ef87c7f47a81a700d84613be7fe3c",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "drift_ood_monitor",
+      "dependencies": [
+        "D16-C11"
+      ],
+      "family": "control_frontier",
+      "input_contract": "monitoring metrics",
+      "operation": "drift_ood_monitor",
+      "operation_id": "D16-C12",
+      "ordinal": 12,
+      "output_contract": "drift decision",
+      "plane": "quality_control",
+      "source_ids": [
+        "D16-control_frontier:src-control",
+        "D16-control_frontier:src-monitor"
+      ]
+    },
+    {
+      "capability_id": "D16-C13",
+      "content_address": "sha256:29be26e3da453bb92455d23ca9c4380308a904236cfa42230b449f21fd281b5c",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "privacy_security_policy",
+      "dependencies": [
+        "D16-C12"
+      ],
+      "family": "deployment_frontier",
+      "input_contract": "deployment access request",
+      "operation": "privacy_security_policy",
+      "operation_id": "D16-C13",
+      "ordinal": 13,
+      "output_contract": "security decision",
+      "plane": "deployment",
+      "source_ids": [
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "capability_id": "D16-C14",
+      "content_address": "sha256:5e0252a2bbf061e37ba9d8d925d0fac5a92d74abd029fd1a420c621fe6ce4772",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "local_deployment_bundle",
+      "dependencies": [
+        "D16-C13"
+      ],
+      "family": "deployment_frontier",
+      "input_contract": "local bundle manifest",
+      "operation": "local_deployment_bundle",
+      "operation_id": "D16-C14",
+      "ordinal": 14,
+      "output_contract": "deployment bundle",
+      "plane": "deployment",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    },
+    {
+      "capability_id": "D16-C15",
+      "content_address": "sha256:5e8c4df803a154627ec1a02323a9a0ea8638deb32fb5d11b07d585f5593ae206",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "federated_execution",
+      "dependencies": [
+        "D16-C14"
+      ],
+      "family": "deployment_frontier",
+      "input_contract": "site execution request",
+      "operation": "federated_execution",
+      "operation_id": "D16-C15",
+      "ordinal": 15,
+      "output_contract": "federated result",
+      "plane": "deployment",
+      "source_ids": [
+        "D16-deployment_frontier:depmap",
+        "D16-deployment_frontier:ga4gh",
+        "D16-deployment_frontier:gdc"
+      ]
+    },
+    {
+      "capability_id": "D16-C16",
+      "content_address": "sha256:6fa5bbae6df19f92e133e92c338a50931364d2583dfb76fb0afa1287dd25c6d5",
+      "control_policy": "retain exact execution state and issue codes; hold unsafe or unsupported paths",
+      "delegate_operation": "release_rollback",
+      "dependencies": [
+        "D16-C15"
+      ],
+      "family": "deployment_frontier",
+      "input_contract": "release checks",
+      "operation": "release_rollback",
+      "operation_id": "D16-C16",
+      "ordinal": 16,
+      "output_contract": "release or rollback decision",
+      "plane": "deployment",
+      "source_ids": [
+        "D16-deployment_frontier:encode",
+        "D16-deployment_frontier:ga4gh"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:cd89c34805a3136a378cdfa61c1dcadcd08dcfef38c8b515b417f330eac33c03",
+      "delegate_content_address": "sha256:4eb2e1487aec1dff13a5d38dc134aa19915c81bfec32e9ce575f0e1f67103280",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_source_id": "src-planning",
+      "family": "platform_frontier",
+      "public_aggregate": true,
+      "source_context_key": "public_platform|research|aggregate|local|v1",
+      "source_id": "D16-platform_frontier:src-planning",
+      "source_kind": "PlatformFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c01-c04.v1",
+      "uri": "https://example.org/glio-noncode/platform-frontier/src-planning"
+    },
+    {
+      "content_address": "sha256:acbb808e1c664e271fe9ebf51f7cc6fba6ee99a1d6f592b124d35094ed3eef21",
+      "delegate_content_address": "sha256:ba88d1f0c4f5c3989d63cab2d71bec910d8049812aa2ff33491f53fe078dd3da",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_source_id": "src-workflow",
+      "family": "platform_frontier",
+      "public_aggregate": true,
+      "source_context_key": "public_platform|research|aggregate|local|v1",
+      "source_id": "D16-platform_frontier:src-workflow",
+      "source_kind": "PlatformFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c01-c04.v1",
+      "uri": "https://example.org/glio-noncode/platform-frontier/src-workflow"
+    },
+    {
+      "content_address": "sha256:aeee4136fda272200b05efd1bc3d5c6a7c91537afbe5a26b77181e6a2dcc8d14",
+      "delegate_content_address": "sha256:59c04583e15c7958b8cf477c08ec1b241e5d26cca813a593b7bb39ab938dc2f9",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_source_id": "src-registry",
+      "family": "platform_frontier",
+      "public_aggregate": true,
+      "source_context_key": "public_platform|research|aggregate|local|v1",
+      "source_id": "D16-platform_frontier:src-registry",
+      "source_kind": "PlatformFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c01-c04.v1",
+      "uri": "https://example.org/glio-noncode/platform-frontier/src-registry"
+    },
+    {
+      "content_address": "sha256:a08edd4fa031ca967fbb53dbde518dc1c5a6e013fc7e48cb74637a596aeabddb",
+      "delegate_content_address": "sha256:f5943f4bfb3ba029884edc6698e04426ee05669e1a6e5da4887e5a9e366bd6c3",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_source_id": "src-sandbox",
+      "family": "platform_frontier",
+      "public_aggregate": true,
+      "source_context_key": "public_platform|research|aggregate|local|v1",
+      "source_id": "D16-platform_frontier:src-sandbox",
+      "source_kind": "PlatformFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c01-c04.v1",
+      "uri": "https://example.org/glio-noncode/platform-frontier/src-sandbox"
+    },
+    {
+      "content_address": "sha256:70d18ac1a0fc4501735f175f5bf485c6a62aa25617062da160c3701db3d5444e",
+      "delegate_content_address": "sha256:44a1204f111e93c3a3969f899e2fa9fac1f8cfa615cc42326eaf983d07ba4e71",
+      "delegate_fixture_id": "platform-frontier-c01-c04",
+      "delegate_source_id": "src-platform-control",
+      "family": "platform_frontier",
+      "public_aggregate": true,
+      "source_context_key": "public_platform|research|aggregate|local|v1",
+      "source_id": "D16-platform_frontier:src-platform-control",
+      "source_kind": "PlatformFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c01-c04.v1",
+      "uri": "https://example.org/glio-noncode/platform-frontier/src-platform-control"
+    },
+    {
+      "content_address": "sha256:28aa849d6db2aa9edd4ddfad160945d039fc85895a454cfcbf8a4c24f086d558",
+      "delegate_content_address": "sha256:3337a499f3525c9c1bd52b391d22bc2597cab2b2f7a7e4ed5042f3a26ae0cc6a",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-policy",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-policy",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-policy"
+    },
+    {
+      "content_address": "sha256:9d227d5e27932888273047f64130da6853b604bd4d2b9bc9f869fe479034a65c",
+      "delegate_content_address": "sha256:f9eed50a93667d20abb05443d11333af6940b9c6501552459e05be457bcb3062",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-budget",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-budget",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-budget"
+    },
+    {
+      "content_address": "sha256:e6f7fa56cc20c9a6e20c5b743205204abf9625aefc7d68f4c15417ad021a0741",
+      "delegate_content_address": "sha256:afb86509ba38f57b249701f76ca7a53f38b68782f4d45d36504f66a91fe6a0ee",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-fallback",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-fallback",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-fallback"
+    },
+    {
+      "content_address": "sha256:17c5bf864b6b497c2e0399004b2b8e2ad0bee72f33cfd5cabd92e76612d5733a",
+      "delegate_content_address": "sha256:7c3f73cbe80d41f7d8babcbb795684d872d2b1993f9242beb6e9ad42ae157aeb",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-review",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-review",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-review"
+    },
+    {
+      "content_address": "sha256:1952eb3b7063e0b017cf3612b5b648734e6a1df78f14f6daa207be3e6a66d04d",
+      "delegate_content_address": "sha256:cc0d6fd6a6f6f915e1df659c35d2fbad97cb785e93b02b50720087bd59886b50",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-ledger",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-ledger",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-ledger"
+    },
+    {
+      "content_address": "sha256:715f360f0e425301e6e0d4a93d448a296077cb3d6d11a05fd60bb0c9da32b556",
+      "delegate_content_address": "sha256:7517cd1f7279c3588ce39d80e2e37ddece3b2864a85ff9e43f2ab19d3a7e0fe3",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-model",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-model",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-model"
+    },
+    {
+      "content_address": "sha256:99015e40903b3c6c67472d62cc5481956c2622ce0e516aea0cf9fcfaf116ffef",
+      "delegate_content_address": "sha256:b0fc8d57e970df3201d43c65eda221b17dbf3245c31ffd5f0b6daec2f90b70f3",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-reference",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-reference",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-reference"
+    },
+    {
+      "content_address": "sha256:a5c94001db123b654656139b07677cbac7b550758fe3d55933fab3d69cdddd10",
+      "delegate_content_address": "sha256:770e9dce08657f27e72cd105912e14521f81a0a40458f7872c5646cd46505035",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-monitor",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-monitor",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-monitor"
+    },
+    {
+      "content_address": "sha256:54fd8a2f23fea138d62c7918f32e4b34b0bcfdebdde38f47adeeec2905be9f33",
+      "delegate_content_address": "sha256:5012881a745727e5cab0e36d4139f6265abf9bc59b5c7fd329b7518cf96f9737",
+      "delegate_fixture_id": "control-frontier-c05-c12",
+      "delegate_source_id": "src-control",
+      "family": "control_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D16-control_frontier:src-control",
+      "source_kind": "ControlFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/control-frontier/src-control"
+    },
+    {
+      "content_address": "sha256:4c540e28f4e85f3bfbda19d97278b92c86ae1b52d9356f86127e4e1c6896e715",
+      "delegate_content_address": "sha256:39427a0e744418415f40a5c6a2fc904b281ef903c794bc1493f79f8f30a7b638",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_source_id": "gdc",
+      "family": "deployment_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "source_id": "D16-deployment_frontier:gdc",
+      "source_kind": "DeploymentFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c13-c16.v1",
+      "uri": "https://gdc.cancer.gov/"
+    },
+    {
+      "content_address": "sha256:cbb2f5c1fc5c49bedd7c41786c1d0a2df474d5638b040249266634d064e9407c",
+      "delegate_content_address": "sha256:56a5e648f639c491e6b719a2f677b17282bea0c4ebdcfa6c351cfbd4c9b1d5fe",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_source_id": "encode",
+      "family": "deployment_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "source_id": "D16-deployment_frontier:encode",
+      "source_kind": "DeploymentFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c13-c16.v1",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:05d632d3de540fe2ead0b2b8ef411c0d6097b6a75b7c7ccc8c7dc64865e39c55",
+      "delegate_content_address": "sha256:deb8ac358d36c8b0ebd550450ff3c0098b67cdaeb906ef286e4a85a1b8155312",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_source_id": "four-d",
+      "family": "deployment_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "source_id": "D16-deployment_frontier:four-d",
+      "source_kind": "DeploymentFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c13-c16.v1",
+      "uri": "https://data.4dnucleome.org/"
+    },
+    {
+      "content_address": "sha256:2c92aed35faa8ff5d2478bae710b030349274c3f704e3254883c25bdb68d09bf",
+      "delegate_content_address": "sha256:fd21ee25fd8765954ee5e94b76e5d826335e61f6ef4b1cf0e08d7eeae3913537",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_source_id": "depmap",
+      "family": "deployment_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "source_id": "D16-deployment_frontier:depmap",
+      "source_kind": "DeploymentFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c13-c16.v1",
+      "uri": "https://depmap.org/portal/"
+    },
+    {
+      "content_address": "sha256:4d02790d9aed1ab60ed8618d137bebc7fcbb1f7987fcbc94a3b69fd1fa72131b",
+      "delegate_content_address": "sha256:156653ab6a108e3f683577611b42530b2c92023a7da400d01a19e15e8cba501f",
+      "delegate_fixture_id": "deployment-frontier-public-aggregate-001",
+      "delegate_source_id": "ga4gh",
+      "family": "deployment_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|diffuse_glioma|adult|aggregate|platform|research",
+      "source_id": "D16-deployment_frontier:ga4gh",
+      "source_kind": "DeploymentFrontierSourceReceipt",
+      "source_version": "2026.08.d16-c13-c16.v1",
+      "uri": "https://www.ga4gh.org/"
+    }
+  ],
+  "version": "2026.08.d16-platform-execution.v1"
+}

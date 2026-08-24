@@ -388,6 +388,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D15-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.platform_execution_architecture_operations.evaluate_platform_execution_fixture",
+                            "glio_noncode.platform_execution_architecture_runtime.run_platform_execution_architecture",
+                            "glio_noncode.platform_execution_architecture_quality.assess_platform_execution_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D16-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -492,6 +501,14 @@ class CapabilityRegistry:
                             "tests.test_workbench_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D15-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_platform_execution_architecture",
+                            "tests.test_platform_execution_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D16-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),

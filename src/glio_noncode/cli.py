@@ -1765,6 +1765,17 @@ def _workbench_architecture_fixture(input_path: str | None):
     )
 
 
+def _platform_execution_architecture_fixture(input_path: str | None):
+    from .platform_execution_architecture_contracts import PlatformExecutionFixture
+    from .platform_execution_architecture_public_data import default_platform_execution_fixture
+
+    return (
+        PlatformExecutionFixture.from_file(input_path)
+        if input_path
+        else default_platform_execution_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -3262,6 +3273,79 @@ def build_parser() -> argparse.ArgumentParser:
     )
     workbench_architecture_bundle.add_argument("--input", default=None)
     workbench_architecture_bundle.add_argument("--output", required=True)
+    platform_execution_architecture_fixture = subparsers.add_parser(
+        "platform-execution-architecture-fixture",
+        help="emit the D16 C01-C16 public aggregate platform execution fixture",
+    )
+    platform_execution_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        (
+            "platform-execution-architecture-data-audit",
+            "audit D16 platform execution sources, joins, contexts, and scope",
+        ),
+        (
+            "platform-execution-architecture-plan",
+            "compile the D16 platform execution dependency plan",
+        ),
+        (
+            "evaluate-platform-execution-architecture",
+            "execute D16 platform, control, and deployment delegates",
+        ),
+        (
+            "platform-execution-architecture-runtime",
+            "run the D16 twenty-four-stage platform execution runtime",
+        ),
+        (
+            "platform-execution-architecture-quality",
+            "run the D16 platform execution release quality gate",
+        ),
+        (
+            "platform-execution-architecture-depth",
+            "report D16 platform execution operation and control depth",
+        ),
+        (
+            "replay-platform-execution-architecture",
+            "replay D16 platform execution evaluation deterministically",
+        ),
+        (
+            "platform-execution-architecture-report",
+            "emit the D16 platform execution runtime report",
+        ),
+        (
+            "platform-execution-architecture-scenarios",
+            "emit the D16 platform execution scenario matrix",
+        ),
+        (
+            "platform-execution-architecture-sources",
+            "emit the D16 platform execution source registry",
+        ),
+        (
+            "platform-execution-architecture-compliance",
+            "run D16 public-boundary compliance checks",
+        ),
+        (
+            "platform-execution-architecture-validation",
+            "run D16 typed validation and replay checks",
+        ),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    platform_execution_architecture_query = subparsers.add_parser(
+        "platform-execution-architecture-query",
+        help="query sanitized D16 platform execution cases",
+    )
+    platform_execution_architecture_query.add_argument("--input", default=None)
+    platform_execution_architecture_query.add_argument("--operation", default=None)
+    platform_execution_architecture_query.add_argument("--family", default=None)
+    platform_execution_architecture_query.add_argument("--scenario", default=None)
+    platform_execution_architecture_query.add_argument("--output", default=None)
+    platform_execution_architecture_bundle = subparsers.add_parser(
+        "platform-execution-architecture-bundle",
+        help="write a D16 platform execution runtime bundle",
+    )
+    platform_execution_architecture_bundle.add_argument("--input", default=None)
+    platform_execution_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -10163,6 +10247,132 @@ def main(argv: list[str] | None = None) -> int:
             _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release), "quality": jsonable(runtime.quality), "depth": jsonable(runtime.depth)}, str(output_dir / "release.json"))
             _write_json(build_workbench_architecture_report(runtime.fixture, runtime.evaluation, runtime), str(output_dir / "report.json"))
             _write_text(workbench_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "platform-execution-architecture-fixture":
+            from .platform_execution_architecture_public_data import platform_execution_fixture_json
+
+            _write_text(
+                platform_execution_fixture_json(_platform_execution_architecture_fixture(None)),
+                args.output,
+            )
+            return 0
+        if args.command == "platform-execution-architecture-data-audit":
+            from .platform_execution_architecture_public_data import audit_platform_execution_data
+
+            report = audit_platform_execution_data(_platform_execution_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "platform-execution-architecture-plan":
+            from .platform_execution_architecture_plan import build_platform_execution_plan
+
+            report = build_platform_execution_plan(_platform_execution_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-platform-execution-architecture":
+            from .platform_execution_architecture_operations import evaluate_platform_execution_fixture
+
+            report = evaluate_platform_execution_fixture(_platform_execution_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "platform-execution-architecture-runtime":
+            from .platform_execution_architecture_runtime import run_platform_execution_architecture
+
+            runtime = run_platform_execution_architecture(_platform_execution_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "platform-execution-architecture-quality":
+            from .platform_execution_architecture_runtime import run_platform_execution_architecture
+
+            runtime = run_platform_execution_architecture(_platform_execution_architecture_fixture(args.input))
+            _write_json(runtime.quality.to_dict(), args.output)
+            return 0 if runtime.quality.accepted else 2
+        if args.command == "platform-execution-architecture-depth":
+            from .platform_execution_architecture_runtime import run_platform_execution_architecture
+
+            runtime = run_platform_execution_architecture(_platform_execution_architecture_fixture(args.input))
+            _write_json(runtime.depth.to_dict(), args.output)
+            return 0 if runtime.depth.check_count == 458 else 2
+        if args.command == "replay-platform-execution-architecture":
+            from .platform_execution_architecture_replay import replay_platform_execution_fixture
+
+            report = replay_platform_execution_fixture(_platform_execution_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "platform-execution-architecture-report":
+            from .platform_execution_architecture_reporting import build_platform_execution_report
+            from .platform_execution_architecture_runtime import run_platform_execution_architecture
+
+            runtime = run_platform_execution_architecture(_platform_execution_architecture_fixture(args.input))
+            _write_json(build_platform_execution_report(runtime.fixture, runtime.evaluation, runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "platform-execution-architecture-scenarios":
+            from .platform_execution_architecture_query import query_platform_execution
+            from .platform_execution_architecture_runtime import run_platform_execution_architecture
+
+            runtime = run_platform_execution_architecture(_platform_execution_architecture_fixture(args.input))
+            result = query_platform_execution(fixture=runtime.fixture, evaluation=runtime.evaluation)
+            _write_json({"accepted": runtime.accepted, "rows": result}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "platform-execution-architecture-sources":
+            fixture = _platform_execution_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "platform-execution-architecture-compliance":
+            from .platform_execution_architecture_compliance import assess_platform_execution_compliance
+
+            report = assess_platform_execution_compliance(_platform_execution_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "platform-execution-architecture-validation":
+            from .platform_execution_architecture_operations import evaluate_platform_execution_fixture
+            from .platform_execution_architecture_schema import validate_platform_execution_fixture
+
+            fixture = _platform_execution_architecture_fixture(args.input)
+            evaluation = evaluate_platform_execution_fixture(fixture)
+            report = {
+                "accepted": validate_platform_execution_fixture(fixture) and evaluation.accepted,
+                "evaluation": evaluation.to_dict(),
+            }
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "platform-execution-architecture-query":
+            from .platform_execution_architecture_query import query_platform_execution
+            from .platform_execution_architecture_runtime import run_platform_execution_architecture
+
+            runtime = run_platform_execution_architecture(_platform_execution_architecture_fixture(args.input))
+            result = query_platform_execution(
+                fixture=runtime.fixture,
+                evaluation=runtime.evaluation,
+                operation=args.operation,
+                family=args.family,
+                scenario=args.scenario,
+            )
+            _write_json({"accepted": runtime.accepted, "rows": result}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "platform-execution-architecture-bundle":
+            from .platform_execution_architecture_public_data import platform_execution_fixture_json
+            from .platform_execution_architecture_reporting import build_platform_execution_report
+            from .platform_execution_architecture_runtime import run_platform_execution_architecture
+
+            fixture = _platform_execution_architecture_fixture(args.input)
+            runtime = run_platform_execution_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_json(
+                build_platform_execution_report(runtime.fixture, runtime.evaluation, runtime),
+                str(output_dir / "report.json"),
+            )
+            _write_text(platform_execution_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)

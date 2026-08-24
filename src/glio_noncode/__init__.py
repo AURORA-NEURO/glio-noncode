@@ -9966,6 +9966,28 @@ __all__ += [
     or name.startswith("validate_workbench_architecture")
 ]
 
+from .platform_execution_architecture_exports import *  # noqa: F401,F403
+
+__all__ += [
+    name
+    for name in globals()
+    if name.startswith("PlatformExecution")
+    or name.startswith("PLATFORM_EXECUTION")
+    or name.startswith("platform_execution")
+    or name.startswith("assess_platform_execution")
+    or name.startswith("audit_platform_execution")
+    or name.startswith("build_platform_execution")
+    or name.startswith("default_platform_execution")
+    or name.startswith("evaluate_platform_execution")
+    or name.startswith("execute_platform_execution")
+    or name.startswith("load_platform_execution")
+    or name.startswith("normalize_platform_execution")
+    or name.startswith("query_platform_execution")
+    or name.startswith("replay_platform_execution")
+    or name.startswith("run_platform_execution")
+    or name.startswith("validate_platform_execution")
+]
+
 from .chromatin_architecture_exports import *  # noqa: F401,F403
 
 __all__ += [
