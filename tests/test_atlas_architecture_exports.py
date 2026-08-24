@@ -36,7 +36,7 @@ class AtlasArchitectureExportTests(unittest.TestCase):
         fixture = default_atlas_architecture_fixture()
         runtime = run_atlas_architecture(fixture, run_id="export-runtime")
         self.assertTrue(runtime.accepted)
-        self.assertEqual(runtime.to_dict()["stage_count"], 20)
+        self.assertEqual(runtime.to_dict()["stage_count"], 24)
         self.assertEqual(runtime.to_dict()["release"]["state"], "published")
         self.assertTrue(replay_atlas_architecture_fixture(fixture, runtime.evaluation).accepted)
 

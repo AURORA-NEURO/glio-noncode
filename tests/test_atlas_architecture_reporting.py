@@ -35,7 +35,7 @@ class AtlasArchitectureReportingTests(unittest.TestCase):
     def test_dictionary_is_complete_and_public(self) -> None:
         dictionary = atlas_architecture_data_dictionary(self.fixture)
         self.assertTrue(dictionary.accepted)
-        self.assertEqual(len(dictionary.fields), 31)
+        self.assertEqual(len(dictionary.fields), 33)
         self.assertEqual(len(dictionary.checks), 6)
         self.assertEqual(
             {item.entity for item in dictionary.fields},

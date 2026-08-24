@@ -66,6 +66,12 @@ class AtlasArchitectureCliTests(unittest.TestCase):
             self.assertTrue(
                 json.loads((root / "atlas-architecture-depth.json").read_text())["accepted"]
             )
+            self.assertEqual(
+                json.loads((root / "atlas-architecture-depth.json").read_text())[
+                    "completion_percent"
+                ],
+                100.0,
+            )
             self.assertTrue(
                 json.loads((root / "replay-atlas-architecture.json").read_text())["accepted"]
             )
@@ -88,6 +94,9 @@ class AtlasArchitectureCliTests(unittest.TestCase):
             self.assertEqual(len(json.loads((root / "query.json").read_text())["receipts"]), 48)
             self.assertTrue((root / "bundle" / "runtime.json").exists())
             self.assertTrue((root / "bundle" / "release.json").exists())
+            self.assertTrue((root / "bundle" / "report.json").exists())
+            release = json.loads((root / "bundle" / "release.json").read_text())
+            self.assertEqual(len(release["quality"]["checks"]), 12)
 
 
 if __name__ == "__main__":

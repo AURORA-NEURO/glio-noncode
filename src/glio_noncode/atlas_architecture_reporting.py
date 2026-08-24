@@ -15,6 +15,7 @@ from .atlas_architecture_contracts import (
     addressed,
 )
 from .atlas_architecture_data_dictionary import AtlasArchitectureDataDictionary
+from .atlas_architecture_depth import atlas_architecture_depth_percent
 from .atlas_architecture_metrics import AtlasArchitectureMetrics
 from .serialization import jsonable
 
@@ -46,6 +47,14 @@ def build_atlas_architecture_report(
         "source_count": len(fixture.sources),
         "operation_count": len(fixture.operations),
         "case_count": len(fixture.cases),
+        "evaluation_checks": len(runtime.evaluation.checks),
+        "quality_checks": len(runtime.quality.checks),
+        "result_state_count": metrics.state_count,
+        "issue_code_count": metrics.issue_code_count,
+        "depth_percent": atlas_architecture_depth_percent(
+            fixture, runtime.evaluation
+        ),
+        "compliance_accepted": runtime.compliance.accepted,
         "positive_count": runtime.evaluation.positive_count,
         "control_count": runtime.evaluation.control_count,
         "accepted_receipts": sum(

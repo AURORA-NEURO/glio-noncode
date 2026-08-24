@@ -28,6 +28,7 @@ ATLAS_ARCHITECTURE_CASE_COUNT = (
     ATLAS_ARCHITECTURE_OPERATION_COUNT * ATLAS_ARCHITECTURE_CASES_PER_OPERATION
 )
 ATLAS_ARCHITECTURE_SOURCE_COUNT = 20
+ATLAS_ARCHITECTURE_FAMILY_COUNT = 4
 ATLAS_ARCHITECTURE_ARTIFACT_COUNT = 6
 
 
@@ -114,6 +115,7 @@ class AtlasArchitectureSource:
     version: str
     scope: str
     license: str
+    public_aggregate: bool
     content_address: str
 
     def __post_init__(self) -> None:
@@ -131,6 +133,8 @@ class AtlasArchitectureSource:
             raise ValidationError("atlas source URI must be HTTP(S)")
         if self.scope != "public_aggregate":
             raise ValidationError("atlas architecture sources must be public aggregate receipts")
+        if not self.public_aggregate:
+            raise ValidationError("atlas sources must carry the public aggregate marker")
         if not self.content_address.startswith("sha256:"):
             raise ValidationError("atlas source address must be SHA-256")
 
@@ -181,6 +185,7 @@ class AtlasArchitectureCase:
     family: AtlasArchitectureFamily
     scenario: AtlasArchitectureScenario
     context_key: str
+    delegate_context_key: str
     source_ids: tuple[str, ...]
     payload: dict[str, Any]
     expected_state: AtlasArchitectureState
@@ -196,6 +201,7 @@ class AtlasArchitectureCase:
             "operation_id",
             "capability_id",
             "context_key",
+            "delegate_context_key",
             "expected_result_state",
             "description",
             "content_address",
@@ -536,6 +542,9 @@ class AtlasArchitectureRuntime:
     ledger: AtlasArchitectureLedger
     artifacts: tuple[AtlasArchitectureArtifact, ...]
     release: AtlasArchitectureRelease
+    depth: AtlasArchitectureDepthReport
+    quality: AtlasArchitectureQualityGate
+    compliance: Any
     content_address: str
 
     @property
@@ -549,6 +558,9 @@ class AtlasArchitectureRuntime:
         value["review_queue"] = self.review_queue.to_dict()
         value["ledger"] = self.ledger.to_dict()
         value["release"] = self.release.to_dict()
+        value["depth"] = self.depth.to_dict()
+        value["quality"] = self.quality.to_dict()
+        value["compliance"] = self.compliance.to_dict()
         return value | {"accepted": self.accepted, "stage_count": len(self.stages)}
 
 
@@ -562,6 +574,10 @@ class AtlasArchitectureDepthReport:
     control_count: int
     stage_count: int
     artifact_count: int
+    family_count: int
+    check_count: int
+    state_count: int
+    issue_code_count: int
     addressed_count: int
     accepted: bool
     checks: tuple[str, ...]
@@ -599,6 +615,7 @@ def _source(raw: Any) -> AtlasArchitectureSource:
         version=str(raw.get("version", "")),
         scope=str(raw.get("scope", "")),
         license=str(raw.get("license", "")),
+        public_aggregate=bool(raw.get("public_aggregate", True)),
         content_address=str(raw.get("content_address", "")),
     )
 
@@ -636,6 +653,9 @@ def _case(raw: Any) -> AtlasArchitectureCase:
         family=AtlasArchitectureFamily(str(raw.get("family", ""))),
         scenario=AtlasArchitectureScenario(str(raw.get("scenario", ""))),
         context_key=str(raw.get("context_key", "")),
+        delegate_context_key=str(
+            raw.get("delegate_context_key", raw.get("context_key", ""))
+        ),
         source_ids=_text_tuple(raw.get("source_ids", ()), "source_ids"),
         payload=dict(raw.get("payload", {})),
         expected_state=AtlasArchitectureState(str(raw.get("expected_state", ""))),
@@ -651,6 +671,7 @@ def _case(raw: Any) -> AtlasArchitectureCase:
 
 __all__ = [
     "ATLAS_ARCHITECTURE_ARTIFACT_COUNT",
+    "ATLAS_ARCHITECTURE_FAMILY_COUNT",
     "ATLAS_ARCHITECTURE_BOUNDARY",
     "ATLAS_ARCHITECTURE_CASE_COUNT",
     "ATLAS_ARCHITECTURE_CASES_PER_OPERATION",

@@ -12,6 +12,8 @@ python -m glio_noncode evaluate-atlas-architecture --input .artifacts/atlas-fixt
 python -m glio_noncode atlas-architecture-validation --input .artifacts/atlas-fixture.json --output .artifacts/validation.json
 python -m glio_noncode atlas-architecture-runtime --input .artifacts/atlas-fixture.json --output .artifacts/runtime.json
 python -m glio_noncode atlas-architecture-quality --input .artifacts/atlas-fixture.json --output .artifacts/quality.json
+python -m glio_noncode atlas-architecture-depth --input .artifacts/atlas-fixture.json --output .artifacts/depth.json
+python -m glio_noncode atlas-architecture-compliance --input .artifacts/atlas-fixture.json --output .artifacts/compliance.json
 python -m glio_noncode atlas-architecture-bundle --input .artifacts/atlas-fixture.json --output .artifacts/atlas-bundle
 python -m glio_noncode atlas-architecture-dictionary --input .artifacts/atlas-fixture.json --output .artifacts/dictionary.json
 python -m glio_noncode atlas-architecture-scenarios --input .artifacts/atlas-fixture.json --output .artifacts/scenarios.json
@@ -29,7 +31,7 @@ The normal result is exit code zero, `accepted: true` for data, evaluation, vali
 3. If evaluation fails, inspect the named case receipt first, then its scenario policy.
 4. If validation fails, locate the plane/operation cell that contains the failing case.
 5. If replay fails, compare the first and second fixture or receipt addresses.
-6. If quality fails, inspect the quality checks in order; release remains held until every check passes.
+6. If quality fails, inspect all twelve quality checks and the linked compliance report; release remains held until every check passes.
 
 Use focused commands to inspect the boundary:
 
@@ -51,10 +53,12 @@ Never promote a bundle with a held review queue, a failed validation cell, a rep
 - [ ] 20 public source receipts are present and addressed.
 - [ ] 16 operations have four cases each.
 - [ ] 16 positive cases and 48 controls are present.
-- [ ] all 325 evaluation checks pass.
+- [ ] all 458 evaluation checks pass.
 - [ ] all 80 validation cells pass.
 - [ ] all 48 controls remain in review.
 - [ ] the 64-event ledger is hash-linked.
 - [ ] six artifacts are materialized.
+- [ ] depth reports four families, six result states, and 100% completion.
+- [ ] public aggregate compliance is accepted.
 - [ ] access checks, schema checks, invariants, and replay checks pass.
 - [ ] the final quality state is published.

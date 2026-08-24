@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import Any
 
 from .atlas_alpha_evidence_fixture_eval import _execute as execute_alpha
@@ -71,6 +72,17 @@ _FRONTIER = {
     AtlasArchitectureOperation.SNAPSHOT_PUBLISH,
 }
 _SUCCESSFUL_RESULT_STATES = {"supported", "accepted", "published"}
+
+
+def _sanitize(value: Any) -> Any:
+    hidden = {"payload", "input_text", "track_text", "raw_text", "records_text"}
+    if isinstance(value, Mapping):
+        return {
+            str(key): _sanitize(item) for key, item in value.items() if str(key) not in hidden
+        }
+    if isinstance(value, (list, tuple)):
+        return [_sanitize(item) for item in value]
+    return value
 
 
 def evaluate_atlas_architecture_fixture(
@@ -168,12 +180,15 @@ def execute_atlas_architecture_case(
         if result_state in _SUCCESSFUL_RESULT_STATES
         else AtlasArchitectureState.REVIEW
     )
+    sanitized_summary = _sanitize(dict(summary))
+    sanitized_summary["context_key"] = case.context_key
+    sanitized_summary["delegate_context_key"] = case.delegate_context_key
     output_address = content_hash(
         {
             "case_id": case.case_id,
             "result_state": result_state,
             "counts": counts,
-            "summary": summary,
+            "summary": sanitized_summary,
         }
     )
     return AtlasArchitectureExecution(
@@ -186,7 +201,11 @@ def execute_atlas_architecture_case(
         issue_codes=normalized_issues,
         counts=counts,
         output_address=output_address,
-        summary={"family": case.family.value, "operation": case.operation.value, **dict(summary)},
+        summary={
+            "family": case.family.value,
+            "operation": case.operation.value,
+            **sanitized_summary,
+        },
         detail="typed D05 family adapter receipt normalized",
     )
 
@@ -270,6 +289,8 @@ def _control_execution(case: AtlasArchitectureCase) -> AtlasArchitectureExecutio
         "scenario": case.scenario.value,
         "held_before_adapter": True,
         "aggregate_only": bool(case.payload.get("aggregate_only", False)),
+        "context_key": case.context_key,
+        "delegate_context_key": case.delegate_context_key,
     }
     return AtlasArchitectureExecution(
         case.case_id,
@@ -302,7 +323,11 @@ def _failed(
         (issue,),
         {},
         content_hash({"case_id": case.case_id, "issue": issue}),
-        {"failure": issue},
+        {
+            "failure": issue,
+            "context_key": case.context_key,
+            "delegate_context_key": case.delegate_context_key,
+        },
         detail,
     )
 
@@ -337,6 +362,25 @@ def _case_checks(
             execution.output_address.startswith("sha256:"),
             True,
             "execution is content addressed",
+        ),
+        (
+            "sanitized",
+            not any(
+                key in execution.summary
+                for key in ("payload", "input_text", "track_text", "raw_text")
+            ),
+            True,
+            "positive receipt summary excludes raw input markers",
+        ),
+        (
+            "context",
+            bool(execution.summary.get("delegate_context_key"))
+            and (
+                case.scenario is not AtlasArchitectureScenario.FOREIGN_CONTEXT
+                or "context_mismatch" in execution.issue_codes
+            ),
+            True,
+            "delegated context is retained and foreign controls are explicit",
         ),
     )
     for name, observed, required, detail in values:
@@ -401,6 +445,57 @@ def _global_checks(
             all(item.passed for item in receipts),
             True,
             "all expected receipts close",
+        ),
+        (
+            "family-coverage",
+            len({item.family for item in receipts}) == 4,
+            len({item.family for item in receipts}),
+            4,
+            "all four atlas families are represented",
+        ),
+        (
+            "source-joins",
+            all(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            sum(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            80,
+            "all operation and case source joins resolve",
+        ),
+        (
+            "operation-balance",
+            all(
+                sum(item.operation_id == operation_id for item in receipts) == 4
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            sorted(
+                sum(item.operation_id == operation_id for item in receipts)
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            [4] * 16,
+            "each operation has one positive and three controls",
+        ),
+        (
+            "foreign-context-controls",
+            all(
+                "context_mismatch" in item.observed_issue_codes
+                for item in receipts
+                if item.case_id.endswith("-foreign_context")
+            ),
+            True,
+            True,
+            "foreign controls retain explicit context mismatch",
+        ),
+        (
+            "result-state-coverage",
+            len({item.observed_result_state for item in receipts}) >= 6,
+            len({item.observed_result_state for item in receipts}),
+            ">=6",
+            "result states cover positive and held outcomes",
         ),
     )
     result: list[AtlasArchitectureCheck] = []

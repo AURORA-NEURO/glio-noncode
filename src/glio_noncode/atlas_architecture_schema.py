@@ -16,6 +16,7 @@ class AtlasArchitectureSchema:
     schema_id: str
     version: str
     required_fixture_fields: tuple[str, ...]
+    required_source_fields: tuple[str, ...]
     required_case_fields: tuple[str, ...]
     required_receipt_fields: tuple[str, ...]
     checks: tuple[AtlasArchitectureCheck, ...]
@@ -46,12 +47,24 @@ def atlas_architecture_schema() -> AtlasArchitectureSchema:
         "family",
         "scenario",
         "context_key",
+        "delegate_context_key",
         "source_ids",
         "payload",
         "expected_state",
         "expected_result_state",
         "expected_issue_codes",
         "expected_counts",
+        "content_address",
+    )
+    source_fields = (
+        "source_id",
+        "family",
+        "title",
+        "uri",
+        "version",
+        "scope",
+        "license",
+        "public_aggregate",
         "content_address",
     )
     receipt_fields = (
@@ -75,10 +88,10 @@ def atlas_architecture_schema() -> AtlasArchitectureSchema:
         ),
         _check(
             "case-fields",
-            len(case_fields) >= 14,
+            len(case_fields) >= 15,
             case_fields,
-            ">=14",
-            "case retains expected D05 outcomes",
+            ">=15",
+            "case retains delegated context and expected D05 outcomes",
         ),
         _check(
             "receipt-fields",
@@ -87,11 +100,29 @@ def atlas_architecture_schema() -> AtlasArchitectureSchema:
             9,
             "receipt excludes raw payload",
         ),
+        _check(
+            "source-fields",
+            len(source_fields) == 9 and "public_aggregate" in source_fields,
+            source_fields,
+            9,
+            "source scope and public marker are explicit",
+        ),
+        _check(
+            "address-fields",
+            all(
+                "content_address" in fields
+                for fields in (fixture_fields, source_fields, case_fields, receipt_fields)
+            ),
+            True,
+            True,
+            "persisted schema entities are content addressed",
+        ),
     )
     body = {
         "schema_id": "glio-noncode.atlas-architecture",
         "version": "v1",
         "fixture_fields": fixture_fields,
+        "source_fields": source_fields,
         "case_fields": case_fields,
         "receipt_fields": receipt_fields,
         "checks": checks,
@@ -100,6 +131,7 @@ def atlas_architecture_schema() -> AtlasArchitectureSchema:
         body["schema_id"],
         body["version"],
         fixture_fields,
+        source_fields,
         case_fields,
         receipt_fields,
         checks,

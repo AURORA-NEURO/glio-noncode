@@ -10,8 +10,15 @@ from .atlas_architecture_bundle import (
     materialize_atlas_architecture_artifacts,
     release_atlas_architecture,
 )
+from .atlas_architecture_compliance import (
+    AtlasArchitectureComplianceReport,
+    assess_atlas_architecture_compliance,
+)
 from .atlas_architecture_contracts import *
-from .atlas_architecture_depth import atlas_architecture_depth_report
+from .atlas_architecture_depth import (
+    atlas_architecture_depth_percent,
+    atlas_architecture_depth_report,
+)
 from .atlas_architecture_data_dictionary import (
     AtlasArchitectureDataDictionary,
     AtlasArchitectureField,

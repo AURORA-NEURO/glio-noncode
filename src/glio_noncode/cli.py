@@ -181,8 +181,12 @@ from .reference_architecture_schema import reference_architecture_schema
 from .reference_architecture_validation import validate_reference_architecture_matrix
 from .reference_architecture_quality import assess_reference_architecture_quality
 from .atlas_architecture_access import atlas_architecture_access_policy
+from .atlas_architecture_compliance import assess_atlas_architecture_compliance
 from .atlas_architecture_data_dictionary import atlas_architecture_data_dictionary
-from .atlas_architecture_depth import atlas_architecture_depth_report
+from .atlas_architecture_depth import (
+    atlas_architecture_depth_percent,
+    atlas_architecture_depth_report,
+)
 from .atlas_architecture_failures import classify_atlas_architecture_failures
 from .atlas_architecture_invariants import check_atlas_architecture_invariants
 from .atlas_architecture_metrics import materialize_atlas_architecture_metrics
@@ -2748,7 +2752,7 @@ def build_parser() -> argparse.ArgumentParser:
             "evaluate-atlas-architecture",
             "execute D05 positive atlas adapters and boundary controls",
         ),
-        ("atlas-architecture-runtime", "run the twenty-stage D05 atlas architecture"),
+        ("atlas-architecture-runtime", "run the twenty-four-stage D05 atlas architecture"),
         (
             "atlas-architecture-validation",
             "emit the five-plane by sixteen-operation D05 validation matrix",
@@ -2845,6 +2849,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     atlas_architecture_sources_csv_parser.add_argument("--input", default=None)
     atlas_architecture_sources_csv_parser.add_argument("--output", required=True)
+    atlas_architecture_compliance = subparsers.add_parser(
+        "atlas-architecture-compliance",
+        help="run D05 public-scope and claim-boundary compliance checks",
+    )
+    atlas_architecture_compliance.add_argument("--input", default=None)
+    atlas_architecture_compliance.add_argument("--output", default=None)
     sequence_architecture_fixture = subparsers.add_parser(
         "sequence-architecture-fixture",
         help="emit the D06 C01-C16 public aggregate sequence architecture fixture",
@@ -8806,6 +8816,7 @@ def main(argv: list[str] | None = None) -> int:
                 runtime.artifacts,
                 runtime.release,
                 len(runtime.stages),
+                runtime.compliance,
             )
             _write_json(quality.to_dict(), args.output)
             return 0 if quality.passed else 2
@@ -8820,7 +8831,15 @@ def main(argv: list[str] | None = None) -> int:
                 runtime.ledger,
                 runtime,
             )
-            _write_json(report.to_dict(), args.output)
+            _write_json(
+                report.to_dict()
+                | {
+                    "completion_percent": atlas_architecture_depth_percent(
+                        fixture, runtime.evaluation
+                    )
+                },
+                args.output,
+            )
             return 0 if report.accepted else 2
         if args.command == "replay-atlas-architecture":
             report = replay_atlas_architecture_fixture(_atlas_architecture_fixture(args.input))
@@ -8902,9 +8921,19 @@ def main(argv: list[str] | None = None) -> int:
                 {
                     "artifacts": [jsonable(item) for item in runtime.artifacts],
                     "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                    "compliance": jsonable(runtime.compliance),
                 },
                 str(output_dir / "release.json"),
             )
+            validation = validate_atlas_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_atlas_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(validation)
+            )
+            dictionary = atlas_architecture_data_dictionary(fixture)
+            report = build_atlas_architecture_report(fixture, runtime, metrics, dictionary)
+            _write_json(report.to_dict(), str(output_dir / "report.json"))
             _write_text(
                 atlas_architecture_fixture_json(fixture),
                 str(output_dir / "fixture.json"),
@@ -8959,6 +8988,10 @@ def main(argv: list[str] | None = None) -> int:
             fixture = _atlas_architecture_fixture(args.input)
             _write_text(atlas_architecture_sources_csv(fixture), args.output)
             return 0
+        if args.command == "atlas-architecture-compliance":
+            report = assess_atlas_architecture_compliance(_atlas_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "sequence-architecture-fixture":
             _write_text(sequence_architecture_fixture_json(), args.output)
             return 0

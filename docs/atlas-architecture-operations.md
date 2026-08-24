@@ -8,6 +8,7 @@ Each D05 case contains:
 - one operation identifier from D05-C01 through D05-C16;
 - scenario (`positive`, `foreign_context`, `malformed_input`, or `identity_conflict`);
 - architecture context key;
+- delegated family context key;
 - public source receipt identifiers;
 - operation payload;
 - expected state and expected issue codes;
@@ -48,7 +49,7 @@ A held receipt records:
 - an empty evidence count;
 - the original control content address.
 
-The evaluation gate checks every receipt, then checks aggregate cardinality, scenario balance, accepted count, review count, and issue closure. The expected result is 64 passed receipts and 325 passed checks.
+The evaluation gate checks every receipt, then checks aggregate cardinality, scenario balance, accepted count, review count, issue closure, family coverage, source joins, operation balance, foreign-context handling, and result-state coverage. Seven checks are retained per case and ten global checks close the aggregate, yielding 458 passed checks.
 
 ## Validation matrix
 

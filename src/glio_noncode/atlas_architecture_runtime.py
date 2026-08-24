@@ -1,4 +1,4 @@
-"""End-to-end twenty-stage runtime for the composed D05 atlas."""
+"""End-to-end twenty-four-stage runtime for the composed D05 atlas."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from .atlas_architecture_bundle import (
     materialize_atlas_architecture_artifacts,
     release_atlas_architecture,
 )
+from .atlas_architecture_compliance import assess_atlas_architecture_compliance
 from .atlas_architecture_contracts import (
     AtlasArchitectureCheck,
     AtlasArchitectureCheckKind,
@@ -55,7 +56,11 @@ ATLAS_ARCHITECTURE_STAGE_IDS = (
     "artifacts-materialized",
     "access-closed",
     "replay-closed",
+    "depth-accounted",
+    "compliance-closed",
     "release-gated",
+    "quality-gated",
+    "observability-closed",
     "runtime-finalized",
 )
 
@@ -89,6 +94,7 @@ def run_atlas_architecture(
     )
     access = atlas_architecture_access_policy(artifacts)
     replay = replay_atlas_architecture_fixture(value, evaluation)
+    compliance = assess_atlas_architecture_compliance(value)
     invariants = check_atlas_architecture_invariants(value, evaluation, plan, review_queue, ledger)
     runbook = atlas_architecture_runbook()
     failures = classify_atlas_architecture_failures(evaluation)
@@ -99,6 +105,7 @@ def run_atlas_architecture(
         + policy.checks
         + validation
         + schema.checks
+        + compliance.checks
         + access.checks
         + replay_checks(replay)
         + invariants
@@ -117,8 +124,9 @@ def run_atlas_architecture(
         artifacts,
         release,
         len(ATLAS_ARCHITECTURE_STAGE_IDS),
+        compliance,
     )
-    depth = atlas_architecture_depth_report(value, evaluation, plan, review_queue, ledger)
+    depth = atlas_architecture_depth_report(value, evaluation, plan, review_queue, ledger, None)
     stages = _stages(
         value,
         run_id,
@@ -134,12 +142,17 @@ def run_atlas_architecture(
         artifacts,
         access,
         replay,
+        depth,
+        compliance,
         release,
         quality,
     )
     state = (
         AtlasArchitectureState.PUBLISHED
-        if quality.passed and not failures.release_blocked and depth.accepted
+        if quality.passed
+        and not failures.release_blocked
+        and depth.accepted
+        and compliance.accepted
         else AtlasArchitectureState.BLOCKED
     )
     body = {
@@ -153,6 +166,9 @@ def run_atlas_architecture(
         "ledger": ledger,
         "artifacts": artifacts,
         "release": release,
+        "depth": depth,
+        "quality": quality,
+        "compliance": compliance,
     }
     return AtlasArchitectureRuntime(
         run_id,
@@ -165,6 +181,9 @@ def run_atlas_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
+        compliance,
         addressed(body, "atlas-runtime"),
     )
 
@@ -221,6 +240,8 @@ def _stages(
     artifacts: tuple[object, ...],
     access: object,
     replay: object,
+    depth: object,
+    compliance: object,
     release: object,
     quality: object,
 ) -> list[AtlasArchitectureRuntimeStage]:
@@ -243,10 +264,28 @@ def _stages(
         addressed(artifacts, "atlas-artifacts"),
         access.content_address,
         replay.content_address,
+        depth.content_address,
+        compliance.content_address,
         release.content_address,
         quality.content_address,
+        addressed(
+            {
+                "metrics": metrics.content_address,
+                "validation": addressed(validation, "atlas-validation"),
+            },
+            "atlas-observability",
+        ),
+        addressed(
+            {"run_id": run_id, "stage_count": len(ATLAS_ARCHITECTURE_STAGE_IDS)},
+            "atlas-final",
+        ),
     )
-    states = [AtlasArchitectureState.ACCEPTED] * 18 + [release.state, quality.state]
+    states = [AtlasArchitectureState.ACCEPTED] * 20 + [
+        release.state,
+        quality.state,
+        AtlasArchitectureState.ACCEPTED,
+        AtlasArchitectureState.ACCEPTED,
+    ]
     stages: list[AtlasArchitectureRuntimeStage] = []
     previous = f"sha256:{run_id}"
     for ordinal, (stage_id, output, state) in enumerate(

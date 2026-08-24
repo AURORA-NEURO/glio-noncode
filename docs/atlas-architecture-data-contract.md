@@ -2,7 +2,7 @@
 
 ## Source receipt requirements
 
-Every source receipt must include a stable identifier, public title, public URI, release label, license label, family scope, and content address. A source is usable only when its identifier is joined by at least one case and its URI is non-empty. The D05 aggregate prefixes family identifiers so that equal identifiers from different family fixtures cannot silently collide.
+Every source receipt must include a stable identifier, public title, public URI, release label, license label, family scope, an explicit public aggregate marker, and content address. A source is usable only when its identifier is joined by at least one case and its URI is non-empty. The D05 aggregate prefixes family identifiers so that equal identifiers from different family fixtures cannot silently collide.
 
 ## Context contract
 
@@ -12,7 +12,7 @@ The architecture context is:
 GRCh38|diffuse_glioma|adult|stem_like|unknown|unknown
 ```
 
-The fields are assembly, disease class, age band, cell state, territory, and treatment state. A control may intentionally carry a foreign context, but it must remain held and must report `context_mismatch`. Context is part of the case address and cannot be changed without changing the fixture version.
+The fields are assembly, disease class, age band, cell state, territory, and treatment state. Each case also carries a delegated family context. A control may intentionally carry a foreign context, but it must remain held and must report `context_mismatch`. Context is part of the case address and cannot be changed without changing the fixture version.
 
 ## Payload contract
 
@@ -42,7 +42,8 @@ The canonical D05 aggregate has:
 | Evaluation receipts | 64 |
 | Validation cells | 80 |
 | Ledger events | 64 |
-| Runtime stages | 20 |
+| Evaluation checks | 458 |
+| Runtime stages | 24 |
 | Artifacts | 6 |
 
 These counts are checked at construction, evaluation, validation, quality, and release boundaries. A count change requires a contract review and focused test updates.

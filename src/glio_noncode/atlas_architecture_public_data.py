@@ -202,6 +202,31 @@ def audit_atlas_architecture_data(
             "no direct identity fields",
             "aggregate atlas mechanics remain bounded",
         ),
+        _check(
+            "public-markers",
+            all(item.public_aggregate for item in value.sources),
+            sum(item.public_aggregate for item in value.sources),
+            ATLAS_ARCHITECTURE_SOURCE_COUNT,
+            "every source carries an explicit public aggregate marker",
+        ),
+        _check(
+            "delegate-contexts",
+            all(bool(item.delegate_context_key) for item in value.cases),
+            sum(bool(item.delegate_context_key) for item in value.cases),
+            ATLAS_ARCHITECTURE_CASE_COUNT,
+            "every case retains a delegated context key",
+        ),
+        _check(
+            "foreign-context-controls",
+            all(
+                item.context_key != item.delegate_context_key
+                for item in value.cases
+                if item.scenario is AtlasArchitectureScenario.FOREIGN_CONTEXT
+            ),
+            True,
+            True,
+            "foreign controls remain distinct from delegated context",
+        ),
     )
     accepted = all(item.passed for item in checks)
     body = {"fixture_id": value.fixture_id, "checks": checks, "accepted": accepted}
@@ -251,6 +276,7 @@ def _build_default_fixture() -> AtlasArchitectureFixture:
                 "version": getattr(source, "release", "public-release"),
                 "scope": "public_aggregate",
                 "license": source.license,
+                "public_aggregate": True,
             }
             sources.append(
                 AtlasArchitectureSource(**body, content_address=addressed(body, "atlas-source"))
@@ -272,6 +298,7 @@ def _build_default_fixture() -> AtlasArchitectureFixture:
                 "family": family,
                 "scenario": AtlasArchitectureScenario.POSITIVE,
                 "context_key": ATLAS_ARCHITECTURE_CONTEXT,
+                "delegate_context_key": ATLAS_ARCHITECTURE_CONTEXT,
                 "source_ids": family_source_ids,
                 "payload": payload,
                 "expected_state": AtlasArchitectureState.ACCEPTED,
@@ -309,6 +336,7 @@ def _build_default_fixture() -> AtlasArchitectureFixture:
                     if scenario is AtlasArchitectureScenario.FOREIGN_CONTEXT
                     else ATLAS_ARCHITECTURE_CONTEXT
                 ),
+                "delegate_context_key": ATLAS_ARCHITECTURE_CONTEXT,
                 "source_ids": positive.source_ids,
                 "payload": {
                     "aggregate_only": True,
