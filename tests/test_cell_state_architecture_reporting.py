@@ -28,14 +28,15 @@ class CellStateArchitectureReportingTests(unittest.TestCase):
         self.assertTrue(self.report["quality"]["accepted"])
         self.assertEqual(self.report["metrics"]["operation_count"], 16)
         self.assertEqual(self.report["metrics"]["source_count"], 18)
-        self.assertEqual(self.report["stage_count"], 22)
+        self.assertEqual(self.report["stage_count"], 24)
+        self.assertEqual(self.report["quality"]["check_count"], 12)
         self.assertIn("D08 Cell State", cell_state_architecture_report_lines(self.runtime)[0])
 
     def test_report_json_and_runbook_are_stable(self) -> None:
         payload = json.loads(cell_state_architecture_report_json(self.runtime))
         self.assertEqual(payload["depth"]["completion_percent"], 100.0)
         self.assertEqual(len(cell_state_architecture_runbook(self.runtime.fixture)), 16)
-        self.assertEqual(len(cell_state_architecture_stage_runbook()), 22)
+        self.assertEqual(len(cell_state_architecture_stage_runbook()), 24)
         self.assertGreaterEqual(len(module_inventory()), 29)
 
 

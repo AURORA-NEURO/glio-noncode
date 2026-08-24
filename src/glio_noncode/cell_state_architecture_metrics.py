@@ -30,6 +30,30 @@ def cell_state_architecture_metrics(
         "family_counts": dict(sorted(family_counts.items())),
         "plane_counts": dict(sorted(plane_counts.items())),
         "case_counts_by_operation": dict(sorted(operation_counts.items())),
+        "state_counts": dict(
+            sorted(
+                Counter(item.observed_state.value for item in evaluation.executions).items()
+            )
+        )
+        if evaluation
+        else {},
+        "result_state_counts": dict(
+            sorted(
+                Counter(item.observed_result_state for item in evaluation.executions).items()
+            )
+        )
+        if evaluation
+        else {},
+        "issue_counts": dict(
+            sorted(
+                Counter(
+                    issue for item in evaluation.executions for issue in item.issue_codes
+                ).items()
+            )
+        )
+        if evaluation
+        else {},
+        "check_count": len(evaluation.checks) if evaluation else 0,
         "evaluation_accepted": evaluation.accepted if evaluation else None,
         "receipt_pass_rate": (
             sum(item.passed for item in evaluation.receipts) / len(evaluation.receipts)
@@ -48,6 +72,10 @@ def metric_invariants(metrics: dict[str, Any]) -> tuple[str, ...]:
         failures.append("operation_count")
     if metrics.get("case_count") != 64:
         failures.append("case_count")
+    if metrics.get("positive_count") != 16 or metrics.get("control_count") != 48:
+        failures.append("receipt_partition")
+    if metrics.get("check_count") not in (0, 458):
+        failures.append("check_count")
     if metrics.get("scenario_counts") != {
         "foreign_context": 16,
         "identity_conflict": 16,

@@ -68,6 +68,7 @@ class CellStateArchitectureCliTests(unittest.TestCase):
             bundle = root / "bundle"
             validation = root / "validation.json"
             query = root / "query.json"
+            quality = root / "quality.json"
             self.assertEqual(main(["cell-state-architecture-fixture", "--output", str(fixture)]), 0)
             self.assertEqual(
                 main(
@@ -77,6 +78,18 @@ class CellStateArchitectureCliTests(unittest.TestCase):
                         str(fixture),
                         "--output",
                         str(validation),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(
+                main(
+                    [
+                        "cell-state-architecture-quality",
+                        "--input",
+                        str(fixture),
+                        "--output",
+                        str(quality),
                     ]
                 ),
                 0,
@@ -108,8 +121,11 @@ class CellStateArchitectureCliTests(unittest.TestCase):
                 0,
             )
             self.assertTrue(json.loads(validation.read_text(encoding="utf-8"))["accepted"])
+            self.assertTrue(json.loads(quality.read_text(encoding="utf-8"))["accepted"])
             self.assertEqual(json.loads(query.read_text(encoding="utf-8"))["count"], 4)
             self.assertTrue((bundle / "runtime.json").is_file())
+            self.assertTrue((bundle / "release.json").is_file())
+            self.assertTrue((bundle / "report.json").is_file())
 
 
 if __name__ == "__main__":

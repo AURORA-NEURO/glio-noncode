@@ -7,7 +7,12 @@ from typing import Any
 
 from .cell_state_architecture_contracts import (
     CELL_STATE_ARCHITECTURE_BOUNDARY,
+    CELL_STATE_ARCHITECTURE_CASE_COUNT,
+    CELL_STATE_ARCHITECTURE_CASES_PER_OPERATION,
     CELL_STATE_ARCHITECTURE_CONTEXT,
+    CELL_STATE_ARCHITECTURE_OPERATION_COUNT,
+    CELL_STATE_ARCHITECTURE_SOURCE_COUNT,
+    CellStateArchitectureFamily,
     CellStateArchitectureFixture,
     addressed,
 )
@@ -34,6 +39,7 @@ D08_CASE_REQUIRED_FIELDS = (
     "plane",
     "scenario",
     "context_key",
+    "delegate_context_key",
     "source_ids",
     "payload",
     "expected_state",
@@ -70,11 +76,11 @@ def validate_cell_state_architecture_mapping(raw: Mapping[str, Any]) -> tuple[st
         errors.append("boundary")
     if value["context_key"] != CELL_STATE_ARCHITECTURE_CONTEXT:
         errors.append("context_key")
-    if len(value["sources"]) != 18:
+    if len(value["sources"]) != CELL_STATE_ARCHITECTURE_SOURCE_COUNT:
         errors.append("sources")
-    if len(value["operations"]) != 16:
+    if len(value["operations"]) != CELL_STATE_ARCHITECTURE_OPERATION_COUNT:
         errors.append("operations")
-    if len(value["cases"]) != 64:
+    if len(value["cases"]) != CELL_STATE_ARCHITECTURE_CASE_COUNT:
         errors.append("cases")
     for index, case in enumerate(value["cases"]):
         if not isinstance(case, Mapping):
@@ -87,6 +93,11 @@ def validate_cell_state_architecture_mapping(raw: Mapping[str, Any]) -> tuple[st
             not isinstance(case["source_ids"], list) or not case["source_ids"]
         ):
             errors.append(f"cases[{index}].source_ids")
+    for index, operation in enumerate(value["operations"]):
+        if not isinstance(operation, Mapping):
+            errors.append(f"operations[{index}]")
+        elif operation.get("ordinal") != index + 1:
+            errors.append(f"operations[{index}].ordinal")
     return tuple(dict.fromkeys(errors))
 
 
@@ -100,14 +111,34 @@ def validate_cell_state_architecture_fixture(fixture: CellStateArchitectureFixtu
         raise ValidationError("D08 source join is unresolved")
     if any(item.operation_id not in operation_ids for item in fixture.cases):
         raise ValidationError("D08 case operation join is unresolved")
-    if tuple(item.ordinal for item in fixture.operations) != tuple(range(1, 17)):
+    if tuple(item.ordinal for item in fixture.operations) != tuple(
+        range(1, CELL_STATE_ARCHITECTURE_OPERATION_COUNT + 1)
+    ):
         raise ValidationError("D08 operation ordinals must be contiguous")
+    if len({item.family for item in fixture.operations}) != len(CellStateArchitectureFamily):
+        raise ValidationError("D08 operation families must all be represented")
+    if any(
+        sum(item.operation_id == operation.operation_id for item in fixture.cases)
+        != CELL_STATE_ARCHITECTURE_CASES_PER_OPERATION
+        for operation in fixture.operations
+    ):
+        raise ValidationError("D08 operations must have four scenario cases")
+    if any(not item.public_aggregate for item in fixture.sources):
+        raise ValidationError("D08 sources must be public aggregate records")
+    if any(not item.delegate_context_key for item in fixture.cases):
+        raise ValidationError("D08 case delegation context is required")
     if any(
         item.context_key
         not in (fixture.context_key, "GRCh38|glioma|pediatric|stem_like|tumor|unknown")
         for item in fixture.cases
     ):
         raise ValidationError("D08 case context is outside the declared test boundary")
+    if any(
+        "context_mismatch" not in item.expected_issue_codes
+        for item in fixture.cases
+        if item.scenario.value == "foreign_context"
+    ):
+        raise ValidationError("D08 foreign controls must declare context mismatch")
     return True
 
 
@@ -118,10 +149,11 @@ def schema_descriptor() -> dict[str, Any]:
         "boundary": CELL_STATE_ARCHITECTURE_BOUNDARY,
         "context_key": CELL_STATE_ARCHITECTURE_CONTEXT,
         "top_level_fields": list(D08_REQUIRED_TOP_LEVEL_FIELDS),
-        "source_count": 18,
-        "operation_count": 16,
-        "case_count": 64,
-        "cases_per_operation": 4,
+        "source_count": CELL_STATE_ARCHITECTURE_SOURCE_COUNT,
+        "operation_count": CELL_STATE_ARCHITECTURE_OPERATION_COUNT,
+        "case_count": CELL_STATE_ARCHITECTURE_CASE_COUNT,
+        "family_count": len(CellStateArchitectureFamily),
+        "cases_per_operation": CELL_STATE_ARCHITECTURE_CASES_PER_OPERATION,
         "positive_scenarios": ["positive"],
         "control_scenarios": ["foreign_context", "malformed_input", "identity_conflict"],
     }

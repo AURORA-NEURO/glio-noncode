@@ -33,6 +33,8 @@ class CellStateArchitectureExportTests(unittest.TestCase):
         self.assertEqual(len(payload["sources"]), 18)
         self.assertEqual(len(payload["operations"]), 16)
         self.assertEqual(len(payload["cases"]), 64)
+        self.assertTrue(all(item["public_aggregate"] for item in payload["sources"]))
+        self.assertTrue(all(item["delegate_context_key"] for item in payload["cases"]))
 
     def test_review_projection_removes_raw_case_payload(self) -> None:
         fixture = default_cell_state_architecture_fixture()

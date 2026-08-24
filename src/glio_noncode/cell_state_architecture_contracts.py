@@ -106,6 +106,7 @@ class CellStateArchitectureSource:
     version: str
     scope: str
     license: str
+    public_aggregate: bool
     content_address: str
 
     def __post_init__(self) -> None:
@@ -115,6 +116,8 @@ class CellStateArchitectureSource:
             raise ValidationError("D08 source URI must be HTTP(S)")
         if self.scope != "public_aggregate":
             raise ValidationError("D08 sources must be public aggregate receipts")
+        if not self.public_aggregate:
+            raise ValidationError("D08 sources must be marked public aggregate")
         if not self.content_address.startswith("sha256:"):
             raise ValidationError("D08 source address must be SHA-256")
 
@@ -164,6 +167,7 @@ class CellStateArchitectureCase:
     plane: CellStateArchitecturePlane
     scenario: CellStateArchitectureScenario
     context_key: str
+    delegate_context_key: str
     source_ids: tuple[str, ...]
     payload: dict[str, Any]
     expected_state: CellStateArchitectureState
@@ -179,6 +183,7 @@ class CellStateArchitectureCase:
             "operation_id",
             "capability_id",
             "context_key",
+            "delegate_context_key",
             "expected_result_state",
             "description",
             "content_address",
@@ -534,6 +539,8 @@ class CellStateArchitectureRuntime:
     ledger: CellStateArchitectureLedger
     artifacts: tuple[CellStateArchitectureArtifact, ...]
     release: CellStateArchitectureRelease
+    depth: CellStateArchitectureDepthReport
+    quality: CellStateArchitectureQualityGate
     stages: tuple[CellStateArchitectureRuntimeStage, ...]
     accepted: bool
     content_address: str
@@ -550,10 +557,13 @@ class CellStateArchitectureDepthReport:
     positive_count: int
     control_count: int
     source_count: int
+    family_count: int
     addressed_count: int
     family_counts: Mapping[str, int]
     plane_counts: Mapping[str, int]
     check_count: int
+    state_count: int
+    issue_code_count: int
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -583,6 +593,7 @@ def _source(raw: Mapping[str, Any]) -> CellStateArchitectureSource:
         "version": str(raw.get("version", "public")),
         "scope": str(raw.get("scope", "")),
         "license": str(raw.get("license", "public source receipt")),
+        "public_aggregate": bool(raw.get("public_aggregate", True)),
     }
     return CellStateArchitectureSource(**body, content_address=addressed(body, "cell-state-source"))
 
@@ -618,6 +629,14 @@ def _case(raw: Mapping[str, Any]) -> CellStateArchitectureCase:
         "plane": CellStateArchitecturePlane(str(raw.get("plane", ""))),
         "scenario": CellStateArchitectureScenario(str(raw.get("scenario", ""))),
         "context_key": str(raw.get("context_key", "")),
+        "delegate_context_key": str(
+            raw.get(
+                "delegate_context_key",
+                dict(raw.get("payload", {})).get(
+                    "family_context_key", CELL_STATE_ARCHITECTURE_CONTEXT
+                ),
+            )
+        ),
         "source_ids": _text_tuple(raw.get("source_ids", ()), "source_ids"),
         "payload": dict(raw.get("payload", {})),
         "expected_state": CellStateArchitectureState(str(raw.get("expected_state", ""))),

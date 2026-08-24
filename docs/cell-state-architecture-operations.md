@@ -25,12 +25,18 @@ The operation register is ordered and dependency-aware. Each row joins a capabil
 
 For C01-C12, the aggregate stores a family record identifier, family context, family record projection, family receipt summary, and the operation payload. The evaluator uses the record identifier to locate the positive family receipt and copies its observed state and issue codes into a D08 execution receipt.
 
+The delegated context key is retained separately from the case context. This distinction makes the positive path inspectable when a family receipt uses a narrower core context, while the foreign-context control remains a deliberate mismatch rather than an accidental empty value.
+
 For C13-C16, the payload is typed at the D08 boundary and sent to the corresponding primitive. The evaluator records the primitive report in a sanitized summary, keeps stable identifiers and review identifiers, and addresses the resulting output.
 
 ## Control contract
 
-Controls are evaluated before family delegation. A foreign context returns `out_of_domain`; malformed input returns `invalid`; identity conflict returns `contradictory`. Each held result carries one stable issue code and zero primary/secondary counts. This makes a false positive impossible to hide behind a family evaluator.
+Controls are evaluated before family delegation. A foreign context returns `out_of_domain`; malformed input returns `invalid`; identity conflict returns `contradictory`. Each held result carries one stable issue code, an explicit delegated-context trace, and zero primary/secondary counts. This makes a false positive impossible to hide behind a family evaluator.
 
 ## Evidence joins
 
 Operations reference all source receipts for their family. Cases reference the source subset carried by their positive family record. The source registry prefixes family identifiers so collisions between public tranches cannot silently merge. The lineage view exposes family-to-source, source-to-operation, and operation-to-case relationships.
+
+## Check accounting
+
+Each case is reconciled across seven independent views: execution state, result state, issue codes, source-role counts, output address, delegated context, and the final receipt. The global surface adds ten conservation checks for receipts, positive/control partitions, family representation, operation coverage, case coverage, address coverage, positive state, operation balance, and context controls. The resulting equation is `64 * 7 + 10 = 458`.

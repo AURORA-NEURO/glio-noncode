@@ -19,7 +19,7 @@ The typed fixture requires exactly 18 sources, 16 operations, and 64 cases. Sour
 
 ## Source fields
 
-Sources contain `source_id`, family, title, HTTP(S) URI, version, aggregate scope, public-source license text, and a content address. The scope must be `public_aggregate`; a source that does not satisfy this boundary cannot enter the fixture.
+Sources contain `source_id`, family, title, HTTP(S) URI, version, aggregate scope, public-source license text, an explicit `public_aggregate` boolean, and a content address. The scope and boolean must both identify `public_aggregate`; a source that does not satisfy this boundary cannot enter the fixture.
 
 ## Operation fields
 
@@ -27,7 +27,7 @@ Operations contain an ordered ID, capability ID, enum operation, family, plane, 
 
 ## Case fields
 
-Cases contain operation and capability IDs, operation/family/plane enums, scenario, context key, source IDs, an object payload, expected state, expected result state, expected issue codes, expected counts, description, and content address. Positive cases must be accepted; controls must be review-held.
+Cases contain operation and capability IDs, operation/family/plane enums, scenario, context key, delegated context key, source IDs, an object payload, expected state, expected result state, expected issue codes, expected counts, description, and content address. Positive cases must be accepted; controls must be review-held. The delegated context is never allowed to be blank.
 
 ## Review-safe projection
 
@@ -44,7 +44,7 @@ malformed_input: 16
 identity_conflict: 16
 ```
 
-The evaluation produces six checks for each of 64 cases and eight global checks, for 392 checks total. Source joins cover all 16 operation specifications and all 64 cases. The release contains six artifacts and 22 accepted stages.
+The evaluation produces seven checks for each of 64 cases and ten global checks, for 458 checks total. Source joins cover all 16 operation specifications and all 64 cases. The release contains six artifacts and 24 accepted stages. Runtime quality adds twelve direct checks for the audit, plan, evaluation, replay, artifacts, metrics, lineage, release, ledger, compliance, result-state coverage, and control coverage.
 
 ## Cell-state payloads
 

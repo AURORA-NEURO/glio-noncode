@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from .cell_state_architecture_artifacts import artifacts_are_review_safe
+from .cell_state_architecture_compliance import assess_cell_state_architecture_compliance
 from .cell_state_architecture_contracts import (
     CellStateArchitectureCheck,
     CellStateArchitectureCheckKind,
@@ -11,8 +13,12 @@ from .cell_state_architecture_contracts import (
     CellStateArchitecturePlan,
     CellStateArchitectureQualityGate,
     CellStateArchitectureRelease,
+    CellStateArchitectureScenario,
     addressed,
 )
+from .cell_state_architecture_ledger import verify_ledger
+from .cell_state_architecture_lineage import lineage_gaps
+from .cell_state_architecture_metrics import metric_invariants
 from .cell_state_architecture_replay import CellStateArchitectureReplay
 
 
@@ -44,9 +50,18 @@ def assess_cell_state_architecture_quality(
     evaluation: CellStateArchitectureEvaluation,
     replay: CellStateArchitectureReplay,
     release: CellStateArchitectureRelease,
+    artifacts: tuple = (),
+    ledger=None,
 ) -> CellStateArchitectureQualityGate:
     checks = (
-        *audit.checks,
+        _check(
+            "quality:data-audit",
+            audit.accepted,
+            audit.accepted,
+            True,
+            "public aggregate data audit passes",
+            CellStateArchitectureCheckKind.SOURCE,
+        ),
         _check(
             "quality:plan",
             plan.accepted,
@@ -80,12 +95,71 @@ def assess_cell_state_architecture_quality(
             CellStateArchitectureCheckKind.RELEASE,
         ),
         _check(
-            "quality:fixture-identity",
-            fixture.fixture_id == evaluation.fixture_id,
-            evaluation.fixture_id,
-            fixture.fixture_id,
-            "fixture and evaluation identities agree",
-            CellStateArchitectureCheckKind.IDENTITY,
+            "quality:artifacts",
+            artifacts_are_review_safe(artifacts),
+            len(artifacts),
+            6,
+            "all release artifacts are review-safe public aggregates",
+            CellStateArchitectureCheckKind.RELEASE,
+        ),
+        _check(
+            "quality:metrics",
+            not metric_invariants({
+                "source_count": len(fixture.sources),
+                "operation_count": len(fixture.operations),
+                "case_count": len(fixture.cases),
+                "positive_count": evaluation.positive_count,
+                "control_count": evaluation.control_count,
+                "scenario_counts": {
+                    scenario.value: sum(item.scenario is scenario for item in fixture.cases)
+                    for scenario in CellStateArchitectureScenario
+                },
+                "check_count": len(evaluation.checks),
+            }),
+            len(evaluation.checks),
+            458,
+            "coverage metrics conserve the D08 surface",
+            CellStateArchitectureCheckKind.INVARIANT,
+        ),
+        _check(
+            "quality:lineage",
+            not lineage_gaps(fixture),
+            len(lineage_gaps(fixture)),
+            0,
+            "source, operation, and case lineage is closed",
+            CellStateArchitectureCheckKind.LINEAGE,
+        ),
+        _check(
+            "quality:ledger",
+            ledger is not None and verify_ledger(ledger),
+            len(ledger.events) if ledger is not None else 0,
+            64,
+            "append-only execution ledger is reconciled",
+            CellStateArchitectureCheckKind.INVARIANT,
+        ),
+        _check(
+            "quality:compliance",
+            assess_cell_state_architecture_compliance(fixture)["accepted"] is True,
+            assess_cell_state_architecture_compliance(fixture)["accepted"],
+            True,
+            "aggregate boundary and review-safe payload rules pass",
+            CellStateArchitectureCheckKind.SOURCE,
+        ),
+        _check(
+            "quality:state-coverage",
+            len({item.observed_result_state for item in evaluation.executions}) >= 6,
+            len({item.observed_result_state for item in evaluation.executions}),
+            ">=6",
+            "positive and held paths cover the D08 state surface",
+            CellStateArchitectureCheckKind.OPERATION,
+        ),
+        _check(
+            "quality:control-surface",
+            len({issue for item in evaluation.executions for issue in item.issue_codes}) >= 3,
+            len({issue for item in evaluation.executions for issue in item.issue_codes}),
+            ">=3",
+            "control outcomes expose distinct issue codes",
+            CellStateArchitectureCheckKind.CONTEXT,
         ),
     )
     accepted = all(item.passed for item in checks)

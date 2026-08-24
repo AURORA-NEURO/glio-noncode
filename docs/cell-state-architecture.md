@@ -4,7 +4,7 @@ D08 is the public aggregate subsystem for contextualizing disease class, age rou
 
 ## Build shape
 
-The aggregate contains 18 public source receipts, 16 operation specifications, 64 cases, 392 execution checks, six release artifacts, and a 22-stage runtime. Every operation has exactly four cases:
+The aggregate contains 18 public source receipts, 16 operation specifications, 64 cases, 458 execution checks, six release artifacts, and a 24-stage runtime. Every operation has exactly four cases:
 
 | Scenario | Cases per operation | Disposition |
 | --- | ---: | --- |
@@ -22,7 +22,7 @@ The reference context is `GRCh38|glioma|adult|stem_like|tumor|unknown`. A pediat
 3. C09-C12 (`cell_context_alpha_frontier`) contributes spatial niche, core-margin, recurrence, and treatment-induced state priors.
 4. C13-C16 (`cell_state_frontier`) runs abundance intervals, single-cell reference mapping, cell-state OOD detection, and exact-context publication.
 
-The first twelve operations delegate to the corresponding public family evaluators. The final four operations call the cell-state primitives directly. This keeps the aggregate contract broad while ensuring that its most sensitive state paths are executable and inspectable.
+The first twelve operations delegate to the corresponding public family evaluators. The final four operations call the cell-state primitives directly. Every case also carries a delegated context key, so a positive receipt proves context retention and a foreign control proves an explicit mismatch. This keeps the aggregate contract broad while ensuring that its most sensitive state paths are executable and inspectable.
 
 ## Functional state paths
 
@@ -32,7 +32,7 @@ Each positive path is paired with controls that stop before delegation. Controls
 
 ## Release boundary
 
-The runtime publishes only when typed validation, data audit, dependency planning, all 64 receipts, replay, artifacts, access checks, invariants, and quality checks pass. The six artifacts are the fixture, audit, evaluation, review queue, ledger, and source registry. Each has a content address and public aggregate visibility.
+The runtime publishes only when typed validation, data audit, dependency planning, all 64 receipts, replay, artifacts, access checks, invariants, compliance, and the 12-check quality gate pass. The six artifacts are the fixture, audit, evaluation, review queue, ledger, and source registry. Each has a content address and public aggregate visibility.
 
 This subsystem does not provide subject-level inference, treatment guidance, causal conclusions, or an implied clinical decision. It records aggregate evidence paths and their uncertainty or review state.
 
@@ -44,6 +44,8 @@ python -m glio_noncode cell-state-architecture-data-audit --input fixture.json -
 python -m glio_noncode cell-state-architecture-plan --input fixture.json --output plan.json
 python -m glio_noncode evaluate-cell-state-architecture --input fixture.json --output evaluation.json
 python -m glio_noncode cell-state-architecture-runtime --input fixture.json --output runtime.json
+python -m glio_noncode cell-state-architecture-quality --input fixture.json --output quality.json
+python -m glio_noncode cell-state-architecture-depth --input fixture.json --output depth.json
 python -m glio_noncode cell-state-architecture-report --input fixture.json --output report.json
 python -m glio_noncode cell-state-architecture-bundle --input fixture.json --output bundle
 ```

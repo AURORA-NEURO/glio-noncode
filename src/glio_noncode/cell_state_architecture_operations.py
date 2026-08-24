@@ -204,7 +204,13 @@ def _state_execution(
 def _control_execution(
     case: CellStateArchitectureCase, result_state: str, issues: tuple[str, ...], detail: str
 ) -> CellStateArchitectureExecution:
-    summary = {"state": result_state, "scenario": case.scenario.value, "delegated": False}
+    summary = {
+        "state": result_state,
+        "scenario": case.scenario.value,
+        "delegated": False,
+        "context_key": case.context_key,
+        "delegate_context_key": case.delegate_context_key,
+    }
     return CellStateArchitectureExecution(
         case.case_id,
         case.operation,
@@ -261,6 +267,8 @@ def execute_cell_state_architecture_case(
         )
     if case.family is CellStateArchitectureFamily.STATE:
         state, issues, counts, summary, detail = _state_execution(case)
+        summary["context_key"] = case.context_key
+        summary["delegate_context_key"] = case.delegate_context_key
         return CellStateArchitectureExecution(
             case.case_id,
             case.operation,
@@ -285,6 +293,8 @@ def execute_cell_state_architecture_case(
         )
     summary = dict(selected.get("summary", {}))
     summary["delegated"] = True
+    summary["context_key"] = case.context_key
+    summary["delegate_context_key"] = case.delegate_context_key
     result_state = str(selected.get("result_state", "supported"))
     return CellStateArchitectureExecution(
         case.case_id,
@@ -393,6 +403,18 @@ def _case_checks(
             "execution output is content addressed",
         ),
         _check(
+            f"{case.case_id}:context",
+            bool(execution.summary.get("delegate_context_key"))
+            and (
+                case.scenario is not CellStateArchitectureScenario.FOREIGN_CONTEXT
+                or "context_mismatch" in execution.issue_codes
+            ),
+            execution.summary.get("delegate_context_key", ""),
+            "retained or explicitly mismatched",
+            "delegate context is retained and foreign controls remain explicit",
+            CellStateArchitectureCheckKind.CONTEXT,
+        ),
+        _check(
             f"{case.case_id}:receipt",
             receipt.passed,
             receipt.passed,
@@ -474,6 +496,36 @@ def _global_checks(
             True,
             "positive controls do not silently abstain",
             CellStateArchitectureCheckKind.REVIEW,
+        ),
+        _check(
+            "global:operation-balance",
+            all(
+                sum(item.operation_id == operation_id for item in receipts) == 4
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            sorted(
+                sum(item.operation_id == operation_id for item in receipts)
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            [4] * 16,
+            "each operation has one positive and three controls",
+            CellStateArchitectureCheckKind.OPERATION,
+        ),
+        _check(
+            "global:context-controls",
+            all(
+                bool(item.observed_result_state)
+                for item in receipts
+            )
+            and all(
+                "context_mismatch" in item.observed_issue_codes
+                for item in receipts
+                if item.case_id.endswith("-foreign_context")
+            ),
+            True,
+            True,
+            "delegated contexts and foreign context controls are explicit",
+            CellStateArchitectureCheckKind.CONTEXT,
         ),
     )
 

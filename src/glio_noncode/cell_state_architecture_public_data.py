@@ -134,6 +134,7 @@ def _source_registry(
                 "version": str(raw.get("release", raw.get("version", "public"))),
                 "scope": "public_aggregate",
                 "license": "public source receipt",
+                "public_aggregate": True,
             }
             sources.append(
                 CellStateArchitectureSource(
@@ -229,7 +230,17 @@ def _state_payload(ordinal: int) -> dict[str, Any]:
 
 
 def _sanitize(value: Any) -> Any:
-    hidden = {"payload", "input_text", "track_text", "raw_text", "records_text"}
+    hidden = {
+        "payload",
+        "input_text",
+        "track_text",
+        "raw_text",
+        "records_text",
+        "subject_id",
+        "patient_id",
+        "participant_id",
+        "individual_id",
+    }
     if isinstance(value, Mapping):
         return {str(key): _sanitize(item) for key, item in value.items() if str(key) not in hidden}
     if isinstance(value, (list, tuple)):
@@ -242,6 +253,7 @@ def _case(
     scenario: CellStateArchitectureScenario,
     context_key: str,
     source_ids: tuple[str, ...],
+    delegate_context_key: str,
     payload: dict[str, Any],
     expected_state: CellStateArchitectureState,
     expected_result_state: str,
@@ -258,6 +270,7 @@ def _case(
         "plane": operation.plane,
         "scenario": scenario,
         "context_key": context_key,
+        "delegate_context_key": delegate_context_key,
         "source_ids": source_ids,
         "payload": payload,
         "expected_state": expected_state,
@@ -348,6 +361,7 @@ def _cases(
                 CellStateArchitectureScenario.POSITIVE,
                 CELL_STATE_ARCHITECTURE_CONTEXT,
                 source_ids,
+                str(getattr(record, "context_key", CELL_STATE_ARCHITECTURE_CONTEXT)),
                 positive_payload,
                 CellStateArchitectureState.ACCEPTED,
                 result_state,
@@ -393,6 +407,7 @@ def _cases(
                     scenario,
                     control_context,
                     source_ids,
+                    str(getattr(record, "context_key", CELL_STATE_ARCHITECTURE_CONTEXT)),
                     control_payload,
                     CellStateArchitectureState.REVIEW,
                     state,

@@ -84,6 +84,7 @@ def _policy_case(scenario: CellStateArchitectureScenario) -> CellStateArchitectu
         ).CellStateArchitecturePlane.TAXONOMY,
         scenario=scenario,
         context_key="policy",
+        delegate_context_key="policy",
         source_ids=("policy",),
         payload={"policy": True},
         expected_state=__import__(

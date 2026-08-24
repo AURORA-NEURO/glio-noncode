@@ -3003,7 +3003,8 @@ def build_parser() -> argparse.ArgumentParser:
         ("cell-state-architecture-data-audit", "audit D08 cell-state sources, context, joins, and scope"),
         ("cell-state-architecture-plan", "compile the D08 cell-state dependency plan"),
         ("evaluate-cell-state-architecture", "execute D08 family paths and aggregate controls"),
-        ("cell-state-architecture-runtime", "run the D08 twenty-two-stage cell-state runtime"),
+        ("cell-state-architecture-runtime", "run the D08 twenty-four-stage cell-state runtime"),
+        ("cell-state-architecture-quality", "run the D08 cell-state release quality gate"),
         ("cell-state-architecture-depth", "report D08 cell-state operation and evidence depth"),
         ("replay-cell-state-architecture", "replay D08 cell-state evaluation deterministically"),
         ("cell-state-architecture-report", "emit the D08 cell-state runtime report"),
@@ -9382,6 +9383,24 @@ def main(argv: list[str] | None = None) -> int:
             runtime = run_cell_state_architecture(_cell_state_architecture_fixture(args.input))
             _write_json(runtime.to_dict(), args.output)
             return 0 if runtime.accepted else 2
+        if args.command == "cell-state-architecture-quality":
+            from .cell_state_architecture_quality import assess_cell_state_architecture_quality
+            from .cell_state_architecture_replay import replay_cell_state_architecture_fixture
+            from .cell_state_architecture_runtime import run_cell_state_architecture
+
+            runtime = run_cell_state_architecture(_cell_state_architecture_fixture(args.input))
+            gate = assess_cell_state_architecture_quality(
+                runtime.fixture,
+                runtime.audit,
+                runtime.plan,
+                runtime.evaluation,
+                replay_cell_state_architecture_fixture(runtime.fixture),
+                runtime.release,
+                runtime.artifacts,
+                runtime.ledger,
+            )
+            _write_json(gate.to_dict(), args.output)
+            return 0 if gate.accepted else 2
         if args.command == "cell-state-architecture-depth":
             from .cell_state_architecture_depth import assess_cell_state_architecture_depth, depth_percent
             from .cell_state_architecture_runtime import run_cell_state_architecture
@@ -9436,6 +9455,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if runtime.accepted else 2
         if args.command == "cell-state-architecture-bundle":
             from .cell_state_architecture_public_data import cell_state_architecture_fixture_json
+            from .cell_state_architecture_reporting import build_cell_state_architecture_report
             from .cell_state_architecture_runtime import run_cell_state_architecture
 
             fixture = _cell_state_architecture_fixture(args.input)
@@ -9443,8 +9463,17 @@ def main(argv: list[str] | None = None) -> int:
             output_dir = Path(args.output)
             output_dir.mkdir(parents=True, exist_ok=True)
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
-            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": runtime.quality.to_dict(),
+                    "depth": runtime.depth.to_dict(),
+                },
+                str(output_dir / "release.json"),
+            )
             _write_text(cell_state_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            _write_json(build_cell_state_architecture_report(runtime), str(output_dir / "report.json"))
             return 0 if runtime.accepted else 2
         if args.command == "topology-architecture-fixture":
             from .topology_architecture_public_data import topology_architecture_fixture_json

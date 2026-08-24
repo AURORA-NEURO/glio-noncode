@@ -59,6 +59,8 @@ class CellStateArchitectureTests(unittest.TestCase):
         self.assertEqual(len(self.fixture.positive_cases), 16)
         self.assertEqual(len(self.fixture.control_cases), 48)
         self.assertEqual(len({item.family for item in self.fixture.operations}), 4)
+        self.assertTrue(all(item.public_aggregate for item in self.fixture.sources))
+        self.assertTrue(all(item.delegate_context_key for item in self.fixture.cases))
 
     def test_data_audit_schema_and_joins_pass(self) -> None:
         audit = audit_cell_state_architecture_data(self.fixture)
@@ -70,7 +72,7 @@ class CellStateArchitectureTests(unittest.TestCase):
     def test_evaluation_runs_all_operations_and_real_state_paths(self) -> None:
         self.assertTrue(self.evaluation.accepted)
         self.assertEqual(len(self.evaluation.receipts), 64)
-        self.assertEqual(len(self.evaluation.checks), 392)
+        self.assertEqual(len(self.evaluation.checks), 458)
         positives = {
             item.case_id: item
             for item in self.evaluation.receipts
@@ -122,9 +124,13 @@ class CellStateArchitectureTests(unittest.TestCase):
     def test_runtime_release_depth_compliance_and_replay_close(self) -> None:
         runtime = run_cell_state_architecture(self.fixture)
         self.assertTrue(runtime.accepted)
-        self.assertEqual(len(runtime.stages), 22)
+        self.assertEqual(len(runtime.stages), 24)
         self.assertEqual(len(runtime.artifacts), 6)
         self.assertEqual(runtime.release.state.value, "published")
+        self.assertEqual(len(runtime.quality.checks), 12)
+        self.assertTrue(runtime.quality.accepted)
+        self.assertEqual(runtime.depth.check_count, 458)
+        self.assertEqual(runtime.depth.state_count, 6)
         self.assertEqual(runtime.stages[-1].stage_id, "runtime-finalized")
         self.assertTrue(replay_cell_state_architecture_fixture(self.fixture).accepted)
         self.assertTrue(assess_cell_state_architecture_compliance(self.fixture)["accepted"])

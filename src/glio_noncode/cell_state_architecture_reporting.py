@@ -14,6 +14,7 @@ from .cell_state_architecture_observability import (
     cell_state_architecture_events,
     observability_summary,
 )
+from .cell_state_architecture_quality import quality_summary
 from .cell_state_architecture_scenarios import cell_state_architecture_scenario_matrix
 from .cell_state_architecture_source_registry import build_cell_state_architecture_source_registry
 
@@ -25,9 +26,10 @@ def build_cell_state_architecture_report(runtime: CellStateArchitectureRuntime) 
         "report_id": "d08-cell-state-architecture-report",
         "fixture": runtime.fixture.to_dict(include_payload=False),
         "release": runtime.release.to_dict(),
-        "quality": {
-            "accepted": runtime.accepted,
-            "failed_check_ids": [
+        "quality": quality_summary(runtime.quality)
+        | {
+            "runtime_accepted": runtime.accepted,
+            "evaluation_failed_check_ids": [
                 item.check_id for item in runtime.evaluation.checks if not item.passed
             ],
         },

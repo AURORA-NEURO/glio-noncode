@@ -1,10 +1,11 @@
-"""Twenty-two-stage D08 cell-state architecture runtime."""
+"""Twenty-four-stage D08 cell-state architecture runtime."""
 
 from __future__ import annotations
 
 from .cell_state_architecture_access import cell_state_architecture_access_policy
 from .cell_state_architecture_artifacts import build_cell_state_architecture_artifacts
 from .cell_state_architecture_bundle import build_cell_state_architecture_bundle
+from .cell_state_architecture_compliance import assess_cell_state_architecture_compliance
 from .cell_state_architecture_contracts import (
     CellStateArchitectureFixture,
     CellStateArchitectureRuntime,
@@ -50,6 +51,8 @@ D08_STAGE_IDS = (
     "release-built",
     "quality-gated",
     "depth-accounted",
+    "controls-closed",
+    "compliance-closed",
     "runtime-finalized",
 )
 
@@ -95,10 +98,11 @@ def run_cell_state_architecture(
     access = cell_state_architecture_access_policy(artifacts)
     release = build_cell_state_architecture_release(selected, evaluation, artifacts)
     quality = assess_cell_state_architecture_quality(
-        selected, audit, plan, evaluation, replay, release
+        selected, audit, plan, evaluation, replay, release, artifacts, ledger
     )
     invariants = cell_state_architecture_invariants(selected)
     depth = assess_cell_state_architecture_depth(selected, evaluation)
+    compliance = assess_cell_state_architecture_compliance(selected)
     outputs = (
         selected.content_address,
         addressed(
@@ -124,9 +128,15 @@ def run_cell_state_architecture(
         release.content_address,
         quality.content_address,
         depth.content_address,
+        addressed({"review": review.content_address}, "cell-state-controls"),
+        addressed(compliance, "cell-state-compliance"),
         addressed(
-            {"fixture": selected.content_address, "quality": quality.content_address},
-            "cell-state-runtime-seed",
+            {
+                "fixture": selected.content_address,
+                "quality": quality.content_address,
+                "release": release.content_address,
+            },
+            "cell-state-runtime-final",
         ),
     )
     details = (
@@ -138,7 +148,7 @@ def run_cell_state_architecture(
         "C05-C08 developmental and malignant state priors joined",
         "C09-C12 spatial and treatment territory priors joined",
         "C13-C16 abundance, mapping, OOD, and publication joined",
-        "64 cases executed with 392 checks",
+        "64 cases executed with 458 checks",
         "48 control cases routed to review",
         "source-to-operation-to-case lineage closed",
         "append-only ledger receipts closed",
@@ -151,6 +161,8 @@ def run_cell_state_architecture(
         "release boundary constructed",
         "quality gate evaluated",
         "depth counters recorded",
+        "control routing and delegated contexts closed",
+        "aggregate boundary compliance closed",
         "runtime address materialized",
     )
     stages = tuple(
@@ -176,6 +188,7 @@ def run_cell_state_architecture(
         and bool(bundle["accepted"])
         and bool(access["accepted"])
         and quality.accepted
+        and bool(compliance["accepted"])
         and release.state.value == "published"
         and all(invariants.values())
     )
@@ -196,6 +209,8 @@ def run_cell_state_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
         stages,
         accepted,
         addressed(body, "cell-state-runtime"),
