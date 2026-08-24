@@ -1,0 +1,4302 @@
+{
+  "boundary": "public_aggregate_non_patient",
+  "cases": [
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C01-POS-001",
+      "content_address": "sha256:72f2ecffa2bdc267a764dd5a262c37d2db12342fcb26fe41c3cc145677fddbad",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C01-POS-001",
+      "description": "GNC-D14-C01 retains the positive path from evidence_lifecycle_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "missing_required_field"
+      ],
+      "expected_state": "partial",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "citation_resolution",
+      "operation_id": "D14-C01",
+      "payload": {
+        "input_format": "tsv",
+        "source_id": "src-citation",
+        "source_version": "v1",
+        "text": "citation_id\tsource_uri\ttitle\tversion\tcitation_text\tretrieved_at\ncv1\thttps://example.org/cv1\tValid\tv1\tPublic citation\t2026-08-20T00:00:00+00:00\ncv2\thttps://example.org/cv2\tIncomplete\tv1\t\t2026-08-20T00:00:00+00:00"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-citation",
+        "D14-lifecycle-foundation:src-graph"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C01-CTRL-001",
+      "content_address": "sha256:06570054eda7b0461de621b5ccce13769b930e2ecc6f33feb8e877b0b7e179d6",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C01-CTRL-001",
+      "description": "GNC-D14-C01 retains the control_a path from evidence_lifecycle_frontier with state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_json"
+      ],
+      "expected_state": "abstained",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "citation_resolution",
+      "operation_id": "D14-C01",
+      "payload": {
+        "input_format": "json",
+        "source_id": "src-citation",
+        "source_version": "v1",
+        "text": "{not-json"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C01-CTRL-002",
+      "content_address": "sha256:9d90d7e4ff989827c63d0fab3f4e53dc72277ab9a0fe2b6ff151e8dc08dd6b77",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C01-CTRL-002",
+      "description": "GNC-D14-C01 retains the control_b path from evidence_lifecycle_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "duplicate_citation_id"
+      ],
+      "expected_state": "partial",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "citation_resolution",
+      "operation_id": "D14-C01",
+      "payload": {
+        "input_format": "csv",
+        "source_id": "src-citation",
+        "source_version": "v1",
+        "text": "citation_id,source_uri,title,version,citation_text,retrieved_at\ndup,https://example.org/a,A,v1,Text,2026-08-20T00:00:00+00:00\ndup,https://example.org/b,B,v1,Text,2026-08-20T00:00:00+00:00"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C01-CTRL-003",
+      "content_address": "sha256:c808eed1aa2a3577a11a69275859f42fc48dbcfae57db309868f77981ad436e6",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C01-CTRL-003",
+      "description": "GNC-D14-C01 retains the control_c path from evidence_lifecycle_frontier with state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_header"
+      ],
+      "expected_state": "abstained",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "citation_resolution",
+      "operation_id": "D14-C01",
+      "payload": {
+        "input_format": "tsv",
+        "source_id": "src-citation",
+        "source_version": "v1",
+        "text": ""
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C02-POS-001",
+      "content_address": "sha256:3c5a446652ed1a77cddec66a07adcdb16c516150a3220ede786b92fb3e4aeea6",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C02-POS-001",
+      "description": "GNC-D14-C02 retains the positive path from evidence_lifecycle_frontier with state supported",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 13,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "graph_construction",
+      "operation_id": "D14-C02",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-graph-1",
+            "citation_text": "Public aggregate citation citation-graph-1",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-graph",
+            "source_uri": "https://example.org/citation/citation-graph-1",
+            "title": "Aggregate citation citation-graph-1",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c02-first",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c02",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c02-first",
+            "source_ids": [
+              "citation-graph-1"
+            ],
+            "source_versions": {
+              "citation-graph-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c02-first",
+            "supersedes": null,
+            "support": 0.8
+          },
+          {
+            "attributes": {},
+            "claim_id": "c02-current",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c02",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c02-current",
+            "source_ids": [
+              "citation-graph-1"
+            ],
+            "source_versions": {
+              "citation-graph-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c02-current",
+            "supersedes": "c02-first",
+            "support": 0.8
+          }
+        ],
+        "graph_id": "graph-c02",
+        "graph_version": 2
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-graph",
+        "D14-lifecycle-foundation:src-citation"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C02-CTRL-001",
+      "content_address": "sha256:288be35b54bba08911ed6b358bd02799c4fcf619fbaa4593bee00afdcd531a62",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C02-CTRL-001",
+      "description": "GNC-D14-C02 retains the control_a path from evidence_lifecycle_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 13,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "orphan_claim"
+      ],
+      "expected_state": "partial",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "graph_construction",
+      "operation_id": "D14-C02",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-orphan",
+            "citation_text": "Public aggregate citation citation-orphan",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-graph",
+            "source_uri": "https://example.org/citation/citation-orphan",
+            "title": "Aggregate citation citation-orphan",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c02-orphan",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c02",
+            "parent_claim_ids": [
+              "missing-parent"
+            ],
+            "raw_hash": "sha256:c02-orphan",
+            "source_ids": [
+              "missing-source"
+            ],
+            "source_versions": {
+              "missing-source": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c02-orphan",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "graph_id": "graph-c02-orphan"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C02-CTRL-002",
+      "content_address": "sha256:c70faff2b8d6cf4e639db87817629ddca63b5db48be0d2facc565b3db09d5d38",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C02-CTRL-002",
+      "description": "GNC-D14-C02 retains the control_b path from evidence_lifecycle_frontier with state invalid",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "graph_context_mismatch"
+      ],
+      "expected_state": "invalid",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "graph_construction",
+      "operation_id": "D14-C02",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-graph-1",
+            "citation_text": "Public aggregate citation citation-graph-1",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-graph",
+            "source_uri": "https://example.org/citation/citation-graph-1",
+            "title": "Aggregate citation citation-graph-1",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c02-context",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c02",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c02-context",
+            "source_ids": [
+              "citation-graph-1"
+            ],
+            "source_versions": {
+              "citation-graph-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c02-context",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "graph_id": "graph-c02-context"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C02-CTRL-003",
+      "content_address": "sha256:e78e285f501fc9b4ca6fa23b553ab1a640b06498d075b97813fcc9f4c1fd7bb8",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C02-CTRL-003",
+      "description": "GNC-D14-C02 retains the control_c path from evidence_lifecycle_frontier with state invalid",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "duplicate_claim_id"
+      ],
+      "expected_state": "invalid",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "graph_construction",
+      "operation_id": "D14-C02",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-graph-1",
+            "citation_text": "Public aggregate citation citation-graph-1",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-graph",
+            "source_uri": "https://example.org/citation/citation-graph-1",
+            "title": "Aggregate citation citation-graph-1",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c02-duplicate",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c02",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c02-duplicate",
+            "source_ids": [
+              "citation-graph-1"
+            ],
+            "source_versions": {
+              "citation-graph-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c02-duplicate",
+            "supersedes": null,
+            "support": 0.8
+          },
+          {
+            "attributes": {},
+            "claim_id": "c02-duplicate",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c02",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c02-duplicate",
+            "source_ids": [
+              "citation-graph-1"
+            ],
+            "source_versions": {
+              "citation-graph-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c02-duplicate",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "graph_id": "graph-c02-duplicate"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C03-POS-001",
+      "content_address": "sha256:4ca99784b8bb925b93bbff3c9d4a6938fc2223ba211b318c63dfc9506ad2ceb3",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C03-POS-001",
+      "description": "GNC-D14-C03 retains the positive path from evidence_lifecycle_frontier with state supported",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 12,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "edge_validation",
+      "operation_id": "D14-C03",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-edge-1",
+            "citation_text": "Public aggregate citation citation-edge-1",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-edge",
+            "source_uri": "https://example.org/citation/citation-edge-1",
+            "title": "Aggregate citation citation-edge-1",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c03-supported",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c03",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c03-supported",
+            "source_ids": [
+              "citation-edge-1"
+            ],
+            "source_versions": {
+              "citation-edge-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c03-supported",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "edge_id": "edge-c03",
+        "expected_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "graph_id": "graph-c03"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-edge",
+        "D14-lifecycle-foundation:src-citation"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C03-CTRL-001",
+      "content_address": "sha256:d266a703491cc2dd973723ef16401f9e182a84bc7c79b2dceca150b2da6b4155",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C03-CTRL-001",
+      "description": "GNC-D14-C03 retains the control_a path from evidence_lifecycle_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_source"
+      ],
+      "expected_state": "partial",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "edge_validation",
+      "operation_id": "D14-C03",
+      "payload": {
+        "citations": [],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c03-missing",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c03",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c03-missing",
+            "source_ids": [
+              "missing-source"
+            ],
+            "source_versions": {
+              "missing-source": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c03-missing",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "edge_id": "edge-c03",
+        "graph_id": "graph-c03-missing"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C03-CTRL-002",
+      "content_address": "sha256:2691be6c524e62f9d142d47306675d723cb582000880775b563390beae6ac622",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C03-CTRL-002",
+      "description": "GNC-D14-C03 retains the control_b path from evidence_lifecycle_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "edge_context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "edge_validation",
+      "operation_id": "D14-C03",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-edge-1",
+            "citation_text": "Public aggregate citation citation-edge-1",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-edge",
+            "source_uri": "https://example.org/citation/citation-edge-1",
+            "title": "Aggregate citation citation-edge-1",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c03-context",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c03",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c03-context",
+            "source_ids": [
+              "citation-edge-1"
+            ],
+            "source_versions": {
+              "citation-edge-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c03-context",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "edge_id": "edge-c03",
+        "expected_context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+        "graph_id": "graph-c03-context"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C03-CTRL-003",
+      "content_address": "sha256:068abaf8ca10e3427ec91dc45c61c8080fa2b70485ea2c3174d5206aae620fcc",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C03-CTRL-003",
+      "description": "GNC-D14-C03 retains the control_c path from evidence_lifecycle_frontier with state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "edge_absent"
+      ],
+      "expected_state": "abstained",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "edge_validation",
+      "operation_id": "D14-C03",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-edge-1",
+            "citation_text": "Public aggregate citation citation-edge-1",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-edge",
+            "source_uri": "https://example.org/citation/citation-edge-1",
+            "title": "Aggregate citation citation-edge-1",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c03-other",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-other",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c03-other",
+            "source_ids": [
+              "citation-edge-1"
+            ],
+            "source_versions": {
+              "citation-edge-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c03-other",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "edge_id": "edge-none",
+        "graph_id": "graph-c03-empty"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C04-POS-001",
+      "content_address": "sha256:555f5cb12934948bca42a73e0181141a03d67375df4deb57377bdcc87f7451a4",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C04-POS-001",
+      "description": "GNC-D14-C04 retains the positive path from evidence_lifecycle_frontier with state contradictory",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "contradiction_unresolved"
+      ],
+      "expected_state": "contradictory",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "disagreement_tracking",
+      "operation_id": "D14-C04",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-disagreement-1",
+            "citation_text": "Public aggregate citation citation-disagreement-1",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-disagreement",
+            "source_uri": "https://example.org/citation/citation-disagreement-1",
+            "title": "Aggregate citation citation-disagreement-1",
+            "version": "v1"
+          },
+          {
+            "citation_id": "citation-disagreement-2",
+            "citation_text": "Public aggregate citation citation-disagreement-2",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-control",
+            "source_uri": "https://example.org/citation/citation-disagreement-2",
+            "title": "Aggregate citation citation-disagreement-2",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {
+              "claim_value": "increases"
+            },
+            "claim_id": "c04-positive",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c04",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c04-positive",
+            "source_ids": [
+              "citation-disagreement-1"
+            ],
+            "source_versions": {
+              "citation-disagreement-1": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c04-positive",
+            "supersedes": null,
+            "support": 0.8
+          },
+          {
+            "attributes": {
+              "claim_value": "decreases"
+            },
+            "claim_id": "c04-negative",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-c04",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c04-negative",
+            "source_ids": [
+              "citation-disagreement-2"
+            ],
+            "source_versions": {
+              "citation-disagreement-2": "v1"
+            },
+            "state": "measured_negative",
+            "summary": "Aggregate claim c04-negative",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "edge_ids": [
+          "edge-c04"
+        ],
+        "graph_id": "graph-c04"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-disagreement",
+        "D14-lifecycle-foundation:src-edge"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C04-CTRL-001",
+      "content_address": "sha256:f7d8ee3023df191b94a9c2ba826f6448e27d7d7d91d181d7ae67e141afb9c740",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C04-CTRL-001",
+      "description": "GNC-D14-C04 retains the control_a path from evidence_lifecycle_frontier with state clear",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "clear",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "disagreement_tracking",
+      "operation_id": "D14-C04",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-clear",
+            "citation_text": "Public aggregate citation citation-clear",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-disagreement",
+            "source_uri": "https://example.org/citation/citation-clear",
+            "title": "Aggregate citation citation-clear",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {
+              "claim_value": "increases"
+            },
+            "claim_id": "c04-clear",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-clear",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c04-clear",
+            "source_ids": [
+              "citation-clear"
+            ],
+            "source_versions": {
+              "citation-clear": "v1"
+            },
+            "state": "supported",
+            "summary": "Aggregate claim c04-clear",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "edge_ids": [
+          "edge-clear"
+        ],
+        "graph_id": "graph-c04-clear"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C04-CTRL-002",
+      "content_address": "sha256:45541a85dc3ac4c6630a9a68f1f59a3b3068a8875724ada275a1295a8d584506",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C04-CTRL-002",
+      "description": "GNC-D14-C04 retains the control_b path from evidence_lifecycle_frontier with state incomplete",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "incomplete_disagreement"
+      ],
+      "expected_state": "incomplete",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "disagreement_tracking",
+      "operation_id": "D14-C04",
+      "payload": {
+        "citations": [],
+        "claims": [],
+        "edge_ids": [
+          "edge-none"
+        ],
+        "graph_id": "graph-c04-empty"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C04-CTRL-003",
+      "content_address": "sha256:75bf3af57b00eec610c1ba65ce6ddcdc58f2fd4a334d66380281fb45f090ec86",
+      "delegate_class": "EvidenceLifecycleRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_record_id": "C04-CTRL-003",
+      "description": "GNC-D14-C04 retains the control_c path from evidence_lifecycle_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "disagreement_out_of_domain"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "evidence_lifecycle_frontier",
+      "operation": "disagreement_tracking",
+      "operation_id": "D14-C04",
+      "payload": {
+        "citations": [
+          {
+            "citation_id": "citation-domain",
+            "citation_text": "Public aggregate citation citation-domain",
+            "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+            "retrieved_at": "2026-08-20T00:00:00+00:00",
+            "source_id": "src-disagreement",
+            "source_uri": "https://example.org/citation/citation-domain",
+            "title": "Aggregate citation citation-domain",
+            "version": "v1"
+          }
+        ],
+        "claims": [
+          {
+            "attributes": {},
+            "claim_id": "c04-domain",
+            "claim_type": "functional",
+            "confidence": 0.9,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "created_at": "2026-08-20T00:00:00+00:00",
+            "edge_id": "edge-domain",
+            "parent_claim_ids": [],
+            "raw_hash": "sha256:c04-domain",
+            "source_ids": [
+              "citation-domain"
+            ],
+            "source_versions": {
+              "citation-domain": "v1"
+            },
+            "state": "out_of_domain",
+            "summary": "Aggregate claim c04-domain",
+            "supersedes": null,
+            "support": 0.8
+          }
+        ],
+        "edge_ids": [
+          "edge-domain"
+        ],
+        "graph_id": "graph-c04-domain"
+      },
+      "plane": "lifecycle_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C05-POS-001",
+      "content_address": "sha256:685f7ccdfa0ec0ca1368c3542ec20ad389ff6a7cc7294cf0d8a519a7ba3790b2",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C05-POS-001",
+      "description": "GNC-D14-C05 retains the positive path from lifecycle_beta_frontier with state supported",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "lifecycle_beta_frontier",
+      "operation": "tier_adjudication",
+      "operation_id": "D14-C05",
+      "payload": {
+        "data": {
+          "observations": [
+            {
+              "claim_id": "claim-tier-1",
+              "confidence": 0.88,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "direction": "supports",
+              "edge_id": "edge-tier-1",
+              "observation_id": "tier-positive",
+              "rationale": "declared aggregate perturbation observation",
+              "raw_hash": "sha256:tier-positive",
+              "source_id": "src-tier",
+              "source_version": "v1",
+              "support": 0.92,
+              "tier": "direct_perturbation"
+            }
+          ]
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C05-CTRL-001",
+      "content_address": "sha256:ca18bc060ed7146defb1e8888e9a8fb78faca59669b8ce1867c3b5e1f98a75fe",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C05-CTRL-001",
+      "description": "GNC-D14-C05 retains the control_a path from lifecycle_beta_frontier with state contradictory",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "tier_direction_conflict"
+      ],
+      "expected_state": "contradictory",
+      "family": "lifecycle_beta_frontier",
+      "operation": "tier_adjudication",
+      "operation_id": "D14-C05",
+      "payload": {
+        "data": {
+          "observations": [
+            {
+              "claim_id": "claim-tier-1",
+              "confidence": 0.88,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "direction": "supports",
+              "edge_id": "edge-tier-1",
+              "observation_id": "tier-positive",
+              "rationale": "declared aggregate perturbation observation",
+              "raw_hash": "sha256:tier-positive",
+              "source_id": "src-tier",
+              "source_version": "v1",
+              "support": 0.92,
+              "tier": "direct_perturbation"
+            },
+            {
+              "claim_id": "claim-tier-1",
+              "confidence": 0.88,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "direction": "against",
+              "edge_id": "edge-tier-1",
+              "observation_id": "tier-against",
+              "rationale": "declared aggregate perturbation observation",
+              "raw_hash": "sha256:tier-positive",
+              "source_id": "src-tier",
+              "source_version": "v1",
+              "support": 0.92,
+              "tier": "direct_perturbation"
+            }
+          ]
+        },
+        "kind": "contradiction"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C05-CTRL-002",
+      "content_address": "sha256:bdc65b561d0269c7de24421cd81f6bced54c7a5179dc038059d47a2c59aa05a9",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C05-CTRL-002",
+      "description": "GNC-D14-C05 retains the control_b path from lifecycle_beta_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "lifecycle_beta_frontier",
+      "operation": "tier_adjudication",
+      "operation_id": "D14-C05",
+      "payload": {
+        "data": {
+          "observations": [
+            {
+              "claim_id": "claim-tier-1",
+              "confidence": 0.88,
+              "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+              "direction": "supports",
+              "edge_id": "edge-tier-1",
+              "observation_id": "tier-positive",
+              "rationale": "declared aggregate perturbation observation",
+              "raw_hash": "sha256:tier-positive",
+              "source_id": "src-tier",
+              "source_version": "v1",
+              "support": 0.92,
+              "tier": "direct_perturbation"
+            }
+          ]
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C05-CTRL-003",
+      "content_address": "sha256:0e5ac61408180a8d745817c87ce83d0971f987856d1a5a3ff23ce6c1efa7e39e",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C05-CTRL-003",
+      "description": "GNC-D14-C05 retains the control_c path from lifecycle_beta_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "unclassified_tier"
+      ],
+      "expected_state": "partial",
+      "family": "lifecycle_beta_frontier",
+      "operation": "tier_adjudication",
+      "operation_id": "D14-C05",
+      "payload": {
+        "data": {
+          "observations": [
+            {
+              "claim_id": "claim-tier-1",
+              "confidence": 0.88,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "direction": "supports",
+              "edge_id": "edge-tier-1",
+              "observation_id": "tier-positive",
+              "rationale": "declared aggregate perturbation observation",
+              "raw_hash": "sha256:tier-positive",
+              "source_id": "src-tier",
+              "source_version": "v1",
+              "support": 0.92,
+              "tier": "unclassified"
+            }
+          ]
+        },
+        "kind": "unclassified"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C06-POS-001",
+      "content_address": "sha256:75671335f939fcf5be53bb9206e84d47d934a0b0132e614d8ac1ce84a1fbe044",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C06-POS-001",
+      "description": "GNC-D14-C06 retains the positive path from lifecycle_beta_frontier with state supported",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "lifecycle_beta_frontier",
+      "operation": "provenance_lineage",
+      "operation_id": "D14-C06",
+      "payload": {
+        "data": {
+          "claim_id": "claim-current",
+          "graph": {
+            "citations": [
+              {
+                "citation_id": "citation-lineage",
+                "source_id": "src-lineage",
+                "version": "v1"
+              }
+            ],
+            "claims": [
+              {
+                "active": true,
+                "claim_id": "claim-current",
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "parents": [
+                  "claim-parent"
+                ],
+                "source_ids": [
+                  "src-lineage"
+                ],
+                "supersedes": "claim-parent"
+              },
+              {
+                "active": false,
+                "claim_id": "claim-parent",
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "parents": [],
+                "source_ids": [
+                  "src-lineage"
+                ]
+              }
+            ],
+            "graph_id": "lineage-graph",
+            "version": 3
+          }
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-lineage"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C06-CTRL-001",
+      "content_address": "sha256:aa90b1375927c216552754d5243b43213c914e7785580b6af3e7abed9982013d",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C06-CTRL-001",
+      "description": "GNC-D14-C06 retains the control_a path from lifecycle_beta_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_parent"
+      ],
+      "expected_state": "partial",
+      "family": "lifecycle_beta_frontier",
+      "operation": "provenance_lineage",
+      "operation_id": "D14-C06",
+      "payload": {
+        "data": {
+          "claim_id": "claim-current",
+          "graph": {
+            "citations": [
+              {
+                "citation_id": "citation-lineage",
+                "source_id": "src-lineage",
+                "version": "v1"
+              }
+            ],
+            "claims": [
+              {
+                "active": true,
+                "claim_id": "claim-current",
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "parents": [
+                  "claim-missing"
+                ],
+                "source_ids": [
+                  "src-lineage"
+                ],
+                "supersedes": "claim-parent"
+              },
+              {
+                "active": false,
+                "claim_id": "claim-parent",
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "parents": [],
+                "source_ids": [
+                  "src-lineage"
+                ]
+              }
+            ],
+            "graph_id": "lineage-graph",
+            "version": 3
+          }
+        },
+        "kind": "missing_parent"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C06-CTRL-002",
+      "content_address": "sha256:ff71a0526e19a45478a5a6650efd1c985236e9965190e4497cd88c68fd3f4f5a",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C06-CTRL-002",
+      "description": "GNC-D14-C06 retains the control_b path from lifecycle_beta_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "lifecycle_beta_frontier",
+      "operation": "provenance_lineage",
+      "operation_id": "D14-C06",
+      "payload": {
+        "data": {
+          "claim_id": "claim-current",
+          "graph": {
+            "citations": [
+              {
+                "citation_id": "citation-lineage",
+                "source_id": "src-lineage",
+                "version": "v1"
+              }
+            ],
+            "claims": [
+              {
+                "active": true,
+                "claim_id": "claim-current",
+                "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+                "parents": [
+                  "claim-parent"
+                ],
+                "source_ids": [
+                  "src-lineage"
+                ],
+                "supersedes": "claim-parent"
+              },
+              {
+                "active": false,
+                "claim_id": "claim-parent",
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "parents": [],
+                "source_ids": [
+                  "src-lineage"
+                ]
+              }
+            ],
+            "graph_id": "lineage-graph",
+            "version": 3
+          }
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C06-CTRL-003",
+      "content_address": "sha256:b320c564fea9ea6c6acc707097472cdc83f39d2fb2b6cb3ac656ee4e64c51c9f",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C06-CTRL-003",
+      "description": "GNC-D14-C06 retains the control_c path from lifecycle_beta_frontier with state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_claims"
+      ],
+      "expected_state": "abstained",
+      "family": "lifecycle_beta_frontier",
+      "operation": "provenance_lineage",
+      "operation_id": "D14-C06",
+      "payload": {
+        "data": {
+          "claim_id": "claim-current",
+          "graph": {
+            "citations": [
+              {
+                "citation_id": "citation-lineage",
+                "source_id": "src-lineage",
+                "version": "v1"
+              }
+            ],
+            "claims": [],
+            "graph_id": "lineage-graph",
+            "version": 3
+          }
+        },
+        "kind": "empty"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C07-POS-001",
+      "content_address": "sha256:6e4c86076dad371173ce7ad3d9b768dd9920f29d649a752550b7a205c12ae203",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C07-POS-001",
+      "description": "GNC-D14-C07 retains the positive path from lifecycle_beta_frontier with state supported",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 11,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "lifecycle_beta_frontier",
+      "operation": "uncertainty_ledger",
+      "operation_id": "D14-C07",
+      "payload": {
+        "data": {
+          "entries": [
+            {
+              "claim_id": "claim-uncertainty",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "dimension": "measurement",
+              "edge_id": "edge-uncertainty",
+              "observation_id": "uncertainty-measurement",
+              "rationale": "replicate spread",
+              "raw_hash": "sha256:uncertainty-1",
+              "source_id": "src-uncertainty",
+              "source_version": "v1",
+              "value": 0.22
+            },
+            {
+              "claim_id": "claim-uncertainty",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "dimension": "transport",
+              "edge_id": "edge-uncertainty",
+              "observation_id": "uncertainty-transport",
+              "rationale": "context transfer gap",
+              "raw_hash": "sha256:uncertainty-2",
+              "source_id": "src-uncertainty",
+              "source_version": "v1",
+              "value": 0.41
+            }
+          ]
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-uncertainty"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C07-CTRL-001",
+      "content_address": "sha256:42c4b8ea23f5d6a8c74163a42f8d7460cc2d265814c5f5513834fc5a4b243ded",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C07-CTRL-001",
+      "description": "GNC-D14-C07 retains the control_a path from lifecycle_beta_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "lifecycle_beta_frontier",
+      "operation": "uncertainty_ledger",
+      "operation_id": "D14-C07",
+      "payload": {
+        "data": {
+          "entries": [
+            {
+              "claim_id": "claim-uncertainty",
+              "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+              "dimension": "measurement",
+              "edge_id": "edge-uncertainty",
+              "observation_id": "uncertainty-measurement",
+              "rationale": "replicate spread",
+              "raw_hash": "sha256:uncertainty-1",
+              "source_id": "src-uncertainty",
+              "source_version": "v1",
+              "value": 0.22
+            },
+            {
+              "claim_id": "claim-uncertainty",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "dimension": "transport",
+              "edge_id": "edge-uncertainty",
+              "observation_id": "uncertainty-transport",
+              "rationale": "context transfer gap",
+              "raw_hash": "sha256:uncertainty-2",
+              "source_id": "src-uncertainty",
+              "source_version": "v1",
+              "value": 0.41
+            }
+          ]
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C07-CTRL-002",
+      "content_address": "sha256:c2b40c03cf61741a9fcb380324ba4e5f18da7094d6a893fa473257b4f22f7bda",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C07-CTRL-002",
+      "description": "GNC-D14-C07 retains the control_b path from lifecycle_beta_frontier with state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_entries"
+      ],
+      "expected_state": "abstained",
+      "family": "lifecycle_beta_frontier",
+      "operation": "uncertainty_ledger",
+      "operation_id": "D14-C07",
+      "payload": {
+        "data": {
+          "entries": []
+        },
+        "kind": "empty"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C07-CTRL-003",
+      "content_address": "sha256:137a563e3cf9fb8981f7c487a312b85fb062f3a667b026493c6430e25b06d884",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C07-CTRL-003",
+      "description": "GNC-D14-C07 retains the control_c path from lifecycle_beta_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_uncertainty"
+      ],
+      "expected_state": "partial",
+      "family": "lifecycle_beta_frontier",
+      "operation": "uncertainty_ledger",
+      "operation_id": "D14-C07",
+      "payload": {
+        "data": {
+          "entries": [
+            {
+              "claim_id": "claim-uncertainty",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "dimension": "measurement",
+              "edge_id": "edge-uncertainty",
+              "observation_id": "uncertainty-measurement",
+              "rationale": "replicate spread",
+              "raw_hash": "sha256:uncertainty-1",
+              "source_id": "src-uncertainty",
+              "source_version": "v1",
+              "value": 1.4
+            },
+            {
+              "claim_id": "claim-uncertainty",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "dimension": "transport",
+              "edge_id": "edge-uncertainty",
+              "observation_id": "uncertainty-transport",
+              "rationale": "context transfer gap",
+              "raw_hash": "sha256:uncertainty-2",
+              "source_id": "src-uncertainty",
+              "source_version": "v1",
+              "value": 0.41
+            }
+          ]
+        },
+        "kind": "invalid"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C08-POS-001",
+      "content_address": "sha256:e68d8aa8e9a6e6273ef02f675a08b1ca8008266f231d191c8a2ceb1a21d12e1b",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C08-POS-001",
+      "description": "GNC-D14-C08 retains the positive path from lifecycle_beta_frontier with state contradictory",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_claim"
+      ],
+      "expected_state": "contradictory",
+      "family": "lifecycle_beta_frontier",
+      "operation": "review_routing",
+      "operation_id": "D14-C08",
+      "payload": {
+        "data": {
+          "claims": [
+            {
+              "claim_id": "route-claim-1",
+              "claim_type": "functional",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "contradictory": false,
+              "edge_id": "route-edge-1",
+              "state": "supported",
+              "uncertainty": 0.72
+            },
+            {
+              "claim_id": "route-claim-2",
+              "claim_type": "sequence",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "contradictory": true,
+              "edge_id": "route-edge-2",
+              "state": "contradictory",
+              "uncertainty": 0.91
+            }
+          ],
+          "graph_id": "routing-graph",
+          "graph_version": 2,
+          "required_roles": [
+            "domain_expert",
+            "data_provenance"
+          ]
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-routing"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C08-CTRL-001",
+      "content_address": "sha256:d28b10bd4e92a0af88fb81666c7ab152dc6d4fdd6dbd0518836a89dd56042871",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C08-CTRL-001",
+      "description": "GNC-D14-C08 retains the control_a path from lifecycle_beta_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "lifecycle_beta_frontier",
+      "operation": "review_routing",
+      "operation_id": "D14-C08",
+      "payload": {
+        "data": {
+          "claims": [
+            {
+              "claim_id": "route-claim-1",
+              "claim_type": "functional",
+              "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+              "contradictory": false,
+              "edge_id": "route-edge-1",
+              "state": "supported",
+              "uncertainty": 0.72
+            },
+            {
+              "claim_id": "route-claim-2",
+              "claim_type": "sequence",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "contradictory": true,
+              "edge_id": "route-edge-2",
+              "state": "contradictory",
+              "uncertainty": 0.91
+            }
+          ],
+          "graph_id": "routing-graph",
+          "graph_version": 2,
+          "required_roles": [
+            "domain_expert",
+            "data_provenance"
+          ]
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C08-CTRL-002",
+      "content_address": "sha256:7c946aaa9a7e76e269c5876b3e3c4b1929d698fa0d402ddcdef00a4ff7eb2cf7",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C08-CTRL-002",
+      "description": "GNC-D14-C08 retains the control_b path from lifecycle_beta_frontier with state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_active_claims"
+      ],
+      "expected_state": "abstained",
+      "family": "lifecycle_beta_frontier",
+      "operation": "review_routing",
+      "operation_id": "D14-C08",
+      "payload": {
+        "data": {
+          "claims": [],
+          "graph_id": "routing-graph",
+          "graph_version": 2,
+          "required_roles": [
+            "domain_expert",
+            "data_provenance"
+          ]
+        },
+        "kind": "empty"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C08-CTRL-003",
+      "content_address": "sha256:530ba03f8d2555bd295093502f146a1bbe5c4c75915fe416710d188b45894487",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C08-CTRL-003",
+      "description": "GNC-D14-C08 retains the control_c path from lifecycle_beta_frontier with state review_required",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "required_role"
+      ],
+      "expected_state": "review_required",
+      "family": "lifecycle_beta_frontier",
+      "operation": "review_routing",
+      "operation_id": "D14-C08",
+      "payload": {
+        "data": {
+          "claims": [
+            {
+              "claim_id": "route-claim-1",
+              "claim_type": "functional",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "contradictory": false,
+              "edge_id": "route-edge-1",
+              "state": "supported",
+              "uncertainty": 0.72
+            },
+            {
+              "claim_id": "route-claim-2",
+              "claim_type": "sequence",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "contradictory": true,
+              "edge_id": "route-edge-2",
+              "state": "contradictory",
+              "uncertainty": 0.91
+            }
+          ],
+          "graph_id": "routing-graph",
+          "graph_version": 2,
+          "required_roles": [
+            "domain_expert",
+            "data_provenance"
+          ]
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C09-POS-001",
+      "content_address": "sha256:12531b7a5784d83845b55138949fd1365c9669cdcaa9d2144fee58d4c3bb7e88",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C09-POS-001",
+      "description": "GNC-D14-C09 retains the positive path from lifecycle_beta_frontier with state adjudicated",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "adjudicated",
+      "family": "lifecycle_beta_frontier",
+      "operation": "blinded_adjudication",
+      "operation_id": "D14-C09",
+      "payload": {
+        "data": {
+          "decisions": [
+            {
+              "confidence": 0.82,
+              "rationale": "masked record is internally coherent",
+              "verdict": "supports"
+            },
+            {
+              "confidence": 0.77,
+              "rationale": "masked record retains declared context",
+              "verdict": "supports"
+            }
+          ],
+          "observations": [
+            {
+              "claim_id": "blind-claim",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "edge_id": "blind-edge",
+              "evidence_digest": "sha256:evidence-digest",
+              "observation_id": "blind-observation",
+              "raw_hash": "sha256:blind-observation",
+              "source_ids": [
+                "src-blinded"
+              ],
+              "source_receipt_hash": "sha256:source-receipt",
+              "source_versions": {
+                "src-blinded": "v1"
+              }
+            }
+          ]
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-blinded"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C09-CTRL-001",
+      "content_address": "sha256:832a9b7b70cabdec0afb5f36b12a2b179590c9948868bd60ef68183f396d8c6d",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C09-CTRL-001",
+      "description": "GNC-D14-C09 retains the control_a path from lifecycle_beta_frontier with state split_decision",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "split_verdict"
+      ],
+      "expected_state": "split_decision",
+      "family": "lifecycle_beta_frontier",
+      "operation": "blinded_adjudication",
+      "operation_id": "D14-C09",
+      "payload": {
+        "data": {
+          "decisions": [
+            {
+              "confidence": 0.82,
+              "rationale": "masked record is internally coherent",
+              "verdict": "supports"
+            },
+            {
+              "confidence": 0.77,
+              "rationale": "masked record retains declared context",
+              "verdict": "against"
+            }
+          ],
+          "observations": [
+            {
+              "claim_id": "blind-claim",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "edge_id": "blind-edge",
+              "evidence_digest": "sha256:evidence-digest",
+              "observation_id": "blind-observation",
+              "raw_hash": "sha256:blind-observation",
+              "source_ids": [
+                "src-blinded"
+              ],
+              "source_receipt_hash": "sha256:source-receipt",
+              "source_versions": {
+                "src-blinded": "v1"
+              }
+            }
+          ]
+        },
+        "kind": "split"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C09-CTRL-002",
+      "content_address": "sha256:8b85764c5870f04eb8291dd8eb3cf86bc664df1466e9d049e1737aedec47d2bf",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C09-CTRL-002",
+      "description": "GNC-D14-C09 retains the control_b path from lifecycle_beta_frontier with state review_required",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "required_decision_count"
+      ],
+      "expected_state": "review_required",
+      "family": "lifecycle_beta_frontier",
+      "operation": "blinded_adjudication",
+      "operation_id": "D14-C09",
+      "payload": {
+        "data": {
+          "decisions": [
+            {
+              "confidence": 0.82,
+              "rationale": "masked record is internally coherent",
+              "verdict": "supports"
+            }
+          ],
+          "observations": [
+            {
+              "claim_id": "blind-claim",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "edge_id": "blind-edge",
+              "evidence_digest": "sha256:evidence-digest",
+              "observation_id": "blind-observation",
+              "raw_hash": "sha256:blind-observation",
+              "source_ids": [
+                "src-blinded"
+              ],
+              "source_receipt_hash": "sha256:source-receipt",
+              "source_versions": {
+                "src-blinded": "v1"
+              }
+            }
+          ]
+        },
+        "kind": "missing"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C09-CTRL-003",
+      "content_address": "sha256:1732b542950f95f2a76f67357c527bde47607adee742f8dbb82316bab3eec9e8",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C09-CTRL-003",
+      "description": "GNC-D14-C09 retains the control_c path from lifecycle_beta_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "lifecycle_beta_frontier",
+      "operation": "blinded_adjudication",
+      "operation_id": "D14-C09",
+      "payload": {
+        "data": {
+          "decisions": [
+            {
+              "confidence": 0.82,
+              "rationale": "masked record is internally coherent",
+              "verdict": "supports"
+            },
+            {
+              "confidence": 0.77,
+              "rationale": "masked record retains declared context",
+              "verdict": "supports"
+            }
+          ],
+          "observations": [
+            {
+              "claim_id": "blind-claim",
+              "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+              "edge_id": "blind-edge",
+              "evidence_digest": "sha256:evidence-digest",
+              "observation_id": "blind-observation",
+              "raw_hash": "sha256:blind-observation",
+              "source_ids": [
+                "src-blinded"
+              ],
+              "source_receipt_hash": "sha256:source-receipt",
+              "source_versions": {
+                "src-blinded": "v1"
+              }
+            }
+          ]
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C10-POS-001",
+      "content_address": "sha256:c04e01f302eda5a2b15677718e5cf3b278c3b90a371a3aaf5a614687303a91fe",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C10-POS-001",
+      "description": "GNC-D14-C10 retains the positive path from lifecycle_beta_frontier with state ready_for_review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "lifecycle_beta_frontier",
+      "operation": "comment_change_log",
+      "operation_id": "D14-C10",
+      "payload": {
+        "data": {
+          "changes": [
+            {
+              "action": "annotate",
+              "actor_role": "data_reviewer",
+              "after_hash": "sha256:after",
+              "before_hash": "sha256:before",
+              "change_id": "change-1",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "created_at": "2026-08-20T00:00:00+00:00",
+              "rationale": "record boundary clarification",
+              "raw_hash": "sha256:change-1",
+              "review_id": "review-1",
+              "target_id": "claim-comment",
+              "target_type": "claim"
+            }
+          ],
+          "comments": [
+            {
+              "author_role": "domain_reviewer",
+              "comment_id": "comment-1",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "created_at": "2026-08-20T00:00:00+00:00",
+              "raw_hash": "sha256:comment-1",
+              "review_id": "review-1",
+              "state": "open",
+              "target_id": "claim-comment",
+              "target_type": "claim",
+              "text": "retain source boundary"
+            }
+          ],
+          "review_id": "review-1"
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-comments"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C10-CTRL-001",
+      "content_address": "sha256:c387db52d2429e09340e6eb86dc70d764a20f75198047dabd78429b7cec3cde9",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C10-CTRL-001",
+      "description": "GNC-D14-C10 retains the control_a path from lifecycle_beta_frontier with state partial",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "duplicate_log_id"
+      ],
+      "expected_state": "partial",
+      "family": "lifecycle_beta_frontier",
+      "operation": "comment_change_log",
+      "operation_id": "D14-C10",
+      "payload": {
+        "data": {
+          "changes": [
+            {
+              "action": "annotate",
+              "actor_role": "data_reviewer",
+              "after_hash": "sha256:after",
+              "before_hash": "sha256:before",
+              "change_id": "change-1",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "created_at": "2026-08-20T00:00:00+00:00",
+              "rationale": "record boundary clarification",
+              "raw_hash": "sha256:change-1",
+              "review_id": "review-1",
+              "target_id": "claim-comment",
+              "target_type": "claim"
+            }
+          ],
+          "comments": [
+            {
+              "author_role": "domain_reviewer",
+              "comment_id": "comment-1",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "created_at": "2026-08-20T00:00:00+00:00",
+              "raw_hash": "sha256:comment-1",
+              "review_id": "review-1",
+              "state": "open",
+              "target_id": "claim-comment",
+              "target_type": "claim",
+              "text": "retain source boundary"
+            },
+            {
+              "author_role": "domain_reviewer",
+              "comment_id": "comment-1",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "created_at": "2026-08-20T00:00:00+00:00",
+              "raw_hash": "sha256:comment-1",
+              "review_id": "review-1",
+              "state": "open",
+              "target_id": "claim-comment",
+              "target_type": "claim",
+              "text": "retain source boundary"
+            }
+          ],
+          "review_id": "review-1"
+        },
+        "kind": "duplicate"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C10-CTRL-002",
+      "content_address": "sha256:cffb6d644ca6f4c4a7d546f60baa40d09ba045a70d83518c3084f3ade42e400a",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C10-CTRL-002",
+      "description": "GNC-D14-C10 retains the control_b path from lifecycle_beta_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "lifecycle_beta_frontier",
+      "operation": "comment_change_log",
+      "operation_id": "D14-C10",
+      "payload": {
+        "data": {
+          "changes": [
+            {
+              "action": "annotate",
+              "actor_role": "data_reviewer",
+              "after_hash": "sha256:after",
+              "before_hash": "sha256:before",
+              "change_id": "change-1",
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "created_at": "2026-08-20T00:00:00+00:00",
+              "rationale": "record boundary clarification",
+              "raw_hash": "sha256:change-1",
+              "review_id": "review-1",
+              "target_id": "claim-comment",
+              "target_type": "claim"
+            }
+          ],
+          "comments": [
+            {
+              "author_role": "domain_reviewer",
+              "comment_id": "comment-1",
+              "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+              "created_at": "2026-08-20T00:00:00+00:00",
+              "raw_hash": "sha256:comment-1",
+              "review_id": "review-1",
+              "state": "open",
+              "target_id": "claim-comment",
+              "target_type": "claim",
+              "text": "retain source boundary"
+            }
+          ],
+          "review_id": "review-1"
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C10-CTRL-003",
+      "content_address": "sha256:5c99d4f31da021b83183d004f49dcf087c758825760a062792af98e9c5b15449",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C10-CTRL-003",
+      "description": "GNC-D14-C10 retains the control_c path from lifecycle_beta_frontier with state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_review_items"
+      ],
+      "expected_state": "abstained",
+      "family": "lifecycle_beta_frontier",
+      "operation": "comment_change_log",
+      "operation_id": "D14-C10",
+      "payload": {
+        "data": {
+          "changes": [],
+          "comments": [],
+          "review_id": "review-1"
+        },
+        "kind": "empty"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C11-POS-001",
+      "content_address": "sha256:ac3fe4524c61ca6085938dc3208eae574b5563f1d84e742829edecd63a8edd17",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C11-POS-001",
+      "description": "GNC-D14-C11 retains the positive path from lifecycle_beta_frontier with state approved",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 13,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "approved",
+      "family": "lifecycle_beta_frontier",
+      "operation": "release_decision",
+      "operation_id": "D14-C11",
+      "payload": {
+        "data": {
+          "completed_roles": [
+            "domain_expert",
+            "data_provenance"
+          ],
+          "gates": [
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "evidence_hash": "sha256:integrity",
+              "gate_id": "gate-integrity",
+              "label": "integrity",
+              "passed": true,
+              "raw_hash": "sha256:gate-integrity",
+              "reason": "receipt closes",
+              "source_id": "src-release"
+            },
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "evidence_hash": "sha256:review",
+              "gate_id": "gate-review",
+              "label": "review",
+              "passed": true,
+              "raw_hash": "sha256:gate-review",
+              "reason": "roles complete",
+              "source_id": "src-release"
+            }
+          ],
+          "graph_id": "release-graph",
+          "graph_version": 3,
+          "requested_decision": "approved",
+          "required_roles": [
+            "domain_expert",
+            "data_provenance"
+          ]
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-release"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C11-CTRL-001",
+      "content_address": "sha256:18194ce6eb9576ce21c0688f16a89e0eac61b49cee092bf48e6f0ffcb1d973f1",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C11-CTRL-001",
+      "description": "GNC-D14-C11 retains the control_a path from lifecycle_beta_frontier with state review_required",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 13,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "blocking_gate"
+      ],
+      "expected_state": "review_required",
+      "family": "lifecycle_beta_frontier",
+      "operation": "release_decision",
+      "operation_id": "D14-C11",
+      "payload": {
+        "data": {
+          "completed_roles": [
+            "domain_expert",
+            "data_provenance"
+          ],
+          "gates": [
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "evidence_hash": "sha256:integrity",
+              "gate_id": "gate-integrity",
+              "label": "integrity",
+              "passed": true,
+              "raw_hash": "sha256:gate-integrity",
+              "reason": "receipt closes",
+              "source_id": "src-release"
+            },
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "evidence_hash": "sha256:review",
+              "gate_id": "gate-review",
+              "label": "review",
+              "passed": false,
+              "raw_hash": "sha256:gate-review",
+              "reason": "review role incomplete",
+              "source_id": "src-release"
+            }
+          ],
+          "graph_id": "release-graph",
+          "graph_version": 3,
+          "requested_decision": "approved",
+          "required_roles": [
+            "domain_expert",
+            "data_provenance"
+          ]
+        },
+        "kind": "blocking"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C11-CTRL-002",
+      "content_address": "sha256:61a2f350c90815ded9317475598c8f16836a347faa67d186e002e482614f3119",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C11-CTRL-002",
+      "description": "GNC-D14-C11 retains the control_b path from lifecycle_beta_frontier with state rejected",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 13,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "explicit_rejection"
+      ],
+      "expected_state": "rejected",
+      "family": "lifecycle_beta_frontier",
+      "operation": "release_decision",
+      "operation_id": "D14-C11",
+      "payload": {
+        "data": {
+          "completed_roles": [
+            "domain_expert",
+            "data_provenance"
+          ],
+          "gates": [
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "evidence_hash": "sha256:integrity",
+              "gate_id": "gate-integrity",
+              "label": "integrity",
+              "passed": true,
+              "raw_hash": "sha256:gate-integrity",
+              "reason": "receipt closes",
+              "source_id": "src-release"
+            },
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "evidence_hash": "sha256:review",
+              "gate_id": "gate-review",
+              "label": "review",
+              "passed": true,
+              "raw_hash": "sha256:gate-review",
+              "reason": "roles complete",
+              "source_id": "src-release"
+            }
+          ],
+          "requested_decision": "rejected"
+        },
+        "kind": "rejected"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C11-CTRL-003",
+      "content_address": "sha256:64b7ace8a97f4631ff7ab4ea90c0b361cae05c4dace20c3a2a7d9da46347f61b",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C11-CTRL-003",
+      "description": "GNC-D14-C11 retains the control_c path from lifecycle_beta_frontier with state review_required",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 13,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "gate_context_mismatch"
+      ],
+      "expected_state": "review_required",
+      "family": "lifecycle_beta_frontier",
+      "operation": "release_decision",
+      "operation_id": "D14-C11",
+      "payload": {
+        "data": {
+          "completed_roles": [
+            "domain_expert",
+            "data_provenance"
+          ],
+          "gates": [
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+              "evidence_hash": "sha256:integrity",
+              "gate_id": "gate-integrity",
+              "label": "integrity",
+              "passed": true,
+              "raw_hash": "sha256:gate-integrity",
+              "reason": "receipt closes",
+              "source_id": "src-release"
+            },
+            {
+              "blocking": true,
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "evidence_hash": "sha256:review",
+              "gate_id": "gate-review",
+              "label": "review",
+              "passed": true,
+              "raw_hash": "sha256:gate-review",
+              "reason": "roles complete",
+              "source_id": "src-release"
+            }
+          ],
+          "graph_id": "release-graph",
+          "graph_version": 3,
+          "requested_decision": "approved",
+          "required_roles": [
+            "domain_expert",
+            "data_provenance"
+          ]
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C12-POS-001",
+      "content_address": "sha256:883b88f982e1ec39f901d2917cbf3bc1b556c6579e3cf4068ccbbf081cd8a0f3",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C12-POS-001",
+      "description": "GNC-D14-C12 retains the positive path from lifecycle_beta_frontier with state review_required",
+      "expected_counts": {
+        "issue_count": 3,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "citation_changed",
+        "claim_added",
+        "claim_changed"
+      ],
+      "expected_state": "review_required",
+      "family": "lifecycle_beta_frontier",
+      "operation": "evidence_delta",
+      "operation_id": "D14-C12",
+      "payload": {
+        "data": {
+          "after": {
+            "citations": [
+              {
+                "citation_id": "delta-citation",
+                "version": "v2"
+              }
+            ],
+            "claims": [
+              {
+                "claim_id": "delta-claim",
+                "source_id": "src-delta",
+                "value": "updated"
+              },
+              {
+                "claim_id": "delta-added",
+                "source_id": "src-delta",
+                "value": "new"
+              }
+            ],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 2
+          },
+          "before": {
+            "citations": [
+              {
+                "citation_id": "delta-citation",
+                "version": "v1"
+              }
+            ],
+            "claims": [
+              {
+                "claim_id": "delta-claim",
+                "source_id": "src-delta",
+                "value": "baseline"
+              }
+            ],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 1
+          }
+        },
+        "kind": "positive"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-lifecycle-beta:src-delta"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C12-CTRL-001",
+      "content_address": "sha256:fd8d6234bed0f4353a6e3fb82279481aa862788bfc8b16c6858846a8977c0a25",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C12-CTRL-001",
+      "description": "GNC-D14-C12 retains the control_a path from lifecycle_beta_frontier with state ready_for_review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "lifecycle_beta_frontier",
+      "operation": "evidence_delta",
+      "operation_id": "D14-C12",
+      "payload": {
+        "data": {
+          "after": {
+            "citations": [
+              {
+                "citation_id": "delta-citation",
+                "version": "v1"
+              }
+            ],
+            "claims": [
+              {
+                "claim_id": "delta-claim",
+                "source_id": "src-delta",
+                "value": "baseline"
+              }
+            ],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 1
+          },
+          "before": {
+            "citations": [
+              {
+                "citation_id": "delta-citation",
+                "version": "v1"
+              }
+            ],
+            "claims": [
+              {
+                "claim_id": "delta-claim",
+                "source_id": "src-delta",
+                "value": "baseline"
+              }
+            ],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 1
+          }
+        },
+        "kind": "stable"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C12-CTRL-002",
+      "content_address": "sha256:7f73f12743afff7e348e5e093e6d9bb64708e9096558c02f276edafe2b7e68cd",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C12-CTRL-002",
+      "description": "GNC-D14-C12 retains the control_b path from lifecycle_beta_frontier with state out_of_domain",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_changed"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "lifecycle_beta_frontier",
+      "operation": "evidence_delta",
+      "operation_id": "D14-C12",
+      "payload": {
+        "data": {
+          "after": {
+            "citations": [
+              {
+                "citation_id": "delta-citation",
+                "version": "v2"
+              }
+            ],
+            "claims": [
+              {
+                "claim_id": "delta-claim",
+                "source_id": "src-delta",
+                "value": "updated"
+              },
+              {
+                "claim_id": "delta-added",
+                "source_id": "src-delta",
+                "value": "new"
+              }
+            ],
+            "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 2
+          },
+          "before": {
+            "citations": [
+              {
+                "citation_id": "delta-citation",
+                "version": "v1"
+              }
+            ],
+            "claims": [
+              {
+                "claim_id": "delta-claim",
+                "source_id": "src-delta",
+                "value": "baseline"
+              }
+            ],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 1
+          }
+        },
+        "kind": "foreign"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C12-CTRL-003",
+      "content_address": "sha256:120b3103d744e5ef4e824bac3a8394c1d4a3204eb39545c204f13e7c78c8a51d",
+      "delegate_class": "LifecycleBetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_record_id": "C12-CTRL-003",
+      "description": "GNC-D14-C12 retains the control_c path from lifecycle_beta_frontier with state ready_for_review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 9,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "lifecycle_beta_frontier",
+      "operation": "evidence_delta",
+      "operation_id": "D14-C12",
+      "payload": {
+        "data": {
+          "after": {
+            "citations": [],
+            "claims": [],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 2
+          },
+          "before": {
+            "citations": [],
+            "claims": [],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "graph_id": "delta-graph",
+            "version": 1
+          }
+        },
+        "kind": "empty"
+      },
+      "plane": "lifecycle_adjudication",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C13-POS-001",
+      "content_address": "sha256:94e118c3736e61de914d1cd5336ed66949c20a100da5f2381e6614829995ab91",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C13-POS-001",
+      "description": "GNC-D14-C13 retains the positive path from evidence_release_frontier with state reclassified",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "reclassified",
+      "family": "evidence_release_frontier",
+      "operation": "reclassification",
+      "operation_id": "D14-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "evidence_id": "evidence-claim-001",
+        "evidence_score": 0.88,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "plane": "evidence_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C13-CTRL-001",
+      "content_address": "sha256:0ab0996b062f9a29d85b4e897320e37222b7b49250266500a5255f6eefde78db",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C13-CTRL-001",
+      "description": "GNC-D14-C13 retains the control_a path from evidence_release_frontier with state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "score_below_threshold"
+      ],
+      "expected_state": "review",
+      "family": "evidence_release_frontier",
+      "operation": "reclassification",
+      "operation_id": "D14-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "evidence_id": "evidence-low-score",
+        "evidence_score": 0.42,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "plane": "evidence_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C13-CTRL-002",
+      "content_address": "sha256:e8583e1f8e434dcb7558106fcd7c5c711308d3794e87bd69320b1c99af106c40",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C13-CTRL-002",
+      "description": "GNC-D14-C13 retains the control_b path from evidence_release_frontier with state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "independent_reviewers_missing"
+      ],
+      "expected_state": "review",
+      "family": "evidence_release_frontier",
+      "operation": "reclassification",
+      "operation_id": "D14-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "evidence_id": "evidence-one-reviewer",
+        "evidence_score": 0.88,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "plane": "evidence_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C13-CTRL-003",
+      "content_address": "sha256:cd2917d847da60297eccceb06f88d533ce4856955684837e03b36453edfdba49",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C13-CTRL-003",
+      "description": "GNC-D14-C13 retains the control_c path from evidence_release_frontier with state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "evidence_release_frontier",
+      "operation": "reclassification",
+      "operation_id": "D14-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "evidence_id": "evidence-foreign",
+        "evidence_score": 0.88,
+        "previous_tier": "provisional",
+        "proposed_tier": "supported",
+        "rationale": "independent aggregate sources converge",
+        "reviewer_ids": [
+          "reviewer-a",
+          "reviewer-b"
+        ],
+        "source_ids": [
+          "europepmc",
+          "gdc"
+        ],
+        "threshold": 0.75
+      },
+      "plane": "evidence_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C14-POS-001",
+      "content_address": "sha256:ad33c081e3cd3a6772c00bd4555bed9869280194b00e6300af044aa280a3504a",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C14-POS-001",
+      "description": "GNC-D14-C14 retains the positive path from evidence_release_frontier with state superseded",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 5,
+        "payload_field_count": 2,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "superseded",
+      "family": "evidence_release_frontier",
+      "operation": "supersession",
+      "operation_id": "D14-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-old",
+            "status": "deprecated",
+            "supersedes": null
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-current",
+            "status": "active",
+            "supersedes": "claim-old"
+          }
+        ]
+      },
+      "plane": "evidence_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C14-CTRL-001",
+      "content_address": "sha256:9e1b0d8955705a32b58394c16d171bf06bd44b380bfb639f14fdc312ef8b8134",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C14-CTRL-001",
+      "description": "GNC-D14-C14 retains the control_a path from evidence_release_frontier with state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 2,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "supersession_target_missing"
+      ],
+      "expected_state": "review",
+      "family": "evidence_release_frontier",
+      "operation": "supersession",
+      "operation_id": "D14-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-current",
+            "status": "active",
+            "supersedes": "claim-missing"
+          }
+        ]
+      },
+      "plane": "evidence_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C14-CTRL-002",
+      "content_address": "sha256:3d7d4cf6f1360b56ddba79decda26bc8a25840e4b0ee84c152d8514f101428cb",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C14-CTRL-002",
+      "description": "GNC-D14-C14 retains the control_b path from evidence_release_frontier with state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 2,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "supersession_cycle"
+      ],
+      "expected_state": "blocked",
+      "family": "evidence_release_frontier",
+      "operation": "supersession",
+      "operation_id": "D14-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-a",
+            "status": "active",
+            "supersedes": "claim-b"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-b",
+            "status": "deprecated",
+            "supersedes": "claim-a"
+          }
+        ]
+      },
+      "plane": "evidence_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C14-CTRL-003",
+      "content_address": "sha256:00d1135a9f3afa35dba5e02ad6f57682b8dad9fc57186c7ecfb3cce051e77f6a",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C14-CTRL-003",
+      "description": "GNC-D14-C14 retains the control_c path from evidence_release_frontier with state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 2,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "evidence_release_frontier",
+      "operation": "supersession",
+      "operation_id": "D14-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-old",
+            "status": "deprecated",
+            "supersedes": null
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-current",
+            "status": "active",
+            "supersedes": "claim-old"
+          }
+        ]
+      },
+      "plane": "evidence_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C15-POS-001",
+      "content_address": "sha256:3812f1ddee4982fbc73df9a5da6a859478bb3962c66d7d3e9de6172f09841551",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C15-POS-001",
+      "description": "GNC-D14-C15 retains the positive path from evidence_release_frontier with state bundled",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "bundled",
+      "family": "evidence_release_frontier",
+      "operation": "reproducibility_bundle",
+      "operation_id": "D14-C15",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "sections": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:evidence-001",
+                "record_id": "evidence-001"
+              }
+            ],
+            "kind": "evidence",
+            "section_id": "evidence-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:review-001",
+                "record_id": "review-001"
+              }
+            ],
+            "kind": "review",
+            "section_id": "review-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:release-001",
+                "record_id": "release-001"
+              }
+            ],
+            "kind": "release",
+            "section_id": "release-section"
+          }
+        ]
+      },
+      "plane": "evidence_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C15-CTRL-001",
+      "content_address": "sha256:c6aef4d7cd59dbba6956647ff5e0d48ef6e6f2b6ef76216fd05125a2eaa1646f",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C15-CTRL-001",
+      "description": "GNC-D14-C15 retains the control_a path from evidence_release_frontier with state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "required_section_missing"
+      ],
+      "expected_state": "review",
+      "family": "evidence_release_frontier",
+      "operation": "reproducibility_bundle",
+      "operation_id": "D14-C15",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "sections": []
+      },
+      "plane": "evidence_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C15-CTRL-002",
+      "content_address": "sha256:b6c93cddb16313634d893b1cfb858238a2f1612ebca9b359acf01fb09738d8f7",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C15-CTRL-002",
+      "description": "GNC-D14-C15 retains the control_b path from evidence_release_frontier with state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "duplicate_section_id"
+      ],
+      "expected_state": "review",
+      "family": "evidence_release_frontier",
+      "operation": "reproducibility_bundle",
+      "operation_id": "D14-C15",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "sections": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:evidence-001",
+                "record_id": "evidence-001"
+              }
+            ],
+            "kind": "evidence",
+            "section_id": "duplicate"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:review-001",
+                "record_id": "review-001"
+              }
+            ],
+            "kind": "review",
+            "section_id": "duplicate"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:release-001",
+                "record_id": "release-001"
+              }
+            ],
+            "kind": "release",
+            "section_id": "release-section"
+          }
+        ]
+      },
+      "plane": "evidence_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C15-CTRL-003",
+      "content_address": "sha256:b553cf9be6571f25e41ce671662146e9aad99dac1a43e319987c3e1c19a12681",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C15-CTRL-003",
+      "description": "GNC-D14-C15 retains the control_c path from evidence_release_frontier with state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "evidence_release_frontier",
+      "operation": "reproducibility_bundle",
+      "operation_id": "D14-C15",
+      "payload": {
+        "bundle_id": "audit-bundle-001",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "sections": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:evidence-001",
+                "record_id": "evidence-001"
+              }
+            ],
+            "kind": "evidence",
+            "section_id": "evidence-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:review-001",
+                "record_id": "review-001"
+              }
+            ],
+            "kind": "review",
+            "section_id": "review-section"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "items": [
+              {
+                "content_address": "sha256:release-001",
+                "record_id": "release-001"
+              }
+            ],
+            "kind": "release",
+            "section_id": "release-section"
+          }
+        ]
+      },
+      "plane": "evidence_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C16-POS-001",
+      "content_address": "sha256:f59ba1c430f1ea4a539999476a0847644c8773effcc66647071ee2e09514df6d",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C16-POS-001",
+      "description": "GNC-D14-C16 retains the positive path from evidence_release_frontier with state signed",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "signed",
+      "family": "evidence_release_frontier",
+      "operation": "signed_dossier",
+      "operation_id": "D14-C16",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "dossier_id": "dossier-001",
+        "expires_at": "2030-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {
+          "bundle_address": "sha256:bundle-001",
+          "claim_ids": [
+            "claim-current"
+          ],
+          "release_scope": "aggregate research review"
+        }
+      },
+      "plane": "evidence_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C16-CTRL-001",
+      "content_address": "sha256:ac99b952c432fa2fb3c86f0a865b82624da4d527249679ebfcc199703b3d446d",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C16-CTRL-001",
+      "description": "GNC-D14-C16 retains the control_a path from evidence_release_frontier with state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "dossier_expired"
+      ],
+      "expected_state": "review",
+      "family": "evidence_release_frontier",
+      "operation": "signed_dossier",
+      "operation_id": "D14-C16",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "dossier_id": "dossier-expired",
+        "expires_at": "expired:2024-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {
+          "bundle_address": "sha256:bundle-001",
+          "claim_ids": [
+            "claim-current"
+          ],
+          "release_scope": "aggregate research review"
+        }
+      },
+      "plane": "evidence_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C16-CTRL-002",
+      "content_address": "sha256:64769fd90be13af0cb2374f26fb1fbd2924fc4f59e3eabb68bbcfe40de905ef8",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C16-CTRL-002",
+      "description": "GNC-D14-C16 retains the control_b path from evidence_release_frontier with state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "evidence_release_frontier",
+      "operation": "signed_dossier",
+      "operation_id": "D14-C16",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "dossier_id": "dossier-foreign",
+        "expires_at": "2030-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {
+          "bundle_address": "sha256:bundle-001",
+          "claim_ids": [
+            "claim-current"
+          ],
+          "release_scope": "aggregate research review"
+        }
+      },
+      "plane": "evidence_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D14-C16-CTRL-003",
+      "content_address": "sha256:a298068ba9445679688a71d8941bc8347c2c1c969ef227cf4e540ec3c55e55ac",
+      "delegate_class": "EvidenceReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_record_id": "D14-C16-CTRL-003",
+      "description": "GNC-D14-C16 retains the control_c path from evidence_release_frontier with state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "dossier_payload_empty"
+      ],
+      "expected_state": "review",
+      "family": "evidence_release_frontier",
+      "operation": "signed_dossier",
+      "operation_id": "D14-C16",
+      "payload": {
+        "audience": "research review board",
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "dossier_id": "dossier-empty",
+        "expires_at": "2030-01-01T00:00:00Z",
+        "key_id": "evidence-release-fixture-key-001",
+        "payload": {}
+      },
+      "plane": "evidence_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:ga4gh"
+      ]
+    }
+  ],
+  "content_address": "sha256:c03a73eda61b3619cc6276181d11c813e55982404e68071a02d59a7f9578e741",
+  "context_key": "multi_context_public_aggregate",
+  "family_contexts": {
+    "evidence_lifecycle_frontier": "GRCh38|glioma|adult|stem_like|core|untreated",
+    "evidence_release_frontier": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+    "lifecycle_beta_frontier": "GRCh38|glioma|adult|stem_like|core|untreated"
+  },
+  "fixture_id": "evidence-architecture-public-aggregate-001",
+  "foreign_context_key": "foreign_context_control",
+  "operations": [
+    {
+      "capability_id": "GNC-D14-C01",
+      "content_address": "sha256:1fabd281cd548fc7525945785706e79f5413b4330aa71677dd2630364dd0f744",
+      "control_policy": "retain_valid_rows_and_quarantine_malformed_citations",
+      "delegate_operation": "citation_resolution",
+      "dependencies": [],
+      "family": "evidence_lifecycle_frontier",
+      "input_contract": "lifecycle.citation_input.v1",
+      "operation": "citation_resolution",
+      "operation_id": "D14-C01",
+      "ordinal": 1,
+      "output_contract": "lifecycle.citation_output.v1",
+      "plane": "lifecycle_foundation",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-citation",
+        "D14-lifecycle-foundation:src-graph",
+        "D14-lifecycle-foundation:src-edge",
+        "D14-lifecycle-foundation:src-disagreement",
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C02",
+      "content_address": "sha256:444416d4cb364566f34172a38feebf947bed2e827b73e5bdffbd418caa7449f8",
+      "control_policy": "retain_history_orphans_context_and_duplicate_controls",
+      "delegate_operation": "graph_construction",
+      "dependencies": [
+        "D14-C01"
+      ],
+      "family": "evidence_lifecycle_frontier",
+      "input_contract": "lifecycle.graph_input.v1",
+      "operation": "graph_construction",
+      "operation_id": "D14-C02",
+      "ordinal": 2,
+      "output_contract": "lifecycle.graph_output.v1",
+      "plane": "lifecycle_foundation",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-citation",
+        "D14-lifecycle-foundation:src-graph",
+        "D14-lifecycle-foundation:src-edge",
+        "D14-lifecycle-foundation:src-disagreement",
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C03",
+      "content_address": "sha256:718c8879136391ed09676fd32b61225b6288b0fb6d5556bcfc53ee270529961b",
+      "control_policy": "retain_source_context_absence_and_contradiction_controls",
+      "delegate_operation": "edge_validation",
+      "dependencies": [
+        "D14-C01",
+        "D14-C02"
+      ],
+      "family": "evidence_lifecycle_frontier",
+      "input_contract": "lifecycle.edge_input.v1",
+      "operation": "edge_validation",
+      "operation_id": "D14-C03",
+      "ordinal": 3,
+      "output_contract": "lifecycle.edge_output.v1",
+      "plane": "lifecycle_foundation",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-citation",
+        "D14-lifecycle-foundation:src-graph",
+        "D14-lifecycle-foundation:src-edge",
+        "D14-lifecycle-foundation:src-disagreement",
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C04",
+      "content_address": "sha256:d4f88a901900706b86839cac875c29cb91b61b0bff7fd0e894a735efd8ea6d48",
+      "control_policy": "retain_positive_negative_incomplete_and_domain_controls",
+      "delegate_operation": "disagreement_tracking",
+      "dependencies": [
+        "D14-C02",
+        "D14-C03"
+      ],
+      "family": "evidence_lifecycle_frontier",
+      "input_contract": "lifecycle.disagreement_input.v1",
+      "operation": "disagreement_tracking",
+      "operation_id": "D14-C04",
+      "ordinal": 4,
+      "output_contract": "lifecycle.disagreement_output.v1",
+      "plane": "lifecycle_foundation",
+      "source_ids": [
+        "D14-lifecycle-foundation:src-citation",
+        "D14-lifecycle-foundation:src-graph",
+        "D14-lifecycle-foundation:src-edge",
+        "D14-lifecycle-foundation:src-disagreement",
+        "D14-lifecycle-foundation:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C05",
+      "content_address": "sha256:10f7694b13e158ce3212b0ea07d76543d2aa7fd40cddbe256a7d1601a86194d6",
+      "control_policy": "retain_direction_conflict_context_and_unclassified_tier_controls",
+      "delegate_operation": "tier_adjudication",
+      "dependencies": [
+        "D14-C02",
+        "D14-C04"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.tier_input.v1",
+      "operation": "tier_adjudication",
+      "operation_id": "D14-C05",
+      "ordinal": 5,
+      "output_contract": "lifecycle.tier_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C06",
+      "content_address": "sha256:db5a2bd1867c854ad2ca0090dafcc9bb9baa059197d5edb0f6886a9fc3ce8d03",
+      "control_policy": "retain_parent_context_and_empty_claim_controls",
+      "delegate_operation": "provenance_lineage",
+      "dependencies": [
+        "D14-C02"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.provenance_input.v1",
+      "operation": "provenance_lineage",
+      "operation_id": "D14-C06",
+      "ordinal": 6,
+      "output_contract": "lifecycle.provenance_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C07",
+      "content_address": "sha256:b7ba9a49c0df42e584c4d0272bd0824a6ce3d293600c12750c13be48a16207a4",
+      "control_policy": "retain_context_empty_entry_and_invalid_measurement_controls",
+      "delegate_operation": "uncertainty_ledger",
+      "dependencies": [
+        "D14-C03",
+        "D14-C06"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.uncertainty_input.v1",
+      "operation": "uncertainty_ledger",
+      "operation_id": "D14-C07",
+      "ordinal": 7,
+      "output_contract": "lifecycle.uncertainty_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C08",
+      "content_address": "sha256:6716b632e59301b8c151be4faa38478de9f827ab2034704872a1d9536b0d08ca",
+      "control_policy": "retain_contradiction_context_empty_claim_and_role_controls",
+      "delegate_operation": "review_routing",
+      "dependencies": [
+        "D14-C04",
+        "D14-C07"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.review_input.v1",
+      "operation": "review_routing",
+      "operation_id": "D14-C08",
+      "ordinal": 8,
+      "output_contract": "lifecycle.review_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C09",
+      "content_address": "sha256:662c0031b3478f92b2f102e5f6a11708664de94e898df970c1bacf239ef5fcb7",
+      "control_policy": "retain_split_decision_required_count_and_context_controls",
+      "delegate_operation": "blinded_adjudication",
+      "dependencies": [
+        "D14-C08"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.blinded_input.v1",
+      "operation": "blinded_adjudication",
+      "operation_id": "D14-C09",
+      "ordinal": 9,
+      "output_contract": "lifecycle.blinded_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C10",
+      "content_address": "sha256:6ada18bd28911d5d99daf784495c896bf22f28cca7c5858d253960a4a6ca3c06",
+      "control_policy": "retain_duplicate_context_and_empty_review_controls",
+      "delegate_operation": "comment_change_log",
+      "dependencies": [
+        "D14-C08",
+        "D14-C09"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.comment_input.v1",
+      "operation": "comment_change_log",
+      "operation_id": "D14-C10",
+      "ordinal": 10,
+      "output_contract": "lifecycle.comment_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C11",
+      "content_address": "sha256:37e1be6b27de0a2236156bf6154f894a513a9ba659886631ea4e716efb32bbb2",
+      "control_policy": "retain_gate_rejection_and_context_controls",
+      "delegate_operation": "release_decision",
+      "dependencies": [
+        "D14-C08",
+        "D14-C10"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.decision_input.v1",
+      "operation": "release_decision",
+      "operation_id": "D14-C11",
+      "ordinal": 11,
+      "output_contract": "lifecycle.decision_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C12",
+      "content_address": "sha256:3d1f4f7db07321a7c81e81dca2bce6a376983a9b1c3369d4b608fe0ec5a18179",
+      "control_policy": "retain_added_changed_context_and_ready controls",
+      "delegate_operation": "evidence_delta",
+      "dependencies": [
+        "D14-C02",
+        "D14-C06",
+        "D14-C11"
+      ],
+      "family": "lifecycle_beta_frontier",
+      "input_contract": "lifecycle.delta_input.v1",
+      "operation": "evidence_delta",
+      "operation_id": "D14-C12",
+      "ordinal": 12,
+      "output_contract": "lifecycle.delta_output.v1",
+      "plane": "lifecycle_adjudication",
+      "source_ids": [
+        "D14-lifecycle-beta:src-tier",
+        "D14-lifecycle-beta:src-lineage",
+        "D14-lifecycle-beta:src-uncertainty",
+        "D14-lifecycle-beta:src-routing",
+        "D14-lifecycle-beta:src-blinded",
+        "D14-lifecycle-beta:src-comments",
+        "D14-lifecycle-beta:src-release",
+        "D14-lifecycle-beta:src-delta",
+        "D14-lifecycle-beta:src-control"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C13",
+      "content_address": "sha256:d246b6d0bddaa5bb313a4774e81461b653907394a4d2573ba1c436b615f57a97",
+      "control_policy": "retain_score_reviewer_source_and_context_controls",
+      "delegate_operation": "reclassification",
+      "dependencies": [
+        "D14-C05",
+        "D14-C11"
+      ],
+      "family": "evidence_release_frontier",
+      "input_contract": "release.reclassification_input.v1",
+      "operation": "reclassification",
+      "operation_id": "D14-C13",
+      "ordinal": 13,
+      "output_contract": "release.reclassification_output.v1",
+      "plane": "evidence_release",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C14",
+      "content_address": "sha256:4bd777ebb851b5717c998ca270235fb740b88f65f655e11f47c251ad1a5890fd",
+      "control_policy": "retain_target_self_cycle_and_context controls",
+      "delegate_operation": "supersession",
+      "dependencies": [
+        "D14-C02",
+        "D14-C13"
+      ],
+      "family": "evidence_release_frontier",
+      "input_contract": "release.supersession_input.v1",
+      "operation": "supersession",
+      "operation_id": "D14-C14",
+      "ordinal": 14,
+      "output_contract": "release.supersession_output.v1",
+      "plane": "evidence_release",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C15",
+      "content_address": "sha256:c4770036018bd9f3e4268553cf9df58398bd9d5d2fe369abf18fc0e116acf9e5",
+      "control_policy": "retain_section_identity_address_and_context controls",
+      "delegate_operation": "reproducibility_bundle",
+      "dependencies": [
+        "D14-C10",
+        "D14-C11",
+        "D14-C13"
+      ],
+      "family": "evidence_release_frontier",
+      "input_contract": "release.bundle_input.v1",
+      "operation": "reproducibility_bundle",
+      "operation_id": "D14-C15",
+      "ordinal": 15,
+      "output_contract": "release.bundle_output.v1",
+      "plane": "evidence_release",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    },
+    {
+      "capability_id": "GNC-D14-C16",
+      "content_address": "sha256:9ba3cce11e8243032a8f918e4786e9c893d66209f14fff6126990f64350af332",
+      "control_policy": "retain_expiry_audience_payload_and_context controls",
+      "delegate_operation": "signed_dossier",
+      "dependencies": [
+        "D14-C13",
+        "D14-C15"
+      ],
+      "family": "evidence_release_frontier",
+      "input_contract": "release.dossier_input.v1",
+      "operation": "signed_dossier",
+      "operation_id": "D14-C16",
+      "ordinal": 16,
+      "output_contract": "release.dossier_output.v1",
+      "plane": "evidence_release",
+      "source_ids": [
+        "D14-evidence-release:europepmc",
+        "D14-evidence-release:pubmed",
+        "D14-evidence-release:gdc",
+        "D14-evidence-release:encode",
+        "D14-evidence-release:ga4gh"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:37a86f39ff657dec7da5e9f2b6f78301d84b76ab36ae51e58f68c15bed210753",
+      "delegate_content_address": "sha256:a58bf75037b2d20608f7a0c518285facd0e7151b85c9073bfc31dad79a39b182",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_source_id": "src-citation",
+      "family": "evidence_lifecycle_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-foundation:src-citation",
+      "source_kind": "public_lifecycle_foundation_receipt",
+      "source_version": "2026.08.d14-c01-c04.v1",
+      "uri": "https://example.org/glio/src-citation"
+    },
+    {
+      "content_address": "sha256:9d6b189f836dca278f56d7962fc4b31c7325130d43935fb75f81bfa46dae86da",
+      "delegate_content_address": "sha256:0825307de1aa5dc48d27f15172924ad40b9a728496aa1fc6403bf72596cb700f",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_source_id": "src-graph",
+      "family": "evidence_lifecycle_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-foundation:src-graph",
+      "source_kind": "public_lifecycle_foundation_receipt",
+      "source_version": "2026.08.d14-c01-c04.v1",
+      "uri": "https://example.org/glio/src-graph"
+    },
+    {
+      "content_address": "sha256:c364323d24b6a667731308b70f7c0f0833118998f936cd38f297208b04207209",
+      "delegate_content_address": "sha256:f7801afe8521b4f2350b58847d754ee074b79e3744b9a8e94642b2a368d31d31",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_source_id": "src-edge",
+      "family": "evidence_lifecycle_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-foundation:src-edge",
+      "source_kind": "public_lifecycle_foundation_receipt",
+      "source_version": "2026.08.d14-c01-c04.v1",
+      "uri": "https://example.org/glio/src-edge"
+    },
+    {
+      "content_address": "sha256:ddfd127367bf0e7e7bf70879d7a36aa0847975e74b71e40f07bdd8f7f1da5e39",
+      "delegate_content_address": "sha256:f647cfd33d72642ab75ca6a2a7d92a8d9df375417f255f917ce7c0eda876374b",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_source_id": "src-disagreement",
+      "family": "evidence_lifecycle_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-foundation:src-disagreement",
+      "source_kind": "public_lifecycle_foundation_receipt",
+      "source_version": "2026.08.d14-c01-c04.v1",
+      "uri": "https://example.org/glio/src-disagreement"
+    },
+    {
+      "content_address": "sha256:d0809811809a726877d05ed9a655265797e190d3580e01d8a8211ba5579a90a0",
+      "delegate_content_address": "sha256:ad226ef0ddf624747335cb69097913ba198357b5e2ff07d3a67f558bf361c3f5",
+      "delegate_fixture_id": "evidence-lifecycle-frontier",
+      "delegate_source_id": "src-control",
+      "family": "evidence_lifecycle_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-foundation:src-control",
+      "source_kind": "public_lifecycle_foundation_receipt",
+      "source_version": "2026.08.d14-c01-c04.v1",
+      "uri": "https://example.org/glio/src-control"
+    },
+    {
+      "content_address": "sha256:9aa6a44e9d4f55dee2feceadc155962d62a07ab0dde8584a89a7d39d8a81d1a5",
+      "delegate_content_address": "sha256:2dc4b4739e20006e0d0853c7337b7bb681404500bf23e7db81d4eb0176b991f4",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-tier",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-tier",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-tier"
+    },
+    {
+      "content_address": "sha256:667ed0f66dff6a2e5d021653c5f75668a05c0033eab62b7dfad1cfebd659d1af",
+      "delegate_content_address": "sha256:d39f2865d0fa2717034835625ec4b9208173dc91618f515e175347b55dbd86c8",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-lineage",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-lineage",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-lineage"
+    },
+    {
+      "content_address": "sha256:abd6a079ae52d7484f917ed1fc82b1d49a63e3c8b0c0e1dbf2412730dd8c1a61",
+      "delegate_content_address": "sha256:1fa31c45a102ecc6bfb20cd0a9df36d701edc6303bf45f1a5c5663a6681633cf",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-uncertainty",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-uncertainty",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-uncertainty"
+    },
+    {
+      "content_address": "sha256:80cef0dee496f68fdda198002b1aced88766c974b5f57296d4983dcba9042e73",
+      "delegate_content_address": "sha256:3569a5b29528cca36264137d401de4d2d0461fe4e894ef6f006348db26dac992",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-routing",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-routing",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-routing"
+    },
+    {
+      "content_address": "sha256:ba20d1f672e835a44b786900ad2b7ac39f6618b163c6b793a3680add8ba8d77a",
+      "delegate_content_address": "sha256:0e102918010a344ffb75559ee0f71d9f4759bf75e577d5cdf420c619047fbb99",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-blinded",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-blinded",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-blinded"
+    },
+    {
+      "content_address": "sha256:882ba40da0dcdd4cb3222f5e75e5d1f77300ebfa6887a2877737d3cf1e909983",
+      "delegate_content_address": "sha256:b5d222d439680956df29f46073f75e1f9a6f786e559bf5f53282d1b1e33aad2f",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-comments",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-comments",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-comments"
+    },
+    {
+      "content_address": "sha256:02ac33ac0e9d393355a1cabfd3db5c6b5427404e8f93e15d9b44648f589a3d8a",
+      "delegate_content_address": "sha256:83c35378a1be4251fce867a0f891e360aab623d0c05bfb97566d33966fa48c8e",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-release",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-release",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-release"
+    },
+    {
+      "content_address": "sha256:1d2c7c8f847475da81090d59194ef5a2e933a1afcce353cdbffa703d181032b7",
+      "delegate_content_address": "sha256:328c29ea0b288e2343d77019b743f3ef1716edfe1aefbfec9fdb25421d1b7558",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-delta",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-delta",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-delta"
+    },
+    {
+      "content_address": "sha256:fc19bfce4318960b5c0c14bc1d1c9af9fc008b38c906a130dfce28f0b862b475",
+      "delegate_content_address": "sha256:6b421945d345f2a83754cae87193444a20d4914bd963e6eab8a2da7177acbfca",
+      "delegate_fixture_id": "lifecycle-beta-frontier",
+      "delegate_source_id": "src-control",
+      "family": "lifecycle_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D14-lifecycle-beta:src-control",
+      "source_kind": "public_lifecycle_adjudication_receipt",
+      "source_version": "2026.08.d14-c05-c12.v1",
+      "uri": "https://example.org/glio-noncode/lifecycle/src-control"
+    },
+    {
+      "content_address": "sha256:e4fab11d67312fccbb21a0aee22ab1937ff42e60b4b05783548a2f090252d128",
+      "delegate_content_address": "sha256:9ce0523ea867bffe70d8a6fa62d0a305d6b3f714c0fefe3f26de0e529e35de7c",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_source_id": "europepmc",
+      "family": "evidence_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D14-evidence-release:europepmc",
+      "source_kind": "public_evidence_release_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://europepmc.org/"
+    },
+    {
+      "content_address": "sha256:f00c5c8c23f130d036a85d7825039f202ce774f0ab2359bcb7572e00ed606dc0",
+      "delegate_content_address": "sha256:b19ac5772c58cf22d69512317955e5dea7c8c8c7c7294e61f80649b5303942f4",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_source_id": "pubmed",
+      "family": "evidence_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D14-evidence-release:pubmed",
+      "source_kind": "public_evidence_release_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:4c2ccf18d1d3706c629023729f226ff4f2ab0b0324bd26d962b18cb67e72bc52",
+      "delegate_content_address": "sha256:0a02cf94c53fe6cf7bb187b01f592e99ade20ec525e575106ad2e342f7b8bd2c",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_source_id": "gdc",
+      "family": "evidence_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D14-evidence-release:gdc",
+      "source_kind": "public_evidence_release_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://gdc.cancer.gov/"
+    },
+    {
+      "content_address": "sha256:91f9c182a6db119e5cd1934fb882cf3fa1ac462060765495f3abb8391e056a1c",
+      "delegate_content_address": "sha256:1e0f97ea0339ad52a92f4d0c9ae034e4245fcb6d4a628619008ade1bd29ad36b",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_source_id": "encode",
+      "family": "evidence_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D14-evidence-release:encode",
+      "source_kind": "public_evidence_release_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:34ed185127a9f3924e976976885c3de55a66a3bdd4e2f302a55304940368d0f0",
+      "delegate_content_address": "sha256:914059f85d251fd93c7e41c0d11b54c4b47538a3f171112155de7b6b8fdde8d7",
+      "delegate_fixture_id": "evidence-release-public-aggregate-001",
+      "delegate_source_id": "ga4gh",
+      "family": "evidence_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D14-evidence-release:ga4gh",
+      "source_kind": "public_evidence_release_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.ga4gh.org/"
+    }
+  ],
+  "version": "2026.08.d14-evidence-architecture.v1"
+}

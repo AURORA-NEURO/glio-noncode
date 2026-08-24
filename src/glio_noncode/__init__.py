@@ -9920,6 +9920,29 @@ __all__ += [
     or name.startswith("validate_planning_architecture")
 ]
 
+from .evidence_architecture_exports import *  # noqa: F401,F403
+
+__all__ += [
+    name
+    for name in globals()
+    if name.startswith("EvidenceArchitecture")
+    or name.startswith("EVIDENCE_ARCHITECTURE")
+    or name.startswith("evidence_architecture")
+    or name.startswith("assess_evidence_architecture")
+    or name.startswith("audit_evidence_architecture")
+    or name.startswith("build_evidence_architecture")
+    or name.startswith("deep_audit_evidence_architecture")
+    or name.startswith("default_evidence_architecture")
+    or name.startswith("evaluate_evidence_architecture")
+    or name.startswith("execute_evidence_architecture")
+    or name.startswith("load_evidence_architecture")
+    or name.startswith("normalize_evidence_architecture")
+    or name.startswith("query_evidence_architecture")
+    or name.startswith("replay_evidence_architecture")
+    or name.startswith("run_evidence_architecture")
+    or name.startswith("validate_evidence_architecture")
+]
+
 from .chromatin_architecture_exports import *  # noqa: F401,F403
 
 __all__ += [

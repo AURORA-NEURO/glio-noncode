@@ -1743,6 +1743,17 @@ def _planning_architecture_fixture(input_path: str | None):
     )
 
 
+def _evidence_architecture_fixture(input_path: str | None):
+    from .evidence_architecture_contracts import EvidenceArchitectureFixture
+    from .evidence_architecture_public_data import default_evidence_architecture_fixture
+
+    return (
+        EvidenceArchitectureFixture.from_file(input_path)
+        if input_path
+        else default_evidence_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -3170,6 +3181,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     planning_architecture_bundle.add_argument("--input", default=None)
     planning_architecture_bundle.add_argument("--output", required=True)
+    evidence_architecture_fixture = subparsers.add_parser(
+        "evidence-architecture-fixture",
+        help="emit the D14 C01-C16 public aggregate evidence fixture",
+    )
+    evidence_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("evidence-architecture-data-audit", "audit D14 evidence sources, joins, contexts, and scope"),
+        ("evidence-architecture-plan", "compile the D14 evidence dependency plan"),
+        ("evaluate-evidence-architecture", "execute D14 evidence family delegates"),
+        ("evidence-architecture-runtime", "run the D14 twenty-four-stage evidence runtime"),
+        ("evidence-architecture-quality", "run the D14 evidence release quality gate"),
+        ("evidence-architecture-depth", "report D14 evidence operation and control depth"),
+        ("replay-evidence-architecture", "replay D14 evidence evaluation deterministically"),
+        ("evidence-architecture-report", "emit the D14 evidence runtime report"),
+        ("evidence-architecture-scenarios", "emit the D14 evidence scenario matrix"),
+        ("evidence-architecture-sources", "emit the D14 evidence source registry"),
+        ("evidence-architecture-compliance", "run D14 public-boundary compliance checks"),
+        ("evidence-architecture-validation", "run D14 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    evidence_architecture_query = subparsers.add_parser(
+        "evidence-architecture-query", help="query sanitized D14 evidence cases"
+    )
+    evidence_architecture_query.add_argument("--input", default=None)
+    evidence_architecture_query.add_argument("--operation", default=None)
+    evidence_architecture_query.add_argument("--family", default=None)
+    evidence_architecture_query.add_argument("--scenario", default=None)
+    evidence_architecture_query.add_argument("--output", default=None)
+    evidence_architecture_bundle = subparsers.add_parser(
+        "evidence-architecture-bundle", help="write a D14 evidence runtime bundle"
+    )
+    evidence_architecture_bundle.add_argument("--input", default=None)
+    evidence_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -9845,6 +9891,129 @@ def main(argv: list[str] | None = None) -> int:
                 str(output_dir / "report.json"),
             )
             _write_text(planning_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "evidence-architecture-fixture":
+            from .evidence_architecture_public_data import evidence_architecture_fixture_json
+
+            _write_text(evidence_architecture_fixture_json(_evidence_architecture_fixture(None)), args.output)
+            return 0
+        if args.command == "evidence-architecture-data-audit":
+            from .evidence_architecture_public_data import audit_evidence_architecture_data
+
+            report = audit_evidence_architecture_data(_evidence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-architecture-plan":
+            from .evidence_architecture_plan import build_evidence_architecture_plan
+
+            report = build_evidence_architecture_plan(_evidence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-evidence-architecture":
+            from .evidence_architecture_operations import evaluate_evidence_architecture_fixture
+
+            report = evaluate_evidence_architecture_fixture(_evidence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-architecture-runtime":
+            from .evidence_architecture_runtime import run_evidence_architecture
+
+            runtime = run_evidence_architecture(_evidence_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "evidence-architecture-quality":
+            from .evidence_architecture_runtime import run_evidence_architecture
+
+            runtime = run_evidence_architecture(_evidence_architecture_fixture(args.input))
+            _write_json(runtime.quality.to_dict(), args.output)
+            return 0 if runtime.quality.accepted else 2
+        if args.command == "evidence-architecture-depth":
+            from .evidence_architecture_runtime import run_evidence_architecture
+
+            runtime = run_evidence_architecture(_evidence_architecture_fixture(args.input))
+            _write_json(runtime.depth.to_dict(), args.output)
+            return 0 if runtime.depth.check_count == 458 else 2
+        if args.command == "replay-evidence-architecture":
+            from .evidence_architecture_replay import replay_evidence_architecture_fixture
+
+            report = replay_evidence_architecture_fixture(_evidence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-architecture-report":
+            from .evidence_architecture_reporting import build_evidence_architecture_report
+            from .evidence_architecture_runtime import run_evidence_architecture
+
+            runtime = run_evidence_architecture(_evidence_architecture_fixture(args.input))
+            _write_json(build_evidence_architecture_report(runtime.fixture, runtime.evaluation, runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "evidence-architecture-scenarios":
+            from .evidence_architecture_query import query_evidence_architecture
+            from .evidence_architecture_runtime import run_evidence_architecture
+
+            runtime = run_evidence_architecture(_evidence_architecture_fixture(args.input))
+            result = query_evidence_architecture(fixture=runtime.fixture, evaluation=runtime.evaluation)
+            _write_json({"accepted": runtime.accepted, "rows": result}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "evidence-architecture-sources":
+            fixture = _evidence_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "evidence-architecture-compliance":
+            from .evidence_architecture_compliance import assess_evidence_architecture_compliance
+
+            report = assess_evidence_architecture_compliance(_evidence_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-architecture-validation":
+            from .evidence_architecture_operations import evaluate_evidence_architecture_fixture
+            from .evidence_architecture_schema import validate_evidence_architecture_fixture
+
+            fixture = _evidence_architecture_fixture(args.input)
+            evaluation = evaluate_evidence_architecture_fixture(fixture)
+            report = {
+                "accepted": validate_evidence_architecture_fixture(fixture) and evaluation.accepted,
+                "evaluation": evaluation.to_dict(),
+            }
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "evidence-architecture-query":
+            from .evidence_architecture_query import query_evidence_architecture
+            from .evidence_architecture_runtime import run_evidence_architecture
+
+            runtime = run_evidence_architecture(_evidence_architecture_fixture(args.input))
+            result = query_evidence_architecture(
+                fixture=runtime.fixture,
+                evaluation=runtime.evaluation,
+                operation=args.operation,
+                family=args.family,
+                scenario=args.scenario,
+            )
+            _write_json({"accepted": runtime.accepted, "rows": result}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "evidence-architecture-bundle":
+            from .evidence_architecture_public_data import evidence_architecture_fixture_json
+            from .evidence_architecture_reporting import build_evidence_architecture_report
+            from .evidence_architecture_runtime import run_evidence_architecture
+
+            fixture = _evidence_architecture_fixture(args.input)
+            runtime = run_evidence_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_json(
+                build_evidence_architecture_report(runtime.fixture, runtime.evaluation, runtime),
+                str(output_dir / "report.json"),
+            )
+            _write_text(evidence_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)
