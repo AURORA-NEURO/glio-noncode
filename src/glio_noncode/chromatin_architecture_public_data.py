@@ -136,6 +136,7 @@ def _sources(
                 ),
                 "scope": "public_aggregate",
                 "license": "public source receipt",
+                "public_aggregate": True,
             }
             result.append(
                 ChromatinArchitectureSource(
@@ -328,6 +329,7 @@ def _cases(
                 ChromatinArchitectureScenario.POSITIVE,
                 CHROMATIN_ARCHITECTURE_CONTEXT,
                 source_ids,
+                str(getattr(record, "context_key", CHROMATIN_ARCHITECTURE_CONTEXT)),
                 positive_payload,
                 ChromatinArchitectureState.ACCEPTED,
                 result_state,
@@ -373,6 +375,7 @@ def _cases(
                     scenario,
                     context,
                     source_ids,
+                    str(getattr(record, "context_key", CHROMATIN_ARCHITECTURE_CONTEXT)),
                     control_payload,
                     ChromatinArchitectureState.REVIEW,
                     state,
@@ -389,6 +392,7 @@ def _make_case(
     scenario: ChromatinArchitectureScenario,
     context_key: str,
     source_ids: tuple[str, ...],
+    delegate_context_key: str,
     payload: dict[str, Any],
     expected_state: ChromatinArchitectureState,
     expected_result_state: str,
@@ -405,6 +409,7 @@ def _make_case(
         "plane": operation.plane,
         "scenario": scenario,
         "context_key": context_key,
+        "delegate_context_key": delegate_context_key,
         "source_ids": source_ids,
         "payload": payload,
         "expected_state": expected_state,
@@ -581,6 +586,27 @@ def audit_chromatin_architecture_data(
             sum(item.content_address.startswith("sha256:") for item in fixture.cases),
             64,
             "case contracts are addressed",
+        ),
+        _check(
+            "source-public-markers",
+            all(item.public_aggregate for item in fixture.sources),
+            sum(item.public_aggregate for item in fixture.sources),
+            19,
+            "all source receipts explicitly declare public aggregate scope",
+        ),
+        _check(
+            "family-coverage",
+            len({item.family for item in fixture.operations}) == 4,
+            len({item.family for item in fixture.operations}),
+            4,
+            "all four chromatin family tranches are represented",
+        ),
+        _check(
+            "delegate-contexts",
+            all(item.delegate_context_key for item in fixture.cases),
+            sum(bool(item.delegate_context_key) for item in fixture.cases),
+            64,
+            "all cases retain a delegated context key",
         ),
     )
     body = {"fixture_id": fixture.fixture_id, "checks": checks}

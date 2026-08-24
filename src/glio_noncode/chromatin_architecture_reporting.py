@@ -9,6 +9,7 @@ from typing import Any
 
 from .chromatin_architecture_contracts import ChromatinArchitectureRuntime, addressed
 from .chromatin_architecture_data_dictionary import ChromatinArchitectureDataDictionary
+from .chromatin_architecture_depth import chromatin_architecture_depth_percent
 from .chromatin_architecture_metrics import ChromatinArchitectureMetrics
 from .serialization import jsonable
 
@@ -22,6 +23,8 @@ class ChromatinArchitectureReport:
     source_count: int
     case_count: int
     receipt_count: int
+    check_count: int
+    quality_check_count: int
     positive_count: int
     control_count: int
     stage_count: int
@@ -30,6 +33,8 @@ class ChromatinArchitectureReport:
     family_counts: dict[str, int]
     result_state_counts: dict[str, int]
     dictionary_field_count: int
+    depth_percent: float
+    compliance_accepted: bool
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -51,6 +56,8 @@ def build_chromatin_architecture_report(
         "source_count": len(fixture.sources),
         "case_count": len(fixture.cases),
         "receipt_count": len(evaluation.receipts),
+        "check_count": len(evaluation.checks),
+        "quality_check_count": len(runtime.quality.checks),
         "positive_count": evaluation.positive_count,
         "control_count": evaluation.control_count,
         "stage_count": len(runtime.stages),
@@ -59,6 +66,8 @@ def build_chromatin_architecture_report(
         "family_counts": metrics.family_counts,
         "result_state_counts": metrics.result_state_counts,
         "dictionary_field_count": len(dictionary.fields),
+        "depth_percent": chromatin_architecture_depth_percent(runtime.depth),
+        "compliance_accepted": runtime.compliance.accepted,
     }
     return ChromatinArchitectureReport(**body, content_address=addressed(body, "chromatin-report"))
 
@@ -75,7 +84,10 @@ def render_chromatin_architecture_markdown(report: ChromatinArchitectureReport) 
         f"- Cases: {report.case_count} ({report.positive_count} positive, "
         f"{report.control_count} controls)",
         f"- Receipts: {report.receipt_count}",
+        f"- Evaluation checks: {report.check_count}",
+        f"- Quality checks: {report.quality_check_count}",
         f"- Runtime stages: {report.stage_count}",
+        f"- Depth: {report.depth_percent}%",
         f"- Data-dictionary fields: {report.dictionary_field_count}",
         "",
         "## Family coverage",

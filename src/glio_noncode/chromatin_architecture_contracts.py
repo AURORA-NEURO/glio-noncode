@@ -20,6 +20,7 @@ CHROMATIN_ARCHITECTURE_OPERATION_COUNT = 16
 CHROMATIN_ARCHITECTURE_CASES_PER_OPERATION = 4
 CHROMATIN_ARCHITECTURE_CASE_COUNT = 64
 CHROMATIN_ARCHITECTURE_SOURCE_COUNT = 19
+CHROMATIN_ARCHITECTURE_FAMILY_COUNT = 4
 CHROMATIN_ARCHITECTURE_ARTIFACT_COUNT = 6
 
 
@@ -108,6 +109,7 @@ class ChromatinArchitectureSource:
     version: str
     scope: str
     license: str
+    public_aggregate: bool
     content_address: str
 
     def __post_init__(self) -> None:
@@ -117,6 +119,8 @@ class ChromatinArchitectureSource:
             raise ValidationError("D07 source URI must be HTTP(S)")
         if self.scope != "public_aggregate":
             raise ValidationError("D07 sources must be public aggregate receipts")
+        if not self.public_aggregate:
+            raise ValidationError("D07 sources must be marked public aggregate")
         if not self.content_address.startswith("sha256:"):
             raise ValidationError("D07 source address must be SHA-256")
 
@@ -168,6 +172,7 @@ class ChromatinArchitectureCase:
     plane: ChromatinArchitecturePlane
     scenario: ChromatinArchitectureScenario
     context_key: str
+    delegate_context_key: str
     source_ids: tuple[str, ...]
     payload: dict[str, Any]
     expected_state: ChromatinArchitectureState
@@ -183,6 +188,7 @@ class ChromatinArchitectureCase:
             "operation_id",
             "capability_id",
             "context_key",
+            "delegate_context_key",
             "expected_result_state",
             "description",
             "content_address",
@@ -546,6 +552,9 @@ class ChromatinArchitectureRuntime:
     ledger: ChromatinArchitectureLedger
     artifacts: tuple[ChromatinArchitectureArtifact, ...]
     release: ChromatinArchitectureRelease
+    depth: ChromatinArchitectureDepthReport
+    quality: ChromatinArchitectureQualityGate
+    compliance: Any
     stages: tuple[ChromatinArchitectureRuntimeStage, ...]
     accepted: bool
     content_address: str
@@ -562,10 +571,13 @@ class ChromatinArchitectureDepthReport:
     positive_count: int
     control_count: int
     source_count: int
+    family_count: int
     addressed_count: int
     family_counts: Mapping[str, int]
     plane_counts: Mapping[str, int]
     check_count: int
+    state_count: int
+    issue_code_count: int
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -597,6 +609,7 @@ def _source(raw: Mapping[str, Any]) -> ChromatinArchitectureSource:
         "version": str(raw.get("version", "public")),
         "scope": str(raw.get("scope", "")),
         "license": str(raw.get("license", "public source receipt")),
+        "public_aggregate": bool(raw.get("public_aggregate", True)),
     }
     return ChromatinArchitectureSource(**body, content_address=addressed(body, "chromatin-source"))
 
@@ -632,6 +645,9 @@ def _case(raw: Mapping[str, Any]) -> ChromatinArchitectureCase:
         "plane": ChromatinArchitecturePlane(str(raw.get("plane", ""))),
         "scenario": ChromatinArchitectureScenario(str(raw.get("scenario", ""))),
         "context_key": str(raw.get("context_key", "")),
+        "delegate_context_key": str(
+            raw.get("delegate_context_key", raw.get("context_key", ""))
+        ),
         "source_ids": _text_tuple(raw.get("source_ids", ()), "source_ids"),
         "payload": dict(raw.get("payload", {})),
         "expected_state": ChromatinArchitectureState(str(raw.get("expected_state", ""))),
@@ -656,6 +672,7 @@ __all__ = [
     "CHROMATIN_ARCHITECTURE_CASES_PER_OPERATION",
     "CHROMATIN_ARCHITECTURE_CONTEXT",
     "CHROMATIN_ARCHITECTURE_FOREIGN_CONTEXT",
+    "CHROMATIN_ARCHITECTURE_FAMILY_COUNT",
     "CHROMATIN_ARCHITECTURE_OPERATION_COUNT",
     "CHROMATIN_ARCHITECTURE_SOURCE_COUNT",
     "CHROMATIN_ARCHITECTURE_VERSION",

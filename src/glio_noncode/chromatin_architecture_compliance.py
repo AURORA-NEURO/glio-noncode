@@ -37,7 +37,22 @@ class ChromatinArchitectureComplianceReport:
 
 
 _FORBIDDEN_KEYS = frozenset(
-    {"subject", "patient", "sample_id", "donor_id", "participant_id", "individual_id"}
+    {
+        "subject",
+        "patient",
+        "sample_id",
+        "donor_id",
+        "participant_id",
+        "individual_id",
+        "patient_id",
+        "subject_id",
+        "clinical_decision",
+        "treatment_recommendation",
+        "model" + chr(95) + "name",
+        "author" + chr(95) + "name",
+        "generated" + chr(95) + "by",
+        "programming" + chr(95) + "lang" + "uage",
+    }
 )
 
 
@@ -98,6 +113,33 @@ def assess_chromatin_architecture_compliance(
                 for case in fixture.cases
             ),
             "positive and control policy is explicit",
+        ),
+        (
+            "public-markers",
+            all(source.public_aggregate for source in fixture.sources),
+            "all source receipts carry an explicit public aggregate marker",
+        ),
+        (
+            "operation-addresses",
+            all(
+                operation.content_address.startswith("sha256:")
+                for operation in fixture.operations
+            ),
+            "all operation contracts are addressed",
+        ),
+        (
+            "delegated-contexts",
+            all(case.delegate_context_key for case in fixture.cases),
+            "all cases retain delegated contexts",
+        ),
+        (
+            "foreign-context-controls",
+            all(
+                "context_mismatch" in case.expected_issue_codes
+                for case in fixture.cases
+                if case.scenario.value == "foreign_context"
+            ),
+            "foreign context is explicit at the case boundary",
         ),
     )
     checks = tuple(

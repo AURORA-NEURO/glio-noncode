@@ -8,7 +8,7 @@
    and 64 cases.
 3. Run `chromatin-architecture-plan`. Confirm every node is ready and every
    predecessor is declared.
-4. Run `evaluate-chromatin-architecture`. Confirm 64 passing receipts and 392
+4. Run `evaluate-chromatin-architecture`. Confirm 64 passing receipts and 458
    passing checks.
 5. Run `chromatin-architecture-validation`. Confirm 80 cells: five views by
    sixteen operations.
@@ -20,6 +20,10 @@
 9. Run `chromatin-architecture-compliance` and
    `chromatin-architecture-sources`.
 10. Materialize the bundle only after all prior commands succeed.
+
+For `chromatin-architecture-query`, pass the enum operation value such as
+`context_imputation_confidence`; the command returns matching case and receipt
+IDs while the operation register retains the `D07-C13` identity.
 
 ## Stop conditions
 
@@ -49,6 +53,6 @@ release artifacts are recomputed together.
 
 ## Observability
 
-The runtime emits 22 addressed stages. The final stage is
+The runtime emits 24 addressed stages. The final stage is
 `runtime-finalized`. A run is accepted only when the final stage, quality gate,
-access policy, and published release all agree.
+access policy, compliance report, depth report, and published release all agree.

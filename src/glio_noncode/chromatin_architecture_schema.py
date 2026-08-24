@@ -6,6 +6,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from .chromatin_architecture_contracts import (
+    CHROMATIN_ARCHITECTURE_CASE_COUNT,
+    CHROMATIN_ARCHITECTURE_CASES_PER_OPERATION,
+    CHROMATIN_ARCHITECTURE_FAMILY_COUNT,
+    CHROMATIN_ARCHITECTURE_SOURCE_COUNT,
     CHROMATIN_ARCHITECTURE_VERSION,
     ChromatinArchitectureCheck,
     ChromatinArchitectureCheckKind,
@@ -62,6 +66,7 @@ _FIELD_SPECS = (
     ("source_uri", "uri", True, "HTTPS source locator"),
     ("source_version", "string", True, "release or version receipt"),
     ("source_scope", "enum", True, "public aggregate only"),
+    ("source_public_aggregate", "boolean", True, "explicit public aggregate marker"),
     ("operation_id", "string", True, "D07 operation identity"),
     ("capability_id", "string", True, "blueprint capability identity"),
     ("operation_family", "enum", True, "family delegation boundary"),
@@ -70,6 +75,7 @@ _FIELD_SPECS = (
     ("output_contract", "string", True, "operation receipt contract"),
     ("scenario", "enum", True, "positive or explicit control scenario"),
     ("case_context", "string", True, "case-level context key"),
+    ("delegate_context", "string", True, "context retained at delegation boundary"),
     ("case_sources", "array[string]", True, "source joins for the case"),
     ("expected_state", "enum", True, "aggregate state expectation"),
     ("expected_result_state", "string", True, "family or release result expectation"),
@@ -146,9 +152,9 @@ def validate_chromatin_architecture_schema(
         ),
         _check(
             "field-cardinality",
-            len(schema.fields) == 31,
+            len(schema.fields) == 33,
             len(schema.fields),
-            31,
+            33,
             "all aggregate fields are declared",
         ),
         _check(
@@ -188,6 +194,46 @@ def validate_chromatin_architecture_schema(
             True,
             "summaries exclude raw input",
             "review-safe summaries are sanitized",
+        ),
+        _check(
+            "source-cardinality",
+            len(fixture.sources) == CHROMATIN_ARCHITECTURE_SOURCE_COUNT,
+            len(fixture.sources),
+            CHROMATIN_ARCHITECTURE_SOURCE_COUNT,
+            "source registry cardinality is fixed",
+        ),
+        _check(
+            "source-public-markers",
+            all(item.public_aggregate for item in fixture.sources),
+            sum(item.public_aggregate for item in fixture.sources),
+            CHROMATIN_ARCHITECTURE_SOURCE_COUNT,
+            "all sources explicitly declare public aggregate scope",
+        ),
+        _check(
+            "operation-case-balance",
+            all(
+                sum(item.operation_id == operation.operation_id for item in fixture.cases)
+                == CHROMATIN_ARCHITECTURE_CASES_PER_OPERATION
+                for operation in fixture.operations
+            ),
+            len(fixture.cases),
+            CHROMATIN_ARCHITECTURE_CASE_COUNT,
+            "every operation has four scenario cases",
+        ),
+        _check(
+            "family-cardinality",
+            len({item.family for item in fixture.operations})
+            == CHROMATIN_ARCHITECTURE_FAMILY_COUNT,
+            len({item.family for item in fixture.operations}),
+            CHROMATIN_ARCHITECTURE_FAMILY_COUNT,
+            "all four D07 family tranches are represented",
+        ),
+        _check(
+            "delegated-contexts",
+            all(item.delegate_context_key for item in fixture.cases),
+            sum(bool(item.delegate_context_key) for item in fixture.cases),
+            CHROMATIN_ARCHITECTURE_CASE_COUNT,
+            "every case retains a delegated context key",
         ),
     )
     body = {"fixture_id": fixture.fixture_id, "schema": schema, "checks": checks}

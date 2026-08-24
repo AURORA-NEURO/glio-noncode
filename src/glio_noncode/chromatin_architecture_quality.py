@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .chromatin_architecture_compliance import assess_chromatin_architecture_compliance
 from .chromatin_architecture_contracts import (
     ChromatinArchitectureCheck,
     ChromatinArchitectureCheckKind,
@@ -60,7 +61,9 @@ def assess_chromatin_architecture_quality(
     replay: ChromatinArchitectureReplay,
     failures: ChromatinArchitectureFailureReport,
     release: ChromatinArchitectureRelease,
+    compliance=None,
 ) -> ChromatinArchitectureQualityGate:
+    compliance_report = compliance or assess_chromatin_architecture_compliance(fixture)
     invariants = check_chromatin_architecture_invariants(fixture, evaluation)
     checks = (
         _check("data-audit", audit.accepted, "public aggregate data audit accepted"),
@@ -86,7 +89,11 @@ def assess_chromatin_architecture_quality(
         ),
         _check(
             "metrics",
-            metrics.receipt_count == 64 and metrics.passed_receipt_count == 64,
+            metrics.receipt_count == 64
+            and metrics.passed_receipt_count == 64
+            and metrics.check_count == 458
+            and metrics.state_count >= 6
+            and metrics.issue_code_count >= 3,
             "metrics conserve receipts",
         ),
         _check(
@@ -101,6 +108,11 @@ def assess_chromatin_architecture_quality(
             "artifact-floor",
             len(release.artifact_ids) == 6,
             "six release artifacts are materialized",
+        ),
+        _check(
+            "compliance",
+            compliance_report.accepted,
+            "aggregate boundary, public markers, and payload rules pass",
         ),
     )
     body = {"fixture_id": fixture.fixture_id, "checks": checks, "release": release}

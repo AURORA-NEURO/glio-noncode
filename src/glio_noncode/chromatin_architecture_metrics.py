@@ -23,6 +23,9 @@ class ChromatinArchitectureMetrics:
     control_count: int
     passed_receipt_count: int
     receipt_count: int
+    check_count: int
+    state_count: int
+    issue_code_count: int
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:
@@ -48,6 +51,13 @@ def materialize_chromatin_architecture_metrics(
         "observed_state_counts": dict(observed_state_counts),
         "result_state_counts": dict(result_state_counts),
         "issue_code_counts": dict(issue_code_counts),
+        "positive_count": evaluation.positive_count,
+        "control_count": evaluation.control_count,
+        "passed_receipt_count": sum(item.passed for item in evaluation.receipts),
+        "receipt_count": len(evaluation.receipts),
+        "check_count": len(evaluation.checks),
+        "state_count": len(result_state_counts),
+        "issue_code_count": len(issue_code_counts),
     }
     return ChromatinArchitectureMetrics(
         fixture_id=evaluation.fixture_id,
@@ -61,6 +71,9 @@ def materialize_chromatin_architecture_metrics(
         control_count=evaluation.control_count,
         passed_receipt_count=sum(item.passed for item in evaluation.receipts),
         receipt_count=len(evaluation.receipts),
+        check_count=len(evaluation.checks),
+        state_count=len(result_state_counts),
+        issue_code_count=len(issue_code_counts),
         content_address=addressed(body, "chromatin-metrics"),
     )
 

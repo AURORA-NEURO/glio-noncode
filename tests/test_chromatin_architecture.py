@@ -52,6 +52,8 @@ class ChromatinArchitectureTests(unittest.TestCase):
         self.assertEqual(len(self.fixture.cases), 64)
         self.assertEqual(len(self.fixture.positive_cases), 16)
         self.assertEqual(len(self.fixture.control_cases), 48)
+        self.assertTrue(all(item.public_aggregate for item in self.fixture.sources))
+        self.assertTrue(all(item.delegate_context_key for item in self.fixture.cases))
         self.assertEqual(
             {item.family.value for item in self.fixture.operations},
             {
@@ -76,7 +78,7 @@ class ChromatinArchitectureTests(unittest.TestCase):
     def test_evaluation_runs_family_delegates_and_controls(self) -> None:
         self.assertTrue(self.evaluation.accepted)
         self.assertEqual(len(self.evaluation.receipts), 64)
-        self.assertEqual(len(self.evaluation.checks), 392)
+        self.assertEqual(len(self.evaluation.checks), 458)
         self.assertTrue(all(item.passed for item in self.evaluation.receipts))
         controls = {
             item.case_id: item
@@ -141,7 +143,7 @@ class ChromatinArchitectureTests(unittest.TestCase):
         self.assertEqual(metrics.receipt_count, 64)
         self.assertEqual(metrics.family_counts["methylation_frontier"], 16)
         self.assertTrue(schema.accepted)
-        self.assertEqual(len(schema.schema.fields), 31)
+        self.assertEqual(len(schema.schema.fields), 33)
         self.assertTrue(all(item.passed for item in invariants))
         self.assertTrue(matrix.accepted)
         self.assertEqual(len(matrix.cells), 80)
@@ -195,13 +197,18 @@ class ChromatinArchitectureTests(unittest.TestCase):
         self.assertTrue(release.state.value == "published")
         self.assertTrue(chromatin_architecture_access_policy(artifacts).accepted)
         self.assertTrue(quality.accepted)
+        self.assertEqual(len(quality.checks), 14)
 
-    def test_runtime_has_twenty_two_stages_and_six_artifacts(self) -> None:
+    def test_runtime_has_twenty_four_stages_and_six_artifacts(self) -> None:
         runtime = run_chromatin_architecture(self.fixture)
         self.assertTrue(runtime.accepted)
-        self.assertEqual(len(runtime.stages), 22)
+        self.assertEqual(len(runtime.stages), 24)
         self.assertEqual(len(runtime.artifacts), 6)
         self.assertEqual(runtime.release.state.value, "published")
+        self.assertEqual(len(runtime.quality.checks), 14)
+        self.assertEqual(runtime.depth.check_count, 458)
+        self.assertEqual(runtime.depth.state_count, 6)
+        self.assertTrue(runtime.compliance.accepted)
         self.assertEqual(runtime.stages[-1].stage_id, "runtime-finalized")
 
     def test_scenario_matrix_is_balanced(self) -> None:

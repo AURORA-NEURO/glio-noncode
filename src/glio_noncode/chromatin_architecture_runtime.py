@@ -1,16 +1,18 @@
-"""Twenty-two-stage D07 chromatin architecture runtime."""
+"""Twenty-four-stage D07 chromatin architecture runtime."""
 
 from __future__ import annotations
 
 from .chromatin_architecture_access import chromatin_architecture_access_policy
 from .chromatin_architecture_artifacts import materialize_chromatin_architecture_artifacts
 from .chromatin_architecture_bundle import build_chromatin_architecture_bundle
+from .chromatin_architecture_compliance import assess_chromatin_architecture_compliance
 from .chromatin_architecture_contracts import (
     ChromatinArchitectureFixture,
     ChromatinArchitectureRuntime,
     ChromatinArchitectureRuntimeStage,
     addressed,
 )
+from .chromatin_architecture_depth import chromatin_architecture_depth_report
 from .chromatin_architecture_failures import classify_chromatin_architecture_failures
 from .chromatin_architecture_invariants import check_chromatin_architecture_invariants
 from .chromatin_architecture_ledger import build_chromatin_architecture_ledger
@@ -43,10 +45,12 @@ CHROMATIN_ARCHITECTURE_STAGE_IDS = (
     "invariants-closed",
     "replay-closed",
     "artifacts-materialized",
+    "depth-accounted",
     "policy-closed",
     "quality-gated",
     "release-built",
     "access-closed",
+    "compliance-closed",
     "observability-closed",
     "runtime-finalized",
 )
@@ -97,6 +101,8 @@ def run_chromatin_architecture(
     artifacts = materialize_chromatin_architecture_artifacts(
         selected, evaluation, policy, review, lineage, ledger, metrics
     )
+    depth = chromatin_architecture_depth_report(selected, evaluation)
+    compliance = assess_chromatin_architecture_compliance(selected)
     bundle = build_chromatin_architecture_bundle(
         selected, audit, evaluation, policy, review, lineage, ledger, metrics
     )
@@ -115,13 +121,16 @@ def run_chromatin_architecture(
         replay,
         failures,
         release,
+        compliance,
     )
     access = chromatin_architecture_access_policy(artifacts)
     all_addresses = (
         selected.content_address,
         evaluation.content_address,
         bundle.content_address,
+        depth.content_address,
         release.content_address,
+        compliance.content_address,
     )
     stage_details = {
         "fixture-loaded": (
@@ -167,10 +176,18 @@ def run_chromatin_architecture(
             addressed(artifacts, "chromatin-artifacts"),
             "six sanitized artifacts materialized",
         ),
+        "depth-accounted": (
+            depth.content_address,
+            "source, operation, case, family, state, issue, and check depth accounted",
+        ),
         "policy-closed": (policy.content_address, "policy decisions closed"),
         "quality-gated": (quality.content_address, "quality gate evaluated"),
         "release-built": (release.content_address, "release boundary built"),
         "access-closed": (access.content_address, "artifact access policy evaluated"),
+        "compliance-closed": (
+            compliance.content_address,
+            "public boundary and review-safe payload compliance closed",
+        ),
         "observability-closed": (
             addressed(all_addresses, "chromatin-observability-seed"),
             "runtime addresses are observable",
@@ -204,6 +221,8 @@ def run_chromatin_architecture(
         and replay.accepted
         and policy.accepted
         and quality.accepted
+        and depth.check_count == 458
+        and compliance.accepted
         and bundle.accepted
         and release.state.value == "published"
         and access.accepted
@@ -213,6 +232,8 @@ def run_chromatin_architecture(
         "fixture": selected.content_address,
         "evaluation": evaluation.content_address,
         "quality": quality.content_address,
+        "depth": depth.content_address,
+        "compliance": compliance.content_address,
         "release": release.content_address,
         "stages": stages,
         "accepted": accepted,
@@ -226,6 +247,9 @@ def run_chromatin_architecture(
         ledger=ledger,
         artifacts=artifacts,
         release=release,
+        depth=depth,
+        quality=quality,
+        compliance=compliance,
         stages=stages,
         accepted=accepted,
         content_address=addressed(body, "chromatin-runtime"),

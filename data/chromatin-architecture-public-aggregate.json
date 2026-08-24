@@ -1,0 +1,4653 @@
+{
+  "boundary": "public_aggregate_chromatin_accessibility_methylation",
+  "cases": [
+    {
+      "capability_id": "GNC-D07-C01",
+      "case_id": "D07-C01-positive",
+      "content_address": "sha256:b459605987dae0c1d8b856acf2ce014c90001d8227c2198d77f0fc912d846513",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C01",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_context_frontier",
+      "operation": "chromatin_track_retrieval",
+      "operation_id": "D07-C01",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:4b4317cd1f5e7be0ff9389b16074cf7fa5d9f896dce5e95a1e90959cc366d871",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "one context-matched ATAC interval is retrieved",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "track_retrieval",
+          "payload": {
+            "chromosome": "chr7",
+            "end": 120,
+            "start": 100,
+            "track_kind": "atac",
+            "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"atac\",\"replicate\":\"r1\",\"signal\":8.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"atac-supported\"}]}"
+          },
+          "record_id": "d07-c01-positive",
+          "role": "positive",
+          "source_ids": [
+            "encode-aggregate"
+          ]
+        },
+        "family_record_id": "d07-c01-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:04aadb5600c899170285e45562992beaadf469a7264378226f09f86d5ad59c6e",
+            "detail": "track coordinates, assay kind, context gate, and replicate spread are retained",
+            "issue_codes": [],
+            "measurements": {
+              "mark_values": [],
+              "median_signal": 8.0,
+              "observation_ids": [
+                "encode-aggregate:1"
+              ],
+              "parsed_count": 1,
+              "quarantined_count": 0,
+              "query_state": "supported",
+              "replicate_spread": null
+            },
+            "operation": "track_retrieval",
+            "primitive_state": "supported",
+            "record_id": "d07-c01-positive",
+            "state": "supported",
+            "warnings": [
+              "Interval overlap is not an enhancer or regulatory truth claim."
+            ]
+          },
+          "content_address": "sha256:bdc540d4e35de179c21ad0e68b761893295f37ffbca77930146bbd1b30870690",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:4b4317cd1f5e7be0ff9389b16074cf7fa5d9f896dce5e95a1e90959cc366d871",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "one context-matched ATAC interval is retrieved",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "track_retrieval",
+            "record_id": "d07-c01-positive",
+            "role": "positive",
+            "source_ids": [
+              "encode-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "start": 100,
+          "track_kind": "atac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"atac\",\"replicate\":\"r1\",\"signal\":8.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"atac-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C01",
+      "case_id": "D07-C01-foreign_context",
+      "content_address": "sha256:9b18a1963220d37164ce6fe96f9859f5e1d290af8210d86208f0a73bb86c050a",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "chromatin_track_retrieval",
+      "operation_id": "D07-C01",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d07-c01-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "start": 100,
+          "track_kind": "atac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"atac\",\"replicate\":\"r1\",\"signal\":8.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"atac-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C01",
+      "case_id": "D07-C01-malformed_input",
+      "content_address": "sha256:80e0e2707fa6a5037acda4c0521ced5fcc2d0ec15127608b6c50316c0f80aa22",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "chromatin_track_retrieval",
+      "operation_id": "D07-C01",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d07-c01-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "start": 100,
+          "track_kind": "atac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"atac\",\"replicate\":\"r1\",\"signal\":8.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"atac-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C01",
+      "case_id": "D07-C01-identity_conflict",
+      "content_address": "sha256:e797274beadb9ba8ed0d9873e220be2f5ff9ac6c885ab153c101fca6ba740659",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "chromatin_track_retrieval",
+      "operation_id": "D07-C01",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d07-c01-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "start": 100,
+          "track_kind": "atac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"atac\",\"replicate\":\"r1\",\"signal\":8.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"atac-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C02",
+      "case_id": "D07-C02-positive",
+      "content_address": "sha256:cc781d33e4e758d7be8ec5e827a68e278df6194349cd0bb00a7b4aca446d8704",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C02",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_context_frontier",
+      "operation": "accessibility_delta",
+      "operation_id": "D07-C02",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:d3c2f5ed1ad3149271f6c9a0bc8f4e046f15589edb73062397013c351ca16218",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "reference-to-alternate ATAC delta is measured with a nonzero baseline",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "accessibility_delta",
+          "payload": {
+            "alternate_signal": 15.0,
+            "assay": "atac",
+            "measurement_id": "acc-supported",
+            "raw_hash": "sha256:acc1",
+            "reference_signal": 10.0,
+            "replicate_count": 3,
+            "source_id": "encode-aggregate",
+            "variant_id": "variant-1"
+          },
+          "record_id": "d07-c02-positive",
+          "role": "positive",
+          "source_ids": [
+            "encode-aggregate"
+          ]
+        },
+        "family_record_id": "d07-c02-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:8e5aa0f964380ed90fe9bc99e0336dfebe6f6d747fda223645b9bafe7bc5686d",
+            "detail": "measured reference and alternate accessibility remain separate from causal interpretation",
+            "issue_codes": [],
+            "measurements": {
+              "alternate_signal": 15.0,
+              "assay": "atac",
+              "delta": 5.0,
+              "reference_signal": 10.0,
+              "relative_delta": 0.5,
+              "replicate_count": 3,
+              "variant_id": "variant-1"
+            },
+            "operation": "accessibility_delta",
+            "primitive_state": "supported",
+            "record_id": "d07-c02-positive",
+            "state": "supported",
+            "warnings": [
+              "Accessibility delta is an assay-derived comparison, not a causal effect estimate.",
+              "A zero or missing reference signal prevents relative normalization."
+            ]
+          },
+          "content_address": "sha256:0c031003c4eada69277a8a4d7ba5d34df008efc1c43b7a7a788a781cf573736b",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:d3c2f5ed1ad3149271f6c9a0bc8f4e046f15589edb73062397013c351ca16218",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "reference-to-alternate ATAC delta is measured with a nonzero baseline",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "accessibility_delta",
+            "record_id": "d07-c02-positive",
+            "role": "positive",
+            "source_ids": [
+              "encode-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "alternate_signal": 15.0,
+          "assay": "atac",
+          "measurement_id": "acc-supported",
+          "raw_hash": "sha256:acc1",
+          "reference_signal": 10.0,
+          "replicate_count": 3,
+          "source_id": "encode-aggregate",
+          "variant_id": "variant-1"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C02",
+      "case_id": "D07-C02-foreign_context",
+      "content_address": "sha256:7e03ebed7528b63f5211b7f6e62c3b934779fa9d5edafea09be0597a2fb47158",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "accessibility_delta",
+      "operation_id": "D07-C02",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d07-c02-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "alternate_signal": 15.0,
+          "assay": "atac",
+          "measurement_id": "acc-supported",
+          "raw_hash": "sha256:acc1",
+          "reference_signal": 10.0,
+          "replicate_count": 3,
+          "source_id": "encode-aggregate",
+          "variant_id": "variant-1"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C02",
+      "case_id": "D07-C02-malformed_input",
+      "content_address": "sha256:8393754627b66388fd6e369aef25b046f36b4e798ce8365146194870803589dc",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "accessibility_delta",
+      "operation_id": "D07-C02",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d07-c02-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "alternate_signal": 15.0,
+          "assay": "atac",
+          "measurement_id": "acc-supported",
+          "raw_hash": "sha256:acc1",
+          "reference_signal": 10.0,
+          "replicate_count": 3,
+          "source_id": "encode-aggregate",
+          "variant_id": "variant-1"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C02",
+      "case_id": "D07-C02-identity_conflict",
+      "content_address": "sha256:ae24ab0b71f218f0e004b35383c173823a6850285f0c63f080807b8f057120aa",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "accessibility_delta",
+      "operation_id": "D07-C02",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d07-c02-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "alternate_signal": 15.0,
+          "assay": "atac",
+          "measurement_id": "acc-supported",
+          "raw_hash": "sha256:acc1",
+          "reference_signal": 10.0,
+          "replicate_count": 3,
+          "source_id": "encode-aggregate",
+          "variant_id": "variant-1"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C03",
+      "case_id": "D07-C03-positive",
+      "content_address": "sha256:b11c2df75e9e9e329a78ab6588484a4041cb9de88bbf42d1d6a6193f7ef5601a",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C03",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_context_frontier",
+      "operation": "histone_context",
+      "operation_id": "D07-C03",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:120604a498eabed5965e5cb73b0d031017cd2a2e8c30db650ff6f97872f5a2a3",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "one context-matched histone observation is retrieved with mark metadata",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "histone_context",
+          "payload": {
+            "chromosome": "chr7",
+            "end": 120,
+            "mark": "H3K4me3",
+            "start": 100,
+            "track_kind": "histone",
+            "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"histone\",\"mark\":\"H3K4me3\",\"replicate\":\"r1\",\"signal\":5.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"histone-supported\"}]}"
+          },
+          "record_id": "d07-c03-positive",
+          "role": "positive",
+          "source_ids": [
+            "ihec-aggregate"
+          ]
+        },
+        "family_record_id": "d07-c03-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:34abadf1a6078e3051f44fad20750474ed797e67231f3f8ad0d0ee7d0d5420ed",
+            "detail": "histone mark metadata, context gating, and replicate spread are retained",
+            "issue_codes": [],
+            "measurements": {
+              "mark_values": [
+                "H3K4me3"
+              ],
+              "median_signal": 5.0,
+              "observation_ids": [
+                "ihec-aggregate:1"
+              ],
+              "parsed_count": 1,
+              "quarantined_count": 0,
+              "query_state": "supported",
+              "replicate_spread": null,
+              "requested_mark": "H3K4me3"
+            },
+            "operation": "histone_context",
+            "primitive_state": "supported",
+            "record_id": "d07-c03-positive",
+            "state": "supported",
+            "warnings": [
+              "Interval overlap is not an enhancer or regulatory truth claim.",
+              "Mark presence does not establish a complete chromatin mechanism."
+            ]
+          },
+          "content_address": "sha256:e950a7f39bfbac469936ab1b6a7f6809af203fbae8be0cfc31690da0913e22c1",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:120604a498eabed5965e5cb73b0d031017cd2a2e8c30db650ff6f97872f5a2a3",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "one context-matched histone observation is retrieved with mark metadata",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "histone_context",
+            "record_id": "d07-c03-positive",
+            "role": "positive",
+            "source_ids": [
+              "ihec-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "mark": "H3K4me3",
+          "start": 100,
+          "track_kind": "histone",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"histone\",\"mark\":\"H3K4me3\",\"replicate\":\"r1\",\"signal\":5.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"histone-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_context_frontier:ihec-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C03",
+      "case_id": "D07-C03-foreign_context",
+      "content_address": "sha256:79aaafee8f69bbf1ab95a3421175b8d22fbdd22c2523d72bec5be3069b48fc48",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "histone_context",
+      "operation_id": "D07-C03",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d07-c03-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "mark": "H3K4me3",
+          "start": 100,
+          "track_kind": "histone",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"histone\",\"mark\":\"H3K4me3\",\"replicate\":\"r1\",\"signal\":5.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"histone-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_context_frontier:ihec-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C03",
+      "case_id": "D07-C03-malformed_input",
+      "content_address": "sha256:a6a3f10ae9e385fe653be49702cbd75ec21a1f5954cf9d9764477392d2f08bc6",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "histone_context",
+      "operation_id": "D07-C03",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d07-c03-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "mark": "H3K4me3",
+          "start": 100,
+          "track_kind": "histone",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"histone\",\"mark\":\"H3K4me3\",\"replicate\":\"r1\",\"signal\":5.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"histone-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_context_frontier:ihec-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C03",
+      "case_id": "D07-C03-identity_conflict",
+      "content_address": "sha256:bcbb83ea0c5e188dcbc47a010f6db3ac0ee90e36cd88fbb4d56505d162559bf9",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "histone_context",
+      "operation_id": "D07-C03",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d07-c03-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "end": 120,
+          "mark": "H3K4me3",
+          "start": 100,
+          "track_kind": "histone",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"histone\",\"mark\":\"H3K4me3\",\"replicate\":\"r1\",\"signal\":5.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"histone-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_context_frontier:ihec-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C04",
+      "case_id": "D07-C04-positive",
+      "content_address": "sha256:a2026cda39a29e87bdcabfef0b52cec4146fb7e1b4addc099c91d637030b0307",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C04",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_context_frontier",
+      "operation": "h3k27ac_activity",
+      "operation_id": "D07-C04",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:643bc37aad64c57f3868d46a88b6c67f658b84c2f5445dd1d58acf460fd658d2",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "H3K27ac signal is returned as a context-qualified observation",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "h3k27ac_activity",
+          "payload": {
+            "chromosome": "chr7",
+            "element_id": "enhancer-1",
+            "end": 120,
+            "start": 100,
+            "track_kind": "h3k27ac",
+            "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"h3k27ac\",\"mark\":\"H3K27ac\",\"replicate\":\"r1\",\"signal\":9.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"h3-supported\"}]}"
+          },
+          "record_id": "d07-c04-positive",
+          "role": "positive",
+          "source_ids": [
+            "roadmap-aggregate"
+          ]
+        },
+        "family_record_id": "d07-c04-positive",
+        "family_summary": {
+          "adapter": {
+            "content_address": "sha256:1175f309c46cb1d9106dfd4ba0793e5a6f2a7563e73cfb286e17e2b174adcd4f",
+            "detail": "H3K27ac signal is surfaced as a replicate-aware observation with explicit limits",
+            "issue_codes": [],
+            "measurements": {
+              "element_id": "enhancer-1",
+              "query_state": "supported",
+              "replicate_count": 1,
+              "replicate_spread": null,
+              "signal": 9.0
+            },
+            "operation": "h3k27ac_activity",
+            "primitive_state": "supported",
+            "record_id": "d07-c04-positive",
+            "state": "supported",
+            "warnings": [
+              "H3K27ac signal is an assay observation and does not establish enhancer activity alone.",
+              "Target-gene linkage, cell composition, and assay calibration remain separate evidence."
+            ]
+          },
+          "content_address": "sha256:9264035f6224177c43abfc86e2ae43cfee76e3f9e91b4a5995e1e77eee8f97ec",
+          "issue_floor_matches": true,
+          "record": {
+            "content_address": "sha256:643bc37aad64c57f3868d46a88b6c67f658b84c2f5445dd1d58acf460fd658d2",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+            "description": "H3K27ac signal is returned as a context-qualified observation",
+            "expected_issue_codes": [],
+            "expected_state": "supported",
+            "operation": "h3k27ac_activity",
+            "record_id": "d07-c04-positive",
+            "role": "positive",
+            "source_ids": [
+              "roadmap-aggregate"
+            ]
+          },
+          "state_matches": true
+        },
+        "operation_payload": {
+          "chromosome": "chr7",
+          "element_id": "enhancer-1",
+          "end": 120,
+          "start": 100,
+          "track_kind": "h3k27ac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"h3k27ac\",\"mark\":\"H3K27ac\",\"replicate\":\"r1\",\"signal\":9.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"h3-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_context_frontier:roadmap-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C04",
+      "case_id": "D07-C04-foreign_context",
+      "content_address": "sha256:38db180198b639b570915398a602a37215e2d0b6e73a1f2738bb83000031860f",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "h3k27ac_activity",
+      "operation_id": "D07-C04",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "d07-c04-positive",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "element_id": "enhancer-1",
+          "end": 120,
+          "start": 100,
+          "track_kind": "h3k27ac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"h3k27ac\",\"mark\":\"H3K27ac\",\"replicate\":\"r1\",\"signal\":9.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"h3-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_context_frontier:roadmap-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C04",
+      "case_id": "D07-C04-malformed_input",
+      "content_address": "sha256:0be8c9a8bb67725897c2c047ab06ec718899596cf1350ac501264d24ad68ea84",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "h3k27ac_activity",
+      "operation_id": "D07-C04",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "d07-c04-positive",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "element_id": "enhancer-1",
+          "end": 120,
+          "start": 100,
+          "track_kind": "h3k27ac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"h3k27ac\",\"mark\":\"H3K27ac\",\"replicate\":\"r1\",\"signal\":9.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"h3-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_context_frontier:roadmap-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C04",
+      "case_id": "D07-C04-identity_conflict",
+      "content_address": "sha256:eaaddc7799f93669a8551232e1137f0eb52134d2389a02776127269a31f3b29a",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_context_frontier",
+      "operation": "h3k27ac_activity",
+      "operation_id": "D07-C04",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "d07-c04-positive",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "chr7",
+          "element_id": "enhancer-1",
+          "end": 120,
+          "start": 100,
+          "track_kind": "h3k27ac",
+          "track_text": "{\"observations\":[{\"chromosome\":\"chr7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":140,\"kind\":\"h3k27ac\",\"mark\":\"H3K27ac\",\"replicate\":\"r1\",\"signal\":9.0,\"source_version\":\"aggregate-2026-01\",\"start\":100,\"track_id\":\"h3-supported\"}]}"
+        }
+      },
+      "plane": "accessibility",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_context_frontier:roadmap-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C05",
+      "case_id": "D07-C05-positive",
+      "content_address": "sha256:c6c8ed43a13979902b871871fc9fc3ed8de26eeceb4d34b2b7e9ea60a2b5ec05",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "public aggregate positive path for GNC-D07-C05",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "context_query_supported"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "methylation_frontier",
+      "operation": "methylation_context_retrieval",
+      "operation_id": "D07-C05",
+      "payload": {
+        "family_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+        "family_record": {
+          "content_address": "sha256:33f1a414d29b576d8fc50665df6870a9d25635c49614f443069ca437600b88b8",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "expected_issue_codes": [
+            "context_query_supported"
+          ],
+          "expected_state": "supported",
+          "operation": "methylation_context_retrieval",
+          "payload": {
+            "beta_spread_tolerance": 0.2,
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+            "coordinate_system": "one_based",
+            "query": {
+              "chromosome": "7",
+              "end": 101,
+              "start": 100
+            },
+            "source_id": "encode-methylation",
+            "source_version": "2025.4",
+            "text": "chromosome\tposition\tbeta_value\tcontext_key\tcoverage\tmolecular_state\n7\t100\t0.80\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t101\t0.85\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t102\t0.90\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n"
+          },
+          "record_id": "C05-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-methylation",
+            "ncbi-reference"
+          ]
+        },
+        "family_record_id": "C05-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:f26e5925222e6e3f4b4b971d8eb32eaf49d835e6f04cacb2822582c89ddff554",
+            "detail": "parsed methylation records and exact-context query retained",
+            "issue_codes": [
+              "context_query_supported"
+            ],
+            "measurements": {
+              "beta_spread": 0.04999999999999993,
+              "median_beta": 0.825,
+              "median_coverage": 50.0,
+              "parse_issue_count": 0,
+              "parsed_record_count": 3,
+              "query_record_count": 2
+            },
+            "operation": "methylation_context_retrieval",
+            "primitive_state": "supported",
+            "record_id": "C05-POS-001",
+            "state": "supported",
+            "warnings": [
+              "Exact-context methylation retrieval does not impute missing beta values."
+            ]
+          },
+          "content_address": "sha256:f614aacf1d914da3e646b956669dd8d0b138d401ce73c4ba63ffa219555db467",
+          "expected_issue_codes": [
+            "context_query_supported"
+          ],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [
+            "context_query_supported"
+          ],
+          "observed_state": "supported",
+          "record_id": "C05-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "beta_spread_tolerance": 0.2,
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "coordinate_system": "one_based",
+          "query": {
+            "chromosome": "7",
+            "end": 101,
+            "start": 100
+          },
+          "source_id": "encode-methylation",
+          "source_version": "2025.4",
+          "text": "chromosome\tposition\tbeta_value\tcontext_key\tcoverage\tmolecular_state\n7\t100\t0.80\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t101\t0.85\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t102\t0.90\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n"
+        }
+      },
+      "plane": "methylation",
+      "scenario": "positive",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C05",
+      "case_id": "D07-C05-foreign_context",
+      "content_address": "sha256:8af985c9064ccf4cae16a0bd5adf6edf599f810178c54f901c31c48b7cceeca8",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "methylation_context_retrieval",
+      "operation_id": "D07-C05",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C05-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "beta_spread_tolerance": 0.2,
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "coordinate_system": "one_based",
+          "query": {
+            "chromosome": "7",
+            "end": 101,
+            "start": 100
+          },
+          "source_id": "encode-methylation",
+          "source_version": "2025.4",
+          "text": "chromosome\tposition\tbeta_value\tcontext_key\tcoverage\tmolecular_state\n7\t100\t0.80\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t101\t0.85\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t102\t0.90\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n"
+        }
+      },
+      "plane": "methylation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C05",
+      "case_id": "D07-C05-malformed_input",
+      "content_address": "sha256:38d22af09dae0ac5a7376b6783d9d773f30d58293f29ab309a27236459c34595",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "methylation_context_retrieval",
+      "operation_id": "D07-C05",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C05-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "beta_spread_tolerance": 0.2,
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "coordinate_system": "one_based",
+          "query": {
+            "chromosome": "7",
+            "end": 101,
+            "start": 100
+          },
+          "source_id": "encode-methylation",
+          "source_version": "2025.4",
+          "text": "chromosome\tposition\tbeta_value\tcontext_key\tcoverage\tmolecular_state\n7\t100\t0.80\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t101\t0.85\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t102\t0.90\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n"
+        }
+      },
+      "plane": "methylation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C05",
+      "case_id": "D07-C05-identity_conflict",
+      "content_address": "sha256:60201da586f2f17d51fd65a0646d024e24b9f67e982266f82f953a5b4037b7a1",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "methylation_context_retrieval",
+      "operation_id": "D07-C05",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C05-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "beta_spread_tolerance": 0.2,
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "coordinate_system": "one_based",
+          "query": {
+            "chromosome": "7",
+            "end": 101,
+            "start": 100
+          },
+          "source_id": "encode-methylation",
+          "source_version": "2025.4",
+          "text": "chromosome\tposition\tbeta_value\tcontext_key\tcoverage\tmolecular_state\n7\t100\t0.80\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t101\t0.85\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n7\t102\t0.90\tGRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline\t50\tIDH-mutant\n"
+        }
+      },
+      "plane": "methylation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C06",
+      "case_id": "D07-C06-positive",
+      "content_address": "sha256:8a1fcf05c34139c759740d5e6f964b600b7934115f2d56f717a46d28f0b5a869",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "public aggregate positive path for GNC-D07-C06",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "cpg_created",
+        "methylation_supported"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "methylation_frontier",
+      "operation": "cpg_creation_loss",
+      "operation_id": "D07-C06",
+      "payload": {
+        "family_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+        "family_record": {
+          "content_address": "sha256:e1f9dda1943f73b2fb918eff87533510bc5fa16b2aaa0713583c553eb7e4660a",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "expected_issue_codes": [
+            "cpg_created",
+            "methylation_supported"
+          ],
+          "expected_state": "supported",
+          "operation": "cpg_creation_loss",
+          "payload": {
+            "alternate_sequence": "ACGTT",
+            "chromosome": "7",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+            "methylated_threshold": 0.5,
+            "methylation_records": [
+              {
+                "beta_value": 0.8,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "coverage": 50,
+                "position": 100,
+                "record_id": "aggregate-meth-100",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              }
+            ],
+            "reference_sequence": "AAGTT",
+            "variant_id": "aggregate-cpg-create-1",
+            "window_start": 99
+          },
+          "record_id": "C06-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-methylation",
+            "ncbi-reference"
+          ]
+        },
+        "family_record_id": "C06-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:9caa209e73e56545ad8ab081e2a2bf96fa3ceb744bc316e09ea5a16eb75bca67",
+            "detail": "equal-length CpG creation/loss and exact methylation context retained",
+            "issue_codes": [
+              "cpg_created",
+              "methylation_supported"
+            ],
+            "measurements": {
+              "alternate_cpg_count": 1,
+              "created_count": 1,
+              "lost_count": 0,
+              "methylated_change_count": 1,
+              "methylation_context_state": "supported",
+              "reference_cpg_count": 0
+            },
+            "operation": "cpg_creation_loss",
+            "primitive_state": "supported",
+            "record_id": "C06-POS-001",
+            "state": "supported",
+            "warnings": [
+              "CpG creation or loss is a sequence observation, not proof of methylation change or regulatory effect.",
+              "Methylation records are used only when chromosome, coordinate, and context key agree exactly.",
+              "Window-boundary CpG partners outside the supplied sequence are not evaluated."
+            ]
+          },
+          "content_address": "sha256:09fe810b27295c9c0fff22d50690c4115e7d09e1cf9bb35ffcc98d1bd5787d52",
+          "expected_issue_codes": [
+            "cpg_created",
+            "methylation_supported"
+          ],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [
+            "cpg_created",
+            "methylation_supported"
+          ],
+          "observed_state": "supported",
+          "record_id": "C06-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "alternate_sequence": "ACGTT",
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.5,
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 50,
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "reference_sequence": "AAGTT",
+          "variant_id": "aggregate-cpg-create-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "positive",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C06",
+      "case_id": "D07-C06-foreign_context",
+      "content_address": "sha256:4087fb0442a73d9daa0d0e91f67cdf4e04ea7495cbb63e90ebdb9e675ccf218a",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "cpg_creation_loss",
+      "operation_id": "D07-C06",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C06-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "alternate_sequence": "ACGTT",
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.5,
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 50,
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "reference_sequence": "AAGTT",
+          "variant_id": "aggregate-cpg-create-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C06",
+      "case_id": "D07-C06-malformed_input",
+      "content_address": "sha256:aa44de96ab04ea71edbc49325bb74272e9638af722d9676aa5fe73bc01f39d2c",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "cpg_creation_loss",
+      "operation_id": "D07-C06",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C06-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "alternate_sequence": "ACGTT",
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.5,
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 50,
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "reference_sequence": "AAGTT",
+          "variant_id": "aggregate-cpg-create-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C06",
+      "case_id": "D07-C06-identity_conflict",
+      "content_address": "sha256:2631c062f6f0fa35402ddd3cc363027e2a556d5d20131b38e745c82d911f7332",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "cpg_creation_loss",
+      "operation_id": "D07-C06",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C06-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "alternate_sequence": "ACGTT",
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.5,
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 50,
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "reference_sequence": "AAGTT",
+          "variant_id": "aggregate-cpg-create-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C07",
+      "case_id": "D07-C07-positive",
+      "content_address": "sha256:c35522ba434fc287770dcf71c3683a94483256d3508334946da31bac7f54f8b2",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "public aggregate positive path for GNC-D07-C07",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "sensitive_motif_observed",
+        "methylation_supported"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "methylation_frontier",
+      "operation": "methylation_sensitive_motif",
+      "operation_id": "D07-C07",
+      "payload": {
+        "family_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+        "family_record": {
+          "content_address": "sha256:7750f5ec8c9ce4e214779453442f0d178fd6d994818b8aedf1686e0cfd4aba6c",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "expected_issue_codes": [
+            "sensitive_motif_observed",
+            "methylation_supported"
+          ],
+          "expected_state": "supported",
+          "operation": "methylation_sensitive_motif",
+          "payload": {
+            "chromosome": "7",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+            "methylation_records": [
+              {
+                "beta_value": 0.8,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "position": 100,
+                "record_id": "aggregate-meth-100",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              }
+            ],
+            "motifs": [
+              {
+                "consensus": "CG",
+                "methylated_threshold": 0.5,
+                "motif_id": "C05:CG-sensitive",
+                "name": "aggregate CG-sensitive motif",
+                "sensitive_positions": [
+                  0
+                ],
+                "source_id": "cpg-motif-catalog",
+                "source_version": "2026.1",
+                "strand_aware": false,
+                "threshold": 1.0
+              }
+            ],
+            "sequence": "ACGTT",
+            "sequence_id": "aggregate-motif-1",
+            "window_start": 99
+          },
+          "record_id": "C07-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "cpg-motif-catalog",
+            "encode-methylation"
+          ]
+        },
+        "family_record_id": "C07-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:9d73c78de0fd8670815bde3c10733bfc1f56fa6cb9bfa7d1deeeb25b54781928",
+            "detail": "methylation-sensitive motif hits and measured offsets retained",
+            "issue_codes": [
+              "sensitive_motif_observed",
+              "methylation_supported"
+            ],
+            "measurements": {
+              "ambiguous_hit_count": 0,
+              "hit_count": 1,
+              "methylated_hit_count": 1,
+              "missing_hit_count": 0,
+              "source_count": 1
+            },
+            "operation": "methylation_sensitive_motif",
+            "primitive_state": "supported",
+            "record_id": "C07-POS-001",
+            "state": "supported",
+            "warnings": [
+              "Methylation-sensitive motif state is a declared sequence/methylation observation, not a binding prediction.",
+              "Sensitive offsets are zero-based within the declared motif consensus and require exact context coordinates.",
+              "Missing methylation is reported explicitly and is not imputed from neighboring CpGs."
+            ]
+          },
+          "content_address": "sha256:49dbec8974f384fe13d12950066c1b9dd4d22dfce6dc569a4e8cf9bd32b45862",
+          "expected_issue_codes": [
+            "sensitive_motif_observed",
+            "methylation_supported"
+          ],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [
+            "sensitive_motif_observed",
+            "methylation_supported"
+          ],
+          "observed_state": "supported",
+          "record_id": "C07-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "motifs": [
+            {
+              "consensus": "CG",
+              "methylated_threshold": 0.5,
+              "motif_id": "C05:CG-sensitive",
+              "name": "aggregate CG-sensitive motif",
+              "sensitive_positions": [
+                0
+              ],
+              "source_id": "cpg-motif-catalog",
+              "source_version": "2026.1",
+              "strand_aware": false,
+              "threshold": 1.0
+            }
+          ],
+          "sequence": "ACGTT",
+          "sequence_id": "aggregate-motif-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "positive",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C07",
+      "case_id": "D07-C07-foreign_context",
+      "content_address": "sha256:3993354b1f04b99db0fcd6db06c49d4640f710776076eb97ffb0dcbde4345bf1",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "methylation_sensitive_motif",
+      "operation_id": "D07-C07",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C07-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "motifs": [
+            {
+              "consensus": "CG",
+              "methylated_threshold": 0.5,
+              "motif_id": "C05:CG-sensitive",
+              "name": "aggregate CG-sensitive motif",
+              "sensitive_positions": [
+                0
+              ],
+              "source_id": "cpg-motif-catalog",
+              "source_version": "2026.1",
+              "strand_aware": false,
+              "threshold": 1.0
+            }
+          ],
+          "sequence": "ACGTT",
+          "sequence_id": "aggregate-motif-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C07",
+      "case_id": "D07-C07-malformed_input",
+      "content_address": "sha256:5ae5a343771e469d9285224c40577618db6b867b0360dcdcf8e66f8beee973f7",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "methylation_sensitive_motif",
+      "operation_id": "D07-C07",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C07-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "motifs": [
+            {
+              "consensus": "CG",
+              "methylated_threshold": 0.5,
+              "motif_id": "C05:CG-sensitive",
+              "name": "aggregate CG-sensitive motif",
+              "sensitive_positions": [
+                0
+              ],
+              "source_id": "cpg-motif-catalog",
+              "source_version": "2026.1",
+              "strand_aware": false,
+              "threshold": 1.0
+            }
+          ],
+          "sequence": "ACGTT",
+          "sequence_id": "aggregate-motif-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C07",
+      "case_id": "D07-C07-identity_conflict",
+      "content_address": "sha256:0ce1aee7fc505b5a694e56e7ae803c2a6a1a627ba748eb908f95103cf8fad9ef",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "methylation_sensitive_motif",
+      "operation_id": "D07-C07",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C07-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "chromosome": "7",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylation_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "position": 100,
+              "record_id": "aggregate-meth-100",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "motifs": [
+            {
+              "consensus": "CG",
+              "methylated_threshold": 0.5,
+              "motif_id": "C05:CG-sensitive",
+              "name": "aggregate CG-sensitive motif",
+              "sensitive_positions": [
+                0
+              ],
+              "source_id": "cpg-motif-catalog",
+              "source_version": "2026.1",
+              "strand_aware": false,
+              "threshold": 1.0
+            }
+          ],
+          "sequence": "ACGTT",
+          "sequence_id": "aggregate-motif-1",
+          "window_start": 99
+        }
+      },
+      "plane": "methylation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C08",
+      "case_id": "D07-C08-positive",
+      "content_address": "sha256:70c51721ab9525bf11e538f81b557066dd9fa5219780ce9451e36ac69699632b",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "public aggregate positive path for GNC-D07-C08",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [
+        "idh_panel_supported",
+        "comparator_supported"
+      ],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "methylation_frontier",
+      "operation": "idh_hypermethylation_context",
+      "operation_id": "D07-C08",
+      "payload": {
+        "family_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+        "family_record": {
+          "content_address": "sha256:a864ffff30ca7a99c1216e8716e59a35fec0ac264d72f5a721f9e771c07cbd24",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "expected_issue_codes": [
+            "idh_panel_supported",
+            "comparator_supported"
+          ],
+          "expected_state": "supported",
+          "operation": "idh_hypermethylation_context",
+          "payload": {
+            "comparator_records": [
+              {
+                "beta_value": 0.2,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "coverage": 100,
+                "molecular_state": "IDH-wildtype",
+                "position": 100,
+                "record_id": "aggregate-idh-comparator-0",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              },
+              {
+                "beta_value": 0.2,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "coverage": 100,
+                "molecular_state": "IDH-wildtype",
+                "position": 101,
+                "record_id": "aggregate-idh-comparator-1",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              },
+              {
+                "beta_value": 0.2,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "coverage": 100,
+                "molecular_state": "IDH-wildtype",
+                "position": 102,
+                "record_id": "aggregate-idh-comparator-2",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              }
+            ],
+            "comparator_state": "IDH-wildtype",
+            "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+            "methylated_threshold": 0.7,
+            "minimum_sites": 3,
+            "model_id": "aggregate-idh-panel",
+            "model_version": "2026.1",
+            "molecular_state": "IDH-mutant",
+            "target_records": [
+              {
+                "beta_value": 0.8,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "coverage": 100,
+                "molecular_state": "IDH-mutant",
+                "position": 100,
+                "record_id": "aggregate-idh-target-0",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              },
+              {
+                "beta_value": 0.85,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "coverage": 100,
+                "molecular_state": "IDH-mutant",
+                "position": 101,
+                "record_id": "aggregate-idh-target-1",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              },
+              {
+                "beta_value": 0.9,
+                "chromosome": "7",
+                "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+                "coverage": 100,
+                "molecular_state": "IDH-mutant",
+                "position": 102,
+                "record_id": "aggregate-idh-target-2",
+                "source_id": "encode-methylation",
+                "source_version": "2025.4"
+              }
+            ]
+          },
+          "record_id": "C08-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-methylation",
+            "roadmap-epigenomics"
+          ]
+        },
+        "family_record_id": "C08-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:ed17cc092de704d2813cbdd53c309148aa3926b26bd5c8b5c8efbcc8c284f397",
+            "detail": "descriptive IDH panel summary and comparator delta retained",
+            "issue_codes": [
+              "idh_panel_supported",
+              "comparator_supported"
+            ],
+            "measurements": {
+              "comparator_mean_beta": 0.2,
+              "comparator_site_count": 3,
+              "coverage_weighted_beta": 0.85,
+              "delta_vs_comparator": 0.65,
+              "high_methylation_fraction": 1.0,
+              "high_methylation_site_count": 3,
+              "hypermethylated": true,
+              "mean_beta": 0.85,
+              "measured_site_count": 3,
+              "median_beta": 0.85
+            },
+            "operation": "idh_hypermethylation_context",
+            "primitive_state": "supported",
+            "record_id": "C08-POS-001",
+            "state": "supported",
+            "warnings": [
+              "This is a descriptive IDH-associated methylation context model, not a diagnostic classifier.",
+              "The hypermethylated flag is a declared panel threshold result, not a genome-wide epigenetic state.",
+              "Calibration, matched external validation, subgroup transport, and assay harmonization remain required."
+            ]
+          },
+          "content_address": "sha256:c1af35982afcbf14f3add6592451f0de8ee975a27cb4a1b1afafad1911a428b1",
+          "expected_issue_codes": [
+            "idh_panel_supported",
+            "comparator_supported"
+          ],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [
+            "idh_panel_supported",
+            "comparator_supported"
+          ],
+          "observed_state": "supported",
+          "record_id": "C08-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "comparator_records": [
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 100,
+              "record_id": "aggregate-idh-comparator-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 101,
+              "record_id": "aggregate-idh-comparator-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 102,
+              "record_id": "aggregate-idh-comparator-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "comparator_state": "IDH-wildtype",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.7,
+          "minimum_sites": 3,
+          "model_id": "aggregate-idh-panel",
+          "model_version": "2026.1",
+          "molecular_state": "IDH-mutant",
+          "target_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 100,
+              "record_id": "aggregate-idh-target-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.85,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 101,
+              "record_id": "aggregate-idh-target-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.9,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 102,
+              "record_id": "aggregate-idh-target-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ]
+        }
+      },
+      "plane": "methylation",
+      "scenario": "positive",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C08",
+      "case_id": "D07-C08-foreign_context",
+      "content_address": "sha256:212e7a5da34a2af20f8fa6184761c5af9ca6873b048057f62d537895c5e1791f",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "idh_hypermethylation_context",
+      "operation_id": "D07-C08",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C08-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "comparator_records": [
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 100,
+              "record_id": "aggregate-idh-comparator-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 101,
+              "record_id": "aggregate-idh-comparator-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 102,
+              "record_id": "aggregate-idh-comparator-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "comparator_state": "IDH-wildtype",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.7,
+          "minimum_sites": 3,
+          "model_id": "aggregate-idh-panel",
+          "model_version": "2026.1",
+          "molecular_state": "IDH-mutant",
+          "target_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 100,
+              "record_id": "aggregate-idh-target-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.85,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 101,
+              "record_id": "aggregate-idh-target-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.9,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 102,
+              "record_id": "aggregate-idh-target-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ]
+        }
+      },
+      "plane": "methylation",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C08",
+      "case_id": "D07-C08-malformed_input",
+      "content_address": "sha256:3a3f62e368af09a51eda3b732e9a3f69b0ac1c3064112c84bcdbabfecb6f9cf3",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "idh_hypermethylation_context",
+      "operation_id": "D07-C08",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C08-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "comparator_records": [
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 100,
+              "record_id": "aggregate-idh-comparator-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 101,
+              "record_id": "aggregate-idh-comparator-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 102,
+              "record_id": "aggregate-idh-comparator-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "comparator_state": "IDH-wildtype",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.7,
+          "minimum_sites": 3,
+          "model_id": "aggregate-idh-panel",
+          "model_version": "2026.1",
+          "molecular_state": "IDH-mutant",
+          "target_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 100,
+              "record_id": "aggregate-idh-target-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.85,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 101,
+              "record_id": "aggregate-idh-target-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.9,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 102,
+              "record_id": "aggregate-idh-target-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ]
+        }
+      },
+      "plane": "methylation",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C08",
+      "case_id": "D07-C08-identity_conflict",
+      "content_address": "sha256:9ee4dafa1ac5a42fe6fba4a3dbccc11569cb495c8ed040dac98e52dc82267378",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "methylation_frontier",
+      "operation": "idh_hypermethylation_context",
+      "operation_id": "D07-C08",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C08-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "comparator_records": [
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 100,
+              "record_id": "aggregate-idh-comparator-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 101,
+              "record_id": "aggregate-idh-comparator-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.2,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-wildtype",
+              "position": 102,
+              "record_id": "aggregate-idh-comparator-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ],
+          "comparator_state": "IDH-wildtype",
+          "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+          "methylated_threshold": 0.7,
+          "minimum_sites": 3,
+          "model_id": "aggregate-idh-panel",
+          "model_version": "2026.1",
+          "molecular_state": "IDH-mutant",
+          "target_records": [
+            {
+              "beta_value": 0.8,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 100,
+              "record_id": "aggregate-idh-target-0",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.85,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 101,
+              "record_id": "aggregate-idh-target-1",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            },
+            {
+              "beta_value": 0.9,
+              "chromosome": "7",
+              "context_key": "GRCh38|diffuse_glioma|adult|bulk_tumor|epigenomic_assay|baseline",
+              "coverage": 100,
+              "molecular_state": "IDH-mutant",
+              "position": 102,
+              "record_id": "aggregate-idh-target-2",
+              "source_id": "encode-methylation",
+              "source_version": "2025.4"
+            }
+          ]
+        }
+      },
+      "plane": "methylation",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C09",
+      "case_id": "D07-C09-positive",
+      "content_address": "sha256:8c6c12e0a9b084b64b4d3c620a14be3ae47b9e45bbd27b3ad973506cb1b06be0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C09",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_alpha_frontier",
+      "operation": "chromatin_state_segmentation",
+      "operation_id": "D07-C09",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:89516d7a17cfcb72710ab76c1f62a754f66338a585ba389e7a4abbd0021c26cf",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "replicate-supported open chromatin intervals form a stable segment",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "chromatin_segmentation",
+          "payload": {
+            "high_signal": 0.75,
+            "input_text": "[{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-1\",\"replicate\":\"rep-1\",\"sample\":\"aggregate-open-1\",\"signal\":0.9,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"},{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-2\",\"replicate\":\"rep-2\",\"sample\":\"aggregate-open-2\",\"signal\":0.86,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"}]",
+            "low_signal": 0.25
+          },
+          "record_id": "C09-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-atac",
+            "ucsc-genome-browser"
+          ]
+        },
+        "family_record_id": "C09-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:38706be71e3a9adf63ff1278939d33f3caeb8a194feaa5c3bb299c4e4e5a0943",
+            "detail": "interval boundaries, replicate labels, and transparent chromatin states retained",
+            "issue_codes": [],
+            "measurements": {
+              "observation_count": 2,
+              "segment_count": 1,
+              "signal_spreads": [
+                0.04
+              ],
+              "state_labels": [
+                "open"
+              ],
+              "support_counts": [
+                2
+              ]
+            },
+            "operation": "chromatin_segmentation",
+            "primitive_state": "supported",
+            "record_id": "C09-POS-001",
+            "state": "supported",
+            "warnings": [
+              "Chromatin state labels are observation summaries, not activity or causal claims.",
+              "Atomic segments are emitted only across observed interval boundaries."
+            ]
+          },
+          "content_address": "sha256:4e2d79945634c1692ef1e79a9578e6345713c9e0afbbec6545b3f7bce04d582e",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [],
+          "observed_state": "supported",
+          "operation": "chromatin_segmentation",
+          "record_id": "C09-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "high_signal": 0.75,
+          "input_text": "[{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-1\",\"replicate\":\"rep-1\",\"sample\":\"aggregate-open-1\",\"signal\":0.9,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"},{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-2\",\"replicate\":\"rep-2\",\"sample\":\"aggregate-open-2\",\"signal\":0.86,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"}]",
+          "low_signal": 0.25
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C09",
+      "case_id": "D07-C09-foreign_context",
+      "content_address": "sha256:15792db0597df5092c455f287438b550a67e10141d6a3fb7a3effa02a8913e58",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "chromatin_state_segmentation",
+      "operation_id": "D07-C09",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C09-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "high_signal": 0.75,
+          "input_text": "[{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-1\",\"replicate\":\"rep-1\",\"sample\":\"aggregate-open-1\",\"signal\":0.9,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"},{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-2\",\"replicate\":\"rep-2\",\"sample\":\"aggregate-open-2\",\"signal\":0.86,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"}]",
+          "low_signal": 0.25
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C09",
+      "case_id": "D07-C09-malformed_input",
+      "content_address": "sha256:1054ae709e831009ced2abf5872e28d70db6549da46b626c9f50572f572049f3",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "chromatin_state_segmentation",
+      "operation_id": "D07-C09",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C09-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "high_signal": 0.75,
+          "input_text": "[{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-1\",\"replicate\":\"rep-1\",\"sample\":\"aggregate-open-1\",\"signal\":0.9,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"},{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-2\",\"replicate\":\"rep-2\",\"sample\":\"aggregate-open-2\",\"signal\":0.86,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"}]",
+          "low_signal": 0.25
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C09",
+      "case_id": "D07-C09-identity_conflict",
+      "content_address": "sha256:baa55452f497d0923093f38037fa8d3663725dbbf83404cabe065fa919f8a2ba",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "chromatin_state_segmentation",
+      "operation_id": "D07-C09",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C09-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "high_signal": 0.75,
+          "input_text": "[{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-1\",\"replicate\":\"rep-1\",\"sample\":\"aggregate-open-1\",\"signal\":0.9,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"},{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-2\",\"replicate\":\"rep-2\",\"sample\":\"aggregate-open-2\",\"signal\":0.86,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"}]",
+          "low_signal": 0.25
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C10",
+      "case_id": "D07-C10-positive",
+      "content_address": "sha256:6f2a11a73e8a777dac76b664987fad11b67b2755777e29dfef09d182001ca95a",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C10",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_alpha_frontier",
+      "operation": "allele_specific_chromatin",
+      "operation_id": "D07-C10",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:27366bbf08ca997fdf5f32b11470008a91fcadd74f53acc93e63a715cf3a32a6",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "replicate-consistent alternate accessibility delta is supported",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "allele_specific_chromatin",
+          "payload": {
+            "ambiguity_tolerance": 0.3,
+            "delta_threshold": 0.05,
+            "input_text": "[{\"alternate_signal\":3.0,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-1\",\"reference_signal\":2.0,\"replicate\":\"rep-1\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"},{\"alternate_signal\":2.8,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-2\",\"reference_signal\":2.0,\"replicate\":\"rep-2\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"}]"
+          },
+          "record_id": "C10-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-atac",
+            "ucsc-genome-browser"
+          ]
+        },
+        "family_record_id": "C10-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:98e1146642ba4579abd7c61e1d13e2553588767728c4567172d79e8296442088",
+            "detail": "replicate-aware reference/alternate signal deltas retained without causal interpretation",
+            "issue_codes": [],
+            "measurements": {
+              "directions": [
+                "increased"
+              ],
+              "median_deltas": [
+                0.9
+              ],
+              "observation_count": 2,
+              "result_count": 1,
+              "variant_ids": [
+                "7:140453136:G:A"
+              ]
+            },
+            "operation": "allele_specific_chromatin",
+            "primitive_state": "supported",
+            "record_id": "C10-POS-001",
+            "state": "supported",
+            "warnings": [
+              "Allele-specific chromatin deltas are assay comparisons, not causal effects.",
+              "Mixed replicate directions remain ambiguous rather than averaged into certainty."
+            ]
+          },
+          "content_address": "sha256:6a4c2e706f614e28cbe6a65dfa10fd7d5d96603f07df35c48cc702140367715d",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [],
+          "observed_state": "supported",
+          "operation": "allele_specific_chromatin",
+          "record_id": "C10-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "ambiguity_tolerance": 0.3,
+          "delta_threshold": 0.05,
+          "input_text": "[{\"alternate_signal\":3.0,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-1\",\"reference_signal\":2.0,\"replicate\":\"rep-1\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"},{\"alternate_signal\":2.8,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-2\",\"reference_signal\":2.0,\"replicate\":\"rep-2\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C10",
+      "case_id": "D07-C10-foreign_context",
+      "content_address": "sha256:eb3d5a292a0671405230a27e26414f89ed77c4d27784a60de7361bdcc416eff5",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "allele_specific_chromatin",
+      "operation_id": "D07-C10",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C10-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_tolerance": 0.3,
+          "delta_threshold": 0.05,
+          "input_text": "[{\"alternate_signal\":3.0,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-1\",\"reference_signal\":2.0,\"replicate\":\"rep-1\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"},{\"alternate_signal\":2.8,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-2\",\"reference_signal\":2.0,\"replicate\":\"rep-2\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C10",
+      "case_id": "D07-C10-malformed_input",
+      "content_address": "sha256:c923e29fafb21b91b4d42dbba0fb40054e1fbe258c2d4fb61e2e0c30ad854d6d",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "allele_specific_chromatin",
+      "operation_id": "D07-C10",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C10-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "ambiguity_tolerance": 0.3,
+          "delta_threshold": 0.05,
+          "input_text": "[{\"alternate_signal\":3.0,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-1\",\"reference_signal\":2.0,\"replicate\":\"rep-1\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"},{\"alternate_signal\":2.8,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-2\",\"reference_signal\":2.0,\"replicate\":\"rep-2\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C10",
+      "case_id": "D07-C10-identity_conflict",
+      "content_address": "sha256:3001780534aec29b3bafb26e11249a0b8f45ff04822e3c384fc88ffeb8be22c6",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "allele_specific_chromatin",
+      "operation_id": "D07-C10",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C10-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "ambiguity_tolerance": 0.3,
+          "delta_threshold": 0.05,
+          "input_text": "[{\"alternate_signal\":3.0,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-1\",\"reference_signal\":2.0,\"replicate\":\"rep-1\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"},{\"alternate_signal\":2.8,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-2\",\"reference_signal\":2.0,\"replicate\":\"rep-2\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C11",
+      "case_id": "D07-C11-positive",
+      "content_address": "sha256:2fcd66f5cabb8185cacf4b6e1bebf1d82969b82637341c739309c74391aa61fd",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C11",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_alpha_frontier",
+      "operation": "epigenomic_purity",
+      "operation_id": "D07-C11",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:af63dda86d09163405c348314128014167d703c28340a53ac6c2d74e117f9829",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "two bounded markers agree on a descriptive mixture estimate",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "epigenomic_purity",
+          "payload": {
+            "input_text": "[{\"assay\":\"methylation\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m1\",\"normal_signal\":0.0,\"observed_signal\":0.6,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":1.0},{\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m2\",\"normal_signal\":0.1,\"observed_signal\":0.34,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":0.5}]",
+            "minimum_markers": 2,
+            "spread_tolerance": 0.2
+          },
+          "record_id": "C11-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ihec-epigenomes",
+            "ncbi-geo"
+          ]
+        },
+        "family_record_id": "C11-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:f8c4e90683cd535a00b0dccdc934366db720ff743550406e15c36a92ca060b10",
+            "detail": "declared tumor/normal marker mixture estimates retain denominators and spread",
+            "issue_codes": [],
+            "measurements": {
+              "aggregate_purity": 0.6,
+              "estimate_count": 2,
+              "estimate_states": [
+                "supported"
+              ],
+              "marker_count": 2,
+              "purity_spread": 0.0
+            },
+            "operation": "epigenomic_purity",
+            "primitive_state": "supported",
+            "record_id": "C11-POS-001",
+            "state": "supported",
+            "warnings": [
+              "Purity is a bounded mixture estimate from declared assay references, not a clinical purity call.",
+              "Out-of-range marker estimates are clipped only for aggregate reporting and remain visible."
+            ]
+          },
+          "content_address": "sha256:59280722050ee42c55bb57f5d44436b77eae057d07ec53a4bc6eb0f1fa89a8a2",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [],
+          "observed_state": "supported",
+          "operation": "epigenomic_purity",
+          "record_id": "C11-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"methylation\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m1\",\"normal_signal\":0.0,\"observed_signal\":0.6,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":1.0},{\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m2\",\"normal_signal\":0.1,\"observed_signal\":0.34,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":0.5}]",
+          "minimum_markers": 2,
+          "spread_tolerance": 0.2
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C11",
+      "case_id": "D07-C11-foreign_context",
+      "content_address": "sha256:cdf285da797df72359a7d63c86f32a47f099b7bc8116a9c639a796a31f74875e",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "epigenomic_purity",
+      "operation_id": "D07-C11",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C11-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"methylation\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m1\",\"normal_signal\":0.0,\"observed_signal\":0.6,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":1.0},{\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m2\",\"normal_signal\":0.1,\"observed_signal\":0.34,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":0.5}]",
+          "minimum_markers": 2,
+          "spread_tolerance": 0.2
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C11",
+      "case_id": "D07-C11-malformed_input",
+      "content_address": "sha256:01fa18c7b5b95eda0e1e2940ac3aed6303bd4fe17ed20a5bfc97b67b78e7dcd9",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "epigenomic_purity",
+      "operation_id": "D07-C11",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C11-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"methylation\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m1\",\"normal_signal\":0.0,\"observed_signal\":0.6,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":1.0},{\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m2\",\"normal_signal\":0.1,\"observed_signal\":0.34,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":0.5}]",
+          "minimum_markers": 2,
+          "spread_tolerance": 0.2
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C11",
+      "case_id": "D07-C11-identity_conflict",
+      "content_address": "sha256:605389100efd32c2a88350dc7e9e60928b199315e0c6b7a5d4fe0ca880071741",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "epigenomic_purity",
+      "operation_id": "D07-C11",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C11-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"methylation\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m1\",\"normal_signal\":0.0,\"observed_signal\":0.6,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":1.0},{\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m2\",\"normal_signal\":0.1,\"observed_signal\":0.34,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":0.5}]",
+          "minimum_markers": 2,
+          "spread_tolerance": 0.2
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C12",
+      "case_id": "D07-C12-positive",
+      "content_address": "sha256:9b8d6fcec3ebbd5bebd8618679540c4a7a2f43ce8ed81939366663c325ee49c1",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C12",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "supported",
+      "expected_state": "accepted",
+      "family": "chromatin_alpha_frontier",
+      "operation": "batch_composition_correction",
+      "operation_id": "D07-C12",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:386c795be606ac5d6db2d1e15c136761d0462c1428d9210392032de16fa127c9",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "batch and composition terms remain visible in corrected signal",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "batch_composition_correction",
+          "payload": {
+            "input_text": "[{\"assay\":\"ATAC\",\"batch_id\":\"batch-1\",\"batch_offset\":0.1,\"cell_composition\":{\"normal\":0.2,\"tumor\":0.8},\"composition_coefficients\":{\"normal\":-0.5,\"tumor\":0.5},\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"feature_id\":\"batch-feature-1\",\"raw_signal\":1.0,\"source_id\":\"ncbi-geo\",\"target_composition\":{\"normal\":0.5,\"tumor\":0.5}}]"
+          },
+          "record_id": "C12-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ncbi-geo",
+            "ihec-epigenomes"
+          ]
+        },
+        "family_record_id": "C12-POS-001",
+        "family_summary": {
+          "accepted": true,
+          "adapter": {
+            "content_address": "sha256:d6d62699040337883d3b709cefb03e266a64c0339c203fdda3ec2943a55ddaed",
+            "detail": "raw signal, batch term, composition term, and corrected signal retained",
+            "issue_codes": [],
+            "measurements": {
+              "batch_adjustments": [
+                0.1
+              ],
+              "composition_adjustments": [
+                0.3
+              ],
+              "corrected_feature_ids": [
+                "batch-feature-1"
+              ],
+              "corrected_signals": [
+                0.6
+              ],
+              "correction_count": 1,
+              "observation_count": 1
+            },
+            "operation": "batch_composition_correction",
+            "primitive_state": "supported",
+            "record_id": "C12-POS-001",
+            "state": "supported",
+            "warnings": [
+              "Correction requires declared batch offsets and composition coefficients; missing terms remain partial.",
+              "Corrected values are assay-normalization outputs, not biological effects or causal estimates."
+            ]
+          },
+          "content_address": "sha256:8361de0b614bff77b0c2edaf6732f5dbf564af6b58581f1a9fb697b7c2821c48",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "issue_match": true,
+          "observed_issue_codes": [],
+          "observed_state": "supported",
+          "operation": "batch_composition_correction",
+          "record_id": "C12-POS-001",
+          "role": "positive",
+          "state_match": true
+        },
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"ATAC\",\"batch_id\":\"batch-1\",\"batch_offset\":0.1,\"cell_composition\":{\"normal\":0.2,\"tumor\":0.8},\"composition_coefficients\":{\"normal\":-0.5,\"tumor\":0.5},\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"feature_id\":\"batch-feature-1\",\"raw_signal\":1.0,\"source_id\":\"ncbi-geo\",\"target_composition\":{\"normal\":0.5,\"tumor\":0.5}}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:ihec-epigenomes"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C12",
+      "case_id": "D07-C12-foreign_context",
+      "content_address": "sha256:a0bfaf6a8e8fa3340aaafbd0199887323e90403867b318ef4558e381529752b1",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "batch_composition_correction",
+      "operation_id": "D07-C12",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C12-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"ATAC\",\"batch_id\":\"batch-1\",\"batch_offset\":0.1,\"cell_composition\":{\"normal\":0.2,\"tumor\":0.8},\"composition_coefficients\":{\"normal\":-0.5,\"tumor\":0.5},\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"feature_id\":\"batch-feature-1\",\"raw_signal\":1.0,\"source_id\":\"ncbi-geo\",\"target_composition\":{\"normal\":0.5,\"tumor\":0.5}}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:ihec-epigenomes"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C12",
+      "case_id": "D07-C12-malformed_input",
+      "content_address": "sha256:c16038fedd80459e20b78f3679559a938f22ca6ce50b5ef735a924e4eda791af",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "batch_composition_correction",
+      "operation_id": "D07-C12",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C12-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"ATAC\",\"batch_id\":\"batch-1\",\"batch_offset\":0.1,\"cell_composition\":{\"normal\":0.2,\"tumor\":0.8},\"composition_coefficients\":{\"normal\":-0.5,\"tumor\":0.5},\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"feature_id\":\"batch-feature-1\",\"raw_signal\":1.0,\"source_id\":\"ncbi-geo\",\"target_composition\":{\"normal\":0.5,\"tumor\":0.5}}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:ihec-epigenomes"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C12",
+      "case_id": "D07-C12-identity_conflict",
+      "content_address": "sha256:da3e400ae0cc1c299f0b435a265e6b377776abbf7c1de093188ce8f679bfe5be",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_alpha_frontier",
+      "operation": "batch_composition_correction",
+      "operation_id": "D07-C12",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C12-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "input_text": "[{\"assay\":\"ATAC\",\"batch_id\":\"batch-1\",\"batch_offset\":0.1,\"cell_composition\":{\"normal\":0.2,\"tumor\":0.8},\"composition_coefficients\":{\"normal\":-0.5,\"tumor\":0.5},\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"feature_id\":\"batch-feature-1\",\"raw_signal\":1.0,\"source_id\":\"ncbi-geo\",\"target_composition\":{\"normal\":0.5,\"tumor\":0.5}}]"
+        }
+      },
+      "plane": "chromatin_state",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:ihec-epigenomes"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C13",
+      "case_id": "D07-C13-positive",
+      "content_address": "sha256:99257a4ff9a785379938dde2eca58db21dd3bfe420485d1405fce6e840fdeff0",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C13",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "chromatin_frontier",
+      "operation": "context_imputation_confidence",
+      "operation_id": "D07-C13",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:3d3b87ea86e850fb8416fa18ca836f256ed8e836944624a0489dc08449780b52",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "replicate-supported open chromatin intervals form a stable segment",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "chromatin_segmentation",
+          "payload": {
+            "high_signal": 0.75,
+            "input_text": "[{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-1\",\"replicate\":\"rep-1\",\"sample\":\"aggregate-open-1\",\"signal\":0.9,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"},{\"assay\":\"ATAC\",\"chrom\":\"7\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"end\":120,\"id\":\"seg-pos-2\",\"replicate\":\"rep-2\",\"sample\":\"aggregate-open-2\",\"signal\":0.86,\"source_id\":\"encode-atac\",\"source_version\":\"2024-01\",\"start\":100,\"state\":\"open\"}]",
+            "low_signal": 0.25
+          },
+          "record_id": "C13-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-atac",
+            "ucsc-genome-browser"
+          ]
+        },
+        "family_record_id": "C13-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:ea29e72444e7893cb3205b1c359a90b184424794bfa6f836fac450581b36cf08",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "chromatin_segmentation",
+          "primary_count": 2,
+          "record_id": "C13-POS-001",
+          "role": "positive",
+          "secondary_count": 1,
+          "summary": {
+            "ambiguous_segment_ids": [],
+            "issue_codes": [],
+            "observation_count": 2,
+            "segment_count": 1,
+            "state": "supported",
+            "state_labels": [
+              "open"
+            ]
+          }
+        },
+        "operation_payload": {
+          "minimum_confidence": 0.7,
+          "prior_confidence": {
+            "chr7:180-220": 0.91
+          },
+          "prior_values": {
+            "chr7:180-220": 0.71
+          },
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "value": 0.84
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220",
+              "value": null
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C13",
+      "case_id": "D07-C13-foreign_context",
+      "content_address": "sha256:1a40fce39090e2960cc77b8581f219e55df2d651c7b55f63739ca44e9e6d6b83",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "context_imputation_confidence",
+      "operation_id": "D07-C13",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C13-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_confidence": 0.7,
+          "prior_confidence": {
+            "chr7:180-220": 0.91
+          },
+          "prior_values": {
+            "chr7:180-220": 0.71
+          },
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "value": 0.84
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220",
+              "value": null
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C13",
+      "case_id": "D07-C13-malformed_input",
+      "content_address": "sha256:3e644d5b23ca9ab0651e06fae89d7e025e8f928c2e226e4271e7ef94eec2a9ba",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "context_imputation_confidence",
+      "operation_id": "D07-C13",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C13-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "minimum_confidence": 0.7,
+          "prior_confidence": {
+            "chr7:180-220": 0.91
+          },
+          "prior_values": {
+            "chr7:180-220": 0.71
+          },
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "value": 0.84
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220",
+              "value": null
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C13",
+      "case_id": "D07-C13-identity_conflict",
+      "content_address": "sha256:ec853c62501231bb935380089bf1aba5028a3a73e7310b523e410bfaec5e852a",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "context_imputation_confidence",
+      "operation_id": "D07-C13",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C13-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_confidence": 0.7,
+          "prior_confidence": {
+            "chr7:180-220": 0.91
+          },
+          "prior_values": {
+            "chr7:180-220": 0.71
+          },
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "value": 0.84
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220",
+              "value": null
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C14",
+      "case_id": "D07-C14-positive",
+      "content_address": "sha256:ae720bb5b96dfd893ce31e2cfde624992d2cd2b835930482e5b3c3e1a696bb9a",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C14",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "chromatin_frontier",
+      "operation": "assay_support_coverage",
+      "operation_id": "D07-C14",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:16715856359c79055c54ff9e1981e64dd12c857b86025be178aa57bbcd00e9ae",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "replicate-consistent alternate accessibility delta is supported",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "allele_specific_chromatin",
+          "payload": {
+            "ambiguity_tolerance": 0.3,
+            "delta_threshold": 0.05,
+            "input_text": "[{\"alternate_signal\":3.0,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-1\",\"reference_signal\":2.0,\"replicate\":\"rep-1\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"},{\"alternate_signal\":2.8,\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"id\":\"asc-pos-2\",\"reference_signal\":2.0,\"replicate\":\"rep-2\",\"source_id\":\"encode-atac\",\"variant_id\":\"7:140453136:G:A\"}]"
+          },
+          "record_id": "C14-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "encode-atac",
+            "ucsc-genome-browser"
+          ]
+        },
+        "family_record_id": "C14-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:cef8ae9b827a4e4522f43be8c2089eda1d2017605d08afa62eb9c13988b29cda",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "allele_specific_chromatin",
+          "primary_count": 2,
+          "record_id": "C14-POS-001",
+          "role": "positive",
+          "secondary_count": 1,
+          "summary": {
+            "directions": [
+              "increased"
+            ],
+            "issue_codes": [],
+            "median_deltas": [
+              0.9
+            ],
+            "result_count": 1,
+            "state": "supported",
+            "variant_ids": [
+              "7:140453136:G:A"
+            ]
+          }
+        },
+        "operation_payload": {
+          "minimum_coverage": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observed_assays": [
+                "ATAC",
+                "DNase",
+                "H3K27ac"
+              ]
+            }
+          ],
+          "required_assays": [
+            "ATAC",
+            "DNase",
+            "H3K27ac"
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C14",
+      "case_id": "D07-C14-foreign_context",
+      "content_address": "sha256:5f21f7f04c4e998167aa5194be10c50923d92b4ceb8ffe4a5d01703d93ac41a5",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "assay_support_coverage",
+      "operation_id": "D07-C14",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C14-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_coverage": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observed_assays": [
+                "ATAC",
+                "DNase",
+                "H3K27ac"
+              ]
+            }
+          ],
+          "required_assays": [
+            "ATAC",
+            "DNase",
+            "H3K27ac"
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C14",
+      "case_id": "D07-C14-malformed_input",
+      "content_address": "sha256:cf4df3316905952538077c0e2b5423ce8487f51752e89d33b471c19f96851297",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "assay_support_coverage",
+      "operation_id": "D07-C14",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C14-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "minimum_coverage": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observed_assays": [
+                "ATAC",
+                "DNase",
+                "H3K27ac"
+              ]
+            }
+          ],
+          "required_assays": [
+            "ATAC",
+            "DNase",
+            "H3K27ac"
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C14",
+      "case_id": "D07-C14-identity_conflict",
+      "content_address": "sha256:96874a27945ba78866f3a6a0c75fcfaaa158f05ad9a80e4f884c5d9f8ef22d5d",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "assay_support_coverage",
+      "operation_id": "D07-C14",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C14-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_coverage": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observed_assays": [
+                "ATAC",
+                "DNase",
+                "H3K27ac"
+              ]
+            }
+          ],
+          "required_assays": [
+            "ATAC",
+            "DNase",
+            "H3K27ac"
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C15",
+      "case_id": "D07-C15-positive",
+      "content_address": "sha256:a99a2f6413dee39762aba3fc6780e1ce8d6e95b157060ea245704b842efa0994",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C15",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "accepted",
+      "expected_state": "accepted",
+      "family": "chromatin_frontier",
+      "operation": "cross_assay_concordance",
+      "operation_id": "D07-C15",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:8222b66d0faa96f3d6725fb03a9681acd252fb401da013ec507f337bc72b4b8b",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "two bounded markers agree on a descriptive mixture estimate",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "epigenomic_purity",
+          "payload": {
+            "input_text": "[{\"assay\":\"methylation\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m1\",\"normal_signal\":0.0,\"observed_signal\":0.6,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":1.0},{\"assay\":\"ATAC\",\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"marker_id\":\"purity-m2\",\"normal_signal\":0.1,\"observed_signal\":0.34,\"source_id\":\"ihec-epigenomes\",\"tumor_signal\":0.5}]",
+            "minimum_markers": 2,
+            "spread_tolerance": 0.2
+          },
+          "record_id": "C15-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ihec-epigenomes",
+            "ncbi-geo"
+          ]
+        },
+        "family_record_id": "C15-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:71abaee427f04d2cc51e9806efdb3e2233f37aeb38215747799f7ea19cfc369f",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "epigenomic_purity",
+          "primary_count": 2,
+          "record_id": "C15-POS-001",
+          "role": "positive",
+          "secondary_count": 2,
+          "summary": {
+            "aggregate_purity": 0.6,
+            "estimate_count": 2,
+            "estimate_states": [
+              "supported"
+            ],
+            "issue_codes": [],
+            "marker_count": 2,
+            "purity_spread": 0.0,
+            "state": "supported"
+          }
+        },
+        "operation_payload": {
+          "minimum_concordance": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observations": {
+                "ATAC": "up",
+                "H3K27ac": "up",
+                "methylation": "up"
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C15",
+      "case_id": "D07-C15-foreign_context",
+      "content_address": "sha256:45ff8b09d05ee475c943e3322919a6aae1f0111a0c1972ba301e77088bb3fcc6",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "cross_assay_concordance",
+      "operation_id": "D07-C15",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C15-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_concordance": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observations": {
+                "ATAC": "up",
+                "H3K27ac": "up",
+                "methylation": "up"
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C15",
+      "case_id": "D07-C15-malformed_input",
+      "content_address": "sha256:9ffba14b1f372803f492e6515141de897c50327da3510fe0c87489b1a62e198f",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "cross_assay_concordance",
+      "operation_id": "D07-C15",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C15-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "minimum_concordance": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observations": {
+                "ATAC": "up",
+                "H3K27ac": "up",
+                "methylation": "up"
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C15",
+      "case_id": "D07-C15-identity_conflict",
+      "content_address": "sha256:41d0267e84a09e7ac194998feb61050409590669bab80e15c641fa8e354cf642",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "cross_assay_concordance",
+      "operation_id": "D07-C15",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C15-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "minimum_concordance": 0.75,
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140",
+              "observations": {
+                "ATAC": "up",
+                "H3K27ac": "up",
+                "methylation": "up"
+              }
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C16",
+      "case_id": "D07-C16-positive",
+      "content_address": "sha256:e5f41b20b74dfe8bf9e84a29775b884cfd5a8a6c605bc75f1407e1ee5c6c3188",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "public aggregate positive path for GNC-D07-C16",
+      "expected_counts": {
+        "primary": 1,
+        "secondary": 1
+      },
+      "expected_issue_codes": [],
+      "expected_result_state": "published",
+      "expected_state": "accepted",
+      "family": "chromatin_frontier",
+      "operation": "chromatin_evidence_publish",
+      "operation_id": "D07-C16",
+      "payload": {
+        "family_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+        "family_record": {
+          "content_address": "sha256:3b0650f038e0fc69429064f458cb4d80c5b8b519dcb8816f22a975a11f5f4d06",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "description": "batch and composition terms remain visible in corrected signal",
+          "expected_issue_codes": [],
+          "expected_state": "supported",
+          "operation": "batch_composition_correction",
+          "payload": {
+            "input_text": "[{\"assay\":\"ATAC\",\"batch_id\":\"batch-1\",\"batch_offset\":0.1,\"cell_composition\":{\"normal\":0.2,\"tumor\":0.8},\"composition_coefficients\":{\"normal\":-0.5,\"tumor\":0.5},\"context_key\":\"GRCh38|glioma|adult|stem_like|tumor|unknown\",\"feature_id\":\"batch-feature-1\",\"raw_signal\":1.0,\"source_id\":\"ncbi-geo\",\"target_composition\":{\"normal\":0.5,\"tumor\":0.5}}]"
+          },
+          "record_id": "C16-POS-001",
+          "role": "positive",
+          "source_ids": [
+            "ncbi-geo",
+            "ihec-epigenomes"
+          ]
+        },
+        "family_record_id": "C16-POS-001",
+        "family_summary": {
+          "adapter_state": "supported",
+          "content_address": "sha256:1e508602b93d57e3fa97c2b6a36b39f84dcfe35e38597e29917e7332cbb4fd12",
+          "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+          "expected_state": "supported",
+          "observed_issue_codes": [],
+          "operation": "batch_composition_correction",
+          "primary_count": 1,
+          "record_id": "C16-POS-001",
+          "role": "positive",
+          "secondary_count": 1,
+          "summary": {
+            "corrected_feature_ids": [
+              "batch-feature-1"
+            ],
+            "corrected_signals": [
+              0.6
+            ],
+            "correction_count": 1,
+            "issue_codes": [],
+            "observation_count": 1,
+            "state": "supported"
+          }
+        },
+        "operation_payload": {
+          "assay_ids": [
+            "ATAC",
+            "DNase",
+            "H3K27ac",
+            "methylation"
+          ],
+          "bundle_id": "d07-public-chromatin-release",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140"
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220"
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "positive",
+      "source_ids": [
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:ihec-epigenomes"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C16",
+      "case_id": "D07-C16-foreign_context",
+      "content_address": "sha256:dfc7e5cf10a81e2181e89be6cbabf843c3577d7bd4f455633c38733747b1f974",
+      "context_key": "GRCh38|glioma|adult|differentiated|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "foreign context is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_result_state": "out_of_domain",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "chromatin_evidence_publish",
+      "operation_id": "D07-C16",
+      "payload": {
+        "control": "foreign_context",
+        "family_record_id": "C16-POS-001",
+        "identity_conflict": false,
+        "malformed": false,
+        "operation_payload": {
+          "assay_ids": [
+            "ATAC",
+            "DNase",
+            "H3K27ac",
+            "methylation"
+          ],
+          "bundle_id": "d07-public-chromatin-release",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140"
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220"
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "foreign_context",
+      "source_ids": [
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:ihec-epigenomes"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C16",
+      "case_id": "D07-C16-malformed_input",
+      "content_address": "sha256:5f797cea53c58b8099f662283aa86ef53ef186aa1e0c5e2f1d6efec86b65b3f1",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "malformed aggregate input is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "malformed_input"
+      ],
+      "expected_result_state": "invalid",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "chromatin_evidence_publish",
+      "operation_id": "D07-C16",
+      "payload": {
+        "control": "malformed_input",
+        "family_record_id": "C16-POS-001",
+        "identity_conflict": false,
+        "malformed": true,
+        "operation_payload": {
+          "assay_ids": [
+            "ATAC",
+            "DNase",
+            "H3K27ac",
+            "methylation"
+          ],
+          "bundle_id": "d07-public-chromatin-release",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140"
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220"
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "malformed_input",
+      "source_ids": [
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:ihec-epigenomes"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C16",
+      "case_id": "D07-C16-identity_conflict",
+      "content_address": "sha256:e60f2f4121f097eaf9c9d3e26cfa0099d8838fcf3a952b0c2873eef19c49777b",
+      "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+      "description": "identity conflict is held before family execution",
+      "expected_counts": {
+        "primary": 0,
+        "secondary": 0
+      },
+      "expected_issue_codes": [
+        "identity_conflict"
+      ],
+      "expected_result_state": "contradictory",
+      "expected_state": "review",
+      "family": "chromatin_frontier",
+      "operation": "chromatin_evidence_publish",
+      "operation_id": "D07-C16",
+      "payload": {
+        "control": "identity_conflict",
+        "family_record_id": "C16-POS-001",
+        "identity_conflict": true,
+        "malformed": false,
+        "operation_payload": {
+          "assay_ids": [
+            "ATAC",
+            "DNase",
+            "H3K27ac",
+            "methylation"
+          ],
+          "bundle_id": "d07-public-chromatin-release",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:100-140"
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+              "feature_id": "chr7:180-220"
+            }
+          ]
+        }
+      },
+      "plane": "cross_assay",
+      "scenario": "identity_conflict",
+      "source_ids": [
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:ihec-epigenomes"
+      ]
+    }
+  ],
+  "content_address": "sha256:fdf18f33840d3daecdd00c7ea9cbfef3ef57bae5ed7520e225b41d8a3468c22f",
+  "context_key": "GRCh38|glioma|adult|stem_like|tumor|unknown",
+  "fixture_id": "d07-chromatin-architecture-public-aggregate",
+  "operations": [
+    {
+      "capability_id": "GNC-D07-C01",
+      "content_address": "sha256:a311a805ccf9b70b619f379cc37a4c3f0d1ab21846c972a35e8f87964475659c",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [],
+      "family": "chromatin_context_frontier",
+      "input_contract": "chromatin.chromatin_track_retrieval.public_record.v1",
+      "operation": "chromatin_track_retrieval",
+      "operation_id": "D07-C01",
+      "ordinal": 1,
+      "output_contract": "chromatin.chromatin_track_retrieval.receipt.v1",
+      "plane": "accessibility",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate",
+        "chromatin_context_frontier:geo-aggregate",
+        "chromatin_context_frontier:ihec-aggregate",
+        "chromatin_context_frontier:roadmap-aggregate",
+        "chromatin_context_frontier:ucsc-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C02",
+      "content_address": "sha256:86a34fc5c318c89f8119f919b7824deb45f926087e5a7d92bb87f2193be9d161",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C01"
+      ],
+      "family": "chromatin_context_frontier",
+      "input_contract": "chromatin.accessibility_delta.public_record.v1",
+      "operation": "accessibility_delta",
+      "operation_id": "D07-C02",
+      "ordinal": 2,
+      "output_contract": "chromatin.accessibility_delta.receipt.v1",
+      "plane": "accessibility",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate",
+        "chromatin_context_frontier:geo-aggregate",
+        "chromatin_context_frontier:ihec-aggregate",
+        "chromatin_context_frontier:roadmap-aggregate",
+        "chromatin_context_frontier:ucsc-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C03",
+      "content_address": "sha256:21188157ed565ceececb3d9964d0d1cc7d6c71798ab2df8c38a24fe2ac958389",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C02"
+      ],
+      "family": "chromatin_context_frontier",
+      "input_contract": "chromatin.histone_context.public_record.v1",
+      "operation": "histone_context",
+      "operation_id": "D07-C03",
+      "ordinal": 3,
+      "output_contract": "chromatin.histone_context.receipt.v1",
+      "plane": "accessibility",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate",
+        "chromatin_context_frontier:geo-aggregate",
+        "chromatin_context_frontier:ihec-aggregate",
+        "chromatin_context_frontier:roadmap-aggregate",
+        "chromatin_context_frontier:ucsc-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C04",
+      "content_address": "sha256:9a9a41c1c5efac7a23aec8e68b8f1e3ebbdfe5dafbdef4d7c5a1649a570ad394",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C03"
+      ],
+      "family": "chromatin_context_frontier",
+      "input_contract": "chromatin.h3k27ac_activity.public_record.v1",
+      "operation": "h3k27ac_activity",
+      "operation_id": "D07-C04",
+      "ordinal": 4,
+      "output_contract": "chromatin.h3k27ac_activity.receipt.v1",
+      "plane": "accessibility",
+      "source_ids": [
+        "chromatin_context_frontier:encode-aggregate",
+        "chromatin_context_frontier:geo-aggregate",
+        "chromatin_context_frontier:ihec-aggregate",
+        "chromatin_context_frontier:roadmap-aggregate",
+        "chromatin_context_frontier:ucsc-aggregate"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C05",
+      "content_address": "sha256:4b4ae18f5a7b89f0132165fd060e9addea3ce1c0c80c5205dd8b1a521e947209",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C04"
+      ],
+      "family": "methylation_frontier",
+      "input_contract": "chromatin.methylation_context_retrieval.public_record.v1",
+      "operation": "methylation_context_retrieval",
+      "operation_id": "D07-C05",
+      "ordinal": 5,
+      "output_contract": "chromatin.methylation_context_retrieval.receipt.v1",
+      "plane": "methylation",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C06",
+      "content_address": "sha256:e5feb74c7817b4100fab797a7ec67145f41d946f7f2162ef8178ebf14243d06a",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C05"
+      ],
+      "family": "methylation_frontier",
+      "input_contract": "chromatin.cpg_creation_loss.public_record.v1",
+      "operation": "cpg_creation_loss",
+      "operation_id": "D07-C06",
+      "ordinal": 6,
+      "output_contract": "chromatin.cpg_creation_loss.receipt.v1",
+      "plane": "methylation",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C07",
+      "content_address": "sha256:b2fccd40a340c0ededfd6a49718d3940f8d40188c7b0fb103da74dc3a03690b2",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C06"
+      ],
+      "family": "methylation_frontier",
+      "input_contract": "chromatin.methylation_sensitive_motif.public_record.v1",
+      "operation": "methylation_sensitive_motif",
+      "operation_id": "D07-C07",
+      "ordinal": 7,
+      "output_contract": "chromatin.methylation_sensitive_motif.receipt.v1",
+      "plane": "methylation",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C08",
+      "content_address": "sha256:390213963513876c970b22bfc1b0736755587633967f2c57b5f1d9694f81ab60",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C07"
+      ],
+      "family": "methylation_frontier",
+      "input_contract": "chromatin.idh_hypermethylation_context.public_record.v1",
+      "operation": "idh_hypermethylation_context",
+      "operation_id": "D07-C08",
+      "ordinal": 8,
+      "output_contract": "chromatin.idh_hypermethylation_context.receipt.v1",
+      "plane": "methylation",
+      "source_ids": [
+        "methylation_frontier:cpg-motif-catalog",
+        "methylation_frontier:encode-methylation",
+        "methylation_frontier:ncbi-reference",
+        "methylation_frontier:roadmap-epigenomics"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C09",
+      "content_address": "sha256:9406663029621f6cbf0d6db872d09171b0cde164f41df99aff446d038427ff4b",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C08"
+      ],
+      "family": "chromatin_alpha_frontier",
+      "input_contract": "chromatin.chromatin_state_segmentation.public_record.v1",
+      "operation": "chromatin_state_segmentation",
+      "operation_id": "D07-C09",
+      "ordinal": 9,
+      "output_contract": "chromatin.chromatin_state_segmentation.receipt.v1",
+      "plane": "chromatin_state",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:roadmap-epigenomics",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C10",
+      "content_address": "sha256:4f285fa5749d4f28d227b438358e25e51d909e9e54fa18cb42d92951ef575a8e",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C09"
+      ],
+      "family": "chromatin_alpha_frontier",
+      "input_contract": "chromatin.allele_specific_chromatin.public_record.v1",
+      "operation": "allele_specific_chromatin",
+      "operation_id": "D07-C10",
+      "ordinal": 10,
+      "output_contract": "chromatin.allele_specific_chromatin.receipt.v1",
+      "plane": "chromatin_state",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:roadmap-epigenomics",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C11",
+      "content_address": "sha256:624eb17462e536e462b82de8952defef307c643d51dba7a04b021fb0e65fb5ac",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C10"
+      ],
+      "family": "chromatin_alpha_frontier",
+      "input_contract": "chromatin.epigenomic_purity.public_record.v1",
+      "operation": "epigenomic_purity",
+      "operation_id": "D07-C11",
+      "ordinal": 11,
+      "output_contract": "chromatin.epigenomic_purity.receipt.v1",
+      "plane": "chromatin_state",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:roadmap-epigenomics",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C12",
+      "content_address": "sha256:324b1e415a49dad3408c23eda0febf1b3d8fb553473976d4fb64a66e04a07683",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C11"
+      ],
+      "family": "chromatin_alpha_frontier",
+      "input_contract": "chromatin.batch_composition_correction.public_record.v1",
+      "operation": "batch_composition_correction",
+      "operation_id": "D07-C12",
+      "ordinal": 12,
+      "output_contract": "chromatin.batch_composition_correction.receipt.v1",
+      "plane": "chromatin_state",
+      "source_ids": [
+        "chromatin_alpha_frontier:encode-atac",
+        "chromatin_alpha_frontier:ihec-epigenomes",
+        "chromatin_alpha_frontier:ncbi-geo",
+        "chromatin_alpha_frontier:roadmap-epigenomics",
+        "chromatin_alpha_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C13",
+      "content_address": "sha256:f76fee450df254ca2bff0c65f46a1a76678b4fd335f45d925dc612ac0e5f2258",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C12"
+      ],
+      "family": "chromatin_frontier",
+      "input_contract": "chromatin.context_imputation_confidence.public_record.v1",
+      "operation": "context_imputation_confidence",
+      "operation_id": "D07-C13",
+      "ordinal": 13,
+      "output_contract": "chromatin.context_imputation_confidence.receipt.v1",
+      "plane": "cross_assay",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:roadmap-epigenomics",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C14",
+      "content_address": "sha256:3a726cf2ca458cea68f05ffd9b62428d91ef00098da9b467a9ed5023c96bc953",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C13"
+      ],
+      "family": "chromatin_frontier",
+      "input_contract": "chromatin.assay_support_coverage.public_record.v1",
+      "operation": "assay_support_coverage",
+      "operation_id": "D07-C14",
+      "ordinal": 14,
+      "output_contract": "chromatin.assay_support_coverage.receipt.v1",
+      "plane": "cross_assay",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:roadmap-epigenomics",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C15",
+      "content_address": "sha256:1517aa008a81135cd30c9172fb77fc14227acd98be239dc8c036e248c4e92cf9",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C14"
+      ],
+      "family": "chromatin_frontier",
+      "input_contract": "chromatin.cross_assay_concordance.public_record.v1",
+      "operation": "cross_assay_concordance",
+      "operation_id": "D07-C15",
+      "ordinal": 15,
+      "output_contract": "chromatin.cross_assay_concordance.receipt.v1",
+      "plane": "cross_assay",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:roadmap-epigenomics",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    },
+    {
+      "capability_id": "GNC-D07-C16",
+      "content_address": "sha256:4ddc460e42b704144fee6d1b6939e7166ade1c403a5f8d4cca8e1ff6eea213d2",
+      "control_policy": "hold foreign context, malformed input, and identity conflict before family delegation; preserve cross-assay uncertainty",
+      "dependencies": [
+        "D07-C15"
+      ],
+      "family": "chromatin_frontier",
+      "input_contract": "chromatin.chromatin_evidence_publish.public_record.v1",
+      "operation": "chromatin_evidence_publish",
+      "operation_id": "D07-C16",
+      "ordinal": 16,
+      "output_contract": "chromatin.chromatin_evidence_publish.receipt.v1",
+      "plane": "cross_assay",
+      "source_ids": [
+        "chromatin_frontier:encode-atac",
+        "chromatin_frontier:ihec-epigenomes",
+        "chromatin_frontier:ncbi-geo",
+        "chromatin_frontier:roadmap-epigenomics",
+        "chromatin_frontier:ucsc-genome-browser"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:2dad114c0ae1d538b2abeb051291b6ff88ab946a0f055ed5049c6edb13a7060d",
+      "family": "chromatin_context_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_context_frontier:encode-aggregate",
+      "title": "ENCODE aggregate chromatin assay index",
+      "uri": "https://www.encodeproject.org/",
+      "version": "2026-01"
+    },
+    {
+      "content_address": "sha256:4f2fbf078545cb537d2ea06fb1f2425fa6ef5673e0a1679003ed46ae4a329e56",
+      "family": "chromatin_context_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_context_frontier:roadmap-aggregate",
+      "title": "Roadmap Epigenomics public signal summaries",
+      "uri": "https://egg2.wustl.edu/roadmap/web_portal/",
+      "version": "2025-12"
+    },
+    {
+      "content_address": "sha256:e344714b0c7b79acaa0533781027999b12aaeb111a96de38b6a589abc79f1e4b",
+      "family": "chromatin_context_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_context_frontier:ihec-aggregate",
+      "title": "International Human Epigenome Consortium portal",
+      "uri": "https://ihec-epigenomes.org/",
+      "version": "2025-11"
+    },
+    {
+      "content_address": "sha256:27112cc6aa459bc8670464012be3b11d64b442fb369d01400343d2afa97e4ac1",
+      "family": "chromatin_context_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_context_frontier:geo-aggregate",
+      "title": "NCBI GEO public study metadata",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/",
+      "version": "2026-02"
+    },
+    {
+      "content_address": "sha256:8094eb37e611b262fb2469ebfd769d6112bb313d16a053edd3ac1efef17a2c26",
+      "family": "chromatin_context_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_context_frontier:ucsc-aggregate",
+      "title": "UCSC Genome Browser public track catalogue",
+      "uri": "https://genome.ucsc.edu/",
+      "version": "2026-01"
+    },
+    {
+      "content_address": "sha256:da7e7aa4f73f27b2a23e1daaa54a3c09c0d7bfeece41f8878148ca823a8f1452",
+      "family": "methylation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "methylation_frontier:encode-methylation",
+      "title": "encode-methylation",
+      "uri": "https://www.encodeproject.org/",
+      "version": "2025.4"
+    },
+    {
+      "content_address": "sha256:0018aff259c67f9a679771caf78b3b4a708f1987caedebacc58e666fbaccc633",
+      "family": "methylation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "methylation_frontier:roadmap-epigenomics",
+      "title": "roadmap-epigenomics",
+      "uri": "https://egg2.wustl.edu/roadmap/web_portal/",
+      "version": "2025.1"
+    },
+    {
+      "content_address": "sha256:328767f02f003c24450740ee45a6df41c25c678966c8eb1bd75cbb061594c6f1",
+      "family": "methylation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "methylation_frontier:ncbi-reference",
+      "title": "ncbi-reference",
+      "uri": "https://www.ncbi.nlm.nih.gov/",
+      "version": "2026.1"
+    },
+    {
+      "content_address": "sha256:f28be04e35be1c9000ee2e7f0fc5aad233a3ef63f754a54ca541e12b354bbacd",
+      "family": "methylation_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "methylation_frontier:cpg-motif-catalog",
+      "title": "cpg-motif-catalog",
+      "uri": "https://jaspar.genereg.net/",
+      "version": "2026.1"
+    },
+    {
+      "content_address": "sha256:8b6f3f2c4d9d89ee23313c69e4991de54af109e7519281ad281331fb537f3b98",
+      "family": "chromatin_alpha_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_alpha_frontier:encode-atac",
+      "title": "ENCODE open chromatin aggregate",
+      "uri": "https://www.encodeproject.org/",
+      "version": "2024-01"
+    },
+    {
+      "content_address": "sha256:be211f73edbd531a44ce5fd226d0b8ad0fb091902c06f4523edef9262b593efc",
+      "family": "chromatin_alpha_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_alpha_frontier:roadmap-epigenomics",
+      "title": "Roadmap Epigenomics reference state maps",
+      "uri": "https://egg2.wustl.edu/roadmap/web_portal/",
+      "version": "2015"
+    },
+    {
+      "content_address": "sha256:0889f704995abe981e56c1c1d644d2f4c5beccbb601b395e73d8a2419b62a151",
+      "family": "chromatin_alpha_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_alpha_frontier:ihec-epigenomes",
+      "title": "International Human Epigenome Consortium",
+      "uri": "https://ihec-epigenomes.org/",
+      "version": "2024"
+    },
+    {
+      "content_address": "sha256:129f04cbc6aae677bb1c12ef6e2a4fe1292f5c913228e5f16d574aab2cec99f1",
+      "family": "chromatin_alpha_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_alpha_frontier:ncbi-geo",
+      "title": "NCBI Gene Expression Omnibus",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/",
+      "version": "2025-01"
+    },
+    {
+      "content_address": "sha256:88e79f41287b33cc52694eaf59e2bfb247b5b80cbb3ebcbeb8c39353553a5cf5",
+      "family": "chromatin_alpha_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_alpha_frontier:ucsc-genome-browser",
+      "title": "UCSC Genome Browser",
+      "uri": "https://genome.ucsc.edu/",
+      "version": "GRCh38"
+    },
+    {
+      "content_address": "sha256:13c74ba9f136fe6f6c0d64f4826fe739b00311d6b81b93e723b05a52ffc3bca5",
+      "family": "chromatin_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_frontier:encode-atac",
+      "title": "ENCODE open chromatin aggregate",
+      "uri": "https://www.encodeproject.org/",
+      "version": "2024-01"
+    },
+    {
+      "content_address": "sha256:716bbed172d0b5e4c8b2350ad40d8dc7ed6ad806ebc469569e2786a802e020cc",
+      "family": "chromatin_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_frontier:roadmap-epigenomics",
+      "title": "Roadmap Epigenomics reference state maps",
+      "uri": "https://egg2.wustl.edu/roadmap/web_portal/",
+      "version": "2015"
+    },
+    {
+      "content_address": "sha256:218a9f437ed629402ff21b4bb8b5f9d3f4b82c2e0ac38f874745d797783b43e4",
+      "family": "chromatin_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_frontier:ihec-epigenomes",
+      "title": "International Human Epigenome Consortium",
+      "uri": "https://ihec-epigenomes.org/",
+      "version": "2024"
+    },
+    {
+      "content_address": "sha256:53c3f8b5bf326f0e0f676709e24a505b1cb6d419b759ca9d33eaee7dd1a24958",
+      "family": "chromatin_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_frontier:ncbi-geo",
+      "title": "NCBI Gene Expression Omnibus",
+      "uri": "https://www.ncbi.nlm.nih.gov/geo/",
+      "version": "2025-01"
+    },
+    {
+      "content_address": "sha256:623f01c0ceec2bf77db8a66a16440c1081dfdfa4922f2184c38947c321e2b6be",
+      "family": "chromatin_frontier",
+      "license": "public source receipt",
+      "public_aggregate": true,
+      "scope": "public_aggregate",
+      "source_id": "chromatin_frontier:ucsc-genome-browser",
+      "title": "UCSC Genome Browser",
+      "uri": "https://genome.ucsc.edu/",
+      "version": "GRCh38"
+    }
+  ],
+  "version": "2026.08.d07-chromatin-architecture.v1"
+}

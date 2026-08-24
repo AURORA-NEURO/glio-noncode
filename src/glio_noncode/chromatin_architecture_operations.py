@@ -287,6 +287,9 @@ def execute_chromatin_architecture_case(
         counts = {"primary": 1, "secondary": 1}
         summary = dict(outcome["summary"])
         detail = str(outcome["detail"])
+    summary = dict(summary)
+    summary["context_key"] = case.context_key
+    summary["delegate_context_key"] = case.delegate_context_key
     observed_state = (
         ChromatinArchitectureState.ACCEPTED
         if result_state in {"supported", "accepted", "published"}
@@ -321,6 +324,8 @@ def _control_execution(
         "issue_codes": issue_codes,
         "counts": {"primary": 0, "secondary": 0},
         "detail": detail,
+        "context_key": case.context_key,
+        "delegate_context_key": case.delegate_context_key,
     }
     return ChromatinArchitectureExecution(
         case_id=case.case_id,
@@ -332,7 +337,12 @@ def _control_execution(
         issue_codes=issue_codes,
         counts={"primary": 0, "secondary": 0},
         output_address=addressed(body, "chromatin-control"),
-        summary={"control": True, "detail": detail},
+        summary={
+            "control": True,
+            "detail": detail,
+            "context_key": case.context_key,
+            "delegate_context_key": case.delegate_context_key,
+        },
         detail=detail,
     )
 
@@ -458,6 +468,18 @@ def _case_checks(
             "review summary excludes raw input",
             "review summary is sanitized",
         ),
+        _check(
+            f"{case.case_id}-context",
+            ChromatinArchitectureCheckKind.CONTEXT,
+            bool(execution.summary.get("delegate_context_key"))
+            and (
+                case.scenario is not ChromatinArchitectureScenario.FOREIGN_CONTEXT
+                or "context_mismatch" in execution.issue_codes
+            ),
+            execution.summary.get("delegate_context_key", ""),
+            "retained or explicitly mismatched",
+            "delegated context is retained and foreign controls remain explicit",
+        ),
     )
 
 
@@ -535,6 +557,36 @@ def _global_checks(
             True,
             "controls remain review-held",
             "foreign, malformed, and identity controls are never accepted",
+        ),
+        _check(
+            "global-operation-balance",
+            ChromatinArchitectureCheckKind.OPERATION,
+            all(
+                sum(item.operation_id == operation_id for item in receipts) == 4
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            sorted(
+                sum(item.operation_id == operation_id for item in receipts)
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            [4] * 16,
+            "each D07 operation has one positive and three controls",
+        ),
+        _check(
+            "global-context-controls",
+            ChromatinArchitectureCheckKind.CONTEXT,
+            all(
+                "context_mismatch" in item.observed_issue_codes
+                for item in receipts
+                if item.case_id.endswith("-foreign_context")
+            )
+            and all(
+                item.observed_result_state
+                for item in receipts
+            ),
+            True,
+            True,
+            "delegated contexts and foreign controls are explicit",
         ),
     )
 

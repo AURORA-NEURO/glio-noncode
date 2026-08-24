@@ -13,9 +13,11 @@ and refusal behavior visible:
 | Cross-assay release | C13-C16 | cross_assay | 4 |
 
 The aggregate fixture contains 19 public source receipts, 16 typed operation
-contracts, and 64 cases. Every operation has one positive case and three
-explicit controls: foreign context, malformed input, and identity conflict.
-There are 16 positive receipts and 48 review-held control receipts.
+contracts, 64 cases, 458 execution checks, six artifacts, and a 24-stage
+runtime. Every operation has one positive case and three explicit controls:
+foreign context, malformed input, and identity conflict. There are 16 positive
+receipts and 48 review-held control receipts. Every source carries an explicit
+public aggregate marker and every case retains its delegated context key.
 
 ## Context boundary
 
@@ -53,18 +55,22 @@ conclusion. Every such boundary is retained in the release limitations.
 
 ## Runtime
 
-`run_chromatin_architecture` executes 22 stages:
+`run_chromatin_architecture` executes 24 stages:
 
 1. load and audit the fixture;
 2. compile the dependency plan;
 3. close each of the four family joins;
 4. execute cases and route controls;
 5. close lineage, ledger, metrics, schema, invariants, and replay;
-6. materialize six artifacts;
-7. close policy, quality, release, access, observability, and finalization.
+6. materialize six artifacts and account for source, operation, case, family,
+   state, issue, and check depth;
+7. close policy, quality, release, access, compliance, observability, and
+   finalization.
 
 The runtime is accepted only when every stage, receipt, quality check, lineage
-link, replay address, and release artifact is closed.
+link, replay address, compliance check, and release artifact is closed. The
+quality gate contains 14 direct checks and the depth report reaches 100.0%
+when all five fixed targets are met.
 
 ## Commands
 
@@ -75,6 +81,8 @@ glio-noncode chromatin-architecture-plan --input fixture.json
 glio-noncode evaluate-chromatin-architecture --input fixture.json
 glio-noncode chromatin-architecture-runtime --input fixture.json
 glio-noncode chromatin-architecture-quality --input fixture.json
+glio-noncode chromatin-architecture-depth --input fixture.json
+glio-noncode chromatin-architecture-compliance --input fixture.json
 glio-noncode chromatin-architecture-validation --input fixture.json
 glio-noncode chromatin-architecture-report --format markdown --input fixture.json
 glio-noncode chromatin-architecture-receipts-csv --input fixture.json --output receipts.csv

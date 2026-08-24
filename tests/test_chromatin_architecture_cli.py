@@ -103,6 +103,10 @@ class ChromatinArchitectureCliTests(unittest.TestCase):
                 main(["chromatin-architecture-compliance", "--output", str(compliance)]), 0
             )
             self.assertTrue((bundle / "runtime.json").is_file())
+            self.assertTrue((bundle / "report.json").is_file())
+            release = json.loads((bundle / "release.json").read_text(encoding="utf-8"))
+            self.assertEqual(len(release["quality"]["checks"]), 14)
+            self.assertEqual(release["depth"]["check_count"], 458)
             self.assertEqual(len(receipts.read_text(encoding="utf-8").splitlines()), 65)
             self.assertEqual(len(review.read_text(encoding="utf-8").splitlines()), 49)
             self.assertTrue(json.loads(scenarios.read_text(encoding="utf-8"))["accepted"])

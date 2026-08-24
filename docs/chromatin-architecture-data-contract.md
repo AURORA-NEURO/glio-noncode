@@ -20,7 +20,8 @@ The fixture version is
 ## Source receipt
 
 Every source has a prefixed ID, family, title, URI, version, public aggregate
-scope, license label, and SHA-256 address. The 19 source receipts come from the
+scope, license label, explicit `public_aggregate` marker, and SHA-256 address.
+The 19 source receipts come from the
 four checked-in public tranches. The aggregate source registry requires every
 source to join at least one operation and at least one case.
 
@@ -42,7 +43,7 @@ family boundaries remain explicit in the graph and in every receipt.
 
 ## Case contract
 
-The aggregate case carries a scenario, exact context, source joins, a typed
+The aggregate case carries a scenario, exact context, delegated context, source joins, a typed
 expected state, expected result state, issue-code floor, bounded counts, and a
 description. Positive cases are accepted candidates. Controls are review-only.
 
@@ -62,7 +63,11 @@ The compliance surface checks:
 6. source and case addresses;
 7. explicit positive/control policy.
 
-The schema declares 31 receipt and release fields. The data dictionary gives
+The extended compliance surface also verifies operation addresses, delegated
+contexts, and explicit mismatch issues on foreign controls. Restricted metadata
+keys are detected recursively in object and array payloads.
+
+The schema declares 33 receipt and release fields. The data dictionary gives
 30 public fields with type, domain, requiredness, visibility, description, and
 its own address. The distinction is intentional: the schema includes an
 internal release-only field while the public dictionary lists the exported

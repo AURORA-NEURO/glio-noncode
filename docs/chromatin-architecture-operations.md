@@ -39,7 +39,9 @@ Each operation receives four cases:
 Controls are evaluated before family delegation. A foreign context therefore
 cannot become a positive result merely because a family adapter recognizes the
 record shape. A malformed record cannot reach a scientific adapter. An identity
-conflict cannot be silently replaced by the most recent row.
+conflict cannot be silently replaced by the most recent row. The delegated
+context key remains visible in both positive and held summaries, while a
+foreign control must carry `context_mismatch`.
 
 ## Receipt requirements
 
@@ -69,3 +71,12 @@ C16 publishes two exact-context features only after the assay set is declared.
 
 These outputs are descriptive evidence receipts. They are not calibrated
 probabilities and do not establish biological causation.
+
+## Check accounting
+
+Each of the 64 cases is independently checked for aggregate state, result state,
+issue tuple, bounded counts, receipt address, sanitized summary, and delegated
+context. Ten global checks then close receipt count, positive/control balance,
+pass count, operation coverage, family coverage, aggregate context, control
+policy, operation balance, and context-control behavior. The evaluation equation
+is `64 * 7 + 10 = 458`.

@@ -2939,7 +2939,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("chromatin-architecture-data-audit", "audit D07 chromatin sources, context, joins, and scope"),
         ("chromatin-architecture-plan", "compile the D07 chromatin dependency plan"),
         ("evaluate-chromatin-architecture", "execute D07 family delegates and aggregate controls"),
-        ("chromatin-architecture-runtime", "run the D07 twenty-two-stage chromatin runtime"),
+        ("chromatin-architecture-runtime", "run the D07 twenty-four-stage chromatin runtime"),
         ("chromatin-architecture-validation", "emit the D07 plane-by-operation validation matrix"),
         ("chromatin-architecture-quality", "run the D07 chromatin release quality gate"),
         ("chromatin-architecture-depth", "report D07 chromatin operation and evidence depth"),
@@ -9213,13 +9213,19 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "chromatin-architecture-depth":
-            from .chromatin_architecture_depth import chromatin_architecture_depth_report
+            from .chromatin_architecture_depth import (
+                chromatin_architecture_depth_percent,
+                chromatin_architecture_depth_report,
+            )
             from .chromatin_architecture_runtime import run_chromatin_architecture
 
             runtime = run_chromatin_architecture(_chromatin_architecture_fixture(args.input))
             report = chromatin_architecture_depth_report(runtime.fixture, runtime.evaluation)
-            _write_json(report.to_dict(), args.output)
-            return 0 if report.addressed_count > 0 else 2
+            _write_json(
+                report.to_dict() | {"completion_percent": chromatin_architecture_depth_percent(report)},
+                args.output,
+            )
+            return 0 if chromatin_architecture_depth_percent(report) == 100.0 else 2
         if args.command == "replay-chromatin-architecture":
             from .chromatin_architecture_replay import replay_chromatin_architecture_fixture
 
@@ -9344,6 +9350,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "chromatin-architecture-bundle":
             from .chromatin_architecture_public_data import chromatin_architecture_fixture_json
+            from .chromatin_architecture_reporting import build_chromatin_architecture_report
+            from .chromatin_architecture_data_dictionary import chromatin_architecture_data_dictionary
+            from .chromatin_architecture_metrics import materialize_chromatin_architecture_metrics
             from .chromatin_architecture_runtime import run_chromatin_architecture
 
             fixture = _chromatin_architecture_fixture(args.input)
@@ -9351,8 +9360,25 @@ def main(argv: list[str] | None = None) -> int:
             output_dir = Path(args.output)
             output_dir.mkdir(parents=True, exist_ok=True)
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
-            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": runtime.quality.to_dict(),
+                    "depth": runtime.depth.to_dict(),
+                    "compliance": runtime.compliance.to_dict(),
+                },
+                str(output_dir / "release.json"),
+            )
             _write_text(chromatin_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            _write_json(
+                build_chromatin_architecture_report(
+                    runtime,
+                    materialize_chromatin_architecture_metrics(runtime.evaluation),
+                    chromatin_architecture_data_dictionary(runtime.fixture),
+                ).to_dict(),
+                str(output_dir / "report.json"),
+            )
             return 0 if runtime.accepted else 2
         if args.command == "cell-state-architecture-fixture":
             from .cell_state_architecture_public_data import cell_state_architecture_fixture_json

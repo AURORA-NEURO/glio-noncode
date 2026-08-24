@@ -41,6 +41,8 @@ class ChromatinArchitectureExportTests(unittest.TestCase):
         self.assertEqual(len(payload["sources"]), 19)
         self.assertEqual(len(payload["operations"]), 16)
         self.assertEqual(len(payload["cases"]), 64)
+        self.assertTrue(all(item["public_aggregate"] for item in payload["sources"]))
+        self.assertTrue(all(item["delegate_context_key"] for item in payload["cases"]))
 
     def test_query_and_projection_are_stable(self) -> None:
         fixture = default_chromatin_architecture_fixture()
