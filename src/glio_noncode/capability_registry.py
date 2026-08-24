@@ -361,6 +361,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D12-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.planning_architecture_operations.evaluate_planning_architecture_fixture",
+                            "glio_noncode.planning_architecture_runtime.run_planning_architecture",
+                            "glio_noncode.planning_architecture_quality.assess_planning_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D13-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -441,6 +450,14 @@ class CapabilityRegistry:
                             "tests.test_cohort_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D12-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_planning_architecture",
+                            "tests.test_planning_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D13-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),

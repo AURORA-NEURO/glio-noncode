@@ -1,0 +1,3927 @@
+{
+  "boundary": "public_aggregate_non_patient",
+  "cases": [
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C01-POS-001",
+      "content_address": "sha256:e01deb7d262b9ba9b0a7d6863cacac26879ca471f6cdcb8b3790568351872224",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C01-POS-001",
+      "description": "GNC-D13-C01 retains the positive path from validation_design_frontier with delegate state ready",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 4,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "validation_design_frontier",
+      "operation": "evidence_gap",
+      "operation_id": "D13-C01",
+      "payload": {
+        "available_evidence": [
+          {
+            "dimension": "sequence",
+            "source_ids": [
+              "europepmc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "regulatory",
+            "source_ids": [
+              "encode",
+              "gdc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "functional",
+            "source_ids": [
+              "pubmed"
+            ],
+            "state": "supported"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:encode",
+        "D13-validation-design:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C01-CTRL-001",
+      "content_address": "sha256:643e139c9356658ba388ef8fc0fc82af53f1e7e854e16e609928eb512f8d14bf",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C01-CTRL-001",
+      "description": "GNC-D13-C01 retains the control_a path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 4,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "gap_dimensions"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "evidence_gap",
+      "operation_id": "D13-C01",
+      "payload": {
+        "available_evidence": [
+          {
+            "dimension": "sequence",
+            "source_ids": [
+              "europepmc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "regulatory",
+            "source_ids": [
+              "encode",
+              "gdc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "functional",
+            "source_ids": [
+              "pubmed"
+            ],
+            "state": "supported"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional",
+          "replication"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:encode",
+        "D13-validation-design:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C01-CTRL-002",
+      "content_address": "sha256:3a352a79d2094582019cd2a8eaad1cbaf1d0d3e635214e702e56a37279de3311",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C01-CTRL-002",
+      "description": "GNC-D13-C01 retains the control_b path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 4,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "gap_dimensions"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "evidence_gap",
+      "operation_id": "D13-C01",
+      "payload": {
+        "available_evidence": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:encode",
+        "D13-validation-design:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C01-CTRL-003",
+      "content_address": "sha256:588e7b5411fb45b79afe49929d6488b8d63c96fc885a97a4d0a91eab2e4aaf09",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C01-CTRL-003",
+      "description": "GNC-D13-C01 retains the control_c path from validation_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 4,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_design_frontier",
+      "operation": "evidence_gap",
+      "operation_id": "D13-C01",
+      "payload": {
+        "available_evidence": [
+          {
+            "dimension": "sequence",
+            "source_ids": [
+              "europepmc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "regulatory",
+            "source_ids": [
+              "encode",
+              "gdc"
+            ],
+            "state": "supported"
+          },
+          {
+            "dimension": "functional",
+            "source_ids": [
+              "pubmed"
+            ],
+            "state": "supported"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "required_evidence": [
+          "sequence",
+          "regulatory",
+          "functional"
+        ],
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:encode",
+        "D13-validation-design:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C02-POS-001",
+      "content_address": "sha256:4137110fadf7c6e0c49cb850a16936d61573e795093293532408242342717a49",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C02-POS-001",
+      "description": "GNC-D13-C02 retains the positive path from validation_design_frontier with delegate state routed",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "routed",
+      "family": "validation_design_frontier",
+      "operation": "assay_eligibility",
+      "operation_id": "D13-C02",
+      "payload": {
+        "capabilities": [
+          {
+            "assay": "mpra",
+            "limits": {
+              "max_constructs": 24
+            },
+            "readouts": [
+              "allele_activity"
+            ],
+            "supported": true
+          },
+          {
+            "assay": "starr_seq",
+            "limits": {
+              "max_constructs": 16
+            },
+            "readouts": [
+              "element_activity"
+            ],
+            "supported": true
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "requested_assay": "mpra",
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-design:pubmed",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C02-CTRL-001",
+      "content_address": "sha256:89fccf1fd9740a51914d5f2aca62b9bffddb071aeedd1ec37e81311d9de1b353",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C02-CTRL-001",
+      "description": "GNC-D13-C02 retains the control_a path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "assay_unsupported"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "assay_eligibility",
+      "operation_id": "D13-C02",
+      "payload": {
+        "capabilities": [
+          {
+            "assay": "mpra",
+            "limits": {
+              "max_constructs": 24
+            },
+            "readouts": [
+              "allele_activity"
+            ],
+            "supported": true
+          },
+          {
+            "assay": "starr_seq",
+            "limits": {
+              "max_constructs": 16
+            },
+            "readouts": [
+              "element_activity"
+            ],
+            "supported": true
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "requested_assay": "unsupported_assay",
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-design:pubmed",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C02-CTRL-002",
+      "content_address": "sha256:9e13d3c5b3c5a66264ec9350f5ea647e521f7e67ffea954d9fb80a19a5391634",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C02-CTRL-002",
+      "description": "GNC-D13-C02 retains the control_b path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "assay_unsupported"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "assay_eligibility",
+      "operation_id": "D13-C02",
+      "payload": {
+        "capabilities": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "requested_assay": "mpra",
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-design:pubmed",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C02-CTRL-003",
+      "content_address": "sha256:49c01092f9ef978b52fcd7c9edae7a6926ab67d748c57d7d64c43b1200c55276",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C02-CTRL-003",
+      "description": "GNC-D13-C02 retains the control_c path from validation_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_design_frontier",
+      "operation": "assay_eligibility",
+      "operation_id": "D13-C02",
+      "payload": {
+        "capabilities": [
+          {
+            "assay": "mpra",
+            "limits": {
+              "max_constructs": 24
+            },
+            "readouts": [
+              "allele_activity"
+            ],
+            "supported": true
+          },
+          {
+            "assay": "starr_seq",
+            "limits": {
+              "max_constructs": 16
+            },
+            "readouts": [
+              "element_activity"
+            ],
+            "supported": true
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "requested_assay": "mpra",
+        "target_id": "target-regulatory-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-design:pubmed",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C03-POS-001",
+      "content_address": "sha256:c58f7e5100341b2514e58b9c2deca16cf9d74a64a504882ec6ea71b7bafbc7e6",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C03-POS-001",
+      "description": "GNC-D13-C03 retains the positive path from validation_design_frontier with delegate state packaged",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "packaged",
+      "family": "validation_design_frontier",
+      "operation": "mpra_construct",
+      "operation_id": "D13-C03",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "alternate": "G",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          },
+          {
+            "alternate": "T",
+            "construct_id": "mpra-alt",
+            "reference": "C",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C03-CTRL-001",
+      "content_address": "sha256:dee464976db8d2c3ea9585ff9aa5ffc7e8a1615bdeae0946df2bb60d8ad1ea56",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C03-CTRL-001",
+      "description": "GNC-D13-C03 retains the control_a path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "allele_unchanged"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "mpra_construct",
+      "operation_id": "D13-C03",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "alternate": "A",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C03-CTRL-002",
+      "content_address": "sha256:454d8f1487822976b0734205b1599bd7c434af6949f34bb6003f8ae12792b1b1",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C03-CTRL-002",
+      "description": "GNC-D13-C03 retains the control_b path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "construct_budget_exceeded"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "mpra_construct",
+      "operation_id": "D13-C03",
+      "payload": {
+        "construct_budget": 1,
+        "constructs": [
+          {
+            "alternate": "G",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          },
+          {
+            "alternate": "T",
+            "construct_id": "mpra-alt",
+            "reference": "C",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C03-CTRL-003",
+      "content_address": "sha256:11a6e0f1e28323235f451391eab9d440c396e9335d9ebb886eed7ef52819f08c",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C03-CTRL-003",
+      "description": "GNC-D13-C03 retains the control_c path from validation_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_design_frontier",
+      "operation": "mpra_construct",
+      "operation_id": "D13-C03",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "alternate": "G",
+            "construct_id": "mpra-ref",
+            "reference": "A",
+            "sequence_length": 180
+          },
+          {
+            "alternate": "T",
+            "construct_id": "mpra-alt",
+            "reference": "C",
+            "sequence_length": 180
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          {
+            "control_id": "negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "mpra-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C04-POS-001",
+      "content_address": "sha256:a5971faf4476e933f167bdcc68a4a3e156e4dcf56340baadf173094d86d00f09",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C04-POS-001",
+      "description": "GNC-D13-C04 retains the positive path from validation_design_frontier with delegate state packaged",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "packaged",
+      "family": "validation_design_frontier",
+      "operation": "starrseq_construct",
+      "operation_id": "D13-C04",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "construct_id": "starr-enhancer-001",
+            "element_id": "enhancer-001",
+            "sequence_length": 240,
+            "strand": "+"
+          },
+          {
+            "construct_id": "starr-enhancer-002",
+            "element_id": "enhancer-002",
+            "sequence_length": 220,
+            "strand": "-"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C04-CTRL-001",
+      "content_address": "sha256:8bbe237eabd4cc0bb3a44fa44e41cc371d1877ae99767f0780ea66693988d529",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C04-CTRL-001",
+      "description": "GNC-D13-C04 retains the control_a path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "construct_field_missing"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "starrseq_construct",
+      "operation_id": "D13-C04",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "construct_id": "starr-enhancer-001",
+            "element_id": "enhancer-001",
+            "sequence_length": 240,
+            "strand": "?"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C04-CTRL-002",
+      "content_address": "sha256:66227be4196df2653b23c4c73639e0a3ecd4f148de04be4cd2dc01ad21d72ae2",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C04-CTRL-002",
+      "description": "GNC-D13-C04 retains the control_b path from validation_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "constructs_missing"
+      ],
+      "expected_state": "review",
+      "family": "validation_design_frontier",
+      "operation": "starrseq_construct",
+      "operation_id": "D13-C04",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C04-CTRL-003",
+      "content_address": "sha256:df70543533dc35a29373f86fe013bbc8e182f214139b916b4f7d2092fc23b3d7",
+      "delegate_class": "ValidationDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_record_id": "D13-C04-CTRL-003",
+      "description": "GNC-D13-C04 retains the control_c path from validation_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_design_frontier",
+      "operation": "starrseq_construct",
+      "operation_id": "D13-C04",
+      "payload": {
+        "construct_budget": 8,
+        "constructs": [
+          {
+            "construct_id": "starr-enhancer-001",
+            "element_id": "enhancer-001",
+            "sequence_length": 240,
+            "strand": "+"
+          },
+          {
+            "construct_id": "starr-enhancer-002",
+            "element_id": "enhancer-002",
+            "sequence_length": 220,
+            "strand": "-"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          {
+            "control_id": "empty-vector",
+            "type": "empty"
+          },
+          {
+            "control_id": "reference",
+            "type": "reference"
+          }
+        ],
+        "package_id": "starr-package-001"
+      },
+      "plane": "validation_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-design:addgene",
+        "D13-validation-design:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C05-POS-001",
+      "content_address": "sha256:6fa1fa742f101bcc6c6158b58845a31efe6e5aad9a378c91f47f47fddf4acc87",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C05-POS-001",
+      "description": "GNC-D13-C05 retains the positive path from editing_design_frontier with delegate state designed",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 9,
+        "payload_field_count": 8,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "designed",
+      "family": "editing_design_frontier",
+      "operation": "crispr_design",
+      "operation_id": "D13-C05",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "crispr-design-001",
+        "guide_length": 20,
+        "max_guides": 3,
+        "modes": [
+          "crispri",
+          "crispra"
+        ],
+        "readouts": [
+          "expression",
+          "viability"
+        ],
+        "targets": [
+          {
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "crispr-target-001"
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C05-CTRL-001",
+      "content_address": "sha256:fcb8e947716396b85a9878e9587edb08b10dbfade66ce6c827b58c0b96b8f557",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C05-CTRL-001",
+      "description": "GNC-D13-C05 retains the control_a path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 8,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "mode_unsupported"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "crispr_design",
+      "operation_id": "D13-C05",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "crispr-design-001",
+        "guide_length": 20,
+        "max_guides": 3,
+        "modes": [
+          "unsupported_mode"
+        ],
+        "readouts": [
+          "expression",
+          "viability"
+        ],
+        "targets": [
+          {
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "crispr-target-001"
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C05-CTRL-002",
+      "content_address": "sha256:6b3015b76de3ffa94d2cb0e313b700d8b2a3b4c72e74172b66190e6a56342a5e",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C05-CTRL-002",
+      "description": "GNC-D13-C05 retains the control_b path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 8,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "targets_missing"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "crispr_design",
+      "operation_id": "D13-C05",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "crispr-design-001",
+        "guide_length": 20,
+        "max_guides": 3,
+        "modes": [
+          "crispri",
+          "crispra"
+        ],
+        "readouts": [
+          "expression",
+          "viability"
+        ],
+        "targets": []
+      },
+      "plane": "editing_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C05-CTRL-003",
+      "content_address": "sha256:f736b23c8ff9432bec5eaee8e3f72cc6e99b60cdc4bc7540b7993aea443b01d0",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C05-CTRL-003",
+      "description": "GNC-D13-C05 retains the control_c path from editing_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 8,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "editing_design_frontier",
+      "operation": "crispr_design",
+      "operation_id": "D13-C05",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "crispr-design-001",
+        "guide_length": 20,
+        "max_guides": 3,
+        "modes": [
+          "crispri",
+          "crispra"
+        ],
+        "readouts": [
+          "expression",
+          "viability"
+        ],
+        "targets": [
+          {
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "crispr-target-001"
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C06-POS-001",
+      "content_address": "sha256:0c66cc293ec12b3a64b4ed903ffde33824a45fcb644e2ce28f7397f92727438d",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C06-POS-001",
+      "description": "GNC-D13-C06 retains the positive path from editing_design_frontier with delegate state designed",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "designed",
+      "family": "editing_design_frontier",
+      "operation": "base_editing",
+      "operation_id": "D13-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "base-design-001",
+        "editing_window": [
+          4,
+          40
+        ],
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "targets": [
+          {
+            "alternate": "T",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "reference": "C",
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "base-target-001",
+            "variant_offset": 20
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C06-CTRL-001",
+      "content_address": "sha256:1900ef71c0232630a53d73e1bf460bf6170ca56beffd484ab510f0fc6b1a17a0",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C06-CTRL-001",
+      "description": "GNC-D13-C06 retains the control_a path from editing_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "editing_design_frontier",
+      "operation": "base_editing",
+      "operation_id": "D13-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "base-design-001",
+        "editing_window": [
+          4,
+          40
+        ],
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "targets": [
+          {
+            "alternate": "T",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "reference": "C",
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "base-target-foreign",
+            "variant_offset": 20
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C06-CTRL-002",
+      "content_address": "sha256:e27dcabbb4929c208a5ed78f231fbd799817271738b47e3d30e6ac527888d390",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C06-CTRL-002",
+      "description": "GNC-D13-C06 retains the control_b path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "substitution_not_single_base"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "base_editing",
+      "operation_id": "D13-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "base-design-001",
+        "editing_window": [
+          4,
+          40
+        ],
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "targets": [
+          {
+            "alternate": "AT",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "reference": "C",
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "base-target-multi",
+            "variant_offset": 20
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C06-CTRL-003",
+      "content_address": "sha256:2d3bb7ffed3ae489237c6d6e8337084acc7535f0be6ee33e04b3fe39821f650a",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C06-CTRL-003",
+      "description": "GNC-D13-C06 retains the control_c path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "targets_missing"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "base_editing",
+      "operation_id": "D13-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "base-design-001",
+        "editing_window": [
+          4,
+          40
+        ],
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "targets": []
+      },
+      "plane": "editing_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C07-POS-001",
+      "content_address": "sha256:fba650ef613441c115fd4d78c532e4c0b5948964e680bfd598ae1a2775a1c7b0",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C07-POS-001",
+      "description": "GNC-D13-C07 retains the positive path from editing_design_frontier with delegate state designed",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "designed",
+      "family": "editing_design_frontier",
+      "operation": "prime_editing",
+      "operation_id": "D13-C07",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "prime-design-001",
+        "flank_length": 41,
+        "max_edit_length": 4,
+        "pbs_length": 13,
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "rtt_length": 20,
+        "targets": [
+          {
+            "alternate": "T",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "reference": "C",
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "prime-target-001",
+            "variant_offset": 20
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C07-CTRL-001",
+      "content_address": "sha256:c5ceea4c88c72e32494a2b717f6400ca5b66c2301d4cfa1c0a9a878101cbfd7f",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C07-CTRL-001",
+      "description": "GNC-D13-C07 retains the control_a path from editing_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "editing_design_frontier",
+      "operation": "prime_editing",
+      "operation_id": "D13-C07",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "prime-design-001",
+        "flank_length": 41,
+        "max_edit_length": 4,
+        "pbs_length": 13,
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "rtt_length": 20,
+        "targets": [
+          {
+            "alternate": "T",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "reference": "C",
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "prime-target-foreign",
+            "variant_offset": 20
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C07-CTRL-002",
+      "content_address": "sha256:90f35e80aad25d34aa71347572dc672b0fa648e23eb9a099d1f8089a1ff6a07b",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C07-CTRL-002",
+      "description": "GNC-D13-C07 retains the control_b path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 2,
+        "output_field_count": 7,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "edit_length_exceeded",
+        "substitution_not_single_base"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "prime_editing",
+      "operation_id": "D13-C07",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "prime-design-001",
+        "flank_length": 41,
+        "max_edit_length": 4,
+        "pbs_length": 13,
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "rtt_length": 20,
+        "targets": [
+          {
+            "alternate": "AAAAAAAA",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "reference": "C",
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "prime-target-long",
+            "variant_offset": 20
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C07-CTRL-003",
+      "content_address": "sha256:d6898dc2c96a1fa4d7c02520550075c6ee526ba6a2959260260ee5635876a172",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C07-CTRL-003",
+      "description": "GNC-D13-C07 retains the control_c path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 9,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "flank_shortage"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "prime_editing",
+      "operation_id": "D13-C07",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "design_id": "prime-design-001",
+        "flank_length": 10,
+        "max_edit_length": 4,
+        "pbs_length": 13,
+        "readouts": [
+          "editing_rate",
+          "viability"
+        ],
+        "rtt_length": 20,
+        "targets": [
+          {
+            "alternate": "T",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "reference": "C",
+            "sequence": "ACGTACGTACGTACGTACGTCCGTACGTACGTACGTACGTA",
+            "target_id": "prime-target-001",
+            "variant_offset": 20
+          }
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:broad-gpp"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C08-POS-001",
+      "content_address": "sha256:a99f98fa02e186decedaffb2aacf93ffb97c9bd3f0800538331d27597df5ef6d",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C08-POS-001",
+      "description": "GNC-D13-C08 retains the positive path from editing_design_frontier with delegate state designed",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "designed",
+      "family": "editing_design_frontier",
+      "operation": "allele_reporter",
+      "operation_id": "D13-C08",
+      "payload": {
+        "constructs": [
+          {
+            "allele": "reference",
+            "construct_id": "reporter-reference",
+            "sequence": "ACGTACGTACGTACCTACGTACGTACGTAC"
+          },
+          {
+            "allele": "alternate",
+            "construct_id": "reporter-alternate",
+            "sequence": "ACGTACGTACGTACTTACGTACGTACGTAC"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "empty_vector",
+          "positive_control"
+        ],
+        "design_id": "reporter-design-001",
+        "max_constructs": 2,
+        "readouts": [
+          "reporter_activity",
+          "viability"
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-editing-design:encode",
+        "D13-editing-design:addgene",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C08-CTRL-001",
+      "content_address": "sha256:0113c67c476f941c657da6a07bf12b0ac0937eddb30002ff55f6bbd425b178e3",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C08-CTRL-001",
+      "description": "GNC-D13-C08 retains the control_a path from editing_design_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "editing_design_frontier",
+      "operation": "allele_reporter",
+      "operation_id": "D13-C08",
+      "payload": {
+        "constructs": [
+          {
+            "allele": "reference",
+            "construct_id": "reporter-reference",
+            "sequence": "ACGTACGTACGTACCTACGTACGTACGTAC"
+          },
+          {
+            "allele": "alternate",
+            "construct_id": "reporter-alternate",
+            "sequence": "ACGTACGTACGTACTTACGTACGTACGTAC"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          "empty_vector",
+          "positive_control"
+        ],
+        "design_id": "reporter-design-001",
+        "max_constructs": 2,
+        "readouts": [
+          "reporter_activity",
+          "viability"
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-editing-design:encode",
+        "D13-editing-design:addgene",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C08-CTRL-002",
+      "content_address": "sha256:de653cfbc3f0353a1a26a5004d9f9f5ce273952da4eda75726b265c4cf4c97db",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C08-CTRL-002",
+      "description": "GNC-D13-C08 retains the control_b path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 2,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "allele_pair_missing",
+        "constructs_missing"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "allele_reporter",
+      "operation_id": "D13-C08",
+      "payload": {
+        "constructs": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "empty_vector",
+          "positive_control"
+        ],
+        "design_id": "reporter-design-001",
+        "max_constructs": 2,
+        "readouts": [
+          "reporter_activity",
+          "viability"
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-editing-design:encode",
+        "D13-editing-design:addgene",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C08-CTRL-003",
+      "content_address": "sha256:726bf42eaff38fa34294005df884aa5ebe5072d0d779941f2dfd80add7ddfb87",
+      "delegate_class": "EditingDesignRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_record_id": "D13-C08-CTRL-003",
+      "description": "GNC-D13-C08 retains the control_c path from editing_design_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "construct_budget_exceeded"
+      ],
+      "expected_state": "review",
+      "family": "editing_design_frontier",
+      "operation": "allele_reporter",
+      "operation_id": "D13-C08",
+      "payload": {
+        "constructs": [
+          {
+            "allele": "reference",
+            "construct_id": "reporter-reference",
+            "sequence": "ACGTACGTACGTACCTACGTACGTACGTAC"
+          },
+          {
+            "allele": "alternate",
+            "construct_id": "reporter-alternate",
+            "sequence": "ACGTACGTACGTACTTACGTACGTACGTAC"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "empty_vector",
+          "positive_control"
+        ],
+        "design_id": "reporter-design-001",
+        "max_constructs": 1,
+        "readouts": [
+          "reporter_activity",
+          "viability"
+        ]
+      },
+      "plane": "editing_design",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-editing-design:encode",
+        "D13-editing-design:addgene",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C09-POS-001",
+      "content_address": "sha256:a048378e968f65d4d2b324e21c423a03cc078e8aa4fb1ffc946d2535958337d1",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C09-POS-001",
+      "description": "GNC-D13-C09 retains the positive path from planning_frontier with delegate state ready_for_review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 9,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "planning_frontier",
+      "operation": "model_eligibility",
+      "operation_id": "D13-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [
+          {
+            "blockers": [],
+            "cell_state": "stem_like",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "declared_context_keys": [
+              "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
+            ],
+            "evidence_strength": "replicated",
+            "model_id": "model-001",
+            "model_system": "adult_glioma_stem_like",
+            "source_id": "gtex",
+            "supports_context": true
+          }
+        ],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "plane": "planning",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-planning:gtex",
+        "D13-planning:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C09-CTRL-001",
+      "content_address": "sha256:4ae894e46d999dd3404425081a429d2d388d01ab6ef5c434080291bb1c315574",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C09-CTRL-001",
+      "description": "GNC-D13-C09 retains the control_a path from planning_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 3,
+        "output_field_count": 9,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch",
+        "context_not_declared_supported",
+        "no_declared_eligible_model_system"
+      ],
+      "expected_state": "blocked",
+      "family": "planning_frontier",
+      "operation": "model_eligibility",
+      "operation_id": "D13-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [
+          {
+            "blockers": [],
+            "cell_state": "stem_like",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "declared_context_keys": [
+              "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
+            ],
+            "evidence_strength": "replicated",
+            "model_id": "model-001",
+            "model_system": "adult_glioma_stem_like",
+            "source_id": "gtex",
+            "supports_context": true
+          }
+        ],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "plane": "planning",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C09-CTRL-002",
+      "content_address": "sha256:217acb5b93d85e4c44be1526cad0879be4f9d1302dba4007803c11b37ea47bc6",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C09-CTRL-002",
+      "description": "GNC-D13-C09 retains the control_b path from planning_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 3,
+        "output_field_count": 9,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_not_declared_supported",
+        "evidence_below_threshold",
+        "no_declared_eligible_model_system"
+      ],
+      "expected_state": "review",
+      "family": "planning_frontier",
+      "operation": "model_eligibility",
+      "operation_id": "D13-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [
+          {
+            "blockers": [],
+            "cell_state": "stem_like",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "declared_context_keys": [],
+            "evidence_strength": "exploratory",
+            "model_id": "model-001",
+            "model_system": "adult_glioma_stem_like",
+            "source_id": "gtex",
+            "supports_context": true
+          }
+        ],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "plane": "planning",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C09-CTRL-003",
+      "content_address": "sha256:05441579772bb570cb3f80d2fbcc7136e888e5c5b0bf0f2e6873c6ea0448ce02",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C09-CTRL-003",
+      "description": "GNC-D13-C09 retains the control_c path from planning_frontier with delegate state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 9,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_model_observations"
+      ],
+      "expected_state": "abstained",
+      "family": "planning_frontier",
+      "operation": "model_eligibility",
+      "operation_id": "D13-C09",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          "reference_model",
+          "non_targeting"
+        ],
+        "minimum_evidence_strength": "moderate",
+        "model_system": "adult_glioma_stem_like",
+        "observations": [],
+        "readouts": [
+          "state_marker",
+          "viability"
+        ],
+        "request_id": "eligibility-request-001"
+      },
+      "plane": "planning",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C10-POS-001",
+      "content_address": "sha256:8c433317b5f26c62223d226b51b2062ad2865382652e81f3cc2372d208bc1c9d",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C10-POS-001",
+      "description": "GNC-D13-C10 retains the positive path from planning_frontier with delegate state ready_for_review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "planning_frontier",
+      "operation": "guide_adaptation",
+      "operation_id": "D13-C10",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": "{\"observations\": [{\"context_key\": \"GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment\", \"design_id\": \"design-001\", \"observation_id\": \"guide-observation-001\", \"oligo_id\": \"oligo-001\", \"oligo_type\": \"guide\", \"pam\": \"NGG\", \"sequence\": \"ACGTACGTACGTACGTACGT\", \"start_offset\": 20, \"strand\": \"+\", \"target_id\": \"target-001\"}]}"
+      },
+      "plane": "planning",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-planning:addgene",
+        "D13-planning:ncbi-refseq"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C10-CTRL-001",
+      "content_address": "sha256:fd9757b14d21c3aca2c1cc316bfe9f5704cfc5c481ca6215c6068a0d69f5d911",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C10-CTRL-001",
+      "description": "GNC-D13-C10 retains the control_a path from planning_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "planning_frontier",
+      "operation": "guide_adaptation",
+      "operation_id": "D13-C10",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": "{\"observations\": [{\"context_key\": \"GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment\", \"design_id\": \"design-001\", \"observation_id\": \"guide-observation-001\", \"oligo_id\": \"oligo-001\", \"oligo_type\": \"guide\", \"pam\": \"NGG\", \"sequence\": \"ACGTACGTACGTACGTACGT\", \"start_offset\": 20, \"strand\": \"+\", \"target_id\": \"target-001\"}]}"
+      },
+      "plane": "planning",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-planning:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C10-CTRL-002",
+      "content_address": "sha256:f4b90079ac12ad8db0044397adf4094d731b7e33a501d8ac49d95342b3b855f4",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C10-CTRL-002",
+      "description": "GNC-D13-C10 retains the control_b path from planning_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_guide_oligo_row"
+      ],
+      "expected_state": "review",
+      "family": "planning_frontier",
+      "operation": "guide_adaptation",
+      "operation_id": "D13-C10",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": "{\"observations\": [{\"design_id\": \"design-002\", \"target_id\": \"target-002\", \"sequence\": \"\"}]}"
+      },
+      "plane": "planning",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-planning:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C10-CTRL-003",
+      "content_address": "sha256:eb81d21eccddbd7a36a2b24d2f470d931e4f142284bea3917a5c350d6c78ac6e",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C10-CTRL-003",
+      "description": "GNC-D13-C10 retains the control_c path from planning_frontier with delegate state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "empty_source"
+      ],
+      "expected_state": "abstained",
+      "family": "planning_frontier",
+      "operation": "guide_adaptation",
+      "operation_id": "D13-C10",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "input_format": "json",
+        "source_id": "broad-guide-receipt",
+        "source_version": "public aggregate 2026-08",
+        "text": ""
+      },
+      "plane": "planning",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-planning:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C11-POS-001",
+      "content_address": "sha256:0b196a00632f560bac6ac500dd8e72616e878401f53584345491640838f05820",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C11-POS-001",
+      "description": "GNC-D13-C11 retains the positive path from planning_frontier with delegate state ready_for_review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 10,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "planning_frontier",
+      "operation": "controls_randomization",
+      "operation_id": "D13-C11",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [
+          {
+            "condition": "baseline",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "target_id": "target-001"
+          },
+          {
+            "condition": "baseline",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "target_id": "target-002"
+          }
+        ],
+        "technical_replicates": 2
+      },
+      "plane": "planning",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-planning:addgene",
+        "D13-planning:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C11-CTRL-001",
+      "content_address": "sha256:981e7db3bbc84c1c0c1fe5cb1f1f4ec3875a28aa78a7f1c6d774d5ca8d49c776",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C11-CTRL-001",
+      "description": "GNC-D13-C11 retains the control_a path from planning_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "planning_frontier",
+      "operation": "controls_randomization",
+      "operation_id": "D13-C11",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "target_id": "target-foreign"
+          }
+        ],
+        "technical_replicates": 2
+      },
+      "plane": "planning",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-planning:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C11-CTRL-002",
+      "content_address": "sha256:c9787f72074f1b8d63eade8d0aba4d6900d15c8c5c74d1522df3904a71431cff",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C11-CTRL-002",
+      "description": "GNC-D13-C11 retains the control_b path from planning_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_target_id"
+      ],
+      "expected_state": "review",
+      "family": "planning_frontier",
+      "operation": "controls_randomization",
+      "operation_id": "D13-C11",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
+          }
+        ],
+        "technical_replicates": 2
+      },
+      "plane": "planning",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-planning:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C11-CTRL-003",
+      "content_address": "sha256:10d31e406286e1c656015b723c35b54c9c376289e21056c14bc5f627f2f8a9f9",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C11-CTRL-003",
+      "description": "GNC-D13-C11 retains the control_c path from planning_frontier with delegate state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 10,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_targets"
+      ],
+      "expected_state": "abstained",
+      "family": "planning_frontier",
+      "operation": "controls_randomization",
+      "operation_id": "D13-C11",
+      "payload": {
+        "biological_replicates": 2,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "control_types": [
+          "non_targeting",
+          "positive_control"
+        ],
+        "plan_id": "controls-plan-001",
+        "randomization_seed": "public-seed-001",
+        "targets": [],
+        "technical_replicates": 2
+      },
+      "plane": "planning",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-planning:addgene"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C12-POS-001",
+      "content_address": "sha256:a37537ed1715be470b8fb73eca0a3ee0e2102e7b9745c3cb3dca13ab161ba47c",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C12-POS-001",
+      "description": "GNC-D13-C12 retains the positive path from planning_frontier with delegate state ready_for_review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "planning_frontier",
+      "operation": "power_replication",
+      "operation_id": "D13-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.8,
+            "observation_id": "power-observation-001",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0.5
+          },
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.82,
+            "observation_id": "power-observation-002",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0.52
+          }
+        ],
+        "request_id": "power-request-001"
+      },
+      "plane": "planning",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-planning:pubmed",
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C12-CTRL-001",
+      "content_address": "sha256:a628cf8ac3b01b0077c694d0d2d450825e9ec3744a4a0356fabbb9e05f9fb826",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C12-CTRL-001",
+      "description": "GNC-D13-C12 retains the control_a path from planning_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "planning_frontier",
+      "operation": "power_replication",
+      "operation_id": "D13-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.8,
+            "observation_id": "power-observation-001",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0.5
+          }
+        ],
+        "request_id": "power-request-001"
+      },
+      "plane": "planning",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-planning:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C12-CTRL-002",
+      "content_address": "sha256:4d3d2fa8cd1c0e9273e975144a7fb869687803d120994466773016bb72cd993d",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C12-CTRL-002",
+      "description": "GNC-D13-C12 retains the control_b path from planning_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_power_row"
+      ],
+      "expected_state": "review",
+      "family": "planning_frontier",
+      "operation": "power_replication",
+      "operation_id": "D13-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [
+          {
+            "alpha": 0.05,
+            "assay_id": "expression-001",
+            "blocking_factor_count": 1,
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "design_id": "design-001",
+            "effect_size": 0.8,
+            "observation_id": "power-observation-001",
+            "planned_replicates": 24,
+            "source_id": "pubmed",
+            "target_power": 0.8,
+            "variance": 0
+          }
+        ],
+        "request_id": "power-request-001"
+      },
+      "plane": "planning",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-planning:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C12-CTRL-003",
+      "content_address": "sha256:a121c806cb22f2f1293143c60a9e9dbbea813997dc843e28caaa9d961872a61d",
+      "delegate_class": "PlanningRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_record_id": "D13-C12-CTRL-003",
+      "description": "GNC-D13-C12 retains the control_c path from planning_frontier with delegate state abstained",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_power_observations"
+      ],
+      "expected_state": "abstained",
+      "family": "planning_frontier",
+      "operation": "power_replication",
+      "operation_id": "D13-C12",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "observations": [],
+        "request_id": "power-request-001"
+      },
+      "plane": "planning",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-planning:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C13-POS-001",
+      "content_address": "sha256:62647f1fef7006611627a5d85b98fbdf15d47018372e37d2583cfce622b927bf",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C13-POS-001",
+      "description": "GNC-D13-C13 retains the positive path from validation_release_frontier with delegate state ready",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "validation_release_frontier",
+      "operation": "off_target_risk",
+      "operation_id": "D13-C13",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-001",
+            "score": 0.04,
+            "weight": 1.0
+          },
+          {
+            "candidate_id": "alt-002",
+            "score": 0.08,
+            "weight": 0.5
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-001"
+      },
+      "plane": "validation_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C13-CTRL-001",
+      "content_address": "sha256:23c65f73f3807ddaae454e9b5984ed5571858aad0661a096391670c4af0d5f59",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C13-CTRL-001",
+      "description": "GNC-D13-C13 retains the control_a path from validation_release_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "off_target_risk_high"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_release_frontier",
+      "operation": "off_target_risk",
+      "operation_id": "D13-C13",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-high",
+            "score": 0.78,
+            "weight": 1.0
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-high"
+      },
+      "plane": "validation_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C13-CTRL-002",
+      "content_address": "sha256:cf17a7dfffc3eba6918aec7ff33dbcbcf8dbc7dceba6791ff1fe04d7d89f025e",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C13-CTRL-002",
+      "description": "GNC-D13-C13 retains the control_b path from validation_release_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_release_frontier",
+      "operation": "off_target_risk",
+      "operation_id": "D13-C13",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-001",
+            "score": 0.04,
+            "weight": 1.0
+          },
+          {
+            "candidate_id": "alt-002",
+            "score": 0.08,
+            "weight": 0.5
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-foreign"
+      },
+      "plane": "validation_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C13-CTRL-003",
+      "content_address": "sha256:f47786b0d15df411c5992415572565123451ec01841f7492ffa5302265e583e9",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C13-CTRL-003",
+      "description": "GNC-D13-C13 retains the control_c path from validation_release_frontier with delegate state rejected",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 1,
+        "payload_field_count": 6,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "invalid_payload"
+      ],
+      "expected_state": "rejected",
+      "family": "validation_release_frontier",
+      "operation": "off_target_risk",
+      "operation_id": "D13-C13",
+      "payload": {
+        "blocking_threshold": 0.6,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "off_targets": [
+          {
+            "candidate_id": "alt-bad",
+            "score": "not-a-score",
+            "weight": 1.0
+          }
+        ],
+        "on_target_score": 0.92,
+        "review_threshold": 0.25,
+        "target_id": "guide-malformed"
+      },
+      "plane": "validation_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C14-POS-001",
+      "content_address": "sha256:a7f330adb0a0e0447efa40c5cbe25e65b43c6f5f77cc66c9678159560bbe9532",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C14-POS-001",
+      "description": "GNC-D13-C14 retains the positive path from validation_release_frontier with delegate state ready",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready",
+      "family": "validation_release_frontier",
+      "operation": "value_of_information",
+      "operation_id": "D13-C14",
+      "payload": {
+        "budget": 12.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "experiments": [
+          {
+            "cost": 4.0,
+            "experiment_id": "exp-baseline",
+            "information_gain": 0.45,
+            "prerequisites": [],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-functional",
+            "information_gain": 0.35,
+            "prerequisites": [
+              "exp-baseline"
+            ],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-replicate",
+            "information_gain": 0.25,
+            "prerequisites": [
+              "exp-functional"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-plan-001"
+      },
+      "plane": "validation_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C14-CTRL-001",
+      "content_address": "sha256:b650e1a4ebc5d61615826bca7ba77c9bafea5b65d16cd7d2f6237ea06a827cb0",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C14-CTRL-001",
+      "description": "GNC-D13-C14 retains the control_a path from validation_release_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "review",
+      "family": "validation_release_frontier",
+      "operation": "value_of_information",
+      "operation_id": "D13-C14",
+      "payload": {
+        "budget": 2.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "experiments": [
+          {
+            "cost": 4.0,
+            "experiment_id": "exp-baseline",
+            "information_gain": 0.45,
+            "prerequisites": [],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-functional",
+            "information_gain": 0.35,
+            "prerequisites": [
+              "exp-baseline"
+            ],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-replicate",
+            "information_gain": 0.25,
+            "prerequisites": [
+              "exp-functional"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-low-budget"
+      },
+      "plane": "validation_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C14-CTRL-002",
+      "content_address": "sha256:704122a89756a4bfb2b5e9b779ce22b6a35f18ae09adb7468be994923559d01e",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C14-CTRL-002",
+      "description": "GNC-D13-C14 retains the control_b path from validation_release_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 1,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "prerequisite_cycle"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_release_frontier",
+      "operation": "value_of_information",
+      "operation_id": "D13-C14",
+      "payload": {
+        "budget": 12.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "experiments": [
+          {
+            "cost": 2.0,
+            "experiment_id": "exp-a",
+            "information_gain": 0.5,
+            "prerequisites": [
+              "exp-b"
+            ],
+            "risk_reduction": 0.2
+          },
+          {
+            "cost": 2.0,
+            "experiment_id": "exp-b",
+            "information_gain": 0.4,
+            "prerequisites": [
+              "exp-a"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-cycle"
+      },
+      "plane": "validation_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C14-CTRL-003",
+      "content_address": "sha256:83a23ca6d086321cccebdbeaa55e5ad5ee302a2c1fa47e6b5a68a844a7b647cd",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C14-CTRL-003",
+      "description": "GNC-D13-C14 retains the control_c path from validation_release_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 1,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_release_frontier",
+      "operation": "value_of_information",
+      "operation_id": "D13-C14",
+      "payload": {
+        "budget": 12.0,
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "experiments": [
+          {
+            "cost": 4.0,
+            "experiment_id": "exp-baseline",
+            "information_gain": 0.45,
+            "prerequisites": [],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-functional",
+            "information_gain": 0.35,
+            "prerequisites": [
+              "exp-baseline"
+            ],
+            "risk_reduction": 0.25
+          },
+          {
+            "cost": 3.0,
+            "experiment_id": "exp-replicate",
+            "information_gain": 0.25,
+            "prerequisites": [
+              "exp-functional"
+            ],
+            "risk_reduction": 0.2
+          }
+        ],
+        "plan_id": "voi-foreign"
+      },
+      "plane": "validation_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C15-POS-001",
+      "content_address": "sha256:6a6a9706e33d56719025f3bc75d7a14be95371a9f07350e79290265cdbd45ddd",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C15-POS-001",
+      "description": "GNC-D13-C15 retains the positive path from validation_release_frontier with delegate state packaged",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "packaged",
+      "family": "validation_release_frontier",
+      "operation": "experiment_package",
+      "operation_id": "D13-C15",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "ctrl-negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "ctrl-reference",
+            "type": "reference"
+          }
+        ],
+        "experiments": [
+          {
+            "experiment_id": "exp-baseline",
+            "objective": "reference assay",
+            "readout": "declared signal"
+          },
+          {
+            "experiment_id": "exp-functional",
+            "objective": "functional follow-up",
+            "readout": "replicate signal"
+          }
+        ],
+        "package_id": "validation-package-001",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-release:addgene",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C15-CTRL-001",
+      "content_address": "sha256:1f24e968bd089aa9850ea44808fd86d487c38e884105500188e819443a6b7cf9",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C15-CTRL-001",
+      "description": "GNC-D13-C15 retains the control_a path from validation_release_frontier with delegate state rejected",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 1,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "experiments_missing"
+      ],
+      "expected_state": "rejected",
+      "family": "validation_release_frontier",
+      "operation": "experiment_package",
+      "operation_id": "D13-C15",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "ctrl-negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "ctrl-reference",
+            "type": "reference"
+          }
+        ],
+        "experiments": [],
+        "package_id": "package-missing",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-release:addgene",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C15-CTRL-002",
+      "content_address": "sha256:5ff208bba8ab1a1004247148cf81aedd1baeb68811c4762f12d25d7c28775df3",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C15-CTRL-002",
+      "description": "GNC-D13-C15 retains the control_b path from validation_release_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 2,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "duplicate_package_id"
+      ],
+      "expected_state": "review",
+      "family": "validation_release_frontier",
+      "operation": "experiment_package",
+      "operation_id": "D13-C15",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "controls": [
+          {
+            "control_id": "exp-baseline",
+            "type": "collision"
+          }
+        ],
+        "experiments": [
+          {
+            "experiment_id": "exp-baseline",
+            "objective": "reference assay",
+            "readout": "declared signal"
+          },
+          {
+            "experiment_id": "exp-functional",
+            "objective": "functional follow-up",
+            "readout": "replicate signal"
+          }
+        ],
+        "package_id": "package-duplicate",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-release:addgene",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C15-CTRL-003",
+      "content_address": "sha256:25217b3322bc470e3627ac0eb9bc8240348c62634c588a46f95ecfa271f456a2",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C15-CTRL-003",
+      "description": "GNC-D13-C15 retains the control_c path from validation_release_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 1,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_release_frontier",
+      "operation": "experiment_package",
+      "operation_id": "D13-C15",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "controls": [
+          {
+            "control_id": "ctrl-negative",
+            "type": "negative"
+          },
+          {
+            "control_id": "ctrl-reference",
+            "type": "reference"
+          }
+        ],
+        "experiments": [
+          {
+            "experiment_id": "exp-baseline",
+            "objective": "reference assay",
+            "readout": "declared signal"
+          },
+          {
+            "experiment_id": "exp-functional",
+            "objective": "functional follow-up",
+            "readout": "replicate signal"
+          }
+        ],
+        "package_id": "package-foreign",
+        "protocols": [
+          {
+            "protocol_id": "protocol-aggregate-001",
+            "source_id": "addgene",
+            "version": "v1"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-release:addgene",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C16-POS-001",
+      "content_address": "sha256:f64ebe63fe85dfb169117a26687d4aeb60912d2633a2eedd7d7155122aaeed3a",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C16-POS-001",
+      "description": "GNC-D13-C16 retains the positive path from validation_release_frontier with delegate state updated",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "updated",
+      "family": "validation_release_frontier",
+      "operation": "claim_update",
+      "operation_id": "D13-C16",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "effect_direction": "increased",
+            "effect_size": 0.41,
+            "evidence_address": "sha256:evidence-001",
+            "result_id": "result-001"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C16-CTRL-001",
+      "content_address": "sha256:697e366797b24af652a9c977b57dc0e63efc4a7cf5525f4fa5c2cd05eec4a90b",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C16-CTRL-001",
+      "description": "GNC-D13-C16 retains the control_a path from validation_release_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "unknown_claim"
+      ],
+      "expected_state": "review",
+      "family": "validation_release_frontier",
+      "operation": "claim_update",
+      "operation_id": "D13-C16",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-unknown",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "evidence_address": "sha256:evidence-unknown",
+            "result_id": "result-unknown"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C16-CTRL-002",
+      "content_address": "sha256:54b9b6b367052cc9581383e2508dad58b4f12a35bc8a70f298e8055995b6bfaa",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C16-CTRL-002",
+      "description": "GNC-D13-C16 retains the control_b path from validation_release_frontier with delegate state blocked",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "validation_release_frontier",
+      "operation": "claim_update",
+      "operation_id": "D13-C16",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+            "effect_direction": "increased",
+            "effect_size": 0.41,
+            "evidence_address": "sha256:evidence-001",
+            "result_id": "result-001"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D13-C16-CTRL-003",
+      "content_address": "sha256:c65f76f5bdbe77d5650a95d28b0ad3505c0551b0062f99eb766fddd880ae2447",
+      "delegate_class": "ValidationReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_record_id": "C16-CTRL-003",
+      "description": "GNC-D13-C16 retains the control_c path from validation_release_frontier with delegate state review",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "evidence_address_missing"
+      ],
+      "expected_state": "review",
+      "family": "validation_release_frontier",
+      "operation": "claim_update",
+      "operation_id": "D13-C16",
+      "payload": {
+        "claims": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "effect_direction": "increased",
+            "state": "hypothesis"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "results": [
+          {
+            "claim_id": "claim-regulatory-001",
+            "claim_state": "supported",
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "effect_direction": "increased",
+            "effect_size": 0.41,
+            "result_id": "result-001"
+          }
+        ]
+      },
+      "plane": "validation_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D13-validation-release:gdc",
+        "D13-validation-release:encode"
+      ]
+    }
+  ],
+  "content_address": "sha256:8a4a0093ddbe0d2b75d3a01e20842d09b1fbf47144f82aa9a71b767dfac7a3d9",
+  "context_key": "multi_context_public_aggregate",
+  "family_contexts": {
+    "editing_design_frontier": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+    "planning_frontier": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+    "validation_design_frontier": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+    "validation_release_frontier": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment"
+  },
+  "fixture_id": "planning-architecture-public-aggregate-001",
+  "foreign_context_key": "foreign_context_control",
+  "operations": [
+    {
+      "capability_id": "GNC-D13-C01",
+      "content_address": "sha256:e5f87690c440117f9a6db1a560e4296ab5d611d9207a1a1c0d6988ee0830d163",
+      "control_policy": "retain_missing_dimensions_and_context_controls",
+      "delegate_operation": "gap_analysis",
+      "dependencies": [],
+      "family": "validation_design_frontier",
+      "input_contract": "validation_design.gap_input.v1",
+      "operation": "evidence_gap",
+      "operation_id": "D13-C01",
+      "ordinal": 1,
+      "output_contract": "planning.gap_output.v1",
+      "plane": "validation_design",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:pubmed",
+        "D13-validation-design:gdc",
+        "D13-validation-design:encode",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C02",
+      "content_address": "sha256:6b04705ab406a6f7437c26a97358d050847346f6b586aeb30849fb9e16ef81a3",
+      "control_policy": "retain_assay_support_and_route_holds",
+      "delegate_operation": "assay_eligibility",
+      "dependencies": [
+        "D13-C01"
+      ],
+      "family": "validation_design_frontier",
+      "input_contract": "validation_design.assay_input.v1",
+      "operation": "assay_eligibility",
+      "operation_id": "D13-C02",
+      "ordinal": 2,
+      "output_contract": "planning.assay_route.v1",
+      "plane": "validation_design",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:pubmed",
+        "D13-validation-design:gdc",
+        "D13-validation-design:encode",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C03",
+      "content_address": "sha256:866490d8f615b9ccb3fbe119ddce05033339766d5cfc2b566630698ab7f1e213",
+      "control_policy": "retain_allele_and_construct_budget_controls",
+      "delegate_operation": "mpra_package",
+      "dependencies": [
+        "D13-C01",
+        "D13-C02"
+      ],
+      "family": "validation_design_frontier",
+      "input_contract": "validation_design.mpra_input.v1",
+      "operation": "mpra_construct",
+      "operation_id": "D13-C03",
+      "ordinal": 3,
+      "output_contract": "planning.mpra_package.v1",
+      "plane": "validation_design",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:pubmed",
+        "D13-validation-design:gdc",
+        "D13-validation-design:encode",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C04",
+      "content_address": "sha256:47384ae27ad90c43432d4fc91194932e633ddc004986727416656c2bb50cc7ab",
+      "control_policy": "retain_construct_fields_and_context_controls",
+      "delegate_operation": "starrseq_package",
+      "dependencies": [
+        "D13-C01",
+        "D13-C02"
+      ],
+      "family": "validation_design_frontier",
+      "input_contract": "validation_design.starrseq_input.v1",
+      "operation": "starrseq_construct",
+      "operation_id": "D13-C04",
+      "ordinal": 4,
+      "output_contract": "planning.starrseq_package.v1",
+      "plane": "validation_design",
+      "source_ids": [
+        "D13-validation-design:europepmc",
+        "D13-validation-design:pubmed",
+        "D13-validation-design:gdc",
+        "D13-validation-design:encode",
+        "D13-validation-design:addgene"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C05",
+      "content_address": "sha256:0f55f185b7c6748b73a77a1972e76f94c230bcef4b4440ff8517fc65636102aa",
+      "control_policy": "retain_mode_target_control_and_readout_constraints",
+      "delegate_operation": "crispr_design",
+      "dependencies": [
+        "D13-C02"
+      ],
+      "family": "editing_design_frontier",
+      "input_contract": "editing_design.crispr_input.v1",
+      "operation": "crispr_design",
+      "operation_id": "D13-C05",
+      "ordinal": 5,
+      "output_contract": "editing.crispr_design.v1",
+      "plane": "editing_design",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp",
+        "D13-editing-design:encode",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C06",
+      "content_address": "sha256:d37353f4e0607ad50141cb2c69a117846b9b24d44a1ed5d2dab41d8ea267811e",
+      "control_policy": "retain_single_base_substitution_and_target_controls",
+      "delegate_operation": "base_editing",
+      "dependencies": [
+        "D13-C05"
+      ],
+      "family": "editing_design_frontier",
+      "input_contract": "editing_design.base_input.v1",
+      "operation": "base_editing",
+      "operation_id": "D13-C06",
+      "ordinal": 6,
+      "output_contract": "editing.base_design.v1",
+      "plane": "editing_design",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp",
+        "D13-editing-design:encode",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C07",
+      "content_address": "sha256:73903c3972254bb9c257f02b0c0313dcb8021b0ea27228ce2afd835a53b2b29b",
+      "control_policy": "retain_edit_length_flank_and_context_controls",
+      "delegate_operation": "prime_editing",
+      "dependencies": [
+        "D13-C05"
+      ],
+      "family": "editing_design_frontier",
+      "input_contract": "editing_design.prime_input.v1",
+      "operation": "prime_editing",
+      "operation_id": "D13-C07",
+      "ordinal": 7,
+      "output_contract": "editing.prime_design.v1",
+      "plane": "editing_design",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp",
+        "D13-editing-design:encode",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C08",
+      "content_address": "sha256:d80db5ad598ff3d4fc11c43588f453607021a448029cb1d81a0e57fdacd26c59",
+      "control_policy": "retain_allele_pair_construct_and_budget_controls",
+      "delegate_operation": "allele_specific_reporter",
+      "dependencies": [
+        "D13-C05",
+        "D13-C06"
+      ],
+      "family": "editing_design_frontier",
+      "input_contract": "editing_design.reporter_input.v1",
+      "operation": "allele_reporter",
+      "operation_id": "D13-C08",
+      "ordinal": 8,
+      "output_contract": "editing.allele_reporter.v1",
+      "plane": "editing_design",
+      "source_ids": [
+        "D13-editing-design:ncbi-refseq",
+        "D13-editing-design:addgene",
+        "D13-editing-design:broad-gpp",
+        "D13-editing-design:encode",
+        "D13-editing-design:pubmed"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C09",
+      "content_address": "sha256:1d1bdc9d7092b61d0689628f1d7339698fccc9a219e96cd1003523950050216e",
+      "control_policy": "retain_context_evidence_blocker_and_model_controls",
+      "delegate_operation": "model_system_eligibility",
+      "dependencies": [
+        "D13-C01",
+        "D13-C05"
+      ],
+      "family": "planning_frontier",
+      "input_contract": "planning.model_input.v1",
+      "operation": "model_eligibility",
+      "operation_id": "D13-C09",
+      "ordinal": 9,
+      "output_contract": "planning.model_eligibility.v1",
+      "plane": "planning",
+      "source_ids": [
+        "D13-planning:ncbi-refseq",
+        "D13-planning:addgene",
+        "D13-planning:encode",
+        "D13-planning:pubmed",
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C10",
+      "content_address": "sha256:503e844993d078388e9946b7b9fd095e9c1eaab9b39e9ba224036312cda12153",
+      "control_policy": "retain_format_row_identity_and_empty_input_controls",
+      "delegate_operation": "guide_oligo_adaptation",
+      "dependencies": [
+        "D13-C06"
+      ],
+      "family": "planning_frontier",
+      "input_contract": "planning.guide_input.v1",
+      "operation": "guide_adaptation",
+      "operation_id": "D13-C10",
+      "ordinal": 10,
+      "output_contract": "planning.guide_adaptation.v1",
+      "plane": "planning",
+      "source_ids": [
+        "D13-planning:ncbi-refseq",
+        "D13-planning:addgene",
+        "D13-planning:encode",
+        "D13-planning:pubmed",
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C11",
+      "content_address": "sha256:4bee9b31a940882bbe70ebdf4b8c71cb8753cc107d3c24c32ea19ac0c0c8fe81",
+      "control_policy": "retain_seed_target_inventory_and_empty_target_controls",
+      "delegate_operation": "controls_randomization",
+      "dependencies": [
+        "D13-C05",
+        "D13-C09"
+      ],
+      "family": "planning_frontier",
+      "input_contract": "planning.randomization_input.v1",
+      "operation": "controls_randomization",
+      "operation_id": "D13-C11",
+      "ordinal": 11,
+      "output_contract": "planning.randomization_output.v1",
+      "plane": "planning",
+      "source_ids": [
+        "D13-planning:ncbi-refseq",
+        "D13-planning:addgene",
+        "D13-planning:encode",
+        "D13-planning:pubmed",
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C12",
+      "content_address": "sha256:9652bdf3d342e10e91f285f605c7ad03e4b18907a4399b0f539e415c00e850c8",
+      "control_policy": "retain_power_assumptions_replicate_and_empty_input_controls",
+      "delegate_operation": "power_replication",
+      "dependencies": [
+        "D13-C09",
+        "D13-C11"
+      ],
+      "family": "planning_frontier",
+      "input_contract": "planning.power_input.v1",
+      "operation": "power_replication",
+      "operation_id": "D13-C12",
+      "ordinal": 12,
+      "output_contract": "planning.power_output.v1",
+      "plane": "planning",
+      "source_ids": [
+        "D13-planning:ncbi-refseq",
+        "D13-planning:addgene",
+        "D13-planning:encode",
+        "D13-planning:pubmed",
+        "D13-planning:gtex"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C13",
+      "content_address": "sha256:bef7631763f4afa7d0cd39400c2ff4334b242b80575157257b321e25892407b2",
+      "control_policy": "retain_burden_threshold_and_malformed_score_controls",
+      "delegate_operation": "off_target_risk",
+      "dependencies": [
+        "D13-C06",
+        "D13-C07"
+      ],
+      "family": "validation_release_frontier",
+      "input_contract": "validation_release.off_target_input.v1",
+      "operation": "off_target_risk",
+      "operation_id": "D13-C13",
+      "ordinal": 13,
+      "output_contract": "validation.off_target_summary.v1",
+      "plane": "validation_release",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode",
+        "D13-validation-release:addgene",
+        "D13-validation-release:gdc"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C14",
+      "content_address": "sha256:f9f183eb07e12bce3431bf814a59b74a49c3fdc05f1ab2416f2262f3b001a784",
+      "control_policy": "retain_budget_prerequisite_cycle_and_context_controls",
+      "delegate_operation": "value_of_information",
+      "dependencies": [
+        "D13-C09",
+        "D13-C12"
+      ],
+      "family": "validation_release_frontier",
+      "input_contract": "validation.voi_input.v1",
+      "operation": "value_of_information",
+      "operation_id": "D13-C14",
+      "ordinal": 14,
+      "output_contract": "validation.voi_selection.v1",
+      "plane": "validation_release",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode",
+        "D13-validation-release:addgene",
+        "D13-validation-release:gdc"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C15",
+      "content_address": "sha256:0619d3802dce680cf7c5b26afc9f6c03950908976117072df49967ecbc8bdbcf",
+      "control_policy": "retain_manifest_identity_and_empty_package_controls",
+      "delegate_operation": "experiment_package",
+      "dependencies": [
+        "D13-C03",
+        "D13-C04",
+        "D13-C14"
+      ],
+      "family": "validation_release_frontier",
+      "input_contract": "validation_release.package_input.v1",
+      "operation": "experiment_package",
+      "operation_id": "D13-C15",
+      "ordinal": 15,
+      "output_contract": "validation.package_manifest.v1",
+      "plane": "validation_release",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode",
+        "D13-validation-release:addgene",
+        "D13-validation-release:gdc"
+      ]
+    },
+    {
+      "capability_id": "GNC-D13-C16",
+      "content_address": "sha256:b0e2aebaf040059cce8bfa96e951d862db56aa99bf9d5b2939e42be64a865af7",
+      "control_policy": "retain_claim_identity_evidence_and_context_controls",
+      "delegate_operation": "claim_update",
+      "dependencies": [
+        "D13-C13",
+        "D13-C15"
+      ],
+      "family": "validation_release_frontier",
+      "input_contract": "validation_release.claim_input.v1",
+      "operation": "claim_update",
+      "operation_id": "D13-C16",
+      "ordinal": 16,
+      "output_contract": "validation.claim_update.v1",
+      "plane": "validation_release",
+      "source_ids": [
+        "D13-validation-release:ncbi",
+        "D13-validation-release:ensembl",
+        "D13-validation-release:encode",
+        "D13-validation-release:addgene",
+        "D13-validation-release:gdc"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:bde4a65f118c52a3072806d8b2bc76f8e271bde128125cbc4e7d525ee43cccd9",
+      "delegate_content_address": "sha256:9ce0523ea867bffe70d8a6fa62d0a305d6b3f714c0fefe3f26de0e529e35de7c",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_source_id": "europepmc",
+      "family": "validation_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-design:europepmc",
+      "source_kind": "public_validation_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://europepmc.org/"
+    },
+    {
+      "content_address": "sha256:a8b8d1cc534494fe33e2bb38ab442d7c582f0c1dee3310850861758a57f592ac",
+      "delegate_content_address": "sha256:b19ac5772c58cf22d69512317955e5dea7c8c8c7c7294e61f80649b5303942f4",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_source_id": "pubmed",
+      "family": "validation_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-design:pubmed",
+      "source_kind": "public_validation_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:ed170e65e8766acd94e3ae2420bf0d9f7678b0528d552028dd58068c5f65fad9",
+      "delegate_content_address": "sha256:0a02cf94c53fe6cf7bb187b01f592e99ade20ec525e575106ad2e342f7b8bd2c",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_source_id": "gdc",
+      "family": "validation_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-design:gdc",
+      "source_kind": "public_validation_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://gdc.cancer.gov/"
+    },
+    {
+      "content_address": "sha256:d584ce9c862929d59471670292b7d7373572ea31909c67d4ffcfdf4ba4eedb89",
+      "delegate_content_address": "sha256:1e0f97ea0339ad52a92f4d0c9ae034e4245fcb6d4a628619008ade1bd29ad36b",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_source_id": "encode",
+      "family": "validation_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-design:encode",
+      "source_kind": "public_validation_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:7958beff575b6516eab0bec50b095a2c8a17e306314e25ef1a213708acb4523c",
+      "delegate_content_address": "sha256:ae6686e765610cd6547d7e32bcfdbef3735be52d7897230b4a2e16ff026f0b1f",
+      "delegate_fixture_id": "validation-design-public-aggregate-001",
+      "delegate_source_id": "addgene",
+      "family": "validation_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-design:addgene",
+      "source_kind": "public_validation_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.addgene.org/"
+    },
+    {
+      "content_address": "sha256:f83621d2e7128974ea370dc101770d17e1d55be6f05125d4e2a2378658f3760e",
+      "delegate_content_address": "sha256:1b766ab7abe8203c63aea6a2c444619bd85edb7c1fdd451a5f8f05293b492c31",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_source_id": "ncbi-refseq",
+      "family": "editing_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-editing-design:ncbi-refseq",
+      "source_kind": "public_editing_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.ncbi.nlm.nih.gov/refseq/"
+    },
+    {
+      "content_address": "sha256:b4fcae6df4ad1c492db2b6b37d6ffe521b76b846f2dcdafb1dcbc40d1e79260c",
+      "delegate_content_address": "sha256:c24215dbf924a11083d2b6ecd6d6a302715e44e787ec1ccb623641a85d0498c7",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_source_id": "addgene",
+      "family": "editing_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-editing-design:addgene",
+      "source_kind": "public_editing_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.addgene.org/crispr/"
+    },
+    {
+      "content_address": "sha256:f88288acb699b18d06f66b02e354e8898b238286e4c8f9b04ede5b47f8f5f133",
+      "delegate_content_address": "sha256:8774b9040e5250406b20f7be7ee43b060d70ee39084ad47b2ec554c4e9777894",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_source_id": "broad-gpp",
+      "family": "editing_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-editing-design:broad-gpp",
+      "source_kind": "public_editing_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://portals.broadinstitute.org/gpp/public/"
+    },
+    {
+      "content_address": "sha256:177773228db7e1fa55d1a81a1cc18f5eff1f37e967b44954b49dc1b6eda7f62d",
+      "delegate_content_address": "sha256:64cd1a262dcfca55ffbee8ce1e420a6c61ec39314688c6d6d44722d5bec7990f",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_source_id": "encode",
+      "family": "editing_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-editing-design:encode",
+      "source_kind": "public_editing_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:74c9475084f9037a1107ce4754e61ab8182c6eb700925c239de180c1298b56a4",
+      "delegate_content_address": "sha256:9a7a861c1b6c685b76c5b59659c56b803de3797bc929b26eb1423422633abd15",
+      "delegate_fixture_id": "editing-design-public-aggregate-001",
+      "delegate_source_id": "pubmed",
+      "family": "editing_design_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-editing-design:pubmed",
+      "source_kind": "public_editing_design_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:52a99c37560f35722d5c36769e4ae1f4420d917c812c2817adcab44b04fd96c5",
+      "delegate_content_address": "sha256:67e2a1f845d91dd2e6e568f82b92ee8bae92aae43765945500acf7bccb924400",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_source_id": "ncbi-refseq",
+      "family": "planning_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-planning:ncbi-refseq",
+      "source_kind": "public_planning_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.ncbi.nlm.nih.gov/refseq/"
+    },
+    {
+      "content_address": "sha256:5efb1c0849521dc05ad5c98f85b9048d39cb787461e1b4894f8893d4f2dcf2d4",
+      "delegate_content_address": "sha256:1e9fa8a8ed621fc7b4afc86314d39ba7b0223406f24f07eb4ed68557c22b14c5",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_source_id": "addgene",
+      "family": "planning_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-planning:addgene",
+      "source_kind": "public_planning_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.addgene.org/"
+    },
+    {
+      "content_address": "sha256:48e719c0e59462560a48dd2685c18f059af7a4037fbf156a786a2a3343722027",
+      "delegate_content_address": "sha256:64cd1a262dcfca55ffbee8ce1e420a6c61ec39314688c6d6d44722d5bec7990f",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_source_id": "encode",
+      "family": "planning_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-planning:encode",
+      "source_kind": "public_planning_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:a78def6b3a3156dca30272011e525185b62c819d98df4e66c0e30c9a7956f504",
+      "delegate_content_address": "sha256:9a7a861c1b6c685b76c5b59659c56b803de3797bc929b26eb1423422633abd15",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_source_id": "pubmed",
+      "family": "planning_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-planning:pubmed",
+      "source_kind": "public_planning_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:79936d1e41dc73af855553c21e0025d14e1c5b2a9bccd0333ea10ec123ce4d4a",
+      "delegate_content_address": "sha256:b5bd1ce474a69188a45d3e0e72df84eca0406778a5106271b43583e93107f73c",
+      "delegate_fixture_id": "planning-public-aggregate-001",
+      "delegate_source_id": "gtex",
+      "family": "planning_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-planning:gtex",
+      "source_kind": "public_planning_receipt",
+      "source_version": "public portal receipt",
+      "uri": "https://gtexportal.org/home/"
+    },
+    {
+      "content_address": "sha256:e16acfe42a7ea8938adc1bd4a51554e2b2f3ee976eae375ba8f126cbd5ddbe35",
+      "delegate_content_address": "sha256:12d4e666be1910e22fe5c31d9bef6345ee03e4f354bd00d4fdd2d7897401d267",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_source_id": "ncbi",
+      "family": "validation_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-release:ncbi",
+      "source_kind": "public_validation_release_receipt",
+      "source_version": "current public portal",
+      "uri": "https://www.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:43ca5dea4db4884867aa2e2f22f79be18cac78e97fa9943a1d589db19bfca339",
+      "delegate_content_address": "sha256:3d8284ce11c0d5ef6e70938a0c44793e309f4651160c4c5359761b6a6876575d",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_source_id": "ensembl",
+      "family": "validation_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-release:ensembl",
+      "source_kind": "public_validation_release_receipt",
+      "source_version": "current public portal",
+      "uri": "https://www.ensembl.org/"
+    },
+    {
+      "content_address": "sha256:e23323bb9d031ff2fe3c65c199c0c1ebe9e682e7f0b14908ab40d2471db63096",
+      "delegate_content_address": "sha256:376905f194e1061bc5a64ff58c7db5c48efe2e1c04d9be2e2307ced54272245e",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_source_id": "encode",
+      "family": "validation_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-release:encode",
+      "source_kind": "public_validation_release_receipt",
+      "source_version": "current public portal",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:8fce42fa1c8d81aa0554f71756b6dd837f8f640386a1b4334524a014d0928559",
+      "delegate_content_address": "sha256:b45e6f5c1f59e0e58b1ce73bef7d4e6e55c92d868ffc2cbe5c4ec596e38860fc",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_source_id": "addgene",
+      "family": "validation_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-release:addgene",
+      "source_kind": "public_validation_release_receipt",
+      "source_version": "current public portal",
+      "uri": "https://www.addgene.org/"
+    },
+    {
+      "content_address": "sha256:2718dfcaf6e98adb6c348cf7fbbc6ca79618ca6676c9e4f0f71d7e9a1dcbec60",
+      "delegate_content_address": "sha256:169019a4d5c7436c46745f8151caeea072bd3ca3f4228de784c530f2a3b1efa2",
+      "delegate_fixture_id": "validation-release-public-aggregate-001",
+      "delegate_source_id": "gdc",
+      "family": "validation_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D13-validation-release:gdc",
+      "source_kind": "public_validation_release_receipt",
+      "source_version": "current public portal",
+      "uri": "https://gdc.cancer.gov/"
+    }
+  ],
+  "version": "2026.08.d13-planning-architecture.v1"
+}

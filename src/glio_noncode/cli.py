@@ -1732,6 +1732,17 @@ def _cohort_architecture_fixture(input_path: str | None):
     )
 
 
+def _planning_architecture_fixture(input_path: str | None):
+    from .planning_architecture_contracts import PlanningArchitectureFixture
+    from .planning_architecture_public_data import default_planning_architecture_fixture
+
+    return (
+        PlanningArchitectureFixture.from_file(input_path)
+        if input_path
+        else default_planning_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -3124,6 +3135,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cohort_architecture_bundle.add_argument("--input", default=None)
     cohort_architecture_bundle.add_argument("--output", required=True)
+    planning_architecture_fixture = subparsers.add_parser(
+        "planning-architecture-fixture",
+        help="emit the D13 C01-C16 public aggregate planning fixture",
+    )
+    planning_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("planning-architecture-data-audit", "audit D13 planning sources, joins, contexts, and scope"),
+        ("planning-architecture-plan", "compile the D13 planning dependency plan"),
+        ("evaluate-planning-architecture", "execute D13 planning family delegates"),
+        ("planning-architecture-runtime", "run the D13 twenty-four-stage planning runtime"),
+        ("planning-architecture-quality", "run the D13 planning release quality gate"),
+        ("planning-architecture-depth", "report D13 planning operation and evidence depth"),
+        ("replay-planning-architecture", "replay D13 planning evaluation deterministically"),
+        ("planning-architecture-report", "emit the D13 planning runtime report"),
+        ("planning-architecture-scenarios", "emit the D13 planning scenario matrix"),
+        ("planning-architecture-sources", "emit the D13 planning source registry"),
+        ("planning-architecture-compliance", "run D13 public-boundary compliance checks"),
+        ("planning-architecture-validation", "run D13 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    planning_architecture_query = subparsers.add_parser(
+        "planning-architecture-query", help="query sanitized D13 planning cases"
+    )
+    planning_architecture_query.add_argument("--input", default=None)
+    planning_architecture_query.add_argument("--operation", default=None)
+    planning_architecture_query.add_argument("--family", default=None)
+    planning_architecture_query.add_argument("--scenario", default=None)
+    planning_architecture_query.add_argument("--output", default=None)
+    planning_architecture_bundle = subparsers.add_parser(
+        "planning-architecture-bundle", help="write a D13 planning runtime bundle"
+    )
+    planning_architecture_bundle.add_argument("--input", default=None)
+    planning_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -9677,6 +9723,128 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
             _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
             _write_text(cohort_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "planning-architecture-fixture":
+            from .planning_architecture_public_data import planning_architecture_fixture_json
+
+            _write_text(planning_architecture_fixture_json(_planning_architecture_fixture(None)), args.output)
+            return 0
+        if args.command == "planning-architecture-data-audit":
+            from .planning_architecture_public_data import audit_planning_architecture_data
+
+            report = audit_planning_architecture_data(_planning_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "planning-architecture-plan":
+            from .planning_architecture_plan import build_planning_architecture_plan
+
+            report = build_planning_architecture_plan(_planning_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-planning-architecture":
+            from .planning_architecture_operations import evaluate_planning_architecture_fixture
+
+            report = evaluate_planning_architecture_fixture(_planning_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "planning-architecture-runtime":
+            from .planning_architecture_runtime import run_planning_architecture
+
+            runtime = run_planning_architecture(_planning_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "planning-architecture-quality":
+            from .planning_architecture_runtime import run_planning_architecture
+
+            runtime = run_planning_architecture(_planning_architecture_fixture(args.input))
+            _write_json(runtime.quality.to_dict(), args.output)
+            return 0 if runtime.quality.accepted else 2
+        if args.command == "planning-architecture-depth":
+            from .planning_architecture_runtime import run_planning_architecture
+
+            runtime = run_planning_architecture(_planning_architecture_fixture(args.input))
+            _write_json(runtime.depth.to_dict(), args.output)
+            return 0 if runtime.depth.check_count == 458 else 2
+        if args.command == "replay-planning-architecture":
+            from .planning_architecture_replay import replay_planning_architecture_fixture
+
+            report = replay_planning_architecture_fixture(_planning_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "planning-architecture-report":
+            from .planning_architecture_reporting import build_planning_architecture_report
+            from .planning_architecture_runtime import run_planning_architecture
+
+            runtime = run_planning_architecture(_planning_architecture_fixture(args.input))
+            _write_json(build_planning_architecture_report(runtime.fixture, runtime.evaluation, runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "planning-architecture-scenarios":
+            from .planning_architecture_query import query_planning_architecture
+            from .planning_architecture_runtime import run_planning_architecture
+
+            runtime = run_planning_architecture(_planning_architecture_fixture(args.input))
+            result = query_planning_architecture(runtime.fixture)
+            _write_json({"accepted": runtime.accepted} | result.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "planning-architecture-sources":
+            fixture = _planning_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "planning-architecture-compliance":
+            from .planning_architecture_compliance import assess_planning_architecture_compliance
+
+            report = assess_planning_architecture_compliance(_planning_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "planning-architecture-validation":
+            from .planning_architecture_operations import evaluate_planning_architecture_fixture
+            from .planning_architecture_schema import validate_planning_architecture_fixture
+
+            fixture = _planning_architecture_fixture(args.input)
+            evaluation = evaluate_planning_architecture_fixture(fixture)
+            report = {
+                "accepted": validate_planning_architecture_fixture(fixture) and evaluation.accepted,
+                "evaluation": evaluation.to_dict(),
+            }
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "planning-architecture-query":
+            from .planning_architecture_query import query_planning_architecture
+            from .planning_architecture_runtime import run_planning_architecture
+
+            runtime = run_planning_architecture(_planning_architecture_fixture(args.input))
+            result = query_planning_architecture(
+                runtime.fixture,
+                operation_id=args.operation,
+                family=args.family,
+                scenario=args.scenario,
+            )
+            _write_json({"accepted": runtime.accepted} | result.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "planning-architecture-bundle":
+            from .planning_architecture_public_data import planning_architecture_fixture_json
+            from .planning_architecture_reporting import build_planning_architecture_report
+            from .planning_architecture_runtime import run_planning_architecture
+
+            fixture = _planning_architecture_fixture(args.input)
+            runtime = run_planning_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_json(
+                build_planning_architecture_report(runtime.fixture, runtime.evaluation, runtime),
+                str(output_dir / "report.json"),
+            )
+            _write_text(planning_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)
