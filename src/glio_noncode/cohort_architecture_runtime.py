@@ -1,8 +1,9 @@
-"""Twenty-two-stage D12 cohort architecture runtime."""
+"""Twenty-four-stage D12 cohort architecture runtime."""
 
 from __future__ import annotations
 
 from .cohort_architecture_artifacts import build_cohort_architecture_artifacts
+from .cohort_architecture_compliance import assess_cohort_architecture_compliance
 from .cohort_architecture_contracts import (
     CohortArchitectureFixture,
     CohortArchitectureRuntime,
@@ -11,6 +12,7 @@ from .cohort_architecture_contracts import (
 )
 from .cohort_architecture_depth import assess_cohort_architecture_depth
 from .cohort_architecture_ledger import build_cohort_architecture_ledger
+from .cohort_architecture_metrics import cohort_architecture_metrics
 from .cohort_architecture_operations import evaluate_cohort_architecture_fixture
 from .cohort_architecture_plan import build_cohort_architecture_plan
 from .cohort_architecture_public_data import (
@@ -21,6 +23,7 @@ from .cohort_architecture_quality import assess_cohort_architecture_quality
 from .cohort_architecture_release import build_cohort_architecture_release
 from .cohort_architecture_replay import replay_cohort_architecture_fixture
 from .cohort_architecture_review import build_cohort_architecture_review_queue
+from .cohort_architecture_schema import validate_cohort_architecture_fixture
 
 COHORT_ARCHITECTURE_STAGE_IDS = (
     "fixture-loaded",
@@ -42,9 +45,11 @@ COHORT_ARCHITECTURE_STAGE_IDS = (
     "release-built",
     "quality-gated",
     "depth-accounted",
-    "runtime-finalized",
     "controls-closed",
-    "observability-closed",
+    "compliance-closed",
+    "report-materialized",
+    "runtime-seeded",
+    "runtime-finalized",
 )
 
 
@@ -76,6 +81,7 @@ def run_cohort_architecture(
 ) -> CohortArchitectureRuntime:
     selected = fixture or default_cohort_architecture_fixture()
     audit = audit_cohort_architecture_data(selected)
+    validate_cohort_architecture_fixture(selected)
     plan = build_cohort_architecture_plan(selected)
     evaluation = evaluate_cohort_architecture_fixture(selected)
     review = build_cohort_architecture_review_queue(evaluation)
@@ -94,10 +100,12 @@ def run_cohort_architecture(
         ledger,
     )
     depth = assess_cohort_architecture_depth(selected, evaluation)
+    compliance = assess_cohort_architecture_compliance(selected)
+    metrics = cohort_architecture_metrics(selected, evaluation)
     outputs = (
         selected.content_address,
         audit.content_address,
-        selected.content_address,
+        addressed(selected.to_dict(include_payload=False), "cohort-schema"),
         plan.content_address,
         selected.operations[3].content_address,
         selected.operations[7].content_address,
@@ -114,9 +122,25 @@ def run_cohort_architecture(
         release.content_address,
         quality.content_address,
         depth.content_address,
-        addressed({"fixture": selected.content_address}, "cohort-runtime-seed"),
         addressed({"review": review.content_address}, "cohort-controls"),
-        addressed({"ledger": ledger.content_address}, "cohort-observability"),
+        addressed(compliance, "cohort-compliance"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "evaluation": evaluation.content_address,
+                "metrics": metrics,
+            },
+            "cohort-report-stage",
+        ),
+        addressed({"fixture": selected.content_address}, "cohort-runtime-seed"),
+        addressed(
+            {
+                "fixture": selected.content_address,
+                "quality": quality.content_address,
+                "release": release.content_address,
+            },
+            "cohort-runtime-final",
+        ),
     )
     details = (
         "fixture constructed from four cohort evidence families",
@@ -127,7 +151,7 @@ def run_cohort_architecture(
         "beta recurrence, burden, function, and pathway paths joined",
         "alpha clonality, recurrence, treatment, and replication paths joined",
         "frontier fairness, transport, federated, and discovery paths joined",
-        "64 cohort cases executed with 392 checks",
+        "64 cohort cases executed with 458 checks",
         "48 cohort controls routed",
         "cohort source lineage closed",
         "cohort ledger closed",
@@ -138,9 +162,11 @@ def run_cohort_architecture(
         "cohort release built",
         "cohort quality gate passed",
         "cohort depth accounted",
-        "runtime address seeded",
         "cohort controls closed",
-        "cohort observability closed",
+        "public aggregate compliance closed",
+        "cohort report projection materialized",
+        "runtime address seeded",
+        "runtime final address closed",
     )
     stages = tuple(
         _stage(
@@ -163,6 +189,7 @@ def run_cohort_architecture(
         and review.accepted
         and replay.accepted
         and quality.accepted
+        and compliance["accepted"]
         and release.state.value == "published"
     )
     body = {
@@ -181,6 +208,8 @@ def run_cohort_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
         stages,
         accepted,
         addressed(body, "cohort-runtime"),

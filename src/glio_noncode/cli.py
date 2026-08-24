@@ -3142,7 +3142,7 @@ def build_parser() -> argparse.ArgumentParser:
         ("cohort-architecture-data-audit", "audit D12 cohort sources, joins, contexts, and scope"),
         ("cohort-architecture-plan", "compile the D12 cohort dependency plan"),
         ("evaluate-cohort-architecture", "execute D12 cohort family delegates"),
-        ("cohort-architecture-runtime", "run the D12 twenty-two-stage cohort runtime"),
+        ("cohort-architecture-runtime", "run the D12 twenty-four-stage cohort runtime"),
         ("cohort-architecture-quality", "run the D12 cohort release quality gate"),
         ("cohort-architecture-depth", "report D12 cohort operation and evidence depth"),
         ("replay-cohort-architecture", "replay D12 cohort evaluation deterministically"),
@@ -9890,6 +9890,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if runtime.accepted else 2
         if args.command == "cohort-architecture-bundle":
             from .cohort_architecture_public_data import cohort_architecture_fixture_json
+            from .cohort_architecture_reporting import build_cohort_architecture_report
             from .cohort_architecture_runtime import run_cohort_architecture
 
             fixture = _cohort_architecture_fixture(args.input)
@@ -9897,7 +9898,19 @@ def main(argv: list[str] | None = None) -> int:
             output_dir = Path(args.output)
             output_dir.mkdir(parents=True, exist_ok=True)
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
-            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_json(
+                {
+                    "artifacts": [jsonable(item) for item in runtime.artifacts],
+                    "release": jsonable(runtime.release),
+                    "quality": jsonable(runtime.quality),
+                    "depth": jsonable(runtime.depth),
+                },
+                str(output_dir / "release.json"),
+            )
+            _write_json(
+                build_cohort_architecture_report(runtime),
+                str(output_dir / "report.json"),
+            )
             _write_text(cohort_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "planning-architecture-fixture":

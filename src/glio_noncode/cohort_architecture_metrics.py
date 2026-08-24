@@ -17,6 +17,9 @@ def cohort_architecture_metrics(
 ) -> dict[str, Any]:
     scenario_counts = Counter(item.scenario.value for item in fixture.cases)
     state_counts = Counter(item.observed_state.value for item in evaluation.executions)
+    issue_counts = Counter(
+        issue for item in evaluation.executions for issue in item.observed_issue_codes
+    )
     family_counts = Counter(item.family.value for item in fixture.cases)
     operation_counts = Counter(item.operation.value for item in fixture.cases)
     return {
@@ -29,6 +32,7 @@ def cohort_architecture_metrics(
         ),
         "scenario_counts": dict(sorted(scenario_counts.items())),
         "state_counts": dict(sorted(state_counts.items())),
+        "issue_counts": dict(sorted(issue_counts.items())),
         "family_counts": dict(sorted(family_counts.items())),
         "operation_counts": dict(sorted(operation_counts.items())),
         "receipt_count": len(evaluation.receipts),
@@ -49,7 +53,7 @@ def cohort_architecture_metric_invariants(metrics: dict[str, Any]) -> tuple[str,
         ("operation_count", 16),
         ("case_count", 64),
         ("receipt_count", 64),
-        ("check_count", 392),
+        ("check_count", 458),
     ):
         if metrics.get(field) != expected:
             failures.append(field)

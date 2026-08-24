@@ -486,6 +486,8 @@ class CohortArchitectureRuntime:
     ledger: CohortArchitectureLedger
     artifacts: tuple[CohortArchitectureArtifact, ...]
     release: CohortArchitectureRelease
+    depth: CohortArchitectureDepthReport
+    quality: CohortArchitectureQualityGate
     stages: tuple[CohortArchitectureRuntimeStage, ...]
     accepted: bool
     content_address: str
@@ -505,6 +507,8 @@ class CohortArchitectureDepthReport:
     family_count: int
     check_count: int
     addressed_count: int
+    state_count: int
+    issue_code_count: int
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:

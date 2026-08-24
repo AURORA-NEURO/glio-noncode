@@ -27,6 +27,6 @@ Each case stores both the aggregate and delegate context, delegate fixture and r
 
 ## Validation
 
-`validate_cohort_architecture_mapping` checks required fields, boundary, envelope context, four family contexts, and 22/16/64 cardinalities. `validate_cohort_architecture_fixture` checks typed identity and source and operation joins. The data audit additionally checks four-family coverage, four scenarios per operation, public source flags, and content addresses.
+`validate_cohort_architecture_mapping` checks required fields, boundary, envelope context, four family contexts, 22/16/64 cardinalities, contiguous operation ordinals, and four cases per operation. `validate_cohort_architecture_fixture` checks typed identity, cardinality, source and operation joins, case balance, public source visibility, and complete family contexts. The data audit additionally checks four-family coverage, four scenarios per operation, public source flags, and content addresses.
 
 The fixture is generated from the existing public aggregate family fixtures through `cohort_architecture_fixture_json`. It is checked in so replay, CLI use, and release review all consume the same deterministic data.

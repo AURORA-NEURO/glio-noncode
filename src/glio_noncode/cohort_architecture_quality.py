@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .cohort_architecture_artifacts import cohort_architecture_artifacts_are_safe
+from .cohort_architecture_compliance import assess_cohort_architecture_compliance
 from .cohort_architecture_contracts import (
     CohortArchitectureCheck,
     CohortArchitectureCheckKind,
@@ -46,6 +47,7 @@ def assess_cohort_architecture_quality(
     ledger=None,
 ) -> CohortArchitectureQualityGate:
     metrics = cohort_architecture_metrics(fixture, evaluation)
+    compliance = assess_cohort_architecture_compliance(fixture)
     checks = (
         _check("quality:data-audit", audit.accepted, audit.accepted, "data audit closes"),
         _check("quality:plan", plan.accepted, plan.accepted, "dependency plan closes"),
@@ -85,6 +87,24 @@ def assess_cohort_architecture_quality(
             ledger is None or cohort_architecture_ledger_is_closed(ledger),
             True,
             "ledger closure is retained when supplied",
+        ),
+        _check(
+            "quality:compliance",
+            bool(compliance["accepted"]),
+            compliance["accepted"],
+            "public aggregate compliance closes",
+        ),
+        _check(
+            "quality:state-coverage",
+            len(metrics["state_counts"]) >= 8,
+            metrics["state_counts"],
+            "state vocabulary remains visible with at least eight states",
+        ),
+        _check(
+            "quality:control-surface",
+            len(metrics["issue_counts"]) >= 15,
+            len(metrics["issue_counts"]),
+            "control issue vocabulary remains broad with at least fifteen entries",
         ),
     )
     body = {"fixture_id": fixture.fixture_id, "checks": checks}

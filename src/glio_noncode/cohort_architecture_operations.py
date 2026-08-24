@@ -130,6 +130,7 @@ def _case_checks(
     receipt: CohortArchitectureCaseReceipt,
     source_ids: set[str],
     operation_ids: set[str],
+    family_contexts: Mapping[str, str],
 ) -> tuple[CohortArchitectureCheck, ...]:
     return (
         _check(
@@ -171,6 +172,16 @@ def _case_checks(
             set(case.source_ids),
             source_ids,
             "case source joins resolve",
+        ),
+        _check(
+            f"{case.case_id}:context",
+            CohortArchitectureCheckKind.CONTROL,
+            execution.summary.get("delegate_context_key")
+            == family_contexts.get(case.family.value)
+            or "context_mismatch" in execution.observed_issue_codes,
+            execution.summary.get("delegate_context_key"),
+            family_contexts.get(case.family.value),
+            "delegate context is exact or mismatch is explicit",
         ),
         _check(
             f"{case.case_id}:receipt",
@@ -267,6 +278,27 @@ def _global_checks(
             True,
             "every delegate output has an address",
         ),
+        _check(
+            "global:receipt-coverage",
+            CohortArchitectureCheckKind.REPLAY,
+            len(executions) == len(fixture.cases),
+            len(executions),
+            len(fixture.cases),
+            "every aggregate case has an execution receipt",
+        ),
+        _check(
+            "global:control-contexts",
+            CohortArchitectureCheckKind.CONTROL,
+            all(
+                execution.summary.get("delegate_context_key")
+                == fixture.family_contexts.get(execution.family.value)
+                or "context_mismatch" in execution.observed_issue_codes
+                for execution in executions
+            ),
+            True,
+            True,
+            "foreign contexts are explicit control outcomes",
+        ),
     )
 
 
@@ -287,7 +319,14 @@ def evaluate_cohort_architecture_fixture(
     checks = tuple(
         check
         for case, execution, receipt in zip(selected.cases, executions, receipts, strict=True)
-        for check in _case_checks(case, execution, receipt, source_ids, operation_ids)
+        for check in _case_checks(
+            case,
+            execution,
+            receipt,
+            source_ids,
+            operation_ids,
+            selected.family_contexts,
+        )
     ) + _global_checks(selected, executions, source_ids)
     state = "accepted" if all(item.passed for item in checks) else "review"
     body = {

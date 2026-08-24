@@ -7,7 +7,7 @@ D12 is the twelfth deep product increment for `glio-noncode`. It joins four exis
 3. Alpha: clonality and timing, primary-to-recurrence comparison, treatment-selection signal detection, and cross-cohort replication.
 4. Frontier: subgroup fairness stratification, transportability estimation, federated summaries, and cohort discovery publication.
 
-The aggregate contains 22 source receipts, 16 ordered operations, and 64 cases. Every operation has one positive case and three controls. The controls retain the family’s real negative, incomplete, foreign-context, abstention, contradiction, parity, privacy, shift, and invalid-input paths. The evaluation emits 64 receipts and 392 checks.
+The aggregate contains 22 source receipts, 16 ordered operations, and 64 cases. Every operation has one positive case and three controls. The controls retain the family’s real negative, incomplete, foreign-context, abstention, contradiction, parity, privacy, shift, and invalid-input paths. The evaluation emits 64 receipts and 458 checks: seven per case plus ten global closure checks.
 
 ## Scope and context
 
@@ -17,7 +17,7 @@ The fixture uses the existing public aggregate family values and delegated evalu
 
 ## Runtime closure
 
-`run_cohort_architecture` executes 22 stages covering source audit, schema validation, dependency planning, four family joins, case execution, control routing, lineage, ledger, metrics, replay, artifacts, release, quality, depth, and observability. A release is published only when all delegate states and declared control paths match their receipts.
+`run_cohort_architecture` executes 24 stages covering source audit, schema validation, dependency planning, four family joins, case execution, control routing, lineage, ledger, metrics, replay, artifacts, release, quality, depth, recursive compliance, report materialization, runtime seeding, and finalization. A release is published only when all delegate states, contexts, and declared control paths match their receipts.
 
 The six artifacts are the public fixture projection, data audit, evaluation receipts, review queue, event ledger, and release projection. Each artifact has a stable content address and public aggregate visibility.
 

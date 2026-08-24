@@ -32,7 +32,7 @@ The report exposes family contexts, state distributions, control counts, review 
 
 ## Release gate
 
-The D12 release is acceptable only when the data audit, typed schema, dependency plan, 64 receipts, 392 checks, 48 control routes, deterministic replay, six review-safe artifacts, quality gate, and 100% depth report all close. The release state must be `published`.
+The D12 release is acceptable only when the data audit, typed schema, dependency plan, 64 receipts, 458 checks, 48 control routes, deterministic replay, six review-safe artifacts, twelve quality checks, recursive compliance, and 100% depth report all close. The runtime has 24 accepted stages and the release state must be `published`.
 
 ## Troubleshooting
 
