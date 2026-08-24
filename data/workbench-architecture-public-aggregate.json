@@ -1,0 +1,5253 @@
+{
+  "boundary": "public_aggregate_non_patient",
+  "cases": [
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C01-POSITIVE-001",
+      "content_address": "sha256:d86cbccbda51831e649ec3e99d6861f6aa935560de0e25907a00a90731a87474",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C01-POS-001",
+      "description": "D15-C01 positive retains C01-POS-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 7,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "missing_dossier"
+      ],
+      "expected_state": "partial",
+      "family": "workspace_frontier",
+      "operation": "case_workspace",
+      "operation_id": "D15-C01",
+      "payload": {
+        "accessibility": {
+          "focus_boundary": "workspace-case-public",
+          "keyboard_order": [
+            "variants",
+            "regulatory-elements",
+            "hypotheses",
+            "evidence",
+            "validation"
+          ],
+          "labels_present": true,
+          "reading_order": "section-order"
+        },
+        "candidate_elements": [
+          {
+            "annotations": {
+              "boundary": "public_aggregate_non_patient"
+            },
+            "chromosome": "7",
+            "context": {
+              "age_group": "adult",
+              "cell_state": "stem_like",
+              "disease_class": "glioma",
+              "genome_build": "GRCh38",
+              "territory": "core",
+              "treatment_phase": "untreated"
+            },
+            "element_id": "element-frontier-1",
+            "element_type": "candidate_enhancer",
+            "end": 125,
+            "features": {
+              "accessibility_proxy": 0.71,
+              "track_score": 0.82
+            },
+            "source_id": "track-public",
+            "start": 90,
+            "state_ids": [
+              "stem_like"
+            ],
+            "target_genes": [
+              "GENE1"
+            ]
+          }
+        ],
+        "case_id": "workspace-case-public",
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "include_dossier": false,
+        "input_versions": {
+          "manifest": "sha256:manifest-public-v1",
+          "track": "sha256:track-public-v1"
+        },
+        "variants": [
+          {
+            "alternate": "T",
+            "annotations": {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "source_version": "public-v1"
+            },
+            "chromosome": "7",
+            "clonality": "unknown",
+            "end": 100,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "sample_id": "aggregate-sample",
+            "start": 100,
+            "variant_id": "v-frontier-1"
+          },
+          {
+            "alternate": "T",
+            "annotations": {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "source_version": "public-v1"
+            },
+            "chromosome": "7",
+            "clonality": "unknown",
+            "end": 200,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "sample_id": "aggregate-sample",
+            "start": 200,
+            "variant_id": "v-frontier-2"
+          }
+        ]
+      },
+      "plane": "workspace_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C01-CONTROL-A-001",
+      "content_address": "sha256:6bce49ad3006bef37dbc290d10d4c901d7aa7057526e51616f1cd50af3d687ce",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C01-CTRL-001",
+      "description": "D15-C01 control_a retains C01-CTRL-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_frontier",
+      "operation": "case_workspace",
+      "operation_id": "D15-C01",
+      "payload": {
+        "accessibility": {
+          "focus_boundary": "workspace-case-public",
+          "keyboard_order": [
+            "variants",
+            "regulatory-elements",
+            "hypotheses",
+            "evidence",
+            "validation"
+          ],
+          "labels_present": true,
+          "reading_order": "section-order"
+        },
+        "candidate_elements": [
+          {
+            "annotations": {
+              "boundary": "public_aggregate_non_patient"
+            },
+            "chromosome": "7",
+            "context": {
+              "age_group": "pediatric",
+              "cell_state": "stem_like",
+              "disease_class": "glioma",
+              "genome_build": "GRCh38",
+              "territory": "core",
+              "treatment_phase": "untreated"
+            },
+            "element_id": "element-frontier-1",
+            "element_type": "candidate_enhancer",
+            "end": 125,
+            "features": {
+              "accessibility_proxy": 0.71,
+              "track_score": 0.82
+            },
+            "source_id": "track-public",
+            "start": 90,
+            "state_ids": [
+              "stem_like"
+            ],
+            "target_genes": [
+              "GENE1"
+            ]
+          }
+        ],
+        "case_id": "workspace-case-public",
+        "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+        "include_dossier": false,
+        "input_versions": {
+          "manifest": "sha256:manifest-public-v1",
+          "track": "sha256:track-public-v1"
+        },
+        "variants": [
+          {
+            "alternate": "T",
+            "annotations": {
+              "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+              "source_version": "public-v1"
+            },
+            "chromosome": "7",
+            "clonality": "unknown",
+            "end": 100,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "sample_id": "aggregate-sample",
+            "start": 100,
+            "variant_id": "v-context"
+          }
+        ]
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C01-CONTROL-B-001",
+      "content_address": "sha256:ed234eee0e71c34b9aa57105af085b4c640de78b03e1b588ca7e77bd83aac242",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C01-CTRL-002",
+      "description": "D15-C01 control_b retains C01-CTRL-002 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_workspace_input"
+      ],
+      "expected_state": "invalid",
+      "family": "workspace_frontier",
+      "operation": "case_workspace",
+      "operation_id": "D15-C01",
+      "payload": {
+        "accessibility": {
+          "focus_boundary": "workspace-case-public",
+          "keyboard_order": [
+            "variants",
+            "regulatory-elements",
+            "hypotheses",
+            "evidence",
+            "validation"
+          ],
+          "labels_present": true,
+          "reading_order": "section-order"
+        },
+        "candidate_elements": [
+          {
+            "annotations": {
+              "boundary": "public_aggregate_non_patient"
+            },
+            "chromosome": "7",
+            "context": {
+              "age_group": "adult",
+              "cell_state": "stem_like",
+              "disease_class": "glioma",
+              "genome_build": "GRCh38",
+              "territory": "core",
+              "treatment_phase": "untreated"
+            },
+            "element_id": "element-frontier-1",
+            "element_type": "candidate_enhancer",
+            "end": 125,
+            "features": {
+              "accessibility_proxy": 0.71,
+              "track_score": 0.82
+            },
+            "source_id": "track-public",
+            "start": 90,
+            "state_ids": [
+              "stem_like"
+            ],
+            "target_genes": [
+              "GENE1"
+            ]
+          }
+        ],
+        "case_id": "workspace-case-public",
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "include_dossier": false,
+        "input_versions": {
+          "manifest": "sha256:manifest-public-v1",
+          "track": "sha256:track-public-v1"
+        },
+        "variants": []
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C01-CONTROL-C-001",
+      "content_address": "sha256:34b36fa2acef2ace01c4f87460081e328e37772c6a2d518e0f172ca5e26ab741",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C01-CTRL-003",
+      "description": "D15-C01 control_c retains C01-CTRL-003 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 7,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "duplicate_variant_id"
+      ],
+      "expected_state": "invalid",
+      "family": "workspace_frontier",
+      "operation": "case_workspace",
+      "operation_id": "D15-C01",
+      "payload": {
+        "accessibility": {
+          "focus_boundary": "workspace-case-public",
+          "keyboard_order": [
+            "variants",
+            "regulatory-elements",
+            "hypotheses",
+            "evidence",
+            "validation"
+          ],
+          "labels_present": true,
+          "reading_order": "section-order"
+        },
+        "candidate_elements": [
+          {
+            "annotations": {
+              "boundary": "public_aggregate_non_patient"
+            },
+            "chromosome": "7",
+            "context": {
+              "age_group": "adult",
+              "cell_state": "stem_like",
+              "disease_class": "glioma",
+              "genome_build": "GRCh38",
+              "territory": "core",
+              "treatment_phase": "untreated"
+            },
+            "element_id": "element-frontier-1",
+            "element_type": "candidate_enhancer",
+            "end": 125,
+            "features": {
+              "accessibility_proxy": 0.71,
+              "track_score": 0.82
+            },
+            "source_id": "track-public",
+            "start": 90,
+            "state_ids": [
+              "stem_like"
+            ],
+            "target_genes": [
+              "GENE1"
+            ]
+          }
+        ],
+        "case_id": "workspace-case-public",
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "include_dossier": false,
+        "input_versions": {
+          "manifest": "sha256:manifest-public-v1",
+          "track": "sha256:track-public-v1"
+        },
+        "variants": [
+          {
+            "alternate": "T",
+            "annotations": {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "source_version": "public-v1"
+            },
+            "chromosome": "7",
+            "clonality": "unknown",
+            "end": 100,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "sample_id": "aggregate-sample",
+            "start": 100,
+            "variant_id": "v-frontier-1"
+          },
+          {
+            "alternate": "T",
+            "annotations": {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "source_version": "public-v1"
+            },
+            "chromosome": "7",
+            "clonality": "unknown",
+            "end": 100,
+            "genome_build": "GRCh38",
+            "kind": "snv",
+            "origin": "somatic",
+            "reference": "A",
+            "sample_id": "aggregate-sample",
+            "start": 100,
+            "variant_id": "v-frontier-1"
+          }
+        ]
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C02-POSITIVE-001",
+      "content_address": "sha256:fb72c71ee53d8671886886205f75781eaed746269407d3bc90e34fe875fa7daf",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C02-POS-001",
+      "description": "D15-C02 positive retains C02-POS-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 13,
+        "payload_field_count": 6,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "workspace_frontier",
+      "operation": "cohort_workspace",
+      "operation_id": "D15-C02",
+      "payload": {
+        "accessibility": {
+          "controls_label": "matched controls",
+          "row_label": "cohort record",
+          "summary_label": "cohort summary"
+        },
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "evidence_id": "workspace-cohort-public",
+        "query_id": "workspace-cohort-query",
+        "records": [
+          {
+            "annotations": {
+              "public_aggregate": true
+            },
+            "callable": true,
+            "chromatin_features": {
+              "accessibility": 0.62,
+              "signal": 0.48
+            },
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "record_id": "cohort-r1",
+            "sample_id": "aggregate-cohort-r1",
+            "sequence_context": "ACGTACGT",
+            "source_id": "cohort-public",
+            "variant": {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 150,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 150,
+              "variant_id": "cohort-v1"
+            }
+          },
+          {
+            "annotations": {
+              "public_aggregate": true
+            },
+            "callable": true,
+            "chromatin_features": {
+              "accessibility": 0.62,
+              "signal": 0.48
+            },
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "record_id": "cohort-r2",
+            "sample_id": "aggregate-cohort-r2",
+            "sequence_context": "ACGTACGT",
+            "source_id": "cohort-public",
+            "variant": {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 250,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 250,
+              "variant_id": "cohort-v2"
+            }
+          }
+        ],
+        "require_callable": true
+      },
+      "plane": "workspace_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C02-CONTROL-A-001",
+      "content_address": "sha256:86df117ffa0ce8448be0949df3b43f817c3339ba5cffbb1def8a63115b50efb0",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C02-CTRL-001",
+      "description": "D15-C02 control_a retains C02-CTRL-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 13,
+        "payload_field_count": 6,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_frontier",
+      "operation": "cohort_workspace",
+      "operation_id": "D15-C02",
+      "payload": {
+        "accessibility": {
+          "controls_label": "matched controls",
+          "row_label": "cohort record",
+          "summary_label": "cohort summary"
+        },
+        "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+        "evidence_id": "workspace-cohort-public",
+        "query_id": "workspace-cohort-query",
+        "records": [
+          {
+            "annotations": {
+              "public_aggregate": true
+            },
+            "callable": true,
+            "chromatin_features": {
+              "accessibility": 0.62,
+              "signal": 0.48
+            },
+            "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+            "record_id": "cohort-ood",
+            "sample_id": "aggregate-cohort-ood",
+            "sequence_context": "ACGTACGT",
+            "source_id": "cohort-public",
+            "variant": {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 150,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 150,
+              "variant_id": "cohort-ood-v"
+            }
+          }
+        ],
+        "require_callable": true
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C02-CONTROL-B-001",
+      "content_address": "sha256:73079d8da4b0702f1b2d227c903790dbc9b96f8315a5950569e1b6e20e39141c",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C02-CTRL-002",
+      "description": "D15-C02 control_b retains C02-CTRL-002 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 13,
+        "payload_field_count": 6,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_matching_records"
+      ],
+      "expected_state": "absent",
+      "family": "workspace_frontier",
+      "operation": "cohort_workspace",
+      "operation_id": "D15-C02",
+      "payload": {
+        "accessibility": {
+          "controls_label": "matched controls",
+          "row_label": "cohort record",
+          "summary_label": "cohort summary"
+        },
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "evidence_id": "workspace-cohort-public",
+        "query_id": "workspace-cohort-query",
+        "records": [
+          {
+            "annotations": {
+              "public_aggregate": true
+            },
+            "callable": false,
+            "chromatin_features": {
+              "accessibility": 0.62,
+              "signal": 0.48
+            },
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "record_id": "cohort-absent",
+            "sample_id": "aggregate-cohort-absent",
+            "sequence_context": "ACGTACGT",
+            "source_id": "cohort-public",
+            "variant": {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 150,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 150,
+              "variant_id": "cohort-absent-v"
+            }
+          }
+        ],
+        "require_callable": true
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C02-CONTROL-C-001",
+      "content_address": "sha256:5983f42e0574b78b3c610a418efaace54ff48f560225f98a32822fc18ce7bdb6",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C02-CTRL-003",
+      "description": "D15-C02 control_c retains C02-CTRL-003 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 13,
+        "payload_field_count": 6,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_matching_records"
+      ],
+      "expected_state": "absent",
+      "family": "workspace_frontier",
+      "operation": "cohort_workspace",
+      "operation_id": "D15-C02",
+      "payload": {
+        "accessibility": {
+          "controls_label": "matched controls",
+          "row_label": "cohort record",
+          "summary_label": "cohort summary"
+        },
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "evidence_id": "workspace-cohort-public",
+        "query_id": "workspace-empty-query",
+        "records": [],
+        "require_callable": true
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C03-POSITIVE-001",
+      "content_address": "sha256:39a539596cbf19ec9c153531e90a21ad7bc86319162cdc17bc64af3b48a4f255",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C03-POS-001",
+      "description": "D15-C03 positive retains C03-POS-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 2,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "workspace_frontier",
+      "operation": "variant_explorer",
+      "operation_id": "D15-C03",
+      "payload": {
+        "case": {
+          "accessibility": {
+            "focus_boundary": "workspace-case-public",
+            "keyboard_order": [
+              "variants",
+              "regulatory-elements",
+              "hypotheses",
+              "evidence",
+              "validation"
+            ],
+            "labels_present": true,
+            "reading_order": "section-order"
+          },
+          "candidate_elements": [
+            {
+              "annotations": {
+                "boundary": "public_aggregate_non_patient"
+              },
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "untreated"
+              },
+              "element_id": "element-frontier-1",
+              "element_type": "candidate_enhancer",
+              "end": 125,
+              "features": {
+                "accessibility_proxy": 0.71,
+                "track_score": 0.82
+              },
+              "source_id": "track-public",
+              "start": 90,
+              "state_ids": [
+                "stem_like"
+              ],
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "case_id": "workspace-case-public",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "include_dossier": false,
+          "input_versions": {
+            "manifest": "sha256:manifest-public-v1",
+            "track": "sha256:track-public-v1"
+          },
+          "variants": [
+            {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 100,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 100,
+              "variant_id": "v-frontier-1"
+            },
+            {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 200,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 200,
+              "variant_id": "v-frontier-2"
+            }
+          ]
+        },
+        "variant_id": "v-frontier-1"
+      },
+      "plane": "workspace_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C03-CONTROL-A-001",
+      "content_address": "sha256:f5c439a5ad016db9f7e3d0399ba6f79c558e0992ebcb64b7aa70d9032dae5a98",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C03-CTRL-001",
+      "description": "D15-C03 control_a retains C03-CTRL-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "variant_absent"
+      ],
+      "expected_state": "abstained",
+      "family": "workspace_frontier",
+      "operation": "variant_explorer",
+      "operation_id": "D15-C03",
+      "payload": {
+        "case": {
+          "accessibility": {
+            "focus_boundary": "workspace-case-public",
+            "keyboard_order": [
+              "variants",
+              "regulatory-elements",
+              "hypotheses",
+              "evidence",
+              "validation"
+            ],
+            "labels_present": true,
+            "reading_order": "section-order"
+          },
+          "candidate_elements": [
+            {
+              "annotations": {
+                "boundary": "public_aggregate_non_patient"
+              },
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "untreated"
+              },
+              "element_id": "element-frontier-1",
+              "element_type": "candidate_enhancer",
+              "end": 125,
+              "features": {
+                "accessibility_proxy": 0.71,
+                "track_score": 0.82
+              },
+              "source_id": "track-public",
+              "start": 90,
+              "state_ids": [
+                "stem_like"
+              ],
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "case_id": "workspace-case-public",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "include_dossier": false,
+          "input_versions": {
+            "manifest": "sha256:manifest-public-v1",
+            "track": "sha256:track-public-v1"
+          },
+          "variants": [
+            {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 100,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 100,
+              "variant_id": "v-frontier-1"
+            },
+            {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 200,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 200,
+              "variant_id": "v-frontier-2"
+            }
+          ]
+        },
+        "variant_id": "missing-variant"
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C03-CONTROL-B-001",
+      "content_address": "sha256:9ac991684400e5fdfe5014634b757f08fc8a455d23aab1313d269ca0766ce2a7",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C03-CTRL-002",
+      "description": "D15-C03 control_b retains C03-CTRL-002 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_frontier",
+      "operation": "variant_explorer",
+      "operation_id": "D15-C03",
+      "payload": {
+        "case": {
+          "accessibility": {
+            "focus_boundary": "workspace-case-public",
+            "keyboard_order": [
+              "variants",
+              "regulatory-elements",
+              "hypotheses",
+              "evidence",
+              "validation"
+            ],
+            "labels_present": true,
+            "reading_order": "section-order"
+          },
+          "candidate_elements": [
+            {
+              "annotations": {
+                "boundary": "public_aggregate_non_patient"
+              },
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "untreated"
+              },
+              "element_id": "element-frontier-1",
+              "element_type": "candidate_enhancer",
+              "end": 125,
+              "features": {
+                "accessibility_proxy": 0.71,
+                "track_score": 0.82
+              },
+              "source_id": "track-public",
+              "start": 90,
+              "state_ids": [
+                "stem_like"
+              ],
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "case_id": "workspace-case-public",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "include_dossier": false,
+          "input_versions": {
+            "manifest": "sha256:manifest-public-v1",
+            "track": "sha256:track-public-v1"
+          },
+          "variants": [
+            {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 100,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 100,
+              "variant_id": "v-frontier-1"
+            },
+            {
+              "alternate": "T",
+              "annotations": {
+                "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+                "source_version": "public-v1"
+              },
+              "chromosome": "7",
+              "clonality": "unknown",
+              "end": 200,
+              "genome_build": "GRCh38",
+              "kind": "snv",
+              "origin": "somatic",
+              "reference": "A",
+              "sample_id": "aggregate-sample",
+              "start": 200,
+              "variant_id": "v-frontier-2"
+            }
+          ]
+        },
+        "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+        "variant_id": "v-frontier-1"
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C03-CONTROL-C-001",
+      "content_address": "sha256:dbab36e59e14a8706ad48721ad36b1bf517382b3c31980ad92cd6b9224694b13",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C03-CTRL-003",
+      "description": "D15-C03 control_c retains C03-CTRL-003 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_workspace_input"
+      ],
+      "expected_state": "invalid",
+      "family": "workspace_frontier",
+      "operation": "variant_explorer",
+      "operation_id": "D15-C03",
+      "payload": {
+        "case": {
+          "accessibility": {
+            "focus_boundary": "workspace-case-public",
+            "keyboard_order": [
+              "variants",
+              "regulatory-elements",
+              "hypotheses",
+              "evidence",
+              "validation"
+            ],
+            "labels_present": true,
+            "reading_order": "section-order"
+          },
+          "candidate_elements": [
+            {
+              "annotations": {
+                "boundary": "public_aggregate_non_patient"
+              },
+              "chromosome": "7",
+              "context": {
+                "age_group": "adult",
+                "cell_state": "stem_like",
+                "disease_class": "glioma",
+                "genome_build": "GRCh38",
+                "territory": "core",
+                "treatment_phase": "untreated"
+              },
+              "element_id": "element-frontier-1",
+              "element_type": "candidate_enhancer",
+              "end": 125,
+              "features": {
+                "accessibility_proxy": 0.71,
+                "track_score": 0.82
+              },
+              "source_id": "track-public",
+              "start": 90,
+              "state_ids": [
+                "stem_like"
+              ],
+              "target_genes": [
+                "GENE1"
+              ]
+            }
+          ],
+          "case_id": "workspace-case-public",
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "include_dossier": false,
+          "input_versions": {
+            "manifest": "sha256:manifest-public-v1",
+            "track": "sha256:track-public-v1"
+          },
+          "variants": []
+        },
+        "variant_id": "v-frontier-1"
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C04-POSITIVE-001",
+      "content_address": "sha256:9d0ef47d81e5a47064dd029be1b8f436df4cbdf51fc92d630c0dbe30c7a0e6a3",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C04-POS-001",
+      "description": "D15-C04 positive retains C04-POS-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 12,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "workspace_frontier",
+      "operation": "regulatory_track_browser",
+      "operation_id": "D15-C04",
+      "payload": {
+        "accessibility": {
+          "coordinate_label": "genomic coordinate",
+          "interval_label": "regulatory interval",
+          "issue_label": "parse issue"
+        },
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "genome_build": "GRCh38",
+        "source_id": "track-public",
+        "text": "7\t99\t120\treg-frontier-1\t800\t+\n7\t180\t230\treg-frontier-2\t700\t-\n"
+      },
+      "plane": "workspace_foundation",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C04-CONTROL-A-001",
+      "content_address": "sha256:3528022674406fa2b703c20765cfbf1c361f67f92d3665300d72bd01421ea16e",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C04-CTRL-001",
+      "description": "D15-C04 control_a retains C04-CTRL-001 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "track_parse_issue"
+      ],
+      "expected_state": "partial",
+      "family": "workspace_frontier",
+      "operation": "regulatory_track_browser",
+      "operation_id": "D15-C04",
+      "payload": {
+        "accessibility": {
+          "coordinate_label": "genomic coordinate",
+          "interval_label": "regulatory interval",
+          "issue_label": "parse issue"
+        },
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "genome_build": "GRCh38",
+        "source_id": "track-public",
+        "text": "7\tbad\t120\tbad-row\n"
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C04-CONTROL-B-001",
+      "content_address": "sha256:e92bcc3b8a4a3cd161e9e1f8c1c70afb0eabb7424989324604fa275e22eade0c",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C04-CTRL-002",
+      "description": "D15-C04 control_b retains C04-CTRL-002 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_frontier",
+      "operation": "regulatory_track_browser",
+      "operation_id": "D15-C04",
+      "payload": {
+        "accessibility": {
+          "coordinate_label": "genomic coordinate",
+          "interval_label": "regulatory interval",
+          "issue_label": "parse issue"
+        },
+        "context_key": "GRCh38|glioma|pediatric|stem_like|core|untreated",
+        "genome_build": "GRCh38",
+        "source_id": "track-public",
+        "text": "7\t99\t120\treg-frontier-1\t800\t+\n7\t180\t230\treg-frontier-2\t700\t-\n"
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C04-CONTROL-C-001",
+      "content_address": "sha256:94b41e1225a361806bdc4eb2b89ec149fd449cb0bfcf025cd887498da3b2f5dc",
+      "delegate_class": "WorkspaceFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_record_id": "C04-CTRL-003",
+      "description": "D15-C04 control_c retains C04-CTRL-003 from workspace_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 5,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_track_input"
+      ],
+      "expected_state": "invalid",
+      "family": "workspace_frontier",
+      "operation": "regulatory_track_browser",
+      "operation_id": "D15-C04",
+      "payload": {
+        "accessibility": {
+          "coordinate_label": "genomic coordinate",
+          "interval_label": "regulatory interval",
+          "issue_label": "parse issue"
+        },
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "genome_build": "GRCh38",
+        "source_id": "track-public",
+        "text": ""
+      },
+      "plane": "workspace_foundation",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C05-POSITIVE-001",
+      "content_address": "sha256:2dbc6bc346adb37faf1ca234c5e5969afa841309b93a01271c8d7de5ef9f3f31",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "topology-positive",
+      "description": "D15-C05 positive retains topology-positive from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 11,
+        "payload_field_count": 10,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "workspace_beta_frontier",
+      "operation": "topology_viewer",
+      "operation_id": "D15-C05",
+      "payload": {
+        "activity_results": [
+          {
+            "activity_by_contact_score": 0.4896,
+            "activity_component": 0.68,
+            "activity_state": "supported",
+            "contact_component": 0.72,
+            "contact_state": "supported",
+            "content_address": "sha256:activity-beta-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "enhancer_id": "element-beta-1",
+            "model_id": "abc-public",
+            "model_version": "1.2",
+            "promoter_id": "GENE1",
+            "reason": "bounded descriptive activity by contact",
+            "source_ids": [
+              "capture-public",
+              "access-public"
+            ],
+            "source_versions": [
+              "aggregate-v3",
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "warnings": []
+          }
+        ],
+        "contact_scores": [
+          {
+            "content_address": "sha256:contact-score-beta-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "enhancer_id": "element-beta-1",
+            "median_signal": 5.0,
+            "normalized_contact_score": 0.72,
+            "promoter_id": "GENE1",
+            "reason": "bounded aggregate contact score",
+            "signal_spread": 0.4,
+            "source_ids": [
+              "capture-public"
+            ],
+            "source_versions": [
+              "aggregate-v3"
+            ],
+            "state": "supported",
+            "warnings": []
+          }
+        ],
+        "contacts": [
+          {
+            "bait_id": "bait-GENE1",
+            "contact_id": "contact-beta-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "promoter_chromosome": "7",
+            "promoter_end": 1020,
+            "promoter_id": "GENE1",
+            "promoter_start": 1000,
+            "raw_hash": "sha256:contact-beta-1",
+            "resolution": 5,
+            "signal": 5.0,
+            "source_id": "capture-public",
+            "source_version": "aggregate-v3",
+            "target_chromosome": "7",
+            "target_element_id": "element-beta-1",
+            "target_end": 120,
+            "target_start": 100
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "focus_chromosome": "7",
+        "focus_end": 1100,
+        "focus_start": 90,
+        "loops": [
+          {
+            "caller": "aggregate-caller",
+            "chromosome_a": "7",
+            "chromosome_b": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "end_a": 120,
+            "end_b": 1020,
+            "feature_id": "loop-beta-1",
+            "feature_kind": "loop",
+            "raw_hash": "sha256:loop-beta-1",
+            "resolution": 10,
+            "signal": 8.5,
+            "source_id": "hic-public",
+            "source_version": "aggregate-v2",
+            "start_a": 100,
+            "start_b": 1000
+          }
+        ],
+        "max_edges": 50,
+        "max_nodes": 50
+      },
+      "plane": "workspace_beta",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C05-CONTROL-A-001",
+      "content_address": "sha256:50303b6559e1952d459cad5823d5b0c0c2ae22e8d4005177c3153bfb8e773ff1",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "topology-foreign-context",
+      "description": "D15-C05 control_a retains topology-foreign-context from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_beta_frontier",
+      "operation": "topology_viewer",
+      "operation_id": "D15-C05",
+      "payload": {
+        "activity_results": [
+          {
+            "activity_by_contact_score": 0.4896,
+            "activity_component": 0.68,
+            "activity_state": "supported",
+            "contact_component": 0.72,
+            "contact_state": "supported",
+            "content_address": "sha256:activity-beta-1",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "enhancer_id": "element-beta-1",
+            "model_id": "abc-public",
+            "model_version": "1.2",
+            "promoter_id": "GENE1",
+            "reason": "bounded descriptive activity by contact",
+            "source_ids": [
+              "capture-public",
+              "access-public"
+            ],
+            "source_versions": [
+              "aggregate-v3",
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "warnings": []
+          }
+        ],
+        "contact_scores": [
+          {
+            "content_address": "sha256:contact-score-beta-1",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "enhancer_id": "element-beta-1",
+            "median_signal": 5.0,
+            "normalized_contact_score": 0.72,
+            "promoter_id": "GENE1",
+            "reason": "bounded aggregate contact score",
+            "signal_spread": 0.4,
+            "source_ids": [
+              "capture-public"
+            ],
+            "source_versions": [
+              "aggregate-v3"
+            ],
+            "state": "supported",
+            "warnings": []
+          }
+        ],
+        "contacts": [
+          {
+            "bait_id": "bait-GENE1",
+            "contact_id": "contact-beta-1",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "promoter_chromosome": "7",
+            "promoter_end": 1020,
+            "promoter_id": "GENE1",
+            "promoter_start": 1000,
+            "raw_hash": "sha256:contact-beta-1",
+            "resolution": 5,
+            "signal": 5.0,
+            "source_id": "capture-public",
+            "source_version": "aggregate-v3",
+            "target_chromosome": "7",
+            "target_element_id": "element-beta-1",
+            "target_end": 120,
+            "target_start": 100
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "focus_chromosome": "7",
+        "focus_end": 1100,
+        "focus_start": 90,
+        "loops": [
+          {
+            "caller": "aggregate-caller",
+            "chromosome_a": "7",
+            "chromosome_b": "7",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "end_a": 120,
+            "end_b": 1020,
+            "feature_id": "loop-beta-1",
+            "feature_kind": "loop",
+            "raw_hash": "sha256:loop-beta-1",
+            "resolution": 10,
+            "signal": 8.5,
+            "source_id": "hic-public",
+            "source_version": "aggregate-v2",
+            "start_a": 100,
+            "start_b": 1000
+          }
+        ],
+        "max_edges": 50,
+        "max_nodes": 50
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C05-CONTROL-B-001",
+      "content_address": "sha256:32a8f0b5d5cc29c6b87fa2bb0329f127c86585d5178e90bb5fec04e376a0a621",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "topology-invalid-focus",
+      "description": "D15-C05 control_b retains topology-invalid-focus from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 3,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_projection_input"
+      ],
+      "expected_state": "invalid",
+      "family": "workspace_beta_frontier",
+      "operation": "topology_viewer",
+      "operation_id": "D15-C05",
+      "payload": {
+        "activity_results": [
+          {
+            "activity_by_contact_score": 0.4896,
+            "activity_component": 0.68,
+            "activity_state": "supported",
+            "contact_component": 0.72,
+            "contact_state": "supported",
+            "content_address": "sha256:activity-beta-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "enhancer_id": "element-beta-1",
+            "model_id": "abc-public",
+            "model_version": "1.2",
+            "promoter_id": "GENE1",
+            "reason": "bounded descriptive activity by contact",
+            "source_ids": [
+              "capture-public",
+              "access-public"
+            ],
+            "source_versions": [
+              "aggregate-v3",
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "warnings": []
+          }
+        ],
+        "contact_scores": [
+          {
+            "content_address": "sha256:contact-score-beta-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "enhancer_id": "element-beta-1",
+            "median_signal": 5.0,
+            "normalized_contact_score": 0.72,
+            "promoter_id": "GENE1",
+            "reason": "bounded aggregate contact score",
+            "signal_spread": 0.4,
+            "source_ids": [
+              "capture-public"
+            ],
+            "source_versions": [
+              "aggregate-v3"
+            ],
+            "state": "supported",
+            "warnings": []
+          }
+        ],
+        "contacts": [
+          {
+            "bait_id": "bait-GENE1",
+            "contact_id": "contact-beta-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "promoter_chromosome": "7",
+            "promoter_end": 1020,
+            "promoter_id": "GENE1",
+            "promoter_start": 1000,
+            "raw_hash": "sha256:contact-beta-1",
+            "resolution": 5,
+            "signal": 5.0,
+            "source_id": "capture-public",
+            "source_version": "aggregate-v3",
+            "target_chromosome": "7",
+            "target_element_id": "element-beta-1",
+            "target_end": 120,
+            "target_start": 100
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "focus_chromosome": "7",
+        "focus_end": 1100,
+        "focus_start": 0,
+        "loops": [
+          {
+            "caller": "aggregate-caller",
+            "chromosome_a": "7",
+            "chromosome_b": "7",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "end_a": 120,
+            "end_b": 1020,
+            "feature_id": "loop-beta-1",
+            "feature_kind": "loop",
+            "raw_hash": "sha256:loop-beta-1",
+            "resolution": 10,
+            "signal": 8.5,
+            "source_id": "hic-public",
+            "source_version": "aggregate-v2",
+            "start_a": 100,
+            "start_b": 1000
+          }
+        ],
+        "max_edges": 50,
+        "max_nodes": 50
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C05-CONTROL-C-001",
+      "content_address": "sha256:c7561d72636a8d9c2b9bde8ccdd86d9d638c8fb7a7f9b5c90dee7a99f5074a05",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "topology-empty",
+      "description": "D15-C05 control_c retains topology-empty from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_topology_observations"
+      ],
+      "expected_state": "absent",
+      "family": "workspace_beta_frontier",
+      "operation": "topology_viewer",
+      "operation_id": "D15-C05",
+      "payload": {
+        "activity_results": [],
+        "contact_scores": [],
+        "contacts": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "focus_chromosome": "7",
+        "focus_end": 1100,
+        "focus_start": 90,
+        "loops": [],
+        "max_edges": 50,
+        "max_nodes": 50
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C06-POSITIVE-001",
+      "content_address": "sha256:5aad6495620b5f995f088efef5d75208c0a08cf94927cdbab03450aee9fba221",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "causal-positive",
+      "description": "D15-C06 positive retains causal-positive from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "complete",
+      "family": "workspace_beta_frontier",
+      "operation": "causal_chain_explorer",
+      "operation_id": "D15-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "results": [
+          {
+            "content_address": "sha256:causal-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-1"
+            ],
+            "mediator_kind": "sequence_to_element",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-1"
+            ],
+            "source_node": "variant-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "element-beta-1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:causal-2",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-2"
+            ],
+            "mediator_kind": "element_to_gene",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-2"
+            ],
+            "source_node": "element-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "GENE1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:causal-3",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-3"
+            ],
+            "mediator_kind": "gene_to_state",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-3"
+            ],
+            "source_node": "GENE1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "state-beta-1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:causal-4",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-4"
+            ],
+            "mediator_kind": "element_to_gene",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-4"
+            ],
+            "source_node": "element-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.4,
+            "target_node": "GENE2",
+            "uncertainty": 0.4,
+            "warnings": [
+              "research summary"
+            ]
+          }
+        ]
+      },
+      "plane": "workspace_beta",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C06-CONTROL-A-001",
+      "content_address": "sha256:e77f9f7f193a433219885902be89ea916a4b050338828d5501c63604b3092e49",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "causal-foreign-context",
+      "description": "D15-C06 control_a retains causal-foreign-context from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_beta_frontier",
+      "operation": "causal_chain_explorer",
+      "operation_id": "D15-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "results": [
+          {
+            "content_address": "sha256:foreign-1",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "evidence_ids": [
+              "foreign-1"
+            ],
+            "mediator_kind": "sequence_to_element",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-foreign-1"
+            ],
+            "source_node": "variant-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "element-beta-1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:foreign-2",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "evidence_ids": [
+              "foreign-2"
+            ],
+            "mediator_kind": "element_to_gene",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-foreign-2"
+            ],
+            "source_node": "element-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "GENE1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:foreign-3",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "evidence_ids": [
+              "foreign-3"
+            ],
+            "mediator_kind": "gene_to_state",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-foreign-3"
+            ],
+            "source_node": "GENE1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "state-beta-1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          }
+        ]
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C06-CONTROL-B-001",
+      "content_address": "sha256:43439ab693e74a5f776a0c9c134a4b2d9eac13dc646d0623cb8db65db88bd425",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "causal-missing-mediator",
+      "description": "D15-C06 control_b retains causal-missing-mediator from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_mediator"
+      ],
+      "expected_state": "incomplete",
+      "family": "workspace_beta_frontier",
+      "operation": "causal_chain_explorer",
+      "operation_id": "D15-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "results": [
+          {
+            "content_address": "sha256:causal-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-1"
+            ],
+            "mediator_kind": "sequence_to_element",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-1"
+            ],
+            "source_node": "variant-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "element-beta-1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:causal-2",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-2"
+            ],
+            "mediator_kind": "element_to_gene",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-2"
+            ],
+            "source_node": "element-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "supported",
+            "support": 0.8,
+            "target_node": "GENE1",
+            "uncertainty": 0.1,
+            "warnings": [
+              "research summary"
+            ]
+          }
+        ]
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C06-CONTROL-C-001",
+      "content_address": "sha256:f434703b3606547b6293e148f5eaa30eef1fecd971556491d66843a38fbcab0d",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "causal-contradiction",
+      "description": "D15-C06 control_c retains causal-contradiction from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 12,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "contradictory_mediator"
+      ],
+      "expected_state": "contradictory",
+      "family": "workspace_beta_frontier",
+      "operation": "causal_chain_explorer",
+      "operation_id": "D15-C06",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "results": [
+          {
+            "content_address": "sha256:causal-negative-1",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-negative-1"
+            ],
+            "mediator_kind": "sequence_to_element",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-negative-1"
+            ],
+            "source_node": "variant-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "contradictory",
+            "support": null,
+            "target_node": "element-beta-1",
+            "uncertainty": 1.0,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:causal-negative-2",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-negative-2"
+            ],
+            "mediator_kind": "element_to_gene",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-negative-2"
+            ],
+            "source_node": "element-beta-1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "contradictory",
+            "support": null,
+            "target_node": "GENE1",
+            "uncertainty": 1.0,
+            "warnings": [
+              "research summary"
+            ]
+          },
+          {
+            "content_address": "sha256:causal-negative-3",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "evidence_ids": [
+              "causal-negative-3"
+            ],
+            "mediator_kind": "gene_to_state",
+            "model_id": "causal-public",
+            "model_version": "2.1",
+            "negative_evidence_ids": [],
+            "reason": "declared exact-context mediator summary",
+            "sensitivity": 0.7,
+            "source_ids": [
+              "source-causal-negative-3"
+            ],
+            "source_node": "GENE1",
+            "source_versions": [
+              "aggregate-v1"
+            ],
+            "state": "contradictory",
+            "support": null,
+            "target_node": "state-beta-1",
+            "uncertainty": 1.0,
+            "warnings": [
+              "research summary"
+            ]
+          }
+        ]
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C07-POSITIVE-001",
+      "content_address": "sha256:6ec506f2f95720c23c82da6e6f26602c1cff9c0a3b87a1a6c584442446c27999",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "posterior-positive",
+      "description": "D15-C07 positive retains posterior-positive from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 16,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "supported",
+      "family": "workspace_beta_frontier",
+      "operation": "posterior_decomposition",
+      "operation_id": "D15-C07",
+      "payload": {
+        "components": [
+          {
+            "component_id": "sequence",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "contribution": 0.4,
+            "explanation": "declared sequence contribution",
+            "label": "sequence support",
+            "observation_ids": [
+              "sequence-observation-1"
+            ],
+            "source_ids": [
+              "sequence-public"
+            ],
+            "state": "supported"
+          },
+          {
+            "component_id": "topology",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "contribution": 0.35,
+            "explanation": "declared topology contribution",
+            "label": "topology support",
+            "observation_ids": [
+              "topology-observation-1"
+            ],
+            "source_ids": [
+              "capture-public"
+            ],
+            "state": "supported"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "posterior": {
+          "calibration_status": "unvalidated_research_proxy",
+          "content_address": "sha256:posterior-sha256:7b8c2f26759a7790a995b8ac9b03327c65cb48d21bac20af6f7e3bbde864b03c",
+          "declared_prior": 0.2,
+          "evidence_support": 0.75,
+          "hypothesis_id": "hypothesis-beta-1",
+          "limitations": [
+            "aggregate evidence",
+            "not a clinical probability"
+          ],
+          "observation_ids": [
+            "posterior-observation-1"
+          ],
+          "posterior_proxy": 0.652174,
+          "state": "supported",
+          "uncertainty": 0.3
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C07-CONTROL-A-001",
+      "content_address": "sha256:2c76fd1d95b26d15b1143368a6d02b82d0d1e48d3e4f5ac7da82ad2bb45f1a52",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "posterior-foreign-component",
+      "description": "D15-C07 control_a retains posterior-foreign-component from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 2,
+        "output_field_count": 16,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "foreign_component",
+        "unreconciled_components"
+      ],
+      "expected_state": "partial",
+      "family": "workspace_beta_frontier",
+      "operation": "posterior_decomposition",
+      "operation_id": "D15-C07",
+      "payload": {
+        "components": [
+          {
+            "component_id": "foreign",
+            "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated",
+            "contribution": 0.65,
+            "label": "foreign"
+          },
+          {
+            "component_id": "local",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "contribution": 0.1,
+            "label": "local"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "posterior": {
+          "calibration_status": "unvalidated_research_proxy",
+          "content_address": "sha256:posterior-sha256:7b8c2f26759a7790a995b8ac9b03327c65cb48d21bac20af6f7e3bbde864b03c",
+          "declared_prior": 0.2,
+          "evidence_support": 0.75,
+          "hypothesis_id": "hypothesis-beta-1",
+          "limitations": [
+            "aggregate evidence",
+            "not a clinical probability"
+          ],
+          "observation_ids": [
+            "posterior-observation-1"
+          ],
+          "posterior_proxy": 0.652174,
+          "state": "supported",
+          "uncertainty": 0.3
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C07-CONTROL-B-001",
+      "content_address": "sha256:3c9458fed57cbc520e0297d7354a0e10c95e81bb2f0b76b25006cbf19c3a427f",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "posterior-unreconciled",
+      "description": "D15-C07 control_b retains posterior-unreconciled from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 16,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "unreconciled_components"
+      ],
+      "expected_state": "partial",
+      "family": "workspace_beta_frontier",
+      "operation": "posterior_decomposition",
+      "operation_id": "D15-C07",
+      "payload": {
+        "components": [
+          {
+            "component_id": "local",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "contribution": 0.2,
+            "label": "local"
+          }
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "posterior": {
+          "calibration_status": "unvalidated_research_proxy",
+          "content_address": "sha256:posterior-sha256:7b8c2f26759a7790a995b8ac9b03327c65cb48d21bac20af6f7e3bbde864b03c",
+          "declared_prior": 0.2,
+          "evidence_support": 0.75,
+          "hypothesis_id": "hypothesis-beta-1",
+          "limitations": [
+            "aggregate evidence",
+            "not a clinical probability"
+          ],
+          "observation_ids": [
+            "posterior-observation-1"
+          ],
+          "posterior_proxy": 0.652174,
+          "state": "supported",
+          "uncertainty": 0.3
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C07-CONTROL-C-001",
+      "content_address": "sha256:88c0d996d43dd457c40be2dd70238eb2834df2843734b286a9d7a455c25714a5",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "posterior-no-support",
+      "description": "D15-C07 control_c retains posterior-no-support from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 16,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "missing_support"
+      ],
+      "expected_state": "abstained",
+      "family": "workspace_beta_frontier",
+      "operation": "posterior_decomposition",
+      "operation_id": "D15-C07",
+      "payload": {
+        "components": [],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "posterior": {
+          "calibration_status": "unvalidated_research_proxy",
+          "content_address": "sha256:posterior-sha256:7b8c2f26759a7790a995b8ac9b03327c65cb48d21bac20af6f7e3bbde864b03c",
+          "declared_prior": 0.2,
+          "evidence_support": null,
+          "hypothesis_id": "hypothesis-beta-1",
+          "limitations": [
+            "aggregate evidence",
+            "not a clinical probability"
+          ],
+          "observation_ids": [
+            "posterior-observation-1"
+          ],
+          "posterior_proxy": null,
+          "state": "abstained",
+          "uncertainty": 0.3
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C08-POSITIVE-001",
+      "content_address": "sha256:e1d155f51652c77b075706589f8d0cb6d4454f9995792a51b0b2f00a189ff470",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "table-positive",
+      "description": "D15-C08 positive retains table-positive from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "partial",
+      "family": "workspace_beta_frontier",
+      "operation": "evidence_table",
+      "operation_id": "D15-C08",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "filter": {
+          "channels": [
+            "sequence",
+            "topology",
+            "causal"
+          ],
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "limit": 10,
+          "min_confidence": 0.5,
+          "offset": 0,
+          "tiers": [
+            "tier-1",
+            "tier-2"
+          ]
+        },
+        "workspace": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "kind": "case",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "sequence",
+                "confidence": 0.91,
+                "tier": "tier-1"
+              },
+              "label": "sequence supports element",
+              "record_id": "evidence-beta-sequence",
+              "record_type": "evidence",
+              "searchable_text": "sequence element",
+              "source_ids": [
+                "sequence-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "sequence",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "topology",
+                "confidence": 0.54,
+                "tier": "tier-2"
+              },
+              "label": "topology remains partial",
+              "record_id": "evidence-beta-topology",
+              "record_type": "evidence",
+              "searchable_text": "topology promoter contact",
+              "source_ids": [
+                "capture-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "topology",
+                "tier-2"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "causal",
+                "confidence": 0.63,
+                "tier": "tier-1"
+              },
+              "label": "causal chain summary",
+              "record_id": "evidence-beta-causal",
+              "record_type": "evidence",
+              "searchable_text": "mediator chain",
+              "source_ids": [
+                "causal-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "causal",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "summary",
+                "confidence": 0.2,
+                "tier": "tier-3"
+              },
+              "label": "workspace summary",
+              "record_id": "summary-beta-not-evidence",
+              "record_type": "summary",
+              "searchable_text": "workspace summary",
+              "source_ids": [
+                "workbench-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "summary",
+                "tier-3"
+              ]
+            }
+          ],
+          "sections": [
+            {
+              "accessible_label": "Evidence",
+              "description": "Evidence records",
+              "order": 0,
+              "record_types": [
+                "evidence"
+              ],
+              "section_id": "evidence",
+              "title": "Evidence"
+            },
+            {
+              "accessible_label": "Summary",
+              "description": "Context summary",
+              "order": 1,
+              "record_types": [
+                "summary"
+              ],
+              "section_id": "summary",
+              "title": "Summary"
+            }
+          ],
+          "state": "partial",
+          "warnings": [
+            "aggregate workspace retains unresolved rows"
+          ],
+          "workspace_id": "workspace-beta-public"
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C08-CONTROL-A-001",
+      "content_address": "sha256:bb7a372e9ab6dd7bc0c10b576ef1077772b36f4f3cadc3c29dc8c7a2f848ac44",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "table-foreign-context",
+      "description": "D15-C08 control_a retains table-foreign-context from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_beta_frontier",
+      "operation": "evidence_table",
+      "operation_id": "D15-C08",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "filter": {
+          "context_key": "GRCh38|glioma|adult|bulk_like|core|untreated"
+        },
+        "workspace": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "kind": "case",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "sequence",
+                "confidence": 0.91,
+                "tier": "tier-1"
+              },
+              "label": "sequence supports element",
+              "record_id": "evidence-beta-sequence",
+              "record_type": "evidence",
+              "searchable_text": "sequence element",
+              "source_ids": [
+                "sequence-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "sequence",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "topology",
+                "confidence": 0.54,
+                "tier": "tier-2"
+              },
+              "label": "topology remains partial",
+              "record_id": "evidence-beta-topology",
+              "record_type": "evidence",
+              "searchable_text": "topology promoter contact",
+              "source_ids": [
+                "capture-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "topology",
+                "tier-2"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "causal",
+                "confidence": 0.63,
+                "tier": "tier-1"
+              },
+              "label": "causal chain summary",
+              "record_id": "evidence-beta-causal",
+              "record_type": "evidence",
+              "searchable_text": "mediator chain",
+              "source_ids": [
+                "causal-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "causal",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "summary",
+                "confidence": 0.2,
+                "tier": "tier-3"
+              },
+              "label": "workspace summary",
+              "record_id": "summary-beta-not-evidence",
+              "record_type": "summary",
+              "searchable_text": "workspace summary",
+              "source_ids": [
+                "workbench-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "summary",
+                "tier-3"
+              ]
+            }
+          ],
+          "sections": [
+            {
+              "accessible_label": "Evidence",
+              "description": "Evidence records",
+              "order": 0,
+              "record_types": [
+                "evidence"
+              ],
+              "section_id": "evidence",
+              "title": "Evidence"
+            },
+            {
+              "accessible_label": "Summary",
+              "description": "Context summary",
+              "order": 1,
+              "record_types": [
+                "summary"
+              ],
+              "section_id": "summary",
+              "title": "Summary"
+            }
+          ],
+          "state": "partial",
+          "warnings": [
+            "aggregate workspace retains unresolved rows"
+          ],
+          "workspace_id": "workspace-beta-public"
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C08-CONTROL-B-001",
+      "content_address": "sha256:12e640dfa303b5db6023f576f8bf92f8ca9d27b097dbf44c42e0595138e3593e",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "table-no-match",
+      "description": "D15-C08 control_b retains table-no-match from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "no_matching_rows"
+      ],
+      "expected_state": "absent",
+      "family": "workspace_beta_frontier",
+      "operation": "evidence_table",
+      "operation_id": "D15-C08",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "filter": {
+          "channels": [
+            "missing-channel"
+          ],
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated"
+        },
+        "workspace": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "kind": "case",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "sequence",
+                "confidence": 0.91,
+                "tier": "tier-1"
+              },
+              "label": "sequence supports element",
+              "record_id": "evidence-beta-sequence",
+              "record_type": "evidence",
+              "searchable_text": "sequence element",
+              "source_ids": [
+                "sequence-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "sequence",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "topology",
+                "confidence": 0.54,
+                "tier": "tier-2"
+              },
+              "label": "topology remains partial",
+              "record_id": "evidence-beta-topology",
+              "record_type": "evidence",
+              "searchable_text": "topology promoter contact",
+              "source_ids": [
+                "capture-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "topology",
+                "tier-2"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "causal",
+                "confidence": 0.63,
+                "tier": "tier-1"
+              },
+              "label": "causal chain summary",
+              "record_id": "evidence-beta-causal",
+              "record_type": "evidence",
+              "searchable_text": "mediator chain",
+              "source_ids": [
+                "causal-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "causal",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "summary",
+                "confidence": 0.2,
+                "tier": "tier-3"
+              },
+              "label": "workspace summary",
+              "record_id": "summary-beta-not-evidence",
+              "record_type": "summary",
+              "searchable_text": "workspace summary",
+              "source_ids": [
+                "workbench-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "summary",
+                "tier-3"
+              ]
+            }
+          ],
+          "sections": [
+            {
+              "accessible_label": "Evidence",
+              "description": "Evidence records",
+              "order": 0,
+              "record_types": [
+                "evidence"
+              ],
+              "section_id": "evidence",
+              "title": "Evidence"
+            },
+            {
+              "accessible_label": "Summary",
+              "description": "Context summary",
+              "order": 1,
+              "record_types": [
+                "summary"
+              ],
+              "section_id": "summary",
+              "title": "Summary"
+            }
+          ],
+          "state": "partial",
+          "warnings": [
+            "aggregate workspace retains unresolved rows"
+          ],
+          "workspace_id": "workspace-beta-public"
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C08-CONTROL-C-001",
+      "content_address": "sha256:eff7d1e6827672b0bed56d774c2ff736df188bca6811bd38f94d445ac4dfddc4",
+      "delegate_class": "BetaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_record_id": "table-pagination",
+      "description": "D15-C08 control_c retains table-pagination from workspace_beta_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 11,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "pagination_applied"
+      ],
+      "expected_state": "partial",
+      "family": "workspace_beta_frontier",
+      "operation": "evidence_table",
+      "operation_id": "D15-C08",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "filter": {
+          "channels": [
+            "sequence",
+            "topology"
+          ],
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "limit": 1,
+          "offset": 1
+        },
+        "workspace": {
+          "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+          "kind": "case",
+          "records": [
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "sequence",
+                "confidence": 0.91,
+                "tier": "tier-1"
+              },
+              "label": "sequence supports element",
+              "record_id": "evidence-beta-sequence",
+              "record_type": "evidence",
+              "searchable_text": "sequence element",
+              "source_ids": [
+                "sequence-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "sequence",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "topology",
+                "confidence": 0.54,
+                "tier": "tier-2"
+              },
+              "label": "topology remains partial",
+              "record_id": "evidence-beta-topology",
+              "record_type": "evidence",
+              "searchable_text": "topology promoter contact",
+              "source_ids": [
+                "capture-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "topology",
+                "tier-2"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "causal",
+                "confidence": 0.63,
+                "tier": "tier-1"
+              },
+              "label": "causal chain summary",
+              "record_id": "evidence-beta-causal",
+              "record_type": "evidence",
+              "searchable_text": "mediator chain",
+              "source_ids": [
+                "causal-public"
+              ],
+              "state": "supported",
+              "tags": [
+                "causal",
+                "tier-1"
+              ]
+            },
+            {
+              "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+              "fields": {
+                "channel": "summary",
+                "confidence": 0.2,
+                "tier": "tier-3"
+              },
+              "label": "workspace summary",
+              "record_id": "summary-beta-not-evidence",
+              "record_type": "summary",
+              "searchable_text": "workspace summary",
+              "source_ids": [
+                "workbench-public"
+              ],
+              "state": "partial",
+              "tags": [
+                "summary",
+                "tier-3"
+              ]
+            }
+          ],
+          "sections": [
+            {
+              "accessible_label": "Evidence",
+              "description": "Evidence records",
+              "order": 0,
+              "record_types": [
+                "evidence"
+              ],
+              "section_id": "evidence",
+              "title": "Evidence"
+            },
+            {
+              "accessible_label": "Summary",
+              "description": "Context summary",
+              "order": 1,
+              "record_types": [
+                "summary"
+              ],
+              "section_id": "summary",
+              "title": "Summary"
+            }
+          ],
+          "state": "partial",
+          "warnings": [
+            "aggregate workspace retains unresolved rows"
+          ],
+          "workspace_id": "workspace-beta-public"
+        }
+      },
+      "plane": "workspace_beta",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C09-POSITIVE-001",
+      "content_address": "sha256:a95707008439c952a188802e2ff43202b8841b1ee53da2fac8d9059558aeea89",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-board-positive",
+      "description": "D15-C09 positive retains gamma-board-positive from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 1,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "blocked",
+      "family": "workspace_gamma_frontier",
+      "operation": "validation_experiment_board",
+      "operation_id": "D15-C09",
+      "payload": {
+        "cards": [
+          {
+            "assay_type": "aggregate_reporter",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "experiment_id": "exp-board-01",
+            "notes": [
+              "public aggregate",
+              "review before scheduling"
+            ],
+            "owner": "planning-group",
+            "priority": 4,
+            "readout": "normalized aggregate signal",
+            "source_id": "workspace-public",
+            "status": "ready",
+            "target_id": "target-aggregate-1",
+            "title": "Context-preserving perturbation readout"
+          },
+          {
+            "assay_type": "aggregate_confirmation",
+            "blockers": [
+              "aggregate reference pending"
+            ],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "dependencies": [
+              "exp-board-01"
+            ],
+            "experiment_id": "exp-board-02",
+            "owner": "planning-group",
+            "priority": 5,
+            "readout": "directionally concordant signal",
+            "source_id": "workspace-public",
+            "status": "blocked",
+            "target_id": "target-aggregate-1",
+            "title": "Orthogonal confirmation readout"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C09-CONTROL-A-001",
+      "content_address": "sha256:4a155def8d8c1cbe9c6eafc8030447b7e5eb694eb7e11fdbc9af9efe24f91cf6",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|differentiated|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-board-foreign",
+      "description": "D15-C09 control_a retains gamma-board-foreign from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 1,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_gamma_frontier",
+      "operation": "validation_experiment_board",
+      "operation_id": "D15-C09",
+      "payload": {
+        "cards": [
+          {
+            "assay_type": "aggregate_reporter",
+            "context_key": "GRCh38|glioma|adult|differentiated|core|untreated",
+            "experiment_id": "exp-board-01",
+            "notes": [
+              "public aggregate",
+              "review before scheduling"
+            ],
+            "owner": "planning-group",
+            "priority": 4,
+            "readout": "normalized aggregate signal",
+            "source_id": "workspace-public",
+            "status": "ready",
+            "target_id": "target-aggregate-1",
+            "title": "Context-preserving perturbation readout"
+          },
+          {
+            "assay_type": "aggregate_confirmation",
+            "blockers": [
+              "aggregate reference pending"
+            ],
+            "context_key": "GRCh38|glioma|adult|differentiated|core|untreated",
+            "dependencies": [
+              "exp-board-01"
+            ],
+            "experiment_id": "exp-board-02",
+            "owner": "planning-group",
+            "priority": 5,
+            "readout": "directionally concordant signal",
+            "source_id": "workspace-public",
+            "status": "blocked",
+            "target_id": "target-aggregate-1",
+            "title": "Orthogonal confirmation readout"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C09-CONTROL-B-001",
+      "content_address": "sha256:862ca73129bcedfa9367b5b4d67430262a44c7c7ff0de197f68adcf651cbd5c1",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-board-dependency",
+      "description": "D15-C09 control_b retains gamma-board-dependency from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 1,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "unknown_dependency"
+      ],
+      "expected_state": "blocked",
+      "family": "workspace_gamma_frontier",
+      "operation": "validation_experiment_board",
+      "operation_id": "D15-C09",
+      "payload": {
+        "cards": [
+          {
+            "assay_type": "aggregate_reporter",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "experiment_id": "exp-board-01",
+            "notes": [
+              "public aggregate",
+              "review before scheduling"
+            ],
+            "owner": "planning-group",
+            "priority": 4,
+            "readout": "normalized aggregate signal",
+            "source_id": "workspace-public",
+            "status": "ready",
+            "target_id": "target-aggregate-1",
+            "title": "Context-preserving perturbation readout"
+          },
+          {
+            "assay_type": "aggregate_confirmation",
+            "blockers": [
+              "aggregate reference pending"
+            ],
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "dependencies": [
+              "exp-board-99"
+            ],
+            "experiment_id": "exp-board-02",
+            "owner": "planning-group",
+            "priority": 5,
+            "readout": "directionally concordant signal",
+            "source_id": "workspace-public",
+            "status": "blocked",
+            "target_id": "target-aggregate-1",
+            "title": "Orthogonal confirmation readout"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C09-CONTROL-C-001",
+      "content_address": "sha256:eb02bce4f217802a91b3e9edf69be1cdd961e8bea77c80cc44bd8416c1e8b3cf",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-board-invalid",
+      "description": "D15-C09 control_c retains gamma-board-invalid from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 1,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_experiment_card"
+      ],
+      "expected_state": "abstained",
+      "family": "workspace_gamma_frontier",
+      "operation": "validation_experiment_board",
+      "operation_id": "D15-C09",
+      "payload": {
+        "cards": [
+          {
+            "assay_type": "aggregate_reporter",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "experiment_id": "exp-board-01",
+            "notes": [
+              "public aggregate",
+              "review before scheduling"
+            ],
+            "owner": "planning-group",
+            "priority": 9,
+            "readout": "normalized aggregate signal",
+            "source_id": "workspace-public",
+            "status": "ready",
+            "target_id": "target-aggregate-1",
+            "title": "Context-preserving perturbation readout"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C10-POSITIVE-001",
+      "content_address": "sha256:65248a6b83e368a1332fcb0390291fa97567540d895f1ff7882ca6aed03bd07c",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-launch-positive",
+      "description": "D15-C10 positive retains gamma-launch-positive from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 6,
+        "payload_field_count": 1,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "ready_for_review",
+      "family": "workspace_gamma_frontier",
+      "operation": "notebook_sdk_launcher",
+      "operation_id": "D15-C10",
+      "payload": {
+        "requests": [
+          {
+            "artifact_id": "notebook-aggregate-summary",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "entrypoint": "summary.main",
+            "mode": "notebook",
+            "parameters": {
+              "tier": "aggregate",
+              "window": 2000
+            },
+            "request_id": "launch-01",
+            "resource_profile": "small",
+            "runtime": "python",
+            "source_id": "workspace-public"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C10-CONTROL-A-001",
+      "content_address": "sha256:5099e2fd35e25de058e755ec7c34d7e06433225b07145e0ee449372272055092",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-launch-foreign",
+      "description": "D15-C10 control_a retains gamma-launch-foreign from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 2,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_gamma_frontier",
+      "operation": "notebook_sdk_launcher",
+      "operation_id": "D15-C10",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "requests": [
+          {
+            "artifact_id": "notebook-aggregate-summary",
+            "context_key": "GRCh38|glioma|adult|differentiated|core|untreated",
+            "entrypoint": "summary.main",
+            "mode": "notebook",
+            "parameters": {
+              "tier": "aggregate",
+              "window": 2000
+            },
+            "request_id": "launch-01",
+            "resource_profile": "small",
+            "runtime": "python",
+            "source_id": "workspace-public"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C10-CONTROL-B-001",
+      "content_address": "sha256:d3e1ff1800d1991ddc4314a8f473c766f7665110af24440de5ed9703ab6653f2",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-launch-runtime",
+      "description": "D15-C10 control_b retains gamma-launch-runtime from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 1,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "invalid_launch_request"
+      ],
+      "expected_state": "abstained",
+      "family": "workspace_gamma_frontier",
+      "operation": "notebook_sdk_launcher",
+      "operation_id": "D15-C10",
+      "payload": {
+        "requests": [
+          {
+            "artifact_id": "notebook-aggregate-summary",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "entrypoint": "summary.main",
+            "mode": "notebook",
+            "parameters": {
+              "tier": "aggregate",
+              "window": 2000
+            },
+            "request_id": "launch-01",
+            "resource_profile": "small",
+            "runtime": "wasm",
+            "source_id": "workspace-public"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C10-CONTROL-C-001",
+      "content_address": "sha256:8c5e9dc77a5a4ffe270454aae78dde309f9a5c27d3dbae96b108cafa237f7c9a",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-launch-resource",
+      "description": "D15-C10 control_c retains gamma-launch-resource from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 1,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "resource_profile_not_allowed"
+      ],
+      "expected_state": "abstained",
+      "family": "workspace_gamma_frontier",
+      "operation": "notebook_sdk_launcher",
+      "operation_id": "D15-C10",
+      "payload": {
+        "requests": [
+          {
+            "artifact_id": "notebook-aggregate-summary",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "entrypoint": "summary.main",
+            "mode": "notebook",
+            "parameters": {
+              "tier": "aggregate",
+              "window": 2000
+            },
+            "request_id": "launch-01",
+            "resource_profile": "xlarge",
+            "runtime": "python",
+            "source_id": "workspace-public"
+          }
+        ]
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C11-POSITIVE-001",
+      "content_address": "sha256:d9054f846458fc4b2c816a7ce2faf765f1c46bdabcd2380b737f16f38ee553af",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-snapshot-positive",
+      "description": "D15-C11 positive retains gamma-snapshot-positive from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 7,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "verified",
+      "family": "workspace_gamma_frontier",
+      "operation": "signed_snapshot",
+      "operation_id": "D15-C11",
+      "payload": {
+        "audience": [
+          "review-group"
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "expires_at": null,
+        "key_id": "public-fixture-key",
+        "now": "2026-08-22T12:00:00+00:00",
+        "signing_secret": "gamma-fixture-secret",
+        "snapshot_id": "snapshot-gamma-01",
+        "snapshot_payload": {
+          "rows": [
+            "aggregate-1",
+            "aggregate-2"
+          ],
+          "workspace_id": "public-workspace-1"
+        },
+        "snapshot_type": "review_projection",
+        "verify_secret": "gamma-fixture-secret"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C11-CONTROL-A-001",
+      "content_address": "sha256:72b4554cfe9b23481ff8c9a5650b32a19048fa8922d5d079855184a5a358fa85",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-snapshot-tampered",
+      "description": "D15-C11 control_a retains gamma-snapshot-tampered from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "snapshot_signature_invalid"
+      ],
+      "expected_state": "blocked",
+      "family": "workspace_gamma_frontier",
+      "operation": "signed_snapshot",
+      "operation_id": "D15-C11",
+      "payload": {
+        "audience": [
+          "review-group"
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "expires_at": null,
+        "key_id": "public-fixture-key",
+        "now": "2026-08-22T12:00:00+00:00",
+        "signing_secret": "gamma-fixture-secret",
+        "snapshot_id": "snapshot-gamma-01",
+        "snapshot_payload": {
+          "rows": [
+            "aggregate-1",
+            "aggregate-2"
+          ],
+          "workspace_id": "public-workspace-1"
+        },
+        "snapshot_type": "review_projection",
+        "verify_secret": "wrong-fixture-secret"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C11-CONTROL-B-001",
+      "content_address": "sha256:6b269d262ec985fb94fd3bc0e80002583a286edc627b8ff400febe5fa6b8f248",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-snapshot-expired",
+      "description": "D15-C11 control_b retains gamma-snapshot-expired from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 7,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "snapshot_expired"
+      ],
+      "expected_state": "expired",
+      "family": "workspace_gamma_frontier",
+      "operation": "signed_snapshot",
+      "operation_id": "D15-C11",
+      "payload": {
+        "audience": [
+          "review-group"
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+        "expires_at": "2000-01-01T00:00:00+00:00",
+        "key_id": "public-fixture-key",
+        "now": "2026-08-22T12:00:00+00:00",
+        "signing_secret": "gamma-fixture-secret",
+        "snapshot_id": "snapshot-gamma-01",
+        "snapshot_payload": {
+          "rows": [
+            "aggregate-1",
+            "aggregate-2"
+          ],
+          "workspace_id": "public-workspace-1"
+        },
+        "snapshot_type": "review_projection",
+        "verify_secret": "gamma-fixture-secret"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C11-CONTROL-C-001",
+      "content_address": "sha256:9a8d022505d78a3e384a08249de1231b75b4f3f385dc3ceea6d30a2cbc6ef5f7",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-snapshot-foreign",
+      "description": "D15-C11 control_c retains gamma-snapshot-foreign from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 10,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "snapshot_context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "workspace_gamma_frontier",
+      "operation": "signed_snapshot",
+      "operation_id": "D15-C11",
+      "payload": {
+        "audience": [
+          "review-group"
+        ],
+        "context_key": "GRCh38|glioma|adult|differentiated|core|untreated",
+        "expires_at": null,
+        "key_id": "public-fixture-key",
+        "now": "2026-08-22T12:00:00+00:00",
+        "signing_secret": "gamma-fixture-secret",
+        "snapshot_id": "snapshot-gamma-01",
+        "snapshot_payload": {
+          "rows": [
+            "aggregate-1",
+            "aggregate-2"
+          ],
+          "workspace_id": "public-workspace-1"
+        },
+        "snapshot_type": "review_projection",
+        "verify_secret": "gamma-fixture-secret"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C12-POSITIVE-001",
+      "content_address": "sha256:844650c4b7b127272cb98fa4ad777b32ae43498bb071adc13f5f9a39fec1d47c",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-collab-positive",
+      "description": "D15-C12 positive retains gamma-collab-positive from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [],
+      "expected_state": "allowed",
+      "family": "workspace_gamma_frontier",
+      "operation": "role_collaboration",
+      "operation_id": "D15-C12",
+      "payload": {
+        "members": [
+          {
+            "active": true,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate reviewer",
+            "member_id": "reviewer-gamma",
+            "role": "reviewer",
+            "source_id": "workspace-public"
+          },
+          {
+            "active": true,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate viewer",
+            "member_id": "viewer-gamma",
+            "role": "viewer",
+            "source_id": "workspace-public"
+          }
+        ],
+        "requests": [
+          {
+            "action": "approve",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "member_id": "reviewer-gamma",
+            "reason": "review aggregate projection",
+            "request_id": "access-gamma-01",
+            "target_id": "snapshot-gamma-01"
+          }
+        ],
+        "workspace_id": "public-workspace-1"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C12-CONTROL-A-001",
+      "content_address": "sha256:89a1589b00b9bcd3889dd464e08fa986d585dc3643332f0554741c56298e6682",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-collab-foreign",
+      "description": "D15-C12 control_a retains gamma-collab-foreign from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "out_of_domain",
+      "family": "workspace_gamma_frontier",
+      "operation": "role_collaboration",
+      "operation_id": "D15-C12",
+      "payload": {
+        "members": [
+          {
+            "active": true,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate reviewer",
+            "member_id": "reviewer-gamma",
+            "role": "reviewer",
+            "source_id": "workspace-public"
+          },
+          {
+            "active": true,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate viewer",
+            "member_id": "viewer-gamma",
+            "role": "viewer",
+            "source_id": "workspace-public"
+          }
+        ],
+        "requests": [
+          {
+            "action": "approve",
+            "context_key": "GRCh38|glioma|adult|differentiated|core|untreated",
+            "member_id": "reviewer-gamma",
+            "reason": "review aggregate projection",
+            "request_id": "access-gamma-01",
+            "target_id": "snapshot-gamma-01"
+          }
+        ],
+        "workspace_id": "public-workspace-1"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C12-CONTROL-B-001",
+      "content_address": "sha256:47c241fe7df46b380595e14a4839c8f563090eba459cf5a9070f9e409c8f153a",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-collab-inactive",
+      "description": "D15-C12 control_b retains gamma-collab-inactive from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "inactive_member"
+      ],
+      "expected_state": "denied",
+      "family": "workspace_gamma_frontier",
+      "operation": "role_collaboration",
+      "operation_id": "D15-C12",
+      "payload": {
+        "members": [
+          {
+            "active": false,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate reviewer",
+            "member_id": "reviewer-gamma",
+            "role": "reviewer",
+            "source_id": "workspace-public"
+          },
+          {
+            "active": true,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate viewer",
+            "member_id": "viewer-gamma",
+            "role": "viewer",
+            "source_id": "workspace-public"
+          }
+        ],
+        "requests": [
+          {
+            "action": "approve",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "member_id": "reviewer-gamma",
+            "reason": "review aggregate projection",
+            "request_id": "access-gamma-01",
+            "target_id": "snapshot-gamma-01"
+          }
+        ],
+        "workspace_id": "public-workspace-1"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C12-CONTROL-C-001",
+      "content_address": "sha256:62e4afb9895f512122ab68d460bc9408ebcbd4b8803e4a36e09de0574e96f591",
+      "delegate_class": "GammaFrontierRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_record_id": "gamma-collab-unknown",
+      "description": "D15-C12 control_c retains gamma-collab-unknown from workspace_gamma_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 3,
+        "source_count": 1
+      },
+      "expected_issue_codes": [
+        "unknown_member"
+      ],
+      "expected_state": "denied",
+      "family": "workspace_gamma_frontier",
+      "operation": "role_collaboration",
+      "operation_id": "D15-C12",
+      "payload": {
+        "members": [
+          {
+            "active": true,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate reviewer",
+            "member_id": "reviewer-gamma",
+            "role": "reviewer",
+            "source_id": "workspace-public"
+          },
+          {
+            "active": true,
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "display_label": "Aggregate viewer",
+            "member_id": "viewer-gamma",
+            "role": "viewer",
+            "source_id": "workspace-public"
+          }
+        ],
+        "requests": [
+          {
+            "action": "approve",
+            "context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+            "member_id": "missing-member",
+            "reason": "review aggregate projection",
+            "request_id": "access-gamma-01",
+            "target_id": "snapshot-gamma-01"
+          }
+        ],
+        "workspace_id": "public-workspace-1"
+      },
+      "plane": "workspace_collaboration",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C13-POSITIVE-001",
+      "content_address": "sha256:ee2815dfa8ceb5a5f27bc0994b7345909670b4bf26cbc01b05e767ab8691b77c",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C13-POS-001",
+      "description": "D15-C13 positive retains D15-C13-POS-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "reviewed",
+      "family": "workbench_release_frontier",
+      "operation": "structured_review",
+      "operation_id": "D15-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "form_id": "review-form-001",
+        "response": {
+          "decision": "accept",
+          "rationale": "aggregate receipt reviewed"
+        },
+        "reviewer_id": "reviewer-a",
+        "schema": [
+          {
+            "choices": [
+              "accept",
+              "review"
+            ],
+            "field_id": "decision",
+            "label": "Decision",
+            "required": true
+          },
+          {
+            "field_id": "rationale",
+            "label": "Rationale",
+            "required": true
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C13-CONTROL-A-001",
+      "content_address": "sha256:2af050829d87f888af74b8af207dad3204f0c78b368ac93a758a38ed5e6a5704",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C13-CTRL-001",
+      "description": "D15-C13 control_a retains D15-C13-CTRL-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "required_field_missing"
+      ],
+      "expected_state": "review",
+      "family": "workbench_release_frontier",
+      "operation": "structured_review",
+      "operation_id": "D15-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "form_id": "review-form-001",
+        "response": {
+          "decision": "accept"
+        },
+        "reviewer_id": "reviewer-a",
+        "schema": [
+          {
+            "choices": [
+              "accept",
+              "review"
+            ],
+            "field_id": "decision",
+            "label": "Decision",
+            "required": true
+          },
+          {
+            "field_id": "rationale",
+            "label": "Rationale",
+            "required": true
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C13-CONTROL-B-001",
+      "content_address": "sha256:acf3b9a0f53b58d01b4d3e8db419f82221b873a30155b9c25692133543e63544",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C13-CTRL-002",
+      "description": "D15-C13 control_b retains D15-C13-CTRL-002 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "value_not_in_declared_choices"
+      ],
+      "expected_state": "review",
+      "family": "workbench_release_frontier",
+      "operation": "structured_review",
+      "operation_id": "D15-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "form_id": "review-form-001",
+        "response": {
+          "decision": "publish",
+          "rationale": "not in choices"
+        },
+        "reviewer_id": "reviewer-a",
+        "schema": [
+          {
+            "choices": [
+              "accept",
+              "review"
+            ],
+            "field_id": "decision",
+            "label": "Decision",
+            "required": true
+          },
+          {
+            "field_id": "rationale",
+            "label": "Rationale",
+            "required": true
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C13-CONTROL-C-001",
+      "content_address": "sha256:17de4f6050270f224977d90505286f22c9830dcb49b95e74c27919d1c3b3bee3",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C13-CTRL-003",
+      "description": "D15-C13 control_c retains D15-C13-CTRL-003 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 8,
+        "payload_field_count": 5,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "workbench_release_frontier",
+      "operation": "structured_review",
+      "operation_id": "D15-C13",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "form_id": "review-form-001",
+        "response": {
+          "decision": "accept",
+          "rationale": "aggregate receipt reviewed"
+        },
+        "reviewer_id": "reviewer-a",
+        "schema": [
+          {
+            "choices": [
+              "accept",
+              "review"
+            ],
+            "field_id": "decision",
+            "label": "Decision",
+            "required": true
+          },
+          {
+            "field_id": "rationale",
+            "label": "Rationale",
+            "required": true
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C14-POSITIVE-001",
+      "content_address": "sha256:6b02a9a13a3f0d1a91e1373d19251cdad72450c9a16d39b0fd646ffb0e500a67",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C14-POS-001",
+      "description": "D15-C14 positive retains D15-C14-POS-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 5,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "exported",
+      "family": "workbench_release_frontier",
+      "operation": "report_export",
+      "operation_id": "D15-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "format": "markdown",
+        "report_id": "report-001",
+        "sections": [
+          {
+            "content": {
+              "scope": "aggregate"
+            },
+            "order": 2,
+            "section_id": "summary",
+            "title": "Summary"
+          },
+          {
+            "content": {
+              "source_count": 5
+            },
+            "order": 1,
+            "section_id": "evidence",
+            "title": "Evidence"
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C14-CONTROL-A-001",
+      "content_address": "sha256:1ec165ddc55699730c0c4384af189488e959d3ff100ca6e59f7c00aa8ac13373",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C14-CTRL-001",
+      "description": "D15-C14 control_a retains D15-C14-CTRL-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "sections_missing"
+      ],
+      "expected_state": "review",
+      "family": "workbench_release_frontier",
+      "operation": "report_export",
+      "operation_id": "D15-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "format": "markdown",
+        "report_id": "report-001",
+        "sections": []
+      },
+      "plane": "workbench_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C14-CONTROL-B-001",
+      "content_address": "sha256:d52a3062d6870032acf19ffbfda6ff1f01fe1eb5c516963cf1940cea02a9e213",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C14-CTRL-002",
+      "description": "D15-C14 control_b retains D15-C14-CTRL-002 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "duplicate_section_id"
+      ],
+      "expected_state": "review",
+      "family": "workbench_release_frontier",
+      "operation": "report_export",
+      "operation_id": "D15-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "format": "markdown",
+        "report_id": "report-001",
+        "sections": [
+          {
+            "content": {
+              "scope": "aggregate"
+            },
+            "order": 2,
+            "section_id": "summary",
+            "title": "Summary"
+          },
+          {
+            "content": {
+              "source_count": 5
+            },
+            "order": 1,
+            "section_id": "summary",
+            "title": "Evidence"
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C14-CONTROL-C-001",
+      "content_address": "sha256:7adf76024b012accb9e476e0654923485a12cc491657e3c60b39405c28ef4808",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C14-CTRL-003",
+      "description": "D15-C14 control_c retains D15-C14-CTRL-003 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "workbench_release_frontier",
+      "operation": "report_export",
+      "operation_id": "D15-C14",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "format": "markdown",
+        "report_id": "report-001",
+        "sections": [
+          {
+            "content": {
+              "scope": "aggregate"
+            },
+            "order": 2,
+            "section_id": "summary",
+            "title": "Summary"
+          },
+          {
+            "content": {
+              "source_count": 5
+            },
+            "order": 1,
+            "section_id": "evidence",
+            "title": "Evidence"
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:pubmed"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C15-POSITIVE-001",
+      "content_address": "sha256:41f567d4f2b2c554ef9868f86701f9e353b3521e21c9f4a677187202d4717f45",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C15-POS-001",
+      "description": "D15-C15 positive retains D15-C15-POS-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 5,
+        "payload_field_count": 5,
+        "source_count": 3
+      },
+      "expected_issue_codes": [],
+      "expected_state": "searched",
+      "family": "workbench_release_frontier",
+      "operation": "search_palette",
+      "operation_id": "D15-C15",
+      "payload": {
+        "commands": [
+          "open-claim",
+          "publish-report"
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "maximum_results": 10,
+        "query": "EGFR",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-egfr",
+            "record_type": "claim",
+            "source": "europepmc",
+            "title": "EGFR regulatory evidence"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-idh",
+            "record_type": "claim",
+            "source": "gdc",
+            "title": "IDH context"
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:ga4gh",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C15-CONTROL-A-001",
+      "content_address": "sha256:42c4358908e61cf8cda18b21fcffdc2d9d84ee84950e919cf28f0d754e3f9e0d",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C15-CTRL-001",
+      "description": "D15-C15 control_a retains D15-C15-CTRL-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 5,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "no_matches"
+      ],
+      "expected_state": "review",
+      "family": "workbench_release_frontier",
+      "operation": "search_palette",
+      "operation_id": "D15-C15",
+      "payload": {
+        "commands": [
+          "open-claim",
+          "publish-report"
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "maximum_results": 10,
+        "query": "not-present",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-egfr",
+            "record_type": "claim",
+            "source": "europepmc",
+            "title": "EGFR regulatory evidence"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-idh",
+            "record_type": "claim",
+            "source": "gdc",
+            "title": "IDH context"
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:ga4gh",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C15-CONTROL-B-001",
+      "content_address": "sha256:96888b9705d73d7e2c6fd854917b3ab6d736e36a4e8606efef1fdf031c7a2190",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C15-CTRL-002",
+      "description": "D15-C15 control_b retains D15-C15-CTRL-002 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 5,
+        "payload_field_count": 5,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "workbench_release_frontier",
+      "operation": "search_palette",
+      "operation_id": "D15-C15",
+      "payload": {
+        "commands": [
+          "open-claim",
+          "publish-report"
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "maximum_results": 10,
+        "query": "EGFR",
+        "records": [
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-egfr",
+            "record_type": "claim",
+            "source": "europepmc",
+            "title": "EGFR regulatory evidence"
+          },
+          {
+            "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+            "record_id": "claim-idh",
+            "record_type": "claim",
+            "source": "gdc",
+            "title": "IDH context"
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:ga4gh",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C15-CONTROL-C-001",
+      "content_address": "sha256:b324a56f2ba475467a4cdd8f918ed20144b522d5d05e36dede5f995b0a6d574e",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C15-CTRL-003",
+      "description": "D15-C15 control_c retains D15-C15-CTRL-003 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 1,
+        "payload_field_count": 5,
+        "source_count": 3
+      },
+      "expected_issue_codes": [
+        "invalid_payload"
+      ],
+      "expected_state": "rejected",
+      "family": "workbench_release_frontier",
+      "operation": "search_palette",
+      "operation_id": "D15-C15",
+      "payload": {
+        "commands": [
+          "open-claim",
+          "publish-report"
+        ],
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "maximum_results": 10,
+        "query": "EGFR",
+        "records": [
+          {
+            "title": "missing record id"
+          }
+        ]
+      },
+      "plane": "workbench_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:ga4gh",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C16-POSITIVE-001",
+      "content_address": "sha256:6841c31404752c88f4020ae3365f8a75ec0ac82fb9820181862536be4228b3f1",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C16-POS-001",
+      "description": "D15-C16 positive retains D15-C16-POS-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 0,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [],
+      "expected_state": "passed",
+      "family": "workbench_release_frontier",
+      "operation": "accessibility_human_factors",
+      "operation_id": "D15-C16",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_criteria": [
+          "keyboard",
+          "label",
+          "focus_order",
+          "contrast",
+          "motion",
+          "reading_order"
+        ],
+        "surface": {
+          "contrast": true,
+          "focus_order": true,
+          "keyboard": true,
+          "label": true,
+          "motion": true,
+          "reading_order": true
+        },
+        "surface_id": "review-panel"
+      },
+      "plane": "workbench_release",
+      "scenario": "positive",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C16-CONTROL-A-001",
+      "content_address": "sha256:1bb471d54f22cc78f0953ed069a814e72fe0391feabc4b31f988fe9a2e6ee8cd",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C16-CTRL-001",
+      "description": "D15-C16 control_a retains D15-C16-CTRL-001 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "criterion_failed"
+      ],
+      "expected_state": "review",
+      "family": "workbench_release_frontier",
+      "operation": "accessibility_human_factors",
+      "operation_id": "D15-C16",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_criteria": [
+          "keyboard",
+          "label",
+          "focus_order",
+          "contrast",
+          "motion",
+          "reading_order"
+        ],
+        "surface": {
+          "contrast": false,
+          "focus_order": true,
+          "keyboard": true,
+          "label": true,
+          "motion": true,
+          "reading_order": true
+        },
+        "surface_id": "review-panel"
+      },
+      "plane": "workbench_release",
+      "scenario": "control_a",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C16-CONTROL-B-001",
+      "content_address": "sha256:25d1b6c0bc3cb5417e7a8a55cae627eb4491f9721f1faa0d588539530f2b295f",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C16-CTRL-002",
+      "description": "D15-C16 control_b retains D15-C16-CTRL-002 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "context_mismatch"
+      ],
+      "expected_state": "blocked",
+      "family": "workbench_release_frontier",
+      "operation": "accessibility_human_factors",
+      "operation_id": "D15-C16",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_margin|post_treatment",
+        "required_criteria": [
+          "keyboard",
+          "label",
+          "focus_order",
+          "contrast",
+          "motion",
+          "reading_order"
+        ],
+        "surface": {
+          "contrast": true,
+          "focus_order": true,
+          "keyboard": true,
+          "label": true,
+          "motion": true,
+          "reading_order": true
+        },
+        "surface_id": "review-panel"
+      },
+      "plane": "workbench_release",
+      "scenario": "control_b",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:ga4gh"
+      ]
+    },
+    {
+      "aggregate_context_key": "multi_context_public_aggregate",
+      "case_id": "D15-C16-CONTROL-C-001",
+      "content_address": "sha256:14d02a19c2d3b1368048eb4d58e695c340dc08caf9f0b55fca724098831bb0b6",
+      "delegate_class": "WorkbenchReleaseRecord",
+      "delegate_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_record_id": "D15-C16-CTRL-003",
+      "description": "D15-C16 control_c retains D15-C16-CTRL-003 from workbench_release_frontier",
+      "expected_counts": {
+        "issue_count": 1,
+        "output_field_count": 6,
+        "payload_field_count": 4,
+        "source_count": 2
+      },
+      "expected_issue_codes": [
+        "criterion_failed"
+      ],
+      "expected_state": "review",
+      "family": "workbench_release_frontier",
+      "operation": "accessibility_human_factors",
+      "operation_id": "D15-C16",
+      "payload": {
+        "context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+        "required_criteria": [
+          "keyboard",
+          "label",
+          "focus_order",
+          "contrast",
+          "motion",
+          "reading_order"
+        ],
+        "surface": {
+          "keyboard": true
+        },
+        "surface_id": "review-panel"
+      },
+      "plane": "workbench_release",
+      "scenario": "control_c",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:ga4gh"
+      ]
+    }
+  ],
+  "content_address": "sha256:f68fc7869df73ba5f251ef2bd170b0c5ca828a1f7e6e92ab86b775e78d6ad601",
+  "context_key": "multi_context_public_aggregate",
+  "family_contexts": {
+    "workbench_release_frontier": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+    "workspace_beta_frontier": "GRCh38|glioma|adult|stem_like|core|untreated",
+    "workspace_frontier": "GRCh38|glioma|adult|stem_like|core|untreated",
+    "workspace_gamma_frontier": "GRCh38|glioma|adult|stem_like|core|untreated"
+  },
+  "fixture_id": "workbench-architecture-public-aggregate-001",
+  "foreign_context_key": "foreign_context_control",
+  "operations": [
+    {
+      "capability_id": "D15-C01",
+      "content_address": "sha256:12c76d052b3b47bf5d5ff0807edcce6836948b456061a6c9dd87ab992db787fd",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "case_workspace",
+      "dependencies": [],
+      "family": "workspace_frontier",
+      "input_contract": "case manifest and dossier fields",
+      "operation": "case_workspace",
+      "operation_id": "D15-C01",
+      "ordinal": 1,
+      "output_contract": "case workspace view",
+      "plane": "workspace_foundation",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "capability_id": "D15-C02",
+      "content_address": "sha256:978e44460869d8aa8685dceb5672f12c7aab0a770a4fb0831d702fffed78880c",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "cohort_workspace",
+      "dependencies": [
+        "D15-C01"
+      ],
+      "family": "workspace_frontier",
+      "input_contract": "cohort query and record fields",
+      "operation": "cohort_workspace",
+      "operation_id": "D15-C02",
+      "ordinal": 2,
+      "output_contract": "cohort workspace view",
+      "plane": "workspace_foundation",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "capability_id": "D15-C03",
+      "content_address": "sha256:36c3dad551a78f8496e8b055da69612cef45fe045a76374769bd6028756eb52f",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "variant_explorer",
+      "dependencies": [
+        "D15-C01"
+      ],
+      "family": "workspace_frontier",
+      "input_contract": "variant identity and workspace fields",
+      "operation": "variant_explorer",
+      "operation_id": "D15-C03",
+      "ordinal": 3,
+      "output_contract": "variant explorer view",
+      "plane": "workspace_foundation",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "capability_id": "D15-C04",
+      "content_address": "sha256:48a3c09743ce379fd9b3293e3a7718e75ba5e726cfa6ac5f750ee82c9d837d3d",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "regulatory_track_browser",
+      "dependencies": [
+        "D15-C01"
+      ],
+      "family": "workspace_frontier",
+      "input_contract": "track records and intervals",
+      "operation": "regulatory_track_browser",
+      "operation_id": "D15-C04",
+      "ordinal": 4,
+      "output_contract": "regulatory track view",
+      "plane": "workspace_foundation",
+      "source_ids": [
+        "D15-workspace_frontier:case-manifest",
+        "D15-workspace_frontier:workbench"
+      ]
+    },
+    {
+      "capability_id": "D15-C05",
+      "content_address": "sha256:5732f642bceb60a29824c6cfcd2c456d4829c7603b4bfbb538fb5ccb58de16cb",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "topology_viewport",
+      "dependencies": [
+        "D15-C03"
+      ],
+      "family": "workspace_beta_frontier",
+      "input_contract": "topology observations and focus",
+      "operation": "topology_viewer",
+      "operation_id": "D15-C05",
+      "ordinal": 5,
+      "output_contract": "topology viewport",
+      "plane": "workspace_beta",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C06",
+      "content_address": "sha256:253aefe97ec762a3cc1756898dab03d591f53563221417694eb9930451ffac0b",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "causal_chain",
+      "dependencies": [
+        "D15-C05"
+      ],
+      "family": "workspace_beta_frontier",
+      "input_contract": "mediator and chain records",
+      "operation": "causal_chain_explorer",
+      "operation_id": "D15-C06",
+      "ordinal": 6,
+      "output_contract": "causal chain view",
+      "plane": "workspace_beta",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C07",
+      "content_address": "sha256:0bbc59dcfc960eb3e4ed8780042956c5d3d960fbef28e09f0c6334d41ff08b84",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "posterior_decomposition",
+      "dependencies": [
+        "D15-C06"
+      ],
+      "family": "workspace_beta_frontier",
+      "input_contract": "component and support records",
+      "operation": "posterior_decomposition",
+      "operation_id": "D15-C07",
+      "ordinal": 7,
+      "output_contract": "posterior decomposition",
+      "plane": "workspace_beta",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C08",
+      "content_address": "sha256:a0533c6d88a7a8bc7ebdd45074e832edc6a2101216a1704f44e0295717f0557d",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "evidence_table",
+      "dependencies": [
+        "D15-C07"
+      ],
+      "family": "workspace_beta_frontier",
+      "input_contract": "evidence rows and filters",
+      "operation": "evidence_table",
+      "operation_id": "D15-C08",
+      "ordinal": 8,
+      "output_contract": "evidence table view",
+      "plane": "workspace_beta",
+      "source_ids": [
+        "D15-workspace_beta_frontier:sequence-public",
+        "D15-workspace_beta_frontier:workbench-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C09",
+      "content_address": "sha256:e688e5da1fa4ff019ae1c19748429106ceaae0fe37c350296f5e1e44d6cc984c",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "experiment_board",
+      "dependencies": [
+        "D15-C08"
+      ],
+      "family": "workspace_gamma_frontier",
+      "input_contract": "experiment cards and dependencies",
+      "operation": "validation_experiment_board",
+      "operation_id": "D15-C09",
+      "ordinal": 9,
+      "output_contract": "validation experiment board",
+      "plane": "workspace_collaboration",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C10",
+      "content_address": "sha256:b86a93407fd0bc470e58a72ea891482f54c5c83a376564144dc578fb72ded25d",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "launch_plan",
+      "dependencies": [
+        "D15-C09"
+      ],
+      "family": "workspace_gamma_frontier",
+      "input_contract": "launch request and resource profile",
+      "operation": "notebook_sdk_launcher",
+      "operation_id": "D15-C10",
+      "ordinal": 10,
+      "output_contract": "notebook SDK launch plan",
+      "plane": "workspace_collaboration",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C11",
+      "content_address": "sha256:5f19b5425fdb83a252b5a1e8ec0557d5b75e092bfc87156869acdb8e06644339",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "shareable_snapshot",
+      "dependencies": [
+        "D15-C10"
+      ],
+      "family": "workspace_gamma_frontier",
+      "input_contract": "signed snapshot and expiry",
+      "operation": "signed_snapshot",
+      "operation_id": "D15-C11",
+      "ordinal": 11,
+      "output_contract": "shareable snapshot",
+      "plane": "workspace_collaboration",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C12",
+      "content_address": "sha256:a07571673d0f05571fd098dcf4e35c93b266fd80893a893095e7dcd3b3293b8c",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "collaboration_access",
+      "dependencies": [
+        "D15-C11"
+      ],
+      "family": "workspace_gamma_frontier",
+      "input_contract": "member, role, and workspace policy",
+      "operation": "role_collaboration",
+      "operation_id": "D15-C12",
+      "ordinal": 12,
+      "output_contract": "collaboration access report",
+      "plane": "workspace_collaboration",
+      "source_ids": [
+        "D15-workspace_gamma_frontier:workspace-public"
+      ]
+    },
+    {
+      "capability_id": "D15-C13",
+      "content_address": "sha256:c0ff407e30f59ca7c309b082cb4cd457162ea3573a14af1c1babfcca770a3d6a",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "review_form",
+      "dependencies": [
+        "D15-C12"
+      ],
+      "family": "workbench_release_frontier",
+      "input_contract": "review field declarations",
+      "operation": "structured_review",
+      "operation_id": "D15-C13",
+      "ordinal": 13,
+      "output_contract": "structured review projection",
+      "plane": "workbench_release",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "capability_id": "D15-C14",
+      "content_address": "sha256:f238058d6f0608e81ea82c722e7c5fc48bbf9c047439c445eea39f334fdf8cb9",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "report_export",
+      "dependencies": [
+        "D15-C13"
+      ],
+      "family": "workbench_release_frontier",
+      "input_contract": "report sections and formats",
+      "operation": "report_export",
+      "operation_id": "D15-C14",
+      "ordinal": 14,
+      "output_contract": "report export artifact",
+      "plane": "workbench_release",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:pubmed"
+      ]
+    },
+    {
+      "capability_id": "D15-C15",
+      "content_address": "sha256:ff3ffe432cc5bffc94ef91a4f4760c2e793567016d21f4249bd59300649723ea",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "search_palette",
+      "dependencies": [
+        "D15-C14"
+      ],
+      "family": "workbench_release_frontier",
+      "input_contract": "search query and records",
+      "operation": "search_palette",
+      "operation_id": "D15-C15",
+      "ordinal": 15,
+      "output_contract": "search result view",
+      "plane": "workbench_release",
+      "source_ids": [
+        "D15-workbench_release_frontier:europepmc",
+        "D15-workbench_release_frontier:ga4gh",
+        "D15-workbench_release_frontier:gdc"
+      ]
+    },
+    {
+      "capability_id": "D15-C16",
+      "content_address": "sha256:88eb5514036cd746af84a6dae4420d9252a66d5b0561197e48bdd1ab35fc274f",
+      "control_policy": "retain positive and control states; require explicit context mismatch evidence",
+      "delegate_operation": "accessibility",
+      "dependencies": [
+        "D15-C15"
+      ],
+      "family": "workbench_release_frontier",
+      "input_contract": "declared interface criteria",
+      "operation": "accessibility_human_factors",
+      "operation_id": "D15-C16",
+      "ordinal": 16,
+      "output_contract": "accessibility assessment",
+      "plane": "workbench_release",
+      "source_ids": [
+        "D15-workbench_release_frontier:encode",
+        "D15-workbench_release_frontier:ga4gh"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "content_address": "sha256:02e47858894ddf656ac9d249f66a52dda5110bffea58f78682c4fadf6d1932d1",
+      "delegate_content_address": "sha256:bfaec11e2654f2a67b1d9c20bb1af414b7300970b66d1d45900499dce9a57ef7",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_source_id": "case-manifest",
+      "family": "workspace_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_frontier:case-manifest",
+      "source_kind": "WorkspaceFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c01-c04.v1",
+      "uri": "https://www.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:a96c3fee97cc8125dc88ae1999c1e8291b4f52abbebfecadf27b6dede7cd5086",
+      "delegate_content_address": "sha256:b585a2b8beda6d1e696d1e74609c93e3e1afc88bb9c811439f5cab02b4d681fd",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_source_id": "cohort-public",
+      "family": "workspace_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_frontier:cohort-public",
+      "source_kind": "WorkspaceFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c01-c04.v1",
+      "uri": "https://www.ebi.ac.uk/"
+    },
+    {
+      "content_address": "sha256:345888c04790f594e4fbfaff3d15103ad0ed8e23b0c11ebc54a125d01cf1f235",
+      "delegate_content_address": "sha256:3f3d1ab42af2f5d14c789d3c1ed8daa0b4603442b4cbc0465131647fe55ba08f",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_source_id": "track-public",
+      "family": "workspace_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_frontier:track-public",
+      "source_kind": "WorkspaceFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c01-c04.v1",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:813e184e466d2b82ac76c9dee57ce36d6c55da1ab649e7621999ba316d48b942",
+      "delegate_content_address": "sha256:085db64d367e750b063ebedfa69dcf6af8d9eb50fa7d718fb521d93c0ce0dc35",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_source_id": "workbench",
+      "family": "workspace_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_frontier:workbench",
+      "source_kind": "WorkspaceFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c01-c04.v1",
+      "uri": "https://www.ga4gh.org/"
+    },
+    {
+      "content_address": "sha256:524c246209a21bf575e24cc042ec1a33e3db6892ffe9709fcb0f7fbc21b535d4",
+      "delegate_content_address": "sha256:ee4f4baa129a1b017faa9b85e215cd3fb452b657666440d05ed32a07ea9dc4ba",
+      "delegate_fixture_id": "workspace-frontier-public-aggregate",
+      "delegate_source_id": "accessibility",
+      "family": "workspace_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_frontier:accessibility",
+      "source_kind": "WorkspaceFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c01-c04.v1",
+      "uri": "https://www.w3.org/WAI/"
+    },
+    {
+      "content_address": "sha256:21ee1fe63d35fae725937d394a7073a6ec4eeacff3a482289a3d0a75a9ad8964",
+      "delegate_content_address": "sha256:b19dd0521d5fdc58d769bbf655690e376167eb599f12af335ddc30e6e984679a",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_source_id": "sequence-public",
+      "family": "workspace_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_beta_frontier:sequence-public",
+      "source_kind": "BetaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c05-c08.v1",
+      "uri": "https://example.org/sequence"
+    },
+    {
+      "content_address": "sha256:708f5b6c4b8b6740dabe4ea3c5f160e15439dcf57d64d47ec329cc16316ab734",
+      "delegate_content_address": "sha256:8773bd0f8e91c341194d23bb6589786d083176625085dcd5bdd19bf96e148fe4",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_source_id": "hic-public",
+      "family": "workspace_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_beta_frontier:hic-public",
+      "source_kind": "BetaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c05-c08.v1",
+      "uri": "https://example.org/loops"
+    },
+    {
+      "content_address": "sha256:ea34372a54eb5ebeb3422713a64f788d7259931e5f594807088f0b2af4cabbb5",
+      "delegate_content_address": "sha256:358103ed0cee3e8740f87faf4c56838808d0b9bc97dee78bb6fc6066395389a6",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_source_id": "capture-public",
+      "family": "workspace_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_beta_frontier:capture-public",
+      "source_kind": "BetaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c05-c08.v1",
+      "uri": "https://example.org/capture"
+    },
+    {
+      "content_address": "sha256:24e92664020b5fba1802e4c34e81c894798bec68e1eec4a4ea2b00027acafa77",
+      "delegate_content_address": "sha256:f5a31bacd271b33c46aaabb91fd93fe6ee3d816986725217990064b7247e57dc",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_source_id": "causal-public",
+      "family": "workspace_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_beta_frontier:causal-public",
+      "source_kind": "BetaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c05-c08.v1",
+      "uri": "https://example.org/mediators"
+    },
+    {
+      "content_address": "sha256:90765cf5c5926346c4f7cf1907b8faa96b041f4a8df053c0b707ccf09686bd48",
+      "delegate_content_address": "sha256:d6cd2ae35aa42f24ba3ebbfd2ad3d4a9a20291a2e4c800edc7fb2d7072f023ba",
+      "delegate_fixture_id": "workspace-beta-frontier-public",
+      "delegate_source_id": "workbench-public",
+      "family": "workspace_beta_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_beta_frontier:workbench-public",
+      "source_kind": "BetaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c05-c08.v1",
+      "uri": "https://example.org/workbench"
+    },
+    {
+      "content_address": "sha256:8069ac7b62cd9392e75418a241ad3bb3a4aa3818a41ac955e5a30f4adf045e76",
+      "delegate_content_address": "sha256:47f38143e28eacfa6222c1eb8d60de64805215a3321984137b0ea039c683765d",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_source_id": "workspace-public",
+      "family": "workspace_gamma_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_gamma_frontier:workspace-public",
+      "source_kind": "GammaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c09-c12.v1",
+      "uri": "https://example.org/glio/workspace"
+    },
+    {
+      "content_address": "sha256:68e8bbdc106e32d3da98d8f841ccc512037a468513a61acc330096469465615d",
+      "delegate_content_address": "sha256:b63b1decdeebfddd83e7cd5935cfada19ec301694b29fdacc1fe98391effcaa7",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_source_id": "planning-public",
+      "family": "workspace_gamma_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_gamma_frontier:planning-public",
+      "source_kind": "GammaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c09-c12.v1",
+      "uri": "https://example.org/glio/planning"
+    },
+    {
+      "content_address": "sha256:0199b8b342fdaafad2e4625c68001a68516c607b3acc315a2ce919eaca84d99e",
+      "delegate_content_address": "sha256:1fddd3bc058a156d00aa262dbabb5a38c9b25623d2d04914bdabb7655670dac1",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_source_id": "runtime-public",
+      "family": "workspace_gamma_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_gamma_frontier:runtime-public",
+      "source_kind": "GammaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c09-c12.v1",
+      "uri": "https://example.org/glio/runtime"
+    },
+    {
+      "content_address": "sha256:ab5e7d35c8f357fec33449bdb11633334977bec1466bc94fb908415216b64d44",
+      "delegate_content_address": "sha256:3f2e27b4f44c7d63b9740ab9f65089cd6828be19a8cf1d728d1d1b807c6475c6",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_source_id": "sharing-public",
+      "family": "workspace_gamma_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_gamma_frontier:sharing-public",
+      "source_kind": "GammaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c09-c12.v1",
+      "uri": "https://example.org/glio/sharing"
+    },
+    {
+      "content_address": "sha256:755cf82c289bb9e13f224d403702707ebbadb270eeb9b150973863638189c398",
+      "delegate_content_address": "sha256:6722f75f2aa440f245f0374fa75e46b0fd458b72397b139c4745eaca1a9271b5",
+      "delegate_fixture_id": "workspace-gamma-frontier-c09-c12",
+      "delegate_source_id": "policy-public",
+      "family": "workspace_gamma_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|core|untreated",
+      "source_id": "D15-workspace_gamma_frontier:policy-public",
+      "source_kind": "GammaFrontierSourceReceipt",
+      "source_version": "2026.08.d15-c09-c12.v1",
+      "uri": "https://example.org/glio/policy"
+    },
+    {
+      "content_address": "sha256:3e00e62916a771ffaa1f059546b9481fa31c203d69738a15680753043dc62840",
+      "delegate_content_address": "sha256:9ce0523ea867bffe70d8a6fa62d0a305d6b3f714c0fefe3f26de0e529e35de7c",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_source_id": "europepmc",
+      "family": "workbench_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D15-workbench_release_frontier:europepmc",
+      "source_kind": "WorkbenchReleaseSourceReceipt",
+      "source_version": "2026.08.d15-c13-c16.v1",
+      "uri": "https://europepmc.org/"
+    },
+    {
+      "content_address": "sha256:e341f6dc19d18d0da466be32815a434ce90c43eeaf5109a8e4b2645afd2a7fd7",
+      "delegate_content_address": "sha256:b19ac5772c58cf22d69512317955e5dea7c8c8c7c7294e61f80649b5303942f4",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_source_id": "pubmed",
+      "family": "workbench_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D15-workbench_release_frontier:pubmed",
+      "source_kind": "WorkbenchReleaseSourceReceipt",
+      "source_version": "2026.08.d15-c13-c16.v1",
+      "uri": "https://pubmed.ncbi.nlm.nih.gov/"
+    },
+    {
+      "content_address": "sha256:850900f5931efc37d8df7775fb2d9ea14d32370c892468a8a1609ab31f7ac60c",
+      "delegate_content_address": "sha256:0a02cf94c53fe6cf7bb187b01f592e99ade20ec525e575106ad2e342f7b8bd2c",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_source_id": "gdc",
+      "family": "workbench_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D15-workbench_release_frontier:gdc",
+      "source_kind": "WorkbenchReleaseSourceReceipt",
+      "source_version": "2026.08.d15-c13-c16.v1",
+      "uri": "https://gdc.cancer.gov/"
+    },
+    {
+      "content_address": "sha256:627ffebd58f8d6d24a10d489696de43b51033216354c1436ee3b8257d277181c",
+      "delegate_content_address": "sha256:1e0f97ea0339ad52a92f4d0c9ae034e4245fcb6d4a628619008ade1bd29ad36b",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_source_id": "encode",
+      "family": "workbench_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D15-workbench_release_frontier:encode",
+      "source_kind": "WorkbenchReleaseSourceReceipt",
+      "source_version": "2026.08.d15-c13-c16.v1",
+      "uri": "https://www.encodeproject.org/"
+    },
+    {
+      "content_address": "sha256:23017e020419ee748178c33988baa7fadeeb3c32178a943a8a55013ac6187c52",
+      "delegate_content_address": "sha256:914059f85d251fd93c7e41c0d11b54c4b47538a3f171112155de7b6b8fdde8d7",
+      "delegate_fixture_id": "workbench-release-public-aggregate-001",
+      "delegate_source_id": "ga4gh",
+      "family": "workbench_release_frontier",
+      "public_aggregate": true,
+      "source_context_key": "GRCh38|glioma|adult|stem_like|tumor_core|pre_treatment",
+      "source_id": "D15-workbench_release_frontier:ga4gh",
+      "source_kind": "WorkbenchReleaseSourceReceipt",
+      "source_version": "2026.08.d15-c13-c16.v1",
+      "uri": "https://www.ga4gh.org/"
+    }
+  ],
+  "version": "2026.08.d15-workbench-architecture.v1"
+}

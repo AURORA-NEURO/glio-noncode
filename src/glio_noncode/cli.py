@@ -1754,6 +1754,17 @@ def _evidence_architecture_fixture(input_path: str | None):
     )
 
 
+def _workbench_architecture_fixture(input_path: str | None):
+    from .workbench_architecture_contracts import WorkbenchArchitectureFixture
+    from .workbench_architecture_public_data import default_workbench_architecture_fixture
+
+    return (
+        WorkbenchArchitectureFixture.from_file(input_path)
+        if input_path
+        else default_workbench_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -3216,6 +3227,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evidence_architecture_bundle.add_argument("--input", default=None)
     evidence_architecture_bundle.add_argument("--output", required=True)
+    workbench_architecture_fixture = subparsers.add_parser(
+        "workbench-architecture-fixture",
+        help="emit the D15 C01-C16 public aggregate workbench fixture",
+    )
+    workbench_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("workbench-architecture-data-audit", "audit D15 workbench sources, joins, contexts, and scope"),
+        ("workbench-architecture-plan", "compile the D15 workbench dependency plan"),
+        ("evaluate-workbench-architecture", "execute D15 workbench family delegates"),
+        ("workbench-architecture-runtime", "run the D15 twenty-four-stage workbench runtime"),
+        ("workbench-architecture-quality", "run the D15 workbench release quality gate"),
+        ("workbench-architecture-depth", "report D15 workbench operation and control depth"),
+        ("replay-workbench-architecture", "replay D15 workbench evaluation deterministically"),
+        ("workbench-architecture-report", "emit the D15 workbench runtime report"),
+        ("workbench-architecture-scenarios", "emit the D15 workbench scenario matrix"),
+        ("workbench-architecture-sources", "emit the D15 workbench source registry"),
+        ("workbench-architecture-compliance", "run D15 public-boundary compliance checks"),
+        ("workbench-architecture-validation", "run D15 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    workbench_architecture_query = subparsers.add_parser(
+        "workbench-architecture-query", help="query sanitized D15 workbench cases"
+    )
+    workbench_architecture_query.add_argument("--input", default=None)
+    workbench_architecture_query.add_argument("--operation", default=None)
+    workbench_architecture_query.add_argument("--family", default=None)
+    workbench_architecture_query.add_argument("--scenario", default=None)
+    workbench_architecture_query.add_argument("--output", default=None)
+    workbench_architecture_bundle = subparsers.add_parser(
+        "workbench-architecture-bundle", help="write a D15 workbench runtime bundle"
+    )
+    workbench_architecture_bundle.add_argument("--input", default=None)
+    workbench_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -10014,6 +10060,109 @@ def main(argv: list[str] | None = None) -> int:
                 str(output_dir / "report.json"),
             )
             _write_text(evidence_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "workbench-architecture-fixture":
+            from .workbench_architecture_public_data import workbench_architecture_fixture_json
+
+            _write_text(workbench_architecture_fixture_json(_workbench_architecture_fixture(None)), args.output)
+            return 0
+        if args.command == "workbench-architecture-data-audit":
+            from .workbench_architecture_public_data import audit_workbench_architecture_data
+
+            report = audit_workbench_architecture_data(_workbench_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-architecture-plan":
+            from .workbench_architecture_plan import build_workbench_architecture_plan
+
+            report = build_workbench_architecture_plan(_workbench_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-workbench-architecture":
+            from .workbench_architecture_operations import evaluate_workbench_architecture_fixture
+
+            report = evaluate_workbench_architecture_fixture(_workbench_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-architecture-runtime":
+            from .workbench_architecture_runtime import run_workbench_architecture
+
+            runtime = run_workbench_architecture(_workbench_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "workbench-architecture-quality":
+            from .workbench_architecture_runtime import run_workbench_architecture
+
+            runtime = run_workbench_architecture(_workbench_architecture_fixture(args.input))
+            _write_json(runtime.quality.to_dict(), args.output)
+            return 0 if runtime.quality.accepted else 2
+        if args.command == "workbench-architecture-depth":
+            from .workbench_architecture_runtime import run_workbench_architecture
+
+            runtime = run_workbench_architecture(_workbench_architecture_fixture(args.input))
+            _write_json(runtime.depth.to_dict(), args.output)
+            return 0 if runtime.depth.check_count == 458 else 2
+        if args.command == "replay-workbench-architecture":
+            from .workbench_architecture_replay import replay_workbench_architecture_fixture
+
+            report = replay_workbench_architecture_fixture(_workbench_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-architecture-report":
+            from .workbench_architecture_reporting import build_workbench_architecture_report
+            from .workbench_architecture_runtime import run_workbench_architecture
+
+            runtime = run_workbench_architecture(_workbench_architecture_fixture(args.input))
+            _write_json(build_workbench_architecture_report(runtime.fixture, runtime.evaluation, runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "workbench-architecture-scenarios":
+            from .workbench_architecture_query import query_workbench_architecture
+            from .workbench_architecture_runtime import run_workbench_architecture
+
+            runtime = run_workbench_architecture(_workbench_architecture_fixture(args.input))
+            result = query_workbench_architecture(fixture=runtime.fixture, evaluation=runtime.evaluation)
+            _write_json({"accepted": runtime.accepted, "rows": result}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "workbench-architecture-sources":
+            fixture = _workbench_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "workbench-architecture-compliance":
+            from .workbench_architecture_compliance import assess_workbench_architecture_compliance
+
+            report = assess_workbench_architecture_compliance(_workbench_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-architecture-validation":
+            from .workbench_architecture_operations import evaluate_workbench_architecture_fixture
+            from .workbench_architecture_schema import validate_workbench_architecture_fixture
+
+            fixture = _workbench_architecture_fixture(args.input)
+            evaluation = evaluate_workbench_architecture_fixture(fixture)
+            report = {"accepted": validate_workbench_architecture_fixture(fixture) and evaluation.accepted, "evaluation": evaluation.to_dict()}
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "workbench-architecture-query":
+            from .workbench_architecture_query import query_workbench_architecture
+            from .workbench_architecture_runtime import run_workbench_architecture
+
+            runtime = run_workbench_architecture(_workbench_architecture_fixture(args.input))
+            result = query_workbench_architecture(fixture=runtime.fixture, evaluation=runtime.evaluation, operation=args.operation, family=args.family, scenario=args.scenario)
+            _write_json({"accepted": runtime.accepted, "rows": result}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "workbench-architecture-bundle":
+            from .workbench_architecture_public_data import workbench_architecture_fixture_json
+            from .workbench_architecture_reporting import build_workbench_architecture_report
+            from .workbench_architecture_runtime import run_workbench_architecture
+
+            fixture = _workbench_architecture_fixture(args.input)
+            runtime = run_workbench_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release), "quality": jsonable(runtime.quality), "depth": jsonable(runtime.depth)}, str(output_dir / "release.json"))
+            _write_json(build_workbench_architecture_report(runtime.fixture, runtime.evaluation, runtime), str(output_dir / "report.json"))
+            _write_text(workbench_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)

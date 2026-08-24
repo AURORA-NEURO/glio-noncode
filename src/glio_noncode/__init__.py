@@ -9943,6 +9943,29 @@ __all__ += [
     or name.startswith("validate_evidence_architecture")
 ]
 
+from .workbench_architecture_exports import *  # noqa: F401,F403
+
+__all__ += [
+    name
+    for name in globals()
+    if name.startswith("WorkbenchArchitecture")
+    or name.startswith("WORKBENCH_ARCHITECTURE")
+    or name.startswith("workbench_architecture")
+    or name.startswith("assess_workbench_architecture")
+    or name.startswith("audit_workbench_architecture")
+    or name.startswith("build_workbench_architecture")
+    or name.startswith("deep_audit_workbench_architecture")
+    or name.startswith("default_workbench_architecture")
+    or name.startswith("evaluate_workbench_architecture")
+    or name.startswith("execute_workbench_architecture")
+    or name.startswith("load_workbench_architecture")
+    or name.startswith("normalize_workbench_architecture")
+    or name.startswith("query_workbench_architecture")
+    or name.startswith("replay_workbench_architecture")
+    or name.startswith("run_workbench_architecture")
+    or name.startswith("validate_workbench_architecture")
+]
+
 from .chromatin_architecture_exports import *  # noqa: F401,F403
 
 __all__ += [
