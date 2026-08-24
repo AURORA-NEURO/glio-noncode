@@ -21,6 +21,9 @@ small boundary probes and contain no subject-level identity.
 The release boundary retains source receipts, operation declarations,
 expected states, result states, bounded counts, issue codes, and content
 addresses. It does not publish raw subject-level observations.
+Every source carries an explicit public aggregate marker. Every case carries
+both its case context and delegated context so foreign-context controls remain
+visible in the persisted contract.
 
 ## Composition model
 
@@ -59,7 +62,8 @@ control from being mistaken for a scientific negative result.
 - `SpecimenArchitectureReviewQueue` for held controls;
 - `SpecimenArchitectureLedger` for hash-linked case lineage;
 - `SpecimenArchitectureArtifact` and `SpecimenArchitectureRelease` for publication;
-- `SpecimenArchitectureRuntime` for the 20-stage end-to-end run.
+- `SpecimenArchitectureRuntime` for the 24-stage end-to-end run, with depth,
+  compliance, quality, and observability closure.
 
 All meaningful objects are content addressed. Addresses are used for replay,
 artifact joins, and release rollback keys; they are not identifiers for
@@ -94,7 +98,16 @@ receipts. The release gate requires:
 - accepted 64-event ledger;
 - 112 passing validation cells;
 - closed schema, access, runbook, and replay checks;
-- six addressed release artifacts.
+- six addressed release artifacts;
+- 458 evaluation checks, six result states, and accepted public aggregate
+  compliance;
+- 24 ordered runtime stages and a 100.0% default depth score.
+
+Each case contributes seven checks: state, result, issue codes, bounded counts,
+output address, sanitized summary, and delegated context. Ten global checks
+close receipt count, identity, positive/control balance, receipt closure,
+family coverage, source joins, operation balance, foreign controls, and result
+state coverage. Thus `64 x 7 + 10 = 458`.
 
 ## Running the module
 
@@ -110,7 +123,7 @@ assert runtime.accepted
 The focused tests are:
 
 ```text
-python -m unittest tests.test_specimen_architecture tests.test_specimen_architecture_exports
+python -m unittest tests.test_specimen_architecture tests.test_specimen_architecture_exports tests.test_specimen_architecture_reporting
 ```
 
 The module is designed for offline replay. A caller may pass another fixture

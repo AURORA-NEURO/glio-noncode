@@ -1,7 +1,7 @@
 """Public exports for the composed specimen architecture module."""
 
 # This module is intentionally an import-only public surface.
-# ruff: noqa: F401
+# ruff: noqa: F401, I001
 
 from .specimen_architecture_access import (
     SpecimenArchitectureAccessPolicy,
@@ -11,14 +11,20 @@ from .specimen_architecture_bundle import (
     materialize_specimen_architecture_artifacts,
     release_specimen_architecture,
 )
+from .specimen_architecture_compliance import (
+    SpecimenArchitectureComplianceReport,
+    assess_specimen_architecture_compliance,
+)
 from .specimen_architecture_contracts import (
     SPECIMEN_ARCHITECTURE_ARTIFACT_COUNT,
     SPECIMEN_ARCHITECTURE_BOUNDARY,
     SPECIMEN_ARCHITECTURE_CASE_COUNT,
     SPECIMEN_ARCHITECTURE_CASES_PER_OPERATION,
     SPECIMEN_ARCHITECTURE_CONTEXT,
+    SPECIMEN_ARCHITECTURE_FAMILY_COUNT,
     SPECIMEN_ARCHITECTURE_FOREIGN_CONTEXT,
     SPECIMEN_ARCHITECTURE_OPERATION_COUNT,
+    SPECIMEN_ARCHITECTURE_SOURCE_COUNT,
     SPECIMEN_ARCHITECTURE_VERSION,
     SpecimenArchitectureArtifact,
     SpecimenArchitectureCase,
@@ -47,7 +53,11 @@ from .specimen_architecture_contracts import (
     SpecimenArchitectureSource,
     SpecimenArchitectureState,
 )
-from .specimen_architecture_depth import specimen_architecture_depth_report
+from .specimen_architecture_depth import (
+    SPECIMEN_ARCHITECTURE_DEPTH_TARGETS,
+    specimen_architecture_depth_percent,
+    specimen_architecture_depth_report,
+)
 from .specimen_architecture_failures import (
     SpecimenArchitectureFailure,
     SpecimenArchitectureFailureReport,
@@ -85,6 +95,13 @@ from .specimen_architecture_public_data import (
     specimen_architecture_fixture_json,
 )
 from .specimen_architecture_quality import assess_specimen_architecture_quality
+from .specimen_architecture_reporting import (
+    SpecimenArchitectureReport,
+    build_specimen_architecture_report,
+    render_specimen_architecture_markdown,
+    specimen_architecture_receipts_csv,
+    specimen_architecture_review_csv,
+)
 from .specimen_architecture_query import cases_for_operation, control_case_ids, receipts_for_state
 from .specimen_architecture_replay import (
     SpecimenArchitectureReplayReport,

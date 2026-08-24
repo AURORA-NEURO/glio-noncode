@@ -166,6 +166,31 @@ def audit_specimen_architecture_data(
                 "no direct subject identifiers",
                 "aggregate mechanics may be retained without subject-level identity",
             ),
+            _check(
+                "public-markers",
+                all(item.public_aggregate for item in value.sources),
+                sum(item.public_aggregate for item in value.sources),
+                len(value.sources),
+                "every source carries an explicit public aggregate marker",
+            ),
+            _check(
+                "delegate-contexts",
+                all(bool(item.delegate_context_key) for item in value.cases),
+                sum(bool(item.delegate_context_key) for item in value.cases),
+                len(value.cases),
+                "every case retains a delegated context key",
+            ),
+            _check(
+                "foreign-context-controls",
+                all(
+                    item.context_key != item.delegate_context_key
+                    for item in value.cases
+                    if item.scenario is SpecimenArchitectureScenario.FOREIGN_CONTEXT
+                ),
+                True,
+                True,
+                "foreign controls remain distinct from delegated context",
+            ),
         )
     )
     accepted = all(item.passed for item in checks)

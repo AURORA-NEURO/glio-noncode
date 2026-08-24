@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+from .specimen_architecture_compliance import assess_specimen_architecture_compliance
 from .specimen_architecture_contracts import (
     SpecimenArchitectureArtifact,
     SpecimenArchitectureCheck,
@@ -13,6 +16,7 @@ from .specimen_architecture_contracts import (
     SpecimenArchitectureQualityGate,
     SpecimenArchitectureRelease,
     SpecimenArchitectureReviewQueue,
+    SpecimenArchitectureScenario,
     SpecimenArchitectureState,
     addressed,
 )
@@ -27,9 +31,20 @@ def assess_specimen_architecture_quality(
     artifacts: tuple[SpecimenArchitectureArtifact, ...],
     release: SpecimenArchitectureRelease,
     stage_count: int,
+    compliance: Any | None = None,
 ) -> SpecimenArchitectureQualityGate:
     """Close publication only when every depth and integrity assertion passes."""
 
+    compliance_report = compliance or assess_specimen_architecture_compliance(fixture)
+    context_closed = all(
+        bool(item.delegate_context_key)
+        and (
+            item.scenario is not SpecimenArchitectureScenario.FOREIGN_CONTEXT
+            or item.context_key != item.delegate_context_key
+        )
+        for item in fixture.cases
+    )
+    state_count = len({item.observed_result_state for item in evaluation.receipts})
     checks = (
         _check(
             "fixture",
@@ -74,9 +89,37 @@ def assess_specimen_architecture_quality(
             6,
             "six artifacts are addressed",
         ),
-        _check("runtime", stage_count >= 20, stage_count, 20, "runtime has complete stage depth"),
+        _check("runtime", stage_count == 24, stage_count, 24, "runtime has complete stage depth"),
         _check(
             "release", release.published, release.state.value, "published", "release is publishable"
+        ),
+        _check(
+            "evaluation-check-count",
+            len(evaluation.checks) == 458,
+            len(evaluation.checks),
+            458,
+            "case and global evaluation checks are closed",
+        ),
+        _check(
+            "result-state-count",
+            state_count >= 6,
+            state_count,
+            ">=6",
+            "result states cover positive and held outcomes",
+        ),
+        _check(
+            "context-boundary",
+            context_closed,
+            context_closed,
+            True,
+            "delegated contexts and foreign controls are explicit",
+        ),
+        _check(
+            "compliance",
+            compliance_report.accepted,
+            compliance_report.accepted,
+            True,
+            "public aggregate compliance is accepted",
         ),
     )
     state = (

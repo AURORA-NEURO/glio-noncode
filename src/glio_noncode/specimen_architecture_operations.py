@@ -7,6 +7,7 @@ never reaches a scientific adapter with an invalid contract.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from .errors import ValidationError
@@ -72,6 +73,17 @@ _PREANALYTIC = {
     SpecimenArchitectureOperation.IDENTITY_ADJUDICATION,
     SpecimenArchitectureOperation.CONTEXT_ENVELOPE,
 }
+
+
+def _sanitize(value: Any) -> Any:
+    hidden = {"payload", "input_text", "raw_text", "records_text", "track_text"}
+    if isinstance(value, Mapping):
+        return {
+            str(key): _sanitize(item) for key, item in value.items() if str(key) not in hidden
+        }
+    if isinstance(value, (list, tuple)):
+        return [_sanitize(item) for item in value]
+    return value
 
 
 def evaluate_specimen_architecture_fixture(
@@ -176,6 +188,17 @@ def execute_specimen_architecture_case(
         if not issue_codes and observed_result_state not in {"invalid", "error"}
         else SpecimenArchitectureState.REVIEW
     )
+    summary = _sanitize(
+        {
+            "adapter_family": _family(case.operation),
+            "result_state": observed_result_state,
+            "counts": counts,
+            "issue_codes": issue_codes,
+            **dict(getattr(domain_execution, "summary", {})),
+        }
+    )
+    summary["context_key"] = case.context_key
+    summary["delegate_context_key"] = case.delegate_context_key
     return SpecimenArchitectureExecution(
         case_id=case.case_id,
         operation=case.operation,
@@ -185,12 +208,7 @@ def execute_specimen_architecture_case(
         issue_codes=issue_codes,
         counts=counts,
         output_address=str(domain_execution.output_address),
-        summary={
-            "adapter_family": _family(case.operation),
-            "result_state": observed_result_state,
-            "counts": counts,
-            "issue_codes": issue_codes,
-        },
+        summary=summary,
         detail=str(getattr(domain_execution, "detail", "typed adapter execution complete")),
     )
 
@@ -291,6 +309,8 @@ def _control_execution(case: SpecimenArchitectureCase) -> SpecimenArchitectureEx
         "scenario": case.scenario.value,
         "held_before_adapter": True,
         "aggregate_only": bool(case.payload.get("aggregate_only", False)),
+        "context_key": case.context_key,
+        "delegate_context_key": case.delegate_context_key,
     }
     return SpecimenArchitectureExecution(
         case_id=case.case_id,
@@ -318,7 +338,11 @@ def _failed(
         issue_codes=(issue,),
         counts={},
         output_address=content_hash({"case_id": case.case_id, "issue": issue}),
-        summary={"failure": issue},
+        summary={
+            "failure": issue,
+            "context_key": case.context_key,
+            "delegate_context_key": case.delegate_context_key,
+        },
         detail=detail,
     )
 
@@ -360,6 +384,25 @@ def _checks_for_case(
                 execution.output_address.startswith("sha256:"),
                 True,
                 "execution is content-addressed",
+            ),
+            (
+                "sanitized",
+                not any(
+                    key in execution.summary
+                    for key in ("payload", "input_text", "raw_text", "records_text")
+                ),
+                True,
+                "receipt summary excludes raw input markers",
+            ),
+            (
+                "context",
+                bool(execution.summary.get("delegate_context_key"))
+                and (
+                    case.scenario is not SpecimenArchitectureScenario.FOREIGN_CONTEXT
+                    or "context_mismatch" in execution.issue_codes
+                ),
+                True,
+                "delegated context is retained and foreign controls are explicit",
             ),
         )
     )
@@ -405,6 +448,76 @@ def _global_checks(
             all(item.passed for item in receipts),
             True,
             "all cases satisfy their typed boundary contract",
+        ),
+        _check(
+            "global-family-coverage",
+            len(
+                {
+                    next(
+                        operation.family
+                        for operation in fixture.operations
+                        if operation.operation_id == item.operation_id
+                    )
+                    for item in receipts
+                }
+            )
+            == 4,
+            len(
+                {
+                    next(
+                        operation.family
+                        for operation in fixture.operations
+                        if operation.operation_id == item.operation_id
+                    )
+                    for item in receipts
+                }
+            ),
+            4,
+            "all four specimen adapter families are represented",
+        ),
+        _check(
+            "global-source-joins",
+            all(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            sum(
+                set(item.source_ids) <= {source.source_id for source in fixture.sources}
+                for item in (*fixture.operations, *fixture.cases)
+            ),
+            80,
+            "all operation and case source joins resolve",
+        ),
+        _check(
+            "global-operation-balance",
+            all(
+                sum(item.operation_id == operation_id for item in receipts) == 4
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            sorted(
+                sum(item.operation_id == operation_id for item in receipts)
+                for operation_id in {item.operation_id for item in receipts}
+            ),
+            [4] * 16,
+            "each operation has one positive and three controls",
+        ),
+        _check(
+            "global-foreign-context",
+            all(
+                "context_mismatch" in item.observed_issue_codes
+                for item in receipts
+                if item.case_id.endswith("-control-01")
+            ),
+            True,
+            True,
+            "foreign controls retain context mismatch",
+        ),
+        _check(
+            "global-result-state-coverage",
+            len({item.observed_result_state for item in receipts}) >= 6,
+            len({item.observed_result_state for item in receipts}),
+            ">=6",
+            "result states cover positive and held outcomes",
         ),
     )
 

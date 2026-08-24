@@ -16,10 +16,23 @@ class SpecimenArchitectureSchema:
     schema_id: str
     version: str
     required_fixture_fields: tuple[str, ...]
+    required_source_fields: tuple[str, ...]
     required_case_fields: tuple[str, ...]
     required_receipt_fields: tuple[str, ...]
     checks: tuple[SpecimenArchitectureCheck, ...]
     content_address: str
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "schema_id": self.schema_id,
+            "version": self.version,
+            "required_fixture_fields": self.required_fixture_fields,
+            "required_source_fields": self.required_source_fields,
+            "required_case_fields": self.required_case_fields,
+            "required_receipt_fields": self.required_receipt_fields,
+            "checks": self.checks,
+            "content_address": self.content_address,
+        }
 
 
 def specimen_architecture_schema() -> SpecimenArchitectureSchema:
@@ -42,10 +55,21 @@ def specimen_architecture_schema() -> SpecimenArchitectureSchema:
         "operation",
         "scenario",
         "context_key",
+        "delegate_context_key",
         "source_ids",
         "payload",
         "expected_state",
         "expected_result_state",
+        "content_address",
+    )
+    source_fields = (
+        "source_id",
+        "title",
+        "uri",
+        "version",
+        "scope",
+        "license",
+        "public_aggregate",
         "content_address",
     )
     receipt_fields = (
@@ -67,7 +91,11 @@ def specimen_architecture_schema() -> SpecimenArchitectureSchema:
             "fixture interchange fields are declared",
         ),
         _check(
-            "case-fields", len(case_fields) >= 10, case_fields, ">=10", "case contract is explicit"
+            "case-fields",
+            len(case_fields) >= 11,
+            case_fields,
+            ">=11",
+            "case contract retains delegated context",
         ),
         _check(
             "receipt-fields",
@@ -76,11 +104,29 @@ def specimen_architecture_schema() -> SpecimenArchitectureSchema:
             8,
             "receipt never carries raw payload",
         ),
+        _check(
+            "source-fields",
+            len(source_fields) == 8 and "public_aggregate" in source_fields,
+            source_fields,
+            8,
+            "source scope and public marker are explicit",
+        ),
+        _check(
+            "address-fields",
+            all(
+                "content_address" in fields
+                for fields in (fixture_fields, source_fields, case_fields, receipt_fields)
+            ),
+            True,
+            True,
+            "persisted schema entities are content addressed",
+        ),
     )
     body = {
         "schema_id": "glio-noncode.specimen-architecture",
         "version": "v1",
         "fixture_fields": fixture_fields,
+        "source_fields": source_fields,
         "case_fields": case_fields,
         "receipt_fields": receipt_fields,
         "checks": checks,
@@ -89,6 +135,7 @@ def specimen_architecture_schema() -> SpecimenArchitectureSchema:
         body["schema_id"],
         body["version"],
         fixture_fields,
+        source_fields,
         case_fields,
         receipt_fields,
         checks,

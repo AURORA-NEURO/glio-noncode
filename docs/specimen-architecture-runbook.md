@@ -2,7 +2,7 @@
 
 ## Standard run
 
-The runtime contains 20 ordered stages:
+The runtime contains 24 ordered stages:
 
 1. fixture-loaded
 2. sources-audited
@@ -22,8 +22,12 @@ The runtime contains 20 ordered stages:
 16. artifacts-materialized
 17. access-closed
 18. replay-closed
-19. release-gated
-20. runtime-finalized
+19. depth-accounted
+20. compliance-closed
+21. release-gated
+22. quality-gated
+23. observability-closed
+24. runtime-finalized
 
 Run the default fixture with:
 
@@ -42,7 +46,7 @@ access must exist before release publication.
 The release gate consumes:
 
 - public source audit checks;
-- the 325-case evaluation checks;
+- the 458 evaluation checks;
 - policy cardinality checks;
 - 112 validation matrix cells;
 - schema and access checks;
@@ -118,5 +122,8 @@ Rollback does not delete the fixture, source receipts, or local artifacts.
 - [ ] ledger has 64 linked events;
 - [ ] artifacts count is six;
 - [ ] replay addresses match;
-- [ ] runtime has 20 stages;
+- [ ] runtime has 24 stages;
+- [ ] depth report is accepted at 100.0%;
+- [ ] compliance report has eight passing checks;
+- [ ] quality gate has twelve passing checks;
 - [ ] final state is `published`.

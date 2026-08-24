@@ -31,6 +31,8 @@ SPECIMEN_ARCHITECTURE_CASES_PER_OPERATION = 4
 SPECIMEN_ARCHITECTURE_CASE_COUNT = (
     SPECIMEN_ARCHITECTURE_OPERATION_COUNT * SPECIMEN_ARCHITECTURE_CASES_PER_OPERATION
 )
+SPECIMEN_ARCHITECTURE_SOURCE_COUNT = 15
+SPECIMEN_ARCHITECTURE_FAMILY_COUNT = 4
 SPECIMEN_ARCHITECTURE_ARTIFACT_COUNT = 6
 
 
@@ -111,6 +113,7 @@ class SpecimenArchitectureSource:
     version: str
     scope: str
     license: str
+    public_aggregate: bool
     content_address: str
 
     def __post_init__(self) -> None:
@@ -120,6 +123,8 @@ class SpecimenArchitectureSource:
             raise ValidationError("specimen architecture sources require HTTPS")
         if self.scope != "public_aggregate":
             raise ValidationError("specimen architecture sources must be public aggregate")
+        if not self.public_aggregate:
+            raise ValidationError("specimen sources require an explicit public marker")
         if not self.content_address.startswith("sha256:"):
             raise ValidationError("specimen architecture sources require an address")
 
@@ -170,6 +175,7 @@ class SpecimenArchitectureCase:
     operation: SpecimenArchitectureOperation
     scenario: SpecimenArchitectureScenario
     context_key: str
+    delegate_context_key: str
     source_ids: tuple[str, ...]
     aggregate_identifier: str
     payload: Mapping[str, Any]
@@ -187,6 +193,7 @@ class SpecimenArchitectureCase:
             "operation_id",
             "capability_id",
             "context_key",
+            "delegate_context_key",
             "aggregate_identifier",
             "expected_result_state",
             "content_address",
@@ -376,7 +383,7 @@ class SpecimenArchitectureEvaluation:
     def accepted(self) -> bool:
         return self.state is SpecimenArchitectureState.ACCEPTED and all(
             item.passed for item in self.receipts
-        )
+        ) and all(item.passed for item in self.checks)
 
     @property
     def positive_count(self) -> int:
@@ -537,6 +544,9 @@ class SpecimenArchitectureRuntime:
     ledger: SpecimenArchitectureLedger
     artifacts: tuple[SpecimenArchitectureArtifact, ...]
     release: SpecimenArchitectureRelease
+    depth: SpecimenArchitectureDepthReport
+    quality: SpecimenArchitectureQualityGate
+    compliance: Any
     content_address: str
 
     @property
@@ -550,6 +560,10 @@ class SpecimenArchitectureRuntime:
         value["ledger"] = self.ledger.to_dict()
         value["plan"] = self.plan.to_dict()
         value["evaluation"] = self.evaluation.to_dict()
+        value["release"] = self.release.to_dict()
+        value["depth"] = self.depth.to_dict()
+        value["quality"] = self.quality.to_dict()
+        value["compliance"] = self.compliance.to_dict()
         return value | {"accepted": self.accepted, "stage_count": len(self.stages)}
 
 
@@ -562,6 +576,11 @@ class SpecimenArchitectureDepthReport:
     control_count: int
     stage_count: int
     artifact_count: int
+    source_count: int
+    family_count: int
+    check_count: int
+    state_count: int
+    issue_code_count: int
     addressed_count: int
     accepted: bool
     checks: tuple[str, ...]
@@ -598,6 +617,7 @@ def _source(raw: Any) -> SpecimenArchitectureSource:
         version=str(raw.get("version", "")),
         scope=str(raw.get("scope", "")),
         license=str(raw.get("license", "")),
+        public_aggregate=bool(raw.get("public_aggregate", True)),
         content_address=str(raw.get("content_address", "")),
     )
 
@@ -640,13 +660,23 @@ def _case(raw: Any) -> SpecimenArchitectureCase:
         and all(isinstance(item, (list, tuple)) for item in issue_codes)
     ):
         issue_codes = [subitem for group in issue_codes for subitem in group]
+    scenario = SpecimenArchitectureScenario(str(raw.get("scenario", "")))
+    context_key = str(raw.get("context_key", ""))
+    delegate_context_value = raw.get("delegate_context_key")
+    if delegate_context_value is None:
+        delegate_context_value = (
+            SPECIMEN_ARCHITECTURE_CONTEXT
+            if scenario is SpecimenArchitectureScenario.FOREIGN_CONTEXT
+            else context_key
+        )
     return SpecimenArchitectureCase(
         case_id=str(raw.get("case_id", "")),
         operation_id=str(raw.get("operation_id", "")),
         capability_id=str(raw.get("capability_id", "")),
         operation=SpecimenArchitectureOperation(str(raw.get("operation", ""))),
-        scenario=SpecimenArchitectureScenario(str(raw.get("scenario", ""))),
-        context_key=str(raw.get("context_key", "")),
+        scenario=scenario,
+        context_key=context_key,
+        delegate_context_key=str(delegate_context_value),
         source_ids=_text_tuple(raw.get("source_ids", ()), "source_ids"),
         aggregate_identifier=str(raw.get("aggregate_identifier", "")),
         payload=dict(payload),
@@ -668,8 +698,10 @@ __all__ = [
     "SPECIMEN_ARCHITECTURE_CASE_COUNT",
     "SPECIMEN_ARCHITECTURE_CASES_PER_OPERATION",
     "SPECIMEN_ARCHITECTURE_CONTEXT",
+    "SPECIMEN_ARCHITECTURE_FAMILY_COUNT",
     "SPECIMEN_ARCHITECTURE_FOREIGN_CONTEXT",
     "SPECIMEN_ARCHITECTURE_OPERATION_COUNT",
+    "SPECIMEN_ARCHITECTURE_SOURCE_COUNT",
     "SPECIMEN_ARCHITECTURE_VERSION",
     "SpecimenArchitectureArtifact",
     "SpecimenArchitectureCase",

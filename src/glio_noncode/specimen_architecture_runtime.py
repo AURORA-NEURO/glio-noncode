@@ -1,4 +1,4 @@
-"""End-to-end runtime for the composed Domain 03 specimen architecture."""
+"""End-to-end 24-stage runtime for the composed Domain 03 specimen architecture."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from .specimen_architecture_bundle import (
     materialize_specimen_architecture_artifacts,
     release_specimen_architecture,
 )
+from .specimen_architecture_compliance import assess_specimen_architecture_compliance
 from .specimen_architecture_contracts import (
     SpecimenArchitectureCheck,
     SpecimenArchitectureFixture,
@@ -15,6 +16,7 @@ from .specimen_architecture_contracts import (
     SpecimenArchitectureState,
     addressed,
 )
+from .specimen_architecture_depth import specimen_architecture_depth_report
 from .specimen_architecture_failures import classify_specimen_architecture_failures
 from .specimen_architecture_invariants import check_specimen_architecture_invariants
 from .specimen_architecture_lineage import build_specimen_architecture_ledger
@@ -53,7 +55,11 @@ SPECIMEN_ARCHITECTURE_STAGE_IDS = (
     "artifacts-materialized",
     "access-closed",
     "replay-closed",
+    "depth-accounted",
+    "compliance-closed",
     "release-gated",
+    "quality-gated",
+    "observability-closed",
     "runtime-finalized",
 )
 
@@ -91,6 +97,7 @@ def run_specimen_architecture(
     )
     access = specimen_architecture_access_policy(artifacts)
     replay = replay_specimen_architecture_fixture(value, evaluation)
+    compliance = assess_specimen_architecture_compliance(value)
     invariants = check_specimen_architecture_invariants(
         value, evaluation, plan, review_queue, ledger
     )
@@ -105,6 +112,7 @@ def run_specimen_architecture(
         + policy.checks
         + validation
         + schema.checks
+        + compliance.checks
         + access.checks
         + replay_checks(replay)
         + invariants
@@ -123,6 +131,10 @@ def run_specimen_architecture(
         artifacts,
         release,
         len(SPECIMEN_ARCHITECTURE_STAGE_IDS),
+        compliance,
+    )
+    depth = specimen_architecture_depth_report(
+        value, evaluation, plan, review_queue, ledger, None
     )
     stages = _stages(
         value,
@@ -139,12 +151,17 @@ def run_specimen_architecture(
         artifacts,
         access,
         replay,
+        depth,
+        compliance,
         release,
         quality,
     )
     state = (
         SpecimenArchitectureState.PUBLISHED
-        if quality.passed and not failures.release_blocked
+        if quality.passed
+        and not failures.release_blocked
+        and depth.accepted
+        and compliance.accepted
         else SpecimenArchitectureState.BLOCKED
     )
     body = {
@@ -158,6 +175,9 @@ def run_specimen_architecture(
         "ledger": ledger,
         "artifacts": artifacts,
         "release": release,
+        "depth": depth,
+        "quality": quality,
+        "compliance": compliance,
     }
     return SpecimenArchitectureRuntime(
         run_id,
@@ -170,6 +190,9 @@ def run_specimen_architecture(
         ledger,
         artifacts,
         release,
+        depth,
+        quality,
+        compliance,
         addressed(body, "specimen-runtime"),
     )
 
@@ -230,6 +253,8 @@ def _stages(
     artifacts: tuple[object, ...],
     access: object,
     replay: object,
+    depth: object,
+    compliance: object,
     release: object,
     quality: object,
 ) -> list[SpecimenArchitectureRuntimeStage]:
@@ -252,10 +277,28 @@ def _stages(
         addressed(artifacts, "specimen-artifacts"),
         access.content_address,
         replay.content_address,
+        depth.content_address,
+        compliance.content_address,
         release.content_address,
         quality.content_address,
+        addressed(
+            {
+                "metrics": metrics.content_address,
+                "validation": addressed(validation, "specimen-validation"),
+            },
+            "specimen-observability",
+        ),
+        addressed(
+            {"run_id": run_id, "stage_count": len(SPECIMEN_ARCHITECTURE_STAGE_IDS)},
+            "specimen-final",
+        ),
     )
-    states = [SpecimenArchitectureState.ACCEPTED] * 18 + [release.state, quality.state]
+    states = [SpecimenArchitectureState.ACCEPTED] * 20 + [
+        release.state,
+        quality.state,
+        SpecimenArchitectureState.ACCEPTED,
+        SpecimenArchitectureState.ACCEPTED,
+    ]
     stages: list[SpecimenArchitectureRuntimeStage] = []
     previous = f"sha256:{run_id}"
     for ordinal, (stage_id, output, state) in enumerate(

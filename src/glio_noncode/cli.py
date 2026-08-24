@@ -137,8 +137,11 @@ from .intake_architecture_validation import build_intake_architecture_validation
 from .intake_architecture_quality import run_intake_architecture_quality_gate
 from .specimen_architecture_access import specimen_architecture_access_policy
 from .specimen_architecture_bundle import materialize_specimen_architecture_artifacts
+from .specimen_architecture_compliance import assess_specimen_architecture_compliance
 from .specimen_architecture_contracts import SpecimenArchitectureState
-from .specimen_architecture_depth import specimen_architecture_depth_report
+from .specimen_architecture_depth import (
+    specimen_architecture_depth_report,
+)
 from .specimen_architecture_failures import classify_specimen_architecture_failures
 from .specimen_architecture_invariants import check_specimen_architecture_invariants
 from .specimen_architecture_lineage import build_specimen_architecture_ledger
@@ -158,6 +161,12 @@ from .specimen_architecture_runtime import run_specimen_architecture
 from .specimen_architecture_schema import specimen_architecture_schema
 from .specimen_architecture_validation import validate_specimen_architecture_matrix
 from .specimen_architecture_quality import assess_specimen_architecture_quality
+from .specimen_architecture_reporting import (
+    build_specimen_architecture_report,
+    render_specimen_architecture_markdown,
+    specimen_architecture_receipts_csv,
+    specimen_architecture_review_csv,
+)
 from .reference_architecture_access import reference_architecture_access_policy
 from .reference_architecture_compliance import assess_reference_architecture_compliance
 from .reference_architecture_depth import (
@@ -2639,12 +2648,28 @@ def build_parser() -> argparse.ArgumentParser:
         ),
         ("specimen-architecture-plan", "compile the D03 specimen dependency plan"),
         ("evaluate-specimen-architecture", "execute D03 positive adapters and boundary controls"),
-        ("specimen-architecture-runtime", "run the twenty-stage D03 specimen runtime"),
+        ("specimen-architecture-runtime", "run the twenty-four-stage D03 specimen runtime"),
         ("specimen-architecture-validation", "emit the D03 seven-plane validation matrix"),
         ("specimen-architecture-quality", "run the D03 specimen release quality gate"),
         (
             "specimen-architecture-depth",
             "report D03 specimen operation, case, lineage, and stage depth",
+        ),
+        (
+            "specimen-architecture-compliance",
+            "audit D03 public aggregate boundary and context compliance",
+        ),
+        (
+            "specimen-architecture-report",
+            "emit D03 deterministic summary and section report",
+        ),
+        (
+            "specimen-architecture-receipts-csv",
+            "emit D03 evaluation receipts as CSV",
+        ),
+        (
+            "specimen-architecture-review-csv",
+            "emit D03 held-control review items as CSV",
         ),
         ("replay-specimen-architecture", "replay D03 specimen evaluation deterministically"),
         ("specimen-architecture-review", "emit D03 held-control review receipts"),
@@ -8560,6 +8585,30 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "specimen-architecture-compliance":
+            report = assess_specimen_architecture_compliance(
+                _specimen_architecture_fixture(args.input)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "specimen-architecture-report":
+            fixture = _specimen_architecture_fixture(args.input)
+            runtime = run_specimen_architecture(fixture)
+            validation = validate_specimen_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_specimen_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(validation)
+            )
+            report = build_specimen_architecture_report(fixture, runtime, metrics)
+            _write_json(report.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "specimen-architecture-receipts-csv":
+            runtime = run_specimen_architecture(_specimen_architecture_fixture(args.input))
+            _write_text(specimen_architecture_receipts_csv(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "specimen-architecture-review-csv":
+            runtime = run_specimen_architecture(_specimen_architecture_fixture(args.input))
+            _write_text(specimen_architecture_review_csv(runtime.review_queue), args.output)
+            return 0 if runtime.accepted else 2
         if args.command == "replay-specimen-architecture":
             report = replay_specimen_architecture_fixture(
                 _specimen_architecture_fixture(args.input)
@@ -8645,6 +8694,26 @@ def main(argv: list[str] | None = None) -> int:
             _write_text(
                 specimen_architecture_fixture_json(fixture), str(output_dir / "fixture.json")
             )
+            validation = validate_specimen_architecture_matrix(fixture, runtime.evaluation)
+            metrics = materialize_specimen_architecture_metrics(
+                fixture, runtime.evaluation, runtime.review_queue, len(validation)
+            )
+            report = build_specimen_architecture_report(fixture, runtime, metrics)
+            _write_json(report.to_dict(), str(output_dir / "report.json"))
+            _write_text(
+                render_specimen_architecture_markdown(report),
+                str(output_dir / "report.md"),
+            )
+            _write_text(
+                specimen_architecture_receipts_csv(runtime),
+                str(output_dir / "receipts.csv"),
+            )
+            _write_text(
+                specimen_architecture_review_csv(runtime.review_queue),
+                str(output_dir / "review.csv"),
+            )
+            _write_json(runtime.compliance.to_dict(), str(output_dir / "compliance.json"))
+            _write_json(runtime.depth.to_dict(), str(output_dir / "depth.json"))
             return 0 if runtime.accepted else 2
         if args.command == "reference-architecture-fixture":
             _write_text(reference_architecture_fixture_json(), args.output)

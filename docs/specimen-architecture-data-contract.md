@@ -11,6 +11,7 @@ uri
 version
 scope = public_aggregate
 license
+public_aggregate = true
 content_address = sha256:<digest>
 ```
 
@@ -30,6 +31,7 @@ capability_id
 operation
 scenario
 context_key
+delegate_context_key
 source_ids
 aggregate_identifier
 payload
@@ -66,6 +68,12 @@ content_address
 
 It does not contain raw payloads.
 
+The evaluation contains one receipt per case and 458 checks. The seven case
+checks protect state, result, issue codes, bounded counts, output address,
+sanitized summaries, and delegated context. Ten global checks close the
+receipt set, family coverage, source joins, operation balance, foreign-context
+controls, and six observed result states.
+
 ## Addressing
 
 The fixture, operations, cases, receipts, review items, ledger events, runtime
@@ -91,6 +99,10 @@ The release contains exactly six artifacts:
 
 Each artifact retains upstream addresses and uses versioned public-release
 retention. Access policy permits JSON and Markdown only at this boundary.
+
+The runtime also emits a deterministic report with source, operation, held
+control, and artifact sections. Receipt CSV contains 64 rows plus a header;
+review CSV contains 48 rows plus a header.
 
 ## Scope review
 

@@ -47,8 +47,10 @@ class SpecimenArchitectureExportTests(unittest.TestCase):
         runtime = run_specimen_architecture(run_id="export-test")
         value = runtime.to_dict()
         self.assertTrue(value["accepted"])
-        self.assertEqual(value["stage_count"], 20)
+        self.assertEqual(value["stage_count"], 24)
         self.assertEqual(value["release"]["published"], True)
+        self.assertEqual(value["depth"]["check_count"], 458)
+        self.assertTrue(value["compliance"]["accepted"])
 
 
 if __name__ == "__main__":

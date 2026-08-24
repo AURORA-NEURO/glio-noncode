@@ -5,6 +5,9 @@ from __future__ import annotations
 import unittest
 
 from glio_noncode.specimen_architecture_access import specimen_architecture_access_policy
+from glio_noncode.specimen_architecture_compliance import (
+    assess_specimen_architecture_compliance,
+)
 from glio_noncode.specimen_architecture_contracts import (
     SPECIMEN_ARCHITECTURE_CASE_COUNT,
     SPECIMEN_ARCHITECTURE_CONTEXT,
@@ -53,7 +56,7 @@ class SpecimenArchitectureFixtureTests(unittest.TestCase):
         self.assertGreaterEqual(len(self.fixture.sources), 6)
         report = audit_specimen_architecture_data(self.fixture)
         self.assertTrue(report.accepted)
-        self.assertEqual(len(report.checks), 12)
+        self.assertEqual(len(report.checks), 15)
         self.assertTrue(all(item.content_address for item in report.checks))
 
     def test_operations_are_four_scenario_contracts(self) -> None:
@@ -76,7 +79,7 @@ class SpecimenArchitectureFixtureTests(unittest.TestCase):
         self.assertTrue(all(item.passed for item in self.evaluation.receipts))
         self.assertEqual(self.evaluation.positive_count, 16)
         self.assertEqual(self.evaluation.control_count, 48)
-        self.assertEqual(len(self.evaluation.checks), 325)
+        self.assertEqual(len(self.evaluation.checks), 458)
 
     def test_controls_are_conservative(self) -> None:
         controls = [
@@ -115,9 +118,11 @@ class SpecimenArchitectureRuntimeTests(unittest.TestCase):
     def test_published_runtime_depth(self) -> None:
         self.assertTrue(self.runtime.accepted)
         self.assertEqual(self.runtime.state, SpecimenArchitectureState.PUBLISHED)
-        self.assertEqual(len(self.runtime.stages), 20)
-        self.assertEqual(tuple(item.ordinal for item in self.runtime.stages), tuple(range(1, 21)))
+        self.assertEqual(len(self.runtime.stages), 24)
+        self.assertEqual(tuple(item.ordinal for item in self.runtime.stages), tuple(range(1, 25)))
         self.assertEqual(len(self.runtime.artifacts), 6)
+        self.assertEqual(self.runtime.depth.check_count, 458)
+        self.assertTrue(self.runtime.compliance.accepted)
 
     def test_plan_matrix_review_and_lineage(self) -> None:
         evaluation = self.runtime.evaluation
@@ -146,6 +151,10 @@ class SpecimenArchitectureRuntimeTests(unittest.TestCase):
             self.fixture, evaluation, queue, len(validation)
         )
         self.assertEqual(metrics.case_count, 64)
+        self.assertEqual(metrics.source_count, 15)
+        self.assertEqual(metrics.check_count, 458)
+        self.assertEqual(metrics.state_count, 6)
+        self.assertEqual(metrics.issue_code_count, 3)
         self.assertEqual(metrics.issue_count, 48)
         self.assertTrue(
             specimen_architecture_access_policy(self.runtime.artifacts).checks[0].passed
@@ -158,7 +167,8 @@ class SpecimenArchitectureRuntimeTests(unittest.TestCase):
             self.runtime.ledger,
             self.runtime.artifacts,
             self.runtime.release,
-            20,
+            24,
+            self.runtime.compliance,
         )
         depth = specimen_architecture_depth_report(
             self.fixture, evaluation, self.runtime.plan, queue, self.runtime.ledger, self.runtime
@@ -166,6 +176,7 @@ class SpecimenArchitectureRuntimeTests(unittest.TestCase):
         self.assertTrue(quality.passed)
         self.assertTrue(depth.accepted)
         self.assertEqual(depth.addressed_count, 223)
+        self.assertEqual(len(assess_specimen_architecture_compliance(self.fixture).checks), 8)
 
     def test_replay_schema_failures_and_invariants(self) -> None:
         replay = replay_specimen_architecture_fixture(self.fixture, self.runtime.evaluation)
