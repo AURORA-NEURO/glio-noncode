@@ -40,15 +40,36 @@ class IntakeArchitectureTrace:
     content_address: str
 
     def to_dict(self) -> dict[str, Any]:
-        return {"trace_id": self.trace_id, "events": [item.to_dict() for item in self.events], "accepted": self.accepted, "content_address": self.content_address}
+        return {
+            "trace_id": self.trace_id,
+            "events": [item.to_dict() for item in self.events],
+            "accepted": self.accepted,
+            "content_address": self.content_address,
+        }
 
 
 def build_intake_architecture_trace(runtime: IntakeArchitectureRuntime) -> IntakeArchitectureTrace:
     events = []
     for ordinal, stage in enumerate(runtime.stages, start=1):
-        body = {"event_id": f"intake-trace:{ordinal:03d}", "ordinal": ordinal, "event_type": "runtime_stage", "stage_key": stage.stage_id, "state": stage.state.value, "input_address": stage.input_address, "output_address": stage.output_address}
-        events.append(IntakeArchitectureTraceEvent(**body, content_address=addressed(body, "intake-trace-event")))
-    body = {"trace_id": "intake-trace-d01", "events": tuple(events), "accepted": len(events) == 20 and all(":" in item.output_address for item in events)}
+        body = {
+            "event_id": f"intake-trace:{ordinal:03d}",
+            "ordinal": ordinal,
+            "event_type": "runtime_stage",
+            "stage_key": stage.stage_id,
+            "state": stage.state.value,
+            "input_address": stage.input_address,
+            "output_address": stage.output_address,
+        }
+        events.append(
+            IntakeArchitectureTraceEvent(
+                **body, content_address=addressed(body, "intake-trace-event")
+            )
+        )
+    body = {
+        "trace_id": "intake-trace-d02",
+        "events": tuple(events),
+        "accepted": len(events) == 24 and all(":" in item.output_address for item in events),
+    }
     return IntakeArchitectureTrace(**body, content_address=addressed(body, "intake-trace"))
 
 
@@ -63,4 +84,9 @@ def audit_intake_architecture_trace(trace: IntakeArchitectureTrace) -> tuple[str
     return tuple(sorted(set(issues)))
 
 
-__all__ = ["IntakeArchitectureTraceEvent", "IntakeArchitectureTrace", "build_intake_architecture_trace", "audit_intake_architecture_trace"]
+__all__ = [
+    "IntakeArchitectureTraceEvent",
+    "IntakeArchitectureTrace",
+    "build_intake_architecture_trace",
+    "audit_intake_architecture_trace",
+]

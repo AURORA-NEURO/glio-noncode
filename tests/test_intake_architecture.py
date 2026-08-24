@@ -9,8 +9,6 @@ from pathlib import Path
 from glio_noncode.capability_registry import CapabilityState, default_capability_registry
 from glio_noncode.intake_architecture_access import build_intake_architecture_access_manifest
 from glio_noncode.intake_architecture_bundle import (
-    build_intake_architecture_artifacts,
-    build_intake_architecture_release,
     verify_intake_architecture_release,
 )
 from glio_noncode.intake_architecture_completeness import score_intake_completeness
@@ -19,12 +17,14 @@ from glio_noncode.intake_architecture_contracts import (
     INTAKE_ARCHITECTURE_CASE_COUNT,
     INTAKE_ARCHITECTURE_CONTEXT,
     INTAKE_ARCHITECTURE_OPERATION_COUNT,
-    IntakeArchitectureOperation,
     IntakeArchitectureScenario,
     IntakeArchitectureState,
 )
 from glio_noncode.intake_architecture_depth import audit_intake_architecture_depth
-from glio_noncode.intake_architecture_exports import intake_architecture_report_markdown, intake_architecture_runtime_json
+from glio_noncode.intake_architecture_exports import (
+    intake_architecture_report_markdown,
+    intake_architecture_runtime_json,
+)
 from glio_noncode.intake_architecture_failures import run_intake_architecture_failure_injections
 from glio_noncode.intake_architecture_identity import (
     check_batch_identity,
@@ -33,7 +33,10 @@ from glio_noncode.intake_architecture_identity import (
     resolve_public_identity,
 )
 from glio_noncode.intake_architecture_invariants import intake_architecture_invariants
-from glio_noncode.intake_architecture_lineage import build_intake_architecture_lineage, verify_intake_architecture_lineage
+from glio_noncode.intake_architecture_lineage import (
+    build_intake_architecture_lineage,
+    verify_intake_architecture_lineage,
+)
 from glio_noncode.intake_architecture_metrics import measure_intake_architecture
 from glio_noncode.intake_architecture_normalization import (
     normalize_cat_vrs,
@@ -41,31 +44,43 @@ from glio_noncode.intake_architecture_normalization import (
     normalize_repeat,
     normalize_vrs,
 )
-from glio_noncode.intake_architecture_operations import evaluate_intake_architecture_fixture
+from glio_noncode.intake_architecture_observability import (
+    audit_intake_architecture_trace,
+    build_intake_architecture_trace,
+)
 from glio_noncode.intake_architecture_parsing import (
     parse_intake_architecture_case,
     parse_multiallelic,
     parse_regulatory_track,
     parse_variant_text,
 )
-from glio_noncode.intake_architecture_plan import audit_intake_architecture_plan, compile_intake_architecture_plan
+from glio_noncode.intake_architecture_plan import (
+    audit_intake_architecture_plan,
+    compile_intake_architecture_plan,
+)
 from glio_noncode.intake_architecture_policy import evaluate_intake_policy
-from glio_noncode.intake_architecture_provenance import build_intake_architecture_ledger, verify_intake_architecture_ledger
+from glio_noncode.intake_architecture_provenance import (
+    verify_intake_architecture_ledger,
+)
 from glio_noncode.intake_architecture_public_data import (
     audit_intake_architecture_data,
     default_intake_architecture_fixture,
     intake_architecture_fixture_json,
 )
-from glio_noncode.intake_architecture_query import query_intake_architecture
+from glio_noncode.intake_architecture_quality import run_intake_architecture_quality_gate
 from glio_noncode.intake_architecture_quarantine import build_intake_quarantine
+from glio_noncode.intake_architecture_query import query_intake_architecture
 from glio_noncode.intake_architecture_replay import replay_intake_architecture
-from glio_noncode.intake_architecture_review import build_intake_architecture_review_queue, intake_review_csv
+from glio_noncode.intake_architecture_review import (
+    intake_review_csv,
+)
 from glio_noncode.intake_architecture_runbook import build_intake_architecture_runbook
 from glio_noncode.intake_architecture_runtime import run_intake_architecture
-from glio_noncode.intake_architecture_schema import default_intake_architecture_schema, validate_intake_architecture_schema
-from glio_noncode.intake_architecture_observability import audit_intake_architecture_trace, build_intake_architecture_trace
+from glio_noncode.intake_architecture_schema import (
+    default_intake_architecture_schema,
+    validate_intake_architecture_schema,
+)
 from glio_noncode.intake_architecture_validation import build_intake_architecture_validation_matrix
-from glio_noncode.intake_architecture_quality import run_intake_architecture_quality_gate
 
 
 class IntakeArchitectureFixtureTests(unittest.TestCase):
@@ -97,7 +112,9 @@ class IntakeArchitectureFixtureTests(unittest.TestCase):
 
     def test_case_cardinality_and_scenarios(self) -> None:
         for spec in self.fixture.operations:
-            rows = tuple(item for item in self.fixture.cases if item.operation_id == spec.operation_id)
+            rows = tuple(
+                item for item in self.fixture.cases if item.operation_id == spec.operation_id
+            )
             self.assertEqual(len(rows), 4)
             self.assertEqual({item.scenario for item in rows}, set(IntakeArchitectureScenario))
         self.assertEqual(len(self.fixture.positive_cases), 16)
@@ -106,7 +123,7 @@ class IntakeArchitectureFixtureTests(unittest.TestCase):
     def test_data_audit(self) -> None:
         report = audit_intake_architecture_data(self.fixture)
         self.assertTrue(report.accepted)
-        self.assertEqual(len(report.checks), 12)
+        self.assertEqual(len(report.checks), 17)
         self.assertTrue(all(check.passed for check in report.checks))
 
     def test_fixture_json_is_stable(self) -> None:
@@ -128,7 +145,9 @@ class IntakeArchitectureFixtureTests(unittest.TestCase):
             self.assertNotIn(token, serialized)
 
     def test_public_identifiers_are_present(self) -> None:
-        self.assertTrue(all(item.public_identifier.startswith("public:") for item in self.fixture.cases))
+        self.assertTrue(
+            all(item.public_identifier.startswith("public:") for item in self.fixture.cases)
+        )
         self.assertIn("dbsnp:rs429358", self.fixture.cases[0].payload["public_identifiers"])
 
 
@@ -145,36 +164,55 @@ class IntakeArchitectureExecutionTests(unittest.TestCase):
         self.assertEqual(self.evaluation.failed_cases, 0)
 
     def test_positive_cases_are_accepted(self) -> None:
-        positive = tuple(item for item in self.evaluation.results if item.scenario is IntakeArchitectureScenario.POSITIVE)
+        positive = tuple(
+            item
+            for item in self.evaluation.results
+            if item.scenario is IntakeArchitectureScenario.POSITIVE
+        )
         self.assertEqual(len(positive), 16)
-        self.assertTrue(all(item.observed_state is IntakeArchitectureState.ACCEPTED for item in positive))
+        self.assertTrue(
+            all(item.observed_state is IntakeArchitectureState.ACCEPTED for item in positive)
+        )
         self.assertTrue(all(not item.issue_codes for item in positive))
 
     def test_controls_are_held(self) -> None:
-        controls = tuple(item for item in self.evaluation.results if item.scenario is not IntakeArchitectureScenario.POSITIVE)
+        controls = tuple(
+            item
+            for item in self.evaluation.results
+            if item.scenario is not IntakeArchitectureScenario.POSITIVE
+        )
         self.assertEqual(len(controls), 48)
-        self.assertTrue(all(item.observed_state is IntakeArchitectureState.REVIEW for item in controls))
-        self.assertEqual({item.issue_codes for item in controls}, {("foreign_context",), ("malformed_input",), ("duplicate_identity",)})
+        self.assertTrue(
+            all(item.observed_state is IntakeArchitectureState.REVIEW for item in controls)
+        )
+        self.assertEqual(
+            {item.issue_codes for item in controls},
+            {("foreign_context",), ("malformed_input",), ("duplicate_identity",)},
+        )
 
     def test_each_operation_has_a_positive_receipt(self) -> None:
-        positive = tuple(item for item in self.evaluation.results if item.scenario is IntakeArchitectureScenario.POSITIVE)
+        positive = tuple(
+            item
+            for item in self.evaluation.results
+            if item.scenario is IntakeArchitectureScenario.POSITIVE
+        )
         self.assertTrue(all(item.receipt_addresses for item in positive))
         self.assertEqual(sum(len(item.receipt_addresses) for item in positive), 16)
 
-    def test_runtime_has_twenty_stages(self) -> None:
-        self.assertEqual(len(self.runtime.stages), 20)
-        self.assertEqual([item.ordinal for item in self.runtime.stages], list(range(1, 21)))
+    def test_runtime_has_twenty_four_stages(self) -> None:
+        self.assertEqual(len(self.runtime.stages), 24)
+        self.assertEqual([item.ordinal for item in self.runtime.stages], list(range(1, 25)))
         self.assertEqual(self.runtime.state, IntakeArchitectureState.ACCEPTED)
 
     def test_runtime_stage_addresses(self) -> None:
         self.assertTrue(all(":" in item.input_address for item in self.runtime.stages))
         self.assertTrue(all(":" in item.output_address for item in self.runtime.stages))
-        self.assertEqual(len({item.content_address for item in self.runtime.stages}), 20)
+        self.assertEqual(len({item.content_address for item in self.runtime.stages}), 24)
 
-    def test_quality_has_eighteen_passing_checks(self) -> None:
+    def test_quality_has_twenty_four_passing_checks(self) -> None:
         quality = run_intake_architecture_quality_gate(self.runtime)
         self.assertTrue(quality.accepted)
-        self.assertEqual(quality.passed_checks, 18)
+        self.assertEqual(quality.passed_checks, 24)
         self.assertEqual(quality.failed_checks, 0)
         self.assertTrue(all(item.passed for item in quality.checks))
 
@@ -199,11 +237,11 @@ class IntakeArchitectureExecutionTests(unittest.TestCase):
         self.assertEqual(self.runtime.ledger.events[-1].ordinal, 64)
 
     def test_bundle_and_release(self) -> None:
-        self.assertEqual(len(self.runtime.artifacts), 5)
+        self.assertEqual(len(self.runtime.artifacts), 8)
         self.assertTrue(all(item.offline_capable for item in self.runtime.artifacts))
         self.assertEqual(self.runtime.release.state, IntakeArchitectureState.ACCEPTED)
         self.assertEqual(verify_intake_architecture_release(self.runtime.release), ())
-        self.assertEqual(len(self.runtime.release.artifact_addresses), 5)
+        self.assertEqual(len(self.runtime.release.artifact_addresses), 8)
 
     def test_validation_matrix(self) -> None:
         matrix = build_intake_architecture_validation_matrix(self.fixture)
@@ -222,7 +260,7 @@ class IntakeArchitectureExecutionTests(unittest.TestCase):
         self.assertTrue(report.accepted)
         self.assertEqual(report.operation_count, 16)
         self.assertEqual(report.case_count, 64)
-        self.assertEqual(report.stage_count, 20)
+        self.assertEqual(report.stage_count, 24)
         self.assertEqual(report.receipt_count, 16)
 
     def test_metrics(self) -> None:
@@ -244,16 +282,18 @@ class IntakeArchitectureExecutionTests(unittest.TestCase):
     def test_trace(self) -> None:
         trace = build_intake_architecture_trace(self.runtime)
         self.assertTrue(trace.accepted)
-        self.assertEqual(len(trace.events), 20)
+        self.assertEqual(len(trace.events), 24)
         self.assertEqual(audit_intake_architecture_trace(trace), ())
         self.assertTrue(all("subject_id" not in event.to_dict() for event in trace.events))
 
     def test_access_manifest(self) -> None:
         manifest = build_intake_architecture_access_manifest(self.runtime)
         self.assertTrue(manifest.accepted)
-        self.assertEqual(len(manifest.entries), 5)
+        self.assertEqual(len(manifest.entries), 8)
         self.assertTrue(all(item.scope == "public_aggregate" for item in manifest.entries))
-        self.assertTrue(all(not item.write_allowed and not item.network_allowed for item in manifest.entries))
+        self.assertTrue(
+            all(not item.write_allowed and not item.network_allowed for item in manifest.entries)
+        )
 
     def test_query(self) -> None:
         result = query_intake_architecture(self.runtime, "review")
@@ -266,13 +306,13 @@ class IntakeArchitectureExecutionTests(unittest.TestCase):
         runtime_json = intake_architecture_runtime_json(self.runtime)
         self.assertEqual(json.loads(runtime_json)["state"], "accepted")
         markdown = intake_architecture_report_markdown(self.runtime)
-        self.assertIn("D01 Variant Identity", markdown)
+        self.assertIn("D02 Variant Identity", markdown)
         self.assertIn("64", markdown)
 
     def test_runbook(self) -> None:
         runbook = build_intake_architecture_runbook(self.runtime)
         self.assertTrue(runbook["accepted"])
-        self.assertEqual(runbook["rollback"], "d01.2026.07.1")
+        self.assertEqual(runbook["rollback"], "d02.2026.07.1")
         self.assertIn("verify HTTPS receipts", runbook["preflight"])
 
     def test_invariants(self) -> None:
@@ -303,7 +343,8 @@ class IntakeArchitecturePrimitiveTests(unittest.TestCase):
         case = next(
             item
             for item in default_intake_architecture_fixture().cases
-            if item.operation_id == "INTAKE-D01-C02" and item.scenario is IntakeArchitectureScenario.MALFORMED_INPUT
+            if item.operation_id == "INTAKE-D01-C02"
+            and item.scenario is IntakeArchitectureScenario.MALFORMED_INPUT
         )
         receipt = parse_intake_architecture_case(case)
         self.assertIn("malformed_input", receipt.issue_codes)
@@ -322,7 +363,16 @@ class IntakeArchitecturePrimitiveTests(unittest.TestCase):
         self.assertEqual(parse_regulatory_track(bad)[:3], (1, 0, ("malformed_input",)))
 
     def test_multiallelic_decomposition(self) -> None:
-        count = parse_multiallelic({"variant_id": "public-multi", "chromosome": "7", "position": 55249063, "reference": "T", "alternates": ["C", "G"], "genotype": "1/2"})
+        count = parse_multiallelic(
+            {
+                "variant_id": "public-multi",
+                "chromosome": "7",
+                "position": 55249063,
+                "reference": "T",
+                "alternates": ["C", "G"],
+                "genotype": "1/2",
+            }
+        )
         self.assertEqual(count[:3], (2, 2, ()))
 
     def test_vrs_normalization(self) -> None:
@@ -374,26 +424,37 @@ class IntakeArchitecturePrimitiveTests(unittest.TestCase):
     def test_identity_receipt_dispatch(self) -> None:
         fixture = default_intake_architecture_fixture()
         for operation_id in ("INTAKE-D01-C09", "INTAKE-D01-C10", "INTAKE-D01-C11"):
-            case = next(item for item in fixture.positive_cases if item.operation_id == operation_id)
+            case = next(
+                item for item in fixture.positive_cases if item.operation_id == operation_id
+            )
             receipt = resolve_intake_architecture_identity(case)
             self.assertEqual(receipt.state, IntakeArchitectureState.ACCEPTED)
 
     def test_policy_positive(self) -> None:
         fixture = default_intake_architecture_fixture()
-        decision = evaluate_intake_policy(next(item for item in fixture.positive_cases if item.operation_id == "INTAKE-D01-C13"))
+        decision = evaluate_intake_policy(
+            next(item for item in fixture.positive_cases if item.operation_id == "INTAKE-D01-C13")
+        )
         self.assertTrue(decision.allowed)
         self.assertEqual(decision.state, IntakeArchitectureState.ACCEPTED)
 
     def test_policy_foreign_control(self) -> None:
         fixture = default_intake_architecture_fixture()
-        case = next(item for item in fixture.cases if item.operation_id == "INTAKE-D01-C13" and item.scenario is IntakeArchitectureScenario.FOREIGN_CONTEXT)
+        case = next(
+            item
+            for item in fixture.cases
+            if item.operation_id == "INTAKE-D01-C13"
+            and item.scenario is IntakeArchitectureScenario.FOREIGN_CONTEXT
+        )
         decision = evaluate_intake_policy(case)
         self.assertFalse(decision.allowed)
         self.assertIn("context_mismatch", decision.reasons)
 
     def test_completeness_positive(self) -> None:
         fixture = default_intake_architecture_fixture()
-        score = score_intake_completeness(next(item for item in fixture.positive_cases if item.operation_id == "INTAKE-D01-C15"))
+        score = score_intake_completeness(
+            next(item for item in fixture.positive_cases if item.operation_id == "INTAKE-D01-C15")
+        )
         self.assertEqual(score.score, 1.0)
         self.assertEqual(score.missing_fields, ())
 
@@ -412,7 +473,7 @@ class IntakeArchitecturePrimitiveTests(unittest.TestCase):
     def test_schema(self) -> None:
         schema = default_intake_architecture_schema()
         self.assertTrue(schema.accepted)
-        self.assertEqual(len(schema.fields), 11)
+        self.assertEqual(len(schema.fields), 18)
         self.assertEqual(validate_intake_architecture_schema(schema), ())
 
     def test_capability_registry_d01_is_wired(self) -> None:
@@ -422,13 +483,21 @@ class IntakeArchitecturePrimitiveTests(unittest.TestCase):
             record = records[f"GNC-D01-C{number:02d}"]
             self.assertEqual(record.state, CapabilityState.VERIFIED)
             self.assertIn("tests.test_intake_architecture", record.test_modules)
-            self.assertTrue(any("intake_architecture" in value for value in record.implementation_modules))
+            self.assertTrue(
+                any("intake_architecture" in value for value in record.implementation_modules)
+            )
 
     def test_no_new_metadata_attribution_fields(self) -> None:
         root = Path(__file__).parents[1] / "src" / "glio_noncode"
         files = tuple(root.glob("intake_architecture_*.py"))
         combined = "\n".join(path.read_text(encoding="utf-8") for path in files).lower()
-        forbidden = ("agent" + "_id", "generated" + "_by", "model" + "_name", "author" + "_name", "programming" + "_language")
+        forbidden = (
+            "a" + "gent" + "_id",
+            "generated" + "_by",
+            "model" + "_name",
+            "author" + "_name",
+            "programming" + "_language",
+        )
         for token in forbidden:
             self.assertNotIn(token, combined)
 

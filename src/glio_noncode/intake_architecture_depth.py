@@ -5,13 +5,16 @@ from __future__ import annotations
 from .intake_architecture_contracts import (
     INTAKE_ARCHITECTURE_CASE_COUNT,
     INTAKE_ARCHITECTURE_OPERATION_COUNT,
+    INTAKE_ARCHITECTURE_STAGE_COUNT,
     IntakeArchitectureDepthReport,
     IntakeArchitectureRuntime,
     addressed,
 )
 
 
-def audit_intake_architecture_depth(runtime: IntakeArchitectureRuntime) -> IntakeArchitectureDepthReport:
+def audit_intake_architecture_depth(
+    runtime: IntakeArchitectureRuntime,
+) -> IntakeArchitectureDepthReport:
     receipt_count = sum(len(item.receipt_addresses) for item in runtime.evaluation.results)
     checks = (
         "sixteen operation specs are executed",
@@ -19,14 +22,23 @@ def audit_intake_architecture_depth(runtime: IntakeArchitectureRuntime) -> Intak
         "seven validation planes cover every operation",
         "review queue retains every held control",
         "hash-linked ledger closes every case",
-        "five offline artifacts have release receipts",
+        "eight offline artifacts have release receipts",
+        "four hundred fifty-eight evaluation checks are addressed",
+        "twelve public-boundary compliance checks are addressed",
+        "twenty-four runtime stages expose an explicit final state",
     )
     accepted = (
         len(runtime.evaluation.results) == INTAKE_ARCHITECTURE_CASE_COUNT
         and len(runtime.plan.nodes) == INTAKE_ARCHITECTURE_OPERATION_COUNT
         and len(runtime.review_queue.items) == 48
         and len(runtime.ledger.events) == INTAKE_ARCHITECTURE_CASE_COUNT
-        and len(runtime.artifacts) == 5
+        and len(runtime.artifacts) == 8
+        and len(runtime.evaluation.checks) == 458
+        and all(item.passed for item in runtime.evaluation.checks)
+        and runtime.compliance is not None
+        and runtime.compliance.accepted
+        and len(runtime.compliance.checks) == 12
+        and len(runtime.stages) == INTAKE_ARCHITECTURE_STAGE_COUNT
     )
     body = {
         "fixture_id": runtime.fixture_id,

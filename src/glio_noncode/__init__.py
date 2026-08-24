@@ -10431,7 +10431,13 @@ from .intake_architecture_contracts import (
     INTAKE_ARCHITECTURE_CASES_PER_OPERATION,
     INTAKE_ARCHITECTURE_CONTEXT,
     INTAKE_ARCHITECTURE_FOREIGN_CONTEXT,
+    INTAKE_ARCHITECTURE_EVALUATION_CHECK_COUNT,
+    INTAKE_ARCHITECTURE_EVALUATION_CHECKS_PER_CASE,
+    INTAKE_ARCHITECTURE_EVALUATION_GLOBAL_CHECK_COUNT,
     INTAKE_ARCHITECTURE_OPERATION_COUNT,
+    INTAKE_ARCHITECTURE_PLANE_COUNT,
+    INTAKE_ARCHITECTURE_QUALITY_CHECK_COUNT,
+    INTAKE_ARCHITECTURE_STAGE_COUNT,
     INTAKE_ARCHITECTURE_VERSION,
     IntakeArchitectureCase,
     IntakeArchitectureCheckKind,
@@ -10439,6 +10445,7 @@ from .intake_architecture_contracts import (
     IntakeArchitectureDataCheck,
     IntakeArchitectureDepthReport,
     IntakeArchitectureEvaluation,
+    IntakeArchitectureEvaluationCheck,
     IntakeArchitectureFailureProbe,
     IntakeArchitectureFailureReport,
     IntakeArchitectureFixture,
@@ -10469,8 +10476,20 @@ from .intake_architecture_contracts import (
     IntakeArchitectureValidationMatrix,
 )
 from .intake_architecture_depth import audit_intake_architecture_depth
+from .intake_architecture_compliance import (
+    ATTRIBUTION_FIELD_KEYS,
+    PRIVATE_FIELD_KEYS,
+    IntakeArchitectureComplianceCheck,
+    IntakeArchitectureComplianceReport,
+    find_attribution_intake_paths,
+    find_forbidden_intake_paths,
+    run_intake_architecture_compliance,
+)
 from .intake_architecture_exports import (
     intake_architecture_quality_json,
+    intake_architecture_compliance_json,
+    intake_architecture_evaluation_json,
+    intake_architecture_receipts_csv,
     intake_architecture_report_markdown,
     intake_architecture_runtime_json,
 )
@@ -10530,9 +10549,9 @@ from .intake_architecture_metrics import IntakeArchitectureMetrics, IntakeArchit
 from .intake_architecture_observability import IntakeArchitectureTrace, IntakeArchitectureTraceEvent, audit_intake_architecture_trace, build_intake_architecture_trace
 
 __all__ += [
-    "INTAKE_ARCHITECTURE_BOUNDARY", "INTAKE_ARCHITECTURE_CASE_COUNT", "INTAKE_ARCHITECTURE_CASES_PER_OPERATION", "INTAKE_ARCHITECTURE_CONTEXT", "INTAKE_ARCHITECTURE_FOREIGN_CONTEXT", "INTAKE_ARCHITECTURE_OPERATION_COUNT", "INTAKE_ARCHITECTURE_SOURCE_COUNT", "INTAKE_ARCHITECTURE_VERSION",
-    "IntakeArchitectureCase", "IntakeArchitectureCheckKind", "IntakeArchitectureCompletenessScore", "IntakeArchitectureDataAudit", "IntakeArchitectureDataCheck", "IntakeArchitectureDataReceipt", "IntakeArchitectureDepthReport", "IntakeArchitectureEvaluation", "IntakeArchitectureFailureProbe", "IntakeArchitectureFailureReport", "IntakeArchitectureFixture", "IntakeArchitectureIdentityReceipt", "IntakeArchitectureLedger", "IntakeArchitectureLedgerEvent", "IntakeArchitectureNormalizationReceipt", "IntakeArchitectureOperation", "IntakeArchitectureOperationResult", "IntakeArchitectureOperationSpec", "IntakeArchitectureParseReceipt", "IntakeArchitecturePlan", "IntakeArchitecturePlanNode", "IntakeArchitecturePlane", "IntakeArchitecturePolicyDecision", "IntakeArchitectureQualityCheck", "IntakeArchitectureQualityReport", "IntakeArchitectureQuarantineItem", "IntakeArchitectureQuarantineReport", "IntakeArchitectureRelease", "IntakeArchitectureReviewItem", "IntakeArchitectureReviewQueue", "IntakeArchitectureRuntime", "IntakeArchitectureRuntimeStage", "IntakeArchitectureScenario", "IntakeArchitectureSchemaField", "IntakeArchitectureSchemaManifest", "IntakeArchitectureSource", "IntakeArchitectureState", "IntakeArchitectureValidationCell", "IntakeArchitectureValidationMatrix",
-    "audit_intake_architecture_data", "audit_intake_architecture_depth", "audit_intake_architecture_plan", "build_intake_architecture_artifacts", "build_intake_architecture_ledger", "build_intake_architecture_release", "build_intake_architecture_review_queue", "build_intake_architecture_runbook", "build_intake_architecture_validation_matrix", "build_intake_quarantine", "check_batch_identity", "compile_intake_architecture_plan", "default_intake_architecture_fixture", "default_intake_architecture_operations", "default_intake_architecture_schema", "default_intake_architecture_sources", "evaluate_intake_architecture_case", "evaluate_intake_architecture_fixture", "evaluate_intake_policy", "intake_architecture_fixture_json", "intake_architecture_quality_json", "intake_architecture_invariants", "intake_architecture_report_markdown", "intake_architecture_runtime_json", "intake_review_csv", "load_intake_architecture_fixture", "normalize_cat_vrs", "normalize_intake_architecture_case", "normalize_repeat", "normalize_vrs", "parse_intake_architecture_case", "parse_multiallelic", "parse_regulatory_track", "parse_variant_text", "query_intake_architecture", "reconcile_aliases", "replay_intake_architecture", "resolve_intake_architecture_identity", "resolve_public_identity", "run_intake_architecture", "run_intake_architecture_failure_injections", "run_intake_architecture_quality_gate", "score_intake_completeness", "validate_intake_architecture_schema", "verify_intake_architecture_ledger", "verify_intake_architecture_release",
+    "INTAKE_ARCHITECTURE_BOUNDARY", "INTAKE_ARCHITECTURE_CASE_COUNT", "INTAKE_ARCHITECTURE_CASES_PER_OPERATION", "INTAKE_ARCHITECTURE_CONTEXT", "INTAKE_ARCHITECTURE_FOREIGN_CONTEXT", "INTAKE_ARCHITECTURE_EVALUATION_CHECK_COUNT", "INTAKE_ARCHITECTURE_EVALUATION_CHECKS_PER_CASE", "INTAKE_ARCHITECTURE_EVALUATION_GLOBAL_CHECK_COUNT", "INTAKE_ARCHITECTURE_OPERATION_COUNT", "INTAKE_ARCHITECTURE_PLANE_COUNT", "INTAKE_ARCHITECTURE_QUALITY_CHECK_COUNT", "INTAKE_ARCHITECTURE_SOURCE_COUNT", "INTAKE_ARCHITECTURE_STAGE_COUNT", "INTAKE_ARCHITECTURE_VERSION",
+    "IntakeArchitectureCase", "IntakeArchitectureCheckKind", "IntakeArchitectureCompletenessScore", "IntakeArchitectureComplianceCheck", "IntakeArchitectureComplianceReport", "IntakeArchitectureDataAudit", "IntakeArchitectureDataCheck", "IntakeArchitectureDataReceipt", "IntakeArchitectureDepthReport", "IntakeArchitectureEvaluation", "IntakeArchitectureEvaluationCheck", "IntakeArchitectureFailureProbe", "IntakeArchitectureFailureReport", "IntakeArchitectureFixture", "IntakeArchitectureIdentityReceipt", "IntakeArchitectureLedger", "IntakeArchitectureLedgerEvent", "IntakeArchitectureNormalizationReceipt", "IntakeArchitectureOperation", "IntakeArchitectureOperationResult", "IntakeArchitectureOperationSpec", "IntakeArchitectureParseReceipt", "IntakeArchitecturePlan", "IntakeArchitecturePlanNode", "IntakeArchitecturePlane", "IntakeArchitecturePolicyDecision", "IntakeArchitectureQualityCheck", "IntakeArchitectureQualityReport", "IntakeArchitectureQuarantineItem", "IntakeArchitectureQuarantineReport", "IntakeArchitectureRelease", "IntakeArchitectureReviewItem", "IntakeArchitectureReviewQueue", "IntakeArchitectureRuntime", "IntakeArchitectureRuntimeStage", "IntakeArchitectureScenario", "IntakeArchitectureSchemaField", "IntakeArchitectureSchemaManifest", "IntakeArchitectureSource", "IntakeArchitectureState", "IntakeArchitectureValidationCell", "IntakeArchitectureValidationMatrix",
+    "ATTRIBUTION_FIELD_KEYS", "PRIVATE_FIELD_KEYS", "audit_intake_architecture_data", "audit_intake_architecture_depth", "audit_intake_architecture_plan", "build_intake_architecture_artifacts", "build_intake_architecture_ledger", "build_intake_architecture_release", "build_intake_architecture_review_queue", "build_intake_architecture_runbook", "build_intake_architecture_validation_matrix", "build_intake_quarantine", "check_batch_identity", "compile_intake_architecture_plan", "default_intake_architecture_fixture", "default_intake_architecture_operations", "default_intake_architecture_schema", "default_intake_architecture_sources", "evaluate_intake_architecture_case", "evaluate_intake_architecture_fixture", "evaluate_intake_policy", "find_attribution_intake_paths", "find_forbidden_intake_paths", "intake_architecture_compliance_json", "intake_architecture_evaluation_json", "intake_architecture_fixture_json", "intake_architecture_quality_json", "intake_architecture_receipts_csv", "intake_architecture_invariants", "intake_architecture_report_markdown", "intake_architecture_runtime_json", "intake_review_csv", "load_intake_architecture_fixture", "normalize_cat_vrs", "normalize_intake_architecture_case", "normalize_repeat", "normalize_vrs", "parse_intake_architecture_case", "parse_multiallelic", "parse_regulatory_track", "parse_variant_text", "query_intake_architecture", "reconcile_aliases", "replay_intake_architecture", "resolve_intake_architecture_identity", "resolve_public_identity", "run_intake_architecture", "run_intake_architecture_compliance", "run_intake_architecture_failure_injections", "run_intake_architecture_quality_gate", "score_intake_completeness", "validate_intake_architecture_schema", "verify_intake_architecture_ledger", "verify_intake_architecture_release",
     "IntakeArchitectureAccessEntry", "IntakeArchitectureAccessManifest", "IntakeArchitectureLineage", "IntakeArchitectureLineageNode", "IntakeArchitectureMetrics", "IntakeArchitectureOperationMetric", "IntakeArchitectureTrace", "IntakeArchitectureTraceEvent", "audit_intake_architecture_trace", "build_intake_architecture_access_manifest", "build_intake_architecture_lineage", "build_intake_architecture_trace", "measure_intake_architecture", "verify_intake_architecture_lineage",
 ]
 

@@ -4,8 +4,9 @@
     {
       "capability_id": "GNC-D01-C01",
       "case_id": "INTAKE-D01-C01-positive",
-      "content_address": "intake-case:29ee9f87194bc3b777c76cc53216c8f616b42058932f991481bbb817610c4188",
+      "content_address": "intake-case:5210f0f3c9690014420abe258b41f745b542e113eb6900e664ab697a9b801599",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C01",
@@ -43,8 +44,9 @@
     {
       "capability_id": "GNC-D01-C01",
       "case_id": "INTAKE-D01-C01-foreign_context",
-      "content_address": "intake-case:895b69a1246c8284a35b6f507a62fafd1afeb8a1d5b9ca43beadcc963c02e355",
+      "content_address": "intake-case:b2ccb16453496c1302a1cdb6c5030b28821b3d7b29fb9e2f2b3603546c4b550a",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -84,8 +86,9 @@
     {
       "capability_id": "GNC-D01-C01",
       "case_id": "INTAKE-D01-C01-malformed_input",
-      "content_address": "intake-case:487e823a6ce563a76a8122816efafd881a1ab2d8bffbbb800defe6c72058c8ea",
+      "content_address": "intake-case:a0f6353266d54ebbc7136d9bb2643ddb260fe264ec3ee5906e53499d7d0bce9b",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -127,8 +130,9 @@
     {
       "capability_id": "GNC-D01-C01",
       "case_id": "INTAKE-D01-C01-duplicate_identity",
-      "content_address": "intake-case:8a685ba9f8538becbba15e1df9d8d5ba9d3666f0e84fc8d9d5728a60d5682905",
+      "content_address": "intake-case:aff42352c781779ba338c5d41be199146ea1cdf234cbe5cc556cdf84daa519e3",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -173,8 +177,9 @@
     {
       "capability_id": "GNC-D01-C02",
       "case_id": "INTAKE-D01-C02-positive",
-      "content_address": "intake-case:d5d3635062f7983059450e7df8c5b5caefd70910dda989951123043e47c412a2",
+      "content_address": "intake-case:cae283128193de38aaf5d067877a3d3da592cb388c44b881b9c3cabd36bcf77f",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C02",
@@ -214,8 +219,9 @@
     {
       "capability_id": "GNC-D01-C02",
       "case_id": "INTAKE-D01-C02-foreign_context",
-      "content_address": "intake-case:eeebabbc5dfa9d64badf41a47d0a4923736f8936deb20256150678072f4b8938",
+      "content_address": "intake-case:f7ae9db36b04df4d1a5e811098aa1998a46385a19068cc860488d9c71277c191",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -257,8 +263,9 @@
     {
       "capability_id": "GNC-D01-C02",
       "case_id": "INTAKE-D01-C02-malformed_input",
-      "content_address": "intake-case:e0cae976b0356031a525a198185d8671a97b1d00cce3707946cc680251723651",
+      "content_address": "intake-case:3242e7592d73bace5637c21427790432d5e7cc448de45ae59b5de51c8ae2c7d1",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -302,8 +309,9 @@
     {
       "capability_id": "GNC-D01-C02",
       "case_id": "INTAKE-D01-C02-duplicate_identity",
-      "content_address": "intake-case:6824b152342ae6e82e8e8bd8b6cbeac337cff2824b5d08152cfbb81f6b792f4c",
+      "content_address": "intake-case:85890098d7c019306813c3c3401231a4d4c35a630700322c2221c6da345bba06",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -350,8 +358,9 @@
     {
       "capability_id": "GNC-D01-C03",
       "case_id": "INTAKE-D01-C03-positive",
-      "content_address": "intake-case:fdb0239747acd1001444e16045565b57356920668750f5d8cb6058bd9edba35a",
+      "content_address": "intake-case:0f1a2bac7f9c93b3d2e3ee57c248390b5ce02a5ddd604f6c5b4dfbac73d561a1",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C03",
@@ -391,8 +400,9 @@
     {
       "capability_id": "GNC-D01-C03",
       "case_id": "INTAKE-D01-C03-foreign_context",
-      "content_address": "intake-case:c390cbc1ba73337fab0a85d23bd6807e9dd41eb11ef87720e8cbc1ed36c40665",
+      "content_address": "intake-case:2d34c3515ee1a795ca9a5584970ff1815047b1f60650b3777dda0d4c7c069e77",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -434,8 +444,9 @@
     {
       "capability_id": "GNC-D01-C03",
       "case_id": "INTAKE-D01-C03-malformed_input",
-      "content_address": "intake-case:8ccf2063b4d80a0fb5f39c8aec0f019bde6c8363f2d8545106dbb8888d7718c9",
+      "content_address": "intake-case:79febf64483558bb0485bd96c2c087d06bb8f4d7c918993a442f9e9f6d1771bd",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -479,8 +490,9 @@
     {
       "capability_id": "GNC-D01-C03",
       "case_id": "INTAKE-D01-C03-duplicate_identity",
-      "content_address": "intake-case:7d0f2aed5e1cf7f01a8c3e8c0880ba671749976cea186336a122debef4b6c79d",
+      "content_address": "intake-case:a3e970d7183f5b377efef7d5cd774f8e429f7135f9367d69f67fe4cffe206f39",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -527,8 +539,9 @@
     {
       "capability_id": "GNC-D01-C04",
       "case_id": "INTAKE-D01-C04-positive",
-      "content_address": "intake-case:54f9bc101ce36c7ec7b98f71133bff9700850806282dc64a3b97c37c40716c8b",
+      "content_address": "intake-case:7cc65649fa22fdf4aadf8ace89d07c064fabbe7aa4f05b26cd1b569ec064b777",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C04",
@@ -566,8 +579,9 @@
     {
       "capability_id": "GNC-D01-C04",
       "case_id": "INTAKE-D01-C04-foreign_context",
-      "content_address": "intake-case:f5aa165f0effaa75ad2378016063ddb392f214dca259807137c56441170b2ffa",
+      "content_address": "intake-case:bec6e6b78a6a48954fca77ea5e5fedc955ba4032f1f7e258a0f003164ac43b67",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -607,8 +621,9 @@
     {
       "capability_id": "GNC-D01-C04",
       "case_id": "INTAKE-D01-C04-malformed_input",
-      "content_address": "intake-case:cf9046453b8da98a68bc3072087e6262575fa540d953fd2fa6892592f2eba064",
+      "content_address": "intake-case:3919bf702c6541b3ef653605835a2c9d69e79d918cd9d0795f003feccbc7e2dd",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -650,8 +665,9 @@
     {
       "capability_id": "GNC-D01-C04",
       "case_id": "INTAKE-D01-C04-duplicate_identity",
-      "content_address": "intake-case:8f69dc6064089e353c9d2267c9a49014477c3aeb2f8866bdfca485e8981e0adf",
+      "content_address": "intake-case:cd253cddc26a5bb35b04b9945ba346c909c9cde3a0242e0f7b7e470807f419ce",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -696,8 +712,9 @@
     {
       "capability_id": "GNC-D01-C05",
       "case_id": "INTAKE-D01-C05-positive",
-      "content_address": "intake-case:df9b120aeb85c975be1b28647caa19e72ecc8b4967a602160ea5c9940ddc0e38",
+      "content_address": "intake-case:92deb25ca7a636a305bffc96d6cb03bc59d06afd8868a8a2e81d505d7538b194",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C05",
@@ -746,8 +763,9 @@
     {
       "capability_id": "GNC-D01-C05",
       "case_id": "INTAKE-D01-C05-foreign_context",
-      "content_address": "intake-case:a838cc1ba914b7962aa3fa89ae7ed89839b6ea9b5c1a9c5364345d8ba2a12d00",
+      "content_address": "intake-case:00cfffde4c64ce7b1959758a237f34b9b7569a0f23e5228f28b988735e186f95",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -798,8 +816,9 @@
     {
       "capability_id": "GNC-D01-C05",
       "case_id": "INTAKE-D01-C05-malformed_input",
-      "content_address": "intake-case:2def77f6b3f1f9a4e0795dd045d850f832bbf3caa44905aab546b10649842c8b",
+      "content_address": "intake-case:32fd65576baf0e465f1991db3b2225653088a9cf89deb4a5c549fd4dfd3c3648",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -852,8 +871,9 @@
     {
       "capability_id": "GNC-D01-C05",
       "case_id": "INTAKE-D01-C05-duplicate_identity",
-      "content_address": "intake-case:052d262692185133c64faee49b6af18c01fc0fd6e0604a1055cdcce91bd08700",
+      "content_address": "intake-case:5faf3dc2935a471121809599fe0f0200bd41952bb3bc567cd7decb607950097d",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -909,8 +929,9 @@
     {
       "capability_id": "GNC-D01-C06",
       "case_id": "INTAKE-D01-C06-positive",
-      "content_address": "intake-case:b9d1a1980268f3ec6e8d692aa1756640bf7ccc85dab4488caabc9c605c243a48",
+      "content_address": "intake-case:5a0e88c209ea7b60edc8d491b1ee307391781a46b0d1f5e65e97c659f4f1d314",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C06",
@@ -955,8 +976,9 @@
     {
       "capability_id": "GNC-D01-C06",
       "case_id": "INTAKE-D01-C06-foreign_context",
-      "content_address": "intake-case:f9559b7e8934720548304b7648800168289382cc102b64d6a27b7bd8a8bf02d9",
+      "content_address": "intake-case:d665bb7e6aa137d11b9d58ca3ece5ce3f16b17f51ee2927db2f926a7e2b8f4a0",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -1003,8 +1025,9 @@
     {
       "capability_id": "GNC-D01-C06",
       "case_id": "INTAKE-D01-C06-malformed_input",
-      "content_address": "intake-case:c898a357c2aca917e5d782f8bff91063884aa3b4bfab1daa9425bb29596e79aa",
+      "content_address": "intake-case:71f1c28c2357d171944e0c88a0f3f14a16fc78f3269db2e598562239a2151349",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -1053,8 +1076,9 @@
     {
       "capability_id": "GNC-D01-C06",
       "case_id": "INTAKE-D01-C06-duplicate_identity",
-      "content_address": "intake-case:2bccef53e437cf46ce16efe715ad1e36404d37e3662b9ec51d23d26e137d9e98",
+      "content_address": "intake-case:e33d63c3dc97aa4da8e0394adf5f32ca043a3af426e38a2c4f6bf78ee36ee6e1",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -1106,8 +1130,9 @@
     {
       "capability_id": "GNC-D01-C07",
       "case_id": "INTAKE-D01-C07-positive",
-      "content_address": "intake-case:1613f0fda1cb6b0fefd30f858c65ed9d31a55b5e14d4b944010ce909a5017065",
+      "content_address": "intake-case:3fb38126a25792d786eb1a75d555152d782fc5ca48982048e1f021f1088e580e",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C07",
@@ -1146,8 +1171,9 @@
     {
       "capability_id": "GNC-D01-C07",
       "case_id": "INTAKE-D01-C07-foreign_context",
-      "content_address": "intake-case:0c590e6ff9d3b1f0d3f56d2e73773408b4e47f172a26b1adc6df8c5e25f7bbda",
+      "content_address": "intake-case:288fd60aa65e18ce9d02edcc3d754e6051be3bf2e1e61ffdb72fb7a5c6c592b4",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -1188,8 +1214,9 @@
     {
       "capability_id": "GNC-D01-C07",
       "case_id": "INTAKE-D01-C07-malformed_input",
-      "content_address": "intake-case:0e85405b8659d650380e40a7d2d482db283082f715feaf16bb548ad848bfe69e",
+      "content_address": "intake-case:aa6d7d55ba0bc35b2c233f2436dbcddd992c90a8f7535d1679f5934d1b04611c",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -1232,8 +1259,9 @@
     {
       "capability_id": "GNC-D01-C07",
       "case_id": "INTAKE-D01-C07-duplicate_identity",
-      "content_address": "intake-case:05080a9d42cd84c9add1e4ba02c7e68931d57170326a464773406795fc24a73b",
+      "content_address": "intake-case:a44d7c210ff7cabdc8716db5154d7229cb0c1d94befcdcc80ff305a965de23b9",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -1279,8 +1307,9 @@
     {
       "capability_id": "GNC-D01-C08",
       "case_id": "INTAKE-D01-C08-positive",
-      "content_address": "intake-case:4df67cf1380b512771bfed8195314571f3a017009f2873845e0a3121a22f65be",
+      "content_address": "intake-case:e0704959029428e43c2129547982d1e524e87a8d51e9aaeb9e55e146d348c57f",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C08",
@@ -1323,8 +1352,9 @@
     {
       "capability_id": "GNC-D01-C08",
       "case_id": "INTAKE-D01-C08-foreign_context",
-      "content_address": "intake-case:4b1449f330a0190b70ccc975741e4f504093d1b3e5cc48b2ee03182ba05da97a",
+      "content_address": "intake-case:6bf23607de2b9df7464cbfffcf42418aa054180e8551787eee544a31afc62190",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -1369,8 +1399,9 @@
     {
       "capability_id": "GNC-D01-C08",
       "case_id": "INTAKE-D01-C08-malformed_input",
-      "content_address": "intake-case:56997332e7892813348169a64981c739ee4056962e28638e2ae987a5647792cb",
+      "content_address": "intake-case:373065c085acb1cce0c61fbc326f7145f2857913a9879cffca07ba8d40644f3e",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -1417,8 +1448,9 @@
     {
       "capability_id": "GNC-D01-C08",
       "case_id": "INTAKE-D01-C08-duplicate_identity",
-      "content_address": "intake-case:654ac8c9bfdadab800601c36206e7895fcdd778c5e17437ce08ed43c4f076041",
+      "content_address": "intake-case:7732eb69fd38526993b0dd77d23a015b53c1cf15a4b9d5ad2b9aa4b74e6fe796",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -1468,8 +1500,9 @@
     {
       "capability_id": "GNC-D01-C09",
       "case_id": "INTAKE-D01-C09-positive",
-      "content_address": "intake-case:8a6e87a8581ce7fa6585dc1ea2423164405b1e6afd4734bf4cff0d08cb33b4ad",
+      "content_address": "intake-case:f1db11290ebe3e912029711181a242b23b8070f62b833b0d8b721fcb7196fd3c",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C09",
@@ -1511,8 +1544,9 @@
     {
       "capability_id": "GNC-D01-C09",
       "case_id": "INTAKE-D01-C09-foreign_context",
-      "content_address": "intake-case:5281a474940146fbd93af5473cbab51dd04ae7b2f078e577edf1a3691ed06877",
+      "content_address": "intake-case:b6fbe8c7820cde7251c89aebe7ca14d1ef5108e3b066a3dd09761f46cde77131",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -1556,8 +1590,9 @@
     {
       "capability_id": "GNC-D01-C09",
       "case_id": "INTAKE-D01-C09-malformed_input",
-      "content_address": "intake-case:c5a56fdb90f14381985ed4e76b154995913dd88141f48fa4450678e342e8649a",
+      "content_address": "intake-case:c318af51e568326181ae2931c67f5ea9ed639fdf8ec50425272a9601aff2cf61",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -1603,8 +1638,9 @@
     {
       "capability_id": "GNC-D01-C09",
       "case_id": "INTAKE-D01-C09-duplicate_identity",
-      "content_address": "intake-case:056488e0394b3dbef34a91c7ed5f5a155a9286578c63289685e2eaee41814c15",
+      "content_address": "intake-case:58034660cf6a0a863694384519c58b6bf186311a8d96786fc4041cf657cb8ca6",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -1653,8 +1689,9 @@
     {
       "capability_id": "GNC-D01-C10",
       "case_id": "INTAKE-D01-C10-positive",
-      "content_address": "intake-case:978acd1a24f4f2bd92616524188529daea41ded041e7accedf1f4734de19bee0",
+      "content_address": "intake-case:7a7800764759e33f3c6f7a0c56b11fd4917a05d541a736d2bd5d08cc20902d6c",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C10",
@@ -1730,8 +1767,9 @@
     {
       "capability_id": "GNC-D01-C10",
       "case_id": "INTAKE-D01-C10-foreign_context",
-      "content_address": "intake-case:ee1032c04edeeabf59523838c483933518b9499471dfbebb9950d7160c72b01d",
+      "content_address": "intake-case:39061bc64f5ec602f81b9dcb65cb97192ebc5373e689e07c5267c64f370f2710",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -1809,8 +1847,9 @@
     {
       "capability_id": "GNC-D01-C10",
       "case_id": "INTAKE-D01-C10-malformed_input",
-      "content_address": "intake-case:e7b6647ba344b61c73d96e2935a03269c398bc0b7529b76b89c83723715af50a",
+      "content_address": "intake-case:a6917f7396362cf216484725152bf140e3ee14483ebfc93ee5d1c3d183fa6a84",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -1890,8 +1929,9 @@
     {
       "capability_id": "GNC-D01-C10",
       "case_id": "INTAKE-D01-C10-duplicate_identity",
-      "content_address": "intake-case:58be7eff9bd8bc23a093a97020c956b5e14614a2ebae9aa5cf37b99e419583f6",
+      "content_address": "intake-case:5082afb2607f42d6f506e87f89dcba25d890e5369a8a7d1715bd16c3c0695c33",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -1974,8 +2014,9 @@
     {
       "capability_id": "GNC-D01-C11",
       "case_id": "INTAKE-D01-C11-positive",
-      "content_address": "intake-case:adc47f148a5a67ca0560a28e523b888f5147fa9848b6a7e5bb259f94be19a1ab",
+      "content_address": "intake-case:ebe8d5a64540f5979d16c403794b360735fd3a2d301683eb08226a06297de973",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C11",
@@ -2018,8 +2059,9 @@
     {
       "capability_id": "GNC-D01-C11",
       "case_id": "INTAKE-D01-C11-foreign_context",
-      "content_address": "intake-case:a90e8f50e19e52ea5b5e64c2fccd8a08b24cf267dbd68cf97247367604336692",
+      "content_address": "intake-case:7522d72b1b45165068f29572eb2b5e75fa7c4cb8f2d64cd421916c5f7a5069d7",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -2064,8 +2106,9 @@
     {
       "capability_id": "GNC-D01-C11",
       "case_id": "INTAKE-D01-C11-malformed_input",
-      "content_address": "intake-case:b1beaf451cd720f44f23bb046e13168dd1c373d774dd150cd215f4fed175ce19",
+      "content_address": "intake-case:5c74940cea4fc0c7fe2b805c928ab8e288cdeb3b62faa79fdf5702fab972252d",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -2112,8 +2155,9 @@
     {
       "capability_id": "GNC-D01-C11",
       "case_id": "INTAKE-D01-C11-duplicate_identity",
-      "content_address": "intake-case:2c0c189ca5e5baa4fc0cb63455da1204c243df6d94cd0c45e19bf1c2b7b9c9ba",
+      "content_address": "intake-case:7abcd214e39016a9caed55b7b058907030a942ede07aeba8feb98cf8e47127c8",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -2163,8 +2207,9 @@
     {
       "capability_id": "GNC-D01-C12",
       "case_id": "INTAKE-D01-C12-positive",
-      "content_address": "intake-case:a1dbc7bbac05e0a5737b95f671cb0e5671a78d967bd24d3bbb36ff7f4827934c",
+      "content_address": "intake-case:9f219fd982ddd34112b96ef922e02f42165191891ed61e66f4674f104da92557",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C12",
@@ -2216,8 +2261,9 @@
     {
       "capability_id": "GNC-D01-C12",
       "case_id": "INTAKE-D01-C12-foreign_context",
-      "content_address": "intake-case:da1b38322608c65b7cfab202450540baff9789561c34d2172dd23d83f421824d",
+      "content_address": "intake-case:4b17f8c3f7ccbfeca8b46eed76ea45635f3b242570d5df72eb30e7ae51e7e53f",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -2271,8 +2317,9 @@
     {
       "capability_id": "GNC-D01-C12",
       "case_id": "INTAKE-D01-C12-malformed_input",
-      "content_address": "intake-case:0c557bfa02a46ccfd09db94669712a866ced53c0b203cb042172ed10d629f75c",
+      "content_address": "intake-case:4c2b38301122a3ccf5574c39ebf232fd9e841d5598318e257a3558ec137be58f",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -2328,8 +2375,9 @@
     {
       "capability_id": "GNC-D01-C12",
       "case_id": "INTAKE-D01-C12-duplicate_identity",
-      "content_address": "intake-case:e8e2a54da25b6011cd9aed5a555d14deea4da9bbbe99ee768f36eb490feb0b28",
+      "content_address": "intake-case:c1018e41087dda6c1e10a0f33c7bcf58970f4a8a655d6621755d0787fb4448f9",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -2388,8 +2436,9 @@
     {
       "capability_id": "GNC-D01-C13",
       "case_id": "INTAKE-D01-C13-positive",
-      "content_address": "intake-case:f527eca3f674729ec6b8ed378bbc1c314c9c926838d94bf0fd56d9b20d89f034",
+      "content_address": "intake-case:d9e0080235583896a9820670611895b4ed072661f1ea679468b05bedd1cb81de",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C13",
@@ -2437,8 +2486,9 @@
     {
       "capability_id": "GNC-D01-C13",
       "case_id": "INTAKE-D01-C13-foreign_context",
-      "content_address": "intake-case:2a4d544891fdc02be6d6708884dcad393216499b73f56a6effde821000a18b55",
+      "content_address": "intake-case:3917930d4ddb9defe205b15b5006906f7c289e5101c0777d70a733afbc946d7b",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -2488,8 +2538,9 @@
     {
       "capability_id": "GNC-D01-C13",
       "case_id": "INTAKE-D01-C13-malformed_input",
-      "content_address": "intake-case:997abaeffd00c328bb924ed1ae58888d35c5c5d52c66b5abc621d50617da7617",
+      "content_address": "intake-case:504c24bec0ae52d888dbc861d4c57fbcbb376318732638dcfaeeff60c3ef497f",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -2541,8 +2592,9 @@
     {
       "capability_id": "GNC-D01-C13",
       "case_id": "INTAKE-D01-C13-duplicate_identity",
-      "content_address": "intake-case:b6eaf756dcc9fd8b468b26e97cfa5a2782c6a14b69cbbc839cc32d10445b9351",
+      "content_address": "intake-case:a85fb088ea0bcd4c86f62fcf91e2c6ff51e3cc4531e0e483cc801cf3f37f55f1",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -2597,8 +2649,9 @@
     {
       "capability_id": "GNC-D01-C14",
       "case_id": "INTAKE-D01-C14-positive",
-      "content_address": "intake-case:d5a4d4504587ab00a1ef4eb90baa1c141f876e452fb8ddcf99c5d17f57369755",
+      "content_address": "intake-case:ccfc46aff4c1d5ee02f292c9068a1670f6b75830b7f815dbf6395b68adb64f44",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C14",
@@ -2645,8 +2698,9 @@
     {
       "capability_id": "GNC-D01-C14",
       "case_id": "INTAKE-D01-C14-foreign_context",
-      "content_address": "intake-case:5f72d40c8c1ec1a80afa7d3a3b05171460abdc4b76dfc648716b67296b3eccdb",
+      "content_address": "intake-case:404fb946d3c49d0b0ecb13055fcc1dd8bafa155a5bc244a4d0ea7df6707226f8",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -2695,8 +2749,9 @@
     {
       "capability_id": "GNC-D01-C14",
       "case_id": "INTAKE-D01-C14-malformed_input",
-      "content_address": "intake-case:21c9b1bde3b082c4267c4e56ed96c7cfac64de49390b7dad49bb85e64d9110a5",
+      "content_address": "intake-case:907b9e6ac414f2c2d1b68e12f5350ce9599651f331166aad4a3398b9d85e3be1",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -2747,8 +2802,9 @@
     {
       "capability_id": "GNC-D01-C14",
       "case_id": "INTAKE-D01-C14-duplicate_identity",
-      "content_address": "intake-case:958ac73aae31bb07ac18248ab7b5f6d96635d1f499c2a6ded1e58ae38f4a065f",
+      "content_address": "intake-case:ce432d6e69608d9d9bf778fd1d3561b08ddce6429907a58697a128c650d82a82",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -2802,8 +2858,9 @@
     {
       "capability_id": "GNC-D01-C15",
       "case_id": "INTAKE-D01-C15-positive",
-      "content_address": "intake-case:0ae05fce679fc265c8bd2427813e6023a5c8e8ac4326837dd79ce6c1880e0544",
+      "content_address": "intake-case:350e2a2e5c7eef903492b28812e4ef2a2d2933aded3b3ad4b437cd06b97e05a6",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C15",
@@ -2855,8 +2912,9 @@
     {
       "capability_id": "GNC-D01-C15",
       "case_id": "INTAKE-D01-C15-foreign_context",
-      "content_address": "intake-case:14ffb70ee0cb804de03d7bd83307c5d003d37f39c3bc3cf9e43bfeec51ca65ba",
+      "content_address": "intake-case:1efff6947d0e2e3a2f382400f51c1ce7430ec8fcc3c023160051da304211fe32",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -2910,8 +2968,9 @@
     {
       "capability_id": "GNC-D01-C15",
       "case_id": "INTAKE-D01-C15-malformed_input",
-      "content_address": "intake-case:b95cf7bda3538478c0cb9418bdac8946f571b4125c20d3467e316f28390504fd",
+      "content_address": "intake-case:054c3109eb454ba325bd988cac9a6cf1858b754296a0fbef6240c43eaeaeed27",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -2967,8 +3026,9 @@
     {
       "capability_id": "GNC-D01-C15",
       "case_id": "INTAKE-D01-C15-duplicate_identity",
-      "content_address": "intake-case:f6e6b843eaf5f7c5673e8ca068fb4d9142823569deb91f352887a88fa1238138",
+      "content_address": "intake-case:009d80c61a22cd8b79f84bc9bca40a0aca9fde065325b19b6f98291d99b7d8eb",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -3027,8 +3087,9 @@
     {
       "capability_id": "GNC-D01-C16",
       "case_id": "INTAKE-D01-C16-positive",
-      "content_address": "intake-case:71529bed0bbe4772f7206de06080e8025f0eba43c389f6944bf10e4596edcd43",
+      "content_address": "intake-case:8d085b8ee8aba0557ecf90769399c3113c8429fa35e6c20b47ad6aedab80c717",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [],
       "expected_state": "accepted",
       "operation_id": "INTAKE-D01-C16",
@@ -3074,8 +3135,9 @@
     {
       "capability_id": "GNC-D01-C16",
       "case_id": "INTAKE-D01-C16-foreign_context",
-      "content_address": "intake-case:2830c4d68e2352dcd94d53b8f0a4f49c89bed0c7379f9db78a4149e310a5ef52",
+      "content_address": "intake-case:4bebc6dd47c7a26db60435a0d6874e5513026c248a21bf818333eb90ba997db6",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "foreign_context"
       ],
@@ -3123,8 +3185,9 @@
     {
       "capability_id": "GNC-D01-C16",
       "case_id": "INTAKE-D01-C16-malformed_input",
-      "content_address": "intake-case:392d617b519853d6ef76a5ced5f07d37137ebadb68b13238cf96a8bed9213a50",
+      "content_address": "intake-case:7e52933d23d19e1aee32c10b87d274a10c48374a93a342b3a466b3804eb6d535",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "malformed_input"
       ],
@@ -3174,8 +3237,9 @@
     {
       "capability_id": "GNC-D01-C16",
       "case_id": "INTAKE-D01-C16-duplicate_identity",
-      "content_address": "intake-case:17dcedfc90d6d1cc20704ad9aa6cb8509085ddb16c923e4a171892d183630b63",
+      "content_address": "intake-case:3eb4e8e9d3915730ca2b35517e62b3eaee6c63f644939b72dbaf4be3415fb532",
       "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
+      "delegate_context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
       "expected_issue_codes": [
         "duplicate_identity"
       ],
@@ -3226,7 +3290,7 @@
       ]
     }
   ],
-  "content_address": "intake-fixture:4faae9f55fcf2a10bc71b5cccff0534b81cd39db5a923f70895ee37a8b83666b",
+  "content_address": "intake-fixture:55d37527eb473eafec2383806f229dc79a0f61f3a0707c8b625484dacf4783fa",
   "context_key": "GRCh38|glioma|adult|aggregate|public_reference|pre_treatment",
   "fixture_id": "intake-architecture-d01",
   "operations": [

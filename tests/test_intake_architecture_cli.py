@@ -35,7 +35,13 @@ class IntakeArchitectureCliTests(unittest.TestCase):
     def test_data_audit_command(self) -> None:
         payload = self._run_json("intake-architecture-data-audit", "--input", str(self.fixture))
         self.assertTrue(payload["accepted"])
-        self.assertEqual(len(payload["checks"]), 12)
+        self.assertEqual(len(payload["checks"]), 17)
+
+    def test_compliance_command(self) -> None:
+        payload = self._run_json("intake-architecture-compliance", "--input", str(self.fixture))
+        self.assertTrue(payload["accepted"])
+        self.assertEqual(payload["passed_checks"], 12)
+        self.assertEqual(payload["forbidden_paths"], [])
 
     def test_plan_command(self) -> None:
         payload = self._run_json("intake-architecture-plan", "--input", str(self.fixture))
@@ -50,12 +56,12 @@ class IntakeArchitectureCliTests(unittest.TestCase):
     def test_runtime_command(self) -> None:
         payload = self._run_json("intake-architecture-runtime", "--input", str(self.fixture))
         self.assertEqual(payload["state"], "accepted")
-        self.assertEqual(len(payload["stages"]), 20)
+        self.assertEqual(len(payload["stages"]), 24)
 
     def test_quality_command(self) -> None:
         payload = self._run_json("intake-architecture-quality", "--input", str(self.fixture))
         self.assertTrue(payload["accepted"])
-        self.assertEqual(payload["passed_checks"], 18)
+        self.assertEqual(payload["passed_checks"], 24)
 
     def test_depth_command(self) -> None:
         payload = self._run_json("intake-architecture-depth", "--input", str(self.fixture))
@@ -79,13 +85,53 @@ class IntakeArchitectureCliTests(unittest.TestCase):
 
     def test_report_command(self) -> None:
         output = self.root / "report.md"
-        self.assertEqual(main(["intake-architecture-report", "--input", str(self.fixture), "--format", "markdown", "--output", str(output)]), 0)
-        self.assertIn("D01 Variant Identity", output.read_text(encoding="utf-8"))
+        self.assertEqual(
+            main(
+                [
+                    "intake-architecture-report",
+                    "--input",
+                    str(self.fixture),
+                    "--format",
+                    "markdown",
+                    "--output",
+                    str(output),
+                ]
+            ),
+            0,
+        )
+        self.assertIn("D02 Variant Identity", output.read_text(encoding="utf-8"))
 
     def test_review_csv_command(self) -> None:
         output = self.root / "review.csv"
-        self.assertEqual(main(["intake-architecture-review-csv", "--input", str(self.fixture), "--output", str(output)]), 0)
+        self.assertEqual(
+            main(
+                [
+                    "intake-architecture-review-csv",
+                    "--input",
+                    str(self.fixture),
+                    "--output",
+                    str(output),
+                ]
+            ),
+            0,
+        )
         self.assertEqual(len(output.read_text(encoding="utf-8").splitlines()), 49)
+
+    def test_receipts_csv_command(self) -> None:
+        output = self.root / "receipts.csv"
+        self.assertEqual(
+            main(
+                [
+                    "intake-architecture-receipts-csv",
+                    "--input",
+                    str(self.fixture),
+                    "--output",
+                    str(output),
+                ]
+            ),
+            0,
+        )
+        self.assertEqual(len(output.read_text(encoding="utf-8").splitlines()), 459)
 
     def test_failures_command(self) -> None:
         payload = self._run_json("intake-architecture-failures")
@@ -95,10 +141,12 @@ class IntakeArchitectureCliTests(unittest.TestCase):
     def test_schema_command(self) -> None:
         payload = self._run_json("intake-architecture-schema")
         self.assertEqual(payload["schema_id"], "intake-architecture-d01")
-        self.assertEqual(len(payload["fields"]), 11)
+        self.assertEqual(len(payload["fields"]), 18)
 
     def test_query_command(self) -> None:
-        payload = self._run_json("intake-architecture-query", "--input", str(self.fixture), "--query", "review")
+        payload = self._run_json(
+            "intake-architecture-query", "--input", str(self.fixture), "--query", "review"
+        )
         self.assertEqual(payload["matched"], 48)
 
     def test_invariants_command(self) -> None:

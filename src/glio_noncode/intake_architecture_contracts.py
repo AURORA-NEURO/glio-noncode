@@ -25,6 +25,15 @@ INTAKE_ARCHITECTURE_CASES_PER_OPERATION = 4
 INTAKE_ARCHITECTURE_CASE_COUNT = (
     INTAKE_ARCHITECTURE_OPERATION_COUNT * INTAKE_ARCHITECTURE_CASES_PER_OPERATION
 )
+INTAKE_ARCHITECTURE_PLANE_COUNT = 7
+INTAKE_ARCHITECTURE_STAGE_COUNT = 24
+INTAKE_ARCHITECTURE_QUALITY_CHECK_COUNT = 24
+INTAKE_ARCHITECTURE_EVALUATION_CHECKS_PER_CASE = 7
+INTAKE_ARCHITECTURE_EVALUATION_GLOBAL_CHECK_COUNT = 10
+INTAKE_ARCHITECTURE_EVALUATION_CHECK_COUNT = (
+    INTAKE_ARCHITECTURE_CASE_COUNT * INTAKE_ARCHITECTURE_EVALUATION_CHECKS_PER_CASE
+    + INTAKE_ARCHITECTURE_EVALUATION_GLOBAL_CHECK_COUNT
+)
 
 
 class IntakeArchitectureState(StrEnum):
@@ -155,6 +164,7 @@ class IntakeArchitectureCase:
     expected_state: IntakeArchitectureState
     expected_issue_codes: tuple[str, ...]
     content_address: str
+    delegate_context_key: str = INTAKE_ARCHITECTURE_CONTEXT
 
     def __post_init__(self) -> None:
         for name in (
@@ -307,6 +317,23 @@ class IntakeArchitectureOperationResult:
 
 
 @dataclass(frozen=True, slots=True)
+class IntakeArchitectureEvaluationCheck:
+    """One independently addressable check on an evaluated intake case."""
+
+    check_id: str
+    case_id: str
+    kind: IntakeArchitectureCheckKind
+    passed: bool
+    observed: Any
+    required: Any
+    detail: str
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
 class IntakeArchitectureEvaluation:
     fixture_id: str
     results: tuple[IntakeArchitectureOperationResult, ...]
@@ -314,6 +341,11 @@ class IntakeArchitectureEvaluation:
     failed_cases: int
     accepted: bool
     content_address: str
+    checks: tuple[IntakeArchitectureEvaluationCheck, ...] = ()
+
+    @property
+    def check_count(self) -> int:
+        return len(self.checks)
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -451,6 +483,7 @@ class IntakeArchitectureRuntime:
     artifacts: tuple[IntakeArchitectureBundleArtifact, ...]
     release: IntakeArchitectureRelease
     content_address: str
+    compliance: Any = None
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -588,6 +621,7 @@ __all__ = [name for name in globals() if name.startswith("INTAKE_ARCHITECTURE_")
     "IntakeArchitectureNormalizationReceipt",
     "IntakeArchitectureIdentityReceipt",
     "IntakeArchitectureOperationResult",
+    "IntakeArchitectureEvaluationCheck",
     "IntakeArchitectureEvaluation",
     "IntakeArchitecturePlanNode",
     "IntakeArchitecturePlan",

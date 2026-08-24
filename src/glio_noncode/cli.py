@@ -111,9 +111,11 @@ from .coordination_architecture_schema import default_coordination_schema
 from .coordination_architecture_tools import build_coordination_tool_registry
 from .coordination_architecture_validation import build_coordination_validation_matrix
 from .intake_architecture_bundle import build_intake_architecture_release
+from .intake_architecture_compliance import run_intake_architecture_compliance
 from .intake_architecture_contracts import IntakeArchitectureScenario
 from .intake_architecture_depth import audit_intake_architecture_depth
 from .intake_architecture_exports import (
+    intake_architecture_receipts_csv,
     intake_architecture_report_markdown,
     intake_architecture_runtime_json,
 )
@@ -2550,6 +2552,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     intake_architecture_data.add_argument("--input", default=None)
     intake_architecture_data.add_argument("--output", default=None)
+    intake_architecture_compliance = subparsers.add_parser(
+        "intake-architecture-compliance",
+        help="audit D02 public-boundary and release compliance",
+    )
+    intake_architecture_compliance.add_argument("--input", default=None)
+    intake_architecture_compliance.add_argument("--output", default=None)
     intake_architecture_plan = subparsers.add_parser(
         "intake-architecture-plan",
         help="emit the D01 dependency-safe intake plan",
@@ -2604,6 +2612,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     intake_architecture_review_parser.add_argument("--input", default=None)
     intake_architecture_review_parser.add_argument("--output", default=None)
+    intake_architecture_receipts_parser = subparsers.add_parser(
+        "intake-architecture-receipts-csv",
+        help="export D02 evaluation checks as sanitized receipts CSV",
+    )
+    intake_architecture_receipts_parser.add_argument("--input", default=None)
+    intake_architecture_receipts_parser.add_argument("--output", default=None)
     intake_architecture_report_parser = subparsers.add_parser(
         "intake-architecture-report",
         help="render a D01 runtime report",
@@ -8446,6 +8460,11 @@ def main(argv: list[str] | None = None) -> int:
             report = audit_intake_architecture_data(fixture)
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "intake-architecture-compliance":
+            fixture = _intake_architecture_fixture(args.input)
+            report = run_intake_architecture_compliance(run_intake_architecture(fixture))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "intake-architecture-plan":
             fixture = _intake_architecture_fixture(args.input)
             _write_json(compile_intake_architecture_plan(fixture).to_dict(), args.output)
@@ -8496,6 +8515,10 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 args.output,
             )
+            return 0
+        if args.command == "intake-architecture-receipts-csv":
+            fixture = _intake_architecture_fixture(args.input)
+            _write_text(intake_architecture_receipts_csv(run_intake_architecture(fixture)), args.output)
             return 0
         if args.command == "intake-architecture-report":
             fixture = _intake_architecture_fixture(args.input)
