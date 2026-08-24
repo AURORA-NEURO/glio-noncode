@@ -1721,6 +1721,17 @@ def _causal_architecture_fixture(input_path: str | None):
     )
 
 
+def _cohort_architecture_fixture(input_path: str | None):
+    from .cohort_architecture_public_data import default_cohort_architecture_fixture
+    from .cohort_architecture_contracts import CohortArchitectureFixture
+
+    return (
+        CohortArchitectureFixture.from_file(input_path)
+        if input_path
+        else default_cohort_architecture_fixture()
+    )
+
+
 def _read_rows(path: str, *keys: str) -> tuple[Mapping[str, Any], ...]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     if isinstance(payload, dict):
@@ -3078,6 +3089,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     causal_architecture_bundle.add_argument("--input", default=None)
     causal_architecture_bundle.add_argument("--output", required=True)
+    cohort_architecture_fixture = subparsers.add_parser(
+        "cohort-architecture-fixture",
+        help="emit the D12 C01-C16 public aggregate cohort fixture",
+    )
+    cohort_architecture_fixture.add_argument("--output", default=None)
+    for command, help_text in (
+        ("cohort-architecture-data-audit", "audit D12 cohort sources, joins, contexts, and scope"),
+        ("cohort-architecture-plan", "compile the D12 cohort dependency plan"),
+        ("evaluate-cohort-architecture", "execute D12 cohort family delegates"),
+        ("cohort-architecture-runtime", "run the D12 twenty-two-stage cohort runtime"),
+        ("cohort-architecture-quality", "run the D12 cohort release quality gate"),
+        ("cohort-architecture-depth", "report D12 cohort operation and evidence depth"),
+        ("replay-cohort-architecture", "replay D12 cohort evaluation deterministically"),
+        ("cohort-architecture-report", "emit the D12 cohort runtime report"),
+        ("cohort-architecture-scenarios", "emit the D12 cohort scenario matrix"),
+        ("cohort-architecture-sources", "emit the D12 cohort source registry"),
+        ("cohort-architecture-compliance", "run D12 public-boundary compliance checks"),
+        ("cohort-architecture-validation", "run D12 typed validation and replay checks"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--input", default=None)
+        parser_item.add_argument("--output", default=None)
+    cohort_architecture_query = subparsers.add_parser(
+        "cohort-architecture-query", help="query sanitized D12 cohort cases"
+    )
+    cohort_architecture_query.add_argument("--input", default=None)
+    cohort_architecture_query.add_argument("--operation", default=None)
+    cohort_architecture_query.add_argument("--family", default=None)
+    cohort_architecture_query.add_argument("--scenario", default=None)
+    cohort_architecture_query.add_argument("--output", default=None)
+    cohort_architecture_bundle = subparsers.add_parser(
+        "cohort-architecture-bundle", help="write a D12 cohort runtime bundle"
+    )
+    cohort_architecture_bundle.add_argument("--input", default=None)
+    cohort_architecture_bundle.add_argument("--output", required=True)
     structural_architecture_fixture = subparsers.add_parser(
         "structural-architecture-fixture",
         help="emit the D02 C01-C16 public aggregate architecture fixture",
@@ -9513,6 +9559,124 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
             _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
             _write_text(causal_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
+            return 0 if runtime.accepted else 2
+        if args.command == "cohort-architecture-fixture":
+            from .cohort_architecture_public_data import cohort_architecture_fixture_json
+
+            _write_text(cohort_architecture_fixture_json(_cohort_architecture_fixture(None)), args.output)
+            return 0
+        if args.command == "cohort-architecture-data-audit":
+            from .cohort_architecture_public_data import audit_cohort_architecture_data
+
+            report = audit_cohort_architecture_data(_cohort_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "cohort-architecture-plan":
+            from .cohort_architecture_plan import build_cohort_architecture_plan
+
+            report = build_cohort_architecture_plan(_cohort_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evaluate-cohort-architecture":
+            from .cohort_architecture_operations import evaluate_cohort_architecture_fixture
+
+            report = evaluate_cohort_architecture_fixture(_cohort_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "cohort-architecture-runtime":
+            from .cohort_architecture_runtime import run_cohort_architecture
+
+            runtime = run_cohort_architecture(_cohort_architecture_fixture(args.input))
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "cohort-architecture-quality":
+            from .cohort_architecture_quality import assess_cohort_architecture_quality
+            from .cohort_architecture_replay import replay_cohort_architecture_fixture
+            from .cohort_architecture_runtime import run_cohort_architecture
+
+            runtime = run_cohort_architecture(_cohort_architecture_fixture(args.input))
+            gate = assess_cohort_architecture_quality(
+                runtime.fixture,
+                runtime.audit,
+                runtime.plan,
+                runtime.evaluation,
+                replay_cohort_architecture_fixture(runtime.fixture),
+                runtime.release,
+                runtime.artifacts,
+                runtime.ledger,
+            )
+            _write_json(gate.to_dict(), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "cohort-architecture-depth":
+            from .cohort_architecture_depth import assess_cohort_architecture_depth, cohort_architecture_depth_percent
+            from .cohort_architecture_runtime import run_cohort_architecture
+
+            runtime = run_cohort_architecture(_cohort_architecture_fixture(args.input))
+            report = assess_cohort_architecture_depth(runtime.fixture, runtime.evaluation)
+            completion_percent = cohort_architecture_depth_percent(report)
+            _write_json(report.to_dict() | {"completion_percent": completion_percent}, args.output)
+            return 0 if completion_percent == 100.0 else 2
+        if args.command == "replay-cohort-architecture":
+            from .cohort_architecture_replay import replay_cohort_architecture_fixture
+
+            report = replay_cohort_architecture_fixture(_cohort_architecture_fixture(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "cohort-architecture-report":
+            from .cohort_architecture_reporting import build_cohort_architecture_report
+            from .cohort_architecture_runtime import run_cohort_architecture
+
+            runtime = run_cohort_architecture(_cohort_architecture_fixture(args.input))
+            _write_json(build_cohort_architecture_report(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "cohort-architecture-scenarios":
+            from .cohort_architecture_query import query_cohort_architecture_cases
+            from .cohort_architecture_runtime import run_cohort_architecture
+
+            runtime = run_cohort_architecture(_cohort_architecture_fixture(args.input))
+            _write_json(
+                {"accepted": runtime.accepted, "cases": query_cohort_architecture_cases(runtime)},
+                args.output,
+            )
+            return 0 if runtime.accepted else 2
+        if args.command == "cohort-architecture-sources":
+            fixture = _cohort_architecture_fixture(args.input)
+            _write_json({"accepted": True, "sources": [item.to_dict() for item in fixture.sources]}, args.output)
+            return 0
+        if args.command == "cohort-architecture-compliance":
+            from .cohort_architecture_compliance import assess_cohort_architecture_compliance
+
+            report = assess_cohort_architecture_compliance(_cohort_architecture_fixture(args.input))
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "cohort-architecture-validation":
+            from .cohort_architecture_operations import evaluate_cohort_architecture_fixture
+            from .cohort_architecture_schema import validate_cohort_architecture_fixture
+
+            fixture = _cohort_architecture_fixture(args.input)
+            evaluation = evaluate_cohort_architecture_fixture(fixture)
+            report = {"accepted": validate_cohort_architecture_fixture(fixture) and evaluation.accepted, "evaluation": evaluation.to_dict()}
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "cohort-architecture-query":
+            from .cohort_architecture_query import query_cohort_architecture_cases
+            from .cohort_architecture_runtime import run_cohort_architecture
+
+            runtime = run_cohort_architecture(_cohort_architecture_fixture(args.input))
+            rows = query_cohort_architecture_cases(runtime, operation_id=args.operation, family=args.family, scenario=args.scenario)
+            _write_json({"accepted": runtime.accepted, "count": len(rows), "cases": rows}, args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "cohort-architecture-bundle":
+            from .cohort_architecture_public_data import cohort_architecture_fixture_json
+            from .cohort_architecture_runtime import run_cohort_architecture
+
+            fixture = _cohort_architecture_fixture(args.input)
+            runtime = run_cohort_architecture(fixture)
+            output_dir = Path(args.output)
+            output_dir.mkdir(parents=True, exist_ok=True)
+            _write_json(runtime.to_dict(), str(output_dir / "runtime.json"))
+            _write_json({"artifacts": [jsonable(item) for item in runtime.artifacts], "release": jsonable(runtime.release)}, str(output_dir / "release.json"))
+            _write_text(cohort_architecture_fixture_json(fixture), str(output_dir / "fixture.json"))
             return 0 if runtime.accepted else 2
         if args.command == "structural-architecture-fixture":
             _write_text(structural_architecture_fixture_json(), args.output)

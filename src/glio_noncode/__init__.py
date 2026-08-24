@@ -9921,6 +9921,10 @@ from .causal_architecture_exports import *  # noqa: F401,F403
 
 __all__ += [name for name in globals() if name.startswith("CausalArchitecture") or name.startswith("CAUSAL_ARCHITECTURE") or name.startswith(("assess_causal_architecture", "audit_causal_architecture", "build_causal_architecture", "causal_architecture", "default_causal_architecture", "deep_audit_causal_architecture", "evaluate_causal_architecture", "execute_causal_architecture", "load_causal_architecture", "normalize_causal_architecture", "query_causal_architecture", "replay_causal_architecture", "run_causal_architecture", "validate_causal_architecture"))]
 
+from .cohort_architecture_exports import *  # noqa: F401,F403
+
+__all__ += [name for name in globals() if name.startswith("CohortArchitecture") or name.startswith("COHORT_ARCHITECTURE") or name.startswith(("assess_cohort_architecture", "audit_cohort_architecture", "build_cohort_architecture", "cohort_architecture", "default_cohort_architecture", "deep_audit_cohort_architecture", "evaluate_cohort_architecture", "execute_cohort_architecture", "load_cohort_architecture", "normalize_cohort_architecture", "query_cohort_architecture", "replay_cohort_architecture", "run_cohort_architecture", "validate_cohort_architecture"))]
+
 from .specimen_architecture_exports import (
     SPECIMEN_ARCHITECTURE_ARTIFACT_COUNT,
     SPECIMEN_ARCHITECTURE_BOUNDARY,

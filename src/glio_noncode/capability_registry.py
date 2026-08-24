@@ -352,6 +352,15 @@ class CapabilityRegistry:
                         )
                         if record.spec.capability_id.startswith("GNC-D11-")
                         else ()
+                    )
+                    + (
+                        (
+                            "glio_noncode.cohort_architecture_operations.evaluate_cohort_architecture_fixture",
+                            "glio_noncode.cohort_architecture_runtime.run_cohort_architecture",
+                            "glio_noncode.cohort_architecture_quality.assess_cohort_architecture_quality",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D12-")
+                        else ()
                     ),
                     test_modules=tuple(str(item) for item in raw.get("test_modules", ()))
                     + (
@@ -424,6 +433,14 @@ class CapabilityRegistry:
                             "tests.test_causal_architecture_exports",
                         )
                         if record.spec.capability_id.startswith("GNC-D11-")
+                        else ()
+                    )
+                    + (
+                        (
+                            "tests.test_cohort_architecture",
+                            "tests.test_cohort_architecture_exports",
+                        )
+                        if record.spec.capability_id.startswith("GNC-D12-")
                         else ()
                     ),
                     evidence_note=str(raw.get("evidence_note", "")),
