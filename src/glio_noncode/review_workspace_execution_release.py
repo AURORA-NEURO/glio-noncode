@@ -39,6 +39,7 @@ REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX = "review-workspace-execution
 REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST_PREFIX = "review-workspace-execution-release-manifest"
 REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION = "review-workspace-execution-release-diff-v1"
 REVIEW_WORKSPACE_EXECUTION_RELEASE_SCHEMA_VERSION = "review-workspace-execution-release-schema-v1"
+REVIEW_WORKSPACE_EXECUTION_RELEASE_QUERY_VERSION = "review-workspace-execution-release-query-v1"
 
 _REQUIRED_ARTIFACTS = frozenset(
     {
@@ -263,7 +264,7 @@ class ReviewWorkspaceOfflineExecutionRelease:
 
     def to_dict(self, *, include_report: bool = False) -> dict[str, Any]:
         body: dict[str, Any] = {
-            "release_query_version": REVIEW_WORKSPACE_EXECUTION_RELEASE_SCHEMA_VERSION,
+            "release_query_version": REVIEW_WORKSPACE_EXECUTION_RELEASE_QUERY_VERSION,
             "path": self.path,
             "release_id": self.release_id,
             "execution_id": self.execution_id,
@@ -617,6 +618,13 @@ def verify_review_workspace_execution_release(
         for field in ("execution_id", "plan_id", "plan_address", "workspace_id", "run_id", "case_id"):
             if getattr(report, field) != manifest.get(field):
                 tampered.append(f"manifest.{field}")
+        event_stream_path = root / "events.jsonl"
+        if event_stream_path.is_file() and not event_stream_path.is_symlink():
+            try:
+                if event_stream_path.read_bytes() != _event_stream(report):
+                    tampered.append("events.jsonl")
+            except OSError:
+                tampered.append("events.jsonl")
     else:
         tampered.append("review-workspace-execution.json")
     actual = sorted(
@@ -933,6 +941,7 @@ __all__ = [
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST_PREFIX",
+    "REVIEW_WORKSPACE_EXECUTION_RELEASE_QUERY_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_SCHEMA_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_VERSION",
     "ReviewWorkspaceExecutionActionDiff",

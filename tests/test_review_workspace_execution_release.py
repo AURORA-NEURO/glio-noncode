@@ -23,6 +23,7 @@ from glio_noncode.review_workspace_execution_release import (
 )
 from glio_noncode.review_workspace_plan import build_review_workspace_plan
 from glio_noncode.runtime import CaseRuntime
+from glio_noncode.serialization import canonical_json, content_hash, hash_bytes
 
 from .helpers import fixture_manifest
 
@@ -89,6 +90,35 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             self.assertFalse(verification.accepted)
             self.assertIn("events.jsonl", verification.tampered_files)
             self.assertIn("unexpected.txt", verification.unexpected_files)
+
+    def test_event_stream_reconciliation_survives_manifest_readdressing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, report = self._report(directory)
+            bundle = build_review_workspace_execution_release(report)
+            destination = Path(directory) / "execution-release"
+            write_review_workspace_execution_release(bundle, destination)
+            stream = destination / "events.jsonl"
+            stream.write_bytes(b"{\"event_id\":\"forged\"}\n")
+            manifest_path = destination / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            artifact = next(item for item in manifest["artifacts"] if item["filename"] == "events.jsonl")
+            payload = stream.read_bytes()
+            artifact["byte_count"] = len(payload)
+            artifact["line_count"] = len(payload.splitlines())
+            artifact["content_address"] = hash_bytes(
+                payload,
+                prefix="review-workspace-execution-release-artifact",
+            )
+            manifest_body = dict(manifest)
+            manifest_body.pop("manifest_address", None)
+            manifest["manifest_address"] = content_hash(
+                manifest_body,
+                prefix="review-workspace-execution-release-manifest",
+            )
+            manifest_path.write_text(canonical_json(manifest) + "\n", encoding="utf-8")
+            verification = verify_review_workspace_execution_release(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("events.jsonl", verification.tampered_files)
 
     def test_release_schema_and_capabilities_are_public_and_bounded(self) -> None:
         schema = review_workspace_execution_release_schema()
