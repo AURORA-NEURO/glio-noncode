@@ -47,6 +47,10 @@ from .cohort_benchmarks import cohort_benchmark_capabilities, cohort_benchmark_s
 from .review_workspace import review_workspace_capabilities, review_workspace_schema
 from .review_workspace_plan import review_workspace_plan_capabilities, review_workspace_plan_schema
 from .review_workspace_execution import review_workspace_execution_capabilities, review_workspace_execution_schema
+from .review_workspace_execution_release import (
+    review_workspace_execution_release_capabilities,
+    review_workspace_execution_release_schema,
+)
 from .variant_stream import (
     breakend_normalization_schema,
     streaming_intake_capabilities,
@@ -59,7 +63,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 45
+PUBLIC_SURFACE_EXPECTED_COUNT = 47
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -281,6 +285,8 @@ def default_public_surface_inventory(
         "review-workspace-plan-capabilities": review_workspace_plan_capabilities(),
         "review-workspace-plan-execution-schema": review_workspace_execution_schema(),
         "review-workspace-plan-execution-capabilities": review_workspace_execution_capabilities(),
+        "review-workspace-plan-execution-release-schema": review_workspace_execution_release_schema(),
+        "review-workspace-plan-execution-release-capabilities": review_workspace_execution_release_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

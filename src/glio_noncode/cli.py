@@ -1755,6 +1755,16 @@ from .review_workspace_execution_exports import (
     review_workspace_execution_checks_csv,
     review_workspace_execution_events_csv,
 )
+from .review_workspace_execution_release import (
+    build_review_workspace_execution_release,
+    diff_review_workspace_execution_releases,
+    load_review_workspace_execution_release,
+    query_review_workspace_execution_release,
+    review_workspace_execution_release_capabilities,
+    review_workspace_execution_release_schema,
+    verify_review_workspace_execution_release,
+    write_review_workspace_execution_release,
+)
 from .review_workspace_release_query import (
     diff_review_workspace_releases,
     index_review_workspace_release,
@@ -3620,6 +3630,55 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_event.add_argument("--baseline-run-id", default=None)
     review_workspace_plan_event.add_argument("--output", default=None)
 
+    review_workspace_plan_execution_release = subparsers.add_parser(
+        "review-workspace-plan-execution-release",
+        help="package a verified portable review-plan execution handoff",
+    )
+    review_workspace_plan_execution_release.add_argument("run_id", type=str)
+    review_workspace_plan_execution_release.add_argument("--data-root", default=".glio")
+    review_workspace_plan_execution_release.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_execution_release.add_argument("--output", required=True)
+    review_workspace_plan_execution_release.add_argument("--allow-existing", action="store_true")
+
+    review_workspace_plan_execution_release_verify = subparsers.add_parser(
+        "review-workspace-plan-execution-release-verify",
+        help="independently verify a portable review-plan execution handoff",
+    )
+    review_workspace_plan_execution_release_verify.add_argument("input", type=str)
+    review_workspace_plan_execution_release_verify.add_argument("--output", default=None)
+
+    review_workspace_plan_execution_release_load = subparsers.add_parser(
+        "review-workspace-plan-execution-release-load",
+        help="reopen a verified portable review-plan execution handoff",
+    )
+    review_workspace_plan_execution_release_load.add_argument("input", type=str)
+    review_workspace_plan_execution_release_load.add_argument("--include-report", action="store_true")
+    review_workspace_plan_execution_release_load.add_argument("--output", default=None)
+
+    review_workspace_plan_execution_release_query = subparsers.add_parser(
+        "review-workspace-plan-execution-release-query",
+        help="query a portable review-plan execution handoff",
+    )
+    review_workspace_plan_execution_release_query.add_argument("input", type=str)
+    review_workspace_plan_execution_release_query.add_argument("--status", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--lane", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--action-kind", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--action-id", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--event-kind", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--priority", type=int, default=None)
+    review_workspace_plan_execution_release_query.add_argument("--text", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--offset", type=int, default=0)
+    review_workspace_plan_execution_release_query.add_argument("--limit", type=int, default=50)
+    review_workspace_plan_execution_release_query.add_argument("--output", default=None)
+
+    review_workspace_plan_execution_release_diff = subparsers.add_parser(
+        "review-workspace-plan-execution-release-diff",
+        help="compare two verified review-plan execution handoffs",
+    )
+    review_workspace_plan_execution_release_diff.add_argument("left", type=str)
+    review_workspace_plan_execution_release_diff.add_argument("right", type=str)
+    review_workspace_plan_execution_release_diff.add_argument("--output", default=None)
+
     review_workspace_execution_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-schema",
         help="emit the review-plan execution schema",
@@ -3631,6 +3690,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-plan execution capabilities",
     )
     review_workspace_execution_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_release_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-release-schema",
+        help="emit the portable review-plan execution-release schema",
+    )
+    review_workspace_execution_release_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_release_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-release-capabilities",
+        help="emit portable review-plan execution-release capabilities",
+    )
+    review_workspace_execution_release_capabilities_parser.add_argument("--output", default=None)
 
     run_workspace_history = subparsers.add_parser(
         "run-workspace-history",
@@ -22623,11 +22694,60 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(execution.to_dict(), args.output)
             return 0 if execution.accepted else 2
+        if args.command == "review-workspace-plan-execution-release":
+            execution = build_persisted_review_workspace_plan_execution(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            bundle = build_review_workspace_execution_release(execution)
+            write_review_workspace_execution_release(
+                bundle,
+                args.output,
+                allow_existing=args.allow_existing,
+            )
+            print(f"review workspace execution release written to {args.output}")
+            return 0 if bundle.accepted else 2
+        if args.command == "review-workspace-plan-execution-release-verify":
+            verification = verify_review_workspace_execution_release(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "review-workspace-plan-execution-release-load":
+            loaded = load_review_workspace_execution_release(args.input)
+            _write_json(loaded.to_dict(include_report=args.include_report), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-release-query":
+            result = query_review_workspace_execution_release(
+                args.input,
+                ReviewWorkspaceExecutionQuery(
+                    status=args.status,
+                    lane=args.lane,
+                    action_kind=args.action_kind,
+                    action_id=args.action_id,
+                    event_kind=args.event_kind,
+                    priority=args.priority,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "review-workspace-plan-execution-release-diff":
+            diff = diff_review_workspace_execution_releases(args.left, args.right)
+            _write_json(diff.to_dict(), args.output)
+            return 0 if diff.accepted else 2
         if args.command == "review-workspace-plan-execution-schema":
             _write_json(review_workspace_execution_schema(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-capabilities":
             _write_json(review_workspace_execution_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-release-schema":
+            _write_json(review_workspace_execution_release_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-release-capabilities":
+            _write_json(review_workspace_execution_release_capabilities(), args.output)
             return 0
         if args.command == "run-workspace-history":
             history = build_persisted_workspace_history(

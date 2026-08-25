@@ -729,9 +729,10 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 45-surface audit, including the
-durable service-release handoff, authenticated deployment profile/schema, and
-versioned reference manifest/schema, suitable for local release checks and CI.
+schema fields. The result is a deterministic 47-surface audit, including the
+durable service-release handoff, authenticated deployment profile/schema,
+versioned reference manifest/schema, and portable execution-release contracts,
+suitable for local release checks and CI.
 
 The reference boundary is also available directly:
 
@@ -775,6 +776,10 @@ glio-noncode review-workspace-plan-query RUN_ID --lane provenance --data-root .g
 glio-noncode review-workspace-release-plan review-release --output release-plan.json
 glio-noncode review-workspace-plan-execution RUN_ID --data-root .glio --output execution.json
 glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
+glio-noncode review-workspace-plan-execution-release RUN_ID --data-root .glio --output execution-release
+glio-noncode review-workspace-plan-execution-release-verify execution-release --output execution-release-verification.json
+glio-noncode review-workspace-plan-execution-release-query execution-release --status open --output execution-release-query.json
+glio-noncode review-workspace-plan-execution-release-diff execution-release-a execution-release-b --output execution-release-diff.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 

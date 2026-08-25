@@ -259,6 +259,11 @@ from .review_workspace_execution import (
     review_workspace_execution_capabilities,
     review_workspace_execution_schema,
 )
+from .review_workspace_execution_release import (
+    build_review_workspace_execution_release,
+    review_workspace_execution_release_capabilities,
+    review_workspace_execution_release_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -657,6 +662,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/plan/execution/capabilities":
             self._write(HTTPStatus.OK, review_workspace_execution_capabilities())
+            return
+        if path == "/v1/review-workspace/plan/execution-release/schema":
+            self._write(HTTPStatus.OK, review_workspace_execution_release_schema())
+            return
+        if path == "/v1/review-workspace/plan/execution-release/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_execution_release_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
@@ -2156,6 +2167,19 @@ class ApiHandler(BaseHTTPRequestHandler):
                     and segments[5] == "execution"
                     and segments[6] == "query"
                 )
+                is_review_workspace_plan_execution_release = (
+                    len(segments) == 6
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "plan"
+                    and segments[5] == "execution-release"
+                )
+                is_review_workspace_plan_execution_release_query = (
+                    len(segments) == 7
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "plan"
+                    and segments[5] == "execution-release"
+                    and segments[6] == "query"
+                )
                 is_workspace_closure = (
                     len(segments) == 5
                     and segments[3] == "workspace"
@@ -2360,6 +2384,57 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write(
                         HTTPStatus.OK if execution.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         execution.to_dict(),
+                    )
+                    return
+                if is_review_workspace_plan_execution_release_query:
+                    query_values = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query_values, "config")
+                    plan_config = ReviewWorkspacePlanConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    execution_query = ReviewWorkspaceExecutionQuery(
+                        status=self._query_value(query_values, "status"),
+                        lane=self._query_value(query_values, "lane"),
+                        action_kind=self._query_value(query_values, "action_kind"),
+                        action_id=self._query_value(query_values, "action_id"),
+                        event_kind=self._query_value(query_values, "event_kind"),
+                        priority=self._query_optional_int(query_values, "priority"),
+                        text=self._query_value(query_values, "text"),
+                        offset=self._query_int(query_values, "offset", 0),
+                        limit=(
+                            50
+                            if self._query_optional_int(query_values, "limit") is None
+                            else self._query_optional_int(query_values, "limit")
+                        ),
+                    )
+                    execution = build_persisted_review_workspace_plan_execution(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        plan_config=plan_config,
+                    )
+                    result = query_review_workspace_execution(execution, execution_query)
+                    self._write(
+                        HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        result.to_dict(),
+                    )
+                    return
+                if is_review_workspace_plan_execution_release:
+                    query_values = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query_values, "config")
+                    plan_config = ReviewWorkspacePlanConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    execution = build_persisted_review_workspace_plan_execution(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        plan_config=plan_config,
+                    )
+                    bundle = build_review_workspace_execution_release(execution)
+                    self._write(
+                        HTTPStatus.OK if bundle.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        bundle.to_dict(include_payloads=self._query_bool(query_values, "include_payloads")),
                     )
                     return
                 if is_workspace_history:

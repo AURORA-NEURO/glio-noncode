@@ -10738,6 +10738,7 @@ from .review_workspace_execution import (
     query_review_workspace_execution,
     replay_review_workspace_plan_execution,
     review_plan_execution_event_from_mapping,
+    review_workspace_execution_report_from_mapping,
     review_workspace_execution_capabilities,
     review_workspace_execution_schema,
 )
@@ -10747,6 +10748,29 @@ from .review_workspace_execution_exports import (
     review_workspace_execution_checks_csv,
     review_workspace_execution_events_csv,
     review_workspace_execution_export_payloads,
+)
+from .review_workspace_execution_release import (
+    REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX,
+    REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST,
+    REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST_PREFIX,
+    REVIEW_WORKSPACE_EXECUTION_RELEASE_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_RELEASE_VERSION,
+    ReviewWorkspaceExecutionActionDiff,
+    ReviewWorkspaceExecutionReleaseArtifact,
+    ReviewWorkspaceExecutionReleaseBundle,
+    ReviewWorkspaceExecutionReleaseDiff,
+    ReviewWorkspaceExecutionReleaseVerification,
+    ReviewWorkspaceOfflineExecutionRelease,
+    build_review_workspace_execution_release,
+    diff_review_workspace_execution_releases,
+    load_review_workspace_execution_release,
+    query_review_workspace_execution_release,
+    review_workspace_execution_release_capabilities,
+    review_workspace_execution_release_schema,
+    verify_and_load_review_workspace_execution_release,
+    verify_review_workspace_execution_release,
+    write_review_workspace_execution_release,
 )
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
@@ -11156,10 +11180,35 @@ __all__ += [
     "append_persisted_review_workspace_plan_event", "build_persisted_review_workspace_plan_execution",
     "build_review_plan_execution_event", "query_review_workspace_execution",
     "replay_review_workspace_plan_execution", "review_plan_execution_event_from_mapping",
+    "review_workspace_execution_report_from_mapping",
     "review_workspace_execution_capabilities", "review_workspace_execution_schema",
     "render_review_workspace_execution_markdown", "review_workspace_execution_actions_csv",
     "review_workspace_execution_checks_csv", "review_workspace_execution_events_csv",
     "review_workspace_execution_export_payloads",
+]
+
+__all__ += [
+    "REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX",
+    "REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST",
+    "REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST_PREFIX",
+    "REVIEW_WORKSPACE_EXECUTION_RELEASE_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_RELEASE_VERSION",
+    "ReviewWorkspaceExecutionActionDiff",
+    "ReviewWorkspaceExecutionReleaseArtifact",
+    "ReviewWorkspaceExecutionReleaseBundle",
+    "ReviewWorkspaceExecutionReleaseDiff",
+    "ReviewWorkspaceExecutionReleaseVerification",
+    "ReviewWorkspaceOfflineExecutionRelease",
+    "build_review_workspace_execution_release",
+    "diff_review_workspace_execution_releases",
+    "load_review_workspace_execution_release",
+    "query_review_workspace_execution_release",
+    "review_workspace_execution_release_capabilities",
+    "review_workspace_execution_release_schema",
+    "verify_and_load_review_workspace_execution_release",
+    "verify_review_workspace_execution_release",
+    "write_review_workspace_execution_release",
 ]
 
 __all__ += [

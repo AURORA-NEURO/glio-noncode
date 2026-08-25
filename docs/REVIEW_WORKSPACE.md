@@ -59,6 +59,11 @@ glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind sta
 glio-noncode review-workspace-plan-execution-query RUN_ID --status open --data-root .glio --output execution-query.json
 glio-noncode review-workspace-plan-execution-schema --output execution-schema.json
 glio-noncode review-workspace-plan-execution-capabilities --output execution-capabilities.json
+glio-noncode review-workspace-plan-execution-release RUN_ID --data-root .glio --output execution-release
+glio-noncode review-workspace-plan-execution-release-verify execution-release --output execution-release-verification.json
+glio-noncode review-workspace-plan-execution-release-load execution-release --include-report --output execution-release-report.json
+glio-noncode review-workspace-plan-execution-release-query execution-release --status open --limit 50 --output execution-release-query.json
+glio-noncode review-workspace-plan-execution-release-diff execution-release-a execution-release-b --output execution-release-diff.json
 glio-noncode review-workspace-release-query review-release --collection evidence --limit 50 --output release-query.json
 glio-noncode review-workspace-release-plan review-release --output release-plan.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
@@ -137,6 +142,23 @@ kind, action ID, event kind, priority, or text, and exports deterministic JSON,
 Markdown, action CSV, event CSV, and check CSV. The ledger is operational only:
 it does not alter the dossier, evidence, plan, or scientific conclusion.
 
+## Portable execution release
+
+`review-workspace-plan-execution-release` packages six exact-byte artifacts:
+the typed execution report, human report, action CSV, event CSV, check CSV, and
+canonical `events.jsonl`. The manifest carries each artifact's byte count, line
+count, media type, and content address, plus the execution and plan addresses.
+`review-workspace-plan-execution-release-verify` independently validates safe
+paths, artifact closure, nested report/action/check addresses, event-stream
+reconciliation, manifest bytes, and the public boundary. A verified package can
+be loaded, queried, and diffed without a local runtime or plan store.
+
+`review-workspace-plan-execution-release-query` applies the live bounded action
+filters to a verified package. `review-workspace-plan-execution-release-diff`
+compares event IDs, action status/address changes, check changes, and artifact
+addresses between two verified packages. Release operations are read-only at
+the API boundary; filesystem materialization remains an explicit CLI action.
+
 ## API
 
 `GET /v1/review-workspace/schema` and
@@ -166,6 +188,14 @@ execution contract. `GET /v1/runs/{run_id}/review-workspace/plan/execution`
 replays the local ledger; `/execution/query` applies bounded action filters.
 Ledger writes remain an explicit CLI operation so the HTTP service stays
 read-only.
+
+`GET /v1/review-workspace/plan/execution-release/schema` and
+`GET /v1/review-workspace/plan/execution-release/capabilities` expose the
+portable handoff contract. `GET
+/v1/runs/{run_id}/review-workspace/plan/execution-release` returns the current
+release projection in memory, and `/execution-release/query` applies its
+bounded filters. The HTTP release projection is read-only and does not write a
+filesystem package.
 
 ## Offline release operations
 

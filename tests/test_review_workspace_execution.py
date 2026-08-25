@@ -236,6 +236,42 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 0,
             )
             self.assertEqual(json.loads(event_output.read_text(encoding="utf-8"))["event_count"], 1)
+            release = Path(directory) / "execution-release"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release",
+                    dossier.run_id,
+                    "--data-root",
+                    directory,
+                    "--output",
+                    str(release),
+                ]),
+                0,
+            )
+            verification = Path(directory) / "execution-release-verification.json"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release-verify",
+                    str(release),
+                    "--output",
+                    str(verification),
+                ]),
+                0,
+            )
+            self.assertTrue(json.loads(verification.read_text(encoding="utf-8"))["accepted"])
+            release_query = Path(directory) / "execution-release-query.json"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release-query",
+                    str(release),
+                    "--status",
+                    "in_progress",
+                    "--output",
+                    str(release_query),
+                ]),
+                0,
+            )
+            self.assertEqual(json.loads(release_query.read_text(encoding="utf-8"))["total_count"], 1)
             server = create_server("127.0.0.1", 0, directory)
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -256,6 +292,27 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 payload = json.loads(response.read())
                 self.assertEqual(payload["total_count"], 1)
                 self.assertEqual(payload["rows"][0]["action_id"], action.action_id)
+                connection.request("GET", "/v1/review-workspace/plan/execution-release/schema")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertEqual(
+                    json.loads(response.read())["version"],
+                    "review-workspace-execution-release-schema-v1",
+                )
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertTrue(json.loads(response.read())["accepted"])
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertEqual(json.loads(response.read())["total_count"], 1)
                 connection.close()
             finally:
                 server.shutdown()

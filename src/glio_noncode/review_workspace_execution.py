@@ -346,6 +346,174 @@ def _mapping(value: Any, field: str) -> dict[str, Any]:
     return {str(key): value[key] for key in value}
 
 
+def _text_sequence(value: Any, field: str) -> tuple[str, ...]:
+    if not isinstance(value, (list, tuple)):
+        raise ValidationError(f"{field} must be an array")
+    result = tuple(_text(item, f"{field}[]") for item in value)
+    if len(set(result)) != len(result):
+        raise ValidationError(f"{field} must not contain duplicates")
+    return result
+
+
+def _optional_instant(value: Any, field: str) -> str | None:
+    if value in (None, ""):
+        return None
+    return _parse_instant(value, field)
+
+
+def _address_without_content(body: Mapping[str, Any], prefix: str, field: str) -> str:
+    address = _text(body.get("content_address"), field)
+    source = {key: value for key, value in body.items() if key != "content_address"}
+    expected = _address(source, prefix)
+    if address != expected:
+        raise ValidationError(f"{field} address mismatch")
+    return address
+
+
+def _action_execution_from_mapping(value: Mapping[str, Any]) -> ReviewPlanActionExecution:
+    body = _mapping(value, "execution action")
+    status_text = _text(body.get("status"), "execution action.status")
+    try:
+        status = ReviewPlanExecutionStatus(status_text)
+    except ValueError as exc:
+        raise ValidationError("execution action.status is invalid") from exc
+    unresolved = _text_sequence(body.get("unresolved_dependencies", ()), "execution action.unresolved_dependencies")
+    event_ids = _text_sequence(body.get("event_ids", ()), "execution action.event_ids")
+    content_address = _address_without_content(body, "review-plan-action-execution", "execution action.content_address")
+    return ReviewPlanActionExecution(
+        action_id=_text(body.get("action_id"), "execution action.action_id"),
+        queue_item_id=_text(body.get("queue_item_id"), "execution action.queue_item_id"),
+        target_id=_text(body.get("target_id"), "execution action.target_id"),
+        lane=_text(body.get("lane"), "execution action.lane"),
+        action_kind=_text(body.get("action_kind"), "execution action.action_kind"),
+        priority=int(body.get("priority")),
+        status=status,
+        ready=bool(body.get("ready")),
+        unresolved_dependencies=unresolved,
+        event_ids=event_ids,
+        last_event_id=(None if body.get("last_event_id") in (None, "") else _text(body.get("last_event_id"), "execution action.last_event_id")),
+        started_at=_optional_instant(body.get("started_at"), "execution action.started_at"),
+        completed_at=_optional_instant(body.get("completed_at"), "execution action.completed_at"),
+        reason=str(body.get("reason", "")).strip(),
+        content_address=content_address,
+    )
+
+
+def _execution_check_from_mapping(value: Mapping[str, Any]) -> ReviewExecutionCheck:
+    body = _mapping(value, "execution check")
+    content_address = _address_without_content(body, "review-execution-check", "execution check.content_address")
+    return ReviewExecutionCheck(
+        check_id=_text(body.get("check_id"), "execution check.check_id"),
+        passed=bool(body.get("passed")),
+        required=bool(body.get("required")),
+        observed=body.get("observed"),
+        expected=body.get("expected"),
+        detail=str(body.get("detail", "")).strip(),
+        content_address=content_address,
+    )
+
+
+def review_workspace_execution_report_from_mapping(value: Mapping[str, Any]) -> ReviewWorkspaceExecutionReport:
+    """Hydrate one execution report and independently verify derived addresses."""
+
+    body = _mapping(value, "execution report")
+    if _has_forbidden(body) or contains_private_key(body):
+        raise ValidationError("execution report violates the public boundary")
+    raw_events = body.get("events", ())
+    raw_actions = body.get("actions", ())
+    raw_checks = body.get("checks", ())
+    if not isinstance(raw_events, (list, tuple)) or not isinstance(raw_actions, (list, tuple)) or not isinstance(raw_checks, (list, tuple)):
+        raise ValidationError("execution report nested collections are invalid")
+    events = tuple(
+        review_plan_execution_event_from_mapping(_mapping(item, "execution report event"))
+        for item in raw_events
+    )
+    actions = tuple(
+        _action_execution_from_mapping(_mapping(item, "execution report action"))
+        for item in raw_actions
+    )
+    checks = tuple(
+        _execution_check_from_mapping(_mapping(item, "execution report check"))
+        for item in raw_checks
+    )
+    event_ids = tuple(item.event_id for item in events)
+    action_ids = tuple(item.action_id for item in actions)
+    if len(set(event_ids)) != len(event_ids):
+        raise ValidationError("execution report contains duplicate event IDs")
+    if len(set(action_ids)) != len(action_ids):
+        raise ValidationError("execution report contains duplicate action IDs")
+    previous_address: str | None = None
+    previous_time: str | None = None
+    for event in events:
+        if event.previous_event_address != previous_address:
+            raise ValidationError("execution report event chain is not contiguous")
+        if previous_time is not None and event.occurred_at < previous_time:
+            raise ValidationError("execution report event timestamps are not monotonic")
+        previous_address = event.content_address
+        previous_time = event.occurred_at
+    plan_id = _text(body.get("plan_id"), "execution report.plan_id")
+    plan_address = _text(body.get("plan_address"), "execution report.plan_address")
+    if any(item.plan_id != plan_id or item.plan_address != plan_address for item in events):
+        raise ValidationError("execution report events do not share the report plan")
+    state_text = _text(body.get("state"), "execution report.state")
+    try:
+        state = ReviewPlanExecutionStatus(state_text)
+    except ValueError as exc:
+        raise ValidationError("execution report.state is invalid") from exc
+    warnings = _text_sequence(body.get("warnings", ()), "execution report.warnings")
+    expected_counts = {
+        "event_count": len(events),
+        "action_count": len(actions),
+        "open_count": sum(item.status is ReviewPlanExecutionStatus.OPEN for item in actions),
+        "in_progress_count": sum(item.status is ReviewPlanExecutionStatus.IN_PROGRESS for item in actions),
+        "completed_count": sum(item.status is ReviewPlanExecutionStatus.COMPLETED for item in actions),
+        "blocked_count": sum(item.status is ReviewPlanExecutionStatus.BLOCKED for item in actions),
+        "skipped_count": sum(item.status is ReviewPlanExecutionStatus.SKIPPED for item in actions),
+        "dependency_wait_count": sum(
+            bool(item.unresolved_dependencies) and item.status is ReviewPlanExecutionStatus.OPEN
+            for item in actions
+        ),
+    }
+    for field, expected in expected_counts.items():
+        try:
+            observed = int(body.get(field))
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(f"execution report.{field} is invalid") from exc
+        if observed != expected:
+            raise ValidationError(f"execution report.{field} does not reconcile")
+    next_action_ids = _text_sequence(body.get("next_action_ids", ()), "execution report.next_action_ids")
+    blocked_action_ids = _text_sequence(body.get("blocked_action_ids", ()), "execution report.blocked_action_ids")
+    if next_action_ids != tuple(item.action_id for item in actions if item.ready):
+        raise ValidationError("execution report.next_action_ids does not reconcile")
+    if blocked_action_ids != tuple(item.action_id for item in actions if item.status is ReviewPlanExecutionStatus.BLOCKED):
+        raise ValidationError("execution report.blocked_action_ids does not reconcile")
+    projected = {
+        "execution_id": _text(body.get("execution_id"), "execution report.execution_id"),
+        "plan_id": plan_id,
+        "plan_address": plan_address,
+        "workspace_id": _text(body.get("workspace_id"), "execution report.workspace_id"),
+        "run_id": _text(body.get("run_id"), "execution report.run_id"),
+        "case_id": _text(body.get("case_id"), "execution report.case_id"),
+        "version": _text(body.get("version"), "execution report.version"),
+        "state": state,
+        "accepted": bool(body.get("accepted")),
+        **expected_counts,
+        "next_action_ids": next_action_ids,
+        "blocked_action_ids": blocked_action_ids,
+        "events": events,
+        "actions": actions,
+        "checks": checks,
+        "warnings": warnings,
+    }
+    expected_execution_id = f"review-plan-execution:{plan_address}"
+    if projected["execution_id"] != expected_execution_id:
+        raise ValidationError("execution report.execution_id does not reconcile")
+    content_address = _address_without_content(body, "review-workspace-execution", "execution report.content_address")
+    if _address(projected, "review-workspace-execution") != content_address:
+        raise ValidationError("execution report content address does not reconcile")
+    return ReviewWorkspaceExecutionReport(**projected, content_address=content_address)
+
+
 def _plan_actions(plan: ReviewWorkspacePlan) -> dict[str, ReviewPlanAction]:
     actions = {item.action_id: item for item in plan.actions}
     if len(actions) != len(plan.actions):
@@ -1185,6 +1353,7 @@ __all__ = [
     "query_review_workspace_execution",
     "replay_review_workspace_plan_execution",
     "review_plan_execution_event_from_mapping",
+    "review_workspace_execution_report_from_mapping",
     "review_workspace_execution_capabilities",
     "review_workspace_execution_schema",
 ]
