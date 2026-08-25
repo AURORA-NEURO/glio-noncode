@@ -11727,6 +11727,48 @@ __all__ += [
     "verify_reference_manifest",
 ]
 
+from .reference_interval_index import (
+    ContextMatch,
+    ContextQueryMode,
+    ColumnarIntervalColumns,
+    IntervalBlock,
+    LatticeContext,
+    PublicReferenceRecord,
+    REFERENCE_CONTEXT_DIMENSIONS,
+    REFERENCE_INTERVAL_INDEX_BLOCK_SIZE,
+    REFERENCE_INTERVAL_INDEX_MAX_RECORDS,
+    REFERENCE_INTERVAL_INDEX_MAX_QUERY_LIMIT,
+    REFERENCE_INTERVAL_INDEX_SCHEMA_VERSION,
+    REFERENCE_INTERVAL_INDEX_VERSION,
+    ReferenceIndexBuildIssue,
+    ReferenceIndexBuildReport,
+    ReferenceIndexIssueSeverity,
+    ReferenceIndexMatch,
+    ReferenceIndexQuery,
+    ReferenceIndexQueryReport,
+    ReferenceIndexQueryState,
+    ReferenceIntervalIndex,
+    build_reference_interval_index,
+    load_reference_rows,
+    match_context,
+    query_reference_interval_index,
+    reference_interval_index_capabilities,
+    reference_interval_index_schema,
+)
+
+__all__ += [
+    "ContextMatch", "ContextQueryMode", "ColumnarIntervalColumns", "IntervalBlock",
+    "LatticeContext", "PublicReferenceRecord", "REFERENCE_CONTEXT_DIMENSIONS",
+    "REFERENCE_INTERVAL_INDEX_BLOCK_SIZE", "REFERENCE_INTERVAL_INDEX_MAX_RECORDS",
+    "REFERENCE_INTERVAL_INDEX_MAX_QUERY_LIMIT", "REFERENCE_INTERVAL_INDEX_SCHEMA_VERSION",
+    "REFERENCE_INTERVAL_INDEX_VERSION", "ReferenceIndexBuildIssue", "ReferenceIndexBuildReport",
+    "ReferenceIndexIssueSeverity", "ReferenceIndexMatch", "ReferenceIndexQuery",
+    "ReferenceIndexQueryReport", "ReferenceIndexQueryState", "ReferenceIntervalIndex",
+    "build_reference_interval_index", "load_reference_rows", "match_context",
+    "query_reference_interval_index", "reference_interval_index_capabilities",
+    "reference_interval_index_schema",
+]
+
 from .module_fabric_catalog import FabricContractCatalog, FabricDomainContract, default_module_fabric_catalog, validate_module_fabric_catalog
 from .module_fabric_bundle import MODULE_FABRIC_BUNDLE_BOUNDARY, bundle_artifact_bytes, bundle_artifact_csv, bundle_manifest_text, build_module_fabric_bundle, module_fabric_bundle_filesystem_integrity_ok, verify_module_fabric_bundle, write_module_fabric_bundle
 from .module_fabric_bundle_audit import MODULE_FABRIC_BUNDLE_AUDIT_VERSION, FabricBundleAuditCheck, FabricBundleAuditPlane, ModuleFabricBundleAudit, audit_module_fabric_bundle

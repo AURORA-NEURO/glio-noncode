@@ -1585,6 +1585,15 @@ from .reference_manifest import (
     reference_manifest_schema,
     reference_manifest_summary,
 )
+from .reference_interval_index import (
+    ContextQueryMode,
+    ReferenceIndexQuery,
+    ReferenceIntervalIndex,
+    build_reference_interval_index,
+    load_reference_rows,
+    reference_interval_index_capabilities,
+    reference_interval_index_schema,
+)
 from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder, RegulatoryAtlasBundleFormat
 from .regulatory_atlas_contracts import default_regulatory_atlas_contracts
 from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
@@ -3510,6 +3519,47 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit the closed versioned reference manifest schema",
     )
     reference_manifest_schema_parser.add_argument("--output", default=None)
+    reference_index = subparsers.add_parser(
+        "build-reference-index",
+        help="build a deterministic columnar interval index from public track rows",
+    )
+    reference_index.add_argument("input", type=str)
+    reference_index.add_argument("--index-id", default="reference-index")
+    reference_index.add_argument("--assembly", default="GRCh38")
+    reference_index.add_argument("--max-records", default=1_000_000, type=int)
+    reference_index.add_argument("--max-issues", default=10_000, type=int)
+    reference_index.add_argument("--block-size", default=256, type=int)
+    reference_index.add_argument("--output", default=None)
+    reference_index_query = subparsers.add_parser(
+        "query-reference-index",
+        help="query a columnar reference index by interval and context lattice",
+    )
+    reference_index_query.add_argument("input", type=str)
+    reference_index_query.add_argument("--chromosome", required=True)
+    reference_index_query.add_argument("--start", required=True, type=int)
+    reference_index_query.add_argument("--end", required=True, type=int)
+    reference_index_query.add_argument("--context-key", required=True)
+    reference_index_query.add_argument(
+        "--mode",
+        choices=tuple(item.value for item in ContextQueryMode),
+        default=ContextQueryMode.LATTICE.value,
+    )
+    reference_index_query.add_argument("--track-type", action="append", default=None)
+    reference_index_query.add_argument("--source-id", action="append", default=None)
+    reference_index_query.add_argument("--state", action="append", default=None)
+    reference_index_query.add_argument("--offset", default=0, type=int)
+    reference_index_query.add_argument("--limit", default=100, type=int)
+    reference_index_query.add_argument("--output", default=None)
+    reference_index_schema_parser = subparsers.add_parser(
+        "reference-index-schema",
+        help="emit the columnar interval and context-lattice schema",
+    )
+    reference_index_schema_parser.add_argument("--output", default=None)
+    reference_index_capabilities_parser = subparsers.add_parser(
+        "reference-index-capabilities",
+        help="emit operational capabilities for reference interval indexes",
+    )
+    reference_index_capabilities_parser.add_argument("--output", default=None)
     adapter_conformance = subparsers.add_parser(
         "adapter-conformance",
         help="run deterministic conformance checks for a portable static adapter input",
@@ -13765,6 +13815,43 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if manifest.accepted else 2
         if args.command == "reference-manifest-schema":
             _write_json(reference_manifest_schema(), args.output)
+            return 0
+        if args.command == "build-reference-index":
+            report = build_reference_interval_index(
+                load_reference_rows(args.input),
+                index_id=args.index_id,
+                assembly=args.assembly,
+                max_records=args.max_records,
+                max_issues=args.max_issues,
+                block_size=args.block_size,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "query-reference-index":
+            index_payload = _read_json(args.input)
+            index = ReferenceIntervalIndex.from_dict(index_payload.get("index", index_payload))
+            query = ReferenceIndexQuery.from_mapping(
+                {
+                    "chromosome": args.chromosome,
+                    "start": args.start,
+                    "end": args.end,
+                    "context_key": args.context_key,
+                    "mode": args.mode,
+                    "track_types": args.track_type or (),
+                    "source_ids": args.source_id or (),
+                    "states": args.state or (),
+                    "offset": args.offset,
+                    "limit": args.limit,
+                }
+            )
+            report = index.query(query)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-index-schema":
+            _write_json(reference_interval_index_schema(), args.output)
+            return 0
+        if args.command == "reference-index-capabilities":
+            _write_json(reference_interval_index_capabilities(), args.output)
             return 0
         if args.command == "adapter-conformance":
             adapter, manifest, probes = adapter_conformance_input_from_dict(_read_json(args.input))

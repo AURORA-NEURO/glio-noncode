@@ -35,6 +35,10 @@ from .deployment_frontier_offline_bundle import build_deployment_frontier_offlin
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
 from .deployment_profiles import build_deployment_profile, deployment_profile_schema
 from .reference_manifest import build_default_reference_manifest, reference_manifest_schema
+from .reference_interval_index import (
+    reference_interval_index_capabilities,
+    reference_interval_index_schema,
+)
 from .variant_stream import (
     breakend_normalization_schema,
     streaming_intake_capabilities,
@@ -47,7 +51,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 33
+PUBLIC_SURFACE_EXPECTED_COUNT = 35
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -257,6 +261,8 @@ def default_public_surface_inventory(
         "streaming-intake-schema": streaming_intake_schema(),
         "streaming-intake-capabilities": streaming_intake_capabilities(),
         "breakend-normalization-schema": breakend_normalization_schema(),
+        "reference-index-schema": reference_interval_index_schema(),
+        "reference-index-capabilities": reference_interval_index_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

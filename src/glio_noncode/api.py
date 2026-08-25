@@ -68,6 +68,13 @@ from .reference_manifest import (
     reference_manifest_schema,
     reference_manifest_summary,
 )
+from .reference_interval_index import (
+    ReferenceIndexQuery,
+    ReferenceIntervalIndex,
+    build_reference_interval_index,
+    reference_interval_index_capabilities,
+    reference_interval_index_schema,
+)
 from .variant_stream import (
     STREAMING_DEFAULT_MAX_INPUT_BYTES,
     StreamingInputFormat,
@@ -546,6 +553,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/reference/manifest/schema":
             self._write(HTTPStatus.OK, reference_manifest_schema())
+            return
+        if path == "/v1/reference/index/schema":
+            self._write(HTTPStatus.OK, reference_interval_index_schema())
+            return
+        if path == "/v1/reference/index/capabilities":
+            self._write(HTTPStatus.OK, reference_interval_index_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
@@ -2248,6 +2261,51 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/reference/index/build":
+            try:
+                payload = self._read_json()
+                rows = payload.get("records", payload.get("rows", ()))
+                if not isinstance(rows, list):
+                    raise ValueError("reference index build requires a records list")
+                report = build_reference_interval_index(
+                    rows,
+                    index_id=str(payload.get("index_id", "reference-index")),
+                    assembly=str(payload.get("assembly", "GRCh38")),
+                    max_records=int(payload.get("max_records", 1_000_000)),
+                    max_issues=int(payload.get("max_issues", 10_000)),
+                    block_size=int(payload.get("block_size", 256)),
+                )
+                self._write(
+                    HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    report.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_index", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/reference/index/query":
+            try:
+                payload = self._read_json()
+                index_raw = payload.get("index")
+                if not isinstance(index_raw, Mapping):
+                    raise ValueError("reference index query requires an index object")
+                query_raw = payload.get("query", payload)
+                if not isinstance(query_raw, Mapping):
+                    raise ValueError("reference index query requires a query object")
+                report = ReferenceIntervalIndex.from_dict(index_raw).query(
+                    ReferenceIndexQuery.from_mapping(query_raw)
+                )
+                self._write(HTTPStatus.OK, report.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_index_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/intake/stream":
             try:
