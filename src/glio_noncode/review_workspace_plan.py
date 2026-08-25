@@ -374,6 +374,177 @@ def _mapping(value: Any, field: str) -> dict[str, Any]:
     return {str(key): value[key] for key in value}
 
 
+def _text_sequence(value: Any, field: str) -> tuple[str, ...]:
+    if not isinstance(value, (list, tuple)):
+        raise ValidationError(f"{field} must be an array")
+    result = tuple(_text(item, f"{field}[]") for item in value)
+    if len(set(result)) != len(result):
+        raise ValidationError(f"{field} must not contain duplicates")
+    return result
+
+
+def _address_without_content(body: Mapping[str, Any], prefix: str, field: str) -> str:
+    address = _text(body.get("content_address"), field)
+    source = {key: value for key, value in body.items() if key != "content_address"}
+    expected = _address(source, prefix)
+    if address != expected:
+        raise ValidationError(f"{field} address mismatch")
+    return address
+
+
+def _plan_action_from_mapping(value: Mapping[str, Any]) -> ReviewPlanAction:
+    body = _mapping(value, "review plan action")
+    try:
+        action_kind = ReviewPlanActionKind(_text(body.get("action_kind"), "plan action.action_kind"))
+        lane = ReviewPlanLaneKind(_text(body.get("lane"), "plan action.lane"))
+    except ValueError as exc:
+        raise ValidationError("plan action kind or lane is invalid") from exc
+    content_address = _address_without_content(body, "review-plan-action", "plan action.content_address")
+    return ReviewPlanAction(
+        action_id=_text(body.get("action_id"), "plan action.action_id"),
+        queue_item_id=_text(body.get("queue_item_id"), "plan action.queue_item_id"),
+        target_id=_text(body.get("target_id"), "plan action.target_id"),
+        target_type=_text(body.get("target_type"), "plan action.target_type"),
+        action_kind=action_kind,
+        lane=lane,
+        priority=int(body.get("priority")),
+        sequence=int(body.get("sequence")),
+        title=_text(body.get("title"), "plan action.title"),
+        purpose=_text(body.get("purpose"), "plan action.purpose"),
+        required_checks=_text_sequence(body.get("required_checks", ()), "plan action.required_checks"),
+        depends_on=_text_sequence(body.get("depends_on", ()), "plan action.depends_on"),
+        edge_ids=_text_sequence(body.get("edge_ids", ()), "plan action.edge_ids"),
+        evidence_ids=_text_sequence(body.get("evidence_ids", ()), "plan action.evidence_ids"),
+        source_ids=_text_sequence(body.get("source_ids", ()), "plan action.source_ids"),
+        state=_text(body.get("state"), "plan action.state"),
+        estimate_units=int(body.get("estimate_units")),
+        content_address=content_address,
+    )
+
+
+def _plan_lane_from_mapping(value: Mapping[str, Any]) -> ReviewPlanLane:
+    body = _mapping(value, "review plan lane")
+    try:
+        lane = ReviewPlanLaneKind(_text(body.get("lane"), "plan lane.lane"))
+    except ValueError as exc:
+        raise ValidationError("plan lane kind is invalid") from exc
+    priority_counts_raw = body.get("priority_counts", {})
+    if not isinstance(priority_counts_raw, Mapping):
+        raise ValidationError("plan lane.priority_counts must be an object")
+    priority_counts = {str(key): int(item) for key, item in priority_counts_raw.items()}
+    content_address = _address_without_content(body, "review-plan-lane", "plan lane.content_address")
+    return ReviewPlanLane(
+        lane=lane,
+        action_ids=_text_sequence(body.get("action_ids", ()), "plan lane.action_ids"),
+        queue_item_ids=_text_sequence(body.get("queue_item_ids", ()), "plan lane.queue_item_ids"),
+        action_count=int(body.get("action_count")),
+        priority_counts=priority_counts,
+        estimate_units=int(body.get("estimate_units")),
+        content_address=content_address,
+    )
+
+
+def _plan_check_from_mapping(value: Mapping[str, Any]) -> ReviewPlanCheck:
+    body = _mapping(value, "review plan check")
+    content_address = _address_without_content(body, "review-plan-check", "plan check.content_address")
+    return ReviewPlanCheck(
+        check_id=_text(body.get("check_id"), "plan check.check_id"),
+        passed=bool(body.get("passed")),
+        required=bool(body.get("required")),
+        observed=body.get("observed"),
+        expected=body.get("expected"),
+        detail=_text(body.get("detail"), "plan check.detail"),
+        content_address=content_address,
+    )
+
+
+def review_workspace_plan_from_mapping(value: Mapping[str, Any]) -> ReviewWorkspacePlan:
+    """Hydrate a portable plan and verify its derived graph projections."""
+
+    body = _mapping(value, "review workspace plan")
+    if _has_forbidden(body) or contains_private_key(body):
+        raise ValidationError("review workspace plan violates the public boundary")
+    raw_actions = body.get("actions", ())
+    raw_lanes = body.get("lanes", ())
+    raw_checks = body.get("checks", ())
+    if not isinstance(raw_actions, (list, tuple)) or not isinstance(raw_lanes, (list, tuple)) or not isinstance(raw_checks, (list, tuple)):
+        raise ValidationError("review workspace plan nested collections are invalid")
+    actions = tuple(_plan_action_from_mapping(_mapping(item, "plan action")) for item in raw_actions)
+    lanes = tuple(_plan_lane_from_mapping(_mapping(item, "plan lane")) for item in raw_lanes)
+    checks = tuple(_plan_check_from_mapping(_mapping(item, "plan check")) for item in raw_checks)
+    action_ids = tuple(item.action_id for item in actions)
+    if len(set(action_ids)) != len(action_ids):
+        raise ValidationError("review workspace plan contains duplicate action IDs")
+    if tuple(item.sequence for item in actions) != tuple(range(len(actions))):
+        raise ValidationError("review workspace plan action sequence is not contiguous")
+    action_by_id = {item.action_id: item for item in actions}
+    for action in actions:
+        for dependency in action.depends_on:
+            if dependency not in action_by_id:
+                raise ValidationError(f"review workspace plan dependency is unknown: {dependency}")
+            if action_by_id[dependency].sequence >= action.sequence:
+                raise ValidationError(f"review workspace plan dependency order is invalid: {action.action_id}")
+    lane_action_ids = tuple(action_id for lane in lanes for action_id in lane.action_ids)
+    if len(lane_action_ids) != len(set(lane_action_ids)) or set(lane_action_ids) != set(action_ids):
+        raise ValidationError("review workspace plan lane closure is invalid")
+    for lane in lanes:
+        lane_actions = tuple(action_by_id[action_id] for action_id in lane.action_ids)
+        if lane.action_count != len(lane_actions):
+            raise ValidationError(f"review workspace plan lane count is invalid: {lane.lane.value}")
+        expected_priorities = {
+            str(priority): sum(item.priority == priority for item in lane_actions)
+            for priority in range(4)
+            if any(item.priority == priority for item in lane_actions)
+        }
+        if dict(lane.priority_counts) != expected_priorities:
+            raise ValidationError(f"review workspace plan lane priority counts are invalid: {lane.lane.value}")
+        if lane.estimate_units != sum(item.estimate_units for item in lane_actions):
+            raise ValidationError(f"review workspace plan lane estimate is invalid: {lane.lane.value}")
+    check_ids = tuple(item.check_id for item in checks)
+    if len(set(check_ids)) != len(check_ids):
+        raise ValidationError("review workspace plan contains duplicate check IDs")
+    try:
+        state = ReviewPlanState(_text(body.get("state"), "plan.state"))
+    except ValueError as exc:
+        raise ValidationError("review workspace plan state is invalid") from exc
+    warnings = _text_sequence(body.get("warnings", ()), "plan.warnings")
+    counts = {
+        "queue_item_count": len({item.queue_item_id for item in actions}),
+        "action_count": len(actions),
+        "dependency_count": sum(len(item.depends_on) for item in actions),
+        "blocking_count": sum(item.priority == 0 for item in actions),
+        "estimate_units": sum(item.estimate_units for item in actions),
+    }
+    for field, expected in counts.items():
+        try:
+            observed = int(body.get(field))
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(f"plan.{field} is invalid") from exc
+        if observed != expected:
+            raise ValidationError(f"plan.{field} does not reconcile")
+    projected = {
+        "plan_id": _text(body.get("plan_id"), "plan.plan_id"),
+        "workspace_id": _text(body.get("workspace_id"), "plan.workspace_id"),
+        "run_id": _text(body.get("run_id"), "plan.run_id"),
+        "case_id": _text(body.get("case_id"), "plan.case_id"),
+        "workspace_address": _text(body.get("workspace_address"), "plan.workspace_address"),
+        "version": _text(body.get("version"), "plan.version"),
+        "state": state,
+        "accepted": bool(body.get("accepted")),
+        **counts,
+        "actions": actions,
+        "lanes": lanes,
+        "checks": checks,
+        "warnings": warnings,
+    }
+    if projected["plan_id"] != f"review-plan:{projected['workspace_id']}":
+        raise ValidationError("plan.plan_id does not reconcile")
+    content_address = _address_without_content(body, "review-workspace-plan", "plan.content_address")
+    if _address(projected, "review-workspace-plan") != content_address:
+        raise ValidationError("review workspace plan content address does not reconcile")
+    return ReviewWorkspacePlan(**projected, content_address=content_address)
+
+
 def _rows(report: ReviewWorkspaceReport | Mapping[str, Any]) -> dict[str, Any]:
     raw = report.to_dict() if isinstance(report, ReviewWorkspaceReport) else report
     body = _mapping(raw, "review workspace report")
@@ -1137,6 +1308,7 @@ __all__ = [
     "build_persisted_review_workspace_plan",
     "build_review_workspace_plan",
     "query_review_workspace_plan",
+    "review_workspace_plan_from_mapping",
     "review_workspace_plan_capabilities",
     "review_workspace_plan_schema",
 ]

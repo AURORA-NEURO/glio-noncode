@@ -3914,12 +3914,13 @@ exact-byte manifest checks, and deterministic action/event/check exports. The
 HTTP execution surface is read-only; CLI event appends are the only write path.
 
 The execution-release layer packages the replay report, event stream, and
-deterministic JSON/Markdown/CSV projections into six exact-byte artifacts. Its
-independent verifier checks safe paths, manifest addresses, nested report and
-action/check addresses, event-stream reconciliation, required artifact closure,
-and the public boundary before offline loading. Verified releases support the
-same bounded action query contract and deterministic event/action/check diffs
-without a live run store.
+deterministic JSON/Markdown/CSV projections into eleven exact-byte artifacts,
+including the source plan, dependency graph, required-check declarations, and
+plan-level exports. Its independent verifier checks safe paths, manifest
+addresses, nested plan/report/action/check addresses, event-stream replay,
+required artifact closure, and the public boundary before offline loading.
+Verified releases support the same bounded action query contract and
+deterministic event/action/check diffs without a live run store.
 
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source

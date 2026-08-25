@@ -21,7 +21,7 @@ from glio_noncode.review_workspace_execution_release import (
     verify_review_workspace_execution_release,
     write_review_workspace_execution_release,
 )
-from glio_noncode.review_workspace_plan import build_review_workspace_plan
+from glio_noncode.review_workspace_plan import build_review_workspace_plan, review_workspace_plan_from_mapping
 from glio_noncode.runtime import CaseRuntime
 from glio_noncode.serialization import canonical_json, content_hash, hash_bytes
 
@@ -34,20 +34,21 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         dossier = runtime.evaluate(fixture_manifest())
         workspace = build_persisted_review_workspace(runtime, dossier.run_id)
         plan = build_review_workspace_plan(workspace)
-        return dossier, replay_review_workspace_plan_execution(plan)
+        return dossier, plan, replay_review_workspace_plan_execution(plan)
 
     def test_release_round_trip_query_and_identity_diff(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            dossier, report = self._report(directory)
-            bundle = build_review_workspace_execution_release(report)
+            dossier, plan, report = self._report(directory)
+            bundle = build_review_workspace_execution_release(report, plan)
             destination = Path(directory) / "execution-release"
             write_review_workspace_execution_release(bundle, destination)
             verification = verify_review_workspace_execution_release(destination)
             self.assertTrue(verification.accepted, verification.to_dict())
-            self.assertEqual(verification.artifact_count, 6)
-            self.assertEqual(verification.verified_artifact_count, 6)
+            self.assertEqual(verification.artifact_count, 11)
+            self.assertEqual(verification.verified_artifact_count, 11)
             loaded = load_review_workspace_execution_release(destination)
             self.assertEqual(loaded.execution_address, report.content_address)
+            self.assertEqual(loaded.plan.content_address, plan.content_address)
             self.assertEqual(loaded.report.to_dict(), report.to_dict())
             query = query_review_workspace_execution_release(
                 loaded,
@@ -64,8 +65,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
 
     def test_report_hydration_rejects_derived_address_tampering(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            _, report = self._report(directory)
-            bundle = build_review_workspace_execution_release(report)
+            _, plan, report = self._report(directory)
+            bundle = build_review_workspace_execution_release(report, plan)
             destination = Path(directory) / "execution-release"
             write_review_workspace_execution_release(bundle, destination)
             report_path = destination / "review-workspace-execution.json"
@@ -80,8 +81,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
 
     def test_release_rejects_event_stream_manifest_and_unexpected_files(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            _, report = self._report(directory)
-            bundle = build_review_workspace_execution_release(report)
+            _, plan, report = self._report(directory)
+            bundle = build_review_workspace_execution_release(report, plan)
             destination = Path(directory) / "execution-release"
             write_review_workspace_execution_release(bundle, destination)
             (destination / "events.jsonl").write_bytes((destination / "events.jsonl").read_bytes() + b"\n")
@@ -93,8 +94,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
 
     def test_event_stream_reconciliation_survives_manifest_readdressing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
-            _, report = self._report(directory)
-            bundle = build_review_workspace_execution_release(report)
+            _, plan, report = self._report(directory)
+            bundle = build_review_workspace_execution_release(report, plan)
             destination = Path(directory) / "execution-release"
             write_review_workspace_execution_release(bundle, destination)
             stream = destination / "events.jsonl"
@@ -124,9 +125,19 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         schema = review_workspace_execution_release_schema()
         capabilities = review_workspace_execution_release_capabilities()
         self.assertEqual(schema["version"], "review-workspace-execution-release-schema-v1")
-        self.assertEqual(len(schema["artifact_filenames"]), 6)
+        self.assertEqual(len(schema["artifact_filenames"]), 11)
         self.assertTrue(capabilities["independent_manifest_verification"])
         self.assertTrue(capabilities["public_boundary_audit"])
+
+    def test_source_plan_hydration_rejects_graph_address_tampering(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, plan, _ = self._report(directory)
+            hydrated = review_workspace_plan_from_mapping(plan.to_dict())
+            self.assertEqual(hydrated.to_dict(), plan.to_dict())
+            forged = plan.to_dict()
+            forged["actions"][0]["depends_on"] = ["forged-dependency"]
+            with self.assertRaises(ValidationError):
+                review_workspace_plan_from_mapping(forged)
 
 
 if __name__ == "__main__":

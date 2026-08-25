@@ -144,10 +144,12 @@ it does not alter the dossier, evidence, plan, or scientific conclusion.
 
 ## Portable execution release
 
-`review-workspace-plan-execution-release` packages six exact-byte artifacts:
-the typed execution report, human report, action CSV, event CSV, check CSV, and
-canonical `events.jsonl`. The manifest carries each artifact's byte count, line
-count, media type, and content address, plus the execution and plan addresses.
+`review-workspace-plan-execution-release` packages eleven exact-byte artifacts:
+the typed execution report, human report, action CSV, event CSV, check CSV,
+canonical `events.jsonl`, and five source-plan artifacts covering the typed plan,
+plan Markdown, plan actions, plan lanes, and plan checks. The manifest carries
+each artifact's byte count, line count, media type, and content address, plus the
+execution and plan addresses.
 `review-workspace-plan-execution-release-verify` independently validates safe
 paths, artifact closure, nested report/action/check addresses, event-stream
 reconciliation, manifest bytes, and the public boundary. A verified package can

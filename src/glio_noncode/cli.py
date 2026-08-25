@@ -22695,12 +22695,18 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(execution.to_dict(), args.output)
             return 0 if execution.accepted else 2
         if args.command == "review-workspace-plan-execution-release":
-            execution = build_persisted_review_workspace_plan_execution(
-                CaseRuntime(args.data_root),
+            runtime = CaseRuntime(args.data_root)
+            plan = build_persisted_review_workspace_plan(
+                runtime,
                 args.run_id,
                 baseline_run_id=args.baseline_run_id,
             )
-            bundle = build_review_workspace_execution_release(execution)
+            execution = build_persisted_review_workspace_plan_execution(
+                runtime,
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            bundle = build_review_workspace_execution_release(execution, plan)
             write_review_workspace_execution_release(
                 bundle,
                 args.output,

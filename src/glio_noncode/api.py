@@ -2425,13 +2425,19 @@ class ApiHandler(BaseHTTPRequestHandler):
                     plan_config = ReviewWorkspacePlanConfig.from_mapping(
                         json.loads(config_raw) if config_raw else None
                     )
+                    plan = build_persisted_review_workspace_plan(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        config=plan_config,
+                    )
                     execution = build_persisted_review_workspace_plan_execution(
                         runtime,
                         run_id,
                         baseline_run_id=self._query_value(query_values, "baseline_run_id"),
                         plan_config=plan_config,
                     )
-                    bundle = build_review_workspace_execution_release(execution)
+                    bundle = build_review_workspace_execution_release(execution, plan)
                     self._write(
                         HTTPStatus.OK if bundle.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         bundle.to_dict(include_payloads=self._query_bool(query_values, "include_payloads")),

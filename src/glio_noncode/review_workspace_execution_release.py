@@ -30,6 +30,9 @@ from .review_workspace_execution import (
     review_workspace_execution_report_from_mapping,
 )
 from .review_workspace_execution_exports import review_workspace_execution_export_payloads
+from .review_workspace_plan import ReviewWorkspacePlan, review_workspace_plan_from_mapping
+from .review_workspace_plan_exports import review_workspace_plan_export_payloads
+from .review_workspace_execution import replay_review_workspace_plan_execution
 from .serialization import canonical_json, content_hash, hash_bytes, jsonable
 
 
@@ -43,6 +46,11 @@ REVIEW_WORKSPACE_EXECUTION_RELEASE_QUERY_VERSION = "review-workspace-execution-r
 
 _REQUIRED_ARTIFACTS = frozenset(
     {
+        "plan-actions.csv",
+        "plan-checks.csv",
+        "plan-lanes.csv",
+        "review-workspace-plan.json",
+        "review-workspace-plan.md",
         "review-workspace-execution.json",
         "review-workspace-execution.md",
         "actions.csv",
@@ -227,6 +235,8 @@ class ReviewWorkspaceExecutionReleaseVerification:
     accepted: bool
     manifest_version_valid: bool
     manifest_address_valid: bool
+    plan_address_valid: bool
+    replay_valid: bool
     execution_address_valid: bool
     public_boundary_valid: bool
     artifact_count: int
@@ -253,6 +263,7 @@ class ReviewWorkspaceOfflineExecutionRelease:
     execution_address: str
     plan_id: str
     plan_address: str
+    plan: ReviewWorkspacePlan
     workspace_id: str
     run_id: str
     case_id: str
@@ -280,6 +291,7 @@ class ReviewWorkspaceOfflineExecutionRelease:
             "content_address": self.content_address,
         }
         if include_report:
+            body["plan"] = self.plan.to_dict()
             body["report"] = self.report.to_dict()
         return body
 
@@ -379,24 +391,48 @@ def _manifest_body(
 
 def build_review_workspace_execution_release(
     report: ReviewWorkspaceExecutionReport,
+    plan: ReviewWorkspacePlan | Mapping[str, Any],
 ) -> ReviewWorkspaceExecutionReleaseBundle:
-    """Build a closed exact-byte release for one replay report."""
+    """Build a closed exact-byte release for one replay report and its plan."""
 
     if not isinstance(report, ReviewWorkspaceExecutionReport):
         raise ValidationError("execution release requires a typed execution report")
+    source_plan = (
+        plan
+        if isinstance(plan, ReviewWorkspacePlan)
+        else review_workspace_plan_from_mapping(plan)
+    )
+    if not source_plan.accepted:
+        raise ValidationError("execution release requires an accepted source plan")
+    if source_plan.plan_id != report.plan_id or source_plan.content_address != report.plan_address:
+        raise ValidationError("execution release plan and report addresses differ")
+    replayed = replay_review_workspace_plan_execution(source_plan, report.events)
+    if replayed.content_address != report.content_address:
+        raise ValidationError("execution report does not replay against its source plan")
     public_body = report.to_dict()
-    if contains_private_key(public_body):
+    plan_body = source_plan.to_dict()
+    if contains_private_key(public_body) or contains_private_key(plan_body):
         raise ValidationError("execution release failed its public boundary")
     payloads = {
         filename: content.encode("utf-8")
         for filename, content in review_workspace_execution_export_payloads(report).items()
     }
+    plan_payloads = review_workspace_plan_export_payloads(source_plan)
+    payloads.update(
+        {
+            "review-workspace-plan.json": plan_payloads["review-workspace-plan.json"].encode("utf-8"),
+            "review-workspace-plan.md": plan_payloads["review-workspace-plan.md"].encode("utf-8"),
+            "plan-actions.csv": plan_payloads["actions.csv"].encode("utf-8"),
+            "plan-lanes.csv": plan_payloads["lanes.csv"].encode("utf-8"),
+            "plan-checks.csv": plan_payloads["checks.csv"].encode("utf-8"),
+        }
+    )
     payloads["events.jsonl"] = _event_stream(report)
     artifacts = tuple(
         _artifact(filename.replace(".", "-"), filename, payload)
         for filename, payload in sorted(payloads.items())
     )
-    accepted = report.accepted and set(payloads) == _REQUIRED_ARTIFACTS
+    accepted = report.accepted and source_plan.accepted and set(payloads) == _REQUIRED_ARTIFACTS
     release_id = f"review-execution-release-{report.content_address.split(':', 1)[-1][:24]}"
     manifest = _manifest_body(report, release_id, artifacts, accepted)
     body = {
@@ -458,6 +494,8 @@ def _verification(
     accepted: bool,
     manifest_version_valid: bool,
     manifest_address_valid: bool,
+    plan_address_valid: bool,
+    replay_valid: bool,
     execution_address_valid: bool,
     public_boundary_valid: bool,
     artifact_count: int,
@@ -475,6 +513,8 @@ def _verification(
         "accepted": accepted,
         "manifest_version_valid": manifest_version_valid,
         "manifest_address_valid": manifest_address_valid,
+        "plan_address_valid": plan_address_valid,
+        "replay_valid": replay_valid,
         "execution_address_valid": execution_address_valid,
         "public_boundary_valid": public_boundary_valid,
         "artifact_count": artifact_count,
@@ -508,6 +548,8 @@ def verify_review_workspace_execution_release(
             accepted=False,
             manifest_version_valid=False,
             manifest_address_valid=False,
+            plan_address_valid=False,
+            replay_valid=False,
             execution_address_valid=False,
             public_boundary_valid=False,
             artifact_count=0,
@@ -524,6 +566,8 @@ def verify_review_workspace_execution_release(
             accepted=False,
             manifest_version_valid=False,
             manifest_address_valid=False,
+            plan_address_valid=False,
+            replay_valid=False,
             execution_address_valid=False,
             public_boundary_valid=False,
             artifact_count=0,
@@ -537,6 +581,8 @@ def verify_review_workspace_execution_release(
             accepted=False,
             manifest_version_valid=False,
             manifest_address_valid=False,
+            plan_address_valid=False,
+            replay_valid=False,
             execution_address_valid=False,
             public_boundary_valid=False,
             artifact_count=0,
@@ -562,6 +608,9 @@ def verify_review_workspace_execution_release(
     unsafe: list[str] = []
     verified_count = 0
     report: ReviewWorkspaceExecutionReport | None = None
+    plan: ReviewWorkspacePlan | None = None
+    plan_address_valid = False
+    replay_valid = False
     execution_address_valid = False
     for raw_artifact in listed:
         if not isinstance(raw_artifact, dict):
@@ -604,10 +653,14 @@ def verify_review_workspace_execution_release(
                 boundary.extend(f"{filename}:{item}" for item in _private_key_paths(artifact_body))
                 if filename == "review-workspace-execution.json":
                     report = review_workspace_execution_report_from_mapping(artifact_body)
+                elif filename == "review-workspace-plan.json":
+                    plan = review_workspace_plan_from_mapping(artifact_body)
             except (UnicodeError, json.JSONDecodeError, TypeError, ValidationError):
                 tampered.append(filename)
                 if filename == "review-workspace-execution.json":
                     report = None
+                elif filename == "review-workspace-plan.json":
+                    plan = None
         elif filename == "events.jsonl":
             if report is not None and payload != _event_stream(report):
                 tampered.append(filename)
@@ -627,6 +680,23 @@ def verify_review_workspace_execution_release(
                 tampered.append("events.jsonl")
     else:
         tampered.append("review-workspace-execution.json")
+    if plan is not None:
+        plan_address_valid = (
+            plan.content_address == manifest.get("plan_address")
+            and plan.plan_id == manifest.get("plan_id")
+        )
+        if not plan_address_valid:
+            tampered.append("plan-address")
+        if report is not None and plan_address_valid:
+            try:
+                replayed = replay_review_workspace_plan_execution(plan, report.events)
+                replay_valid = replayed.to_dict() == report.to_dict()
+            except ValidationError:
+                replay_valid = False
+            if not replay_valid:
+                tampered.append("plan-replay")
+    else:
+        tampered.append("review-workspace-plan.json")
     actual = sorted(
         path.relative_to(root).as_posix()
         for path in root.rglob("*")
@@ -646,6 +716,8 @@ def verify_review_workspace_execution_release(
     accepted = bool(
         version_valid
         and address_valid
+        and plan_address_valid
+        and replay_valid
         and execution_address_valid
         and public_boundary_valid
         and not any((missing, unexpected, unsafe, tampered))
@@ -660,6 +732,8 @@ def verify_review_workspace_execution_release(
         accepted=accepted,
         manifest_version_valid=version_valid,
         manifest_address_valid=address_valid,
+        plan_address_valid=plan_address_valid,
+        replay_valid=replay_valid,
         execution_address_valid=execution_address_valid,
         public_boundary_valid=public_boundary_valid,
         artifact_count=len(expected),
@@ -698,8 +772,18 @@ def load_review_workspace_execution_release(
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise ValidationError(f"cannot load execution release report: {exc}") from exc
     report = review_workspace_execution_report_from_mapping(raw_report)
+    try:
+        raw_plan = json.loads((root / "review-workspace-plan.json").read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise ValidationError(f"cannot load execution release plan: {exc}") from exc
+    plan = review_workspace_plan_from_mapping(raw_plan)
     if not report.accepted:
         raise ValidationError("execution release report is not accepted for offline querying")
+    if not plan.accepted or plan.content_address != report.plan_address:
+        raise ValidationError("execution release plan does not match the report")
+    replayed = replay_review_workspace_plan_execution(plan, report.events)
+    if replayed.to_dict() != report.to_dict():
+        raise ValidationError("execution release report does not replay against the plan")
     body = {
         "path": str(root),
         "release_id": _text(manifest.get("release_id"), "release_id"),
@@ -707,6 +791,7 @@ def load_review_workspace_execution_release(
         "execution_address": report.content_address,
         "plan_id": report.plan_id,
         "plan_address": report.plan_address,
+        "plan": plan,
         "workspace_id": report.workspace_id,
         "run_id": report.run_id,
         "case_id": report.case_id,
@@ -722,6 +807,7 @@ def load_review_workspace_execution_release(
         execution_address=report.content_address,
         plan_id=report.plan_id,
         plan_address=report.plan_address,
+        plan=plan,
         workspace_id=report.workspace_id,
         run_id=report.run_id,
         case_id=report.case_id,
@@ -901,11 +987,18 @@ def review_workspace_execution_release_schema() -> dict[str, Any]:
             "state": {"type": "string", "enum": ["open", "in_progress", "completed", "blocked", "skipped"]},
             "accepted": {"type": "boolean"},
             "artifact_count": {"type": "integer", "minimum": 0},
-            "artifacts": {"type": "array", "minItems": 6},
+            "artifacts": {"type": "array", "minItems": 11},
             "manifest": {"type": "object"},
             "content_address": {"type": "string"},
         },
         "artifact_filenames": sorted(_REQUIRED_ARTIFACTS),
+        "source_plan": {
+            "required": True,
+            "artifact": "review-workspace-plan.json",
+            "replay_verified": True,
+            "dependency_graph": True,
+            "required_check_declarations": True,
+        },
         "boundary": {
             "raw_evidence": False,
             "reviewer_identity": False,
@@ -925,6 +1018,10 @@ def review_workspace_execution_release_capabilities() -> dict[str, Any]:
         "exact_byte_artifacts": sorted(_REQUIRED_ARTIFACTS),
         "independent_manifest_verification": True,
         "nested_report_address_verification": True,
+        "source_plan_closure": True,
+        "source_plan_hydration": True,
+        "dependency_graph_replay": True,
+        "required_check_declaration_verification": True,
         "event_stream_reconciliation": True,
         "offline_typed_loading": True,
         "bounded_offline_query": True,

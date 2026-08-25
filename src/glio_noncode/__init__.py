@@ -10703,6 +10703,7 @@ from .review_workspace_plan import (
     build_persisted_review_workspace_plan,
     build_review_workspace_plan,
     query_review_workspace_plan,
+    review_workspace_plan_from_mapping,
     review_workspace_plan_capabilities,
     review_workspace_plan_schema,
 )
@@ -11163,6 +11164,7 @@ __all__ += [
     "ReviewWorkspacePlan", "ReviewWorkspacePlanConfig", "ReviewWorkspacePlanQuery",
     "ReviewWorkspacePlanQueryResult", "build_persisted_review_workspace_plan",
     "build_review_workspace_plan", "query_review_workspace_plan",
+    "review_workspace_plan_from_mapping",
     "review_workspace_plan_capabilities", "review_workspace_plan_schema",
     "render_review_workspace_plan_markdown", "review_workspace_plan_actions_csv",
     "review_workspace_plan_checks_csv", "review_workspace_plan_export_payloads",
