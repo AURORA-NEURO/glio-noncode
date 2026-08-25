@@ -15857,6 +15857,42 @@ build_evidence_release_data_dictionary = default_evidence_release_data_dictionar
 EvidenceReleaseReleaseCheck = EvidenceReleaseCheckReport
 evaluate_evidence_release_schema = validate_evidence_release_schema
 
+from .frontier_release_closure_boundary import *
+from .frontier_release_closure_bundle import *
+from .frontier_release_closure_certification import *
+from .frontier_release_closure_contracts import *
+from .frontier_release_closure_export import *
+from .frontier_release_closure_failure_injection import *
+from .frontier_release_closure_graph import *
+from .frontier_release_closure_indexes import *
+from .frontier_release_closure_observability import *
+from .frontier_release_closure_plan import *
+from .frontier_release_closure_query import *
+from .frontier_release_closure_reconciliation import *
+from .frontier_release_closure_runtime import *
+from .frontier_release_closure_schema import *
+from .frontier_release_closure_summary import *
+from .frontier_release_closure_support import *
+
+__all__ += sorted(
+    {
+        name
+        for name in globals()
+        if name.startswith("FrontierRelease")
+        or name.startswith("FRONTIER_RELEASE")
+        or name.startswith("frontier_release")
+        or name.startswith("build_frontier_release")
+        or name.startswith("audit_frontier_release")
+        or name.startswith("certify_frontier_release")
+        or name.startswith("query_frontier_release")
+        or name.startswith("reconcile_frontier_release")
+        or name.startswith("run_frontier_release")
+        or name.startswith("export_frontier_release")
+        or name.startswith("verify_frontier_release")
+        or name.startswith("write_frontier_release")
+    }
+)
+
 __all__ += [
     "EVIDENCE_RELEASE_FRONTIER_BOUNDARY", "EVIDENCE_RELEASE_FRONTIER_CONTEXT_KEY", "EVIDENCE_RELEASE_FRONTIER_CONTROL_COUNT", "EVIDENCE_RELEASE_FRONTIER_FOREIGN_CONTEXT", "EVIDENCE_RELEASE_FRONTIER_POSITIVE_COUNT", "EVIDENCE_RELEASE_FRONTIER_RECORD_COUNT", "EVIDENCE_RELEASE_FRONTIER_SOURCE_COUNT", "EVIDENCE_RELEASE_FRONTIER_VERSION",
     "EvidenceReleaseAccessManifest", "EvidenceReleaseAdapter", "EvidenceReleaseAdapterRegistry", "EvidenceReleaseArtifactInventory", "EvidenceReleaseAssuranceSummary", "EvidenceReleaseAttestation", "EvidenceReleaseAuditLog", "EvidenceReleaseBundle", "EvidenceReleaseCheck", "EvidenceReleaseCheckReport", "EvidenceReleaseCitationGraph", "EvidenceReleaseClaimBoundary", "EvidenceReleaseCompatibility", "EvidenceReleaseComplianceReport", "EvidenceReleaseContextBoundary", "EvidenceReleaseControlCoverage", "EvidenceReleaseContractMigration", "EvidenceReleaseDataAudit", "EvidenceReleaseDataCheck", "EvidenceReleaseDataDictionary", "EvidenceReleaseDecisionLedger", "EvidenceReleaseDepthAudit", "EvidenceReleaseDiagnostics", "EvidenceReleaseDiff", "EvidenceReleaseEvaluation", "EvidenceReleaseEvidenceMatrix", "EvidenceReleaseExecution", "EvidenceReleaseExecutionPlan", "EvidenceReleaseFailureReport", "EvidenceReleaseFixture", "EvidenceReleaseFreshnessReport", "EvidenceReleaseHandoff", "EvidenceReleaseIntegrityReport", "EvidenceReleaseLineage", "EvidenceReleaseManifest", "EvidenceReleaseMetrics", "EvidenceReleaseOperation", "EvidenceReleaseOperationResult", "EvidenceReleaseOperationalMatrix", "EvidenceReleaseOperatorConsole", "EvidenceReleasePackageManifest", "EvidenceReleasePartitionReport", "EvidenceReleasePerformanceBudget", "EvidenceReleasePolicy", "EvidenceReleaseProvenance", "EvidenceReleaseProvenanceCheck", "EvidenceReleasePublicationDecision", "EvidenceReleaseQualityReport", "EvidenceReleaseQueryResult", "EvidenceReleaseReconciliation", "EvidenceReleaseRecoveryPlan", "EvidenceReleaseRecord", "EvidenceReleaseReleaseCheck", "EvidenceReleaseReplayReport", "EvidenceReleaseReproducibilityPacket", "EvidenceReleaseReviewLedger", "EvidenceReleaseReviewProtocol", "EvidenceReleaseReviewQueue", "EvidenceReleaseReviewSla", "EvidenceReleaseRole", "EvidenceReleaseRunManifest", "EvidenceReleaseRunbook", "EvidenceReleaseRuntimeReport", "EvidenceReleaseRuntimeStage", "EvidenceReleaseScenarioMatrix", "EvidenceReleaseSchema", "EvidenceReleaseSchemaDiagnostics", "EvidenceReleaseSourceReceipt", "EvidenceReleaseSourceRegistry", "EvidenceReleaseState", "EvidenceReleaseSummary", "EvidenceReleaseThresholdReport", "EvidenceReleaseTrace", "EvidenceReleaseTranscript", "EvidenceReleaseValidationMatrix", "EvidenceReleaseView",

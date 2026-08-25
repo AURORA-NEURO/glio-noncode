@@ -370,6 +370,38 @@ glio-noncode deployment-frontier-offline-bundle-closure-export --destination dep
 glio-noncode deployment-frontier-offline-bundle-closure-export-verify deployment-frontier-closure-export --output deployment-frontier-closure-verification.json
 ```
 
+The cross-domain frontier-release closure composes the independent D13, D14,
+D15, and D16 handoffs into one public aggregate release package. It conserves
+four domain receipts, 155 source artifacts, six forward dependencies, and 24
+release gates. The aggregate counters retain 20 source receipts, 64 source
+records, 360 evaluation checks, 52 closure stages, 216 certification checks,
+and 158 reconciliation checks. The package adds bounded resource queries,
+seven address-only indexes, a 13-step dependency-ordered release plan, eight
+certification planes with 48 checks, 193 observability events, 24 metrics, a
+connected 189-node/191-edge release graph, 12 structural negative controls, a
+12-stage deterministic runtime, and a 13-artifact exact-byte export packet.
+
+```text
+glio-noncode frontier-release-closure --output frontier-release-snapshot.json
+glio-noncode frontier-release-closure-query --resource artifacts --domain-id D15 --limit 100
+glio-noncode frontier-release-closure-summary --format markdown --output frontier-release-summary.md
+glio-noncode frontier-release-closure-certification --output frontier-release-certification.json
+glio-noncode frontier-release-closure-plan --output frontier-release-plan.json
+glio-noncode frontier-release-closure-runtime --output frontier-release-runtime.json
+glio-noncode frontier-release-closure-export --destination frontier-release-export --output frontier-release-export.json
+glio-noncode frontier-release-closure-export-verify frontier-release-export --output frontier-release-verification.json
+```
+
+The corresponding HTTP surface is rooted at `/v1/frontier-release/closure`.
+It exposes snapshot, query, schema, boundary, indexes, reconciliation,
+summary, certification, observability, graph, failure, plan, runtime, and
+export projections. Every cross-domain path is aggregate-only and rejects
+unsafe paths, duplicate identities, failed gates, incomplete denominators,
+nondeterministic replay, and forbidden attribution keys before acceptance. See
+[frontier release closure operations](docs/FRONTIER_RELEASE_CLOSURE_OPERATIONS.md)
+for the complete contract, resource catalog, release sequence, and verification
+matrix.
+
 The offline boundary verifies canonical UTF-8 bytes, safe relative paths,
 exact artifact addresses, public keys, independent joins, deterministic replay,
 bounded resource queries, and no agent, model, or programming-language

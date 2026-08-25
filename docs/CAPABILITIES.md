@@ -30,6 +30,46 @@ source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
 
+## Cross-domain frontier release closure
+
+The D13-D16 closure layer is a verified composition surface over the four
+independent frontier handoffs. It does not replace their source contracts: it
+names each source artifact under a domain-qualified identity, joins the
+handoffs through six forward-only dependencies, and evaluates six release
+gates for each domain.
+
+| Aggregate plane | Verified denominator |
+| --- | ---: |
+| Source domains | 4 |
+| Source artifacts | 155 |
+| Forward dependencies | 6 |
+| Release gates | 24 |
+| Source receipts | 20 |
+| Source records | 64 |
+| Evaluation checks | 360 |
+| Closure stages | 52 |
+| Certification checks | 216 |
+| Reconciliation checks | 158 |
+| Aggregate certification checks | 48 |
+| Observability events / metrics | 193 / 24 |
+| Release graph nodes / edges | 189 / 191 |
+| Runtime stages / plan steps | 12 / 13 |
+| Exact-byte export artifacts | 13 |
+
+The release package is accepted only when every source handoff is accepted,
+all 24 gates pass, all cross-domain denominators reconcile, all eight
+certification planes pass, the public schema has no forbidden terminal keys,
+the negative-control mutations are rejected, and two snapshot replays have the
+same content address. The public projection contains aggregate identifiers and
+content addresses only; it emits no agent, model, or programming-language
+attribution metadata.
+
+The implementation is available through `frontier_release_closure_*` modules,
+the `frontier-release-closure-*` CLI commands, and the
+`/v1/frontier-release/closure/*` HTTP routes. The [frontier release closure
+operations](FRONTIER_RELEASE_CLOSURE_OPERATIONS.md) document maps every plane
+to its source, audit, query, export, and failure-control behavior.
+
 ## Domain 16 C01-C04 platform-control frontier
 
 The W1 platform-control slice is implemented as a fresh public aggregate

@@ -1036,6 +1036,20 @@ from .deployment_frontier_offline_closure_reconciliation import deployment_front
 from .deployment_frontier_offline_closure_runtime import run_deployment_frontier_closure_runtime
 from .deployment_frontier_offline_closure_schema import audit_deployment_frontier_closure_schema, build_deployment_frontier_closure_schema
 from .deployment_frontier_offline_closure_summary import audit_deployment_frontier_closure_summary, build_deployment_frontier_closure_summary, deployment_frontier_closure_summary_csv, deployment_frontier_closure_summary_markdown
+from .frontier_release_closure_boundary import audit_frontier_release_boundary, frontier_release_key_inventory
+from .frontier_release_closure_bundle import build_frontier_release_snapshot
+from .frontier_release_closure_certification import certify_frontier_release
+from .frontier_release_closure_export import build_frontier_release_export, verify_frontier_release_export, write_frontier_release_export
+from .frontier_release_closure_failure_injection import build_frontier_release_failure_report
+from .frontier_release_closure_graph import build_frontier_release_graph
+from .frontier_release_closure_indexes import audit_frontier_release_indexes, build_frontier_release_indexes
+from .frontier_release_closure_observability import build_frontier_release_observability
+from .frontier_release_closure_plan import audit_frontier_release_plan, build_frontier_release_plan
+from .frontier_release_closure_query import export_frontier_release_csv, export_frontier_release_markdown, query_frontier_release
+from .frontier_release_closure_reconciliation import frontier_release_reconciliation_markdown, reconcile_frontier_release
+from .frontier_release_closure_runtime import run_frontier_release_closure_runtime
+from .frontier_release_closure_schema import audit_frontier_release_schema, build_frontier_release_schema
+from .frontier_release_closure_summary import audit_frontier_release_summary, build_frontier_release_summary, frontier_release_summary_csv, frontier_release_summary_markdown
 from .workspace_frontier_adapters import default_workspace_frontier_adapters
 from .workspace_frontier_artifacts import build_workspace_frontier_artifact_inventory
 from .workspace_frontier_bundle import assemble_workspace_frontier_bundle
@@ -8362,6 +8376,66 @@ def build_parser() -> argparse.ArgumentParser:
     deployment_frontier_closure_export_verify.add_argument("--bundle-id", default="deployment-frontier-public-bundle")
     deployment_frontier_closure_export_verify.add_argument("--run-id", default="deployment-frontier-closure-runtime")
     deployment_frontier_closure_export_verify.add_argument("--output", default=None)
+
+    frontier_release_closure_common = (
+        ("frontier-release-closure", "emit the aggregate D13-D16 release snapshot"),
+        ("frontier-release-closure-boundary", "audit the aggregate public boundary"),
+        ("frontier-release-closure-indexes", "emit aggregate release indexes"),
+        ("frontier-release-closure-certification", "certify all aggregate release planes"),
+        ("frontier-release-closure-observability", "emit aggregate release events and metrics"),
+        ("frontier-release-closure-graph", "build the aggregate release graph"),
+        ("frontier-release-closure-failures", "rehearse aggregate release negative controls"),
+        ("frontier-release-closure-plan", "emit the ordered aggregate release plan"),
+    )
+    for command_name, command_help in frontier_release_closure_common:
+        command_parser = subparsers.add_parser(command_name, help=command_help)
+        command_parser.add_argument("--bundle-id", default="frontier-release-public-bundle")
+        command_parser.add_argument("--run-id", default="frontier-release-closure-runtime")
+        if command_name.endswith("boundary"):
+            command_parser.add_argument("--key-inventory", action="store_true")
+        command_parser.add_argument("--output", default=None)
+    frontier_release_closure_query = subparsers.add_parser("frontier-release-closure-query", help="query aggregate D13-D16 release resources")
+    frontier_release_closure_query.add_argument("--bundle-id", default="frontier-release-public-bundle")
+    frontier_release_closure_query.add_argument("--run-id", default="frontier-release-closure-runtime")
+    frontier_release_closure_query.add_argument("--resource", default="domains", choices=("domains", "artifacts", "dependencies", "gates", "runtime"))
+    frontier_release_closure_query.add_argument("--domain-id", default=None)
+    frontier_release_closure_query.add_argument("--gate-type", default=None)
+    frontier_release_closure_query.add_argument("--state", default=None)
+    frontier_release_closure_query.add_argument("--relation", default=None)
+    frontier_release_closure_query.add_argument("--accepted", default=None)
+    frontier_release_closure_query.add_argument("--text", default=None)
+    frontier_release_closure_query.add_argument("--offset", type=int, default=0)
+    frontier_release_closure_query.add_argument("--limit", type=int, default=50)
+    frontier_release_closure_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    frontier_release_closure_query.add_argument("--output", default=None)
+    frontier_release_closure_schema = subparsers.add_parser("frontier-release-closure-schema", help="emit aggregate release schema and audit")
+    frontier_release_closure_schema.add_argument("--bundle-id", default="frontier-release-public-bundle")
+    frontier_release_closure_schema.add_argument("--run-id", default="frontier-release-closure-runtime")
+    frontier_release_closure_schema.add_argument("--output", default=None)
+    frontier_release_closure_reconciliation = subparsers.add_parser("frontier-release-closure-reconciliation", help="reconcile aggregate release denominators")
+    frontier_release_closure_reconciliation.add_argument("--bundle-id", default="frontier-release-public-bundle")
+    frontier_release_closure_reconciliation.add_argument("--run-id", default="frontier-release-closure-runtime")
+    frontier_release_closure_reconciliation.add_argument("--format", choices=("json", "markdown"), default="json")
+    frontier_release_closure_reconciliation.add_argument("--output", default=None)
+    frontier_release_closure_summary = subparsers.add_parser("frontier-release-closure-summary", help="emit aggregate release reviewer summary")
+    frontier_release_closure_summary.add_argument("--bundle-id", default="frontier-release-public-bundle")
+    frontier_release_closure_summary.add_argument("--run-id", default="frontier-release-closure-runtime")
+    frontier_release_closure_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    frontier_release_closure_summary.add_argument("--output", default=None)
+    frontier_release_closure_runtime = subparsers.add_parser("frontier-release-closure-runtime", help="run the twelve-stage aggregate release runtime")
+    frontier_release_closure_runtime.add_argument("--bundle-id", default="frontier-release-public-bundle")
+    frontier_release_closure_runtime.add_argument("--run-id", default="frontier-release-closure-runtime")
+    frontier_release_closure_runtime.add_argument("--output", default=None)
+    frontier_release_closure_export = subparsers.add_parser("frontier-release-closure-export", help="write the exact-byte aggregate release export")
+    frontier_release_closure_export.add_argument("--destination", required=True)
+    frontier_release_closure_export.add_argument("--bundle-id", default="frontier-release-public-bundle")
+    frontier_release_closure_export.add_argument("--run-id", default="frontier-release-closure-runtime")
+    frontier_release_closure_export.add_argument("--output", default=None)
+    frontier_release_closure_export_verify = subparsers.add_parser("frontier-release-closure-export-verify", help="verify the exact-byte aggregate release export")
+    frontier_release_closure_export_verify.add_argument("destination")
+    frontier_release_closure_export_verify.add_argument("--bundle-id", default="frontier-release-public-bundle")
+    frontier_release_closure_export_verify.add_argument("--run-id", default="frontier-release-closure-runtime")
+    frontier_release_closure_export_verify.add_argument("--output", default=None)
 
     lifecycle_beta_frontier_commands = (
         ("lifecycle-beta-frontier-data-audit", "audit public Domain 14 C05-C12 aggregate receipts"),
@@ -17056,6 +17130,99 @@ def main(argv: list[str] | None = None) -> int:
             verification = verify_deployment_frontier_closure_export(packet, args.destination)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
+        if args.command.startswith("frontier-release-closure"):
+            if args.command == "frontier-release-closure-runtime":
+                report = run_frontier_release_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+                _write_json(report.to_dict(), args.output)
+                return 0 if report.accepted else 2
+            if args.command == "frontier-release-closure-export":
+                runtime = run_frontier_release_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+                packet = build_frontier_release_export(runtime)
+                write_frontier_release_export(packet, args.destination)
+                _write_json(packet.to_dict(), args.output)
+                return 0 if packet.accepted else 2
+            if args.command == "frontier-release-closure-export-verify":
+                runtime = run_frontier_release_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+                packet = build_frontier_release_export(runtime)
+                verification = verify_frontier_release_export(packet, args.destination)
+                _write_json(verification.to_dict(), args.output)
+                return 0 if verification.accepted else 2
+            snapshot = build_frontier_release_snapshot(bundle_id=args.bundle_id, run_id=args.run_id)
+            if args.command == "frontier-release-closure":
+                _write_json(snapshot.to_dict(), args.output)
+                return 0 if snapshot.accepted else 2
+            if args.command == "frontier-release-closure-query":
+                result = query_frontier_release(
+                    snapshot,
+                    resource=args.resource,
+                    domain_id=args.domain_id,
+                    gate_type=args.gate_type,
+                    state=args.state,
+                    relation=args.relation,
+                    accepted=args.accepted,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                if args.format == "csv":
+                    _write_text(export_frontier_release_csv(result), args.output)
+                elif args.format == "markdown":
+                    _write_text(export_frontier_release_markdown(result), args.output)
+                else:
+                    _write_json(result.to_dict(), args.output)
+                return 0 if result.accepted else 2
+            if args.command == "frontier-release-closure-schema":
+                schema = build_frontier_release_schema()
+                audit = audit_frontier_release_schema(snapshot, schema)
+                _write_json({"schema": schema, "audit": list(audit)}, args.output)
+                return 0 if all(item.passed for item in audit) else 2
+            if args.command == "frontier-release-closure-boundary":
+                payload = frontier_release_key_inventory(snapshot) if args.key_inventory else audit_frontier_release_boundary(snapshot).to_dict()
+                _write_json(payload, args.output)
+                return 0 if payload.get("accepted", False) else 2
+            if args.command == "frontier-release-closure-indexes":
+                indexes = build_frontier_release_indexes(snapshot)
+                audit = audit_frontier_release_indexes(snapshot, indexes)
+                _write_json({"indexes": indexes.to_dict(), "audit": audit.to_dict()}, args.output)
+                return 0 if audit.accepted else 2
+            if args.command == "frontier-release-closure-reconciliation":
+                report = reconcile_frontier_release(snapshot)
+                if args.format == "markdown":
+                    _write_text(frontier_release_reconciliation_markdown(report), args.output)
+                else:
+                    _write_json(report.to_dict(), args.output)
+                return 0 if report.accepted else 2
+            if args.command == "frontier-release-closure-summary":
+                summary = build_frontier_release_summary(snapshot)
+                audit = audit_frontier_release_summary(summary)
+                if args.format == "csv":
+                    _write_text(frontier_release_summary_csv(summary), args.output)
+                elif args.format == "markdown":
+                    _write_text(frontier_release_summary_markdown(summary), args.output)
+                else:
+                    _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+                return 0 if audit.accepted else 2
+            if args.command == "frontier-release-closure-certification":
+                report = certify_frontier_release(snapshot)
+                _write_json(report.to_dict(), args.output)
+                return 0 if report.accepted else 2
+            if args.command == "frontier-release-closure-observability":
+                report = build_frontier_release_observability(snapshot)
+                _write_json(report.to_dict(), args.output)
+                return 0 if report.accepted else 2
+            if args.command == "frontier-release-closure-graph":
+                report = build_frontier_release_graph(snapshot)
+                _write_json(report.to_dict(), args.output)
+                return 0 if report.accepted else 2
+            if args.command == "frontier-release-closure-failures":
+                report = build_frontier_release_failure_report(snapshot)
+                _write_json(report.to_dict(), args.output)
+                return 0 if report.accepted else 2
+            if args.command == "frontier-release-closure-plan":
+                plan = build_frontier_release_plan(snapshot)
+                audit = audit_frontier_release_plan(plan)
+                _write_json({"plan": plan.to_dict(), "audit": list(audit)}, args.output)
+                return 0 if plan.accepted and all(item["passed"] for item in audit) else 2
         if args.command == "evidence-lifecycle-release":
             fixture = _read_evidence_lifecycle_fixture(args.input)
             runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-release")

@@ -1484,3 +1484,9 @@ jobs:
         run: python -m unittest tests.test_portfolio_release -v
       - name: Workspace history and release focused tests
         run: python -m unittest tests.test_workspace_history tests.test_workspace_release -v
+      - name: Aggregate frontier release closure runtime
+        run: python -m glio_noncode frontier-release-closure-runtime --output /tmp/glio-frontier-release-runtime.json
+      - name: Aggregate frontier release closure exact-byte export
+        run: python -m glio_noncode frontier-release-closure-export --destination /tmp/glio-frontier-release-export --output /tmp/glio-frontier-release-export.json && python -m glio_noncode frontier-release-closure-export-verify /tmp/glio-frontier-release-export --output /tmp/glio-frontier-release-export-verification.json
+      - name: Aggregate frontier release closure focused tests
+        run: python -m unittest tests.test_frontier_release_closure -v

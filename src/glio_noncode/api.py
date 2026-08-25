@@ -133,6 +133,20 @@ from .deployment_frontier_offline_closure_reconciliation import reconcile_deploy
 from .deployment_frontier_offline_closure_runtime import run_deployment_frontier_closure_runtime
 from .deployment_frontier_offline_closure_schema import build_deployment_frontier_closure_schema
 from .deployment_frontier_offline_closure_summary import audit_deployment_frontier_closure_summary, build_deployment_frontier_closure_summary
+from .frontier_release_closure_boundary import audit_frontier_release_boundary
+from .frontier_release_closure_bundle import build_frontier_release_snapshot
+from .frontier_release_closure_certification import certify_frontier_release
+from .frontier_release_closure_export import build_frontier_release_export
+from .frontier_release_closure_failure_injection import build_frontier_release_failure_report
+from .frontier_release_closure_graph import build_frontier_release_graph
+from .frontier_release_closure_indexes import audit_frontier_release_indexes, build_frontier_release_indexes
+from .frontier_release_closure_observability import build_frontier_release_observability
+from .frontier_release_closure_plan import audit_frontier_release_plan, build_frontier_release_plan
+from .frontier_release_closure_query import query_frontier_release
+from .frontier_release_closure_reconciliation import reconcile_frontier_release
+from .frontier_release_closure_runtime import run_frontier_release_closure_runtime
+from .frontier_release_closure_schema import audit_frontier_release_schema, build_frontier_release_schema
+from .frontier_release_closure_summary import audit_frontier_release_summary, build_frontier_release_summary
 from .program_runtime_offline_audit import audit_program_runtime_offline_bundle
 from .program_runtime_offline_boundary import audit_program_runtime_offline_boundary
 from .program_runtime_offline_bundle import build_program_runtime_offline_bundle
@@ -332,6 +346,100 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/frontier-release/closure",
+            "/v1/frontier-release/closure/query",
+            "/v1/frontier-release/closure/schema",
+            "/v1/frontier-release/closure/boundary",
+            "/v1/frontier-release/closure/indexes",
+            "/v1/frontier-release/closure/reconciliation",
+            "/v1/frontier-release/closure/summary",
+            "/v1/frontier-release/closure/certification",
+            "/v1/frontier-release/closure/observability",
+            "/v1/frontier-release/closure/graph",
+            "/v1/frontier-release/closure/failures",
+            "/v1/frontier-release/closure/plan",
+            "/v1/frontier-release/closure/runtime",
+            "/v1/frontier-release/closure/export",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "frontier-release-public-bundle"
+                run_id = self._query_value(query, "run_id") or "frontier-release-closure-runtime"
+                if path.endswith("/schema"):
+                    schema = build_frontier_release_schema()
+                    snapshot = build_frontier_release_snapshot(bundle_id=bundle_id, run_id=run_id)
+                    self._write(
+                        HTTPStatus.OK,
+                        {
+                            "schema": schema,
+                            "schema_audit": [item.to_dict() for item in audit_frontier_release_schema(snapshot, schema)],
+                        },
+                    )
+                    return
+                if path.endswith("/runtime"):
+                    self._write(
+                        HTTPStatus.OK,
+                        run_frontier_release_closure_runtime(bundle_id=bundle_id, run_id=run_id).to_dict(),
+                    )
+                    return
+                if path.endswith("/export"):
+                    runtime = run_frontier_release_closure_runtime(bundle_id=bundle_id, run_id=run_id)
+                    self._write(HTTPStatus.OK, build_frontier_release_export(runtime).to_dict())
+                    return
+                snapshot = build_frontier_release_snapshot(bundle_id=bundle_id, run_id=run_id)
+                if path == "/v1/frontier-release/closure":
+                    payload = snapshot.to_dict()
+                elif path.endswith("/query"):
+                    payload = query_frontier_release(
+                        snapshot,
+                        resource=self._query_value(query, "resource") or "domains",
+                        domain_id=self._query_value(query, "domain_id"),
+                        gate_type=self._query_value(query, "gate_type"),
+                        state=self._query_value(query, "state"),
+                        relation=self._query_value(query, "relation"),
+                        accepted=self._query_value(query, "accepted"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/boundary"):
+                    payload = audit_frontier_release_boundary(snapshot).to_dict()
+                elif path.endswith("/indexes"):
+                    indexes = build_frontier_release_indexes(snapshot)
+                    payload = {
+                        "indexes": indexes.to_dict(),
+                        "audit": audit_frontier_release_indexes(snapshot, indexes).to_dict(),
+                    }
+                elif path.endswith("/reconciliation"):
+                    payload = reconcile_frontier_release(snapshot).to_dict()
+                elif path.endswith("/summary"):
+                    summary = build_frontier_release_summary(snapshot)
+                    payload = {
+                        "summary": summary.to_dict(),
+                        "audit": audit_frontier_release_summary(summary).to_dict(),
+                    }
+                elif path.endswith("/certification"):
+                    payload = certify_frontier_release(snapshot).to_dict()
+                elif path.endswith("/observability"):
+                    payload = build_frontier_release_observability(snapshot).to_dict()
+                elif path.endswith("/graph"):
+                    payload = build_frontier_release_graph(snapshot).to_dict()
+                elif path.endswith("/failures"):
+                    payload = build_frontier_release_failure_report(snapshot).to_dict()
+                elif path.endswith("/plan"):
+                    plan = build_frontier_release_plan(snapshot)
+                    payload = {"plan": plan.to_dict(), "audit": audit_frontier_release_plan(plan)}
+                else:  # pragma: no cover - path set is exhaustive
+                    payload = {"error": "unknown_frontier_release_path"}
+                self._write(HTTPStatus.OK, payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

@@ -66,6 +66,20 @@ report or runtime from which it was derived.
 | GET | `/v1/deployment-frontier/bundle/closure-failures` | Return twelve D16 structural negative-control results |
 | GET | `/v1/deployment-frontier/bundle/closure-graph` | Return the connected D16 closure graph |
 | GET | `/v1/deployment-frontier/bundle/closure-export` | Return the exact-byte D16 closure export packet |
+| GET | `/v1/frontier-release/closure` | Build the aggregate D13-D16 snapshot with four domains and 155 artifacts |
+| GET | `/v1/frontier-release/closure/query` | Query aggregate domains, artifacts, dependencies, gates, or runtime rows |
+| GET | `/v1/frontier-release/closure/schema` | Return the aggregate five-resource schema and public-key audit |
+| GET | `/v1/frontier-release/closure/boundary` | Audit aggregate paths, identities, addresses, and forbidden keys |
+| GET | `/v1/frontier-release/closure/indexes` | Return seven address-only aggregate lookup indexes and their audit |
+| GET | `/v1/frontier-release/closure/reconciliation` | Return 35 aggregate denominator and dependency checks |
+| GET | `/v1/frontier-release/closure/summary` | Return conserved source, artifact, gate, certification, and graph counters |
+| GET | `/v1/frontier-release/closure/certification` | Return eight-plane, 48-check aggregate release certification |
+| GET | `/v1/frontier-release/closure/observability` | Return 193 aggregate release events and 24 metrics |
+| GET | `/v1/frontier-release/closure/graph` | Return the connected 189-node/191-edge aggregate release graph |
+| GET | `/v1/frontier-release/closure/failures` | Return twelve aggregate structural negative-control results |
+| GET | `/v1/frontier-release/closure/plan` | Return the 13-step dependency-ordered release plan |
+| GET | `/v1/frontier-release/closure/runtime` | Run the 12-stage aggregate release runtime and replay gate |
+| GET | `/v1/frontier-release/closure/export` | Return the 13-artifact exact-byte aggregate release packet |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
