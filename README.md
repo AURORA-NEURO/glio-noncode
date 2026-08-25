@@ -310,6 +310,23 @@ glio-noncode workbench-release-offline-bundle-summary workbench-release-bundle -
 glio-noncode workbench-release-offline-bundle-certification workbench-release-bundle --format markdown --output workbench-release-certification.md
 ```
 
+The D16 deployment-governance frontier now has the same portable review
+surface. It covers C13 privacy/security policy, C14 local offline bundles,
+C15 federated execution, and C16 release/rollback gates. The handoff closes
+51 exact-byte artifacts, 5 sources, 16 records, 4 positives, 12 controls,
+80 evaluation checks, 38 runtime stages, 8 indexes, and 7 certification
+domains. See [deployment frontier offline operations](docs/DEPLOYMENT_FRONTIER_OFFLINE_OPERATIONS.md)
+for the full CLI, HTTP, query, verification, and replay workflow.
+
+```text
+glio-noncode deployment-frontier-offline-bundle --destination deployment-frontier-bundle --output deployment-frontier-bundle.json
+glio-noncode deployment-frontier-offline-bundle-verify deployment-frontier-bundle --output deployment-frontier-verification.json
+glio-noncode deployment-frontier-offline-bundle-query deployment-frontier-bundle --resource records --role control --format csv
+glio-noncode deployment-frontier-offline-bundle-audit deployment-frontier-bundle --output deployment-frontier-audit.json
+glio-noncode deployment-frontier-offline-bundle-runtime --output deployment-frontier-runtime.json
+glio-noncode deployment-frontier-offline-bundle-certification deployment-frontier-bundle --format markdown --output deployment-frontier-certification.md
+```
+
 The offline boundary verifies canonical UTF-8 bytes, safe relative paths,
 exact artifact addresses, public keys, independent joins, deterministic replay,
 bounded resource queries, and no agent, model, or programming-language
