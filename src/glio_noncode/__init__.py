@@ -11612,9 +11612,12 @@ __all__ += [
 
 from .deployment_profiles import (
     DEPLOYMENT_ALL_SCOPES,
+    DEPLOYMENT_AUDIT_FILENAME,
     DEPLOYMENT_AUDIT_VERSION,
+    DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
     DEPLOYMENT_DEFAULT_PUBLIC_PATHS,
     DEPLOYMENT_DEFAULT_RATE_LIMIT_PER_MINUTE,
+    DEPLOYMENT_MAX_AUDIT_RETENTION_LIMIT,
     DEPLOYMENT_MAX_RATE_LIMIT_PER_MINUTE,
     DEPLOYMENT_PROFILE_SCHEMA_VERSION,
     DEPLOYMENT_PROFILE_VERSION,
@@ -11622,6 +11625,8 @@ from .deployment_profiles import (
     DeploymentAuthorization,
     DeploymentAuditEvent,
     DeploymentAuditLog,
+    DeploymentAuditStore,
+    DeploymentAuditStoreStatus,
     DeploymentDecision,
     DeploymentExposure,
     DeploymentGuard,
@@ -11645,11 +11650,14 @@ from .deployment_profiles import (
 )
 
 __all__ += [
-    "DEPLOYMENT_ALL_SCOPES", "DEPLOYMENT_AUDIT_VERSION", "DEPLOYMENT_DEFAULT_PUBLIC_PATHS",
-    "DEPLOYMENT_DEFAULT_RATE_LIMIT_PER_MINUTE", "DEPLOYMENT_MAX_RATE_LIMIT_PER_MINUTE",
+    "DEPLOYMENT_ALL_SCOPES", "DEPLOYMENT_AUDIT_FILENAME", "DEPLOYMENT_AUDIT_VERSION",
+    "DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT", "DEPLOYMENT_DEFAULT_PUBLIC_PATHS",
+    "DEPLOYMENT_DEFAULT_RATE_LIMIT_PER_MINUTE", "DEPLOYMENT_MAX_AUDIT_RETENTION_LIMIT",
+    "DEPLOYMENT_MAX_RATE_LIMIT_PER_MINUTE",
     "DEPLOYMENT_PROFILE_SCHEMA_VERSION", "DEPLOYMENT_PROFILE_VERSION",
     "DeploymentAuthentication", "DeploymentAuthorization", "DeploymentAuditEvent",
-    "DeploymentAuditLog", "DeploymentDecision", "DeploymentExposure", "DeploymentGuard",
+    "DeploymentAuditLog", "DeploymentAuditStore", "DeploymentAuditStoreStatus",
+    "DeploymentDecision", "DeploymentExposure", "DeploymentGuard",
     "DeploymentOperation", "DeploymentPrincipal", "DeploymentProfile", "api_key_digest",
     "build_deployment_audit_log", "build_deployment_principal", "build_deployment_profile",
     "default_deployment_profile", "deployment_audit_csv", "deployment_audit_log_from_dict",

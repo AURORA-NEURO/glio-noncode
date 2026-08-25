@@ -47,7 +47,8 @@ Start the API with the profile and credential file:
 glio-noncode serve `
   --host 10.0.0.12 `
   --deployment-profile deployment-profile.json `
-  --api-key-file deployment-credentials.json
+  --api-key-file deployment-credentials.json `
+  --audit-root deployment-audit
 ```
 
 Requests to protected routes use `Authorization: Bearer <key>`. Scope mapping
@@ -55,18 +56,24 @@ is explicit: reads require `read`, writes require `write`, review and
 assignment routes require `review`, and audit routes require `audit`. The
 health and profile routes are public metadata routes. Authentication failures,
 scope denials, rate-limit blocks, and successful requests are all retained in a
-redacted hash chain.
+redacted hash chain. Non-loopback servers require `--audit-root`; the server
+stores the chain as `deployment-audit.json`, reloads and verifies it on startup,
+and writes each event through an atomic same-directory replacement. The
+retention ceiling is configurable with `--audit-retention-limit` and is
+fail-closed: a full store denies new requests instead of deleting history.
 
 ## Audit export
 
 The running server exposes the current redacted ledger at
 `GET /v1/deployment/audit`. It contains no bearer token, credential, subject
 identifier, agent attribution, model attribution, or programming-language
-metadata. Save the response and verify or export it offline:
+metadata. `GET /v1/deployment/audit/status` reports durability and remaining
+retention capacity. Save the response and verify or export it offline:
 
 ```powershell
 glio-noncode deployment-audit deployment-audit.json --format markdown --output deployment-audit.md
 glio-noncode deployment-audit deployment-audit.json --format csv --output deployment-audit.csv
+glio-noncode deployment-audit-status deployment-audit --profile-id glio-institutional
 ```
 
 Audit events contain a sequence number, UTC observation time, method, route,

@@ -13,8 +13,10 @@ from threading import Thread
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.deployment_profiles import (
+    DEPLOYMENT_AUDIT_FILENAME,
     DEPLOYMENT_PROFILE_VERSION,
     DeploymentAuthentication,
+    DeploymentAuditStore,
     DeploymentDecision,
     DeploymentExposure,
     DeploymentGuard,
@@ -151,6 +153,56 @@ class DeploymentProfileTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             deployment_audit_log_from_dict(tampered)
 
+    def test_durable_audit_store_reloads_and_verifies_chain(self) -> None:
+        profile = self._profile()
+        credentials = {"operator-1": "a-random-secret-key-12345"}
+        observed = datetime(2026, 8, 25, 12, 0, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            first_store = DeploymentAuditStore(directory, profile.profile_id, retention_limit=5)
+            first_guard = DeploymentGuard(profile, credentials, audit_store=first_store)
+            first_guard.authorize("GET", "/v1/status", token=credentials["operator-1"], observed_at=observed)
+            first_guard.authorize("GET", "/v1/deployment/audit", token=credentials["operator-1"], observed_at=observed)
+            audit_path = Path(directory) / DEPLOYMENT_AUDIT_FILENAME
+            self.assertTrue(audit_path.is_file())
+            reopened_store = DeploymentAuditStore(directory, profile.profile_id, retention_limit=5)
+            self.assertEqual(reopened_store.audit_log, first_store.audit_log)
+            self.assertEqual(verify_deployment_audit_log(reopened_store.audit_log), ())
+            reopened_guard = DeploymentGuard(profile, credentials, audit_store=reopened_store)
+            next_decision = reopened_guard.authorize(
+                "GET",
+                "/v1/status",
+                token=credentials["operator-1"],
+                observed_at=observed,
+            )
+            self.assertEqual(next_decision.audit_sequence, 3)
+            self.assertEqual(reopened_store.status.event_count, 3)
+            self.assertEqual(reopened_store.status.remaining_capacity, 2)
+            self.assertTrue(reopened_store.status.durable)
+            self.assertEqual(verify_deployment_audit_log(reopened_store.audit_log), ())
+
+    def test_durable_audit_store_rejects_tampering_and_blocks_at_retention_limit(self) -> None:
+        profile = self._profile()
+        credentials = {"operator-1": "a-random-secret-key-12345"}
+        observed = datetime(2026, 8, 25, 12, 0, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            store = DeploymentAuditStore(directory, profile.profile_id, retention_limit=1)
+            guard = DeploymentGuard(profile, credentials, audit_store=store)
+            first = guard.authorize("GET", "/v1/status", token=credentials["operator-1"], observed_at=observed)
+            self.assertTrue(first.allowed)
+            blocked = guard.authorize("GET", "/v1/status", token=credentials["operator-1"], observed_at=observed)
+            self.assertFalse(blocked.allowed)
+            self.assertEqual(blocked.reason, "audit_store_blocked")
+            self.assertEqual(store.status.event_count, 1)
+            self.assertEqual(store.status.remaining_capacity, 0)
+            self.assertTrue(store.status.blocked)
+            self.assertTrue(guard.audit_store_status["write_blocked"])
+            audit_path = Path(directory) / DEPLOYMENT_AUDIT_FILENAME
+            payload = json.loads(audit_path.read_text(encoding="utf-8"))
+            payload["events"][0]["reason"] = "tampered"
+            audit_path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaises(ValidationError):
+                DeploymentAuditStore(directory, profile.profile_id, retention_limit=1)
+
     def test_api_enforces_profile_and_exposes_redacted_audit(self) -> None:
         profile = self._profile()
         with tempfile.TemporaryDirectory() as directory:
@@ -160,6 +212,7 @@ class DeploymentProfileTests(unittest.TestCase):
                 directory,
                 deployment_profile=profile,
                 credentials={"operator-1": "a-random-secret-key-12345"},
+                audit_root=str(Path(directory) / "audit"),
             )
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -194,6 +247,18 @@ class DeploymentProfileTests(unittest.TestCase):
                 audit_payload = json.loads(response.read())
                 self.assertGreaterEqual(audit_payload["event_count"], 3)
                 self.assertNotIn("a-random-secret-key-12345", json.dumps(audit_payload))
+                connection.request(
+                    "GET",
+                    "/v1/deployment/audit/status",
+                    headers={"Authorization": "Bearer a-random-secret-key-12345"},
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                status_payload = json.loads(response.read())
+                self.assertTrue(status_payload["durable"])
+                self.assertEqual(status_payload["file_name"], DEPLOYMENT_AUDIT_FILENAME)
+                self.assertGreaterEqual(status_payload["event_count"], audit_payload["event_count"])
+                self.assertTrue((Path(directory) / "audit" / DEPLOYMENT_AUDIT_FILENAME).is_file())
                 connection.close()
             finally:
                 server.shutdown()
@@ -235,6 +300,29 @@ class DeploymentProfileTests(unittest.TestCase):
                 0,
             )
             self.assertIn("# Deployment Audit", output.read_text(encoding="utf-8"))
+            durable_root = Path(directory) / "durable-audit"
+            durable_store = DeploymentAuditStore(durable_root, profile.profile_id, retention_limit=7)
+            durable_guard = DeploymentGuard(profile, audit_store=durable_store)
+            durable_guard.authorize("GET", "/healthz")
+            status_output = Path(directory) / "audit-status.json"
+            self.assertEqual(
+                main(
+                    [
+                        "deployment-audit-status",
+                        str(durable_root),
+                        "--profile-id",
+                        profile.profile_id,
+                        "--retention-limit",
+                        "7",
+                        "--output",
+                        str(status_output),
+                    ]
+                ),
+                0,
+            )
+            status_payload = json.loads(status_output.read_text(encoding="utf-8"))
+            self.assertEqual(status_payload["event_count"], 1)
+            self.assertEqual(status_payload["remaining_capacity"], 6)
 
 
 if __name__ == "__main__":

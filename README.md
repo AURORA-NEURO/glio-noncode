@@ -40,13 +40,16 @@ a separate file:
 
 ```powershell
 glio-noncode deployment-profile --profile-id glio-institutional --host 10.0.0.12 --exposure private_network --authentication api_key --principal-id institutional-operator --output deployment-profile.json
-glio-noncode serve --host 10.0.0.12 --deployment-profile deployment-profile.json --api-key-file deployment-credentials.json
+glio-noncode serve --host 10.0.0.12 --deployment-profile deployment-profile.json --api-key-file deployment-credentials.json --audit-root deployment-audit
 ```
 
 Non-loopback profiles require API-key authentication, TLS intent, auditing, and
 declared principals. The API exposes a redacted hash-chained audit ledger at
-`GET /v1/deployment/audit`; both the profile and profile schema are included in
-the repository-wide public-surface audit. See [deployment profiles](docs/DEPLOYMENT_PROFILES.md).
+`GET /v1/deployment/audit`, durable store status at
+`GET /v1/deployment/audit/status`, and requires an explicit `--audit-root` so
+restart/replay verification and retention enforcement remain available. Both
+the profile and profile schema are included in the repository-wide
+public-surface audit. See [deployment profiles](docs/DEPLOYMENT_PROFILES.md).
 
 Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate` or a manifest list to `POST http://127.0.0.1:8765/v1/evaluate-batch`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, searched across runs, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/search`, `GET /v1/search/closure`, `GET /v1/batches`, `GET /v1/batches/{batch_id}`, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `GET /v1/review-operations`, `GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
 

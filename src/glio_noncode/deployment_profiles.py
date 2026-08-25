@@ -19,11 +19,14 @@ import hashlib
 import hmac
 import io
 import json
+import os
+import tempfile
 import threading
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
 from .errors import ValidationError
@@ -32,8 +35,11 @@ from .serialization import content_hash, jsonable, require_non_empty
 DEPLOYMENT_PROFILE_VERSION = "deployment-profile-v1"
 DEPLOYMENT_AUDIT_VERSION = "deployment-audit-v1"
 DEPLOYMENT_PROFILE_SCHEMA_VERSION = "deployment-profile-schema-v1"
+DEPLOYMENT_AUDIT_FILENAME = "deployment-audit.json"
 DEPLOYMENT_DEFAULT_RATE_LIMIT_PER_MINUTE = 60
 DEPLOYMENT_MAX_RATE_LIMIT_PER_MINUTE = 10_000
+DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT = 100_000
+DEPLOYMENT_MAX_AUDIT_RETENTION_LIMIT = 1_000_000
 DEPLOYMENT_DEFAULT_PUBLIC_PATHS = ("/healthz", "/v1/deployment/profile")
 DEPLOYMENT_ALL_SCOPES = ("audit", "read", "review", "write")
 
@@ -84,6 +90,36 @@ def _unique_texts(values: Sequence[Any], field: str) -> tuple[str, ...]:
 
 def _addressed(body: Mapping[str, Any], prefix: str) -> str:
     return content_hash(body, prefix=prefix)
+
+
+def _atomic_json_write(destination: Path, value: Mapping[str, Any]) -> None:
+    """Durably replace one JSON object without exposing partial audit state."""
+
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.",
+        suffix=".tmp",
+        dir=str(destination.parent),
+    )
+    temporary = Path(temporary_name)
+    try:
+        payload = json.dumps(
+            jsonable(value),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8") + b"\n"
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, destination)
+    except BaseException as exc:
+        try:
+            temporary.unlink(missing_ok=True)
+        finally:
+            if isinstance(exc, (OSError, UnicodeError, TypeError, ValueError)):
+                raise ValidationError("deployment audit store write failed") from exc
+            raise
 
 
 def api_key_digest(api_key: str) -> str:
@@ -564,6 +600,116 @@ def deployment_audit_log_from_dict(value: Mapping[str, Any]) -> DeploymentAuditL
     return log
 
 
+@dataclass(frozen=True, slots=True)
+class DeploymentAuditStoreStatus:
+    """Addressed status for a durable audit directory."""
+
+    profile_id: str
+    file_name: str
+    durable: bool
+    event_count: int
+    retention_limit: int
+    remaining_capacity: int
+    blocked: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+class DeploymentAuditStore:
+    """Atomic append-only storage for one profile's redacted audit chain."""
+
+    def __init__(
+        self,
+        root: str | Path,
+        profile_id: str,
+        *,
+        retention_limit: int = DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
+    ) -> None:
+        if retention_limit < 1 or retention_limit > DEPLOYMENT_MAX_AUDIT_RETENTION_LIMIT:
+            raise ValidationError("deployment audit retention limit is outside the supported range")
+        self.root = Path(root)
+        if self.root.exists() and self.root.is_symlink():
+            raise ValidationError("deployment audit root cannot be a symlink")
+        try:
+            self.root.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise ValidationError("cannot create deployment audit root") from exc
+        if not self.root.is_dir():
+            raise ValidationError("deployment audit root must be a directory")
+        self.path = self.root / DEPLOYMENT_AUDIT_FILENAME
+        if self.path.is_symlink():
+            raise ValidationError("deployment audit file cannot be a symlink")
+        self.profile_id = _text(profile_id, "profile_id")
+        self.retention_limit = retention_limit
+        self._lock = threading.RLock()
+        self._events: tuple[DeploymentAuditEvent, ...] = ()
+        self._load()
+
+    def _load(self) -> None:
+        if not self.path.exists():
+            return
+        try:
+            value = json.loads(self.path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValidationError("deployment audit file cannot be decoded") from exc
+        if not isinstance(value, Mapping):
+            raise ValidationError("deployment audit file must contain an object")
+        log = deployment_audit_log_from_dict(value)
+        if log.profile_id != self.profile_id:
+            raise ValidationError("deployment audit profile does not match the deployment profile")
+        if len(log.events) > self.retention_limit:
+            raise ValidationError("deployment audit history exceeds its retention limit")
+        if value.get("event_count", log.event_count) != log.event_count:
+            raise ValidationError("deployment audit event count does not match its events")
+        if value.get("denied_count", log.denied_count) != log.denied_count:
+            raise ValidationError("deployment audit denied count does not match its events")
+        self._events = log.events
+
+    @property
+    def events(self) -> tuple[DeploymentAuditEvent, ...]:
+        with self._lock:
+            return self._events
+
+    @property
+    def audit_log(self) -> DeploymentAuditLog:
+        with self._lock:
+            return build_deployment_audit_log(self.profile_id, self._events)
+
+    @property
+    def status(self) -> DeploymentAuditStoreStatus:
+        with self._lock:
+            body = {
+                "profile_id": self.profile_id,
+                "file_name": DEPLOYMENT_AUDIT_FILENAME,
+                "durable": True,
+                "event_count": len(self._events),
+                "retention_limit": self.retention_limit,
+                "remaining_capacity": max(self.retention_limit - len(self._events), 0),
+                "blocked": len(self._events) >= self.retention_limit,
+            }
+            return DeploymentAuditStoreStatus(
+                **body,
+                content_address=_addressed(body, "deployment-audit-store-status"),
+            )
+
+    def append(self, event: DeploymentAuditEvent) -> DeploymentAuditLog:
+        """Persist one next event, refusing to delete history at capacity."""
+
+        with self._lock:
+            if len(self._events) >= self.retention_limit:
+                raise ValidationError("deployment audit retention limit reached")
+            expected_sequence = len(self._events) + 1
+            previous_address = self._events[-1].content_address if self._events else "deployment-audit:genesis"
+            if event.sequence != expected_sequence or event.previous_address != previous_address:
+                raise ValidationError("deployment audit event is not the next chain event")
+            candidate = build_deployment_audit_log(self.profile_id, (*self._events, event))
+            _atomic_json_write(self.path, candidate.to_dict())
+            self._events = candidate.events
+            return candidate
+
+
 def deployment_audit_csv(log: DeploymentAuditLog) -> str:
     """Export redacted events with stable columns."""
 
@@ -617,7 +763,13 @@ def _operation_for_request(method: str, path: str) -> DeploymentOperation:
 class DeploymentGuard:
     """Thread-safe request gate with redacted hash-chained audit events."""
 
-    def __init__(self, profile: DeploymentProfile, credentials: Mapping[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        profile: DeploymentProfile,
+        credentials: Mapping[str, str] | None = None,
+        *,
+        audit_store: DeploymentAuditStore | None = None,
+    ) -> None:
         if not profile.accepted:
             raise ValidationError("deployment profile is not accepted")
         supplied = credentials or {}
@@ -637,7 +789,11 @@ class DeploymentGuard:
             )
             if missing:
                 raise ValidationError("missing deployment credentials for: " + ", ".join(missing))
-        self._events: list[DeploymentAuditEvent] = []
+        if audit_store is not None and audit_store.profile_id != profile.profile_id:
+            raise ValidationError("deployment audit store profile does not match the deployment profile")
+        self._audit_store = audit_store
+        self._audit_store_error: str | None = None
+        self._events: list[DeploymentAuditEvent] = list(audit_store.events if audit_store else ())
         self._rate_windows: dict[tuple[str, int], int] = {}
         self._lock = threading.Lock()
 
@@ -645,6 +801,29 @@ class DeploymentGuard:
     def audit_log(self) -> DeploymentAuditLog:
         with self._lock:
             return build_deployment_audit_log(self.profile.profile_id, tuple(self._events))
+
+    @property
+    def audit_store_status(self) -> dict[str, Any]:
+        with self._lock:
+            if self._audit_store is None:
+                return {
+                    "mode": "memory",
+                    "durable": False,
+                    "event_count": len(self._events),
+                    "blocked": self._audit_store_error is not None,
+                    "content_address": content_hash(
+                        {"mode": "memory", "event_count": len(self._events)},
+                        prefix="deployment-audit-store-status",
+                    ),
+                }
+            status = self._audit_store.status.to_dict()
+            status["write_blocked"] = self._audit_store_error is not None
+            status["mode"] = "durable"
+            status["content_address"] = content_hash(
+                {key: value for key, value in status.items() if key != "content_address"},
+                prefix="deployment-audit-store-status",
+            )
+            return status
 
     def _principal_for_token(self, token: str | None) -> DeploymentPrincipal | None:
         if not token:
@@ -689,6 +868,30 @@ class DeploymentGuard:
         else:
             allowed = True
             reason = "scope_allowed"
+        if self._audit_store_error is not None:
+            allowed = False
+            reason = "audit_store_blocked"
+
+        def authorization_result(decision: DeploymentDecision, result_reason: str, result_sequence: int) -> DeploymentAuthorization:
+            return DeploymentAuthorization(
+                decision=decision,
+                operation=operation,
+                principal_id=principal_id,
+                role=role,
+                reason=result_reason,
+                audit_sequence=result_sequence,
+                content_address=content_hash(
+                    {
+                        "decision": decision,
+                        "operation": operation,
+                        "principal_id": principal_id,
+                        "role": role,
+                        "reason": result_reason,
+                        "audit_sequence": result_sequence,
+                    },
+                    prefix="deployment-authorization",
+                ),
+            )
 
         current_time = observed_at or datetime.now(timezone.utc)
         timestamp = current_time.astimezone(timezone.utc).isoformat()
@@ -721,26 +924,14 @@ class DeploymentGuard:
                 **event_body,
                 content_address=_addressed(event_body, "deployment-audit-event"),
             )
+            if self._audit_store is not None:
+                try:
+                    self._audit_store.append(event)
+                except ValidationError:
+                    self._audit_store_error = "audit_store_blocked"
+                    return authorization_result(DeploymentDecision.DENIED, "audit_store_blocked", sequence)
             self._events.append(event)
-        return DeploymentAuthorization(
-            decision=event.decision,
-            operation=operation,
-            principal_id=principal_id,
-            role=role,
-            reason=reason,
-            audit_sequence=sequence,
-            content_address=content_hash(
-                {
-                    "decision": event.decision,
-                    "operation": operation,
-                    "principal_id": principal_id,
-                    "role": role,
-                    "reason": reason,
-                    "audit_sequence": sequence,
-                },
-                prefix="deployment-authorization",
-            ),
-        )
+        return authorization_result(event.decision, event.reason, sequence)
 
 
 def load_deployment_credentials(path: str) -> dict[str, str]:
@@ -764,9 +955,12 @@ def load_deployment_credentials(path: str) -> dict[str, str]:
 
 __all__ = [
     "DEPLOYMENT_ALL_SCOPES",
+    "DEPLOYMENT_AUDIT_FILENAME",
     "DEPLOYMENT_AUDIT_VERSION",
+    "DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT",
     "DEPLOYMENT_DEFAULT_PUBLIC_PATHS",
     "DEPLOYMENT_DEFAULT_RATE_LIMIT_PER_MINUTE",
+    "DEPLOYMENT_MAX_AUDIT_RETENTION_LIMIT",
     "DEPLOYMENT_MAX_RATE_LIMIT_PER_MINUTE",
     "DEPLOYMENT_PROFILE_SCHEMA_VERSION",
     "DEPLOYMENT_PROFILE_VERSION",
@@ -774,6 +968,8 @@ __all__ = [
     "DeploymentAuthorization",
     "DeploymentAuditEvent",
     "DeploymentAuditLog",
+    "DeploymentAuditStore",
+    "DeploymentAuditStoreStatus",
     "DeploymentDecision",
     "DeploymentExposure",
     "DeploymentGuard",

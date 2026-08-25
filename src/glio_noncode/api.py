@@ -21,11 +21,14 @@ from .dossier_query import (
 )
 from .dossier_release import build_persisted_dossier_release
 from .deployment_profiles import (
+    DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
     DeploymentGuard,
+    DeploymentAuditStore,
+    DeploymentExposure,
     DeploymentProfile,
     default_deployment_profile,
 )
-from .errors import GlioError, StoreError
+from .errors import GlioError, StoreError, ValidationError
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -499,6 +502,9 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/deployment/profile":
             self._write(HTTPStatus.OK, self._deployment_guard().profile.to_dict())
+            return
+        if path == "/v1/deployment/audit/status":
+            self._write(HTTPStatus.OK, self._deployment_guard().audit_store_status)
             return
         if path == "/v1/deployment/audit":
             self._write(HTTPStatus.OK, self._deployment_guard().audit_log.to_dict())
@@ -2222,11 +2228,24 @@ def create_server(
     *,
     deployment_profile: DeploymentProfile | None = None,
     credentials: Mapping[str, str] | None = None,
+    audit_root: str | None = None,
+    audit_retention_limit: int = DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
 ) -> ThreadingHTTPServer:
     """Create a threaded server with an explicit deployment policy."""
 
     profile = deployment_profile or default_deployment_profile(host)
-    guard = DeploymentGuard(profile, credentials)
+    if profile.exposure is not DeploymentExposure.LOOPBACK and audit_root is None:
+        raise ValidationError("non-loopback deployments require a durable audit_root")
+    audit_store = (
+        DeploymentAuditStore(
+            audit_root,
+            profile.profile_id,
+            retention_limit=audit_retention_limit,
+        )
+        if audit_root is not None
+        else None
+    )
+    guard = DeploymentGuard(profile, credentials, audit_store=audit_store)
     server = ThreadingHTTPServer((host, port), ApiHandler)
     setattr(server, "glio_runtime", CaseRuntime(data_root))  # noqa: B010 - server-local runtime attachment
     setattr(server, "glio_deployment_guard", guard)  # noqa: B010 - server-local policy attachment

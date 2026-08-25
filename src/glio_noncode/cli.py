@@ -11,8 +11,10 @@ from typing import Any
 
 from .api import create_server
 from .deployment_profiles import (
+    DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
     DeploymentAuthentication,
     DeploymentExposure,
+    DeploymentAuditStore,
     build_deployment_principal,
     build_deployment_profile,
     deployment_audit_csv,
@@ -2885,6 +2887,12 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--data-root", default=".glio")
     serve.add_argument("--deployment-profile", default=None)
     serve.add_argument("--api-key-file", default=None)
+    serve.add_argument("--audit-root", default=None)
+    serve.add_argument(
+        "--audit-retention-limit",
+        default=DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
+        type=int,
+    )
 
     deployment_profile = subparsers.add_parser(
         "deployment-profile",
@@ -2921,6 +2929,18 @@ def build_parser() -> argparse.ArgumentParser:
     deployment_audit.add_argument("input", type=str)
     deployment_audit.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
     deployment_audit.add_argument("--output", default=None)
+    deployment_audit_status = subparsers.add_parser(
+        "deployment-audit-status",
+        help="inspect a durable deployment audit store and its retention capacity",
+    )
+    deployment_audit_status.add_argument("input", type=str)
+    deployment_audit_status.add_argument("--profile-id", required=True)
+    deployment_audit_status.add_argument(
+        "--retention-limit",
+        default=DEPLOYMENT_DEFAULT_AUDIT_RETENTION_LIMIT,
+        type=int,
+    )
+    deployment_audit_status.add_argument("--output", default=None)
 
     service_surface = subparsers.add_parser(
         "service-surface",
@@ -20989,6 +21009,14 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(log.to_dict(), args.output)
             return 0
+        if args.command == "deployment-audit-status":
+            store = DeploymentAuditStore(
+                args.input,
+                args.profile_id,
+                retention_limit=args.retention_limit,
+            )
+            _write_json(store.status.to_dict(), args.output)
+            return 0
         if args.command == "serve":
             profile = (
                 deployment_profile_from_dict(_read_json(args.deployment_profile))
@@ -21006,6 +21034,8 @@ def main(argv: list[str] | None = None) -> int:
                 args.data_root,
                 deployment_profile=profile,
                 credentials=credentials,
+                audit_root=args.audit_root,
+                audit_retention_limit=args.audit_retention_limit,
             )
             print(f"glio-noncode listening on http://{args.host}:{args.port}")
             server.serve_forever()
