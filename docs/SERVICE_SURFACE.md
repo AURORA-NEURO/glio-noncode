@@ -33,6 +33,9 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/lineage` | Join hypothesis edges to referenced claims |
 | GET | `/v1/runs/{run_id}/release` | Build a gated, content-addressed portable dossier release bundle |
 | POST | `/v1/runs/{run_id}/review` | Attach a typed human review and create a new dossier snapshot |
+| GET | `/v1/review-queue` | Return a bounded deterministic priority queue for review operations |
+| GET | `/v1/review-queue/closure` | Return the complete review queue with state and priority counters |
+| POST | `/v1/runs/{run_id}/assignment` | Append a durable reviewer assignment and create a new dossier snapshot |
 | POST | `/v1/evaluate` | Existing case evaluation endpoint |
 
 Capability queries accept `capability_id`, `domain_id`, `mvp_only`, `state`, and
@@ -53,6 +56,14 @@ Evidence supports `state`, `tier`, `channel`, `source_id`, `edge_id`, and
 `max_uncertainty`; experiments support `option_id` and `assay`. The lineage
 projection accepts `hypothesis_id` and fails closed when an edge references a
 missing claim.
+
+Review queue queries accept `scope` (`open`, `all`, `assigned`, `unassigned`,
+`completed`, or `blocked`), `case_id`, `status`, `reviewer`, `queue_id`,
+`priority_band`, `text`, `offset`, and `limit`. Queue priority is deterministic:
+integrity blocks, returned or pending reviews, missing reviews, runtime warnings,
+uncertainty, abstained evidence, and missing assignments contribute explicit
+priority reasons. The queue remains a projection over replay-verified runs and
+fails closed when any persisted run is corrupted.
 
 ## CLI and offline closure
 
@@ -85,6 +96,9 @@ glio-noncode run-compare-release run-<run-id> run-<run-id> --source-snapshot 0 -
 glio-noncode run-compare-release-verify comparison-release --output comparison-verification.json
 glio-noncode run-release run-<run-id> --data-root .glio --output dossier-release
 glio-noncode run-release-verify dossier-release --output release-verification.json
+glio-noncode review-queue --data-root .glio --scope open --output review-queue.json
+glio-noncode review-queue --data-root .glio --closure --output review-queue-closure.json
+glio-noncode review-assign run-<run-id> assignment.json --data-root .glio --output assignment-result.json
 ```
 
 Review input uses the public `ReviewDecision` fields: `review_id`, `case_id`,
@@ -113,6 +127,13 @@ metadata, hypothesis, evidence, and experiment CSV deltas. The release route and
 `run-compare-release` command retain blocked comparisons as inspectable bundles;
 `run-compare-release-verify` reopens the directory and verifies every byte,
 manifest address, size, line count, and safe artifact path.
+
+Review assignments are append-only `review_assigned` events. An assignment
+records the public assignment identifier, reviewer, queue, optional due time and
+note, and its content address. The runtime re-addresses the dossier with the
+new event head, so assignment history is retained in `run-history`, semantic
+comparisons, and subsequent release gates. Reassignments use a new assignment
+identifier and never overwrite prior events.
 
 The release route and CLI export ten portable artifacts: canonical dossier JSON,
 Markdown, summary and query-closure JSON, replay events, release-gate evidence,

@@ -10125,6 +10125,18 @@ from .run_comparison import (
     compare_persisted_runs,
     compare_run_snapshots,
 )
+from .review_queue import (
+    REVIEW_PRIORITY_BANDS,
+    REVIEW_QUEUE_DEFAULT_LIMIT,
+    REVIEW_QUEUE_MAX_LIMIT,
+    REVIEW_QUEUE_SCOPES,
+    REVIEW_QUEUE_VERSION,
+    ReviewAssignmentView,
+    ReviewQueueItem,
+    ReviewQueuePage,
+    build_review_queue_closure,
+    build_review_queue_page,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10186,6 +10198,12 @@ __all__ += [
     "RUN_HISTORY_VERSION", "ComparisonChange", "ComparisonCheck", "ComparisonDimension",
     "DossierComparison", "RunHistory", "RunSnapshot", "build_dossier_comparison",
     "build_run_history", "compare_persisted_runs", "compare_run_snapshots",
+]
+
+__all__ += [
+    "REVIEW_PRIORITY_BANDS", "REVIEW_QUEUE_DEFAULT_LIMIT", "REVIEW_QUEUE_MAX_LIMIT",
+    "REVIEW_QUEUE_SCOPES", "REVIEW_QUEUE_VERSION", "ReviewAssignmentView",
+    "ReviewQueueItem", "ReviewQueuePage", "build_review_queue_closure", "build_review_queue_page",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403

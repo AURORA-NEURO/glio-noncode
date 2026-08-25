@@ -1424,3 +1424,5 @@ jobs:
         run: python -m unittest tests.test_run_catalog tests.test_runtime
       - name: Dossier query and lineage focused tests
         run: python -m unittest tests.test_dossier_query
+      - name: Review queue focused tests
+        run: python -m unittest tests.test_review_queue -v

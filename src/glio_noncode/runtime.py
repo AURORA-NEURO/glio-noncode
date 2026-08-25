@@ -253,6 +253,89 @@ class CaseRuntime:
             raise ValidationError("stored dossier run_id does not match requested run")
         return self.review(dossier, review)
 
+    def assign_review(
+        self,
+        run_id: str,
+        *,
+        assignment_id: str,
+        reviewer: str,
+        queue_id: str = "default-review",
+        due_at: str | None = None,
+        note: str = "",
+    ) -> dict[str, Any]:
+        """Append a durable reviewer assignment and create a new snapshot.
+
+        Assignment is operational metadata, but it is still part of the
+        replayable event chain.  The dossier is re-addressed with the new event
+        head so the current run pointer and snapshot history remain coherent.
+        """
+
+        fields = {
+            "assignment_id": assignment_id,
+            "reviewer": reviewer,
+            "queue_id": queue_id,
+            "due_at": due_at or "",
+            "note": note,
+        }
+        for name in ("assignment_id", "reviewer", "queue_id"):
+            value = fields[name]
+            if not str(value).strip():
+                raise ValidationError(f"{name} must not be empty")
+        if any(char in str(assignment_id) for char in ("/", "\\", "..")):
+            raise ValidationError("assignment_id contains an unsafe path fragment")
+        self.policy.enforce_texts(tuple(str(value) for value in fields.values()))
+        run_record = self.get_run(run_id)
+        event_record = self.store.store.get(str(run_record["event_address"]))
+        stored = self.get_dossier(str(run_record["dossier_address"]))
+        replay = ReplayVerifier().verify(run_record, event_record, stored)
+        if (
+            not replay.event_chain_valid
+            or not replay.stored_dossier_matches_address
+            or not self.store.store.exists(str(run_record["input_address"]))
+        ):
+            raise ValidationError("cannot assign a run that fails replay integrity")
+        dossier = Dossier.from_dict(stored)
+        if dossier.review is not None and dossier.review.state in {
+            ReviewState.ACCEPTED,
+            ReviewState.REJECTED,
+        }:
+            raise ValidationError("cannot assign a completed review")
+        log = EventLog.from_record(event_record)
+        if any(event.event_id == assignment_id for event in log.all()):
+            raise ValidationError("assignment_id already exists in the run event chain")
+        assignment_body = {
+            "assignment_id": str(assignment_id),
+            "run_id": run_id,
+            "case_id": dossier.case_id,
+            "reviewer": str(reviewer),
+            "queue_id": str(queue_id),
+            "due_at": str(due_at or ""),
+            "note": str(note),
+            "created_at": utc_now().isoformat(),
+        }
+        assignment = dict(assignment_body)
+        assignment["content_address"] = content_hash(
+            assignment_body,
+            prefix="review-assignment",
+        )
+        log.append(
+            "review_assigned",
+            assignment,
+            event_id=str(assignment_id),
+        )
+        updated = self._readdress(replace(dossier, event_head=log.head))
+        self._persist(None, log, updated, dossier.input_address)
+        current = self.get_run(run_id)
+        response_body = {
+            "assignment": assignment,
+            "dossier": updated.to_dict(),
+            "event_address": current["event_address"],
+            "accepted": True,
+        }
+        return response_body | {
+            "content_address": content_hash(response_body, prefix="review-assignment-response")
+        }
+
     def get_run(self, run_id: str) -> dict[str, Any]:
         """Read the run index without rehydrating mutable objects."""
 

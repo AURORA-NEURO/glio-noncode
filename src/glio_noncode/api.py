@@ -29,6 +29,7 @@ from .run_catalog import (
     get_run_events,
     inspect_run,
 )
+from .review_queue import build_review_queue_closure, build_review_queue_page
 from .runtime import CaseRuntime
 from .schema import schema_document
 from .service_surface import (
@@ -156,6 +157,34 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path == "/v1/review-queue" or path == "/v1/review-queue/closure":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path.endswith("/closure"):
+                    self._write(HTTPStatus.OK, build_review_queue_closure(self._runtime()))
+                    return
+                page = build_review_queue_page(
+                    self._runtime(),
+                    scope=self._query_value(query, "scope") or "open",
+                    case_id=self._query_value(query, "case_id"),
+                    status=self._query_value(query, "status"),
+                    reviewer=self._query_value(query, "reviewer"),
+                    queue_id=self._query_value(query, "queue_id"),
+                    priority_band=self._query_value(query, "priority_band"),
+                    text=self._query_value(query, "text"),
+                    offset=self._query_int(query, "offset", 0),
+                    limit=self._query_int(query, "limit", 25),
+                )
+                self._write(HTTPStatus.OK, page.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "run not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/runs" or path.startswith("/v1/runs/"):
             try:
@@ -328,11 +357,23 @@ class ApiHandler(BaseHTTPRequestHandler):
         path = parsed.path
         if path.startswith("/v1/runs/"):
             segments = [unquote(item) for item in path.split("/") if item]
-            if len(segments) != 4 or segments[0:2] != ["v1", "runs"] or segments[3] != "review":
+            if len(segments) != 4 or segments[0:2] != ["v1", "runs"] or segments[3] not in {"review", "assignment"}:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "path": path})
                 return
             try:
-                review = ReviewDecision.from_dict(self._read_json())
+                payload = self._read_json()
+                if segments[3] == "assignment":
+                    result = self._runtime().assign_review(
+                        segments[2],
+                        assignment_id=str(payload.get("assignment_id", "")),
+                        reviewer=str(payload.get("reviewer", "")),
+                        queue_id=str(payload.get("queue_id", "default-review")),
+                        due_at=None if payload.get("due_at") is None else str(payload.get("due_at")),
+                        note=str(payload.get("note", "")),
+                    )
+                    self._write(HTTPStatus.OK, result)
+                    return
+                review = ReviewDecision.from_dict(payload)
                 dossier = self._runtime().review_run(segments[2], review)
                 self._write(HTTPStatus.OK, dossier.to_dict())
             except StoreError:

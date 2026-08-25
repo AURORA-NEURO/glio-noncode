@@ -1249,6 +1249,7 @@ from .run_catalog import (
     build_run_catalog_page,
     inspect_run,
 )
+from .review_queue import build_review_queue_closure, build_review_queue_page
 from .schema import schema_document
 from .sequence_adapters import (
     LongContextVariantEffectAdapter,
@@ -2424,6 +2425,36 @@ def build_parser() -> argparse.ArgumentParser:
     run_review.add_argument("review", type=str, help="JSON review decision")
     run_review.add_argument("--data-root", default=".glio")
     run_review.add_argument("--output", default=None)
+
+    review_queue = subparsers.add_parser(
+        "review-queue",
+        help="build a bounded priority queue over persisted review work",
+    )
+    review_queue.add_argument("--data-root", default=".glio")
+    review_queue.add_argument(
+        "--scope",
+        choices=("open", "all", "assigned", "unassigned", "completed", "blocked"),
+        default="open",
+    )
+    review_queue.add_argument("--case-id", default=None)
+    review_queue.add_argument("--status", default=None)
+    review_queue.add_argument("--reviewer", default=None)
+    review_queue.add_argument("--queue-id", default=None)
+    review_queue.add_argument("--priority-band", choices=("critical", "high", "normal", "low"), default=None)
+    review_queue.add_argument("--text", default=None)
+    review_queue.add_argument("--offset", default=0, type=int)
+    review_queue.add_argument("--limit", default=25, type=int)
+    review_queue.add_argument("--closure", action="store_true")
+    review_queue.add_argument("--output", default=None)
+
+    review_assign = subparsers.add_parser(
+        "review-assign",
+        help="append a durable reviewer assignment to one persisted run",
+    )
+    review_assign.add_argument("run_id", type=str)
+    review_assign.add_argument("assignment", type=str, help="JSON assignment object")
+    review_assign.add_argument("--data-root", default=".glio")
+    review_assign.add_argument("--output", default=None)
 
     run_query = subparsers.add_parser(
         "run-query",
@@ -17918,6 +17949,37 @@ def main(argv: list[str] | None = None) -> int:
             dossier = CaseRuntime(args.data_root).review_run(args.run_id, review)
             _write_json(dossier.to_dict(), args.output)
             return 0
+        if args.command == "review-queue":
+            runtime = CaseRuntime(args.data_root)
+            if args.closure:
+                payload = build_review_queue_closure(runtime)
+            else:
+                payload = build_review_queue_page(
+                    runtime,
+                    scope=args.scope,
+                    case_id=args.case_id,
+                    status=args.status,
+                    reviewer=args.reviewer,
+                    queue_id=args.queue_id,
+                    priority_band=args.priority_band,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
+        if args.command == "review-assign":
+            assignment = _read_json(args.assignment)
+            result = CaseRuntime(args.data_root).assign_review(
+                args.run_id,
+                assignment_id=str(assignment.get("assignment_id", "")),
+                reviewer=str(assignment.get("reviewer", "")),
+                queue_id=str(assignment.get("queue_id", "default-review")),
+                due_at=None if assignment.get("due_at") is None else str(assignment.get("due_at")),
+                note=str(assignment.get("note", "")),
+            )
+            _write_json(result, args.output)
+            return 0 if result["accepted"] else 2
         if args.command == "run-query":
             runtime = CaseRuntime(args.data_root)
             if args.resource == "summary":
