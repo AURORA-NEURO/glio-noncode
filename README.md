@@ -769,6 +769,8 @@ glio-noncode review-workspace-release RUN_ID --data-root .glio --output review-r
 glio-noncode review-workspace-release-verify review-release --output verification.json
 glio-noncode review-workspace-index RUN_ID --data-root .glio --output review-index.json
 glio-noncode review-workspace-query RUN_ID --collection evidence --state contradictory --data-root .glio --output review-query.json
+glio-noncode review-workspace-release-query review-release --collection evidence --output release-query.json
+glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
 See [review workspace operations](docs/REVIEW_WORKSPACE.md).

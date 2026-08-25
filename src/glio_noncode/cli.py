@@ -1723,6 +1723,12 @@ from .review_workspace_query import (
     review_workspace_query_capabilities,
     review_workspace_query_schema,
 )
+from .review_workspace_release_query import (
+    diff_review_workspace_releases,
+    index_review_workspace_release,
+    load_review_workspace_release,
+    query_review_workspace_release,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -3372,6 +3378,51 @@ def build_parser() -> argparse.ArgumentParser:
     )
     review_workspace_release_verify.add_argument("input", type=str)
     review_workspace_release_verify.add_argument("--output", default=None)
+
+    review_workspace_release_load = subparsers.add_parser(
+        "review-workspace-release-load",
+        help="verify and inspect a portable review workspace release",
+    )
+    review_workspace_release_load.add_argument("input", type=str)
+    review_workspace_release_load.add_argument("--include-report", action="store_true")
+    review_workspace_release_load.add_argument("--output", default=None)
+
+    review_workspace_release_index = subparsers.add_parser(
+        "review-workspace-release-index",
+        help="index a verified portable review workspace release",
+    )
+    review_workspace_release_index.add_argument("input", type=str)
+    review_workspace_release_index.add_argument("--output", default=None)
+
+    review_workspace_release_query = subparsers.add_parser(
+        "review-workspace-release-query",
+        help="query a verified portable review workspace release",
+    )
+    review_workspace_release_query.add_argument("input", type=str)
+    review_workspace_release_query.add_argument(
+        "--collection",
+        choices=("all", *REVIEW_WORKSPACE_QUERY_COLLECTIONS),
+        default="all",
+    )
+    review_workspace_release_query.add_argument("--item-id", default=None)
+    review_workspace_release_query.add_argument("--text", default=None)
+    review_workspace_release_query.add_argument("--state", action="append", default=[])
+    review_workspace_release_query.add_argument("--source-id", action="append", default=[])
+    review_workspace_release_query.add_argument("--context-key", default=None)
+    review_workspace_release_query.add_argument("--item-type", default=None)
+    review_workspace_release_query.add_argument("--dimension", default=None)
+    review_workspace_release_query.add_argument("--priority", type=int, default=None)
+    review_workspace_release_query.add_argument("--offset", type=int, default=0)
+    review_workspace_release_query.add_argument("--limit", type=int, default=50)
+    review_workspace_release_query.add_argument("--output", default=None)
+
+    review_workspace_release_diff = subparsers.add_parser(
+        "review-workspace-release-diff",
+        help="compare two verified portable review workspace releases",
+    )
+    review_workspace_release_diff.add_argument("left", type=str)
+    review_workspace_release_diff.add_argument("right", type=str)
+    review_workspace_release_diff.add_argument("--output", default=None)
 
     review_workspace_query = subparsers.add_parser(
         "review-workspace-query",
@@ -22209,6 +22260,35 @@ def main(argv: list[str] | None = None) -> int:
             verification = verify_review_workspace_release(args.input)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
+        if args.command == "review-workspace-release-load":
+            loaded = load_review_workspace_release(args.input)
+            _write_json(loaded.to_dict(include_report=args.include_report), args.output)
+            return 0
+        if args.command == "review-workspace-release-index":
+            index = index_review_workspace_release(args.input)
+            _write_json(index.to_dict(), args.output)
+            return 0 if index.accepted else 2
+        if args.command == "review-workspace-release-query":
+            query = ReviewWorkspaceQuery(
+                collection=args.collection,
+                item_id=args.item_id,
+                text=args.text,
+                states=tuple(args.state),
+                source_ids=tuple(args.source_id),
+                context_key=args.context_key,
+                item_type=args.item_type,
+                dimension=args.dimension,
+                priority=args.priority,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            result = query_review_workspace_release(args.input, query)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "review-workspace-release-diff":
+            diff = diff_review_workspace_releases(args.left, args.right)
+            _write_json(diff.to_dict(), args.output)
+            return 0 if diff.accepted else 2
         if args.command == "review-workspace-query":
             query = ReviewWorkspaceQuery(
                 collection=args.collection,

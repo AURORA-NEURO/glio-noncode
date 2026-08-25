@@ -98,6 +98,20 @@ def _canonical_mapping(value: Any, field: str) -> dict[str, Any]:
     return {str(key): jsonable(item) for key, item in value.items()}
 
 
+def _report_body(value: ReviewWorkspaceReport | Mapping[str, Any]) -> dict[str, Any]:
+    """Normalize a live report or a verified portable report projection."""
+
+    if isinstance(value, ReviewWorkspaceReport):
+        body = value.to_dict()
+    elif isinstance(value, Mapping):
+        body = _canonical_mapping(value, "review workspace report")
+    else:
+        raise ValidationError("review workspace query requires a report or public report mapping")
+    if not str(body.get("workspace_id", "")).strip() or not str(body.get("content_address", "")).strip():
+        raise ValidationError("review workspace report requires workspace_id and content_address")
+    return body
+
+
 @dataclass(frozen=True, slots=True)
 class ReviewWorkspaceQuery:
     """Validated filters for one deterministic review-workspace query."""
@@ -164,9 +178,9 @@ class ReviewWorkspaceQuery:
         return jsonable(self)
 
 
-def _collection_records(report: ReviewWorkspaceReport) -> tuple[tuple[str, dict[str, Any]], ...]:
+def _collection_records(report: ReviewWorkspaceReport | Mapping[str, Any]) -> tuple[tuple[str, dict[str, Any]], ...]:
     records: list[tuple[str, dict[str, Any]]] = []
-    body = report.to_dict()
+    body = _report_body(report)
     for collection in REVIEW_WORKSPACE_QUERY_COLLECTIONS:
         values = body.get(collection, ())
         if not isinstance(values, list):
@@ -322,19 +336,18 @@ class ReviewWorkspaceIndex:
         return jsonable(self)
 
 
-def build_review_workspace_index(report: ReviewWorkspaceReport) -> ReviewWorkspaceIndex:
+def build_review_workspace_index(report: ReviewWorkspaceReport | Mapping[str, Any]) -> ReviewWorkspaceIndex:
     """Build a deterministic index without copying private dossier payloads."""
 
-    if not isinstance(report, ReviewWorkspaceReport):
-        raise ValidationError("review workspace index requires a typed report")
-    public_body = report.to_dict()
+    public_body = _report_body(report)
+    report_accepted = bool(public_body.get("accepted", False))
     warnings: list[str] = []
     boundary_valid = not contains_private_key(public_body)
     if not boundary_valid:
         warnings.append("review workspace index rejected a forbidden public key")
-    if not report.accepted:
+    if not report_accepted:
         warnings.append("review report was not accepted; index collections were withheld")
-    if report.accepted and boundary_valid:
+    if report_accepted and boundary_valid:
         try:
             records = _collection_records(report)
         except ValidationError as exc:
@@ -347,12 +360,12 @@ def build_review_workspace_index(report: ReviewWorkspaceReport) -> ReviewWorkspa
         for collection in REVIEW_WORKSPACE_QUERY_COLLECTIONS
     }
     body = {
-        "workspace_id": report.workspace_id,
-        "report_address": report.content_address,
+        "workspace_id": str(public_body["workspace_id"]),
+        "report_address": str(public_body["content_address"]),
         "record_count": len(records),
         "collection_counts": collection_counts,
         "facets": _facet_counts(records),
-        "accepted": report.accepted and boundary_valid and not warnings,
+        "accepted": report_accepted and boundary_valid and not warnings,
         "warnings": tuple(dict.fromkeys(warnings)),
     }
     return ReviewWorkspaceIndex(
@@ -436,23 +449,25 @@ class ReviewWorkspaceQueryResult:
 
 
 def query_review_workspace(
-    report: ReviewWorkspaceReport,
+    report: ReviewWorkspaceReport | Mapping[str, Any],
     query: ReviewWorkspaceQuery | Mapping[str, Any] | None = None,
     *,
     index: ReviewWorkspaceIndex | None = None,
 ) -> ReviewWorkspaceQueryResult:
     """Filter and paginate one report while preserving complete-match facets."""
 
-    if not isinstance(report, ReviewWorkspaceReport):
-        raise ValidationError("review workspace query requires a typed report")
+    public_body = _report_body(report)
+    report_accepted = bool(public_body.get("accepted", False))
     selected_query = query if isinstance(query, ReviewWorkspaceQuery) else ReviewWorkspaceQuery.from_mapping(query)
     selected_index = index or build_review_workspace_index(report)
-    if selected_index.workspace_id != report.workspace_id or selected_index.report_address != report.content_address:
+    if (
+        selected_index.workspace_id != str(public_body["workspace_id"])
+        or selected_index.report_address != str(public_body["content_address"])
+    ):
         raise ValidationError("review workspace query index does not match the report")
-    public_body = report.to_dict()
     records = (
         _collection_records(report)
-        if report.accepted and not contains_private_key(public_body)
+        if report_accepted and not contains_private_key(public_body)
         else ()
     )
     matched = tuple(item for item in records if _matches(item[0], item[1], selected_query))
@@ -466,13 +481,13 @@ def query_review_workspace(
         else selected_query.offset + len(page) < len(matched)
     )
     warnings = list(selected_index.warnings)
-    if not report.accepted:
+    if not report_accepted:
         warnings.append("review report was not accepted; query rows are inspectable but not publishable")
     public_boundary_valid = not contains_private_key({"rows": [item[1] for item in page], "facets": _facet_counts(matched)})
-    accepted = report.accepted and selected_index.accepted and public_boundary_valid
+    accepted = report_accepted and selected_index.accepted and public_boundary_valid
     body = {
-        "workspace_id": report.workspace_id,
-        "report_address": report.content_address,
+        "workspace_id": str(public_body["workspace_id"]),
+        "report_address": str(public_body["content_address"]),
         "query": selected_query.to_dict(),
         "rows": tuple(_query_row(collection, record).to_dict() for collection, record in page),
         "total_count": len(matched),
@@ -485,8 +500,8 @@ def query_review_workspace(
         "warnings": tuple(dict.fromkeys(warnings)),
     }
     return ReviewWorkspaceQueryResult(
-        workspace_id=report.workspace_id,
-        report_address=report.content_address,
+        workspace_id=str(public_body["workspace_id"]),
+        report_address=str(public_body["content_address"]),
         query=selected_query,
         rows=tuple(_query_row(collection, record) for collection, record in page),
         total_count=len(matched),
@@ -502,7 +517,7 @@ def query_review_workspace(
 
 
 def build_review_workspace_query_closure(
-    report: ReviewWorkspaceReport,
+    report: ReviewWorkspaceReport | Mapping[str, Any],
     *,
     index: ReviewWorkspaceIndex | None = None,
 ) -> ReviewWorkspaceQueryResult:

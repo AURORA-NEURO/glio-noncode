@@ -47,6 +47,10 @@ glio-noncode review-workspace-release-verify review-release --output verificatio
 glio-noncode review-workspace-index RUN_ID --data-root .glio --output review-index.json
 glio-noncode review-workspace-query RUN_ID --collection evidence --state contradictory --limit 50 --data-root .glio --output review-query.json
 glio-noncode review-workspace-query-schema --output review-query-schema.json
+glio-noncode review-workspace-release-load review-release --output release-summary.json
+glio-noncode review-workspace-release-index review-release --output release-index.json
+glio-noncode review-workspace-release-query review-release --collection evidence --limit 50 --output release-query.json
+glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
 The command exits successfully when the public projection is safe to consume,
@@ -98,6 +102,16 @@ to the same case and pass replay verification.
 CLI through query parameters. Repeated `state` and `source_id` parameters are
 allowed; `collection`, `text`, `context_key`, `item_type`, `dimension`,
 `priority`, `offset`, `limit`, and `baseline_run_id` are scalar parameters.
+
+## Offline release operations
+
+`review-workspace-release-load` verifies and reopens the public JSON projection
+without a local run store. `review-workspace-release-index` and
+`review-workspace-release-query` run the same facet and pagination contract as
+the live workspace. `review-workspace-release-diff` compares exact artifact
+addresses and collection item addresses between two verified releases. Any
+manifest, byte, path, or boundary failure blocks loading before report rows
+are exposed.
 
 The API response contains independent content addresses for the complete
 workspace and every review collection item. This allows a renderer or offline

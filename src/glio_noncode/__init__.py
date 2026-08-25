@@ -10664,6 +10664,18 @@ from .review_workspace_query import (
     review_workspace_query_capabilities,
     review_workspace_query_schema,
 )
+from .review_workspace_release_query import (
+    REVIEW_WORKSPACE_RELEASE_DIFF_VERSION,
+    REVIEW_WORKSPACE_RELEASE_QUERY_VERSION,
+    ReviewWorkspaceCollectionDiff,
+    ReviewWorkspaceOfflineRelease,
+    ReviewWorkspaceReleaseDiff,
+    diff_review_workspace_releases,
+    index_review_workspace_release,
+    load_review_workspace_release,
+    query_review_workspace_release,
+    verify_and_load_review_workspace_release,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     WORKSPACE_HISTORY_VERSION,
@@ -11032,6 +11044,14 @@ __all__ += [
     "build_review_workspace_index", "build_review_workspace_query_closure",
     "query_review_workspace", "review_workspace_query_capabilities",
     "review_workspace_query_schema",
+]
+
+__all__ += [
+    "REVIEW_WORKSPACE_RELEASE_DIFF_VERSION", "REVIEW_WORKSPACE_RELEASE_QUERY_VERSION",
+    "ReviewWorkspaceCollectionDiff", "ReviewWorkspaceOfflineRelease",
+    "ReviewWorkspaceReleaseDiff", "diff_review_workspace_releases",
+    "index_review_workspace_release", "load_review_workspace_release",
+    "query_review_workspace_release", "verify_and_load_review_workspace_release",
 ]
 
 __all__ += [
