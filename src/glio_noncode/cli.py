@@ -1002,6 +1002,18 @@ from .workbench_release_frontier_offline_runtime import build_workbench_release_
 from .workbench_release_frontier_offline_schema import validate_workbench_release_offline_manifest, workbench_release_offline_bundle_schema
 from .workbench_release_frontier_offline_summary import audit_workbench_release_offline_summary, build_workbench_release_offline_summary, export_workbench_release_offline_summary_csv, workbench_release_offline_summary_markdown
 from .workbench_release_frontier_offline_certification import audit_workbench_release_offline_certification, certify_workbench_release_offline_bundle, export_workbench_release_offline_certification_csv, workbench_release_offline_certification_markdown
+from .workbench_release_frontier_offline_closure_boundary import audit_workbench_release_closure_boundary
+from .workbench_release_frontier_offline_closure_certification import certify_workbench_release_closure
+from .workbench_release_frontier_offline_closure_export import build_workbench_release_closure_export, verify_workbench_release_closure_export, write_workbench_release_closure_export
+from .workbench_release_frontier_offline_closure_failure_injection import build_workbench_release_closure_failure_report
+from .workbench_release_frontier_offline_closure_graph import build_workbench_release_closure_graph
+from .workbench_release_frontier_offline_closure_indexes import audit_workbench_release_closure_indexes, build_workbench_release_closure_indexes
+from .workbench_release_frontier_offline_closure_observability import build_workbench_release_closure_observability
+from .workbench_release_frontier_offline_closure_query import export_workbench_release_closure_csv, export_workbench_release_closure_markdown, query_workbench_release_closure
+from .workbench_release_frontier_offline_closure_reconciliation import reconcile_workbench_release_closure, workbench_release_closure_reconciliation_markdown
+from .workbench_release_frontier_offline_closure_runtime import run_workbench_release_closure_runtime
+from .workbench_release_frontier_offline_closure_schema import audit_workbench_release_closure_schema, build_workbench_release_closure_schema
+from .workbench_release_frontier_offline_closure_summary import audit_workbench_release_closure_summary, build_workbench_release_closure_summary, workbench_release_closure_summary_csv, workbench_release_closure_summary_markdown
 from .deployment_frontier_offline_audit import audit_deployment_frontier_offline_bundle, audit_deployment_frontier_offline_directory
 from .deployment_frontier_offline_boundary import deployment_frontier_offline_key_inventory
 from .deployment_frontier_offline_bundle import build_deployment_frontier_offline_bundle, load_deployment_frontier_offline_bundle, verify_deployment_frontier_offline_bundle, write_deployment_frontier_offline_bundle
@@ -8107,6 +8119,70 @@ def build_parser() -> argparse.ArgumentParser:
     workbench_release_offline_certification.add_argument("destination", type=str)
     workbench_release_offline_certification.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
     workbench_release_offline_certification.add_argument("--output", default=None)
+
+    workbench_release_closure_query = subparsers.add_parser(
+        "workbench-release-offline-bundle-closure-query",
+        help="query independent D15 closure rows",
+    )
+    workbench_release_closure_query.add_argument("destination", type=str)
+    workbench_release_closure_query.add_argument("--resource", default="records")
+    workbench_release_closure_query.add_argument("--operation", default=None)
+    workbench_release_closure_query.add_argument("--role", default=None)
+    workbench_release_closure_query.add_argument("--state", default=None)
+    workbench_release_closure_query.add_argument("--capability", default=None)
+    workbench_release_closure_query.add_argument("--priority", default=None)
+    workbench_release_closure_query.add_argument("--severity", default=None)
+    workbench_release_closure_query.add_argument("--stage-id", default=None)
+    workbench_release_closure_query.add_argument("--text", default=None)
+    workbench_release_closure_query.add_argument("--offset", default=0, type=int)
+    workbench_release_closure_query.add_argument("--limit", default=50, type=int)
+    workbench_release_closure_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    workbench_release_closure_query.add_argument("--output", default=None)
+    workbench_release_closure_schema = subparsers.add_parser("workbench-release-offline-bundle-closure-schema", help="print the D15 closure schema")
+    workbench_release_closure_schema.add_argument("--output", default=None)
+    workbench_release_closure_validate = subparsers.add_parser("workbench-release-offline-bundle-closure-validate", help="validate D15 closure projections")
+    workbench_release_closure_validate.add_argument("destination", type=str)
+    workbench_release_closure_validate.add_argument("--output", default=None)
+    workbench_release_closure_boundary = subparsers.add_parser("workbench-release-offline-bundle-closure-boundary", help="audit the D15 closure public boundary")
+    workbench_release_closure_boundary.add_argument("destination", type=str)
+    workbench_release_closure_boundary.add_argument("--output", default=None)
+    workbench_release_closure_indexes = subparsers.add_parser("workbench-release-offline-bundle-closure-indexes", help="build D15 closure indexes")
+    workbench_release_closure_indexes.add_argument("destination", type=str)
+    workbench_release_closure_indexes.add_argument("--output", default=None)
+    workbench_release_closure_reconciliation = subparsers.add_parser("workbench-release-offline-bundle-closure-reconciliation", help="reconcile D15 closure denominators")
+    workbench_release_closure_reconciliation.add_argument("destination", type=str)
+    workbench_release_closure_reconciliation.add_argument("--format", choices=("json", "markdown"), default="json")
+    workbench_release_closure_reconciliation.add_argument("--output", default=None)
+    workbench_release_closure_summary = subparsers.add_parser("workbench-release-offline-bundle-closure-summary", help="summarize D15 closure operations")
+    workbench_release_closure_summary.add_argument("destination", type=str)
+    workbench_release_closure_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    workbench_release_closure_summary.add_argument("--output", default=None)
+    workbench_release_closure_certification = subparsers.add_parser("workbench-release-offline-bundle-closure-certification", help="certify D15 closure domains")
+    workbench_release_closure_certification.add_argument("destination", type=str)
+    workbench_release_closure_certification.add_argument("--output", default=None)
+    workbench_release_closure_observability = subparsers.add_parser("workbench-release-offline-bundle-closure-observability", help="emit D15 closure events and metrics")
+    workbench_release_closure_observability.add_argument("destination", type=str)
+    workbench_release_closure_observability.add_argument("--output", default=None)
+    workbench_release_closure_runtime = subparsers.add_parser("workbench-release-offline-bundle-closure-runtime", help="run D15 closure runtime")
+    workbench_release_closure_runtime.add_argument("--bundle-id", default="workbench-release-public-bundle")
+    workbench_release_closure_runtime.add_argument("--run-id", default="workbench-release-closure-runtime")
+    workbench_release_closure_runtime.add_argument("--output", default=None)
+    workbench_release_closure_failures = subparsers.add_parser("workbench-release-offline-bundle-closure-failures", help="run D15 closure negative controls")
+    workbench_release_closure_failures.add_argument("destination", type=str)
+    workbench_release_closure_failures.add_argument("--output", default=None)
+    workbench_release_closure_graph = subparsers.add_parser("workbench-release-offline-bundle-closure-graph", help="build D15 closure graph")
+    workbench_release_closure_graph.add_argument("destination", type=str)
+    workbench_release_closure_graph.add_argument("--output", default=None)
+    workbench_release_closure_export = subparsers.add_parser("workbench-release-offline-bundle-closure-export", help="write exact-byte D15 closure export")
+    workbench_release_closure_export.add_argument("--destination", required=True)
+    workbench_release_closure_export.add_argument("--bundle-id", default="workbench-release-public-bundle")
+    workbench_release_closure_export.add_argument("--run-id", default="workbench-release-offline-runtime")
+    workbench_release_closure_export.add_argument("--output", default=None)
+    workbench_release_closure_export_verify = subparsers.add_parser("workbench-release-offline-bundle-closure-export-verify", help="verify exact-byte D15 closure export")
+    workbench_release_closure_export_verify.add_argument("destination", type=str)
+    workbench_release_closure_export_verify.add_argument("--bundle-id", default="workbench-release-public-bundle")
+    workbench_release_closure_export_verify.add_argument("--run-id", default="workbench-release-offline-runtime")
+    workbench_release_closure_export_verify.add_argument("--output", default=None)
 
     deployment_frontier_offline_bundle = subparsers.add_parser(
         "deployment-frontier-offline-bundle",
@@ -16614,6 +16690,105 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json({"certification": report.to_dict(), "audit": audit.to_dict()}, args.output)
             return 0 if audit.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-query":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            result = query_workbench_release_closure(
+                bundle,
+                resource=args.resource,
+                offset=args.offset,
+                limit=args.limit,
+                filters={
+                    "operation": args.operation,
+                    "role": args.role,
+                    "state": args.state,
+                    "capability": args.capability,
+                    "priority": args.priority,
+                    "severity": args.severity,
+                    "stage_id": args.stage_id,
+                    "text": args.text,
+                },
+            )
+            if args.format == "csv":
+                _write_text(export_workbench_release_closure_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(export_workbench_release_closure_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-schema":
+            _write_json(build_workbench_release_closure_schema(), args.output)
+            return 0
+        if args.command == "workbench-release-offline-bundle-closure-validate":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            schema = build_workbench_release_closure_schema()
+            audit = audit_workbench_release_closure_schema(bundle, schema)
+            _write_json({"schema": schema, "audit": [item.to_dict() for item in audit]}, args.output)
+            return 0 if all(item.passed for item in audit) else 2
+        if args.command == "workbench-release-offline-bundle-closure-boundary":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = audit_workbench_release_closure_boundary(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-indexes":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            indexes = build_workbench_release_closure_indexes(bundle)
+            audit = audit_workbench_release_closure_indexes(bundle, indexes)
+            _write_json({"indexes": indexes.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-reconciliation":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = reconcile_workbench_release_closure(bundle)
+            if args.format == "markdown":
+                _write_text(workbench_release_closure_reconciliation_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-summary":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            summary = build_workbench_release_closure_summary(bundle)
+            audit = audit_workbench_release_closure_summary(summary)
+            if args.format == "csv":
+                _write_text(workbench_release_closure_summary_csv(summary), args.output)
+            elif args.format == "markdown":
+                _write_text(workbench_release_closure_summary_markdown(summary), args.output)
+            else:
+                _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-certification":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = certify_workbench_release_closure(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-observability":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = build_workbench_release_closure_observability(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-runtime":
+            report = run_workbench_release_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-failures":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = build_workbench_release_closure_failure_report(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-graph":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = build_workbench_release_closure_graph(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-export":
+            bundle = build_workbench_release_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            packet = build_workbench_release_closure_export(bundle)
+            write_workbench_release_closure_export(packet, args.destination)
+            _write_json(packet.to_dict(), args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "workbench-release-offline-bundle-closure-export-verify":
+            packet = build_workbench_release_closure_export(build_workbench_release_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id))
+            verification = verify_workbench_release_closure_export(packet, args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "deployment-frontier-offline-bundle":
             bundle = build_deployment_frontier_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
             write_deployment_frontier_offline_bundle(bundle, args.destination)

@@ -42,6 +42,18 @@ report or runtime from which it was derived.
 | GET | `/v1/workbench-release/bundle/reconciliation` | Return independent D15 denominator and address reconciliation |
 | GET | `/v1/workbench-release/bundle/summary` | Return compact D15 operation and reviewer denominators |
 | GET | `/v1/workbench-release/bundle/certification` | Return D15 technical certification domains and evidence references |
+| GET | `/v1/workbench-release/bundle/closure-query` | Query independent D15 closure rows with bounded filters |
+| GET | `/v1/workbench-release/bundle/closure-schema` | Return the D15 closure row schema and public policy |
+| GET | `/v1/workbench-release/bundle/closure-boundary` | Audit D15 closure paths, addresses, and public keys |
+| GET | `/v1/workbench-release/bundle/closure-indexes` | Return ten D15 closure lookup indexes and their audit |
+| GET | `/v1/workbench-release/bundle/closure-reconciliation` | Return 44 independent D15 closure reconciliation checks |
+| GET | `/v1/workbench-release/bundle/closure-summary` | Return operation, queue, issue, state, and runtime counters |
+| GET | `/v1/workbench-release/bundle/closure-certification` | Return ten-domain, 60-check D15 closure certification |
+| GET | `/v1/workbench-release/bundle/closure-observability` | Return 184 closure events and 24 closure metrics |
+| GET | `/v1/workbench-release/bundle/closure-runtime` | Run the fourteen-stage D15 closure runtime |
+| GET | `/v1/workbench-release/bundle/closure-failures` | Return twelve D15 negative-control results |
+| GET | `/v1/workbench-release/bundle/closure-graph` | Return the connected D15 closure graph |
+| GET | `/v1/workbench-release/bundle/closure-export` | Return the exact-byte D15 closure export manifest |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |

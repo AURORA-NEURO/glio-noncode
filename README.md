@@ -310,6 +310,23 @@ glio-noncode workbench-release-offline-bundle-summary workbench-release-bundle -
 glio-noncode workbench-release-offline-bundle-certification workbench-release-bundle --format markdown --output workbench-release-certification.md
 ```
 
+The D15 closure handoff adds an independent release layer over those source
+artifacts. It reconciles 56 artifacts, 16 records, 80 evaluation checks, 80
+validation cells, 16 evidence cells, 52 lineage edges, 12 review rows, 16
+diagnostics, and 49 runtime stages. It also emits a ten-domain certification
+with 60 checks, 184 sequenced events, 24 metrics, a 404-node connected graph,
+twelve negative controls, a fourteen-stage deterministic runtime, and a
+fourteen-file exact-byte export packet:
+
+```powershell
+glio-noncode workbench-release-offline-bundle-closure-runtime --output workbench-release-closure-runtime.json
+glio-noncode workbench-release-offline-bundle-closure-query workbench-release-bundle --resource validation --limit 100
+glio-noncode workbench-release-offline-bundle-closure-summary workbench-release-bundle --format markdown --output workbench-release-closure-summary.md
+glio-noncode workbench-release-offline-bundle-closure-certification workbench-release-bundle --output workbench-release-closure-certification.json
+glio-noncode workbench-release-offline-bundle-closure-export --destination workbench-release-closure-export --output workbench-release-closure-export.json
+glio-noncode workbench-release-offline-bundle-closure-export-verify workbench-release-closure-export --output workbench-release-closure-verification.json
+```
+
 The architecture program now has a portable public handoff for its complete
 sixteen-domain runtime. It closes 18 exact-byte artifacts, 172 program checks,
 18 quality checks, 12 source runtime stages, 11 source release projections,

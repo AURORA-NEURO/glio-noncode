@@ -99,6 +99,18 @@ from .workbench_release_frontier_offline_runtime import build_workbench_release_
 from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 from .workbench_release_frontier_offline_summary import audit_workbench_release_offline_summary, build_workbench_release_offline_summary
 from .workbench_release_frontier_offline_certification import audit_workbench_release_offline_certification, certify_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_closure_boundary import audit_workbench_release_closure_boundary
+from .workbench_release_frontier_offline_closure_certification import certify_workbench_release_closure
+from .workbench_release_frontier_offline_closure_export import build_workbench_release_closure_export
+from .workbench_release_frontier_offline_closure_failure_injection import build_workbench_release_closure_failure_report
+from .workbench_release_frontier_offline_closure_graph import build_workbench_release_closure_graph
+from .workbench_release_frontier_offline_closure_indexes import audit_workbench_release_closure_indexes, build_workbench_release_closure_indexes
+from .workbench_release_frontier_offline_closure_observability import build_workbench_release_closure_observability
+from .workbench_release_frontier_offline_closure_query import query_workbench_release_closure
+from .workbench_release_frontier_offline_closure_reconciliation import reconcile_workbench_release_closure
+from .workbench_release_frontier_offline_closure_runtime import run_workbench_release_closure_runtime
+from .workbench_release_frontier_offline_closure_schema import build_workbench_release_closure_schema
+from .workbench_release_frontier_offline_closure_summary import audit_workbench_release_closure_summary, build_workbench_release_closure_summary
 from .deployment_frontier_offline_audit import audit_deployment_frontier_offline_bundle
 from .deployment_frontier_offline_boundary import audit_deployment_frontier_offline_boundary
 from .deployment_frontier_offline_bundle import build_deployment_frontier_offline_bundle
@@ -399,8 +411,23 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/workbench-release/bundle/reconciliation",
             "/v1/workbench-release/bundle/summary",
             "/v1/workbench-release/bundle/certification",
+            "/v1/workbench-release/bundle/closure-query",
+            "/v1/workbench-release/bundle/closure-schema",
+            "/v1/workbench-release/bundle/closure-boundary",
+            "/v1/workbench-release/bundle/closure-indexes",
+            "/v1/workbench-release/bundle/closure-reconciliation",
+            "/v1/workbench-release/bundle/closure-summary",
+            "/v1/workbench-release/bundle/closure-certification",
+            "/v1/workbench-release/bundle/closure-observability",
+            "/v1/workbench-release/bundle/closure-runtime",
+            "/v1/workbench-release/bundle/closure-failures",
+            "/v1/workbench-release/bundle/closure-graph",
+            "/v1/workbench-release/bundle/closure-export",
         }:
             try:
+                if path.endswith("/closure-schema"):
+                    self._write(HTTPStatus.OK, build_workbench_release_closure_schema())
+                    return
                 if path.endswith("/schema"):
                     self._write(HTTPStatus.OK, workbench_release_offline_bundle_schema())
                     return
@@ -409,7 +436,46 @@ class ApiHandler(BaseHTTPRequestHandler):
                     bundle_id=self._query_value(query, "bundle_id") or "workbench-release-public-bundle",
                     run_id=self._query_value(query, "run_id") or "workbench-release-offline-runtime",
                 )
-                if path.endswith("/query"):
+                if path.endswith("/closure-query"):
+                    payload = query_workbench_release_closure(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "records",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                        filters={
+                            "operation": self._query_value(query, "operation"),
+                            "role": self._query_value(query, "role"),
+                            "state": self._query_value(query, "state"),
+                            "capability": self._query_value(query, "capability"),
+                            "priority": self._query_value(query, "priority"),
+                            "severity": self._query_value(query, "severity"),
+                            "stage_id": self._query_value(query, "stage_id"),
+                            "text": self._query_value(query, "q") or self._query_value(query, "text"),
+                        },
+                    ).to_dict()
+                elif path.endswith("/closure-boundary"):
+                    payload = audit_workbench_release_closure_boundary(bundle).to_dict()
+                elif path.endswith("/closure-indexes"):
+                    indexes = build_workbench_release_closure_indexes(bundle)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_workbench_release_closure_indexes(bundle, indexes).to_dict()}
+                elif path.endswith("/closure-reconciliation"):
+                    payload = reconcile_workbench_release_closure(bundle).to_dict()
+                elif path.endswith("/closure-summary"):
+                    summary = build_workbench_release_closure_summary(bundle)
+                    payload = {"summary": summary.to_dict(), "audit": audit_workbench_release_closure_summary(summary).to_dict()}
+                elif path.endswith("/closure-certification"):
+                    payload = certify_workbench_release_closure(bundle).to_dict()
+                elif path.endswith("/closure-observability"):
+                    payload = build_workbench_release_closure_observability(bundle).to_dict()
+                elif path.endswith("/closure-runtime"):
+                    payload = run_workbench_release_closure_runtime(bundle_id=bundle.bundle_id, run_id=bundle.run_id).to_dict()
+                elif path.endswith("/closure-failures"):
+                    payload = build_workbench_release_closure_failure_report(bundle).to_dict()
+                elif path.endswith("/closure-graph"):
+                    payload = build_workbench_release_closure_graph(bundle).to_dict()
+                elif path.endswith("/closure-export"):
+                    payload = build_workbench_release_closure_export(bundle).to_dict()
+                elif path.endswith("/query"):
                     payload = query_workbench_release_offline_bundle(
                         bundle,
                         resource=self._query_value(query, "resource") or "artifacts",

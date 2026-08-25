@@ -3965,6 +3965,13 @@ capability-certification, module-fabric, validation-design, and evidence-
 lifecycle and workbench-release bundle manifests and schemas. Each surface
 receives a deterministic content address and violation-path list.
 
+The D15 workbench-release closure extends that boundary with 56 artifact
+checks, 44 denominator reconciliations, ten indexes, 60 certification checks,
+184 observability events, a 404-node connected graph, twelve negative controls,
+and a fourteen-stage replayable runtime. Its exact-byte export, bounded query,
+schema audit, and release summaries remain aggregate-only and preserve the
+same public-key policy.
+
 Runtime values are rejected when they contain attribution, language, or direct
 private-key fields. Input schema declarations may retain subject/sample field
 names because they describe accepted request shape; they are not data values.
