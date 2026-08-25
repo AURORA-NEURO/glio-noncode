@@ -10084,6 +10084,18 @@ from .dossier_query import (
     summarize_dossier,
     summarize_persisted_dossier,
 )
+from .dossier_release import (
+    DOSSIER_RELEASE_MANIFEST,
+    DOSSIER_RELEASE_VERSION,
+    DossierReleaseBundle,
+    ReleaseArtifact,
+    ReleaseCheck,
+    ReleaseVerification,
+    build_dossier_release_bundle,
+    build_persisted_dossier_release,
+    verify_dossier_release_bundle,
+    write_dossier_release_bundle,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10125,6 +10137,12 @@ __all__ += [
     "DossierLineageProjection", "DossierQueryPage", "DossierQuerySummary", "build_dossier_lineage",
     "build_dossier_query_closure", "build_persisted_dossier_query_closure", "lineage_persisted_dossier", "query_dossier",
     "query_persisted_dossier", "summarize_dossier", "summarize_persisted_dossier",
+]
+
+__all__ += [
+    "DOSSIER_RELEASE_MANIFEST", "DOSSIER_RELEASE_VERSION", "DossierReleaseBundle",
+    "ReleaseArtifact", "ReleaseCheck", "ReleaseVerification", "build_dossier_release_bundle",
+    "build_persisted_dossier_release", "verify_dossier_release_bundle", "write_dossier_release_bundle",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403

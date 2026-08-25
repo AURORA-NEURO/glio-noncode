@@ -16,6 +16,7 @@ from .dossier_query import (
     query_persisted_dossier,
     summarize_persisted_dossier,
 )
+from .dossier_release import build_persisted_dossier_release
 from .errors import GlioError, StoreError
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
@@ -172,6 +173,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if len(segments) == 4 and segments[3] == "query-closure":
                     self._write(HTTPStatus.OK, build_persisted_dossier_query_closure(runtime, run_id))
+                    return
+                if len(segments) == 4 and segments[3] == "release":
+                    self._write(HTTPStatus.OK, build_persisted_dossier_release(runtime, run_id).to_dict())
                     return
                 if len(segments) == 4 and segments[3] in {"hypotheses", "evidence", "experiments"}:
                     query = parse_qs(parsed.query, keep_blank_values=False)

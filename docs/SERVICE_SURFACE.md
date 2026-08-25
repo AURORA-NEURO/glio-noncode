@@ -28,6 +28,7 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/evidence` | Filter bounded evidence-claim projections |
 | GET | `/v1/runs/{run_id}/experiments` | Filter bounded validation-route projections |
 | GET | `/v1/runs/{run_id}/lineage` | Join hypothesis edges to referenced claims |
+| GET | `/v1/runs/{run_id}/release` | Build a gated, content-addressed portable dossier release bundle |
 | POST | `/v1/runs/{run_id}/review` | Attach a typed human review and create a new dossier snapshot |
 | POST | `/v1/evaluate` | Existing case evaluation endpoint |
 
@@ -74,6 +75,8 @@ glio-noncode run-review run-<run-id> review.json --data-root .glio --output revi
 glio-noncode run-query run-<run-id> summary --data-root .glio --output run-summary.json
 glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json
 glio-noncode run-query run-<run-id> closure --data-root .glio --output dossier-query-closure.json
+glio-noncode run-release run-<run-id> --data-root .glio --output dossier-release
+glio-noncode run-release-verify dossier-release --output release-verification.json
 ```
 
 Review input uses the public `ReviewDecision` fields: `review_id`, `case_id`,
@@ -86,6 +89,14 @@ Review continuation is append-only: when a persisted run is reopened, the
 existing verified event record is hydrated before the new `review_recorded`
 event is appended. If the chain is invalid, the review is rejected rather than
 silently replacing the history with a new chain.
+
+The release route and CLI export ten portable artifacts: canonical dossier JSON,
+Markdown, summary and query-closure JSON, replay events, release-gate evidence,
+review JSON, and evidence/hypothesis/experiment CSV projections. Release is
+accepted only when replay integrity, accepted human review, structural policy,
+byte addressing, and the public boundary all pass. Filesystem bundles can be
+reopened with `run-release-verify`; tampering, unsafe paths, missing files, and
+manifest-address changes are reported as verification failures.
 
 The closure includes the complete 256-row capability certification report, the
 sixteen-domain architecture runtime, the twelve-stage operational trace, and

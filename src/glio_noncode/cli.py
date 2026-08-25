@@ -1232,6 +1232,11 @@ from .dossier_query import (
     query_persisted_dossier,
     summarize_persisted_dossier,
 )
+from .dossier_release import (
+    build_persisted_dossier_release,
+    verify_dossier_release_bundle,
+    write_dossier_release_bundle,
+)
 from .run_catalog import (
     RUN_CATALOG_DEFAULT_LIMIT,
     build_run_catalog_closure,
@@ -2437,6 +2442,21 @@ def build_parser() -> argparse.ArgumentParser:
     run_query.add_argument("--option-id", default=None)
     run_query.add_argument("--assay", default=None)
     run_query.add_argument("--output", default=None)
+
+    run_release = subparsers.add_parser(
+        "run-release",
+        help="build a gated portable release bundle for one persisted run",
+    )
+    run_release.add_argument("run_id", type=str)
+    run_release.add_argument("--data-root", default=".glio")
+    run_release.add_argument("--output", required=True)
+
+    run_release_verify = subparsers.add_parser(
+        "run-release-verify",
+        help="verify a previously written dossier release bundle",
+    )
+    run_release_verify.add_argument("input", type=str)
+    run_release_verify.add_argument("--output", default=None)
 
     schema = subparsers.add_parser("schema", help="print the public contract summary")
     schema.add_argument("--output", default=None)
@@ -17888,6 +17908,15 @@ def main(argv: list[str] | None = None) -> int:
                 ).to_dict()
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "run-release":
+            bundle = build_persisted_dossier_release(CaseRuntime(args.data_root), args.run_id)
+            write_dossier_release_bundle(bundle, args.output)
+            print(f"dossier release written to {args.output}")
+            return 0 if bundle.accepted else 2
+        if args.command == "run-release-verify":
+            verification = verify_dossier_release_bundle(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
     except (GlioError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
