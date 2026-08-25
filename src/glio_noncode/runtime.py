@@ -9,7 +9,7 @@ from typing import Any
 
 from .atlas import AtlasQuery, PublicAtlasRetriever
 from .data_sources import EnrichmentResult, PublicReferenceRetriever
-from .errors import PolicyViolation, ValidationError
+from .errors import PolicyViolation, StoreError, ValidationError
 from .events import EventLog
 from .experiments import ExperimentPlanner
 from .hypotheses import HypothesisBuilder
@@ -187,12 +187,23 @@ class CaseRuntime:
             raise ValidationError(f"review names unknown claims: {sorted(unknown_claims)}")
         log = self._logs.get(dossier.run_id)
         if log is None:
-            log = EventLog(dossier.run_id)
-            log.append(
-                "replayed_from_dossier",
-                {"dossier_id": dossier.dossier_id},
-                event_id=f"evt-{dossier.run_id}-replayed",
-            )
+            try:
+                run_record = self.get_run(dossier.run_id)
+            except StoreError:
+                log = EventLog(dossier.run_id)
+                log.append(
+                    "replayed_from_dossier",
+                    {"dossier_id": dossier.dossier_id},
+                    event_id=f"evt-{dossier.run_id}-replayed",
+                )
+            else:
+                try:
+                    event_record = self.store.store.get(str(run_record["event_address"]))
+                    log = EventLog.from_record(event_record)
+                except (KeyError, ValueError) as exc:
+                    raise ValidationError("cannot continue a run with an invalid event record") from exc
+                if not log.verify():
+                    raise ValidationError("cannot continue a run with an invalid event chain")
             self._logs[dossier.run_id] = log
         log.append("review_recorded", review.to_dict(), event_id=review.review_id)
         status = (
@@ -236,6 +247,7 @@ class CaseRuntime:
             or not self.store.store.exists(str(run_record["input_address"]))
         ):
             raise ValidationError("cannot review a run that fails replay integrity")
+        self._logs[run_id] = EventLog.from_record(event_record)
         dossier = Dossier.from_dict(stored)
         if dossier.run_id != run_id:
             raise ValidationError("stored dossier run_id does not match requested run")
@@ -309,9 +321,7 @@ class CaseRuntime:
         return replace(pending, content_address=self._dossier_address(pending))
 
     def _persist(self, manifest, log: EventLog, dossier: Dossier, input_address: str) -> None:
-        event_address = self.store.store.put(
-            {"run_id": log.run_id, "events": [event.to_dict() for event in log.all()]}
-        )
+        event_address = self.store.store.put(log.to_record())
         dossier_address = self.store.store.put_at(dossier.content_address, dossier.to_dict())
         self.store.save_run(
             log.run_id,

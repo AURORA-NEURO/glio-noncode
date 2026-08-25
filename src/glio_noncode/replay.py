@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from .events import EventLog, RuntimeEvent
+from .events import EventLog
 from .serialization import content_hash
 
 
@@ -34,20 +34,13 @@ class ReplayVerifier:
 
     def verify(self, run_record: dict[str, Any], event_record: dict[str, Any], dossier_record: dict[str, Any]) -> ReplayReport:
         run_id = str(run_record["run_id"])
-        log = EventLog(run_id)
-        for raw in event_record.get("events", []):
-            event = RuntimeEvent(
-                event_id=str(raw["event_id"]),
-                run_id=str(raw["run_id"]),
-                event_type=str(raw["event_type"]),
-                payload=dict(raw.get("payload", {})),
-                created_at=str(raw["created_at"]),
-                previous_hash=raw.get("previous_hash"),
-                event_hash=str(raw.get("event_hash", "")),
-            )
-            log._events.append(event)
         warnings: list[str] = []
-        if not log.verify():
+        try:
+            log = EventLog.from_record(event_record)
+            event_chain_valid = log.run_id == run_id and log.verify()
+        except (KeyError, TypeError, ValueError):
+            event_chain_valid = False
+        if not event_chain_valid:
             warnings.append("event chain verification failed")
         content_payload = {key: value for key, value in dossier_record.items() if key != "content_address"}
         expected = content_hash(content_payload)
@@ -56,7 +49,7 @@ class ReplayVerifier:
             warnings.append("dossier content address does not match canonical payload")
         return ReplayReport(
             run_id=run_id,
-            event_chain_valid=log.verify(),
+            event_chain_valid=event_chain_valid,
             input_address=str(run_record["input_address"]),
             dossier_address=str(run_record["dossier_address"]),
             stored_dossier_matches_address=stored_matches,

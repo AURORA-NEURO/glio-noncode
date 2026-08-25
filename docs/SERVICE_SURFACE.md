@@ -82,6 +82,11 @@ Review input uses the public `ReviewDecision` fields: `review_id`, `case_id`,
 snapshot while retaining the research-use-only policy boundary and prior
 content-addressed objects.
 
+Review continuation is append-only: when a persisted run is reopened, the
+existing verified event record is hydrated before the new `review_recorded`
+event is appended. If the chain is invalid, the review is rejected rather than
+silently replacing the history with a new chain.
+
 The closure includes the complete 256-row capability certification report, the
 sixteen-domain architecture runtime, the twelve-stage operational trace, and
 the common query projections. The closure is rejected if its public projection

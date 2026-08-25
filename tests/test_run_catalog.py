@@ -102,6 +102,7 @@ class RunCatalogTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             runtime = CaseRuntime(directory)
             original = runtime.evaluate(fixture_manifest())
+            initial_events = len(inspect_run(runtime, original.run_id).event_record["events"])
             review = ReviewDecision(
                 review_id="review-persisted-1",
                 case_id=original.case_id,
@@ -117,6 +118,25 @@ class RunCatalogTests(unittest.TestCase):
             inspection = inspect_run(runtime, original.run_id)
             self.assertTrue(inspection.summary.is_releasable)
             self.assertEqual(inspection.dossier_record["review"]["review_id"], review.review_id)
+            self.assertEqual(inspection.summary.event_count, initial_events + 1)
+            self.assertEqual(inspection.event_record["events"][0]["event_type"], "case_received")
+            self.assertEqual(inspection.event_record["events"][-1]["event_type"], "review_recorded")
+            second_review = ReviewDecision(
+                review_id="review-persisted-2",
+                case_id=original.case_id,
+                reviewer="second-scientific-reviewer",
+                state=ReviewState.ACCEPTED,
+                reviewed_hypothesis_ids=(original.hypotheses[0].hypothesis_id,),
+                rationale="A second review retains the original event history.",
+                checked_claim_ids=tuple(item.evidence_id for item in original.evidence),
+            )
+            runtime.review_run(original.run_id, second_review)
+            second_inspection = inspect_run(runtime, original.run_id)
+            self.assertEqual(second_inspection.summary.event_count, initial_events + 2)
+            self.assertEqual(
+                [item["event_type"] for item in second_inspection.event_record["events"][-2:]],
+                ["review_recorded", "review_recorded"],
+            )
 
     def test_catalog_rejects_unbounded_pagination(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
