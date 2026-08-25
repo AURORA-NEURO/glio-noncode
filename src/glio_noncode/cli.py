@@ -11,6 +11,7 @@ from typing import Any
 
 from .api import create_server
 from .serialization import jsonable
+from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
     MethylationTrackHarmonizer,
@@ -2361,6 +2362,13 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", default=8765, type=int)
     serve.add_argument("--data-root", default=".glio")
+
+    service_surface = subparsers.add_parser(
+        "service-surface",
+        help="emit the certified local service status or a complete offline closure",
+    )
+    service_surface.add_argument("--closure", action="store_true")
+    service_surface.add_argument("--output", default=None)
 
     schema = subparsers.add_parser("schema", help="print the public contract summary")
     schema.add_argument("--output", default=None)
@@ -17748,6 +17756,11 @@ def main(argv: list[str] | None = None) -> int:
             print(f"glio-noncode listening on http://{args.host}:{args.port}")
             server.serve_forever()
             return 0
+        if args.command == "service-surface":
+            snapshot = build_service_surface_snapshot()
+            payload = build_service_surface_closure(snapshot) if args.closure else service_surface_status(snapshot)
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
     except (GlioError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

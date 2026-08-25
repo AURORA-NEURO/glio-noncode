@@ -1410,3 +1410,7 @@ jobs:
         run: python -m glio_noncode architecture-program-diff --control missing-fixture --closure --output /tmp/glio-architecture-program-diff-closure.json
       - name: Architecture program diff focused tests
         run: python -m unittest tests.test_program_runtime_diff
+      - name: Local service surface closure
+        run: python -m glio_noncode service-surface --closure --output data/service-surface-closure.json
+      - name: Local service surface focused tests
+        run: python -m unittest tests.test_service_surface

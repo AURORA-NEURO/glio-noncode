@@ -33,7 +33,7 @@ The same runtime can be served locally:
 glio-noncode serve --host 127.0.0.1 --port 8765
 ```
 
-Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary.
+Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and the offline closure command.
 
 To enrich a manifest from bounded live public references, use:
 

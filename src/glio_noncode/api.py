@@ -3,15 +3,27 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any, Callable
-from urllib.parse import urlsplit
+from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 from .errors import GlioError
 from .models import CaseManifest
+from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .runtime import CaseRuntime
 from .schema import schema_document
+from .service_surface import (
+    SERVICE_API_VERSION,
+    SERVICE_NAME,
+    build_service_surface_snapshot,
+    service_capability_projection,
+    service_diff_projection,
+    service_operational_projection,
+    service_program_projection,
+    service_surface_status,
+)
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -29,8 +41,34 @@ class ApiHandler(BaseHTTPRequestHandler):
         runtime = getattr(self.server, "glio_runtime", None)
         if runtime is None:
             runtime = factory()
-            setattr(self.server, "glio_runtime", runtime)
+            setattr(self.server, "glio_runtime", runtime)  # noqa: B010 - the HTTP server is intentionally extended
         return runtime
+
+    def _service_surface(self):
+        snapshot = getattr(self.server, "glio_service_surface", None)
+        if snapshot is None:
+            snapshot = build_service_surface_snapshot()
+            setattr(self.server, "glio_service_surface", snapshot)  # noqa: B010 - lazy server-local cache
+        return snapshot
+
+    @staticmethod
+    def _query_value(query: dict[str, list[str]], name: str) -> str | None:
+        values = query.get(name, [])
+        if len(values) > 1:
+            raise ValueError(f"query parameter {name} may only be supplied once")
+        return values[0] if values else None
+
+    @classmethod
+    def _query_bool(cls, query: dict[str, list[str]], name: str) -> bool:
+        value = cls._query_value(query, name)
+        if value is None:
+            return False
+        normalized = value.lower()
+        if normalized in {"1", "true", "yes"}:
+            return True
+        if normalized in {"0", "false", "no"}:
+            return False
+        raise ValueError(f"query parameter {name} must be true or false")
 
     def _write(self, status: int, payload: Any) -> None:
         body = _json_bytes(payload)
@@ -56,12 +94,63 @@ class ApiHandler(BaseHTTPRequestHandler):
         return value
 
     def do_GET(self) -> None:  # noqa: N802
-        path = urlsplit(self.path).path
+        parsed = urlsplit(self.path)
+        path = parsed.path
         if path == "/healthz":
-            self._write(HTTPStatus.OK, {"status": "ok", "service": "glio-noncode", "version": "0.1.0"})
+            self._write(
+                HTTPStatus.OK,
+                {
+                    "status": "ok",
+                    "service": SERVICE_NAME,
+                    "version": "0.1.0",
+                    "api_version": SERVICE_API_VERSION,
+                },
+            )
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path in {
+            "/v1/status",
+            "/v1/capabilities",
+            "/v1/architecture/program",
+            "/v1/architecture/operational",
+            "/v1/architecture/diff",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                snapshot = self._service_surface()
+                if path == "/v1/status":
+                    payload = service_surface_status(snapshot)
+                elif path == "/v1/capabilities":
+                    payload = service_capability_projection(
+                        snapshot,
+                        capability_id=self._query_value(query, "capability_id"),
+                        domain_id=self._query_value(query, "domain_id"),
+                        mvp_only=self._query_bool(query, "mvp_only"),
+                        state=self._query_value(query, "state"),
+                        text=self._query_value(query, "text"),
+                    )
+                elif path == "/v1/architecture/program":
+                    payload = service_program_projection(
+                        snapshot,
+                        domain_id=self._query_value(query, "domain_id"),
+                        accepted_only=self._query_bool(query, "accepted_only"),
+                        text=self._query_value(query, "text"),
+                    )
+                elif path == "/v1/architecture/operational":
+                    payload = service_operational_projection(snapshot)
+                else:
+                    control = self._query_value(query, "control") or "none"
+                    if control not in PROGRAM_RUNTIME_DIFF_CONTROLS:
+                        allowed = ", ".join(PROGRAM_RUNTIME_DIFF_CONTROLS)
+                        raise ValueError(f"query parameter control must be one of: {allowed}")
+                    payload = service_diff_projection(snapshot, control)
+                self._write(HTTPStatus.OK, payload)
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "path": path})
 
@@ -91,5 +180,5 @@ def create_server(host: str = "127.0.0.1", port: int = 8765, data_root: str = ".
     """Create a local threaded HTTP server with an isolated runtime."""
 
     server = ThreadingHTTPServer((host, port), ApiHandler)
-    setattr(server, "glio_runtime", CaseRuntime(data_root))
+    setattr(server, "glio_runtime", CaseRuntime(data_root))  # noqa: B010 - server-local runtime attachment
     return server
