@@ -1261,6 +1261,12 @@ from .run_search import (
     build_run_search_closure,
     search_persisted_runs,
 )
+from .run_workspace import (
+    RUN_WORKSPACE_DEFAULT_LIMIT,
+    build_persisted_run_workspace,
+    build_persisted_run_workspace_closure,
+    workspace_query_from_filters,
+)
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -2506,6 +2512,27 @@ def build_parser() -> argparse.ArgumentParser:
     run_inspect.add_argument("run_id", type=str)
     run_inspect.add_argument("--data-root", default=".glio")
     run_inspect.add_argument("--output", default=None)
+
+    run_workspace = subparsers.add_parser(
+        "run-workspace",
+        help="reopen a replay-verified run as a bounded research workspace",
+    )
+    run_workspace.add_argument("run_id", type=str)
+    run_workspace.add_argument("--data-root", default=".glio")
+    run_workspace.add_argument("--query", "--text", dest="query", default=None)
+    run_workspace.add_argument("--context-key", default=None)
+    run_workspace.add_argument("--record-type", action="append", default=[])
+    run_workspace.add_argument("--state", action="append", default=[])
+    run_workspace.add_argument("--chromosome", default=None)
+    run_workspace.add_argument("--start", type=int, default=None)
+    run_workspace.add_argument("--end", type=int, default=None)
+    run_workspace.add_argument("--source-id", action="append", default=[])
+    run_workspace.add_argument("--tag", action="append", default=[])
+    run_workspace.add_argument("--variant-id", default=None)
+    run_workspace.add_argument("--offset", default=0, type=int)
+    run_workspace.add_argument("--limit", default=RUN_WORKSPACE_DEFAULT_LIMIT, type=int)
+    run_workspace.add_argument("--closure", action="store_true")
+    run_workspace.add_argument("--output", default=None)
 
     run_review = subparsers.add_parser(
         "run-review",
@@ -18122,6 +18149,37 @@ def main(argv: list[str] | None = None) -> int:
             inspection = inspect_run(CaseRuntime(args.data_root), args.run_id)
             _write_json(inspection.to_dict(), args.output)
             return 0 if inspection.accepted else 2
+        if args.command == "run-workspace":
+            runtime = CaseRuntime(args.data_root)
+            workspace_query = workspace_query_from_filters(
+                text=args.query,
+                context_key=args.context_key,
+                record_types=args.record_type,
+                states=args.state,
+                chromosome=args.chromosome,
+                start=args.start,
+                end=args.end,
+                source_ids=args.source_id,
+                tags_all=args.tag,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.closure:
+                payload = build_persisted_run_workspace_closure(
+                    runtime,
+                    args.run_id,
+                    query=workspace_query,
+                    variant_id=args.variant_id,
+                )
+            else:
+                payload = build_persisted_run_workspace(
+                    runtime,
+                    args.run_id,
+                    query=workspace_query,
+                    variant_id=args.variant_id,
+                ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
         if args.command == "run-review":
             review = ReviewDecision.from_dict(_read_json(args.review))
             dossier = CaseRuntime(args.data_root).review_run(args.run_id, review)

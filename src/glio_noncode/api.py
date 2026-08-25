@@ -32,6 +32,12 @@ from .run_catalog import (
     inspect_run,
 )
 from .run_search import build_run_search_closure, search_persisted_runs
+from .run_workspace import (
+    RUN_WORKSPACE_DEFAULT_LIMIT,
+    build_persisted_run_workspace,
+    build_persisted_run_workspace_closure,
+    workspace_query_from_filters,
+)
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -83,6 +89,17 @@ class ApiHandler(BaseHTTPRequestHandler):
         if len(values) > 1:
             raise ValueError(f"query parameter {name} may only be supplied once")
         return values[0] if values else None
+
+    @staticmethod
+    def _query_values(query: dict[str, list[str]], name: str) -> tuple[str, ...]:
+        values = query.get(name, [])
+        selected: list[str] = []
+        for value in values:
+            for item in value.split(","):
+                normalized = item.strip()
+                if normalized and normalized not in selected:
+                    selected.append(normalized)
+        return tuple(selected)
 
     @classmethod
     def _query_bool(cls, query: dict[str, list[str]], name: str) -> bool:
@@ -336,6 +353,49 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if len(segments) == 4 and segments[3] == "history":
                     self._write(HTTPStatus.OK, build_run_history(runtime, run_id).to_dict())
+                    return
+                is_workspace = len(segments) == 4 and segments[3] == "workspace"
+                is_workspace_closure = (
+                    len(segments) == 5
+                    and segments[3] == "workspace"
+                    and segments[4] == "closure"
+                )
+                if is_workspace or is_workspace_closure:
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    workspace_query = workspace_query_from_filters(
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        context_key=self._query_value(query, "context_key"),
+                        record_types=self._query_values(query, "record_type"),
+                        states=self._query_values(query, "state"),
+                        chromosome=self._query_value(query, "chromosome"),
+                        start=self._query_optional_int(query, "start"),
+                        end=self._query_optional_int(query, "end"),
+                        source_ids=self._query_values(query, "source_id"),
+                        tags_all=self._query_values(query, "tag"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", RUN_WORKSPACE_DEFAULT_LIMIT),
+                    )
+                    variant_id = self._query_value(query, "variant_id")
+                    if is_workspace_closure:
+                        self._write(
+                            HTTPStatus.OK,
+                            build_persisted_run_workspace_closure(
+                                runtime,
+                                run_id,
+                                query=workspace_query,
+                                variant_id=variant_id,
+                            ),
+                        )
+                    else:
+                        self._write(
+                            HTTPStatus.OK,
+                            build_persisted_run_workspace(
+                                runtime,
+                                run_id,
+                                query=workspace_query,
+                                variant_id=variant_id,
+                            ).to_dict(),
+                        )
                     return
                 if len(segments) == 5 and segments[3] == "compare":
                     query = parse_qs(parsed.query, keep_blank_values=False)

@@ -27,6 +27,8 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/events` | Reopen the hash-chained event record |
 | GET | `/v1/runs/{run_id}/replay` | Return replay verification evidence |
 | GET | `/v1/runs/{run_id}/inspection` | Return the complete run inspection closure |
+| GET | `/v1/runs/{run_id}/workspace` | Reopen a replay-verified case as a bounded workspace projection |
+| GET | `/v1/runs/{run_id}/workspace/closure` | Return the complete content-addressed run workspace closure |
 | GET | `/v1/runs/{run_id}/history` | List content-addressed dossier snapshots for one run |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}` | Compare current or selected snapshots from two runs |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}/release` | Build a gated portable comparison handoff bundle |
@@ -105,6 +107,19 @@ operational action, deterministic reviewer/queue workloads, and content
 addresses. Supplying `as_of` is recommended for reproducible exports; omitting
 it uses the current UTC instant for interactive use.
 
+Run workspaces reopen the persisted manifest and current dossier only after the
+run's input object, event chain, and dossier address pass replay verification.
+The projection accepts `q` or `text`, `context_key`, repeated or
+comma-separated `record_type`, `state`, `source_id`, and `tag` filters, plus
+`chromosome`, `start`, `end`, `variant_id`, `offset`, and `limit`. It returns
+the exact-context records, sections, facets, state, and variant relationships
+used by the typed workspace builders. Direct subject/sample keys and agent,
+model, author, attribution, and language metadata are removed before the
+public content address is calculated. A failed run remains visible as a
+blocked projection with integrity evidence; its workspace records are
+withheld. The `/workspace/closure` route pages through every matching record
+and marks the page complete for offline consumers.
+
 ## CLI and offline closure
 
 Run the compact status projection:
@@ -156,6 +171,8 @@ Inspect persisted case work:
 glio-noncode run-catalog --data-root .glio
 glio-noncode run-catalog --data-root .glio --closure --output run-catalog-closure.json
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
+glio-noncode run-workspace run-<run-id> --data-root .glio --record-type evidence --state supported --output run-workspace.json
+glio-noncode run-workspace run-<run-id> --data-root .glio --variant-id variant-1 --closure --output run-workspace-closure.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
 glio-noncode run-query run-<run-id> summary --data-root .glio --output run-summary.json
 glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json

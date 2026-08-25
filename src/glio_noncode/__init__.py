@@ -10187,6 +10187,15 @@ from .run_search import (
     build_run_search_closure,
     search_persisted_runs,
 )
+from .run_workspace import (
+    RUN_WORKSPACE_DEFAULT_LIMIT,
+    RUN_WORKSPACE_MAX_LIMIT,
+    RUN_WORKSPACE_VERSION,
+    RunWorkspaceProjection,
+    build_persisted_run_workspace,
+    build_persisted_run_workspace_closure,
+    workspace_query_from_filters,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10273,6 +10282,12 @@ __all__ += [
     "RUN_SEARCH_DEFAULT_LIMIT", "RUN_SEARCH_MAX_LIMIT", "RUN_SEARCH_RESOURCES",
     "RUN_SEARCH_VERSION", "RunSearchHit", "RunSearchPage", "build_run_search_closure",
     "search_persisted_runs",
+]
+
+__all__ += [
+    "RUN_WORKSPACE_DEFAULT_LIMIT", "RUN_WORKSPACE_MAX_LIMIT", "RUN_WORKSPACE_VERSION",
+    "RunWorkspaceProjection", "build_persisted_run_workspace",
+    "build_persisted_run_workspace_closure", "workspace_query_from_filters",
 ]
 
 __all__ += [
