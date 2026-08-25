@@ -86,6 +86,7 @@ from .capability_certification_bundle import (
     verify_capability_certification_bundle,
     write_capability_certification_bundle,
 )
+from .capability_certification_bundle_audit import audit_capability_certification_bundle
 from .capability_certification_bundle_observability import (
     certification_bundle_events_csv,
     certification_bundle_metrics_csv,
@@ -3241,6 +3242,12 @@ def build_parser() -> argparse.ArgumentParser:
     capability_certification_bundle_runtime.add_argument("--bundle-id", default="capability-certification-public-bundle")
     capability_certification_bundle_runtime.add_argument("--run-id", default=None)
     capability_certification_bundle_runtime.add_argument("--output", default=None)
+    capability_certification_bundle_audit = subparsers.add_parser(
+        "capability-certification-bundle-audit",
+        help="reconcile report, CSV, runtime, replay, failure, and observability artifacts",
+    )
+    capability_certification_bundle_audit.add_argument("destination", type=str)
+    capability_certification_bundle_audit.add_argument("--output", default=None)
     architecture_program_report = subparsers.add_parser(
         "architecture-program-report",
         help="execute and report the sixteen canonical architecture runtimes",
@@ -9359,6 +9366,10 @@ def main(argv: list[str] | None = None) -> int:
             report = run_capability_certification_bundle_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "capability-certification-bundle-audit":
+            audit = audit_capability_certification_bundle(load_capability_certification_bundle(args.destination, include_payloads=True))
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
         if args.command == "capability-certification":
             report = certify_capability_catalog()
             _write_text(export_capability_certification_json(report), args.output)

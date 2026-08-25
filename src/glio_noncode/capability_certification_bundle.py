@@ -180,15 +180,15 @@ def _base_artifacts(
 ) -> tuple[CertificationBundleArtifact, ...]:
     report = runtime.report
     return (
-        _artifact("report", "report.json", CERTIFICATION_BUNDLE_JSON, report, kind=CertificationBundleArtifactKind.REPORT),
+        _artifact("report", "report.json", CERTIFICATION_BUNDLE_JSON, report.to_dict(), kind=CertificationBundleArtifactKind.REPORT),
         _artifact("summary", "summary.json", CERTIFICATION_BUNDLE_JSON, json.loads(export_capability_certification_summary_json(report)), kind=CertificationBundleArtifactKind.SUMMARY),
         _artifact("certificates", "certificates.csv", CERTIFICATION_BUNDLE_CSV, export_capability_certification_csv(report), kind=CertificationBundleArtifactKind.CERTIFICATES),
         _artifact("checks", "checks.csv", CERTIFICATION_BUNDLE_CSV, export_capability_certification_checks_csv(report), kind=CertificationBundleArtifactKind.CHECKS),
         _artifact("domains", "domains.csv", CERTIFICATION_BUNDLE_CSV, export_capability_certification_domains_csv(report), kind=CertificationBundleArtifactKind.DOMAINS),
-        _artifact("runtime", "runtime.json", CERTIFICATION_BUNDLE_JSON, runtime, kind=CertificationBundleArtifactKind.RUNTIME),
-        _artifact("quality", "quality.json", CERTIFICATION_BUNDLE_JSON, runtime.quality, kind=CertificationBundleArtifactKind.QUALITY),
-        _artifact("replay", "replay.json", CERTIFICATION_BUNDLE_JSON, replay, kind=CertificationBundleArtifactKind.REPLAY),
-        _artifact("failures", "failures.json", CERTIFICATION_BUNDLE_JSON, failures, kind=CertificationBundleArtifactKind.FAILURES),
+        _artifact("runtime", "runtime.json", CERTIFICATION_BUNDLE_JSON, runtime.to_dict(), kind=CertificationBundleArtifactKind.RUNTIME),
+        _artifact("quality", "quality.json", CERTIFICATION_BUNDLE_JSON, runtime.quality.to_dict(), kind=CertificationBundleArtifactKind.QUALITY),
+        _artifact("replay", "replay.json", CERTIFICATION_BUNDLE_JSON, replay.to_dict(), kind=CertificationBundleArtifactKind.REPLAY),
+        _artifact("failures", "failures.json", CERTIFICATION_BUNDLE_JSON, failures.to_dict(), kind=CertificationBundleArtifactKind.FAILURES),
         _artifact("catalog", "catalog.json", CERTIFICATION_BUNDLE_JSON, catalog.manifest(), kind=CertificationBundleArtifactKind.CATALOG),
         _artifact("report-markdown", "report.md", CERTIFICATION_BUNDLE_MARKDOWN, render_capability_certification_markdown(report), kind=CertificationBundleArtifactKind.MARKDOWN),
     )
@@ -410,6 +410,16 @@ def verify_capability_certification_bundle(destination: str | Path) -> Certifica
             continue
         actual_paths.add(relative)
     checks.append(_check("unexpected-files", CertificationBundleCheckPlane.CLOSURE, actual_paths == expected_paths, tuple(sorted(actual_paths - expected_paths)), tuple(sorted(expected_paths - actual_paths)), "bundle contains exactly its manifest and artifacts"))
+    if actual_paths == expected_paths and all(item.passed for item in checks):
+        try:
+            from .capability_certification_bundle_audit import audit_capability_certification_bundle
+            from .capability_certification_bundle_query import load_capability_certification_bundle
+
+            loaded = load_capability_certification_bundle(root, include_payloads=True)
+            audit = audit_capability_certification_bundle(loaded)
+            checks.append(_check("cross-artifact-audit", CertificationBundleCheckPlane.CLOSURE, audit.accepted, audit.failed_check_ids, (), "report, CSV, runtime, replay, failure, and observability artifacts reconcile"))
+        except (OSError, TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            checks.append(_check("cross-artifact-audit", CertificationBundleCheckPlane.CLOSURE, False, type(exc).__name__, "accepted audit", "cross-artifact reconciliation could not be completed"))
     return _verification(bundle_id, checks)
 
 

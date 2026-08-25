@@ -111,6 +111,7 @@ python -m glio_noncode capability-certification-bundle-observability capability-
 python -m glio_noncode capability-certification-bundle-schema
 python -m glio_noncode capability-certification-bundle-validate capability-certification-bundle/bundle.json
 python -m glio_noncode capability-certification-bundle-runtime
+python -m glio_noncode capability-certification-bundle-audit capability-certification-bundle
 ```
 
 All commands write stdout by default and accept `--output` for a selected
@@ -139,6 +140,13 @@ filters, text search, pagination, JSON, and CSV are deterministic.  Bundle diff
 compares addressed capability rows and artifacts.  The staged bundle runtime
 records materialization, inventory, manifest, observability, replay, and final
 acceptance transitions.
+
+`capability-certification-bundle-audit` is the independent reconciliation
+plane. It checks the 12-artifact inventory, report/cardinality invariants,
+certificate/domain/check CSV projections, runtime and 18-check quality receipt,
+replay and two negative controls, observability metrics, Markdown closure, and
+public-key safety. The filesystem verifier calls this audit after exact-byte
+verification, so a bundle must be both byte-stable and internally coherent.
 
 ## Review and release rules
 

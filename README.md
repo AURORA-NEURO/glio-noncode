@@ -168,6 +168,7 @@ glio-noncode capability-certification-bundle-query capability-certification-bund
 glio-noncode capability-certification-bundle-observability capability-certification-bundle --format metrics-csv --output capability-certification-metrics.csv
 glio-noncode capability-certification-bundle-schema --output capability-certification-bundle-schema.json
 glio-noncode capability-certification-bundle-runtime --output capability-certification-bundle-runtime.json
+glio-noncode capability-certification-bundle-audit capability-certification-bundle --output capability-certification-bundle-audit.json
 ```
 
 See [docs/CAPABILITY_CERTIFICATION.md](docs/CAPABILITY_CERTIFICATION.md) for

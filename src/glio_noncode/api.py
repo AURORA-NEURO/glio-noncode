@@ -47,6 +47,7 @@ from .module_fabric_bundle_query import query_module_fabric_bundle
 from .module_fabric_bundle_runtime import run_module_fabric_bundle_runtime
 from .module_fabric_bundle_schema import module_fabric_bundle_schema
 from .capability_certification_bundle import build_capability_certification_bundle
+from .capability_certification_bundle_audit import audit_capability_certification_bundle
 from .capability_certification_bundle_observability import certification_bundle_observability_from_dict
 from .capability_certification_bundle_query import query_capability_certification_bundle
 from .capability_certification_bundle_runtime import run_capability_certification_bundle_runtime
@@ -227,6 +228,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/capability-certification/bundle/observability",
             "/v1/capability-certification/bundle/runtime",
             "/v1/capability-certification/bundle/schema",
+            "/v1/capability-certification/bundle/audit",
         }:
             try:
                 if path.endswith("/schema"):
@@ -259,6 +261,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                         bundle_id=bundle.bundle_id,
                         run_id=bundle.run_id,
                     ).to_dict()
+                elif path.endswith("/audit"):
+                    payload = audit_capability_certification_bundle(bundle).to_dict()
                 else:
                     payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
                 self._write(HTTPStatus.OK, payload)

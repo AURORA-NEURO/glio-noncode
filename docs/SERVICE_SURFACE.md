@@ -22,6 +22,7 @@ report or runtime from which it was derived.
 | GET | `/v1/capability-certification/bundle/observability` | Return certification bundle events and metrics |
 | GET | `/v1/capability-certification/bundle/runtime` | Run bundle assembly and deterministic replay |
 | GET | `/v1/capability-certification/bundle/schema` | Return the closed certification bundle schema |
+| GET | `/v1/capability-certification/bundle/audit` | Reconcile all certification bundle artifacts and denominators |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
@@ -329,6 +330,7 @@ The capability-certification bundle surface is available at:
 - `GET /v1/capability-certification/bundle/observability`
 - `GET /v1/capability-certification/bundle/runtime`
 - `GET /v1/capability-certification/bundle/schema`
+- `GET /v1/capability-certification/bundle/audit`
 
 The bundle endpoints expose the same addressed twelve-artifact public handoff
 as the CLI, including 256 certificates, 16 domains, 2,572 checks, bounded

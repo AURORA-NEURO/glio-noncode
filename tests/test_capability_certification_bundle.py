@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
@@ -15,6 +16,7 @@ from glio_noncode.capability_certification_bundle import (
     verify_capability_certification_bundle,
     write_capability_certification_bundle,
 )
+from glio_noncode.capability_certification_bundle_audit import audit_capability_certification_bundle
 from glio_noncode.capability_certification_bundle_observability import (
     certification_bundle_events_csv,
     certification_bundle_metrics_csv,
@@ -36,6 +38,7 @@ from glio_noncode.capability_certification_bundle_schema import (
 from glio_noncode.cli import main
 from glio_noncode.module_fabric_support import contains_private_key
 from glio_noncode.run_workspace import _has_forbidden_key
+from glio_noncode.serialization import canonical_json
 
 
 class CapabilityCertificationBundleTests(unittest.TestCase):
@@ -66,6 +69,26 @@ class CapabilityCertificationBundleTests(unittest.TestCase):
         validation = validate_capability_certification_bundle_manifest(self.bundle.to_dict(include_payloads=False))
         self.assertTrue(validation.accepted, validation.to_dict())
         self.assertTrue(capability_certification_bundle_schema()["content_address"].startswith("capability-certification-bundle-schema:"))
+
+    def test_independent_audit_reconciles_all_artifact_planes(self) -> None:
+        audit = audit_capability_certification_bundle(self.bundle)
+        self.assertTrue(audit.accepted, audit.to_dict())
+        self.assertGreaterEqual(audit.passed_check_count, 50)
+        self.assertEqual(audit.failed_check_ids, ())
+
+    def test_independent_audit_rejects_semantic_report_drift(self) -> None:
+        report = next(item for item in self.bundle.artifacts if item.artifact_id == "report")
+        changed_document = json.loads(report.payload or "{}")
+        changed_document["capability_count"] = 255
+        changed_payload = canonical_json(changed_document) + "\n"
+        changed_report = replace(report, payload=changed_payload)
+        changed_bundle = replace(
+            self.bundle,
+            artifacts=tuple(changed_report if item.artifact_id == "report" else item for item in self.bundle.artifacts),
+        )
+        audit = audit_capability_certification_bundle(changed_bundle)
+        self.assertFalse(audit.accepted)
+        self.assertTrue(any(item in audit.failed_check_ids for item in ("manifest-address", "artifact-byte-counts", "report-capability-denominator")))
 
     def test_write_verify_and_tamper_detection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -141,6 +164,9 @@ class CapabilityCertificationBundleTests(unittest.TestCase):
             schema_path = Path(directory) / "schema.json"
             self.assertEqual(main(["capability-certification-bundle-schema", "--output", str(schema_path)]), 0)
             self.assertEqual(json.loads(schema_path.read_text(encoding="utf-8"))["properties"]["version"]["const"], "capability-certification-bundle-v1")
+            audit_path = Path(directory) / "audit.json"
+            self.assertEqual(main(["capability-certification-bundle-audit", str(destination), "--output", str(audit_path)]), 0)
+            self.assertTrue(json.loads(audit_path.read_text(encoding="utf-8"))["accepted"])
             server = create_server("127.0.0.1", 0, directory)
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -163,6 +189,10 @@ class CapabilityCertificationBundleTests(unittest.TestCase):
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
                 self.assertEqual(json.loads(response.read())["properties"]["version"]["const"], "capability-certification-bundle-v1")
+                connection.request("GET", "/v1/capability-certification/bundle/audit")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertTrue(json.loads(response.read())["accepted"])
                 connection.close()
             finally:
                 server.shutdown()
