@@ -29,6 +29,8 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/inspection` | Return the complete run inspection closure |
 | GET | `/v1/runs/{run_id}/workspace` | Reopen a replay-verified case as a bounded workspace projection |
 | GET | `/v1/runs/{run_id}/workspace/closure` | Return the complete content-addressed run workspace closure |
+| GET | `/v1/runs/{run_id}/workspace/history` | Rebuild every verified dossier snapshot as a workspace timeline |
+| GET | `/v1/runs/{run_id}/workspace/compare` | Compare two historical workspace snapshots by public record identity |
 | GET | `/v1/runs/{run_id}/history` | List content-addressed dossier snapshots for one run |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}` | Compare current or selected snapshots from two runs |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}/release` | Build a gated portable comparison handoff bundle |
@@ -120,6 +122,15 @@ blocked projection with integrity evidence; its workspace records are
 withheld. The `/workspace/closure` route pages through every matching record
 and marks the page complete for offline consumers.
 
+Workspace history rebuilds every accepted dossier snapshot against the original
+manifest, retains the snapshot and review-state metadata, and compares adjacent
+public records by stable `record_id`. Each transition reports additions,
+removals, field-level changes, unchanged records, truncation state, and review
+metadata changes. The history route accepts `change_limit`; the compare route
+requires `source_snapshot` and `target_snapshot` and accepts the same limit.
+History fails closed when any indexed dossier snapshot or its run replay is
+invalid, while retaining blocked snapshot warnings for inspection.
+
 ## CLI and offline closure
 
 Run the compact status projection:
@@ -173,6 +184,8 @@ glio-noncode run-catalog --data-root .glio --closure --output run-catalog-closur
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
 glio-noncode run-workspace run-<run-id> --data-root .glio --record-type evidence --state supported --output run-workspace.json
 glio-noncode run-workspace run-<run-id> --data-root .glio --variant-id variant-1 --closure --output run-workspace-closure.json
+glio-noncode run-workspace-history run-<run-id> --data-root .glio --output run-workspace-history.json
+glio-noncode run-workspace-compare run-<run-id> 0 1 --data-root .glio --output workspace-transition.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
 glio-noncode run-query run-<run-id> summary --data-root .glio --output run-summary.json
 glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json

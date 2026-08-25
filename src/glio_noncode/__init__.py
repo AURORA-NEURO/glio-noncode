@@ -10196,6 +10196,16 @@ from .run_workspace import (
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
 )
+from .workspace_history import (
+    WORKSPACE_HISTORY_MAX_CHANGES,
+    WORKSPACE_HISTORY_VERSION,
+    WorkspaceHistory,
+    WorkspaceHistorySnapshot,
+    WorkspaceRecordChange,
+    WorkspaceTransition,
+    build_persisted_workspace_history,
+    compare_persisted_workspace_snapshots,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10288,6 +10298,12 @@ __all__ += [
     "RUN_WORKSPACE_DEFAULT_LIMIT", "RUN_WORKSPACE_MAX_LIMIT", "RUN_WORKSPACE_VERSION",
     "RunWorkspaceProjection", "build_persisted_run_workspace",
     "build_persisted_run_workspace_closure", "workspace_query_from_filters",
+]
+
+__all__ += [
+    "WORKSPACE_HISTORY_MAX_CHANGES", "WORKSPACE_HISTORY_VERSION", "WorkspaceHistory",
+    "WorkspaceHistorySnapshot", "WorkspaceRecordChange", "WorkspaceTransition",
+    "build_persisted_workspace_history", "compare_persisted_workspace_snapshots",
 ]
 
 __all__ += [

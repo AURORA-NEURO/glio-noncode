@@ -38,6 +38,11 @@ from .run_workspace import (
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
 )
+from .workspace_history import (
+    WORKSPACE_HISTORY_MAX_CHANGES,
+    build_persisted_workspace_history,
+    compare_persisted_workspace_snapshots,
+)
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -360,6 +365,50 @@ class ApiHandler(BaseHTTPRequestHandler):
                     and segments[3] == "workspace"
                     and segments[4] == "closure"
                 )
+                is_workspace_history = (
+                    len(segments) == 5
+                    and segments[3] == "workspace"
+                    and segments[4] == "history"
+                )
+                is_workspace_compare = (
+                    len(segments) == 5
+                    and segments[3] == "workspace"
+                    and segments[4] == "compare"
+                )
+                if is_workspace_history:
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    history = build_persisted_workspace_history(
+                        runtime,
+                        run_id,
+                        change_limit=self._query_int(
+                            query,
+                            "change_limit",
+                            WORKSPACE_HISTORY_MAX_CHANGES,
+                        ),
+                    )
+                    self._write(HTTPStatus.OK, history.to_dict())
+                    return
+                if is_workspace_compare:
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    source_snapshot = self._query_optional_int(query, "source_snapshot")
+                    target_snapshot = self._query_optional_int(query, "target_snapshot")
+                    if source_snapshot is None or target_snapshot is None:
+                        raise ValueError(
+                            "workspace compare requires source_snapshot and target_snapshot"
+                        )
+                    transition = compare_persisted_workspace_snapshots(
+                        runtime,
+                        run_id,
+                        source_snapshot,
+                        target_snapshot,
+                        change_limit=self._query_int(
+                            query,
+                            "change_limit",
+                            WORKSPACE_HISTORY_MAX_CHANGES,
+                        ),
+                    )
+                    self._write(HTTPStatus.OK, transition.to_dict())
+                    return
                 if is_workspace or is_workspace_closure:
                     query = parse_qs(parsed.query, keep_blank_values=False)
                     workspace_query = workspace_query_from_filters(

@@ -1267,6 +1267,11 @@ from .run_workspace import (
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
 )
+from .workspace_history import (
+    WORKSPACE_HISTORY_MAX_CHANGES,
+    build_persisted_workspace_history,
+    compare_persisted_workspace_snapshots,
+)
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -2533,6 +2538,34 @@ def build_parser() -> argparse.ArgumentParser:
     run_workspace.add_argument("--limit", default=RUN_WORKSPACE_DEFAULT_LIMIT, type=int)
     run_workspace.add_argument("--closure", action="store_true")
     run_workspace.add_argument("--output", default=None)
+
+    run_workspace_history = subparsers.add_parser(
+        "run-workspace-history",
+        help="rebuild every replay-verified dossier snapshot as a workspace timeline",
+    )
+    run_workspace_history.add_argument("run_id", type=str)
+    run_workspace_history.add_argument("--data-root", default=".glio")
+    run_workspace_history.add_argument(
+        "--change-limit",
+        default=WORKSPACE_HISTORY_MAX_CHANGES,
+        type=int,
+    )
+    run_workspace_history.add_argument("--output", default=None)
+
+    run_workspace_compare = subparsers.add_parser(
+        "run-workspace-compare",
+        help="compare two historical workspace snapshots from one persisted run",
+    )
+    run_workspace_compare.add_argument("run_id", type=str)
+    run_workspace_compare.add_argument("source_snapshot", type=int)
+    run_workspace_compare.add_argument("target_snapshot", type=int)
+    run_workspace_compare.add_argument("--data-root", default=".glio")
+    run_workspace_compare.add_argument(
+        "--change-limit",
+        default=WORKSPACE_HISTORY_MAX_CHANGES,
+        type=int,
+    )
+    run_workspace_compare.add_argument("--output", default=None)
 
     run_review = subparsers.add_parser(
         "run-review",
@@ -18180,6 +18213,24 @@ def main(argv: list[str] | None = None) -> int:
                 ).to_dict()
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "run-workspace-history":
+            history = build_persisted_workspace_history(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                change_limit=args.change_limit,
+            )
+            _write_json(history.to_dict(), args.output)
+            return 0 if history.accepted else 2
+        if args.command == "run-workspace-compare":
+            transition = compare_persisted_workspace_snapshots(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                args.source_snapshot,
+                args.target_snapshot,
+                change_limit=args.change_limit,
+            )
+            _write_json(transition.to_dict(), args.output)
+            return 0 if transition.accepted else 2
         if args.command == "run-review":
             review = ReviewDecision.from_dict(_read_json(args.review))
             dossier = CaseRuntime(args.data_root).review_run(args.run_id, review)
