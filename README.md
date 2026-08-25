@@ -162,11 +162,17 @@ glio-noncode capability-certification-report --format markdown --output capabili
 glio-noncode capability-certification-query --domain-id D05
 glio-noncode capability-certification-replay
 glio-noncode capability-certification-failures
+glio-noncode capability-certification-bundle --destination capability-certification-bundle --output capability-certification-bundle.json
+glio-noncode capability-certification-bundle-verify capability-certification-bundle --output capability-certification-bundle-verification.json
+glio-noncode capability-certification-bundle-query capability-certification-bundle --resource certificates --domain-id D05
+glio-noncode capability-certification-bundle-observability capability-certification-bundle --format metrics-csv --output capability-certification-metrics.csv
+glio-noncode capability-certification-bundle-schema --output capability-certification-bundle-schema.json
+glio-noncode capability-certification-bundle-runtime --output capability-certification-bundle-runtime.json
 ```
 
 See [docs/CAPABILITY_CERTIFICATION.md](docs/CAPABILITY_CERTIFICATION.md) for
-the row checks, global denominators, runtime stages, projection contract, and
-extension rules.
+the row checks, global denominators, runtime stages, offline bundle contract,
+projection contract, and extension rules.
 
 The sixteen architecture domains can now be executed through one normalized
 program runtime. It resolves and runs D01–D16, reconciles 172 domain/global

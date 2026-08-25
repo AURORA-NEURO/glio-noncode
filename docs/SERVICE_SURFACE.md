@@ -316,3 +316,15 @@ The closure includes the complete 256-row capability certification report, the
 sixteen-domain architecture runtime, the twelve-stage operational trace, and
 the common query projections. The closure is rejected if its public projection
 contains a private-key field.
+
+The capability-certification bundle surface is available at:
+
+- `GET /v1/capability-certification/bundle`
+- `GET /v1/capability-certification/bundle/query?resource=certificates&domain_id=D05`
+- `GET /v1/capability-certification/bundle/observability`
+- `GET /v1/capability-certification/bundle/runtime`
+- `GET /v1/capability-certification/bundle/schema`
+
+The bundle endpoints expose the same addressed twelve-artifact public handoff
+as the CLI, including 256 certificates, 16 domains, 2,572 checks, bounded
+offline query filters, deterministic replay, and the closed public boundary.

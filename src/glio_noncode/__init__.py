@@ -9953,11 +9953,73 @@ from .capability_certification_runtime import (
     capability_certification_runtime_json,
     run_capability_certification,
 )
+from .capability_certification_bundle import (
+    CERTIFICATION_BUNDLE_ARTIFACT_COUNT,
+    CERTIFICATION_BUNDLE_CSV,
+    CERTIFICATION_BUNDLE_JSON,
+    CERTIFICATION_BUNDLE_MARKDOWN,
+    build_capability_certification_bundle,
+    bundle_manifest_text,
+    certification_bundle_artifact_csv,
+    verify_capability_certification_bundle,
+    write_capability_certification_bundle,
+)
+from .capability_certification_bundle_contracts import (
+    CAPABILITY_CERTIFICATION_BUNDLE_ARTIFACT_PREFIX,
+    CAPABILITY_CERTIFICATION_BUNDLE_BOUNDARY,
+    CAPABILITY_CERTIFICATION_BUNDLE_CHECK_PREFIX,
+    CAPABILITY_CERTIFICATION_BUNDLE_DEFAULT_LIMIT,
+    CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST,
+    CAPABILITY_CERTIFICATION_BUNDLE_MAX_ARTIFACTS,
+    CAPABILITY_CERTIFICATION_BUNDLE_MAX_LIMIT,
+    CAPABILITY_CERTIFICATION_BUNDLE_VERSION,
+    CapabilityCertificationBundle,
+    CertificationBundleArtifact,
+    CertificationBundleArtifactKind,
+    CertificationBundleCheck,
+    CertificationBundleCheckPlane,
+    CertificationBundleDiff,
+    CertificationBundleQueryResult,
+    CertificationBundleState,
+    CertificationBundleVerification,
+)
+from .capability_certification_bundle_observability import (
+    CertificationBundleEvent,
+    CertificationBundleMetric,
+    CertificationBundleObservability,
+    build_capability_certification_bundle_observability,
+    certification_bundle_events_csv,
+    certification_bundle_metrics_csv,
+    certification_bundle_observability_from_dict,
+)
+from .capability_certification_bundle_query import (
+    diff_capability_certification_bundles,
+    export_capability_certification_bundle_query_csv,
+    load_capability_certification_bundle,
+    query_capability_certification_bundle,
+)
+from .capability_certification_bundle_runtime import (
+    CAPABILITY_CERTIFICATION_BUNDLE_RUNTIME_VERSION,
+    CapabilityCertificationBundleRuntimeReport,
+    CertificationBundleRuntimeStage,
+    replay_capability_certification_bundle,
+    run_capability_certification_bundle_runtime,
+)
+from .capability_certification_bundle_schema import (
+    CAPABILITY_CERTIFICATION_BUNDLE_SCHEMA_VERSION,
+    CertificationBundleSchemaCheck,
+    CertificationBundleSchemaValidation,
+    capability_certification_bundle_schema,
+    validate_capability_certification_bundle_manifest,
+)
 
 __all__ += [
     "CAPABILITIES_PER_DOMAIN", "CATALOG_CAPABILITY_COUNT", "CATALOG_DOMAIN_COUNT", "CATALOG_MVP_COUNT", "CHECKS_PER_CAPABILITY", "GLOBAL_CHECK_COUNT", "QUALITY_CHECK_COUNT", "RUNTIME_STAGE_COUNT",
     "CapabilityCertificationCategory", "CapabilityCertificationCheck", "CapabilityCertificationFailureProbe", "CapabilityCertificationFailureReport", "CapabilityCertificationQualityCheck", "CapabilityCertificationQualityReport", "CapabilityCertificationReplayReport", "CapabilityCertificationReport", "CapabilityCertificationRuntime", "CapabilityCertificationStage", "CapabilityCertificationState", "CapabilityCertificate", "CapabilityDomainSummary",
     "capability_certification_domain_matrix", "capability_certification_percent", "capability_certification_runtime_json", "certify_capability_catalog", "diff_capability_certifications", "export_capability_certification_checks_csv", "export_capability_certification_csv", "export_capability_certification_domains_csv", "export_capability_certification_json", "export_capability_certification_summary_json", "query_capability_certification", "render_capability_certification_markdown", "replay_capability_certification", "replay_is_deterministic", "run_capability_certification", "run_capability_certification_failure_injections", "run_capability_certification_quality_gate",
+    "CERTIFICATION_BUNDLE_ARTIFACT_COUNT", "CERTIFICATION_BUNDLE_CSV", "CERTIFICATION_BUNDLE_JSON", "CERTIFICATION_BUNDLE_MARKDOWN", "CAPABILITY_CERTIFICATION_BUNDLE_ARTIFACT_PREFIX", "CAPABILITY_CERTIFICATION_BUNDLE_BOUNDARY", "CAPABILITY_CERTIFICATION_BUNDLE_CHECK_PREFIX", "CAPABILITY_CERTIFICATION_BUNDLE_DEFAULT_LIMIT", "CAPABILITY_CERTIFICATION_BUNDLE_MANIFEST", "CAPABILITY_CERTIFICATION_BUNDLE_MAX_ARTIFACTS", "CAPABILITY_CERTIFICATION_BUNDLE_MAX_LIMIT", "CAPABILITY_CERTIFICATION_BUNDLE_RUNTIME_VERSION", "CAPABILITY_CERTIFICATION_BUNDLE_SCHEMA_VERSION", "CAPABILITY_CERTIFICATION_BUNDLE_VERSION",
+    "CapabilityCertificationBundle", "CapabilityCertificationBundleRuntimeReport", "CertificationBundleArtifact", "CertificationBundleArtifactKind", "CertificationBundleCheck", "CertificationBundleCheckPlane", "CertificationBundleDiff", "CertificationBundleEvent", "CertificationBundleMetric", "CertificationBundleObservability", "CertificationBundleQueryResult", "CertificationBundleRuntimeStage", "CertificationBundleSchemaCheck", "CertificationBundleSchemaValidation", "CertificationBundleState", "CertificationBundleVerification",
+    "build_capability_certification_bundle", "build_capability_certification_bundle_observability", "bundle_manifest_text", "capability_certification_bundle_schema", "certification_bundle_artifact_csv", "certification_bundle_events_csv", "certification_bundle_metrics_csv", "certification_bundle_observability_from_dict", "diff_capability_certification_bundles", "export_capability_certification_bundle_query_csv", "load_capability_certification_bundle", "query_capability_certification_bundle", "replay_capability_certification_bundle", "run_capability_certification_bundle_runtime", "validate_capability_certification_bundle_manifest", "verify_capability_certification_bundle", "write_capability_certification_bundle",
 ]
 
 from .program_runtime import (

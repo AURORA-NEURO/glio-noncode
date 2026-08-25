@@ -81,6 +81,27 @@ from .capability_certification_replay import (
     run_capability_certification_failure_injections,
 )
 from .capability_certification_runtime import capability_certification_runtime_json, run_capability_certification
+from .capability_certification_bundle import (
+    build_capability_certification_bundle,
+    verify_capability_certification_bundle,
+    write_capability_certification_bundle,
+)
+from .capability_certification_bundle_observability import (
+    certification_bundle_events_csv,
+    certification_bundle_metrics_csv,
+    certification_bundle_observability_from_dict,
+)
+from .capability_certification_bundle_query import (
+    diff_capability_certification_bundles,
+    export_capability_certification_bundle_query_csv,
+    load_capability_certification_bundle,
+    query_capability_certification_bundle,
+)
+from .capability_certification_bundle_runtime import run_capability_certification_bundle_runtime
+from .capability_certification_bundle_schema import (
+    capability_certification_bundle_schema,
+    validate_capability_certification_bundle_manifest,
+)
 from .program_runtime import (
     architecture_program_percent,
     query_architecture_program,
@@ -3156,6 +3177,70 @@ def build_parser() -> argparse.ArgumentParser:
     capability_certification_query.add_argument("--state", choices=("accepted", "review", "blocked"), default=None)
     capability_certification_query.add_argument("--text", default=None)
     capability_certification_query.add_argument("--output", default=None)
+    capability_certification_bundle = subparsers.add_parser(
+        "capability-certification-bundle",
+        help="materialize a verified public offline capability certification bundle",
+    )
+    capability_certification_bundle.add_argument("--destination", required=True)
+    capability_certification_bundle.add_argument("--bundle-id", default="capability-certification-public-bundle")
+    capability_certification_bundle.add_argument("--run-id", default=None)
+    capability_certification_bundle.add_argument("--include-payloads", action="store_true")
+    capability_certification_bundle.add_argument("--output", default=None)
+    capability_certification_bundle_verify = subparsers.add_parser(
+        "capability-certification-bundle-verify",
+        help="verify exact bytes and public closure of a capability certification bundle",
+    )
+    capability_certification_bundle_verify.add_argument("destination", type=str)
+    capability_certification_bundle_verify.add_argument("--output", default=None)
+    capability_certification_bundle_query = subparsers.add_parser(
+        "capability-certification-bundle-query",
+        help="query certificates, domains, checks, or artifacts from an offline certification bundle",
+    )
+    capability_certification_bundle_query.add_argument("destination", type=str)
+    capability_certification_bundle_query.add_argument("--resource", choices=("certificates", "domains", "checks", "artifacts"), default="certificates")
+    capability_certification_bundle_query.add_argument("--capability-id", default=None)
+    capability_certification_bundle_query.add_argument("--domain-id", default=None)
+    capability_certification_bundle_query.add_argument("--mvp-only", action="store_true")
+    capability_certification_bundle_query.add_argument("--state", default=None)
+    capability_certification_bundle_query.add_argument("--artifact-kind", default=None)
+    capability_certification_bundle_query.add_argument("--text", default=None)
+    capability_certification_bundle_query.add_argument("--offset", default=0, type=int)
+    capability_certification_bundle_query.add_argument("--limit", default=50, type=int)
+    capability_certification_bundle_query.add_argument("--include-payloads", action="store_true")
+    capability_certification_bundle_query.add_argument("--format", choices=("json", "csv"), default="json")
+    capability_certification_bundle_query.add_argument("--output", default=None)
+    capability_certification_bundle_diff = subparsers.add_parser(
+        "capability-certification-bundle-diff",
+        help="compare two capability certification bundle manifests by exact addresses",
+    )
+    capability_certification_bundle_diff.add_argument("left", type=str)
+    capability_certification_bundle_diff.add_argument("right", type=str)
+    capability_certification_bundle_diff.add_argument("--output", default=None)
+    capability_certification_bundle_observability = subparsers.add_parser(
+        "capability-certification-bundle-observability",
+        help="emit capability certification bundle events and metrics",
+    )
+    capability_certification_bundle_observability.add_argument("destination", type=str)
+    capability_certification_bundle_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    capability_certification_bundle_observability.add_argument("--output", default=None)
+    capability_certification_bundle_schema = subparsers.add_parser(
+        "capability-certification-bundle-schema",
+        help="print the closed capability certification bundle manifest schema",
+    )
+    capability_certification_bundle_schema.add_argument("--output", default=None)
+    capability_certification_bundle_validate = subparsers.add_parser(
+        "capability-certification-bundle-validate",
+        help="validate a capability certification bundle manifest JSON file",
+    )
+    capability_certification_bundle_validate.add_argument("input", type=str)
+    capability_certification_bundle_validate.add_argument("--output", default=None)
+    capability_certification_bundle_runtime = subparsers.add_parser(
+        "capability-certification-bundle-runtime",
+        help="run the staged capability certification bundle runtime and replay gate",
+    )
+    capability_certification_bundle_runtime.add_argument("--bundle-id", default="capability-certification-public-bundle")
+    capability_certification_bundle_runtime.add_argument("--run-id", default=None)
+    capability_certification_bundle_runtime.add_argument("--output", default=None)
     architecture_program_report = subparsers.add_parser(
         "architecture-program-report",
         help="execute and report the sixteen canonical architecture runtimes",
@@ -9218,6 +9303,60 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if report.accepted else 2
         if args.command == "module-fabric-bundle-runtime":
             report = run_module_fabric_bundle_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-bundle":
+            bundle = build_capability_certification_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            write_capability_certification_bundle(bundle, args.destination)
+            _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "capability-certification-bundle-verify":
+            report = verify_capability_certification_bundle(args.destination)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-bundle-query":
+            result = query_capability_certification_bundle(
+                args.destination,
+                resource=args.resource,
+                capability_id=args.capability_id,
+                domain_id=args.domain_id,
+                mvp_only=args.mvp_only,
+                state=args.state,
+                artifact_kind=args.artifact_kind,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                include_payloads=args.include_payloads,
+            )
+            if args.format == "csv":
+                _write_text(export_capability_certification_bundle_query_csv(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "capability-certification-bundle-diff":
+            result = diff_capability_certification_bundles(args.left, args.right)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "capability-certification-bundle-observability":
+            bundle = load_capability_certification_bundle(args.destination, include_payloads=True)
+            artifact = next(item for item in bundle.artifacts if item.artifact_id == "observability")
+            report = certification_bundle_observability_from_dict(json.loads(artifact.payload or "{}"))
+            if args.format == "events-csv":
+                _write_text(certification_bundle_events_csv(report), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(certification_bundle_metrics_csv(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-bundle-schema":
+            _write_json(capability_certification_bundle_schema(), args.output)
+            return 0
+        if args.command == "capability-certification-bundle-validate":
+            report = validate_capability_certification_bundle_manifest(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "capability-certification-bundle-runtime":
+            report = run_capability_certification_bundle_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
         if args.command == "capability-certification":

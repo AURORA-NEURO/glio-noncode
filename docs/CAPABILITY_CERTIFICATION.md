@@ -103,11 +103,42 @@ python -m glio_noncode capability-certification-query --mvp-only
 python -m glio_noncode capability-certification-query --text "chromatin"
 python -m glio_noncode capability-certification-replay
 python -m glio_noncode capability-certification-failures
+python -m glio_noncode capability-certification-bundle --destination capability-certification-bundle
+python -m glio_noncode capability-certification-bundle-verify capability-certification-bundle
+python -m glio_noncode capability-certification-bundle-query capability-certification-bundle --resource certificates --domain-id D05
+python -m glio_noncode capability-certification-bundle-diff capability-certification-bundle-a capability-certification-bundle-b
+python -m glio_noncode capability-certification-bundle-observability capability-certification-bundle --format metrics-csv
+python -m glio_noncode capability-certification-bundle-schema
+python -m glio_noncode capability-certification-bundle-validate capability-certification-bundle/bundle.json
+python -m glio_noncode capability-certification-bundle-runtime
 ```
 
 All commands write stdout by default and accept `--output` for a selected
 file.  A failed certification or quality gate returns exit code `2`; successful
 certification returns `0`.
+
+## Portable certification bundle
+
+`capability-certification-bundle` materializes the live 256-row certification
+runtime into a deterministic twelve-artifact directory.  The inventory retains
+the complete report, summary, certificate/check/domain CSV projections, runtime
+and quality receipts, replay and negative-control receipts, the public catalog
+projection, Markdown, and addressed observability events and metrics.
+
+`capability-certification-bundle-verify` reopens the directory without relying
+on the producing process.  It checks the canonical UTF-8 manifest, closed
+schema, bundle address, artifact paths, exact bytes, line counts, content
+addresses, regular-file closure, JSON public-boundary keys, and release state.
+Unexpected files, tampering, missing artifacts, unsafe paths, symlinks, or
+private/attribution fields fail closed.  The bundle carries both the 256/16/64
+catalog denominators and the conserved 2,572 certification checks.
+
+The query command supports bounded offline filtering over certificates,
+domains, checks, and artifact metadata; `--mvp-only`, domain/capability/state
+filters, text search, pagination, JSON, and CSV are deterministic.  Bundle diff
+compares addressed capability rows and artifacts.  The staged bundle runtime
+records materialization, inventory, manifest, observability, replay, and final
+acceptance transitions.
 
 ## Review and release rules
 
