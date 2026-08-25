@@ -225,6 +225,29 @@ from .service_release_reconciliation import (
 from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema, validate_service_release_schema
 from .service_release_views import audit_service_release_views, build_service_release_views
+from .release_assurance_bundle import build_release_assurance_snapshot
+from .release_assurance_catalog import build_release_assurance_catalog
+from .release_assurance_checkpoint import audit_release_assurance_checkpoint, build_release_assurance_checkpoint
+from .release_assurance_compliance import audit_release_assurance_compliance, compliance_summary
+from .release_assurance_diff import audit_release_assurance_diff, build_release_assurance_diff
+from .release_assurance_export import build_release_assurance_export
+from .release_assurance_failure_injection import run_release_assurance_failure_injections
+from .release_assurance_graph import build_release_assurance_graph
+from .release_assurance_history import audit_release_assurance_history, build_release_assurance_history, query_release_assurance_history
+from .release_assurance_indexes import audit_release_assurance_indexes, build_release_assurance_indexes
+from .release_assurance_observability import build_release_assurance_observability
+from .release_assurance_operations import audit_release_assurance_operations, build_release_assurance_operations
+from .release_assurance_plan import audit_release_assurance_plan, build_release_assurance_plan
+from .release_assurance_performance import audit_release_assurance_performance, release_assurance_budget_status
+from .release_assurance_query import query_release_assurance
+from .release_assurance_reconciliation import audit_release_assurance_reconciliation, reconcile_release_assurance
+from .release_assurance_reports import render_release_assurance_report_markdown
+from .release_assurance_review import audit_release_assurance_review_queue, build_release_assurance_review_queue
+from .release_assurance_runtime import run_release_assurance
+from .release_assurance_schema import release_assurance_schema, validate_release_assurance_schema
+from .release_assurance_summary import audit_release_assurance_summary, build_release_assurance_summary, release_assurance_status
+from .release_assurance_thresholds import evaluate_release_assurance_thresholds, release_assurance_threshold_status
+from .release_assurance_views import audit_release_assurance_views, build_release_assurance_views
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -291,6 +314,22 @@ class ApiHandler(BaseHTTPRequestHandler):
         if snapshot is None:
             snapshot = build_service_release_snapshot(self._service_surface(), bundle_id=bundle_id)
             cache[bundle_id] = snapshot
+        return snapshot
+
+    def _release_assurance(self, bundle_id: str, run_id: str):
+        """Cache one aggregate release-assurance snapshot per request identity."""
+
+        cache = getattr(self.server, "glio_release_assurance_snapshots", None)
+        if cache is None:
+            cache = {}
+            setattr(self.server, "glio_release_assurance_snapshots", cache)
+        key = (bundle_id, run_id)
+        snapshot = cache.get(key)
+        if snapshot is None:
+            snapshot = build_release_assurance_snapshot(
+                self._service_surface(), bundle_id=bundle_id, run_id=run_id
+            )
+            cache[key] = snapshot
         return snapshot
 
     @staticmethod
@@ -484,6 +523,141 @@ class ApiHandler(BaseHTTPRequestHandler):
                     payload = {"views": views.to_dict(), "audit": [item.to_dict() for item in audit_service_release_views(views, snapshot)]}
                 else:
                     payload = {"error": "unknown_service_release_path"}
+                self._write(HTTPStatus.OK, payload)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/release-assurance",
+            "/v1/release-assurance/query",
+            "/v1/release-assurance/schema",
+            "/v1/release-assurance/status",
+            "/v1/release-assurance/reconciliation",
+            "/v1/release-assurance/diff",
+            "/v1/release-assurance/catalog",
+            "/v1/release-assurance/compliance",
+            "/v1/release-assurance/performance",
+            "/v1/release-assurance/operations",
+            "/v1/release-assurance/report",
+            "/v1/release-assurance/checkpoint",
+            "/v1/release-assurance/review",
+            "/v1/release-assurance/history",
+            "/v1/release-assurance/thresholds",
+            "/v1/release-assurance/indexes",
+            "/v1/release-assurance/summary",
+            "/v1/release-assurance/observability",
+            "/v1/release-assurance/graph",
+            "/v1/release-assurance/failures",
+            "/v1/release-assurance/plan",
+            "/v1/release-assurance/views",
+            "/v1/release-assurance/runtime",
+            "/v1/release-assurance/export",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "glio-noncode-release-assurance"
+                run_id = self._query_value(query, "run_id") or "glio-noncode-release-assurance-run"
+                source = self._service_surface()
+                snapshot = self._release_assurance(bundle_id, run_id)
+                if path.endswith("/schema"):
+                    schema = release_assurance_schema()
+                    payload = {"schema": schema, "audit": [item.to_dict() for item in validate_release_assurance_schema(snapshot, schema)]}
+                elif path.endswith("/runtime"):
+                    payload = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id).to_dict()
+                elif path.endswith("/export"):
+                    runtime = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id)
+                    payload = build_release_assurance_export(runtime).to_dict()
+                elif path.endswith("/status"):
+                    payload = release_assurance_status(snapshot)
+                elif path.endswith("/reconciliation"):
+                    report = reconcile_release_assurance(snapshot, source_snapshot=source)
+                    payload = {"report": report.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_reconciliation(report, snapshot)]}
+                elif path.endswith("/diff"):
+                    compare_bundle_id = self._query_value(query, "compare_bundle_id") or f"{bundle_id}-comparison"
+                    compare_run_id = self._query_value(query, "compare_run_id") or f"{run_id}-comparison"
+                    comparison = build_release_assurance_snapshot(source, bundle_id=compare_bundle_id, run_id=compare_run_id)
+                    diff = build_release_assurance_diff(snapshot, comparison)
+                    payload = {"diff": diff.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_diff(diff, snapshot, comparison)]}
+                elif path.endswith("/catalog"):
+                    payload = build_release_assurance_catalog(snapshot).to_dict()
+                elif path.endswith("/compliance"):
+                    report = audit_release_assurance_compliance(snapshot)
+                    payload = {"report": report.to_dict(), "summary": compliance_summary(report)}
+                elif path.endswith("/performance"):
+                    report = audit_release_assurance_performance(snapshot)
+                    payload = {"report": report.to_dict(), "status": release_assurance_budget_status(report)}
+                elif path.endswith("/operations"):
+                    operations = build_release_assurance_operations(snapshot)
+                    payload = {"operations": operations.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_operations(operations, snapshot)]}
+                elif path.endswith("/report"):
+                    runtime = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id)
+                    payload = {"markdown": render_release_assurance_report_markdown(runtime).decode("utf-8"), "runtime": runtime.to_dict()}
+                elif path.endswith("/checkpoint"):
+                    runtime = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id)
+                    checkpoint = build_release_assurance_checkpoint(runtime)
+                    payload = {"checkpoint": checkpoint.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_checkpoint(checkpoint, runtime)]}
+                elif path.endswith("/review"):
+                    runtime = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id)
+                    queue = build_release_assurance_review_queue(runtime)
+                    payload = {"review": queue.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_review_queue(queue, runtime)]}
+                elif path.endswith("/history"):
+                    runtime = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id)
+                    history = build_release_assurance_history(runtime)
+                    if self._query_value(query, "event_type") or self._query_value(query, "state") or self._query_value(query, "text"):
+                        payload = {
+                            "history": history.to_dict(),
+                            "items": [item.to_dict() for item in query_release_assurance_history(
+                                history,
+                                event_type=self._query_value(query, "event_type"),
+                                state=self._query_value(query, "state"),
+                                text=self._query_value(query, "text"),
+                                offset=self._query_int(query, "offset", 0),
+                                limit=self._query_int(query, "limit", 50),
+                            )],
+                        }
+                    else:
+                        payload = history.to_dict()
+                elif path.endswith("/thresholds"):
+                    report = evaluate_release_assurance_thresholds(snapshot)
+                    payload = {"report": report.to_dict(), "status": release_assurance_threshold_status(report)}
+                elif path == "/v1/release-assurance":
+                    payload = snapshot.to_dict()
+                elif path.endswith("/query"):
+                    payload = query_release_assurance(
+                        snapshot,
+                        resource=self._query_value(query, "resource") or "domains",
+                        domain_id=self._query_value(query, "domain_id"),
+                        plane=self._query_value(query, "assurance_plane"),
+                        state=self._query_value(query, "state"),
+                        passed_only=self._query_bool(query, "passed_only"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/indexes"):
+                    indexes = build_release_assurance_indexes(snapshot)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_release_assurance_indexes(snapshot, indexes).to_dict()}
+                elif path.endswith("/summary"):
+                    summary = build_release_assurance_summary(snapshot)
+                    payload = {"summary": summary.to_dict(), "audit": audit_release_assurance_summary(summary, snapshot).to_dict()}
+                elif path.endswith("/observability"):
+                    payload = build_release_assurance_observability(snapshot).to_dict()
+                elif path.endswith("/graph"):
+                    payload = build_release_assurance_graph(snapshot).to_dict()
+                elif path.endswith("/failures"):
+                    payload = run_release_assurance_failure_injections(snapshot).to_dict()
+                elif path.endswith("/plan"):
+                    plan = build_release_assurance_plan(snapshot)
+                    payload = {"plan": plan.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_plan(plan)]}
+                elif path.endswith("/views"):
+                    views = build_release_assurance_views(snapshot)
+                    payload = {"views": views.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_views(views, snapshot)]}
+                else:
+                    payload = {"error": "unknown_release_assurance_path"}
                 self._write(HTTPStatus.OK, payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})

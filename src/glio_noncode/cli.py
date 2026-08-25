@@ -32,6 +32,39 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema, validate_service_release_schema
 from .service_release_views import audit_service_release_views, build_service_release_views
 from .public_surface_audit import build_default_public_surface_audit
+from .release_assurance_bundle import build_release_assurance_snapshot
+from .release_assurance_catalog import build_release_assurance_catalog, query_release_assurance_catalog
+from .release_assurance_checkpoint import audit_release_assurance_checkpoint, build_release_assurance_checkpoint
+from .release_assurance_compliance import audit_release_assurance_compliance, compliance_summary
+from .release_assurance_diff import audit_release_assurance_diff, build_release_assurance_diff
+from .release_assurance_export import build_release_assurance_export, verify_release_assurance_export, write_release_assurance_export
+from .release_assurance_failure_injection import run_release_assurance_failure_injections
+from .release_assurance_graph import build_release_assurance_graph
+from .release_assurance_history import (
+    audit_release_assurance_history,
+    build_release_assurance_history,
+    export_release_assurance_history_csv,
+    export_release_assurance_history_markdown,
+    query_release_assurance_history,
+)
+from .release_assurance_indexes import audit_release_assurance_indexes, build_release_assurance_indexes
+from .release_assurance_observability import build_release_assurance_observability
+from .release_assurance_operations import audit_release_assurance_operations, build_release_assurance_operations
+from .release_assurance_plan import audit_release_assurance_plan, build_release_assurance_plan
+from .release_assurance_performance import audit_release_assurance_performance, release_assurance_budget_status
+from .release_assurance_query import query_release_assurance
+from .release_assurance_reconciliation import audit_release_assurance_reconciliation, reconcile_release_assurance
+from .release_assurance_reports import (
+    export_release_assurance_report_csv,
+    export_release_assurance_report_json,
+    render_release_assurance_report_markdown,
+)
+from .release_assurance_review import audit_release_assurance_review_queue, build_release_assurance_review_queue
+from .release_assurance_runtime import run_release_assurance
+from .release_assurance_schema import release_assurance_schema, validate_release_assurance_schema
+from .release_assurance_summary import audit_release_assurance_summary, build_release_assurance_summary, release_assurance_status
+from .release_assurance_thresholds import evaluate_release_assurance_thresholds, release_assurance_threshold_status
+from .release_assurance_views import audit_release_assurance_views, build_release_assurance_views
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
     MethylationTrackHarmonizer,
@@ -2853,6 +2886,39 @@ def build_parser() -> argparse.ArgumentParser:
     )
     service_release_verify.add_argument("directory")
     service_release_verify.add_argument("--output", default=None)
+    release_assurance = subparsers.add_parser(
+        "release-assurance",
+        help="emit, query, audit, or export the whole-product release-assurance gate",
+    )
+    release_assurance.add_argument(
+        "--plane",
+        choices=("snapshot", "query", "schema", "status", "indexes", "summary", "reconciliation",
+                 "diff", "catalog", "compliance", "performance", "operations", "report", "checkpoint", "review", "history", "thresholds",
+                 "observability", "graph", "failures", "plan", "views", "runtime", "export"),
+        default="snapshot",
+    )
+    release_assurance.add_argument("--bundle-id", default="glio-noncode-release-assurance")
+    release_assurance.add_argument("--run-id", default="glio-noncode-release-assurance-run")
+    release_assurance.add_argument("--resource", default="domains")
+    release_assurance.add_argument("--domain-id", default=None)
+    release_assurance.add_argument("--compare-bundle-id", default=None)
+    release_assurance.add_argument("--compare-run-id", default=None)
+    release_assurance.add_argument("--assurance-plane", default=None)
+    release_assurance.add_argument("--state", default=None)
+    release_assurance.add_argument("--passed-only", action="store_true")
+    release_assurance.add_argument("--text", default=None)
+    release_assurance.add_argument("--offset", default=0, type=int)
+    release_assurance.add_argument("--limit", default=50, type=int)
+    release_assurance.add_argument("--destination", default=None)
+    release_assurance.add_argument("--format", choices=("json", "markdown", "csv"), default="markdown")
+    release_assurance.add_argument("--event-type", default=None)
+    release_assurance.add_argument("--output", default=None)
+    release_assurance_verify = subparsers.add_parser(
+        "release-assurance-export-verify",
+        help="verify an exact-byte whole-product release-assurance export directory",
+    )
+    release_assurance_verify.add_argument("directory")
+    release_assurance_verify.add_argument("--output", default=None)
     public_surface_audit = subparsers.add_parser(
         "public-surface-audit",
         help="audit repository-wide service, bundle, schema, and closure projections",
@@ -20828,6 +20894,142 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if payload.get("accepted", False) else 2
         if args.command == "service-release-export-verify":
             verification = verify_service_release_export(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "release-assurance":
+            source = build_service_surface_snapshot()
+            snapshot = build_release_assurance_snapshot(
+                source, bundle_id=args.bundle_id, run_id=args.run_id
+            )
+            if args.plane == "snapshot":
+                payload = snapshot.to_dict()
+            elif args.plane == "query":
+                payload = query_release_assurance(
+                    snapshot,
+                    resource=args.resource,
+                    domain_id=args.domain_id,
+                    plane=args.assurance_plane,
+                    state=args.state,
+                    passed_only=args.passed_only,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            elif args.plane == "schema":
+                schema = release_assurance_schema()
+                payload = {"schema": schema, "audit": [item.to_dict() for item in validate_release_assurance_schema(snapshot, schema)]}
+            elif args.plane == "status":
+                payload = release_assurance_status(snapshot)
+            elif args.plane == "reconciliation":
+                report = reconcile_release_assurance(snapshot, source_snapshot=source)
+                payload = {"report": report.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_reconciliation(report, snapshot)]}
+            elif args.plane == "diff":
+                comparison = build_release_assurance_snapshot(
+                    source,
+                    bundle_id=args.compare_bundle_id or f"{args.bundle_id}-comparison",
+                    run_id=args.compare_run_id or f"{args.run_id}-comparison",
+                )
+                diff = build_release_assurance_diff(snapshot, comparison)
+                payload = {"diff": diff.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_diff(diff, snapshot, comparison)]}
+            elif args.plane == "catalog":
+                catalog = build_release_assurance_catalog(snapshot)
+                payload = {"catalog": catalog.to_dict(), "items": [item.to_dict() for item in query_release_assurance_catalog(catalog)]}
+            elif args.plane == "compliance":
+                report = audit_release_assurance_compliance(snapshot)
+                payload = {"report": report.to_dict(), "summary": compliance_summary(report)}
+            elif args.plane == "performance":
+                report = audit_release_assurance_performance(snapshot)
+                payload = {"report": report.to_dict(), "status": release_assurance_budget_status(report)}
+            elif args.plane == "operations":
+                operations = build_release_assurance_operations(snapshot)
+                payload = {"operations": operations.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_operations(operations, snapshot)]}
+            elif args.plane == "report":
+                runtime = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                if args.format == "markdown":
+                    _write_text(render_release_assurance_report_markdown(runtime).decode("utf-8"), args.output)
+                    return 0 if runtime.accepted else 2
+                if args.format == "csv":
+                    _write_text(export_release_assurance_report_csv(runtime).decode("utf-8"), args.output)
+                    return 0 if runtime.accepted else 2
+                else:
+                    payload = json.loads(export_release_assurance_report_json(runtime).decode("utf-8"))
+            elif args.plane == "checkpoint":
+                runtime = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                checkpoint = build_release_assurance_checkpoint(runtime)
+                payload = {"checkpoint": checkpoint.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_checkpoint(checkpoint, runtime)]}
+            elif args.plane == "review":
+                runtime = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                queue = build_release_assurance_review_queue(runtime)
+                payload = {"review": queue.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_review_queue(queue, runtime)]}
+            elif args.plane == "history":
+                runtime = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                history = build_release_assurance_history(runtime)
+                if args.format == "markdown":
+                    _write_text(export_release_assurance_history_markdown(history).decode("utf-8"), args.output)
+                    return 0 if history.accepted else 2
+                if args.format == "csv":
+                    _write_text(export_release_assurance_history_csv(history).decode("utf-8"), args.output)
+                    return 0 if history.accepted else 2
+                items = query_release_assurance_history(
+                    history,
+                    event_type=args.event_type,
+                    state=args.state,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                payload = {"history": history.to_dict(), "items": [item.to_dict() for item in items], "audit": [item.to_dict() for item in audit_release_assurance_history(history, runtime)]}
+            elif args.plane == "thresholds":
+                report = evaluate_release_assurance_thresholds(snapshot)
+                payload = {"report": report.to_dict(), "status": release_assurance_threshold_status(report)}
+            elif args.plane == "indexes":
+                indexes = build_release_assurance_indexes(snapshot)
+                payload = {"indexes": indexes.to_dict(), "audit": audit_release_assurance_indexes(snapshot, indexes).to_dict()}
+            elif args.plane == "summary":
+                summary = build_release_assurance_summary(snapshot)
+                payload = {"summary": summary.to_dict(), "audit": audit_release_assurance_summary(summary, snapshot).to_dict()}
+            elif args.plane == "observability":
+                payload = build_release_assurance_observability(snapshot).to_dict()
+            elif args.plane == "graph":
+                payload = build_release_assurance_graph(snapshot).to_dict()
+            elif args.plane == "failures":
+                payload = run_release_assurance_failure_injections(snapshot).to_dict()
+            elif args.plane == "plan":
+                plan = build_release_assurance_plan(snapshot)
+                payload = {"plan": plan.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_plan(plan)]}
+            elif args.plane == "views":
+                views = build_release_assurance_views(snapshot)
+                payload = {"views": views.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_views(views, snapshot)]}
+            elif args.plane == "runtime":
+                payload = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id).to_dict()
+            else:
+                runtime = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                packet = build_release_assurance_export(runtime)
+                if args.destination:
+                    write_release_assurance_export(packet, args.destination)
+                payload = packet.to_dict()
+            if "accepted" not in payload:
+                audit = payload.get("audit")
+                if isinstance(audit, dict):
+                    payload["accepted"] = bool(audit.get("accepted", False))
+                elif isinstance(audit, list):
+                    payload["accepted"] = all(bool(item.get("passed", False)) for item in audit if isinstance(item, dict))
+                elif isinstance(payload.get("report"), dict):
+                    payload["accepted"] = bool(payload["report"].get("accepted", False))
+                elif isinstance(payload.get("catalog"), dict):
+                    payload["accepted"] = bool(payload["catalog"].get("accepted", False))
+                elif isinstance(payload.get("diff"), dict):
+                    payload["accepted"] = bool(payload["diff"].get("accepted", False))
+                elif isinstance(payload.get("operations"), dict):
+                    payload["accepted"] = bool(payload["operations"].get("accepted", False))
+                elif isinstance(payload.get("status"), dict):
+                    payload["accepted"] = bool(payload["status"].get("accepted", False))
+                else:
+                    payload["accepted"] = True if args.plane == "status" else False
+            _write_json(payload, args.output)
+            return 0 if payload.get("accepted", False) else 2
+        if args.command == "release-assurance-export-verify":
+            verification = verify_release_assurance_export(args.directory)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
         if args.command == "public-surface-audit":

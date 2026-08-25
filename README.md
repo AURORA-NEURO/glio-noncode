@@ -191,6 +191,38 @@ See [docs/SERVICE_RELEASE_REGISTRY.md](docs/SERVICE_RELEASE_REGISTRY.md) for
 the full API, schema, query, export, reconciliation, negative-control, and
 replay contracts.
 
+The whole-product release-assurance gate joins the capability catalog,
+sixteen-domain architecture program, public service-release registry, and
+repository public-surface audit into one addressed readiness decision. It
+closes four domains, 20 evidence links, 28 checks, 48 observability events, 16
+metrics, 53 graph nodes, 20 plan steps, four reviewer views, eight negative
+controls, 12 replay stages, and 10 exact-byte export artifacts. It also offers
+independent reconciliation, address-only diffing, a ten-resource catalog,
+boundary compliance, structural budgets, an operator queue, and a reviewer
+report, portable checkpoint, and reviewer queue:
+
+```text
+glio-noncode release-assurance --plane snapshot --output release-assurance.json
+glio-noncode release-assurance --plane status --output release-status.json
+glio-noncode release-assurance --plane query --resource checks --passed-only
+glio-noncode release-assurance --plane runtime --output release-runtime.json
+glio-noncode release-assurance --plane export --destination release-assurance-export
+glio-noncode release-assurance-export-verify release-assurance-export
+```
+
+Append-only release history is available with
+`glio-noncode release-assurance --plane history --format markdown` and
+`GET /v1/release-assurance/history`.
+Explicit readiness thresholds are available with
+`glio-noncode release-assurance --plane thresholds` and
+`GET /v1/release-assurance/thresholds`.
+
+The matching read-only API starts at `GET /v1/release-assurance` and includes
+status, bounded queries, schema, indexes, summaries, observability, graph,
+negative controls, plan, views, runtime, and export routes. See
+[docs/RELEASE_ASSURANCE.md](docs/RELEASE_ASSURANCE.md) for denominators,
+replay semantics, the public boundary, and extension rules.
+
 See [docs/CAPABILITY_CERTIFICATION.md](docs/CAPABILITY_CERTIFICATION.md) for
 the row checks, global denominators, runtime stages, offline bundle contract,
 projection contract, and extension rules.

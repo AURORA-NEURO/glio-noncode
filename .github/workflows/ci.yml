@@ -1472,6 +1472,22 @@ jobs:
         run: python -m glio_noncode service-release --plane runtime --output /tmp/glio-service-release-runtime.json
       - name: Service release registry schema command
         run: python -m glio_noncode service-release --plane schema --output /tmp/glio-service-release-schema.json
+      - name: Whole-product release assurance focused tests
+        run: python -m unittest tests.test_release_assurance
+      - name: Whole-product release assurance runtime command
+        run: python -m glio_noncode release-assurance --plane runtime --output /tmp/glio-release-assurance-runtime.json
+      - name: Whole-product release assurance schema command
+        run: python -m glio_noncode release-assurance --plane schema --output /tmp/glio-release-assurance-schema.json
+      - name: Whole-product release assurance deep projections
+        run: python -m glio_noncode release-assurance --plane reconciliation --output /tmp/glio-release-assurance-reconciliation.json && python -m glio_noncode release-assurance --plane catalog --output /tmp/glio-release-assurance-catalog.json && python -m glio_noncode release-assurance --plane compliance --output /tmp/glio-release-assurance-compliance.json && python -m glio_noncode release-assurance --plane performance --output /tmp/glio-release-assurance-performance.json
+      - name: Whole-product release assurance checkpoint and review
+        run: python -m glio_noncode release-assurance --plane checkpoint --output /tmp/glio-release-assurance-checkpoint.json && python -m glio_noncode release-assurance --plane review --output /tmp/glio-release-assurance-review.json
+      - name: Whole-product release assurance history
+        run: python -m glio_noncode release-assurance --plane history --format csv --output /tmp/glio-release-assurance-history.csv
+      - name: Whole-product release assurance thresholds
+        run: python -m glio_noncode release-assurance --plane thresholds --output /tmp/glio-release-assurance-thresholds.json
+      - name: Whole-product release assurance export verification
+        run: python -m glio_noncode release-assurance --plane export --destination /tmp/glio-release-assurance-export --output /tmp/glio-release-assurance-export.json && python -m glio_noncode release-assurance-export-verify /tmp/glio-release-assurance-export --output /tmp/glio-release-assurance-export-verification.json
       - name: Persisted run catalog focused tests
         run: python -m unittest tests.test_run_catalog tests.test_runtime
       - name: Dossier query and lineage focused tests

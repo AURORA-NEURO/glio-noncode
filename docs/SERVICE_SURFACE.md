@@ -502,3 +502,33 @@ sources, normalized stages, operation partitions, denominator indexes, and the
 public-key inventory. The route remains read-only and research-scoped.
 The certification route adds seven named technical domains and a coverage
 receipt over the bundle audit without making a clinical or causal claim.
+## Whole-product release assurance
+
+The service also exposes a read-only aggregate gate at
+`/v1/release-assurance`. It composes the accepted capability, architecture,
+service-release, and repository public-boundary projections without returning
+their source records. The gate has four domains, 20 evidence links, 28 checks,
+12 runtime stages, 48 events, 16 metrics, 20 plan steps, four views, eight
+negative controls, and ten exact-byte export artifacts.
+
+```text
+GET /v1/release-assurance
+GET /v1/release-assurance/status
+GET /v1/release-assurance/query?resource=checks&passed_only=true
+GET /v1/release-assurance/schema
+GET /v1/release-assurance/indexes
+GET /v1/release-assurance/summary
+GET /v1/release-assurance/observability
+GET /v1/release-assurance/graph
+GET /v1/release-assurance/failures
+GET /v1/release-assurance/plan
+GET /v1/release-assurance/views
+GET /v1/release-assurance/runtime
+GET /v1/release-assurance/export
+```
+
+The CLI mirrors these projections with `release-assurance --plane snapshot`,
+`status`, `query`, `schema`, `indexes`, `summary`, `observability`, `graph`,
+`failures`, `plan`, `views`, `runtime`, and `export`. An export directory can
+be checked with `release-assurance-export-verify`. The full contract is in
+[RELEASE_ASSURANCE.md](RELEASE_ASSURANCE.md).
