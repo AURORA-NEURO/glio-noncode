@@ -11,6 +11,8 @@ report or runtime from which it was derived.
 | --- | --- | --- |
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
+| GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
+| GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/batches` | Paginated catalog of persisted batch evaluations |
 | GET | `/v1/batches/{batch_id}` | Reopen and verify one batch result |
 | GET | `/v1/batches/{batch_id}/release` | Build a gated portable batch handoff bundle |
@@ -55,6 +57,17 @@ The limit is bounded to 100 rows. Run identifiers are validated before they are
 used as filesystem paths. Missing runs return HTTP 404; an existing run can be
 accepted only when its input object, event chain, dossier address, and stored
 object links all verify.
+
+Cross-run search accepts `q` or its `text` alias, `resource` (`all`, `runs`,
+`hypotheses`, `evidence`, `experiments`, or `reviews`), `case_id`, `status`,
+`reviewer`, `review_state`, `state`, `tier`, `channel`, `min_support`,
+`max_uncertainty`, `assay`, `accepted_only`, `offset`, and `limit`. Search
+reopens and verifies every persisted run before emitting scientific records.
+Corrupt or incomplete runs contribute only a bounded blocked-run record for
+`all` or `runs`; they never contribute hypotheses, claims, experiments, or
+reviews. Results use deterministic token matching, ranking, pagination, and
+content addresses. `/v1/search/closure` disables pagination and returns the
+complete replay-gated projection for offline handoff.
 
 Batch catalog queries accept `text`, `offset`, and `limit`. Batch identifiers are
 derived from the canonical batch input address, so repeating an identical batch
@@ -124,6 +137,18 @@ line count, and byte content address.
 `batch-release-verify` reopens the directory, rejects unsafe or duplicate paths,
 detects byte and manifest-address tampering, and preserves blocked partial
 bundles as inspectable evidence.
+
+Search the persisted corpus across runs:
+
+```text
+glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
+glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
+```
+
+The search command is the offline equivalent of the two search endpoints. It
+keeps the public dossier boundary, records scanned and blocked run counts, and
+returns an explicit `accepted` flag so filtered results cannot conceal a
+corrupted persisted run.
 
 Inspect persisted case work:
 

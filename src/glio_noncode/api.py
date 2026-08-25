@@ -31,6 +31,7 @@ from .run_catalog import (
     get_run_events,
     inspect_run,
 )
+from .run_search import build_run_search_closure, search_persisted_runs
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -164,6 +165,46 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path == "/v1/search" or path == "/v1/search/closure":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                search_filters = {
+                    "query": self._query_value(query, "q") or self._query_value(query, "text"),
+                    "resource": self._query_value(query, "resource") or "all",
+                    "case_id": self._query_value(query, "case_id"),
+                    "status": self._query_value(query, "status"),
+                    "reviewer": self._query_value(query, "reviewer"),
+                    "review_state": self._query_value(query, "review_state"),
+                    "state": self._query_value(query, "state"),
+                    "tier": self._query_value(query, "tier"),
+                    "channel": self._query_value(query, "channel"),
+                    "min_support": self._query_float(query, "min_support"),
+                    "max_uncertainty": self._query_float(query, "max_uncertainty"),
+                    "assay": self._query_value(query, "assay"),
+                    "accepted_only": self._query_bool(query, "accepted_only"),
+                }
+                if path.endswith("/closure"):
+                    self._write(
+                        HTTPStatus.OK,
+                        build_run_search_closure(self._runtime(), **search_filters),
+                    )
+                    return
+                page = search_persisted_runs(
+                    self._runtime(),
+                    **search_filters,
+                    offset=self._query_int(query, "offset", 0),
+                    limit=self._query_int(query, "limit", 25),
+                )
+                self._write(HTTPStatus.OK, page.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "run not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/batches" or path.startswith("/v1/batches/"):
             try:

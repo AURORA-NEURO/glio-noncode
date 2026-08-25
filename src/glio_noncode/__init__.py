@@ -10177,6 +10177,16 @@ from .batch_release import (
     verify_batch_release_bundle,
     write_batch_release_bundle,
 )
+from .run_search import (
+    RUN_SEARCH_DEFAULT_LIMIT,
+    RUN_SEARCH_MAX_LIMIT,
+    RUN_SEARCH_RESOURCES,
+    RUN_SEARCH_VERSION,
+    RunSearchHit,
+    RunSearchPage,
+    build_run_search_closure,
+    search_persisted_runs,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10257,6 +10267,12 @@ __all__ += [
     "BatchReleaseBundle", "BatchReleaseCheck", "BatchReleaseVerification",
     "build_batch_release_bundle", "build_persisted_batch_release", "render_batch_markdown",
     "verify_batch_release_bundle", "write_batch_release_bundle",
+]
+
+__all__ += [
+    "RUN_SEARCH_DEFAULT_LIMIT", "RUN_SEARCH_MAX_LIMIT", "RUN_SEARCH_RESOURCES",
+    "RUN_SEARCH_VERSION", "RunSearchHit", "RunSearchPage", "build_run_search_closure",
+    "search_persisted_runs",
 ]
 
 __all__ += [

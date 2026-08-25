@@ -1255,6 +1255,12 @@ from .run_catalog import (
     build_run_catalog_page,
     inspect_run,
 )
+from .run_search import (
+    RUN_SEARCH_DEFAULT_LIMIT,
+    RUN_SEARCH_RESOURCES,
+    build_run_search_closure,
+    search_persisted_runs,
+)
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -2436,6 +2442,29 @@ def build_parser() -> argparse.ArgumentParser:
     )
     batch_release_verify.add_argument("input", type=str)
     batch_release_verify.add_argument("--output", default=None)
+
+    run_search = subparsers.add_parser(
+        "run-search",
+        help="search public projections across replay-verified persisted runs",
+    )
+    run_search.add_argument("--data-root", default=".glio")
+    run_search.add_argument("--query", "--text", dest="query", default=None)
+    run_search.add_argument("--resource", choices=RUN_SEARCH_RESOURCES, default="all")
+    run_search.add_argument("--case-id", default=None)
+    run_search.add_argument("--status", default=None)
+    run_search.add_argument("--reviewer", default=None)
+    run_search.add_argument("--review-state", default=None)
+    run_search.add_argument("--state", default=None)
+    run_search.add_argument("--tier", default=None)
+    run_search.add_argument("--channel", default=None)
+    run_search.add_argument("--min-support", default=None, type=float)
+    run_search.add_argument("--max-uncertainty", default=None, type=float)
+    run_search.add_argument("--assay", default=None)
+    run_search.add_argument("--accepted-only", action="store_true")
+    run_search.add_argument("--offset", default=0, type=int)
+    run_search.add_argument("--limit", default=RUN_SEARCH_DEFAULT_LIMIT, type=int)
+    run_search.add_argument("--closure", action="store_true")
+    run_search.add_argument("--output", default=None)
 
     fetch_public = subparsers.add_parser(
         "fetch-public", help="retrieve and emit live public reference data for a manifest"
@@ -18002,6 +18031,34 @@ def main(argv: list[str] | None = None) -> int:
             verification = verify_batch_release_bundle(args.input)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
+        if args.command == "run-search":
+            runtime = CaseRuntime(args.data_root)
+            filters = {
+                "query": args.query,
+                "resource": args.resource,
+                "case_id": args.case_id,
+                "status": args.status,
+                "reviewer": args.reviewer,
+                "review_state": args.review_state,
+                "state": args.state,
+                "tier": args.tier,
+                "channel": args.channel,
+                "min_support": args.min_support,
+                "max_uncertainty": args.max_uncertainty,
+                "assay": args.assay,
+                "accepted_only": args.accepted_only,
+            }
+            if args.closure:
+                payload = build_run_search_closure(runtime, **filters)
+            else:
+                payload = search_persisted_runs(
+                    runtime,
+                    **filters,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
         if args.command == "fetch-public":
             manifest = CaseManifest.from_dict(_read_json(args.manifest))
             retriever = PublicReferenceRetriever(

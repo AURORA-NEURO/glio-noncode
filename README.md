@@ -34,7 +34,7 @@ The same runtime can be served locally:
 glio-noncode serve --host 127.0.0.1 --port 8765
 ```
 
-Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate` or a manifest list to `POST http://127.0.0.1:8765/v1/evaluate-batch`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/batches`, `GET /v1/batches/{batch_id}`, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `GET /v1/review-operations`, `GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
+Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate` or a manifest list to `POST http://127.0.0.1:8765/v1/evaluate-batch`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, searched across runs, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/search`, `GET /v1/search/closure`, `GET /v1/batches`, `GET /v1/batches/{batch_id}`, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `GET /v1/review-operations`, `GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
 
 To enrich a manifest from bounded live public references, use:
 
@@ -63,6 +63,8 @@ To inspect locally persisted runs and their replay evidence:
 ```powershell
 glio-noncode run-catalog --data-root .glio
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
+glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
+glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
 glio-noncode run-query run-<run-id> evidence --state supported --data-root .glio --output supported-evidence.json
 glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json
@@ -90,6 +92,12 @@ case age and remaining time are explicit; and reviewer/queue workload rows show
 open, blocked, critical, overdue, and completed counts. Pass `--as-of` when
 producing a handoff so the same persisted inputs produce the same operational
 report.
+
+Cross-run search replays persisted runs before exposing their public dossier
+projections. It can find hypotheses, evidence claims, validation routes,
+reviews, and run summaries with deterministic ranking and filters. Corrupt runs
+remain visible as blocked operational evidence without leaking their scientific
+records; a complete search closure is suitable for offline handoff.
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
 
