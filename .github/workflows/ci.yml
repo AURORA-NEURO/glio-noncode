@@ -1436,5 +1436,7 @@ jobs:
         run: python -m unittest tests.test_run_search -v
       - name: Run portfolio focused tests
         run: python -m unittest tests.test_run_portfolio -v
+      - name: Storage audit focused tests
+        run: python -m unittest tests.test_storage_audit -v
       - name: Workspace history and release focused tests
         run: python -m unittest tests.test_workspace_history tests.test_workspace_release -v

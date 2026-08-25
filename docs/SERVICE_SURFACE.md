@@ -11,6 +11,7 @@ report or runtime from which it was derived.
 | --- | --- | --- |
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
+| GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
@@ -83,6 +84,12 @@ accepts `case_id`, `status`, `reviewer`, `due_state`, `release_state`, `q` or
 Rows distinguish a valid inspectable run from a release-ready run: a pending
 review can remain accepted as operational evidence while its release remains
 blocked. `/v1/portfolio/closure` returns every row and aggregate status counts.
+
+The storage audit is read-only and store-wide. It checks canonical UTF-8 JSON,
+filename content addresses, malformed object references, run and batch index
+structure, replay reopening, missing pointers, unexpected filesystem entries,
+and unreachable object files. It returns metadata and addresses only; it never
+returns object payloads or repairs/deletes anything.
 
 Batch catalog queries accept `text`, `offset`, and `limit`. Batch identifiers are
 derived from the canonical batch input address, so repeating an identical batch
@@ -191,6 +198,7 @@ glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses
 glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
 glio-noncode run-portfolio --data-root .glio --as-of 2026-09-01T12:00:00Z --output run-portfolio.json
 glio-noncode run-portfolio --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output run-portfolio-closure.json
+glio-noncode storage-audit --data-root .glio --output storage-audit.json
 ```
 
 The search command is the offline equivalent of the two search endpoints. It

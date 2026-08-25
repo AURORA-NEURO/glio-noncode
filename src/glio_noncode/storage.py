@@ -101,10 +101,18 @@ class RunStore:
             history.append(previous_address)
         if dossier_address not in history:
             history.append(dossier_address)
+        event_history_raw = previous.get("event_history", ())
+        event_history = list(event_history_raw) if isinstance(event_history_raw, (list, tuple)) else []
+        previous_event_address = str(previous.get("event_address", ""))
+        if previous_event_address and previous_event_address not in event_history:
+            event_history.append(previous_event_address)
+        if event_address not in event_history:
+            event_history.append(event_address)
         record = {
             "run_id": run_id,
             "input_address": input_address,
             "event_address": event_address,
+            "event_history": event_history,
             "dossier_address": dossier_address,
             "dossier_history": history,
         }

@@ -65,6 +65,7 @@ glio-noncode run-catalog --data-root .glio
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
 glio-noncode run-portfolio --data-root .glio --as-of 2026-09-01T12:00:00Z --output run-portfolio.json
 glio-noncode run-portfolio --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output run-portfolio-closure.json
+glio-noncode storage-audit --data-root .glio --output storage-audit.json
 glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
 glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
@@ -107,6 +108,11 @@ operator triage and offline handoff planning: a pending-review run remains
 inspectable, while its release is explicitly held until the human-review gate
 passes. The fixed `--as-of` timestamp makes due-state and portfolio addresses
 reproducible.
+
+`storage-audit` checks the complete local object store and run/batch indexes for
+canonical bytes, content-address drift, missing references, orphan objects,
+unexpected files, and replay failures. It is read-only and emits operational
+metadata rather than stored case payloads.
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
 

@@ -363,7 +363,7 @@ class BatchRuntime:
                         index=index,
                         case_id=manifest.case_id,
                         state="accepted",
-                        input_address=str(run_record["input_address"]),
+                        input_address=item_input_address,
                         run_id=dossier.run_id,
                         dossier_address=str(run_record["dossier_address"]),
                     )

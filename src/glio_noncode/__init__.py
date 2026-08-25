@@ -10229,6 +10229,14 @@ from .run_portfolio import (
     build_run_portfolio,
     build_run_portfolio_closure,
 )
+from .storage_audit import (
+    STORAGE_AUDIT_VERSION,
+    StorageAuditReport,
+    StorageBatchAudit,
+    StorageObjectAudit,
+    StorageRunAudit,
+    build_storage_audit,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10341,6 +10349,11 @@ __all__ += [
     "RUN_PORTFOLIO_DEFAULT_LIMIT", "RUN_PORTFOLIO_MAX_LIMIT", "RUN_PORTFOLIO_RELEASE_STATES",
     "RUN_PORTFOLIO_VERSION", "RunPortfolio", "RunPortfolioRow", "build_run_portfolio",
     "build_run_portfolio_closure",
+]
+
+__all__ += [
+    "STORAGE_AUDIT_VERSION", "StorageAuditReport", "StorageBatchAudit", "StorageObjectAudit",
+    "StorageRunAudit", "build_storage_audit",
 ]
 
 __all__ += [

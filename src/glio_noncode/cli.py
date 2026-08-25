@@ -1267,6 +1267,7 @@ from .run_portfolio import (
     build_run_portfolio,
     build_run_portfolio_closure,
 )
+from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -2543,6 +2544,13 @@ def build_parser() -> argparse.ArgumentParser:
     run_portfolio.add_argument("--limit", default=RUN_PORTFOLIO_DEFAULT_LIMIT, type=int)
     run_portfolio.add_argument("--closure", action="store_true")
     run_portfolio.add_argument("--output", default=None)
+
+    storage_audit = subparsers.add_parser(
+        "storage-audit",
+        help="audit local object bytes, index pointers, reachability, and replay integrity",
+    )
+    storage_audit.add_argument("--data-root", default=".glio")
+    storage_audit.add_argument("--output", default=None)
 
     run_inspect = subparsers.add_parser(
         "run-inspect",
@@ -18250,6 +18258,10 @@ def main(argv: list[str] | None = None) -> int:
                     offset=args.offset,
                     limit=args.limit,
                 ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
+        if args.command == "storage-audit":
+            payload = build_storage_audit(CaseRuntime(args.data_root)).to_dict()
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
         if args.command == "run-inspect":

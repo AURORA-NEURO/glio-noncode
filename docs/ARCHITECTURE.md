@@ -30,7 +30,7 @@ The context matcher scores genome build, disease class, age group, cell state, t
 
 ## Persistence
 
-JSON objects are written under SHA-256 addresses. The run index records the input, event-log, and dossier addresses. Optional live evaluation also stores public reference and atlas bundles, source receipts, and their warnings; generic public annotations remain reference-tier claims. Runtime events form a chain so replay can detect order changes or altered payloads. The storage layer is local and intentionally uncomplicated; a future database adapter must preserve immutable addresses and event semantics.
+JSON objects are written under SHA-256 addresses. The run index records the input, event-log, and dossier addresses plus append-only event and dossier histories. Optional live evaluation also stores public reference and atlas bundles, source receipts, and their warnings; generic public annotations remain reference-tier claims. Runtime events form a chain so replay can detect order changes or altered payloads. `storage-audit` checks canonical bytes, address drift, index pointers, replay state, missing references, and orphan objects without repairing the store. The storage layer is local and intentionally uncomplicated; a future database adapter must preserve immutable addresses, history semantics, and event ordering.
 
 ## API
 
