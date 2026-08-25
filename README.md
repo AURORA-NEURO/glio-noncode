@@ -290,6 +290,31 @@ glio-noncode workbench-release-frontier-pipeline --output workbench-release-runt
 glio-noncode workbench-release-frontier-review-csv --output workbench-release-review.csv
 ```
 
+The D15 workbench release also has a portable offline handoff. It materializes
+56 exact-byte artifacts: the public fixture, evaluation, all release assurance
+planes, 49 normalized runtime stages, four address-only indexes, a review CSV,
+and a data dictionary. The root manifest carries 26 closure checks and retains
+the D15 denominators of five HTTPS sources, 16 records, four positive paths,
+12 controls, four operation families, 80 evaluation checks, and 49 stages:
+
+```powershell
+glio-noncode workbench-release-offline-bundle --destination workbench-release-bundle --output workbench-release-bundle.json
+glio-noncode workbench-release-offline-bundle-verify workbench-release-bundle --output workbench-release-verification.json
+glio-noncode workbench-release-offline-bundle-query workbench-release-bundle --resource records --operation review_form
+glio-noncode workbench-release-offline-bundle-audit workbench-release-bundle --output workbench-release-audit.json
+glio-noncode workbench-release-offline-bundle-runtime --output workbench-release-runtime.json
+glio-noncode workbench-release-offline-bundle-indexes workbench-release-bundle --output workbench-release-indexes.json
+glio-noncode workbench-release-offline-bundle-boundary workbench-release-bundle --output workbench-release-boundary.json
+glio-noncode workbench-release-offline-bundle-reconciliation workbench-release-bundle --format markdown --output workbench-release-reconciliation.md
+glio-noncode workbench-release-offline-bundle-summary workbench-release-bundle --format markdown --output workbench-release-summary.md
+glio-noncode workbench-release-offline-bundle-certification workbench-release-bundle --format markdown --output workbench-release-certification.md
+```
+
+The offline boundary verifies canonical UTF-8 bytes, safe relative paths,
+exact artifact addresses, public keys, independent joins, deterministic replay,
+bounded resource queries, and no agent, model, or programming-language
+attribution fields.
+
 The D13 C01–C04 validation-design frontier provides an independent planning
 surface for evidence gaps, assay eligibility, MPRA packaging, and STARR-seq
 packaging. It uses five public source receipts, sixteen balanced aggregate

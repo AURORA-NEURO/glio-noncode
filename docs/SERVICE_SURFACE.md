@@ -31,6 +31,17 @@ report or runtime from which it was derived.
 | GET | `/v1/capability-certification/bundle/runtime` | Run bundle assembly and deterministic replay |
 | GET | `/v1/capability-certification/bundle/schema` | Return the closed certification bundle schema |
 | GET | `/v1/capability-certification/bundle/audit` | Reconcile all certification bundle artifacts and denominators |
+| GET | `/v1/workbench-release/bundle` | Build the public 56-artifact D15 workbench-release handoff |
+| GET | `/v1/workbench-release/bundle/query` | Query D15 artifacts, records, executions, checks, sources, stages, or indexes |
+| GET | `/v1/workbench-release/bundle/observability` | Return normalized D15 49-stage observability |
+| GET | `/v1/workbench-release/bundle/runtime` | Run D15 bundle assembly, audit, observability, and deterministic replay |
+| GET | `/v1/workbench-release/bundle/schema` | Return the closed D15 offline manifest schema |
+| GET | `/v1/workbench-release/bundle/audit` | Reconcile D15 fixture, runtime, release planes, and public projection |
+| GET | `/v1/workbench-release/bundle/indexes` | Return address-only D15 artifact, record, operation, and stage indexes |
+| GET | `/v1/workbench-release/bundle/boundary` | Audit D15 public keys and bundle boundary |
+| GET | `/v1/workbench-release/bundle/reconciliation` | Return independent D15 denominator and address reconciliation |
+| GET | `/v1/workbench-release/bundle/summary` | Return compact D15 operation and reviewer denominators |
+| GET | `/v1/workbench-release/bundle/certification` | Return D15 technical certification domains and evidence references |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
@@ -374,3 +385,24 @@ These endpoints expose the same 21-artifact handoff as the CLI, with bounded
 queries over artifacts, records, checks, sources, and events. The runtime and
 audit routes retain deterministic replay and independent cross-artifact
 reconciliation.
+
+The D15 workbench-release offline bundle surface is available at:
+
+- `GET /v1/workbench-release/bundle`
+- `GET /v1/workbench-release/bundle/query?resource=records&operation=review_form`
+- `GET /v1/workbench-release/bundle/observability`
+- `GET /v1/workbench-release/bundle/runtime`
+- `GET /v1/workbench-release/bundle/schema`
+- `GET /v1/workbench-release/bundle/audit`
+- `GET /v1/workbench-release/bundle/indexes`
+- `GET /v1/workbench-release/bundle/boundary`
+- `GET /v1/workbench-release/bundle/reconciliation`
+- `GET /v1/workbench-release/bundle/summary`
+- `GET /v1/workbench-release/bundle/certification`
+
+These routes expose the same 56-artifact handoff as the CLI. The query route
+supports bounded filters over artifacts, records, executions, evaluation checks,
+sources, normalized stages, operation partitions, denominator indexes, and the
+public-key inventory. The route remains read-only and research-scoped.
+The certification route adds seven named technical domains and a coverage
+receipt over the bundle audit without making a clinical or causal claim.

@@ -736,7 +736,9 @@ cycle-checked deprecation/supersession, audit reproducibility bundles, and
 HMAC-signed research dossiers with audience and expiry verification. Domain 15
 includes structured review forms, deterministic JSON/Markdown/CSV-oriented
 reports, global search and command matching, and accessibility/human-factors
-checks. Domain 16 includes deny-by-default privacy/security policy evaluation,
+checks. Its release handoff preserves 56 exact-byte artifacts, 49 runtime
+stages, 80 evaluation checks, independent denominator indexes, public-key
+auditing, and deterministic offline replay. Domain 16 includes deny-by-default privacy/security policy evaluation,
 offline deployment manifests, site-local federated coordination, and explicit
 release/rollback gates.
 
@@ -3916,11 +3918,11 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 18 named surfaces: service status, capabilities, program and operational
+audits 20 named surfaces: service status, capabilities, program and operational
 projections, both service closures, the service schema and snapshot, and the
 capability-certification, module-fabric, validation-design, and evidence-
-lifecycle bundle manifests and schemas. Each surface receives a deterministic
-content address and violation-path list.
+lifecycle and workbench-release bundle manifests and schemas. Each surface
+receives a deterministic content address and violation-path list.
 
 Runtime values are rejected when they contain attribution, language, or direct
 private-key fields. Input schema declarations may retain subject/sample field

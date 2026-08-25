@@ -68,6 +68,16 @@ from .evidence_lifecycle_frontier_offline_boundary import audit_evidence_lifecyc
 from .evidence_lifecycle_frontier_offline_indexes import audit_evidence_lifecycle_offline_indexes, build_evidence_lifecycle_offline_indexes
 from .evidence_lifecycle_frontier_offline_reconciliation import reconcile_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_summary import audit_evidence_lifecycle_offline_summary, build_evidence_lifecycle_offline_summary
+from .workbench_release_frontier_offline_audit import audit_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_boundary import audit_workbench_release_offline_boundary
+from .workbench_release_frontier_offline_bundle import build_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_indexes import audit_workbench_release_offline_indexes, build_workbench_release_offline_indexes
+from .workbench_release_frontier_offline_query import query_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_reconciliation import reconcile_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_runtime import build_workbench_release_offline_observability, run_workbench_release_offline_bundle_runtime
+from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
+from .workbench_release_frontier_offline_summary import audit_workbench_release_offline_summary, build_workbench_release_offline_summary
+from .workbench_release_frontier_offline_certification import audit_workbench_release_offline_certification, certify_workbench_release_offline_bundle
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -239,6 +249,72 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/workbench-release/bundle",
+            "/v1/workbench-release/bundle/query",
+            "/v1/workbench-release/bundle/schema",
+            "/v1/workbench-release/bundle/audit",
+            "/v1/workbench-release/bundle/observability",
+            "/v1/workbench-release/bundle/runtime",
+            "/v1/workbench-release/bundle/indexes",
+            "/v1/workbench-release/bundle/boundary",
+            "/v1/workbench-release/bundle/reconciliation",
+            "/v1/workbench-release/bundle/summary",
+            "/v1/workbench-release/bundle/certification",
+        }:
+            try:
+                if path.endswith("/schema"):
+                    self._write(HTTPStatus.OK, workbench_release_offline_bundle_schema())
+                    return
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle = build_workbench_release_offline_bundle(
+                    bundle_id=self._query_value(query, "bundle_id") or "workbench-release-public-bundle",
+                    run_id=self._query_value(query, "run_id") or "workbench-release-offline-runtime",
+                )
+                if path.endswith("/query"):
+                    payload = query_workbench_release_offline_bundle(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                        filters={
+                            "operation": self._query_value(query, "operation"),
+                            "role": self._query_value(query, "role"),
+                            "state": self._query_value(query, "state"),
+                            "capability": self._query_value(query, "capability"),
+                            "record_id": self._query_value(query, "record_id"),
+                            "text": self._query_value(query, "q") or self._query_value(query, "text"),
+                        },
+                    ).to_dict()
+                elif path.endswith("/audit"):
+                    payload = audit_workbench_release_offline_bundle(bundle).to_dict()
+                elif path.endswith("/observability"):
+                    payload = build_workbench_release_offline_observability(bundle).to_dict()
+                elif path.endswith("/runtime"):
+                    payload = run_workbench_release_offline_bundle_runtime(bundle_id=bundle.bundle_id, run_id=bundle.run_id).to_dict()
+                elif path.endswith("/indexes"):
+                    indexes = build_workbench_release_offline_indexes(bundle)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_workbench_release_offline_indexes(bundle, indexes).to_dict()}
+                elif path.endswith("/boundary"):
+                    payload = audit_workbench_release_offline_boundary(bundle).to_dict()
+                elif path.endswith("/reconciliation"):
+                    payload = reconcile_workbench_release_offline_bundle(bundle).to_dict()
+                elif path.endswith("/summary"):
+                    summary = build_workbench_release_offline_summary(bundle)
+                    payload = {"summary": summary.to_dict(), "audit": audit_workbench_release_offline_summary(summary).to_dict()}
+                elif path.endswith("/certification"):
+                    certification = certify_workbench_release_offline_bundle(bundle)
+                    payload = {"certification": certification.to_dict(), "audit": audit_workbench_release_offline_certification(bundle, certification).to_dict()}
+                else:
+                    payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
+                self._write(HTTPStatus.OK, payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

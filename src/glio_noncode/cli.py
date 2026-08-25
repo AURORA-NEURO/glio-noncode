@@ -887,6 +887,16 @@ from .evidence_lifecycle_frontier_offline_summary import (
     evidence_lifecycle_offline_summary_markdown,
     export_evidence_lifecycle_offline_summary_csv,
 )
+from .workbench_release_frontier_offline_audit import audit_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_boundary import audit_workbench_release_offline_directory, workbench_release_offline_key_inventory
+from .workbench_release_frontier_offline_bundle import build_workbench_release_offline_bundle, verify_workbench_release_offline_bundle, write_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_indexes import audit_workbench_release_offline_indexes, build_workbench_release_offline_indexes
+from .workbench_release_frontier_offline_query import diff_workbench_release_offline_bundles, export_workbench_release_offline_query_csv, load_workbench_release_offline_bundle, query_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_reconciliation import reconcile_workbench_release_offline_bundle, workbench_release_offline_reconciliation_markdown
+from .workbench_release_frontier_offline_runtime import build_workbench_release_offline_observability, run_workbench_release_offline_bundle_runtime
+from .workbench_release_frontier_offline_schema import validate_workbench_release_offline_manifest, workbench_release_offline_bundle_schema
+from .workbench_release_frontier_offline_summary import audit_workbench_release_offline_summary, build_workbench_release_offline_summary, export_workbench_release_offline_summary_csv, workbench_release_offline_summary_markdown
+from .workbench_release_frontier_offline_certification import audit_workbench_release_offline_certification, certify_workbench_release_offline_bundle, export_workbench_release_offline_certification_csv, workbench_release_offline_certification_markdown
 from .workspace_frontier_adapters import default_workspace_frontier_adapters
 from .workspace_frontier_artifacts import build_workspace_frontier_artifact_inventory
 from .workspace_frontier_bundle import assemble_workspace_frontier_bundle
@@ -7716,6 +7726,109 @@ def build_parser() -> argparse.ArgumentParser:
     evidence_lifecycle_offline_summary.add_argument("destination", type=str)
     evidence_lifecycle_offline_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
     evidence_lifecycle_offline_summary.add_argument("--output", default=None)
+
+    workbench_release_offline_bundle = subparsers.add_parser(
+        "workbench-release-offline-bundle",
+        help="materialize a verified public offline D15 workbench release bundle",
+    )
+    workbench_release_offline_bundle.add_argument("--destination", required=True)
+    workbench_release_offline_bundle.add_argument("--bundle-id", default="workbench-release-public-bundle")
+    workbench_release_offline_bundle.add_argument("--run-id", default="workbench-release-offline-runtime")
+    workbench_release_offline_bundle.add_argument("--include-payloads", action="store_true")
+    workbench_release_offline_bundle.add_argument("--output", default=None)
+    workbench_release_offline_verify = subparsers.add_parser(
+        "workbench-release-offline-bundle-verify",
+        help="verify exact bytes and public closure of a D15 offline bundle",
+    )
+    workbench_release_offline_verify.add_argument("destination", type=str)
+    workbench_release_offline_verify.add_argument("--output", default=None)
+    workbench_release_offline_query = subparsers.add_parser(
+        "workbench-release-offline-bundle-query",
+        help="query D15 offline artifacts, records, executions, checks, sources, stages, or indexes",
+    )
+    workbench_release_offline_query.add_argument("destination", type=str)
+    workbench_release_offline_query.add_argument("--resource", choices=("artifacts", "components", "records", "executions", "checks", "sources", "events", "stages", "operations", "denominators", "keys"), default="artifacts")
+    workbench_release_offline_query.add_argument("--operation", default=None)
+    workbench_release_offline_query.add_argument("--role", default=None)
+    workbench_release_offline_query.add_argument("--state", default=None)
+    workbench_release_offline_query.add_argument("--capability", default=None)
+    workbench_release_offline_query.add_argument("--record-id", default=None)
+    workbench_release_offline_query.add_argument("--text", default=None)
+    workbench_release_offline_query.add_argument("--offset", default=0, type=int)
+    workbench_release_offline_query.add_argument("--limit", default=50, type=int)
+    workbench_release_offline_query.add_argument("--format", choices=("json", "csv"), default="json")
+    workbench_release_offline_query.add_argument("--output", default=None)
+    workbench_release_offline_diff = subparsers.add_parser(
+        "workbench-release-offline-bundle-diff",
+        help="compare two D15 offline manifests by exact artifact addresses",
+    )
+    workbench_release_offline_diff.add_argument("left", type=str)
+    workbench_release_offline_diff.add_argument("right", type=str)
+    workbench_release_offline_diff.add_argument("--output", default=None)
+    workbench_release_offline_schema = subparsers.add_parser(
+        "workbench-release-offline-bundle-schema",
+        help="print the closed D15 offline bundle manifest schema",
+    )
+    workbench_release_offline_schema.add_argument("--output", default=None)
+    workbench_release_offline_validate = subparsers.add_parser(
+        "workbench-release-offline-bundle-validate",
+        help="validate a D15 offline bundle manifest JSON file",
+    )
+    workbench_release_offline_validate.add_argument("input", type=str)
+    workbench_release_offline_validate.add_argument("--output", default=None)
+    workbench_release_offline_audit = subparsers.add_parser(
+        "workbench-release-offline-bundle-audit",
+        help="reconcile all D15 offline bundle artifacts and denominators",
+    )
+    workbench_release_offline_audit.add_argument("destination", type=str)
+    workbench_release_offline_audit.add_argument("--output", default=None)
+    workbench_release_offline_observability = subparsers.add_parser(
+        "workbench-release-offline-bundle-observability",
+        help="emit normalized D15 offline bundle observability",
+    )
+    workbench_release_offline_observability.add_argument("destination", type=str)
+    workbench_release_offline_observability.add_argument("--output", default=None)
+    workbench_release_offline_runtime = subparsers.add_parser(
+        "workbench-release-offline-bundle-runtime",
+        help="run the staged D15 offline bundle runtime and replay gate",
+    )
+    workbench_release_offline_runtime.add_argument("--bundle-id", default="workbench-release-public-bundle")
+    workbench_release_offline_runtime.add_argument("--run-id", default="workbench-release-offline-runtime")
+    workbench_release_offline_runtime.add_argument("--output", default=None)
+    workbench_release_offline_indexes = subparsers.add_parser(
+        "workbench-release-offline-bundle-indexes",
+        help="build address-only D15 offline lookup indexes",
+    )
+    workbench_release_offline_indexes.add_argument("destination", type=str)
+    workbench_release_offline_indexes.add_argument("--output", default=None)
+    workbench_release_offline_boundary = subparsers.add_parser(
+        "workbench-release-offline-bundle-boundary",
+        help="audit D15 public keys and offline filesystem shape",
+    )
+    workbench_release_offline_boundary.add_argument("destination", type=str)
+    workbench_release_offline_boundary.add_argument("--key-inventory", action="store_true")
+    workbench_release_offline_boundary.add_argument("--output", default=None)
+    workbench_release_offline_reconciliation = subparsers.add_parser(
+        "workbench-release-offline-bundle-reconciliation",
+        help="independently reconcile D15 offline denominators and addresses",
+    )
+    workbench_release_offline_reconciliation.add_argument("destination", type=str)
+    workbench_release_offline_reconciliation.add_argument("--format", choices=("json", "markdown"), default="json")
+    workbench_release_offline_reconciliation.add_argument("--output", default=None)
+    workbench_release_offline_summary = subparsers.add_parser(
+        "workbench-release-offline-bundle-summary",
+        help="emit a compact D15 offline reviewer summary",
+    )
+    workbench_release_offline_summary.add_argument("destination", type=str)
+    workbench_release_offline_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    workbench_release_offline_summary.add_argument("--output", default=None)
+    workbench_release_offline_certification = subparsers.add_parser(
+        "workbench-release-offline-bundle-certification",
+        help="certify D15 offline bundle domains and release closure",
+    )
+    workbench_release_offline_certification.add_argument("destination", type=str)
+    workbench_release_offline_certification.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    workbench_release_offline_certification.add_argument("--output", default=None)
 
     lifecycle_beta_frontier_commands = (
         ("lifecycle-beta-frontier-data-audit", "audit public Domain 14 C05-C12 aggregate receipts"),
@@ -15764,6 +15877,102 @@ def main(argv: list[str] | None = None) -> int:
                 _write_text(evidence_lifecycle_offline_summary_markdown(summary), args.output)
             else:
                 _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "workbench-release-offline-bundle":
+            bundle = build_workbench_release_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            write_workbench_release_offline_bundle(bundle, args.destination)
+            _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "workbench-release-offline-bundle-verify":
+            verification = verify_workbench_release_offline_bundle(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "workbench-release-offline-bundle-query":
+            result = query_workbench_release_offline_bundle(
+                args.destination,
+                resource=args.resource,
+                offset=args.offset,
+                limit=args.limit,
+                filters={
+                    "operation": args.operation,
+                    "role": args.role,
+                    "state": args.state,
+                    "capability": args.capability,
+                    "record_id": args.record_id,
+                    "text": args.text,
+                },
+            )
+            if args.format == "csv":
+                _write_text(export_workbench_release_offline_query_csv(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "workbench-release-offline-bundle-diff":
+            result = diff_workbench_release_offline_bundles(args.left, args.right)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "workbench-release-offline-bundle-schema":
+            _write_json(workbench_release_offline_bundle_schema(), args.output)
+            return 0
+        if args.command == "workbench-release-offline-bundle-validate":
+            report = validate_workbench_release_offline_manifest(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-audit":
+            audit = audit_workbench_release_offline_bundle(load_workbench_release_offline_bundle(args.destination, include_payloads=True))
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "workbench-release-offline-bundle-observability":
+            report = build_workbench_release_offline_observability(load_workbench_release_offline_bundle(args.destination, include_payloads=True))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-runtime":
+            report = run_workbench_release_offline_bundle_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-indexes":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            indexes = build_workbench_release_offline_indexes(bundle)
+            audit = audit_workbench_release_offline_indexes(bundle, indexes)
+            _write_json({"indexes": indexes.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "workbench-release-offline-bundle-boundary":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            if args.key_inventory:
+                _write_json(workbench_release_offline_key_inventory(bundle), args.output)
+                return 0
+            report = audit_workbench_release_offline_directory(args.destination)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-reconciliation":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = reconcile_workbench_release_offline_bundle(bundle)
+            if args.format == "markdown":
+                _write_text(workbench_release_offline_reconciliation_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "workbench-release-offline-bundle-summary":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            summary = build_workbench_release_offline_summary(bundle)
+            audit = audit_workbench_release_offline_summary(summary)
+            if args.format == "csv":
+                _write_text(export_workbench_release_offline_summary_csv(summary), args.output)
+            elif args.format == "markdown":
+                _write_text(workbench_release_offline_summary_markdown(summary), args.output)
+            else:
+                _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "workbench-release-offline-bundle-certification":
+            bundle = load_workbench_release_offline_bundle(args.destination, include_payloads=True)
+            report = certify_workbench_release_offline_bundle(bundle)
+            audit = audit_workbench_release_offline_certification(bundle, report)
+            if args.format == "csv":
+                _write_text(export_workbench_release_offline_certification_csv(audit), args.output)
+            elif args.format == "markdown":
+                _write_text(workbench_release_offline_certification_markdown(audit), args.output)
+            else:
+                _write_json({"certification": report.to_dict(), "audit": audit.to_dict()}, args.output)
             return 0 if audit.accepted else 2
         if args.command == "evidence-lifecycle-release":
             fixture = _read_evidence_lifecycle_fixture(args.input)

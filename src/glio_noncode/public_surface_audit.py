@@ -29,9 +29,11 @@ from .validation_design_frontier_bundle_schema import validation_design_bundle_s
 from .validation_design_frontier_offline_bundle import build_validation_design_offline_bundle
 from .evidence_lifecycle_frontier_offline_bundle import build_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_schema import evidence_lifecycle_offline_bundle_schema
+from .workbench_release_frontier_offline_bundle import build_workbench_release_offline_bundle
+from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 18
+PUBLIC_SURFACE_EXPECTED_COUNT = 20
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -195,6 +197,7 @@ def default_public_surface_inventory(
     module_fabric_bundle: Any | None = None,
     validation_design_bundle: Any | None = None,
     evidence_lifecycle_bundle: Any | None = None,
+    workbench_release_bundle: Any | None = None,
 ) -> dict[str, Any]:
     """Build the stable inventory of service, bundle, schema, and closure views."""
 
@@ -203,6 +206,7 @@ def default_public_surface_inventory(
     module_value = module_fabric_bundle or build_module_fabric_bundle()
     validation_design_value = validation_design_bundle or build_validation_design_offline_bundle()
     evidence_lifecycle_value = evidence_lifecycle_bundle or build_evidence_lifecycle_offline_bundle()
+    workbench_release_value = workbench_release_bundle or build_workbench_release_offline_bundle()
     return {
         "capability-certification-bundle-manifest": capability_value.to_dict(include_payloads=False),
         "capability-certification-bundle-schema": capability_certification_bundle_schema(),
@@ -212,6 +216,8 @@ def default_public_surface_inventory(
         "validation-design-bundle-schema": validation_design_bundle_schema(),
         "evidence-lifecycle-bundle-manifest": evidence_lifecycle_value.to_dict(include_payloads=False),
         "evidence-lifecycle-bundle-schema": evidence_lifecycle_offline_bundle_schema(),
+        "workbench-release-bundle-manifest": workbench_release_value.to_dict(include_payloads=False),
+        "workbench-release-bundle-schema": workbench_release_offline_bundle_schema(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),
@@ -232,6 +238,7 @@ def build_default_public_surface_audit(
     module_fabric_bundle: Any | None = None,
     validation_design_bundle: Any | None = None,
     evidence_lifecycle_bundle: Any | None = None,
+    workbench_release_bundle: Any | None = None,
 ) -> PublicSurfaceAudit:
     """Execute and audit all default public service and handoff projections."""
 
@@ -242,6 +249,7 @@ def build_default_public_surface_audit(
             module_fabric_bundle=module_fabric_bundle,
             validation_design_bundle=validation_design_bundle,
             evidence_lifecycle_bundle=evidence_lifecycle_bundle,
+            workbench_release_bundle=workbench_release_bundle,
         )
     )
 
