@@ -13,7 +13,14 @@ from .data_sources import (
     SourcePayload,
 )
 from .errors import SourceError, ValidationError
+from .identity import variant_interval
 from .models import EvidenceClaim, EvidenceState, EvidenceTier, ReferenceContext, VariantIdentity
+from .reference_interval_index import ReferenceIndexQuery
+from .reference_track_adapters import (
+    ReferenceTrackAdapterRegistry,
+    ReferenceTrackQueryReport,
+    ReferenceTrackQueryState,
+)
 from .sequence_inference import MotifDefinition, SequenceAnalysisResult, SequenceInference
 from .serialization import content_hash, jsonable
 from .uncertainty import (
@@ -107,6 +114,7 @@ class AtlasBundle:
     content_address: str
     sequence_analysis: SequenceAnalysisResult | None = None
     uncertainty: UncertaintyReport | None = None
+    track_reports: tuple[ReferenceTrackQueryReport, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
@@ -164,6 +172,7 @@ class PublicAtlasRetriever:
         motifs: tuple[MotifDefinition, ...] = (),
         uncertainty_propagator: UncertaintyPropagator | None = None,
         domain_profile: DomainProfile | None = None,
+        track_adapters: ReferenceTrackAdapterRegistry | None = None,
     ) -> None:
         self.reference_retriever = reference_retriever or PublicReferenceRetriever()
         self.encode_client = encode_client
@@ -171,6 +180,7 @@ class PublicAtlasRetriever:
         self.motifs = motifs
         self.uncertainty_propagator = uncertainty_propagator or UncertaintyPropagator()
         self.domain_profile = domain_profile
+        self.track_adapters = track_adapters
 
     def retrieve(
         self,
@@ -193,6 +203,19 @@ class PublicAtlasRetriever:
         sequence_analysis: SequenceAnalysisResult | None = None
         observations.extend(self._sequence_observation(bundle, context))
         observations.extend(self._feature_observations(bundle, context))
+        track_reports: tuple[ReferenceTrackQueryReport, ...] = ()
+        if self.track_adapters is not None:
+            chromosome, start, end = variant_interval(variant)
+            track_query = ReferenceIndexQuery.from_mapping(
+                {
+                    "chromosome": chromosome,
+                    "start": start,
+                    "end": end,
+                    "context_key": context.key,
+                }
+            )
+            track_reports = self.track_adapters.query_all(track_query)
+            observations.extend(self._track_observations(track_reports, context))
         if bundle.sequence is not None:
             sequence_analysis = self.sequence_inference.analyze(
                 variant,
@@ -259,6 +282,7 @@ class PublicAtlasRetriever:
             "receipts": receipts,
             "warnings": warnings,
             "sequence_analysis": sequence_analysis,
+            "track_reports": track_reports,
         }
         base_address = content_hash(base_payload)
         provisional = AtlasBundle(
@@ -269,6 +293,7 @@ class PublicAtlasRetriever:
             warnings=tuple(dict.fromkeys(warnings)),
             content_address=base_address,
             sequence_analysis=sequence_analysis,
+            track_reports=track_reports,
         )
         uncertainty = None
         if self.uncertainty_propagator is not None:
@@ -290,7 +315,81 @@ class PublicAtlasRetriever:
             content_address=content_hash(payload),
             sequence_analysis=sequence_analysis,
             uncertainty=uncertainty,
+            track_reports=track_reports,
         )
+
+    @staticmethod
+    def _track_observations(
+        reports: tuple[ReferenceTrackQueryReport, ...],
+        context: ReferenceContext,
+    ) -> list[AtlasObservation]:
+        observations: list[AtlasObservation] = []
+        state_map = {
+            ReferenceTrackQueryState.SUPPORTED: EvidenceState.SUPPORTED,
+            ReferenceTrackQueryState.TRUNCATED: EvidenceState.SUPPORTED,
+            ReferenceTrackQueryState.ABSENT: EvidenceState.ABSENT,
+            ReferenceTrackQueryState.OUT_OF_DOMAIN: EvidenceState.OUT_OF_DOMAIN,
+            ReferenceTrackQueryState.ABSTAINED: EvidenceState.ABSTAINED,
+            ReferenceTrackQueryState.INVALID: EvidenceState.ABSTAINED,
+        }
+        for report in reports:
+            state = state_map[report.state]
+            score = max(
+                (reading.context_score for reading in report.matches),
+                default=None,
+            )
+            if report.state is ReferenceTrackQueryState.SUPPORTED:
+                summary = (
+                    f"{report.metadata.display_name} returned {len(report.matches)} "
+                    "context-compatible reference reading(s)."
+                )
+            elif report.state is ReferenceTrackQueryState.ABSENT:
+                summary = (
+                    f"{report.metadata.display_name} returned no overlapping reading "
+                    "for the declared interval and context."
+                )
+            elif report.state is ReferenceTrackQueryState.OUT_OF_DOMAIN:
+                summary = (
+                    f"{report.metadata.display_name} had no reading in the declared "
+                    "context domain."
+                )
+            else:
+                summary = (
+                    f"{report.metadata.display_name} did not produce a usable "
+                    f"reference reading ({report.state.value})."
+                )
+            observations.append(
+                AtlasObservation(
+                    observation_id=f"track:{report.adapter_id}:{report.content_address}",
+                    source_id=report.metadata.source_id,
+                    feature_type=f"reference_track:{report.metadata.track_type}",
+                    state=state,
+                    tier=EvidenceTier.REFERENCE,
+                    summary=summary,
+                    payload={
+                        "adapter_id": report.adapter_id,
+                        "metadata": report.metadata.to_dict(),
+                        "report": report.to_dict(),
+                        "interpretation_boundary": (
+                            "declared reference-track reading; not a disease-specific "
+                            "activity or causal measurement"
+                        ),
+                    },
+                    context_key=context.key,
+                    context_score=score,
+                    receipt=None,
+                    limitations=tuple(
+                        dict.fromkeys(
+                            (
+                                *report.metadata.limitations,
+                                *report.warnings,
+                                "license and access mode are recorded in the source metadata",
+                            )
+                        )
+                    ),
+                )
+            )
+        return observations
 
     @staticmethod
     def _domain_features(analysis: SequenceAnalysisResult | None) -> dict[str, float]:

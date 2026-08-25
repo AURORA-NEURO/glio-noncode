@@ -11769,6 +11769,56 @@ __all__ += [
     "reference_interval_index_schema",
 ]
 
+from .reference_track_adapters import (
+    DeclaredReferenceTrackAdapter,
+    REFERENCE_TRACK_ADAPTER_MAX_ADAPTERS,
+    REFERENCE_TRACK_ADAPTER_MAX_PROBES,
+    REFERENCE_TRACK_ADAPTER_MAX_QUERY_LIMIT,
+    REFERENCE_TRACK_ADAPTER_MAX_RECORDS,
+    REFERENCE_TRACK_ADAPTER_ROW_SCHEMA_VERSION,
+    REFERENCE_TRACK_ADAPTER_SCHEMA_VERSION,
+    REFERENCE_TRACK_ADAPTER_VERSION,
+    ReferenceTrackAdapterBuildReport,
+    ReferenceTrackAdapterRegistry,
+    ReferenceTrackAdapterState,
+    ReferenceTrackConformanceCategory,
+    ReferenceTrackConformanceCheck,
+    ReferenceTrackConformanceReport,
+    ReferenceTrackMetadata,
+    ReferenceTrackProbe,
+    ReferenceTrackQueryReport,
+    ReferenceTrackQueryState,
+    ReferenceTrackReading,
+    conform_reference_track_adapter,
+    reference_track_adapter_capabilities,
+    reference_track_adapter_schema,
+)
+
+__all__ += [
+    "DeclaredReferenceTrackAdapter",
+    "REFERENCE_TRACK_ADAPTER_MAX_ADAPTERS",
+    "REFERENCE_TRACK_ADAPTER_MAX_PROBES",
+    "REFERENCE_TRACK_ADAPTER_MAX_QUERY_LIMIT",
+    "REFERENCE_TRACK_ADAPTER_MAX_RECORDS",
+    "REFERENCE_TRACK_ADAPTER_ROW_SCHEMA_VERSION",
+    "REFERENCE_TRACK_ADAPTER_SCHEMA_VERSION",
+    "REFERENCE_TRACK_ADAPTER_VERSION",
+    "ReferenceTrackAdapterBuildReport",
+    "ReferenceTrackAdapterRegistry",
+    "ReferenceTrackAdapterState",
+    "ReferenceTrackConformanceCategory",
+    "ReferenceTrackConformanceCheck",
+    "ReferenceTrackConformanceReport",
+    "ReferenceTrackMetadata",
+    "ReferenceTrackProbe",
+    "ReferenceTrackQueryReport",
+    "ReferenceTrackQueryState",
+    "ReferenceTrackReading",
+    "conform_reference_track_adapter",
+    "reference_track_adapter_capabilities",
+    "reference_track_adapter_schema",
+]
+
 from .module_fabric_catalog import FabricContractCatalog, FabricDomainContract, default_module_fabric_catalog, validate_module_fabric_catalog
 from .module_fabric_bundle import MODULE_FABRIC_BUNDLE_BOUNDARY, bundle_artifact_bytes, bundle_artifact_csv, bundle_manifest_text, build_module_fabric_bundle, module_fabric_bundle_filesystem_integrity_ok, verify_module_fabric_bundle, write_module_fabric_bundle
 from .module_fabric_bundle_audit import MODULE_FABRIC_BUNDLE_AUDIT_VERSION, FabricBundleAuditCheck, FabricBundleAuditPlane, ModuleFabricBundleAudit, audit_module_fabric_bundle

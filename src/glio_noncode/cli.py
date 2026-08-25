@@ -1594,6 +1594,14 @@ from .reference_interval_index import (
     reference_interval_index_capabilities,
     reference_interval_index_schema,
 )
+from .reference_track_adapters import (
+    DeclaredReferenceTrackAdapter,
+    ReferenceTrackMetadata,
+    ReferenceTrackProbe,
+    conform_reference_track_adapter,
+    reference_track_adapter_capabilities,
+    reference_track_adapter_schema,
+)
 from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder, RegulatoryAtlasBundleFormat
 from .regulatory_atlas_contracts import default_regulatory_atlas_contracts
 from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
@@ -3560,6 +3568,52 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit operational capabilities for reference interval indexes",
     )
     reference_index_capabilities_parser.add_argument("--output", default=None)
+    reference_adapter = subparsers.add_parser(
+        "build-reference-adapter",
+        help="build a declared-license reference-track adapter from public rows",
+    )
+    reference_adapter.add_argument("input", type=str)
+    reference_adapter.add_argument("--metadata", required=True)
+    reference_adapter.add_argument("--index-id", default=None)
+    reference_adapter.add_argument("--block-size", default=256, type=int)
+    reference_adapter.add_argument("--output", default=None)
+    reference_adapter_query = subparsers.add_parser(
+        "query-reference-adapter",
+        help="query a declared reference-track adapter by interval and context",
+    )
+    reference_adapter_query.add_argument("input", type=str)
+    reference_adapter_query.add_argument("--chromosome", required=True)
+    reference_adapter_query.add_argument("--start", required=True, type=int)
+    reference_adapter_query.add_argument("--end", required=True, type=int)
+    reference_adapter_query.add_argument("--context-key", required=True)
+    reference_adapter_query.add_argument(
+        "--mode",
+        choices=tuple(item.value for item in ContextQueryMode),
+        default=ContextQueryMode.LATTICE.value,
+    )
+    reference_adapter_query.add_argument("--track-type", action="append", default=None)
+    reference_adapter_query.add_argument("--source-id", action="append", default=None)
+    reference_adapter_query.add_argument("--state", action="append", default=None)
+    reference_adapter_query.add_argument("--offset", default=0, type=int)
+    reference_adapter_query.add_argument("--limit", default=100, type=int)
+    reference_adapter_query.add_argument("--output", default=None)
+    reference_adapter_conformance = subparsers.add_parser(
+        "reference-adapter-conformance",
+        help="run deterministic conformance probes for a declared reference adapter",
+    )
+    reference_adapter_conformance.add_argument("input", type=str)
+    reference_adapter_conformance.add_argument("--probes", default=None)
+    reference_adapter_conformance.add_argument("--output", default=None)
+    reference_adapter_schema_parser = subparsers.add_parser(
+        "reference-adapter-schema",
+        help="emit the declared reference-track adapter schema",
+    )
+    reference_adapter_schema_parser.add_argument("--output", default=None)
+    reference_adapter_capabilities_parser = subparsers.add_parser(
+        "reference-adapter-capabilities",
+        help="emit operational capabilities for declared reference adapters",
+    )
+    reference_adapter_capabilities_parser.add_argument("--output", default=None)
     adapter_conformance = subparsers.add_parser(
         "adapter-conformance",
         help="run deterministic conformance checks for a portable static adapter input",
@@ -13852,6 +13906,63 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "reference-index-capabilities":
             _write_json(reference_interval_index_capabilities(), args.output)
+            return 0
+        if args.command == "build-reference-adapter":
+            metadata = ReferenceTrackMetadata.from_dict(_read_json(args.metadata))
+            report = DeclaredReferenceTrackAdapter.from_rows(
+                metadata,
+                load_reference_rows(args.input),
+                index_id=args.index_id,
+                block_size=args.block_size,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "query-reference-adapter":
+            adapter_payload = _read_json(args.input)
+            adapter = DeclaredReferenceTrackAdapter.from_dict(
+                adapter_payload.get("adapter", adapter_payload)
+            )
+            query = ReferenceIndexQuery.from_mapping(
+                {
+                    "chromosome": args.chromosome,
+                    "start": args.start,
+                    "end": args.end,
+                    "context_key": args.context_key,
+                    "mode": args.mode,
+                    "track_types": args.track_type or (),
+                    "source_ids": args.source_id or (),
+                    "states": args.state or (),
+                    "offset": args.offset,
+                    "limit": args.limit,
+                }
+            )
+            report = adapter.query(query)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-adapter-conformance":
+            adapter_payload = _read_json(args.input)
+            adapter = DeclaredReferenceTrackAdapter.from_dict(
+                adapter_payload.get("adapter", adapter_payload)
+            )
+            raw_probes = []
+            if args.probes:
+                probe_payload = _read_json(args.probes)
+                raw_probes = (
+                    probe_payload.get("probes", ())
+                    if isinstance(probe_payload, Mapping)
+                    else probe_payload
+                )
+            if not isinstance(raw_probes, list):
+                raise ValueError("reference adapter probes must be a list")
+            probes = tuple(ReferenceTrackProbe.from_mapping(item) for item in raw_probes)
+            report = conform_reference_track_adapter(adapter, probes)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "reference-adapter-schema":
+            _write_json(reference_track_adapter_schema(), args.output)
+            return 0
+        if args.command == "reference-adapter-capabilities":
+            _write_json(reference_track_adapter_capabilities(), args.output)
             return 0
         if args.command == "adapter-conformance":
             adapter, manifest, probes = adapter_conformance_input_from_dict(_read_json(args.input))

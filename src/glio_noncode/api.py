@@ -75,6 +75,14 @@ from .reference_interval_index import (
     reference_interval_index_capabilities,
     reference_interval_index_schema,
 )
+from .reference_track_adapters import (
+    DeclaredReferenceTrackAdapter,
+    ReferenceTrackMetadata,
+    ReferenceTrackProbe,
+    conform_reference_track_adapter,
+    reference_track_adapter_capabilities,
+    reference_track_adapter_schema,
+)
 from .variant_stream import (
     STREAMING_DEFAULT_MAX_INPUT_BYTES,
     StreamingInputFormat,
@@ -559,6 +567,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/reference/index/capabilities":
             self._write(HTTPStatus.OK, reference_interval_index_capabilities())
+            return
+        if path == "/v1/reference/adapters/schema":
+            self._write(HTTPStatus.OK, reference_track_adapter_schema())
+            return
+        if path == "/v1/reference/adapters/capabilities":
+            self._write(HTTPStatus.OK, reference_track_adapter_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
@@ -2286,6 +2300,65 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_index", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/reference/adapters/build":
+            try:
+                payload = self._read_json()
+                metadata_raw = payload.get("metadata")
+                rows = payload.get("records", payload.get("rows", ()))
+                if not isinstance(metadata_raw, Mapping):
+                    raise ValueError("reference adapter build requires metadata")
+                if not isinstance(rows, list):
+                    raise ValueError("reference adapter build requires a records list")
+                metadata = ReferenceTrackMetadata.from_dict(metadata_raw)
+                report = DeclaredReferenceTrackAdapter.from_rows(
+                    metadata,
+                    rows,
+                    index_id=str(payload.get("index_id", metadata.adapter_id)),
+                    block_size=int(payload.get("block_size", 256)),
+                )
+                self._write(
+                    HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    report.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_adapter", "message": str(exc)})
+            return
+        if path == "/v1/reference/adapters/query":
+            try:
+                payload = self._read_json()
+                adapter_raw = payload.get("adapter")
+                query_raw = payload.get("query", payload)
+                if not isinstance(adapter_raw, Mapping) or not isinstance(query_raw, Mapping):
+                    raise ValueError("reference adapter query requires adapter and query objects")
+                adapter = DeclaredReferenceTrackAdapter.from_dict(adapter_raw)
+                report = adapter.query(query_raw)
+                self._write(HTTPStatus.OK, report.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_adapter_query", "message": str(exc)})
+            return
+        if path == "/v1/reference/adapters/conformance":
+            try:
+                payload = self._read_json()
+                adapter_raw = payload.get("adapter")
+                probes_raw = payload.get("probes", ())
+                if not isinstance(adapter_raw, Mapping) or not isinstance(probes_raw, list):
+                    raise ValueError("reference adapter conformance requires adapter and probes")
+                adapter = DeclaredReferenceTrackAdapter.from_dict(adapter_raw)
+                probes = tuple(ReferenceTrackProbe.from_mapping(item) for item in probes_raw)
+                report = conform_reference_track_adapter(adapter, probes)
+                self._write(
+                    HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    report.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_conformance", "message": str(exc)})
             return
         if path == "/v1/reference/index/query":
             try:

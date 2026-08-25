@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 35-surface audit, including the
+schema fields. The result is a deterministic 37-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema, and
 versioned reference manifest/schema, suitable for local release checks and CI.
 
@@ -756,6 +756,10 @@ block-pruned overlap queries and exact or assembly-safe context-lattice matching
     glio-noncode query-reference-index reference-index.json --chromosome 7 --start 5500000 --end 5600000 --context-key GRCh38|glioma|adult|tumor|brain|baseline --mode lattice --output reference-query.json
 
 See [reference interval index operations](docs/REFERENCE_INTERVAL_INDEX.md).
+
+Declared reference-track adapters bind each indexed reading to a source
+license, access mode, coordinate system, supported context, limitations, and
+deterministic conformance receipt. See [reference track adapter operations](docs/REFERENCE_TRACK_ADAPTERS.md).
 
 The D16 coordination architecture now composes all 16 platform-control
 capabilities into one functional public-aggregate runtime. It contains 16
