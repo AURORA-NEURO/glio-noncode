@@ -11,6 +11,11 @@ from typing import Any
 
 from .api import create_server
 from .batch_runtime import BatchRuntime
+from .batch_release import (
+    build_persisted_batch_release,
+    verify_batch_release_bundle,
+    write_batch_release_bundle,
+)
 from .serialization import jsonable
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .atlas_alpha import (
@@ -2416,6 +2421,21 @@ def build_parser() -> argparse.ArgumentParser:
     batch_catalog.add_argument("--limit", default=25, type=int)
     batch_catalog.add_argument("--text", default=None)
     batch_catalog.add_argument("--output", default=None)
+
+    batch_release = subparsers.add_parser(
+        "batch-release",
+        help="build a gated portable release bundle for one persisted batch",
+    )
+    batch_release.add_argument("batch_id", type=str)
+    batch_release.add_argument("--data-root", default=".glio")
+    batch_release.add_argument("--output", required=True)
+
+    batch_release_verify = subparsers.add_parser(
+        "batch-release-verify",
+        help="verify a previously written batch release bundle",
+    )
+    batch_release_verify.add_argument("input", type=str)
+    batch_release_verify.add_argument("--output", default=None)
 
     fetch_public = subparsers.add_parser(
         "fetch-public", help="retrieve and emit live public reference data for a manifest"
@@ -17973,6 +17993,15 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(page.to_dict(), args.output)
             return 0 if page.accepted else 2
+        if args.command == "batch-release":
+            bundle = build_persisted_batch_release(BatchRuntime(args.data_root).runtime, args.batch_id)
+            write_batch_release_bundle(bundle, args.output)
+            print(f"batch release written to {args.output}")
+            return 0 if bundle.accepted else 2
+        if args.command == "batch-release-verify":
+            verification = verify_batch_release_bundle(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "fetch-public":
             manifest = CaseManifest.from_dict(_read_json(args.manifest))
             retriever = PublicReferenceRetriever(

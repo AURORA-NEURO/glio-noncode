@@ -43,6 +43,8 @@ glio-noncode fetch-public examples/case-small.json --window-bp 2000 --output pub
 glio-noncode evaluate examples/case-small.json --live-reference --window-bp 2000 --output live-dossier.json
 glio-noncode evaluate-batch examples/case-small.json --data-root .glio --output batch-result.json
 glio-noncode batch-catalog --data-root .glio --output batch-catalog.json
+glio-noncode batch-release batch-<content-digest> --data-root .glio --output batch-release
+glio-noncode batch-release-verify batch-release --output batch-release-verification.json
 ```
 
 Batch evaluation isolates each manifest. Successful items retain their normal
@@ -50,6 +52,11 @@ persisted run and dossier addresses; failed items retain their position, input
 address, and explicit error category. The batch remains rejected when any item
 fails, and identical canonical input reopens the existing content-addressed
 batch result.
+
+Batch handoffs can be copied offline. They include a private-key-filtered input
+projection and result object, summary and gate evidence, item/failure/run CSVs,
+and Markdown, with byte-level artifact verification and a blocked state for
+partial batches.
 
 To inspect locally persisted runs and their replay evidence:
 

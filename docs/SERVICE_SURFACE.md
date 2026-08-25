@@ -13,6 +13,7 @@ report or runtime from which it was derived.
 | GET | `/v1/schema` | Existing case contract summary |
 | GET | `/v1/batches` | Paginated catalog of persisted batch evaluations |
 | GET | `/v1/batches/{batch_id}` | Reopen and verify one batch result |
+| GET | `/v1/batches/{batch_id}/release` | Build a gated portable batch handoff bundle |
 | GET | `/v1/status` | Compact capability, program, operational, and boundary status |
 | GET | `/v1/capabilities` | Certified capability query |
 | GET | `/v1/architecture/program` | Architecture receipt query |
@@ -111,7 +112,18 @@ Evaluate and reopen a durable batch:
 glio-noncode evaluate-batch batch.json --data-root .glio --output batch-result.json
 glio-noncode batch-inspect batch-<content-digest> --data-root .glio --output batch-inspection.json
 glio-noncode batch-catalog --data-root .glio --output batch-catalog.json
+glio-noncode batch-release batch-<content-digest> --data-root .glio --output batch-release
+glio-noncode batch-release-verify batch-release --output batch-release-verification.json
 ```
+
+Batch releases contain `release.json`, a private-key-filtered batch input
+projection plus result JSON, summary and gate JSON, item/failure/run CSV
+projections, and a Markdown report. The original input remains bound by its
+content address in the gate evidence. Every artifact carries its byte count,
+line count, and byte content address.
+`batch-release-verify` reopens the directory, rejects unsafe or duplicate paths,
+detects byte and manifest-address tampering, and preserves blocked partial
+bundles as inspectable evidence.
 
 Inspect persisted case work:
 

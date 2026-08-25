@@ -10164,6 +10164,19 @@ from .batch_runtime import (
     BatchResult,
     BatchRuntime,
 )
+from .batch_release import (
+    BATCH_RELEASE_MANIFEST,
+    BATCH_RELEASE_VERSION,
+    BatchReleaseArtifact,
+    BatchReleaseBundle,
+    BatchReleaseCheck,
+    BatchReleaseVerification,
+    build_batch_release_bundle,
+    build_persisted_batch_release,
+    render_batch_markdown,
+    verify_batch_release_bundle,
+    write_batch_release_bundle,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10237,6 +10250,13 @@ __all__ += [
     "BATCH_CATALOG_DEFAULT_LIMIT", "BATCH_CATALOG_MAX_LIMIT", "BATCH_DEFAULT_MAX_ITEMS",
     "BATCH_HARD_MAX_ITEMS", "BATCH_ITEM_STATES", "BATCH_RUNTIME_VERSION", "BatchCatalogPage",
     "BatchCatalogRow", "BatchItemResult", "BatchResult", "BatchRuntime",
+]
+
+__all__ += [
+    "BATCH_RELEASE_MANIFEST", "BATCH_RELEASE_VERSION", "BatchReleaseArtifact",
+    "BatchReleaseBundle", "BatchReleaseCheck", "BatchReleaseVerification",
+    "build_batch_release_bundle", "build_persisted_batch_release", "render_batch_markdown",
+    "verify_batch_release_bundle", "write_batch_release_bundle",
 ]
 
 __all__ += [

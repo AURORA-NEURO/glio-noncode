@@ -1430,3 +1430,5 @@ jobs:
         run: python -m unittest tests.test_review_operations -v
       - name: Batch runtime focused tests
         run: python -m unittest tests.test_batch_runtime -v
+      - name: Batch release focused tests
+        run: python -m unittest tests.test_batch_release -v

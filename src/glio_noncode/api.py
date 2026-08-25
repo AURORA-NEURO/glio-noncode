@@ -10,6 +10,7 @@ from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from .batch_runtime import BatchRuntime
+from .batch_release import build_persisted_batch_release
 from .comparison_release import build_persisted_comparison_release
 from .dossier_query import (
     DOSSIER_QUERY_DEFAULT_LIMIT,
@@ -177,6 +178,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write(HTTPStatus.OK, page.to_dict())
                     return
                 segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) == 4 and segments[0:2] == ["v1", "batches"] and segments[3] == "release":
+                    self._write(
+                        HTTPStatus.OK,
+                        build_persisted_batch_release(batch_runtime.runtime, segments[2]).to_dict(),
+                    )
+                    return
                 if len(segments) != 3 or segments[0:2] != ["v1", "batches"]:
                     self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "path": path})
                     return
