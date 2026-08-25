@@ -31,6 +31,7 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/workspace/closure` | Return the complete content-addressed run workspace closure |
 | GET | `/v1/runs/{run_id}/workspace/history` | Rebuild every verified dossier snapshot as a workspace timeline |
 | GET | `/v1/runs/{run_id}/workspace/compare` | Compare two historical workspace snapshots by public record identity |
+| GET | `/v1/runs/{run_id}/workspace/release` | Build a gated portable workspace handoff bundle |
 | GET | `/v1/runs/{run_id}/history` | List content-addressed dossier snapshots for one run |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}` | Compare current or selected snapshots from two runs |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}/release` | Build a gated portable comparison handoff bundle |
@@ -131,6 +132,13 @@ requires `source_snapshot` and `target_snapshot` and accepts the same limit.
 History fails closed when any indexed dossier snapshot or its run replay is
 invalid, while retaining blocked snapshot warnings for inspection.
 
+Workspace releases package the replay-gated history into eight portable public
+artifacts: current and historical JSON projections, a summary, snapshot/record/
+transition CSVs, gate evidence, and a Markdown report. `release.json` addresses
+the exact artifact bytes and the verifier rejects missing, extra, unsafe,
+duplicate, tampered, non-UTF-8, and public-boundary-violating files. A blocked
+history can be exported for inspection, but its release remains unaccepted.
+
 ## CLI and offline closure
 
 Run the compact status projection:
@@ -186,6 +194,8 @@ glio-noncode run-workspace run-<run-id> --data-root .glio --record-type evidence
 glio-noncode run-workspace run-<run-id> --data-root .glio --variant-id variant-1 --closure --output run-workspace-closure.json
 glio-noncode run-workspace-history run-<run-id> --data-root .glio --output run-workspace-history.json
 glio-noncode run-workspace-compare run-<run-id> 0 1 --data-root .glio --output workspace-transition.json
+glio-noncode run-workspace-release run-<run-id> --data-root .glio --output workspace-release
+glio-noncode run-workspace-release-verify workspace-release --output workspace-release-verification.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
 glio-noncode run-query run-<run-id> summary --data-root .glio --output run-summary.json
 glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json

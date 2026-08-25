@@ -10206,6 +10206,19 @@ from .workspace_history import (
     build_persisted_workspace_history,
     compare_persisted_workspace_snapshots,
 )
+from .workspace_release import (
+    WORKSPACE_RELEASE_ARTIFACT_PREFIX,
+    WORKSPACE_RELEASE_MANIFEST,
+    WORKSPACE_RELEASE_VERSION,
+    WorkspaceReleaseArtifact,
+    WorkspaceReleaseBundle,
+    WorkspaceReleaseCheck,
+    WorkspaceReleaseVerification,
+    build_persisted_workspace_release,
+    build_workspace_release_bundle,
+    verify_workspace_release_bundle,
+    write_workspace_release_bundle,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10304,6 +10317,14 @@ __all__ += [
     "WORKSPACE_HISTORY_MAX_CHANGES", "WORKSPACE_HISTORY_VERSION", "WorkspaceHistory",
     "WorkspaceHistorySnapshot", "WorkspaceRecordChange", "WorkspaceTransition",
     "build_persisted_workspace_history", "compare_persisted_workspace_snapshots",
+]
+
+__all__ += [
+    "WORKSPACE_RELEASE_ARTIFACT_PREFIX", "WORKSPACE_RELEASE_MANIFEST",
+    "WORKSPACE_RELEASE_VERSION", "WorkspaceReleaseArtifact", "WorkspaceReleaseBundle",
+    "WorkspaceReleaseCheck", "WorkspaceReleaseVerification", "build_persisted_workspace_release",
+    "build_workspace_release_bundle", "verify_workspace_release_bundle",
+    "write_workspace_release_bundle",
 ]
 
 __all__ += [

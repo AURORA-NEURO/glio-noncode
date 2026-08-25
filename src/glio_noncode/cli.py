@@ -1272,6 +1272,11 @@ from .workspace_history import (
     build_persisted_workspace_history,
     compare_persisted_workspace_snapshots,
 )
+from .workspace_release import (
+    build_persisted_workspace_release,
+    verify_workspace_release_bundle,
+    write_workspace_release_bundle,
+)
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -2566,6 +2571,21 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
     )
     run_workspace_compare.add_argument("--output", default=None)
+
+    run_workspace_release = subparsers.add_parser(
+        "run-workspace-release",
+        help="build a gated portable release bundle for a persisted workspace",
+    )
+    run_workspace_release.add_argument("run_id", type=str)
+    run_workspace_release.add_argument("--data-root", default=".glio")
+    run_workspace_release.add_argument("--output", required=True)
+
+    run_workspace_release_verify = subparsers.add_parser(
+        "run-workspace-release-verify",
+        help="verify a previously written workspace release bundle",
+    )
+    run_workspace_release_verify.add_argument("input", type=str)
+    run_workspace_release_verify.add_argument("--output", default=None)
 
     run_review = subparsers.add_parser(
         "run-review",
@@ -18231,6 +18251,18 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(transition.to_dict(), args.output)
             return 0 if transition.accepted else 2
+        if args.command == "run-workspace-release":
+            bundle = build_persisted_workspace_release(
+                CaseRuntime(args.data_root),
+                args.run_id,
+            )
+            write_workspace_release_bundle(bundle, args.output)
+            print(f"workspace release written to {args.output}")
+            return 0 if bundle.accepted else 2
+        if args.command == "run-workspace-release-verify":
+            verification = verify_workspace_release_bundle(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "run-review":
             review = ReviewDecision.from_dict(_read_json(args.review))
             dossier = CaseRuntime(args.data_root).review_run(args.run_id, review)

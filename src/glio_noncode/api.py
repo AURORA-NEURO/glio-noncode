@@ -43,6 +43,7 @@ from .workspace_history import (
     build_persisted_workspace_history,
     compare_persisted_workspace_snapshots,
 )
+from .workspace_release import build_persisted_workspace_release
 from .review_queue import build_review_queue_closure, build_review_queue_page
 from .review_operations import (
     REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
@@ -375,6 +376,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                     and segments[3] == "workspace"
                     and segments[4] == "compare"
                 )
+                is_workspace_release = (
+                    len(segments) == 5
+                    and segments[3] == "workspace"
+                    and segments[4] == "release"
+                )
+                if is_workspace_release:
+                    self._write(
+                        HTTPStatus.OK,
+                        build_persisted_workspace_release(runtime, run_id).to_dict(),
+                    )
+                    return
                 if is_workspace_history:
                     query = parse_qs(parsed.query, keep_blank_values=False)
                     history = build_persisted_workspace_history(
