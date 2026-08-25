@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 41-surface audit, including the
+schema fields. The result is a deterministic 43-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema, and
 versioned reference manifest/schema, suitable for local release checks and CI.
 
@@ -770,6 +770,9 @@ glio-noncode review-workspace-release-verify review-release --output verificatio
 glio-noncode review-workspace-index RUN_ID --data-root .glio --output review-index.json
 glio-noncode review-workspace-query RUN_ID --collection evidence --state contradictory --data-root .glio --output review-query.json
 glio-noncode review-workspace-release-query review-release --collection evidence --output release-query.json
+glio-noncode review-workspace-plan RUN_ID --data-root .glio --output review-plan.json
+glio-noncode review-workspace-plan-query RUN_ID --lane provenance --data-root .glio --output plan-query.json
+glio-noncode review-workspace-release-plan review-release --output release-plan.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 

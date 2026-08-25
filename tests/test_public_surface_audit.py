@@ -95,7 +95,12 @@ class PublicSurfaceAuditTests(unittest.TestCase):
             self.assertEqual(check.violation_paths, ())
 
     def test_inventory_closes_review_workspace_contracts(self) -> None:
-        for surface_id in ("review-workspace-schema", "review-workspace-capabilities"):
+        for surface_id in (
+            "review-workspace-schema",
+            "review-workspace-capabilities",
+            "review-workspace-plan-schema",
+            "review-workspace-plan-capabilities",
+        ):
             check = next(item for item in self.audit.checks if item.surface_id == surface_id)
             self.assertTrue(check.accepted, check.to_dict())
             self.assertEqual(check.violation_paths, ())

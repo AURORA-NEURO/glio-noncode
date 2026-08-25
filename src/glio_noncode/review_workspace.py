@@ -1111,6 +1111,7 @@ def review_workspace_schema() -> dict[str, Any]:
             "portable_release": "review-workspace-release-v1",
             "manifest_exact_byte_verification": True,
             "query_contract": "review-workspace-query-v1",
+            "triage_plan_contract": "review-workspace-plan-v1",
         },
         "limits": {
             "max_hypotheses": REVIEW_WORKSPACE_MAX_HYPOTHESES,
@@ -1154,6 +1155,13 @@ def review_workspace_capabilities() -> dict[str, Any]:
             "faceted_filtering": True,
             "complete_match_facets": True,
             "content_addressed_rows": True,
+        },
+        "triage_plan": {
+            "ordered_actions": True,
+            "cross_queue_dependencies": True,
+            "lane_summaries": True,
+            "structural_checks": True,
+            "offline_release_compatible": True,
         },
         "privacy": {
             "raw_evidence_payloads_published": False,

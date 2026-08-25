@@ -1723,6 +1723,21 @@ from .review_workspace_query import (
     review_workspace_query_capabilities,
     review_workspace_query_schema,
 )
+from .review_workspace_plan import (
+    ReviewWorkspacePlanConfig,
+    ReviewWorkspacePlanQuery,
+    build_persisted_review_workspace_plan,
+    build_review_workspace_plan,
+    query_review_workspace_plan,
+    review_workspace_plan_capabilities,
+    review_workspace_plan_schema,
+)
+from .review_workspace_plan_exports import (
+    render_review_workspace_plan_markdown,
+    review_workspace_plan_actions_csv,
+    review_workspace_plan_checks_csv,
+    review_workspace_plan_lanes_csv,
+)
 from .review_workspace_release_query import (
     diff_review_workspace_releases,
     index_review_workspace_release,
@@ -3394,6 +3409,13 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_release_index.add_argument("input", type=str)
     review_workspace_release_index.add_argument("--output", default=None)
 
+    review_workspace_release_plan = subparsers.add_parser(
+        "review-workspace-release-plan",
+        help="verify a portable review release and build its ordered triage plan",
+    )
+    review_workspace_release_plan.add_argument("input", type=str)
+    review_workspace_release_plan.add_argument("--output", default=None)
+
     review_workspace_release_query = subparsers.add_parser(
         "review-workspace-release-query",
         help="query a verified portable review workspace release",
@@ -3468,6 +3490,66 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-workspace query capabilities",
     )
     review_workspace_query_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_plan = subparsers.add_parser(
+        "review-workspace-plan",
+        help="build a deterministic ordered triage plan from the review queue",
+    )
+    review_workspace_plan.add_argument("run_id", type=str)
+    review_workspace_plan.add_argument("--data-root", default=".glio")
+    review_workspace_plan.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan.add_argument("--max-actions", type=int, default=2_000)
+    review_workspace_plan.add_argument("--max-dependencies", type=int, default=40_000)
+    review_workspace_plan.add_argument("--without-context-checks", action="store_true")
+    review_workspace_plan.add_argument("--without-provenance-checks", action="store_true")
+    review_workspace_plan.add_argument("--without-alternative-checks", action="store_true")
+    review_workspace_plan.add_argument("--without-disposition-steps", action="store_true")
+    review_workspace_plan.add_argument("--output", default=None)
+
+    review_workspace_plan_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-schema",
+        help="emit the review-workspace triage-plan schema",
+    )
+    review_workspace_plan_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_plan_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-capabilities",
+        help="emit review-workspace triage-plan capabilities",
+    )
+    review_workspace_plan_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_plan_query = subparsers.add_parser(
+        "review-workspace-plan-query",
+        help="query ordered actions in a persisted review-workspace plan",
+    )
+    review_workspace_plan_query.add_argument("run_id", type=str)
+    review_workspace_plan_query.add_argument("--data-root", default=".glio")
+    review_workspace_plan_query.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_query.add_argument("--lane", default=None)
+    review_workspace_plan_query.add_argument("--action-kind", default=None)
+    review_workspace_plan_query.add_argument("--queue-item-id", default=None)
+    review_workspace_plan_query.add_argument("--target-id", default=None)
+    review_workspace_plan_query.add_argument("--target-type", default=None)
+    review_workspace_plan_query.add_argument("--state", default=None)
+    review_workspace_plan_query.add_argument("--priority", action="append", type=int, default=[])
+    review_workspace_plan_query.add_argument("--text", default=None)
+    review_workspace_plan_query.add_argument("--offset", type=int, default=0)
+    review_workspace_plan_query.add_argument("--limit", type=int, default=50)
+    review_workspace_plan_query.add_argument("--output", default=None)
+
+    review_workspace_plan_export = subparsers.add_parser(
+        "review-workspace-plan-export",
+        help="export a deterministic JSON, Markdown, or CSV triage plan",
+    )
+    review_workspace_plan_export.add_argument("run_id", type=str)
+    review_workspace_plan_export.add_argument("--data-root", default=".glio")
+    review_workspace_plan_export.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_export.add_argument(
+        "--format",
+        choices=("json", "markdown", "actions-csv", "lanes-csv", "checks-csv"),
+        default="json",
+    )
+    review_workspace_plan_export.add_argument("--output", default=None)
 
     run_workspace_history = subparsers.add_parser(
         "run-workspace-history",
@@ -22268,6 +22350,11 @@ def main(argv: list[str] | None = None) -> int:
             index = index_review_workspace_release(args.input)
             _write_json(index.to_dict(), args.output)
             return 0 if index.accepted else 2
+        if args.command == "review-workspace-release-plan":
+            loaded = load_review_workspace_release(args.input)
+            plan = build_review_workspace_plan(loaded.report)
+            _write_json(plan.to_dict(), args.output)
+            return 0 if plan.accepted else 2
         if args.command == "review-workspace-release-query":
             query = ReviewWorkspaceQuery(
                 collection=args.collection,
@@ -22325,6 +22412,68 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "review-workspace-query-capabilities":
             _write_json(review_workspace_query_capabilities(), args.output)
             return 0
+        if args.command == "review-workspace-plan":
+            plan = build_persisted_review_workspace_plan(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+                config=ReviewWorkspacePlanConfig(
+                    max_actions=args.max_actions,
+                    max_dependencies=args.max_dependencies,
+                    include_context_checks=not args.without_context_checks,
+                    include_provenance_checks=not args.without_provenance_checks,
+                    include_alternative_checks=not args.without_alternative_checks,
+                    include_disposition_steps=not args.without_disposition_steps,
+                ),
+            )
+            _write_json(plan.to_dict(), args.output)
+            return 0 if plan.accepted else 2
+        if args.command == "review-workspace-plan-schema":
+            _write_json(review_workspace_plan_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-capabilities":
+            _write_json(review_workspace_plan_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-query":
+            plan = build_persisted_review_workspace_plan(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            result = query_review_workspace_plan(
+                plan,
+                ReviewWorkspacePlanQuery(
+                    lane=args.lane,
+                    action_kind=args.action_kind,
+                    queue_item_id=args.queue_item_id,
+                    target_id=args.target_id,
+                    target_type=args.target_type,
+                    state=args.state,
+                    priorities=tuple(args.priority),
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "review-workspace-plan-export":
+            plan = build_persisted_review_workspace_plan(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            if args.format == "markdown":
+                _write_text(render_review_workspace_plan_markdown(plan), args.output)
+            elif args.format == "actions-csv":
+                _write_text(review_workspace_plan_actions_csv(plan), args.output)
+            elif args.format == "lanes-csv":
+                _write_text(review_workspace_plan_lanes_csv(plan), args.output)
+            elif args.format == "checks-csv":
+                _write_text(review_workspace_plan_checks_csv(plan), args.output)
+            else:
+                _write_json(plan.to_dict(), args.output)
+            return 0 if plan.accepted else 2
         if args.command == "run-workspace-history":
             history = build_persisted_workspace_history(
                 CaseRuntime(args.data_root),

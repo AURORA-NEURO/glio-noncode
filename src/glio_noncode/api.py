@@ -244,6 +244,14 @@ from .review_workspace_query import (
     review_workspace_query_capabilities,
     review_workspace_query_schema,
 )
+from .review_workspace_plan import (
+    ReviewWorkspacePlanConfig,
+    ReviewWorkspacePlanQuery,
+    build_persisted_review_workspace_plan,
+    query_review_workspace_plan,
+    review_workspace_plan_capabilities,
+    review_workspace_plan_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -630,6 +638,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/query/capabilities":
             self._write(HTTPStatus.OK, review_workspace_query_capabilities())
+            return
+        if path == "/v1/review-workspace/plan/schema":
+            self._write(HTTPStatus.OK, review_workspace_plan_schema())
+            return
+        if path == "/v1/review-workspace/plan/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_plan_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
@@ -2105,6 +2119,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                     and segments[3] == "review-workspace"
                     and segments[4] == "query"
                 )
+                is_review_workspace_plan = (
+                    len(segments) == 5
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "plan"
+                )
+                is_review_workspace_plan_query = (
+                    len(segments) == 6
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "plan"
+                    and segments[5] == "query"
+                )
                 is_workspace_closure = (
                     len(segments) == 5
                     and segments[3] == "workspace"
@@ -2206,6 +2231,59 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),
+                    )
+                    return
+                if is_review_workspace_plan_query:
+                    query_values = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query_values, "config")
+                    plan_config = ReviewWorkspacePlanConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    plan_query = ReviewWorkspacePlanQuery(
+                        lane=self._query_value(query_values, "lane"),
+                        action_kind=self._query_value(query_values, "action_kind"),
+                        queue_item_id=self._query_value(query_values, "queue_item_id"),
+                        target_id=self._query_value(query_values, "target_id"),
+                        target_type=self._query_value(query_values, "target_type"),
+                        state=self._query_value(query_values, "state"),
+                        priorities=tuple(
+                            int(value) for value in self._query_values(query_values, "priority")
+                        ),
+                        text=self._query_value(query_values, "text"),
+                        offset=self._query_int(query_values, "offset", 0),
+                        limit=(
+                            50
+                            if self._query_optional_int(query_values, "limit") is None
+                            else self._query_optional_int(query_values, "limit")
+                        ),
+                    )
+                    plan = build_persisted_review_workspace_plan(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        config=plan_config,
+                    )
+                    result = query_review_workspace_plan(plan, plan_query)
+                    self._write(
+                        HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        result.to_dict(),
+                    )
+                    return
+                if is_review_workspace_plan:
+                    query_values = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query_values, "config")
+                    plan_config = ReviewWorkspacePlanConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    plan = build_persisted_review_workspace_plan(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        config=plan_config,
+                    )
+                    self._write(
+                        HTTPStatus.OK if plan.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        plan.to_dict(),
                     )
                     return
                 if is_workspace_history:

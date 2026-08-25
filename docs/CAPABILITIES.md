@@ -3881,10 +3881,23 @@ glio-noncode review-workspace-release-verify review-release --output verificatio
 glio-noncode review-workspace-index RUN_ID --data-root .glio --output review-index.json
 glio-noncode review-workspace-query RUN_ID --collection evidence --state contradictory --data-root .glio --output review-query.json
 glio-noncode review-workspace-release-query review-release --collection evidence --output release-query.json
+glio-noncode review-workspace-plan RUN_ID --data-root .glio --output review-plan.json
+glio-noncode review-workspace-plan-query RUN_ID --lane provenance --data-root .glio --output plan-query.json
+glio-noncode review-workspace-release-plan review-release --output release-plan.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
 See [the review workspace contract](REVIEW_WORKSPACE.md).
+
+The review-workspace triage-plan layer expands the explainable queue into
+ordered descriptive work. It emits intake, context, provenance, alternative,
+and disposition-preparation actions, keeps cross-queue evidence dependencies
+explicit, and verifies queue closure, dependency closure, topological order,
+lane closure, bounds, and the public boundary. Plan queries return complete
+facets over bounded action pages, and plan exports are deterministic JSON,
+Markdown, and CSV. The plan remains an operational checklist: it never stores
+a reviewer decision, raw evidence payload, private identifier, or attribution
+field. Live and verified offline release inputs use the same synthesis logic.
 
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source
@@ -4091,7 +4104,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 41 named surfaces: service status, capabilities, program, operational,
+audits 43 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4114,7 +4127,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 41-surface inventory or any
+The command exits non-zero when the closed 43-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary

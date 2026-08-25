@@ -49,7 +49,13 @@ glio-noncode review-workspace-query RUN_ID --collection evidence --state contrad
 glio-noncode review-workspace-query-schema --output review-query-schema.json
 glio-noncode review-workspace-release-load review-release --output release-summary.json
 glio-noncode review-workspace-release-index review-release --output release-index.json
+glio-noncode review-workspace-plan RUN_ID --data-root .glio --output review-plan.json
+glio-noncode review-workspace-plan-query RUN_ID --lane provenance --limit 50 --data-root .glio --output plan-query.json
+glio-noncode review-workspace-plan-export RUN_ID --data-root .glio --format markdown --output review-plan.md
+glio-noncode review-workspace-plan-schema --output review-plan-schema.json
+glio-noncode review-workspace-plan-capabilities --output review-plan-capabilities.json
 glio-noncode review-workspace-release-query review-release --collection evidence --limit 50 --output release-query.json
+glio-noncode review-workspace-release-plan review-release --output release-plan.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
@@ -88,6 +94,26 @@ cannot change the underlying content address. Use `limit=none` only through
 the offline closure helper, where the report's collection ceilings remain the
 upper bound.
 
+## Triage plan
+
+`review-workspace-plan` expands each explainable queue item into ordered,
+descriptive work steps. The intake step is followed, when applicable, by
+context-fit, source-provenance, alternative-comparison, and disposition-
+preparation steps. A disposition-preparation step is a checklist boundary; it
+does not store the disposition. Hypothesis inspection can depend on queued
+evidence inspection, so a reviewer can see the intended order without treating
+the dependency as a scientific relationship.
+
+The plan reports five lanes (`intake`, `context`, `provenance`, `alternatives`,
+and `disposition`), priority counts, estimate units, exact action addresses,
+and structural checks for queue closure, dependency closure, topological order,
+lane closure, public-boundary safety, and configured bounds.
+`review-workspace-plan-query` provides bounded action filters for lane, action kind, queue item,
+target, state, priority, text, offset, and limit with complete-match facets.
+`review-workspace-plan-export` renders JSON, Markdown, and deterministic action,
+lane, and check CSV files. A verified portable release can be reopened and
+planned with `review-workspace-release-plan`; no live run store is required.
+
 ## API
 
 `GET /v1/review-workspace/schema` and
@@ -103,6 +129,14 @@ CLI through query parameters. Repeated `state` and `source_id` parameters are
 allowed; `collection`, `text`, `context_key`, `item_type`, `dimension`,
 `priority`, `offset`, `limit`, and `baseline_run_id` are scalar parameters.
 
+`GET /v1/review-workspace/plan/schema` and
+`GET /v1/review-workspace/plan/capabilities` expose the triage-plan contract.
+`GET /v1/runs/{run_id}/review-workspace/plan` returns the ordered plan and
+accepts `baseline_run_id` plus an optional JSON `config` object. The nested
+`/plan/query` route accepts `lane`, `action_kind`, `queue_item_id`, `target_id`,
+`target_type`, `state`, repeated `priority`, `text`, `offset`, `limit`, and
+`baseline_run_id` filters. API responses remain read-only and payload-free.
+
 ## Offline release operations
 
 `review-workspace-release-load` verifies and reopens the public JSON projection
@@ -111,7 +145,9 @@ without a local run store. `review-workspace-release-index` and
 the live workspace. `review-workspace-release-diff` compares exact artifact
 addresses and collection item addresses between two verified releases. Any
 manifest, byte, path, or boundary failure blocks loading before report rows
-are exposed.
+are exposed. `review-workspace-release-plan` runs the same triage-plan
+synthesis over the verified report, so live and offline action addresses can be
+compared without rehydrating a runtime.
 
 The API response contains independent content addresses for the complete
 workspace and every review collection item. This allows a renderer or offline
