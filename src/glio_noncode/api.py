@@ -238,6 +238,12 @@ from .review_workspace_exports import (
     render_review_workspace_markdown,
     review_workspace_collection_csv,
 )
+from .review_workspace_query import (
+    ReviewWorkspaceQuery,
+    build_persisted_review_workspace_query,
+    review_workspace_query_capabilities,
+    review_workspace_query_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -618,6 +624,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/capabilities":
             self._write(HTTPStatus.OK, review_workspace_capabilities())
+            return
+        if path == "/v1/review-workspace/query/schema":
+            self._write(HTTPStatus.OK, review_workspace_query_schema())
+            return
+        if path == "/v1/review-workspace/query/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_query_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
@@ -2088,6 +2100,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     and segments[3] == "review-workspace"
                     and segments[4] == "export"
                 )
+                is_review_workspace_query = (
+                    len(segments) == 5
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "query"
+                )
                 is_workspace_closure = (
                     len(segments) == 5
                     and segments[3] == "workspace"
@@ -2157,6 +2174,38 @@ class ApiHandler(BaseHTTPRequestHandler):
                         HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         payload,
                         content_type=media_type,
+                    )
+                    return
+                if is_review_workspace_query:
+                    query_values = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query_values, "config")
+                    config = ReviewWorkspaceConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    limit_value = self._query_optional_int(query_values, "limit")
+                    query = ReviewWorkspaceQuery(
+                        collection=self._query_value(query_values, "collection") or "all",
+                        item_id=self._query_value(query_values, "item_id"),
+                        text=self._query_value(query_values, "text"),
+                        states=self._query_values(query_values, "state"),
+                        source_ids=self._query_values(query_values, "source_id"),
+                        context_key=self._query_value(query_values, "context_key"),
+                        item_type=self._query_value(query_values, "item_type"),
+                        dimension=self._query_value(query_values, "dimension"),
+                        priority=self._query_optional_int(query_values, "priority"),
+                        offset=self._query_int(query_values, "offset", 0),
+                        limit=50 if limit_value is None else limit_value,
+                    )
+                    result = build_persisted_review_workspace_query(
+                        runtime,
+                        run_id,
+                        query,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        config=config,
+                    )
+                    self._write(
+                        HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        result.to_dict(),
                     )
                     return
                 if is_workspace_history:

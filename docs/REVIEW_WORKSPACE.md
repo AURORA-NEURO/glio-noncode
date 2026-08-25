@@ -44,6 +44,9 @@ glio-noncode review-workspace-export RUN_ID --data-root .glio --format markdown 
 glio-noncode review-workspace-export RUN_ID --data-root .glio --format csv --collection edges --output edges.csv
 glio-noncode review-workspace-release RUN_ID --data-root .glio --output review-release
 glio-noncode review-workspace-release-verify review-release --output verification.json
+glio-noncode review-workspace-index RUN_ID --data-root .glio --output review-index.json
+glio-noncode review-workspace-query RUN_ID --collection evidence --state contradictory --limit 50 --data-root .glio --output review-query.json
+glio-noncode review-workspace-query-schema --output review-query-schema.json
 ```
 
 The command exits successfully when the public projection is safe to consume,
@@ -68,13 +71,33 @@ The API remains read-only: `GET /v1/runs/{run_id}/review-workspace/export`
 supports `format=json|markdown|csv` and `collection` for CSV; filesystem
 materialization is an explicit CLI operation.
 
+## Query and facets
+
+`review-workspace-index` computes reusable collection, state, source, context,
+dimension, item-type, and priority facets. `review-workspace-query` applies
+bounded filters over that same public index and returns a stable page plus
+facets for the complete matched set. Supported filters include collection,
+free-text over the aggregate projection, evidence/review state, source ID,
+context key, item type, delta dimension, queue priority, offset, and limit.
+Rows are sorted by collection order and public item identifier; pagination
+cannot change the underlying content address. Use `limit=none` only through
+the offline closure helper, where the report's collection ceilings remain the
+upper bound.
+
 ## API
 
 `GET /v1/review-workspace/schema` and
 `GET /v1/review-workspace/capabilities` expose the contract. Use
+`GET /v1/review-workspace/query/schema` and
+`GET /v1/review-workspace/query/capabilities` for the bounded query contract.
 `GET /v1/runs/{run_id}/review-workspace` for the current run and add
 `baseline_run_id` to request verified cross-run deltas. Both runs must belong
 to the same case and pass replay verification.
+
+`GET /v1/runs/{run_id}/review-workspace/query` accepts the same filters as the
+CLI through query parameters. Repeated `state` and `source_id` parameters are
+allowed; `collection`, `text`, `context_key`, `item_type`, `dimension`,
+`priority`, `offset`, `limit`, and `baseline_run_id` are scalar parameters.
 
 The API response contains independent content addresses for the complete
 workspace and every review collection item. This allows a renderer or offline

@@ -10642,6 +10642,28 @@ from .review_workspace_exports import (
     verify_review_workspace_release,
     write_review_workspace_release,
 )
+from .review_workspace_query import (
+    REVIEW_WORKSPACE_QUERY_ALL_COLLECTIONS,
+    REVIEW_WORKSPACE_QUERY_COLLECTIONS,
+    REVIEW_WORKSPACE_QUERY_DEFAULT_LIMIT,
+    REVIEW_WORKSPACE_QUERY_MAX_FACET_VALUES,
+    REVIEW_WORKSPACE_QUERY_MAX_LIMIT,
+    REVIEW_WORKSPACE_QUERY_MAX_TEXT,
+    REVIEW_WORKSPACE_QUERY_MAX_VALUES,
+    REVIEW_WORKSPACE_QUERY_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_QUERY_VERSION,
+    ReviewWorkspaceIndex,
+    ReviewWorkspaceQuery,
+    ReviewWorkspaceQueryResult,
+    ReviewWorkspaceQueryRow,
+    build_persisted_review_workspace_index,
+    build_persisted_review_workspace_query,
+    build_review_workspace_index,
+    build_review_workspace_query_closure,
+    query_review_workspace,
+    review_workspace_query_capabilities,
+    review_workspace_query_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     WORKSPACE_HISTORY_VERSION,
@@ -10997,6 +11019,19 @@ __all__ += [
     "review_workspace_hypotheses_csv", "review_workspace_provenance_csv",
     "review_workspace_queue_csv", "verify_review_workspace_release",
     "write_review_workspace_release",
+]
+
+__all__ += [
+    "REVIEW_WORKSPACE_QUERY_ALL_COLLECTIONS", "REVIEW_WORKSPACE_QUERY_COLLECTIONS",
+    "REVIEW_WORKSPACE_QUERY_DEFAULT_LIMIT", "REVIEW_WORKSPACE_QUERY_MAX_FACET_VALUES",
+    "REVIEW_WORKSPACE_QUERY_MAX_LIMIT", "REVIEW_WORKSPACE_QUERY_MAX_TEXT",
+    "REVIEW_WORKSPACE_QUERY_MAX_VALUES", "REVIEW_WORKSPACE_QUERY_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_QUERY_VERSION", "ReviewWorkspaceIndex", "ReviewWorkspaceQuery",
+    "ReviewWorkspaceQueryResult", "ReviewWorkspaceQueryRow",
+    "build_persisted_review_workspace_index", "build_persisted_review_workspace_query",
+    "build_review_workspace_index", "build_review_workspace_query_closure",
+    "query_review_workspace", "review_workspace_query_capabilities",
+    "review_workspace_query_schema",
 ]
 
 __all__ += [

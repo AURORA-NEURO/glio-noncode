@@ -767,6 +767,8 @@ glio-noncode review-workspace-export RUN_ID --data-root .glio --format markdown 
 glio-noncode review-workspace-export RUN_ID --data-root .glio --format csv --collection evidence --output evidence.csv
 glio-noncode review-workspace-release RUN_ID --data-root .glio --output review-release
 glio-noncode review-workspace-release-verify review-release --output verification.json
+glio-noncode review-workspace-index RUN_ID --data-root .glio --output review-index.json
+glio-noncode review-workspace-query RUN_ID --collection evidence --state contradictory --data-root .glio --output review-query.json
 ```
 
 See [review workspace operations](docs/REVIEW_WORKSPACE.md).

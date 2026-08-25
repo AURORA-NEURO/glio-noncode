@@ -1715,6 +1715,14 @@ from .review_workspace_exports import (
     verify_review_workspace_release,
     write_review_workspace_release,
 )
+from .review_workspace_query import (
+    REVIEW_WORKSPACE_QUERY_COLLECTIONS,
+    ReviewWorkspaceQuery,
+    build_persisted_review_workspace_index,
+    build_persisted_review_workspace_query,
+    review_workspace_query_capabilities,
+    review_workspace_query_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -3364,6 +3372,51 @@ def build_parser() -> argparse.ArgumentParser:
     )
     review_workspace_release_verify.add_argument("input", type=str)
     review_workspace_release_verify.add_argument("--output", default=None)
+
+    review_workspace_query = subparsers.add_parser(
+        "review-workspace-query",
+        help="query bounded review-workspace collections and facets",
+    )
+    review_workspace_query.add_argument("run_id", type=str)
+    review_workspace_query.add_argument("--data-root", default=".glio")
+    review_workspace_query.add_argument("--baseline-run-id", default=None)
+    review_workspace_query.add_argument(
+        "--collection",
+        choices=("all", *REVIEW_WORKSPACE_QUERY_COLLECTIONS),
+        default="all",
+    )
+    review_workspace_query.add_argument("--item-id", default=None)
+    review_workspace_query.add_argument("--text", default=None)
+    review_workspace_query.add_argument("--state", action="append", default=[])
+    review_workspace_query.add_argument("--source-id", action="append", default=[])
+    review_workspace_query.add_argument("--context-key", default=None)
+    review_workspace_query.add_argument("--item-type", default=None)
+    review_workspace_query.add_argument("--dimension", default=None)
+    review_workspace_query.add_argument("--priority", type=int, default=None)
+    review_workspace_query.add_argument("--offset", type=int, default=0)
+    review_workspace_query.add_argument("--limit", type=int, default=50)
+    review_workspace_query.add_argument("--output", default=None)
+
+    review_workspace_index = subparsers.add_parser(
+        "review-workspace-index",
+        help="emit deterministic review-workspace facets and index metadata",
+    )
+    review_workspace_index.add_argument("run_id", type=str)
+    review_workspace_index.add_argument("--data-root", default=".glio")
+    review_workspace_index.add_argument("--baseline-run-id", default=None)
+    review_workspace_index.add_argument("--output", default=None)
+
+    review_workspace_query_schema_parser = subparsers.add_parser(
+        "review-workspace-query-schema",
+        help="emit the review-workspace query schema",
+    )
+    review_workspace_query_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_query_capabilities_parser = subparsers.add_parser(
+        "review-workspace-query-capabilities",
+        help="emit review-workspace query capabilities",
+    )
+    review_workspace_query_capabilities_parser.add_argument("--output", default=None)
 
     run_workspace_history = subparsers.add_parser(
         "run-workspace-history",
@@ -22156,6 +22209,42 @@ def main(argv: list[str] | None = None) -> int:
             verification = verify_review_workspace_release(args.input)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
+        if args.command == "review-workspace-query":
+            query = ReviewWorkspaceQuery(
+                collection=args.collection,
+                item_id=args.item_id,
+                text=args.text,
+                states=tuple(args.state),
+                source_ids=tuple(args.source_id),
+                context_key=args.context_key,
+                item_type=args.item_type,
+                dimension=args.dimension,
+                priority=args.priority,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            result = build_persisted_review_workspace_query(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                query,
+                baseline_run_id=args.baseline_run_id,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "review-workspace-index":
+            index = build_persisted_review_workspace_index(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            _write_json(index.to_dict(), args.output)
+            return 0 if index.accepted else 2
+        if args.command == "review-workspace-query-schema":
+            _write_json(review_workspace_query_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-query-capabilities":
+            _write_json(review_workspace_query_capabilities(), args.output)
+            return 0
         if args.command == "run-workspace-history":
             history = build_persisted_workspace_history(
                 CaseRuntime(args.data_root),

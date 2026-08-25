@@ -3878,6 +3878,8 @@ glio-noncode review-workspace-capabilities --output review-workspace-capabilitie
 glio-noncode review-workspace-export RUN_ID --data-root .glio --format markdown --output review-workspace.md
 glio-noncode review-workspace-release RUN_ID --data-root .glio --output review-release
 glio-noncode review-workspace-release-verify review-release --output verification.json
+glio-noncode review-workspace-index RUN_ID --data-root .glio --output review-index.json
+glio-noncode review-workspace-query RUN_ID --collection evidence --state contradictory --data-root .glio --output review-query.json
 ```
 
 See [the review workspace contract](REVIEW_WORKSPACE.md).

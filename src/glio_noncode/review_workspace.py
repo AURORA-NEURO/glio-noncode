@@ -1110,6 +1110,7 @@ def review_workspace_schema() -> dict[str, Any]:
             ],
             "portable_release": "review-workspace-release-v1",
             "manifest_exact_byte_verification": True,
+            "query_contract": "review-workspace-query-v1",
         },
         "limits": {
             "max_hypotheses": REVIEW_WORKSPACE_MAX_HYPOTHESES,
@@ -1147,6 +1148,12 @@ def review_workspace_capabilities() -> dict[str, Any]:
             "portable_release": True,
             "exact_byte_manifest_verification": True,
             "filesystem_writes_are_cli_explicit": True,
+        },
+        "query": {
+            "bounded_pagination": True,
+            "faceted_filtering": True,
+            "complete_match_facets": True,
+            "content_addressed_rows": True,
         },
         "privacy": {
             "raw_evidence_payloads_published": False,

@@ -17,6 +17,8 @@ report or runtime from which it was derived.
 | POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |
 | GET | `/v1/review-workspace/schema` | Return the provenance-first review workspace schema |
 | GET | `/v1/review-workspace/capabilities` | Return operational review workspace capabilities |
+| GET | `/v1/review-workspace/query/schema` | Return bounded review-workspace query and facet schema |
+| GET | `/v1/review-workspace/query/capabilities` | Return deterministic query, pagination, and facet capabilities |
 | GET | `/v1/service-release` | Build the six-surface public service-release registry |
 | GET | `/v1/service-release/query` | Query service surfaces, artifacts, dependencies, or gates |
 | GET | `/v1/service-release/schema` | Return the service-release schema and boundary audit |
@@ -145,6 +147,7 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/inspection` | Return the complete run inspection closure |
 | GET | `/v1/runs/{run_id}/workspace` | Reopen a replay-verified case as a bounded workspace projection |
 | GET | `/v1/runs/{run_id}/review-workspace` | Reopen a replay-verified run as a provenance-first review workspace; optional `baseline_run_id` emits deltas |
+| GET | `/v1/runs/{run_id}/review-workspace/query` | Filter and page public review collections with complete-match facets |
 | GET | `/v1/runs/{run_id}/review-workspace/export` | Return deterministic JSON, Markdown, or one CSV review projection; use `format` and optional `collection` query parameters |
 | GET | `/v1/runs/{run_id}/workspace/closure` | Return the complete content-addressed run workspace closure |
 | GET | `/v1/runs/{run_id}/workspace/history` | Rebuild every verified dossier snapshot as a workspace timeline |
