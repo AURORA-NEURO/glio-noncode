@@ -1738,6 +1738,23 @@ from .review_workspace_plan_exports import (
     review_workspace_plan_checks_csv,
     review_workspace_plan_lanes_csv,
 )
+from .review_workspace_execution import (
+    ReviewPlanExecutionEventKind,
+    ReviewWorkspaceExecutionQuery,
+    ReviewPlanExecutionStore,
+    append_persisted_review_workspace_plan_event,
+    build_persisted_review_workspace_plan_execution,
+    build_review_plan_execution_event,
+    query_review_workspace_execution,
+    review_workspace_execution_capabilities,
+    review_workspace_execution_schema,
+)
+from .review_workspace_execution_exports import (
+    render_review_workspace_execution_markdown,
+    review_workspace_execution_actions_csv,
+    review_workspace_execution_checks_csv,
+    review_workspace_execution_events_csv,
+)
 from .review_workspace_release_query import (
     diff_review_workspace_releases,
     index_review_workspace_release,
@@ -3550,6 +3567,70 @@ def build_parser() -> argparse.ArgumentParser:
         default="json",
     )
     review_workspace_plan_export.add_argument("--output", default=None)
+
+    review_workspace_plan_execution = subparsers.add_parser(
+        "review-workspace-plan-execution",
+        help="replay the append-only execution ledger for a review plan",
+    )
+    review_workspace_plan_execution.add_argument("run_id", type=str)
+    review_workspace_plan_execution.add_argument("--data-root", default=".glio")
+    review_workspace_plan_execution.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_execution.add_argument(
+        "--format",
+        choices=("json", "markdown", "actions-csv", "events-csv", "checks-csv"),
+        default="json",
+    )
+    review_workspace_plan_execution.add_argument("--output", default=None)
+
+    review_workspace_plan_execution_query = subparsers.add_parser(
+        "review-workspace-plan-execution-query",
+        help="query replayed review-plan action execution state",
+    )
+    review_workspace_plan_execution_query.add_argument("run_id", type=str)
+    review_workspace_plan_execution_query.add_argument("--data-root", default=".glio")
+    review_workspace_plan_execution_query.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_execution_query.add_argument("--status", default=None)
+    review_workspace_plan_execution_query.add_argument("--lane", default=None)
+    review_workspace_plan_execution_query.add_argument("--action-kind", default=None)
+    review_workspace_plan_execution_query.add_argument("--action-id", default=None)
+    review_workspace_plan_execution_query.add_argument("--event-kind", default=None)
+    review_workspace_plan_execution_query.add_argument("--priority", type=int, default=None)
+    review_workspace_plan_execution_query.add_argument("--text", default=None)
+    review_workspace_plan_execution_query.add_argument("--offset", type=int, default=0)
+    review_workspace_plan_execution_query.add_argument("--limit", type=int, default=50)
+    review_workspace_plan_execution_query.add_argument("--output", default=None)
+
+    review_workspace_plan_event = subparsers.add_parser(
+        "review-workspace-plan-event",
+        help="append one explicit transition to a review-plan execution ledger",
+    )
+    review_workspace_plan_event.add_argument("run_id", type=str)
+    review_workspace_plan_event.add_argument("--action-id", required=True)
+    review_workspace_plan_event.add_argument(
+        "--kind",
+        choices=tuple(item.value for item in ReviewPlanExecutionEventKind),
+        required=True,
+    )
+    review_workspace_plan_event.add_argument("--event-id", required=True)
+    review_workspace_plan_event.add_argument("--occurred-at", required=True)
+    review_workspace_plan_event.add_argument("--reason", default="")
+    review_workspace_plan_event.add_argument("--check-id", action="append", default=[])
+    review_workspace_plan_event.add_argument("--reference-address", action="append", default=[])
+    review_workspace_plan_event.add_argument("--data-root", default=".glio")
+    review_workspace_plan_event.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_event.add_argument("--output", default=None)
+
+    review_workspace_execution_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-schema",
+        help="emit the review-plan execution schema",
+    )
+    review_workspace_execution_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-capabilities",
+        help="emit review-plan execution capabilities",
+    )
+    review_workspace_execution_capabilities_parser.add_argument("--output", default=None)
 
     run_workspace_history = subparsers.add_parser(
         "run-workspace-history",
@@ -22474,6 +22555,80 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(plan.to_dict(), args.output)
             return 0 if plan.accepted else 2
+        if args.command == "review-workspace-plan-execution":
+            execution = build_persisted_review_workspace_plan_execution(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            if args.format == "markdown":
+                _write_text(render_review_workspace_execution_markdown(execution), args.output)
+            elif args.format == "actions-csv":
+                _write_text(review_workspace_execution_actions_csv(execution), args.output)
+            elif args.format == "events-csv":
+                _write_text(review_workspace_execution_events_csv(execution), args.output)
+            elif args.format == "checks-csv":
+                _write_text(review_workspace_execution_checks_csv(execution), args.output)
+            else:
+                _write_json(execution.to_dict(), args.output)
+            return 0 if execution.accepted else 2
+        if args.command == "review-workspace-plan-execution-query":
+            execution = build_persisted_review_workspace_plan_execution(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            result = query_review_workspace_execution(
+                execution,
+                ReviewWorkspaceExecutionQuery(
+                    status=args.status,
+                    lane=args.lane,
+                    action_kind=args.action_kind,
+                    action_id=args.action_id,
+                    event_kind=args.event_kind,
+                    priority=args.priority,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ),
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "review-workspace-plan-event":
+            runtime = CaseRuntime(args.data_root)
+            plan = build_persisted_review_workspace_plan(
+                runtime,
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            store = ReviewPlanExecutionStore(runtime.store.root)
+            existing = store.read_events(plan)
+            event = build_review_plan_execution_event(
+                plan=plan,
+                action_id=args.action_id,
+                event_id=args.event_id,
+                kind=args.kind,
+                occurred_at=args.occurred_at,
+                reason=args.reason,
+                check_ids=args.check_id,
+                reference_addresses=args.reference_address,
+                previous_event_address=existing[-1].content_address if existing else None,
+            )
+            execution = append_persisted_review_workspace_plan_event(
+                runtime,
+                args.run_id,
+                event,
+                baseline_run_id=args.baseline_run_id,
+                execution_store=store,
+            )
+            _write_json(execution.to_dict(), args.output)
+            return 0 if execution.accepted else 2
+        if args.command == "review-workspace-plan-execution-schema":
+            _write_json(review_workspace_execution_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-capabilities":
+            _write_json(review_workspace_execution_capabilities(), args.output)
+            return 0
         if args.command == "run-workspace-history":
             history = build_persisted_workspace_history(
                 CaseRuntime(args.data_root),

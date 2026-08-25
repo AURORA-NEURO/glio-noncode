@@ -1112,6 +1112,7 @@ def review_workspace_schema() -> dict[str, Any]:
             "manifest_exact_byte_verification": True,
             "query_contract": "review-workspace-query-v1",
             "triage_plan_contract": "review-workspace-plan-v1",
+            "execution_contract": "review-workspace-execution-v1",
         },
         "limits": {
             "max_hypotheses": REVIEW_WORKSPACE_MAX_HYPOTHESES,
@@ -1162,6 +1163,13 @@ def review_workspace_capabilities() -> dict[str, Any]:
             "lane_summaries": True,
             "structural_checks": True,
             "offline_release_compatible": True,
+        },
+        "execution": {
+            "append_only_event_ledger": True,
+            "hash_chained_replay": True,
+            "dependency_aware_completion": True,
+            "required_check_confirmation": True,
+            "exact_byte_manifest_verification": True,
         },
         "privacy": {
             "raw_evidence_payloads_published": False,

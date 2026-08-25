@@ -21,6 +21,8 @@ report or runtime from which it was derived.
 | GET | `/v1/review-workspace/query/capabilities` | Return deterministic query, pagination, and facet capabilities |
 | GET | `/v1/review-workspace/plan/schema` | Return the ordered review-workspace triage-plan schema |
 | GET | `/v1/review-workspace/plan/capabilities` | Return triage-plan ordering, dependency, and boundary capabilities |
+| GET | `/v1/review-workspace/plan/execution/schema` | Return the append-only review-plan execution schema |
+| GET | `/v1/review-workspace/plan/execution/capabilities` | Return execution replay, dependency, and boundary capabilities |
 | GET | `/v1/service-release` | Build the six-surface public service-release registry |
 | GET | `/v1/service-release/query` | Query service surfaces, artifacts, dependencies, or gates |
 | GET | `/v1/service-release/schema` | Return the service-release schema and boundary audit |
@@ -153,6 +155,8 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/review-workspace/export` | Return deterministic JSON, Markdown, or one CSV review projection; use `format` and optional `collection` query parameters |
 | GET | `/v1/runs/{run_id}/review-workspace/plan` | Build an ordered, dependency-checked descriptive triage plan |
 | GET | `/v1/runs/{run_id}/review-workspace/plan/query` | Filter and page plan actions with complete-match facets |
+| GET | `/v1/runs/{run_id}/review-workspace/plan/execution` | Replay the local review-plan execution ledger |
+| GET | `/v1/runs/{run_id}/review-workspace/plan/execution/query` | Filter replayed execution actions with complete-match facets |
 | GET | `/v1/runs/{run_id}/workspace/closure` | Return the complete content-addressed run workspace closure |
 | GET | `/v1/runs/{run_id}/workspace/history` | Rebuild every verified dossier snapshot as a workspace timeline |
 | GET | `/v1/runs/{run_id}/workspace/compare` | Compare two historical workspace snapshots by public record identity |
@@ -353,7 +357,7 @@ Run the repository-wide public-boundary audit:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The audit covers 43 named projections across the service, capability
+The audit covers 45 named projections across the service, capability
 certification bundle, module-fabric bundle, schemas, service-release registry,
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and closures. Runtime

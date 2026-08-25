@@ -3884,6 +3884,8 @@ glio-noncode review-workspace-release-query review-release --collection evidence
 glio-noncode review-workspace-plan RUN_ID --data-root .glio --output review-plan.json
 glio-noncode review-workspace-plan-query RUN_ID --lane provenance --data-root .glio --output plan-query.json
 glio-noncode review-workspace-release-plan review-release --output release-plan.json
+glio-noncode review-workspace-plan-execution RUN_ID --data-root .glio --output execution.json
+glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
@@ -3898,6 +3900,14 @@ facets over bounded action pages, and plan exports are deterministic JSON,
 Markdown, and CSV. The plan remains an operational checklist: it never stores
 a reviewer decision, raw evidence payload, private identifier, or attribution
 field. Live and verified offline release inputs use the same synthesis logic.
+
+The execution layer makes the triage plan operational without mutating a
+dossier. Its hash-chained append-only ledger accepts explicit start, complete,
+block, skip, and reopen transitions; completion requires completed plan
+dependencies and every declared public check identifier. Replay exposes
+readiness, dependency waits, next actions, blocked actions, event history,
+exact-byte manifest checks, and deterministic action/event/check exports. The
+HTTP execution surface is read-only; CLI event appends are the only write path.
 
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source
@@ -4104,7 +4114,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 43 named surfaces: service status, capabilities, program, operational,
+audits 45 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4127,7 +4137,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 43-surface inventory or any
+The command exits non-zero when the closed 45-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary

@@ -54,6 +54,11 @@ glio-noncode review-workspace-plan-query RUN_ID --lane provenance --limit 50 --d
 glio-noncode review-workspace-plan-export RUN_ID --data-root .glio --format markdown --output review-plan.md
 glio-noncode review-workspace-plan-schema --output review-plan-schema.json
 glio-noncode review-workspace-plan-capabilities --output review-plan-capabilities.json
+glio-noncode review-workspace-plan-execution RUN_ID --data-root .glio --output execution.json
+glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
+glio-noncode review-workspace-plan-execution-query RUN_ID --status open --data-root .glio --output execution-query.json
+glio-noncode review-workspace-plan-execution-schema --output execution-schema.json
+glio-noncode review-workspace-plan-execution-capabilities --output execution-capabilities.json
 glio-noncode review-workspace-release-query review-release --collection evidence --limit 50 --output release-query.json
 glio-noncode review-workspace-release-plan review-release --output release-plan.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
@@ -114,6 +119,24 @@ target, state, priority, text, offset, and limit with complete-match facets.
 lane, and check CSV files. A verified portable release can be reopened and
 planned with `review-workspace-release-plan`; no live run store is required.
 
+## Plan execution ledger
+
+`review-workspace-plan-event` appends one explicit transition to the local
+`review-plan-execution/<plan-address>/events.jsonl` ledger. Valid transitions
+are `start`, `complete`, `block`, `skip`, and `reopen`. The event chain is
+address-linked and the neighboring `manifest.json` records exact byte, line,
+event-count, and event-file addresses. A completion event must name every
+required public check for its action and every dependency must already be
+completed; blocked, skipped, or completed actions can be reopened only with an
+explicit reason.
+
+`review-workspace-plan-execution` replays the ledger into action statuses,
+readiness, dependency waits, next-action IDs, blocked-action IDs, counters, and
+structural checks. The execution report can be queried by status, lane, action
+kind, action ID, event kind, priority, or text, and exports deterministic JSON,
+Markdown, action CSV, event CSV, and check CSV. The ledger is operational only:
+it does not alter the dossier, evidence, plan, or scientific conclusion.
+
 ## API
 
 `GET /v1/review-workspace/schema` and
@@ -136,6 +159,13 @@ accepts `baseline_run_id` plus an optional JSON `config` object. The nested
 `/plan/query` route accepts `lane`, `action_kind`, `queue_item_id`, `target_id`,
 `target_type`, `state`, repeated `priority`, `text`, `offset`, `limit`, and
 `baseline_run_id` filters. API responses remain read-only and payload-free.
+
+`GET /v1/review-workspace/plan/execution/schema` and
+`GET /v1/review-workspace/plan/execution/capabilities` expose the append-only
+execution contract. `GET /v1/runs/{run_id}/review-workspace/plan/execution`
+replays the local ledger; `/execution/query` applies bounded action filters.
+Ledger writes remain an explicit CLI operation so the HTTP service stays
+read-only.
 
 ## Offline release operations
 
