@@ -65,6 +65,13 @@ glio-noncode run-catalog --data-root .glio
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
 glio-noncode run-portfolio --data-root .glio --as-of 2026-09-01T12:00:00Z --output run-portfolio.json
 glio-noncode run-portfolio --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output run-portfolio-closure.json
+glio-noncode portfolio-release --data-root .glio --release-ready-only --as-of 2026-09-01T12:00:00Z --destination portfolio-release
+glio-noncode portfolio-release-verify portfolio-release --output portfolio-release-verification.json
+glio-noncode portfolio-release-query portfolio-release --artifact-kind workspace --output workspace-artifacts.json
+glio-noncode portfolio-release-lineage portfolio-release --output portfolio-lineage.json
+glio-noncode portfolio-release-observability portfolio-release --format metrics-csv --output portfolio-metrics.csv
+glio-noncode portfolio-release-schema --output portfolio-release-schema.json
+glio-noncode portfolio-release-runtime --data-root .glio --release-ready-only --output portfolio-runtime.json
 glio-noncode storage-audit --data-root .glio --output storage-audit.json
 glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
 glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
@@ -113,6 +120,17 @@ reproducible.
 canonical bytes, content-address drift, missing references, orphan objects,
 unexpected files, and replay failures. It is read-only and emits operational
 metadata rather than stored case payloads.
+
+`portfolio-release` is the repository-wide handoff boundary. It selects a
+bounded set of persisted runs, retains a namespaced dossier and workspace
+release closure for every member, emits run summaries/events, CSV and Markdown
+reports, and keeps blocked members visible with their failed gate identifiers.
+The package is accepted only when every selected member passes replay, human
+review, dossier, workspace, artifact, and public-boundary checks. Its verifier
+rejects tampering, unsafe or unexpected paths, address drift, missing member
+artifacts, invalid manifest counts, and prohibited private, attribution, or
+language metadata. `portfolio-release-query` and `portfolio-release-diff`
+operate on verified directories without reopening the source store.
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
 

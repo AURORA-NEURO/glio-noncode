@@ -37,6 +37,10 @@ from .run_portfolio import (
     build_run_portfolio,
     build_run_portfolio_closure,
 )
+from .portfolio_release import build_portfolio_release
+from .portfolio_release_lineage import build_portfolio_release_lineage, lineage_for_run
+from .portfolio_release_observability import build_portfolio_release_observability
+from .portfolio_release_schema import portfolio_release_schema
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -200,6 +204,56 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/portfolio/release",
+            "/v1/portfolio/release/lineage",
+            "/v1/portfolio/release/observability",
+            "/v1/portfolio/release/schema",
+        }:
+            try:
+                if path.endswith("/schema"):
+                    self._write(HTTPStatus.OK, portfolio_release_schema())
+                    return
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle = build_portfolio_release(
+                    self._runtime(),
+                    run_ids=self._query_values(query, "run_id"),
+                    case_id=self._query_value(query, "case_id"),
+                    status=self._query_value(query, "status"),
+                    reviewer=self._query_value(query, "reviewer"),
+                    due_state=self._query_value(query, "due_state"),
+                    release_state=self._query_value(query, "release_state"),
+                    text=self._query_value(query, "q") or self._query_value(query, "text"),
+                    release_ready_only=self._query_bool(query, "release_ready_only"),
+                    include_blocked=self._query_bool(query, "include_blocked")
+                    if "include_blocked" in query
+                    else True,
+                    as_of=self._query_value(query, "as_of"),
+                    due_soon_hours=self._query_int(query, "due_soon_hours", 72),
+                    max_runs=self._query_int(query, "max_runs", 25),
+                )
+                if path.endswith("/lineage"):
+                    lineage = build_portfolio_release_lineage(
+                        bundle,
+                        run_id=self._query_value(query, "focus_run_id"),
+                    )
+                    payload = lineage.to_dict()
+                    if self._query_value(query, "focus_run_id"):
+                        payload = lineage_for_run(lineage, self._query_value(query, "focus_run_id") or "")
+                elif path.endswith("/observability"):
+                    payload = build_portfolio_release_observability(bundle).to_dict()
+                else:
+                    payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
+                self._write(HTTPStatus.OK, payload)
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "run not found"})
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

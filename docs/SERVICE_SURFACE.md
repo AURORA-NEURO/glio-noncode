@@ -16,6 +16,10 @@ report or runtime from which it was derived.
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
 | GET | `/v1/portfolio/closure` | Complete cross-run portfolio closure for offline operations |
+| GET | `/v1/portfolio/release` | Build a bounded, namespaced multi-run release package projection |
+| GET | `/v1/portfolio/release/lineage` | Return the address-only release → member → artifact/check lineage graph |
+| GET | `/v1/portfolio/release/observability` | Return deterministic package events and metrics |
+| GET | `/v1/portfolio/release/schema` | Return the closed portfolio manifest schema |
 | GET | `/v1/batches` | Paginated catalog of persisted batch evaluations |
 | GET | `/v1/batches/{batch_id}` | Reopen and verify one batch result |
 | GET | `/v1/batches/{batch_id}/release` | Build a gated portable batch handoff bundle |
@@ -84,6 +88,21 @@ accepts `case_id`, `status`, `reviewer`, `due_state`, `release_state`, `q` or
 Rows distinguish a valid inspectable run from a release-ready run: a pending
 review can remain accepted as operational evidence while its release remains
 blocked. `/v1/portfolio/closure` returns every row and aggregate status counts.
+
+`/v1/portfolio/release` accepts the portfolio filters plus repeated or
+comma-separated `run_id`, `max_runs`, `include_blocked`, and `include_payloads`.
+It returns a content-addressed package projection with namespaced member
+artifacts. Every member retains dossier and workspace release state; a blocked
+member is inspectable but prevents package acceptance. Artifact bytes are
+public-projected before publication, and the package contract rejects private
+identifiers, attribution/language metadata, path traversal, duplicate paths,
+missing artifacts, and address drift.
+
+`/v1/portfolio/release/lineage` accepts the same selection filters and an
+optional `focus_run_id`; the focused form returns that member and its
+downstream artifacts. `/v1/portfolio/release/observability` emits stable
+selection/member/check events plus byte, artifact, gate, and warning metrics.
+`/v1/portfolio/release/schema` is read-only and does not inspect the data root.
 
 The storage audit is read-only and store-wide. It checks canonical UTF-8 JSON,
 filename content addresses, malformed object references, run and batch index

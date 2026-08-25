@@ -10237,6 +10237,73 @@ from .storage_audit import (
     StorageRunAudit,
     build_storage_audit,
 )
+from .portfolio_release_contracts import (
+    PORTFOLIO_RELEASE_ARTIFACT_PREFIX,
+    PORTFOLIO_RELEASE_CHECK_PREFIX,
+    PORTFOLIO_RELEASE_DEFAULT_MAX_RUNS,
+    PORTFOLIO_RELEASE_MANIFEST,
+    PORTFOLIO_RELEASE_MAX_RUNS,
+    PORTFOLIO_RELEASE_VERSION,
+    PortfolioArtifactKind,
+    PortfolioReleaseArtifact,
+    PortfolioReleaseBundle,
+    PortfolioReleaseCheck,
+    PortfolioReleaseDiff,
+    PortfolioReleaseMember,
+    PortfolioReleaseQueryResult,
+    PortfolioReleaseState,
+    PortfolioReleaseVerification,
+    address_check,
+)
+from .portfolio_release import (
+    build_portfolio_release,
+    render_portfolio_release_report,
+    verify_portfolio_release_bundle,
+    write_portfolio_release_bundle,
+)
+from .portfolio_release_query import (
+    diff_portfolio_releases,
+    export_portfolio_release_summary_csv,
+    query_portfolio_release,
+)
+from .portfolio_release_runtime import (
+    PORTFOLIO_RELEASE_RUNTIME_STAGE_IDS,
+    PORTFOLIO_RELEASE_RUNTIME_VERSION,
+    PortfolioReleaseQuality,
+    PortfolioReleaseRuntime,
+    PortfolioReleaseStage,
+    evaluate_portfolio_release_quality,
+    replay_portfolio_release,
+    run_portfolio_release,
+)
+from .portfolio_release_lineage import (
+    PORTFOLIO_RELEASE_LINEAGE_VERSION,
+    PortfolioLineageEdge,
+    PortfolioLineageEdgeKind,
+    PortfolioLineageNode,
+    PortfolioLineageNodeKind,
+    PortfolioReleaseLineage,
+    build_portfolio_release_lineage,
+    lineage_descendants,
+    lineage_for_run,
+)
+from .portfolio_release_observability import (
+    PORTFOLIO_RELEASE_OBSERVABILITY_VERSION,
+    PortfolioReleaseEvent,
+    PortfolioReleaseMetric,
+    PortfolioReleaseObservability,
+    build_portfolio_release_observability,
+    portfolio_release_events_csv,
+    portfolio_release_metrics_csv,
+)
+from .portfolio_release_query import load_portfolio_release_bundle
+from .portfolio_release_schema import (
+    PORTFOLIO_RELEASE_SCHEMA_VERSION,
+    PortfolioSchemaCheck,
+    PortfolioSchemaValidation,
+    portfolio_release_schema,
+    validate_portfolio_release_manifest,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10354,6 +10421,29 @@ __all__ += [
 __all__ += [
     "STORAGE_AUDIT_VERSION", "StorageAuditReport", "StorageBatchAudit", "StorageObjectAudit",
     "StorageRunAudit", "build_storage_audit",
+]
+
+__all__ += [
+    "PORTFOLIO_RELEASE_ARTIFACT_PREFIX", "PORTFOLIO_RELEASE_CHECK_PREFIX",
+    "PORTFOLIO_RELEASE_DEFAULT_MAX_RUNS", "PORTFOLIO_RELEASE_MANIFEST",
+    "PORTFOLIO_RELEASE_MAX_RUNS", "PORTFOLIO_RELEASE_VERSION",
+    "PORTFOLIO_RELEASE_RUNTIME_STAGE_IDS", "PORTFOLIO_RELEASE_RUNTIME_VERSION",
+    "PortfolioArtifactKind", "PortfolioReleaseArtifact", "PortfolioReleaseBundle",
+    "PortfolioReleaseCheck", "PortfolioReleaseDiff", "PortfolioReleaseMember",
+    "PortfolioReleaseQueryResult", "PortfolioReleaseQuality", "PortfolioReleaseRuntime",
+    "PortfolioReleaseStage", "PortfolioReleaseState", "PortfolioReleaseVerification",
+    "address_check", "build_portfolio_release", "diff_portfolio_releases",
+    "evaluate_portfolio_release_quality", "export_portfolio_release_summary_csv",
+    "query_portfolio_release", "render_portfolio_release_report", "replay_portfolio_release",
+    "run_portfolio_release", "verify_portfolio_release_bundle", "write_portfolio_release_bundle",
+    "PORTFOLIO_RELEASE_LINEAGE_VERSION", "PortfolioLineageEdge", "PortfolioLineageEdgeKind",
+    "PortfolioLineageNode", "PortfolioLineageNodeKind", "PortfolioReleaseLineage",
+    "build_portfolio_release_lineage", "lineage_descendants", "lineage_for_run",
+    "PORTFOLIO_RELEASE_OBSERVABILITY_VERSION", "PortfolioReleaseEvent", "PortfolioReleaseMetric",
+    "PortfolioReleaseObservability", "build_portfolio_release_observability",
+    "portfolio_release_events_csv", "portfolio_release_metrics_csv", "load_portfolio_release_bundle",
+    "PORTFOLIO_RELEASE_SCHEMA_VERSION", "PortfolioSchemaCheck", "PortfolioSchemaValidation",
+    "portfolio_release_schema", "validate_portfolio_release_manifest",
 ]
 
 __all__ += [

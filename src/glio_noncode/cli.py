@@ -1267,6 +1267,25 @@ from .run_portfolio import (
     build_run_portfolio,
     build_run_portfolio_closure,
 )
+from .portfolio_release import (
+    build_portfolio_release,
+    verify_portfolio_release_bundle,
+    write_portfolio_release_bundle,
+)
+from .portfolio_release_contracts import PortfolioArtifactKind, PortfolioReleaseState
+from .portfolio_release_query import (
+    diff_portfolio_releases,
+    load_portfolio_release_bundle,
+    query_portfolio_release,
+)
+from .portfolio_release_runtime import run_portfolio_release
+from .portfolio_release_lineage import build_portfolio_release_lineage, lineage_for_run
+from .portfolio_release_observability import (
+    build_portfolio_release_observability,
+    portfolio_release_events_csv,
+    portfolio_release_metrics_csv,
+)
+from .portfolio_release_schema import portfolio_release_schema, validate_portfolio_release_manifest
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -2544,6 +2563,102 @@ def build_parser() -> argparse.ArgumentParser:
     run_portfolio.add_argument("--limit", default=RUN_PORTFOLIO_DEFAULT_LIMIT, type=int)
     run_portfolio.add_argument("--closure", action="store_true")
     run_portfolio.add_argument("--output", default=None)
+
+    portfolio_release = subparsers.add_parser(
+        "portfolio-release",
+        help="build a bounded portable release package across persisted runs",
+    )
+    portfolio_release.add_argument("--data-root", default=".glio")
+    portfolio_release.add_argument("--run-id", action="append", default=[])
+    portfolio_release.add_argument("--case-id", default=None)
+    portfolio_release.add_argument("--status", default=None)
+    portfolio_release.add_argument("--reviewer", default=None)
+    portfolio_release.add_argument(
+        "--due-state",
+        choices=("completed", "overdue", "due_soon", "scheduled", "undated", "invalid"),
+        default=None,
+    )
+    portfolio_release.add_argument("--release-state", choices=RUN_PORTFOLIO_RELEASE_STATES, default=None)
+    portfolio_release.add_argument("--text", default=None)
+    portfolio_release.add_argument("--release-ready-only", action="store_true")
+    portfolio_release.add_argument("--exclude-blocked", action="store_true")
+    portfolio_release.add_argument("--as-of", default=None)
+    portfolio_release.add_argument("--due-soon-hours", default=72, type=int)
+    portfolio_release.add_argument("--max-runs", default=25, type=int)
+    portfolio_release.add_argument("--destination", default=None)
+    portfolio_release.add_argument("--include-payloads", action="store_true")
+    portfolio_release.add_argument("--output", default=None)
+
+    portfolio_release_verify = subparsers.add_parser(
+        "portfolio-release-verify",
+        help="verify a written cross-run portfolio release directory",
+    )
+    portfolio_release_verify.add_argument("destination", type=str)
+    portfolio_release_verify.add_argument("--output", default=None)
+
+    portfolio_release_query = subparsers.add_parser(
+        "portfolio-release-query",
+        help="query members and artifacts from a verified portfolio release",
+    )
+    portfolio_release_query.add_argument("destination", type=str)
+    portfolio_release_query.add_argument("--run-id", default=None)
+    portfolio_release_query.add_argument("--case-id", default=None)
+    portfolio_release_query.add_argument("--state", choices=[item.value for item in PortfolioReleaseState], default=None)
+    portfolio_release_query.add_argument("--artifact-kind", choices=[item.value for item in PortfolioArtifactKind], default=None)
+    portfolio_release_query.add_argument("--media-type", default=None)
+    portfolio_release_query.add_argument("--text", default=None)
+    portfolio_release_query.add_argument("--offset", default=0, type=int)
+    portfolio_release_query.add_argument("--limit", default=100, type=int)
+    portfolio_release_query.add_argument("--include-payloads", action="store_true")
+    portfolio_release_query.add_argument("--output", default=None)
+
+    portfolio_release_diff = subparsers.add_parser(
+        "portfolio-release-diff",
+        help="compare two verified portfolio release manifests by addresses",
+    )
+    portfolio_release_diff.add_argument("left", type=str)
+    portfolio_release_diff.add_argument("right", type=str)
+    portfolio_release_diff.add_argument("--output", default=None)
+
+    portfolio_release_lineage = subparsers.add_parser(
+        "portfolio-release-lineage",
+        help="emit an address-only lineage graph for a verified portfolio release",
+    )
+    portfolio_release_lineage.add_argument("destination", type=str)
+    portfolio_release_lineage.add_argument("--run-id", default=None)
+    portfolio_release_lineage.add_argument("--output", default=None)
+
+    portfolio_release_observability = subparsers.add_parser(
+        "portfolio-release-observability",
+        help="emit deterministic events and metrics for a portfolio release",
+    )
+    portfolio_release_observability.add_argument("destination", type=str)
+    portfolio_release_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    portfolio_release_observability.add_argument("--output", default=None)
+
+    portfolio_release_schema = subparsers.add_parser(
+        "portfolio-release-schema",
+        help="print the closed portfolio release manifest schema",
+    )
+    portfolio_release_schema.add_argument("--output", default=None)
+
+    portfolio_release_validate = subparsers.add_parser(
+        "portfolio-release-validate",
+        help="validate a portfolio release manifest JSON file structurally",
+    )
+    portfolio_release_validate.add_argument("input", type=str)
+    portfolio_release_validate.add_argument("--output", default=None)
+
+    portfolio_release_runtime = subparsers.add_parser(
+        "portfolio-release-runtime",
+        help="run the staged cross-run portfolio release runtime",
+    )
+    portfolio_release_runtime.add_argument("--data-root", default=".glio")
+    portfolio_release_runtime.add_argument("--run-id", action="append", default=[])
+    portfolio_release_runtime.add_argument("--as-of", default=None)
+    portfolio_release_runtime.add_argument("--max-runs", default=25, type=int)
+    portfolio_release_runtime.add_argument("--release-ready-only", action="store_true")
+    portfolio_release_runtime.add_argument("--output", default=None)
 
     storage_audit = subparsers.add_parser(
         "storage-audit",
@@ -18260,6 +18375,81 @@ def main(argv: list[str] | None = None) -> int:
                 ).to_dict()
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "portfolio-release":
+            bundle = build_portfolio_release(
+                CaseRuntime(args.data_root),
+                run_ids=args.run_id,
+                case_id=args.case_id,
+                status=args.status,
+                reviewer=args.reviewer,
+                due_state=args.due_state,
+                release_state=args.release_state,
+                text=args.text,
+                release_ready_only=args.release_ready_only,
+                include_blocked=not args.exclude_blocked,
+                as_of=args.as_of,
+                due_soon_hours=args.due_soon_hours,
+                max_runs=args.max_runs,
+            )
+            if args.destination:
+                write_portfolio_release_bundle(bundle, args.destination)
+            _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "portfolio-release-verify":
+            verification = verify_portfolio_release_bundle(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "portfolio-release-query":
+            result = query_portfolio_release(
+                args.destination,
+                run_id=args.run_id,
+                case_id=args.case_id,
+                state=args.state,
+                artifact_kind=args.artifact_kind,
+                media_type=args.media_type,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                include_payloads=args.include_payloads,
+            )
+            _write_json(result.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "portfolio-release-diff":
+            result = diff_portfolio_releases(args.left, args.right)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "portfolio-release-lineage":
+            bundle = load_portfolio_release_bundle(args.destination)
+            lineage = build_portfolio_release_lineage(bundle, run_id=args.run_id)
+            payload = lineage_for_run(lineage, args.run_id) if args.run_id else lineage.to_dict()
+            _write_json(payload, args.output)
+            return 0 if lineage.accepted else 2
+        if args.command == "portfolio-release-observability":
+            report = build_portfolio_release_observability(load_portfolio_release_bundle(args.destination))
+            if args.format == "events-csv":
+                _write_text(portfolio_release_events_csv(report), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(portfolio_release_metrics_csv(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "portfolio-release-schema":
+            _write_json(portfolio_release_schema(), args.output)
+            return 0
+        if args.command == "portfolio-release-validate":
+            report = validate_portfolio_release_manifest(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "portfolio-release-runtime":
+            execution = run_portfolio_release(
+                CaseRuntime(args.data_root),
+                run_ids=args.run_id,
+                as_of=args.as_of,
+                release_ready_only=args.release_ready_only,
+                max_runs=args.max_runs,
+            )
+            _write_json(execution.to_dict(), args.output)
+            return 0 if execution.accepted else 2
         if args.command == "storage-audit":
             payload = build_storage_audit(CaseRuntime(args.data_root)).to_dict()
             _write_json(payload, args.output)

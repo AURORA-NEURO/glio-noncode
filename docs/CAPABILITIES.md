@@ -3844,6 +3844,39 @@ execution or approval; launch plans do not execute code; HMAC integrity is not
 identity or scientific validation; access policy does not replace institutional
 controls. Secrets remain outside compact exports.
 
+### Cross-run portfolio release boundary
+
+The persisted-run plane now has a repository-wide handoff contract in addition
+to its single-dossier, batch, and workspace releases. `portfolio-release`
+selects a bounded set of replay-verified runs and namespaces each member's
+dossier release, workspace release, run record, event evidence, and member
+status under a stable relative path. A member that is valid but awaiting human
+review remains in the package as `blocked` with its failed check identifiers;
+the package is accepted only when every selected member is independently ready.
+
+The package emits a public portfolio projection, member JSON, CSV summary,
+Markdown report, release checks, and exact-byte artifact manifests. Its
+filesystem verifier checks UTF-8 decoding, byte and line counts, content
+addresses, safe relative paths, duplicate identities, unexpected files,
+member-to-artifact closure, manifest address reconstruction, and the direct
+identifier/attribution/language boundary. JSON artifacts are projected before
+publication, so agent, model, author, programming-language, and direct subject
+fields do not enter the handoff. Query and diff commands operate on a verified
+directory without reopening the source store, while the staged runtime records
+selection, assembly, artifact closure, boundary verification, and final
+address stages for reproducible operations.
+
+```powershell
+glio-noncode portfolio-release --data-root .glio --release-ready-only --as-of 2026-09-01T12:00:00Z --destination portfolio-release
+glio-noncode portfolio-release-verify portfolio-release --output portfolio-release-verification.json
+glio-noncode portfolio-release-query portfolio-release --state ready --output portfolio-ready.json
+glio-noncode portfolio-release-lineage portfolio-release --output portfolio-lineage.json
+glio-noncode portfolio-release-observability portfolio-release --format metrics-csv --output portfolio-metrics.csv
+glio-noncode portfolio-release-schema --output portfolio-schema.json
+glio-noncode portfolio-release-diff portfolio-release-a portfolio-release-b --output portfolio-diff.json
+glio-noncode portfolio-release-runtime --data-root .glio --release-ready-only --output portfolio-runtime.json
+```
+
 ## Domain 16 typed mission runtime
 
 The mission runtime combines the declared control-plane registry with workflow
