@@ -3595,6 +3595,38 @@ and denominator drift. The bundle is research-operational evidence only; it
 does not make a clinical, diagnostic, prognostic, treatment, or individual
 risk determination.
 
+### D14 closure projections and release packet
+
+The D14 closure layer independently closes the portable handoff across ten
+address-only indexes, 34 reconciliation checks, operation/state/queue summary
+counters, eight certification domains with 48 evidence-linked checks, 62
+timestamp-free closure events, 18 metrics, a connected 356-node graph, ten
+negative controls, and a twelve-stage runtime. The closure boundary retains
+the public aggregate scope and excludes direct identity, attribution, model,
+and language fields from public projection rows.
+
+```powershell
+glio-noncode evidence-lifecycle-offline-bundle-closure-query lifecycle-bundle --resource records --operation graph_construction
+glio-noncode evidence-lifecycle-offline-bundle-closure-boundary lifecycle-bundle --output closure-boundary.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-indexes lifecycle-bundle --output closure-indexes.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-reconciliation lifecycle-bundle --output closure-reconciliation.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-summary lifecycle-bundle --format markdown --output closure-summary.md
+glio-noncode evidence-lifecycle-offline-bundle-closure-certification lifecycle-bundle --output closure-certification.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-observability lifecycle-bundle --output closure-observability.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-graph lifecycle-bundle --output closure-graph.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-failures lifecycle-bundle --output closure-failures.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-runtime --output closure-runtime.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-export --destination closure-export --output closure-export.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-export-verify closure-export --output closure-export-verification.json
+```
+
+Closure exports are canonical UTF-8 exact-byte files. Verification reports
+missing, changed, and unexpected paths. Read-only HTTP projections are
+available at `/v1/evidence-lifecycle/bundle/closure-*`; export writing is an
+explicit CLI filesystem operation. See
+[`EVIDENCE_LIFECYCLE_CLOSURE_OPERATIONS.md`](EVIDENCE_LIFECYCLE_CLOSURE_OPERATIONS.md)
+for the contracts and runtime handoff.
+
 These lifecycle surfaces preserve source versions, row hashes, raw records,
 supersession, missing citations, context mismatch, disagreement state,
 abstention, review policy, release boundaries, and replay addresses. They do

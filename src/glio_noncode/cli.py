@@ -980,6 +980,18 @@ from .evidence_lifecycle_frontier_offline_summary import (
     evidence_lifecycle_offline_summary_markdown,
     export_evidence_lifecycle_offline_summary_csv,
 )
+from .evidence_lifecycle_frontier_offline_closure_boundary import audit_evidence_lifecycle_closure_boundary
+from .evidence_lifecycle_frontier_offline_closure_certification import certify_evidence_lifecycle_closure
+from .evidence_lifecycle_frontier_offline_closure_export import build_evidence_lifecycle_closure_export, verify_evidence_lifecycle_closure_export, write_evidence_lifecycle_closure_export
+from .evidence_lifecycle_frontier_offline_closure_failure_injection import run_evidence_lifecycle_closure_failure_injection
+from .evidence_lifecycle_frontier_offline_closure_graph import audit_evidence_lifecycle_closure_graph, build_evidence_lifecycle_closure_graph, export_evidence_lifecycle_closure_graph_csv
+from .evidence_lifecycle_frontier_offline_closure_indexes import audit_evidence_lifecycle_closure_indexes, build_evidence_lifecycle_closure_indexes
+from .evidence_lifecycle_frontier_offline_closure_observability import audit_evidence_lifecycle_closure_observability, build_evidence_lifecycle_closure_observability
+from .evidence_lifecycle_frontier_offline_closure_query import export_evidence_lifecycle_closure_csv, export_evidence_lifecycle_closure_markdown, query_evidence_lifecycle_closure
+from .evidence_lifecycle_frontier_offline_closure_reconciliation import evidence_lifecycle_closure_reconciliation_markdown, reconcile_evidence_lifecycle_closure
+from .evidence_lifecycle_frontier_offline_closure_runtime import run_evidence_lifecycle_closure_runtime
+from .evidence_lifecycle_frontier_offline_closure_schema import evidence_lifecycle_closure_schema, validate_evidence_lifecycle_closure_schema
+from .evidence_lifecycle_frontier_offline_closure_summary import audit_evidence_lifecycle_closure_summary, build_evidence_lifecycle_closure_summary, evidence_lifecycle_closure_summary_markdown, export_evidence_lifecycle_closure_summary_csv
 from .workbench_release_frontier_offline_audit import audit_workbench_release_offline_bundle
 from .workbench_release_frontier_offline_boundary import audit_workbench_release_offline_directory, workbench_release_offline_key_inventory
 from .workbench_release_frontier_offline_bundle import build_workbench_release_offline_bundle, verify_workbench_release_offline_bundle, write_workbench_release_offline_bundle
@@ -7930,6 +7942,68 @@ def build_parser() -> argparse.ArgumentParser:
     evidence_lifecycle_offline_summary.add_argument("destination", type=str)
     evidence_lifecycle_offline_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
     evidence_lifecycle_offline_summary.add_argument("--output", default=None)
+
+    closure_query_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-query", help="query the deep D14 closure resource projections")
+    closure_query_parser.add_argument("destination", type=str)
+    closure_query_parser.add_argument("--resource", choices=("artifacts", "records", "executions", "checks", "sources", "events", "stages", "edges", "queue", "reviews", "scenarios", "operations", "states"), default="artifacts")
+    closure_query_parser.add_argument("--operation", default=None)
+    closure_query_parser.add_argument("--role", default=None)
+    closure_query_parser.add_argument("--state", default=None)
+    closure_query_parser.add_argument("--artifact-kind", default=None)
+    closure_query_parser.add_argument("--event-type", default=None)
+    closure_query_parser.add_argument("--disposition", default=None)
+    closure_query_parser.add_argument("--scenario-id", default=None)
+    closure_query_parser.add_argument("--text", default=None)
+    closure_query_parser.add_argument("--offset", default=0, type=int)
+    closure_query_parser.add_argument("--limit", default=50, type=int)
+    closure_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    closure_query_parser.add_argument("--output", default=None)
+    closure_schema_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-schema", help="print the deep D14 closure schema")
+    closure_schema_parser.add_argument("--output", default=None)
+    closure_validate_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-validate", help="validate all D14 closure projection fields")
+    closure_validate_parser.add_argument("destination", type=str)
+    closure_validate_parser.add_argument("--output", default=None)
+    closure_boundary_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-boundary", help="audit the deep D14 public closure boundary")
+    closure_boundary_parser.add_argument("destination", type=str)
+    closure_boundary_parser.add_argument("--output", default=None)
+    closure_indexes_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-indexes", help="build ten deep D14 closure indexes")
+    closure_indexes_parser.add_argument("destination", type=str)
+    closure_indexes_parser.add_argument("--output", default=None)
+    closure_reconciliation_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-reconciliation", help="reconcile all D14 closure projections")
+    closure_reconciliation_parser.add_argument("destination", type=str)
+    closure_reconciliation_parser.add_argument("--format", choices=("json", "markdown"), default="json")
+    closure_reconciliation_parser.add_argument("--output", default=None)
+    closure_summary_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-summary", help="emit the deep D14 closure summary")
+    closure_summary_parser.add_argument("destination", type=str)
+    closure_summary_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    closure_summary_parser.add_argument("--output", default=None)
+    closure_certification_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-certification", help="issue the 48-check D14 closure certification")
+    closure_certification_parser.add_argument("destination", type=str)
+    closure_certification_parser.add_argument("--output", default=None)
+    closure_observability_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-observability", help="emit D14 closure events and metrics")
+    closure_observability_parser.add_argument("destination", type=str)
+    closure_observability_parser.add_argument("--output", default=None)
+    closure_runtime_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-runtime", help="run the twelve-stage D14 closure runtime")
+    closure_runtime_parser.add_argument("--bundle-id", default="evidence-lifecycle-public-bundle")
+    closure_runtime_parser.add_argument("--run-id", default="evidence-lifecycle-closure-runtime")
+    closure_runtime_parser.add_argument("--output", default=None)
+    closure_failure_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-failures", help="run ten D14 closure negative controls")
+    closure_failure_parser.add_argument("destination", type=str)
+    closure_failure_parser.add_argument("--output", default=None)
+    closure_graph_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-graph", help="build the connected D14 closure graph")
+    closure_graph_parser.add_argument("destination", type=str)
+    closure_graph_parser.add_argument("--format", choices=("json", "csv"), default="json")
+    closure_graph_parser.add_argument("--output", default=None)
+    closure_export_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-export", help="write an exact-byte D14 closure export packet")
+    closure_export_parser.add_argument("--destination", required=True)
+    closure_export_parser.add_argument("--bundle-id", default="evidence-lifecycle-public-bundle")
+    closure_export_parser.add_argument("--run-id", default="evidence-lifecycle-offline-runtime")
+    closure_export_parser.add_argument("--output", default=None)
+    closure_export_verify_parser = subparsers.add_parser("evidence-lifecycle-offline-bundle-closure-export-verify", help="verify an exact-byte D14 closure export packet")
+    closure_export_verify_parser.add_argument("destination", type=str)
+    closure_export_verify_parser.add_argument("--bundle-id", default="evidence-lifecycle-public-bundle")
+    closure_export_verify_parser.add_argument("--run-id", default="evidence-lifecycle-offline-runtime")
+    closure_export_verify_parser.add_argument("--output", default=None)
 
     workbench_release_offline_bundle = subparsers.add_parser(
         "workbench-release-offline-bundle",
@@ -16366,6 +16440,84 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
             return 0 if audit.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-query":
+            result = query_evidence_lifecycle_closure(args.destination, resource=args.resource, operation=args.operation, role=args.role, state=args.state, artifact_kind=args.artifact_kind, event_type=args.event_type, disposition=args.disposition, scenario_id=args.scenario_id, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(export_evidence_lifecycle_closure_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(export_evidence_lifecycle_closure_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-schema":
+            _write_json(evidence_lifecycle_closure_schema(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-offline-bundle-closure-validate":
+            report = validate_evidence_lifecycle_closure_schema(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-boundary":
+            report = audit_evidence_lifecycle_closure_boundary(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-indexes":
+            bundle = load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True)
+            indexes = build_evidence_lifecycle_closure_indexes(bundle)
+            audit = audit_evidence_lifecycle_closure_indexes(bundle, indexes)
+            _write_json({"indexes": indexes.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-reconciliation":
+            report = reconcile_evidence_lifecycle_closure(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            if args.format == "markdown":
+                _write_text(evidence_lifecycle_closure_reconciliation_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-summary":
+            summary = build_evidence_lifecycle_closure_summary(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            audit = audit_evidence_lifecycle_closure_summary(summary)
+            if args.format == "csv":
+                _write_text(export_evidence_lifecycle_closure_summary_csv(summary), args.output)
+            elif args.format == "markdown":
+                _write_text(evidence_lifecycle_closure_summary_markdown(summary), args.output)
+            else:
+                _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-certification":
+            report = certify_evidence_lifecycle_closure(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-observability":
+            report = build_evidence_lifecycle_closure_observability(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            audit = audit_evidence_lifecycle_closure_observability(report)
+            _write_json({"observability": report.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-runtime":
+            report = run_evidence_lifecycle_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-failures":
+            report = run_evidence_lifecycle_closure_failure_injection(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-graph":
+            graph = build_evidence_lifecycle_closure_graph(load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True))
+            audit = audit_evidence_lifecycle_closure_graph(graph)
+            if args.format == "csv":
+                _write_text(export_evidence_lifecycle_closure_graph_csv(graph), args.output)
+            else:
+                _write_json({"graph": graph.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-export":
+            packet = build_evidence_lifecycle_closure_export(build_evidence_lifecycle_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id))
+            write_evidence_lifecycle_closure_export(packet, args.destination)
+            _write_json(packet.to_dict(), args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-closure-export-verify":
+            packet = build_evidence_lifecycle_closure_export(build_evidence_lifecycle_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id))
+            verification = verify_evidence_lifecycle_closure_export(packet, args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "workbench-release-offline-bundle":
             bundle = build_workbench_release_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
             write_workbench_release_offline_bundle(bundle, args.destination)

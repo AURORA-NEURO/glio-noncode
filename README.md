@@ -415,6 +415,25 @@ safe paths, exact artifact hashes, public-boundary keys, and release state. An
 independent audit reconciles fixture, evaluation, runtime, replay, release,
 review, queue, and observability artifacts without a service or database.
 
+The D14 closure layer adds 10 address-only indexes, 34 independent
+reconciliation checks, a 16-counter reviewer summary, 8 certification domains
+with 48 checks, 62 closure events, 18 metrics, a 356-node connected graph, ten
+negative controls, and a 12-artifact exact-byte export packet. All projections
+retain the public aggregate boundary and exclude direct identity, attribution,
+model, and language fields:
+
+```powershell
+glio-noncode evidence-lifecycle-offline-bundle-closure-query lifecycle-bundle --resource queue --disposition hold_for_repair
+glio-noncode evidence-lifecycle-offline-bundle-closure-reconciliation lifecycle-bundle --output lifecycle-closure-reconciliation.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-certification lifecycle-bundle --output lifecycle-closure-certification.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-runtime --output lifecycle-closure-runtime.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-export --destination lifecycle-closure-export --output lifecycle-closure-export.json
+glio-noncode evidence-lifecycle-offline-bundle-closure-export-verify lifecycle-closure-export --output lifecycle-closure-export-verification.json
+```
+
+See [D14 closure operations](docs/EVIDENCE_LIFECYCLE_CLOSURE_OPERATIONS.md)
+for the projection contracts, runtime stages, and review handoff.
+
 The D13 C05–C08 editing-design frontier independently covers CRISPRi/CRISPRa,
 base-editing, prime-editing, and allele-specific reporter design. It executes
 16 aggregate scenarios, 80 checks, 70 assurance planes, and a 79-stage runtime.

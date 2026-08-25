@@ -78,6 +78,17 @@ from .evidence_lifecycle_frontier_offline_boundary import audit_evidence_lifecyc
 from .evidence_lifecycle_frontier_offline_indexes import audit_evidence_lifecycle_offline_indexes, build_evidence_lifecycle_offline_indexes
 from .evidence_lifecycle_frontier_offline_reconciliation import reconcile_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_summary import audit_evidence_lifecycle_offline_summary, build_evidence_lifecycle_offline_summary
+from .evidence_lifecycle_frontier_offline_closure_boundary import audit_evidence_lifecycle_closure_boundary
+from .evidence_lifecycle_frontier_offline_closure_certification import certify_evidence_lifecycle_closure
+from .evidence_lifecycle_frontier_offline_closure_failure_injection import run_evidence_lifecycle_closure_failure_injection
+from .evidence_lifecycle_frontier_offline_closure_graph import build_evidence_lifecycle_closure_graph
+from .evidence_lifecycle_frontier_offline_closure_indexes import audit_evidence_lifecycle_closure_indexes, build_evidence_lifecycle_closure_indexes
+from .evidence_lifecycle_frontier_offline_closure_observability import build_evidence_lifecycle_closure_observability
+from .evidence_lifecycle_frontier_offline_closure_query import query_evidence_lifecycle_closure
+from .evidence_lifecycle_frontier_offline_closure_reconciliation import reconcile_evidence_lifecycle_closure
+from .evidence_lifecycle_frontier_offline_closure_runtime import run_evidence_lifecycle_closure_runtime
+from .evidence_lifecycle_frontier_offline_closure_schema import evidence_lifecycle_closure_schema
+from .evidence_lifecycle_frontier_offline_closure_summary import audit_evidence_lifecycle_closure_summary, build_evidence_lifecycle_closure_summary
 from .workbench_release_frontier_offline_audit import audit_workbench_release_offline_bundle
 from .workbench_release_frontier_offline_boundary import audit_workbench_release_offline_boundary
 from .workbench_release_frontier_offline_bundle import build_workbench_release_offline_bundle
@@ -718,8 +729,22 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/evidence-lifecycle/bundle/boundary",
             "/v1/evidence-lifecycle/bundle/reconciliation",
             "/v1/evidence-lifecycle/bundle/summary",
+            "/v1/evidence-lifecycle/bundle/closure-query",
+            "/v1/evidence-lifecycle/bundle/closure-schema",
+            "/v1/evidence-lifecycle/bundle/closure-boundary",
+            "/v1/evidence-lifecycle/bundle/closure-indexes",
+            "/v1/evidence-lifecycle/bundle/closure-reconciliation",
+            "/v1/evidence-lifecycle/bundle/closure-summary",
+            "/v1/evidence-lifecycle/bundle/closure-certification",
+            "/v1/evidence-lifecycle/bundle/closure-observability",
+            "/v1/evidence-lifecycle/bundle/closure-runtime",
+            "/v1/evidence-lifecycle/bundle/closure-failures",
+            "/v1/evidence-lifecycle/bundle/closure-graph",
         }:
             try:
+                if path.endswith("/closure-schema"):
+                    self._write(HTTPStatus.OK, evidence_lifecycle_closure_schema())
+                    return
                 if path.endswith("/schema"):
                     self._write(HTTPStatus.OK, evidence_lifecycle_offline_bundle_schema())
                     return
@@ -728,7 +753,22 @@ class ApiHandler(BaseHTTPRequestHandler):
                     bundle_id=self._query_value(query, "bundle_id") or "evidence-lifecycle-public-bundle",
                     run_id=self._query_value(query, "run_id") or "evidence-lifecycle-offline-runtime",
                 )
-                if path.endswith("/query"):
+                if path.endswith("/closure-query"):
+                    payload = query_evidence_lifecycle_closure(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        operation=self._query_value(query, "operation"),
+                        role=self._query_value(query, "role"),
+                        state=self._query_value(query, "state"),
+                        artifact_kind=self._query_value(query, "artifact_kind"),
+                        event_type=self._query_value(query, "event_type"),
+                        disposition=self._query_value(query, "disposition"),
+                        scenario_id=self._query_value(query, "scenario_id"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/query"):
                     payload = query_evidence_lifecycle_offline_bundle(
                         bundle,
                         resource=self._query_value(query, "resource") or "artifacts",
@@ -760,6 +800,29 @@ class ApiHandler(BaseHTTPRequestHandler):
                 elif path.endswith("/summary"):
                     summary = build_evidence_lifecycle_offline_summary(bundle)
                     payload = {"summary": summary.to_dict(), "audit": audit_evidence_lifecycle_offline_summary(summary).to_dict()}
+                elif path.endswith("/closure-boundary"):
+                    payload = audit_evidence_lifecycle_closure_boundary(bundle).to_dict()
+                elif path.endswith("/closure-indexes"):
+                    indexes = build_evidence_lifecycle_closure_indexes(bundle)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_evidence_lifecycle_closure_indexes(bundle, indexes).to_dict()}
+                elif path.endswith("/closure-reconciliation"):
+                    payload = reconcile_evidence_lifecycle_closure(bundle).to_dict()
+                elif path.endswith("/closure-summary"):
+                    summary = build_evidence_lifecycle_closure_summary(bundle)
+                    payload = {"summary": summary.to_dict(), "audit": audit_evidence_lifecycle_closure_summary(summary).to_dict()}
+                elif path.endswith("/closure-certification"):
+                    payload = certify_evidence_lifecycle_closure(bundle).to_dict()
+                elif path.endswith("/closure-observability"):
+                    payload = build_evidence_lifecycle_closure_observability(bundle).to_dict()
+                elif path.endswith("/closure-runtime"):
+                    payload = run_evidence_lifecycle_closure_runtime(
+                        bundle_id=bundle.bundle_id,
+                        run_id=self._query_value(query, "run_id") or "evidence-lifecycle-closure-runtime",
+                    ).to_dict()
+                elif path.endswith("/closure-failures"):
+                    payload = run_evidence_lifecycle_closure_failure_injection(bundle).to_dict()
+                elif path.endswith("/closure-graph"):
+                    payload = build_evidence_lifecycle_closure_graph(bundle).to_dict()
                 else:
                     payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
                 self._write(HTTPStatus.OK, payload)

@@ -1849,6 +1849,96 @@ from .evidence_lifecycle_frontier_offline_summary import (
     evidence_lifecycle_offline_summary_markdown,
     export_evidence_lifecycle_offline_summary_csv,
 )
+from .evidence_lifecycle_frontier_offline_closure_contracts import (
+    EVIDENCE_LIFECYCLE_CLOSURE_ARTIFACT_COUNT,
+    EVIDENCE_LIFECYCLE_CLOSURE_CERTIFICATION_CHECK_COUNT,
+    EVIDENCE_LIFECYCLE_CLOSURE_CERTIFICATION_DOMAIN_COUNT,
+    EVIDENCE_LIFECYCLE_CLOSURE_EVENT_COUNT,
+    EVIDENCE_LIFECYCLE_CLOSURE_RUNTIME_STAGE_COUNT,
+    EvidenceLifecycleClosureBoundaryReport,
+    EvidenceLifecycleClosureCertificationCheck,
+    EvidenceLifecycleClosureCertificationDomain,
+    EvidenceLifecycleClosureCertificationReport,
+    EvidenceLifecycleClosureCheck,
+    EvidenceLifecycleClosureEvent,
+    EvidenceLifecycleClosureGraphEdge,
+    EvidenceLifecycleClosureGraphReport,
+    EvidenceLifecycleClosureIndexAudit,
+    EvidenceLifecycleClosureIndexEntry,
+    EvidenceLifecycleClosureIndexes,
+    EvidenceLifecycleClosureMetric,
+    EvidenceLifecycleClosureObservability,
+    EvidenceLifecycleClosureQueryResult,
+    EvidenceLifecycleClosureReconciliationCheck,
+    EvidenceLifecycleClosureReconciliationDelta,
+    EvidenceLifecycleClosureReconciliationReport,
+    EvidenceLifecycleClosureReplay,
+    EvidenceLifecycleClosureRuntimeReport,
+    EvidenceLifecycleClosureRuntimeStage,
+    EvidenceLifecycleClosureState,
+    EvidenceLifecycleClosureSummary,
+    EvidenceLifecycleClosureSummaryAudit,
+)
+from .evidence_lifecycle_frontier_offline_closure_boundary import audit_evidence_lifecycle_closure_boundary
+from .evidence_lifecycle_frontier_offline_closure_certification import certify_evidence_lifecycle_closure
+from .evidence_lifecycle_frontier_offline_closure_export import (
+    EvidenceLifecycleClosureExportArtifact,
+    EvidenceLifecycleClosureExportManifest,
+    EvidenceLifecycleClosureExportPacket,
+    EvidenceLifecycleClosureExportVerification,
+    build_evidence_lifecycle_closure_export,
+    verify_evidence_lifecycle_closure_export,
+    write_evidence_lifecycle_closure_export,
+)
+from .evidence_lifecycle_frontier_offline_closure_failure_injection import (
+    EvidenceLifecycleClosureFailureProbe,
+    EvidenceLifecycleClosureFailureReport,
+    evidence_lifecycle_closure_failure_control_ids,
+    inject_evidence_lifecycle_closure_failure,
+    run_evidence_lifecycle_closure_failure_injection,
+)
+from .evidence_lifecycle_frontier_offline_closure_graph import (
+    EvidenceLifecycleClosureGraphAudit,
+    audit_evidence_lifecycle_closure_graph,
+    build_evidence_lifecycle_closure_graph,
+    export_evidence_lifecycle_closure_graph_csv,
+)
+from .evidence_lifecycle_frontier_offline_closure_indexes import (
+    audit_evidence_lifecycle_closure_indexes,
+    build_evidence_lifecycle_closure_indexes,
+    lookup_evidence_lifecycle_closure_index,
+)
+from .evidence_lifecycle_frontier_offline_closure_observability import (
+    EvidenceLifecycleClosureObservabilityAudit,
+    audit_evidence_lifecycle_closure_observability,
+    build_evidence_lifecycle_closure_observability,
+)
+from .evidence_lifecycle_frontier_offline_closure_query import (
+    evidence_lifecycle_closure_resource_names,
+    export_evidence_lifecycle_closure_csv,
+    export_evidence_lifecycle_closure_markdown,
+    query_evidence_lifecycle_closure,
+)
+from .evidence_lifecycle_frontier_offline_closure_reconciliation import (
+    diff_evidence_lifecycle_closure_bundles,
+    evidence_lifecycle_closure_reconciliation_markdown,
+    reconcile_evidence_lifecycle_closure,
+)
+from .evidence_lifecycle_frontier_offline_closure_runtime import run_evidence_lifecycle_closure_runtime
+from .evidence_lifecycle_frontier_offline_closure_schema import (
+    EvidenceLifecycleClosureSchemaAudit,
+    evidence_lifecycle_closure_schema,
+    validate_evidence_lifecycle_closure_schema,
+)
+from .evidence_lifecycle_frontier_offline_closure_summary import (
+    EVIDENCE_LIFECYCLE_CLOSURE_SUMMARY_VERSION,
+    EvidenceLifecycleClosureOperationSummary,
+    audit_evidence_lifecycle_closure_summary,
+    build_evidence_lifecycle_closure_summary,
+    evidence_lifecycle_closure_summary_markdown,
+    export_evidence_lifecycle_closure_summary_csv,
+    export_evidence_lifecycle_closure_summary_rows,
+)
 from .workspace_frontier_adapters import (
     WorkspaceFrontierAdapterKind,
     WorkspaceFrontierAdapterReceipt,
@@ -10024,6 +10114,12 @@ __all__ += [
     "EVIDENCE_LIFECYCLE_OFFLINE_BOUNDARY_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_INDEX_DEFAULT_LIMIT", "EVIDENCE_LIFECYCLE_OFFLINE_INDEX_MAX_LIMIT", "EVIDENCE_LIFECYCLE_OFFLINE_INDEX_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_RECONCILIATION_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_SUMMARY_VERSION",
     "EvidenceLifecycleOfflineBoundaryFinding", "EvidenceLifecycleOfflineBoundaryPolicy", "EvidenceLifecycleOfflineBoundaryReport", "EvidenceLifecycleOfflineIndex", "EvidenceLifecycleOfflineIndexAudit", "EvidenceLifecycleOfflineIndexCatalog", "EvidenceLifecycleOfflineIndexCheck", "EvidenceLifecycleOfflineIndexKey", "EvidenceLifecycleOfflineIndexQuery", "EvidenceLifecycleOfflineIndexResource", "EvidenceLifecycleOfflineIndexRow", "EvidenceLifecycleOfflineOperationSummary", "EvidenceLifecycleOfflineReconciliationCheck", "EvidenceLifecycleOfflineReconciliationDelta", "EvidenceLifecycleOfflineReconciliationReport", "EvidenceLifecycleOfflineSummary", "EvidenceLifecycleOfflineSummaryAudit", "EvidenceLifecycleOfflineSummaryCheck",
     "audit_evidence_lifecycle_offline_boundary", "audit_evidence_lifecycle_offline_directory", "audit_evidence_lifecycle_offline_indexes", "audit_evidence_lifecycle_offline_summary", "build_evidence_lifecycle_offline_indexes", "build_evidence_lifecycle_offline_summary", "compare_evidence_lifecycle_offline_bundles", "default_evidence_lifecycle_offline_boundary_policy", "evidence_lifecycle_offline_boundary_key_inventory", "evidence_lifecycle_offline_forbidden_key_paths", "evidence_lifecycle_offline_private_key_paths", "evidence_lifecycle_offline_reconciliation_markdown", "evidence_lifecycle_offline_summary_markdown", "export_evidence_lifecycle_offline_indexes_csv", "export_evidence_lifecycle_offline_summary_csv", "query_evidence_lifecycle_offline_indexes", "reconcile_evidence_lifecycle_offline_bundle",
+]
+
+__all__ += [
+    "EVIDENCE_LIFECYCLE_CLOSURE_ARTIFACT_COUNT", "EVIDENCE_LIFECYCLE_CLOSURE_CERTIFICATION_CHECK_COUNT", "EVIDENCE_LIFECYCLE_CLOSURE_CERTIFICATION_DOMAIN_COUNT", "EVIDENCE_LIFECYCLE_CLOSURE_EVENT_COUNT", "EVIDENCE_LIFECYCLE_CLOSURE_RUNTIME_STAGE_COUNT", "EVIDENCE_LIFECYCLE_CLOSURE_SUMMARY_VERSION",
+    "EvidenceLifecycleClosureBoundaryReport", "EvidenceLifecycleClosureCertificationCheck", "EvidenceLifecycleClosureCertificationDomain", "EvidenceLifecycleClosureCertificationReport", "EvidenceLifecycleClosureCheck", "EvidenceLifecycleClosureEvent", "EvidenceLifecycleClosureExportArtifact", "EvidenceLifecycleClosureExportManifest", "EvidenceLifecycleClosureExportPacket", "EvidenceLifecycleClosureExportVerification", "EvidenceLifecycleClosureFailureProbe", "EvidenceLifecycleClosureFailureReport", "EvidenceLifecycleClosureGraphAudit", "EvidenceLifecycleClosureGraphEdge", "EvidenceLifecycleClosureGraphReport", "EvidenceLifecycleClosureIndexAudit", "EvidenceLifecycleClosureIndexEntry", "EvidenceLifecycleClosureIndexes", "EvidenceLifecycleClosureMetric", "EvidenceLifecycleClosureObservability", "EvidenceLifecycleClosureObservabilityAudit", "EvidenceLifecycleClosureOperationSummary", "EvidenceLifecycleClosureQueryResult", "EvidenceLifecycleClosureReconciliationCheck", "EvidenceLifecycleClosureReconciliationDelta", "EvidenceLifecycleClosureReconciliationReport", "EvidenceLifecycleClosureReplay", "EvidenceLifecycleClosureRuntimeReport", "EvidenceLifecycleClosureRuntimeStage", "EvidenceLifecycleClosureSchemaAudit", "EvidenceLifecycleClosureState", "EvidenceLifecycleClosureSummary", "EvidenceLifecycleClosureSummaryAudit",
+    "audit_evidence_lifecycle_closure_boundary", "audit_evidence_lifecycle_closure_graph", "audit_evidence_lifecycle_closure_indexes", "audit_evidence_lifecycle_closure_observability", "audit_evidence_lifecycle_closure_summary", "build_evidence_lifecycle_closure_export", "build_evidence_lifecycle_closure_graph", "build_evidence_lifecycle_closure_indexes", "build_evidence_lifecycle_closure_observability", "build_evidence_lifecycle_closure_summary", "certify_evidence_lifecycle_closure", "diff_evidence_lifecycle_closure_bundles", "evidence_lifecycle_closure_failure_control_ids", "evidence_lifecycle_closure_reconciliation_markdown", "evidence_lifecycle_closure_resource_names", "evidence_lifecycle_closure_schema", "evidence_lifecycle_closure_summary_markdown", "export_evidence_lifecycle_closure_csv", "export_evidence_lifecycle_closure_graph_csv", "export_evidence_lifecycle_closure_markdown", "export_evidence_lifecycle_closure_summary_csv", "export_evidence_lifecycle_closure_summary_rows", "inject_evidence_lifecycle_closure_failure", "lookup_evidence_lifecycle_closure_index", "query_evidence_lifecycle_closure", "reconcile_evidence_lifecycle_closure", "run_evidence_lifecycle_closure_failure_injection", "run_evidence_lifecycle_closure_runtime", "validate_evidence_lifecycle_closure_schema", "verify_evidence_lifecycle_closure_export", "write_evidence_lifecycle_closure_export",
 ]
 
 from .capability_certification import (
