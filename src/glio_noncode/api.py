@@ -9,6 +9,13 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from .dossier_query import (
+    DOSSIER_QUERY_DEFAULT_LIMIT,
+    build_persisted_dossier_query_closure,
+    lineage_persisted_dossier,
+    query_persisted_dossier,
+    summarize_persisted_dossier,
+)
 from .errors import GlioError, StoreError
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
@@ -87,6 +94,16 @@ class ApiHandler(BaseHTTPRequestHandler):
         except ValueError as exc:
             raise ValueError(f"query parameter {name} must be an integer") from exc
 
+    @classmethod
+    def _query_float(cls, query: dict[str, list[str]], name: str) -> float | None:
+        value = cls._query_value(query, name)
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except ValueError as exc:
+            raise ValueError(f"query parameter {name} must be a number") from exc
+
     def _write(self, status: int, payload: Any) -> None:
         body = _json_bytes(payload)
         self.send_response(status)
@@ -150,6 +167,46 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if len(segments) == 3:
                     self._write(HTTPStatus.OK, inspect_run(runtime, run_id).summary.to_dict())
                     return
+                if len(segments) == 4 and segments[3] == "summary":
+                    self._write(HTTPStatus.OK, summarize_persisted_dossier(runtime, run_id).to_dict())
+                    return
+                if len(segments) == 4 and segments[3] == "query-closure":
+                    self._write(HTTPStatus.OK, build_persisted_dossier_query_closure(runtime, run_id))
+                    return
+                if len(segments) == 4 and segments[3] in {"hypotheses", "evidence", "experiments"}:
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    resource = segments[3]
+                    page = query_persisted_dossier(
+                        runtime,
+                        run_id,
+                        resource,
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", DOSSIER_QUERY_DEFAULT_LIMIT),
+                        text=self._query_value(query, "text"),
+                        hypothesis_id=self._query_value(query, "hypothesis_id"),
+                        status=self._query_value(query, "status"),
+                        min_support=self._query_float(query, "min_support"),
+                        max_uncertainty=self._query_float(query, "max_uncertainty"),
+                        evidence_id=self._query_value(query, "evidence_id"),
+                        edge_id=self._query_value(query, "edge_id"),
+                        state=self._query_value(query, "state"),
+                        tier=self._query_value(query, "tier"),
+                        channel=self._query_value(query, "channel"),
+                        source_id=self._query_value(query, "source_id"),
+                        option_id=self._query_value(query, "option_id"),
+                        assay=self._query_value(query, "assay"),
+                    )
+                    self._write(HTTPStatus.OK, page.to_dict())
+                    return
+                if len(segments) == 4 and segments[3] == "lineage":
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    lineage = lineage_persisted_dossier(
+                        runtime,
+                        run_id,
+                        hypothesis_id=self._query_value(query, "hypothesis_id"),
+                    )
+                    self._write(HTTPStatus.OK, lineage.to_dict())
+                    return
                 if len(segments) == 4 and segments[3] == "dossier":
                     self._write(HTTPStatus.OK, get_run_dossier(runtime, run_id))
                     return
@@ -174,6 +231,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "path": path})
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "run not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary

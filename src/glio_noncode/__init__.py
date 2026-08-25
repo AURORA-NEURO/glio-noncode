@@ -10067,6 +10067,23 @@ from .run_catalog import (
     get_run_events,
     inspect_run,
 )
+from .dossier_query import (
+    DOSSIER_QUERY_DEFAULT_LIMIT,
+    DOSSIER_QUERY_MAX_LIMIT,
+    DOSSIER_QUERY_RESOURCES,
+    DOSSIER_QUERY_VERSION,
+    DossierLineageProjection,
+    DossierQueryPage,
+    DossierQuerySummary,
+    build_dossier_lineage,
+    build_dossier_query_closure,
+    build_persisted_dossier_query_closure,
+    lineage_persisted_dossier,
+    query_dossier,
+    query_persisted_dossier,
+    summarize_dossier,
+    summarize_persisted_dossier,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10101,6 +10118,13 @@ __all__ += [
     "RUN_CATALOG_DEFAULT_LIMIT", "RUN_CATALOG_MAX_LIMIT", "RUN_CATALOG_VERSION",
     "RunCatalogPage", "RunInspection", "RunIntegrity", "RunSummary",
     "build_run_catalog_closure", "build_run_catalog_page", "get_run_dossier", "get_run_events", "inspect_run",
+]
+
+__all__ += [
+    "DOSSIER_QUERY_DEFAULT_LIMIT", "DOSSIER_QUERY_MAX_LIMIT", "DOSSIER_QUERY_RESOURCES", "DOSSIER_QUERY_VERSION",
+    "DossierLineageProjection", "DossierQueryPage", "DossierQuerySummary", "build_dossier_lineage",
+    "build_dossier_query_closure", "build_persisted_dossier_query_closure", "lineage_persisted_dossier", "query_dossier",
+    "query_persisted_dossier", "summarize_dossier", "summarize_persisted_dossier",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403

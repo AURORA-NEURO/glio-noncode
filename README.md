@@ -33,7 +33,7 @@ The same runtime can be served locally:
 glio-noncode serve --host 127.0.0.1 --port 8765
 ```
 
-Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, and reviewed through `GET /v1/runs`, `/v1/runs/{run_id}`, `/v1/runs/{run_id}/dossier`, `/v1/runs/{run_id}/events`, `/v1/runs/{run_id}/replay`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
+Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, and reviewed through the `/v1/runs/{run_id}` projections and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
 
 To enrich a manifest from bounded live public references, use:
 
@@ -48,6 +48,9 @@ To inspect locally persisted runs and their replay evidence:
 glio-noncode run-catalog --data-root .glio
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
+glio-noncode run-query run-<run-id> evidence --state supported --data-root .glio --output supported-evidence.json
+glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json
+glio-noncode run-query run-<run-id> closure --data-root .glio --output dossier-query-closure.json
 ```
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.

@@ -1416,3 +1416,5 @@ jobs:
         run: python -m unittest tests.test_service_surface
       - name: Persisted run catalog focused tests
         run: python -m unittest tests.test_run_catalog tests.test_runtime
+      - name: Dossier query and lineage focused tests
+        run: python -m unittest tests.test_dossier_query

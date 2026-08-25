@@ -22,6 +22,12 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/events` | Reopen the hash-chained event record |
 | GET | `/v1/runs/{run_id}/replay` | Return replay verification evidence |
 | GET | `/v1/runs/{run_id}/inspection` | Return the complete run inspection closure |
+| GET | `/v1/runs/{run_id}/summary` | Aggregate evidence, review, and validation counters |
+| GET | `/v1/runs/{run_id}/query-closure` | Complete content-addressed dossier query projection |
+| GET | `/v1/runs/{run_id}/hypotheses` | Filter bounded hypothesis projections |
+| GET | `/v1/runs/{run_id}/evidence` | Filter bounded evidence-claim projections |
+| GET | `/v1/runs/{run_id}/experiments` | Filter bounded validation-route projections |
+| GET | `/v1/runs/{run_id}/lineage` | Join hypothesis edges to referenced claims |
 | POST | `/v1/runs/{run_id}/review` | Attach a typed human review and create a new dossier snapshot |
 | POST | `/v1/evaluate` | Existing case evaluation endpoint |
 
@@ -36,6 +42,13 @@ The limit is bounded to 100 rows. Run identifiers are validated before they are
 used as filesystem paths. Missing runs return HTTP 404; an existing run can be
 accepted only when its input object, event chain, dossier address, and stored
 object links all verify.
+
+Dossier-plane queries accept `offset`, `limit`, and resource-specific filters.
+Evidence supports `state`, `tier`, `channel`, `source_id`, `edge_id`, and
+`evidence_id`; hypotheses support `hypothesis_id`, `status`, `min_support`, and
+`max_uncertainty`; experiments support `option_id` and `assay`. The lineage
+projection accepts `hypothesis_id` and fails closed when an edge references a
+missing claim.
 
 ## CLI and offline closure
 
@@ -58,6 +71,9 @@ glio-noncode run-catalog --data-root .glio
 glio-noncode run-catalog --data-root .glio --closure --output run-catalog-closure.json
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
+glio-noncode run-query run-<run-id> summary --data-root .glio --output run-summary.json
+glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json
+glio-noncode run-query run-<run-id> closure --data-root .glio --output dossier-query-closure.json
 ```
 
 Review input uses the public `ReviewDecision` fields: `review_id`, `case_id`,

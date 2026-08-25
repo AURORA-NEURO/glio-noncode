@@ -1224,6 +1224,14 @@ from .regulatory_atlas_runtime import run_regulatory_atlas_pipeline_file
 from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
+from .dossier_query import (
+    DOSSIER_QUERY_DEFAULT_LIMIT,
+    DOSSIER_QUERY_RESOURCES,
+    build_persisted_dossier_query_closure,
+    lineage_persisted_dossier,
+    query_persisted_dossier,
+    summarize_persisted_dossier,
+)
 from .run_catalog import (
     RUN_CATALOG_DEFAULT_LIMIT,
     build_run_catalog_closure,
@@ -2405,6 +2413,30 @@ def build_parser() -> argparse.ArgumentParser:
     run_review.add_argument("review", type=str, help="JSON review decision")
     run_review.add_argument("--data-root", default=".glio")
     run_review.add_argument("--output", default=None)
+
+    run_query = subparsers.add_parser(
+        "run-query",
+        help="query hypotheses, evidence, experiments, summary, or lineage for one run",
+    )
+    run_query.add_argument("run_id", type=str)
+    run_query.add_argument("resource", choices=("summary", *DOSSIER_QUERY_RESOURCES, "lineage", "closure"))
+    run_query.add_argument("--data-root", default=".glio")
+    run_query.add_argument("--offset", default=0, type=int)
+    run_query.add_argument("--limit", default=DOSSIER_QUERY_DEFAULT_LIMIT, type=int)
+    run_query.add_argument("--text", default=None)
+    run_query.add_argument("--hypothesis-id", default=None)
+    run_query.add_argument("--status", default=None)
+    run_query.add_argument("--min-support", default=None, type=float)
+    run_query.add_argument("--max-uncertainty", default=None, type=float)
+    run_query.add_argument("--evidence-id", default=None)
+    run_query.add_argument("--edge-id", default=None)
+    run_query.add_argument("--state", default=None)
+    run_query.add_argument("--tier", default=None)
+    run_query.add_argument("--channel", default=None)
+    run_query.add_argument("--source-id", default=None)
+    run_query.add_argument("--option-id", default=None)
+    run_query.add_argument("--assay", default=None)
+    run_query.add_argument("--output", default=None)
 
     schema = subparsers.add_parser("schema", help="print the public contract summary")
     schema.add_argument("--output", default=None)
@@ -17821,6 +17853,41 @@ def main(argv: list[str] | None = None) -> int:
             dossier = CaseRuntime(args.data_root).review_run(args.run_id, review)
             _write_json(dossier.to_dict(), args.output)
             return 0
+        if args.command == "run-query":
+            runtime = CaseRuntime(args.data_root)
+            if args.resource == "summary":
+                payload = summarize_persisted_dossier(runtime, args.run_id).to_dict()
+            elif args.resource == "closure":
+                payload = build_persisted_dossier_query_closure(runtime, args.run_id)
+            elif args.resource == "lineage":
+                payload = lineage_persisted_dossier(
+                    runtime,
+                    args.run_id,
+                    hypothesis_id=args.hypothesis_id,
+                ).to_dict()
+            else:
+                payload = query_persisted_dossier(
+                    runtime,
+                    args.run_id,
+                    args.resource,
+                    offset=args.offset,
+                    limit=args.limit,
+                    text=args.text,
+                    hypothesis_id=args.hypothesis_id,
+                    status=args.status,
+                    min_support=args.min_support,
+                    max_uncertainty=args.max_uncertainty,
+                    evidence_id=args.evidence_id,
+                    edge_id=args.edge_id,
+                    state=args.state,
+                    tier=args.tier,
+                    channel=args.channel,
+                    source_id=args.source_id,
+                    option_id=args.option_id,
+                    assay=args.assay,
+                ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
     except (GlioError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
