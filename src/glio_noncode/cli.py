@@ -1250,6 +1250,11 @@ from .run_catalog import (
     inspect_run,
 )
 from .review_queue import build_review_queue_closure, build_review_queue_page
+from .review_operations import (
+    REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
+    build_review_operations_closure,
+    build_review_operations_report,
+)
 from .schema import schema_document
 from .sequence_adapters import (
     LongContextVariantEffectAdapter,
@@ -2446,6 +2451,36 @@ def build_parser() -> argparse.ArgumentParser:
     review_queue.add_argument("--limit", default=25, type=int)
     review_queue.add_argument("--closure", action="store_true")
     review_queue.add_argument("--output", default=None)
+
+    review_operations = subparsers.add_parser(
+        "review-operations",
+        help="build an as-of SLA and reviewer workload report over review work",
+    )
+    review_operations.add_argument("--data-root", default=".glio")
+    review_operations.add_argument(
+        "--scope",
+        choices=("open", "all", "assigned", "unassigned", "completed", "blocked"),
+        default="open",
+    )
+    review_operations.add_argument("--reviewer", default=None)
+    review_operations.add_argument("--queue-id", default=None)
+    review_operations.add_argument(
+        "--due-state",
+        choices=("completed", "overdue", "due_soon", "scheduled", "undated", "invalid"),
+        default=None,
+    )
+    review_operations.add_argument("--priority-band", choices=("critical", "high", "normal", "low"), default=None)
+    review_operations.add_argument("--text", default=None)
+    review_operations.add_argument("--as-of", default=None)
+    review_operations.add_argument(
+        "--due-soon-hours",
+        default=REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
+        type=int,
+    )
+    review_operations.add_argument("--offset", default=0, type=int)
+    review_operations.add_argument("--limit", default=50, type=int)
+    review_operations.add_argument("--closure", action="store_true")
+    review_operations.add_argument("--output", default=None)
 
     review_assign = subparsers.add_parser(
         "review-assign",
@@ -17980,6 +18015,30 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(result, args.output)
             return 0 if result["accepted"] else 2
+        if args.command == "review-operations":
+            runtime = CaseRuntime(args.data_root)
+            if args.closure:
+                payload = build_review_operations_closure(
+                    runtime,
+                    as_of=args.as_of,
+                    due_soon_hours=args.due_soon_hours,
+                )
+            else:
+                payload = build_review_operations_report(
+                    runtime,
+                    scope=args.scope,
+                    reviewer=args.reviewer,
+                    queue_id=args.queue_id,
+                    due_state=args.due_state,
+                    priority_band=args.priority_band,
+                    text=args.text,
+                    as_of=args.as_of,
+                    due_soon_hours=args.due_soon_hours,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
         if args.command == "run-query":
             runtime = CaseRuntime(args.data_root)
             if args.resource == "summary":

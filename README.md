@@ -33,7 +33,7 @@ The same runtime can be served locally:
 glio-noncode serve --host 127.0.0.1 --port 8765
 ```
 
-Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
+Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `GET /v1/review-operations`, `GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
 
 To enrich a manifest from bounded live public references, use:
 
@@ -56,6 +56,8 @@ glio-noncode run-compare run-<run-id> run-<run-id> --source-snapshot 0 --target-
 glio-noncode run-compare-release run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output comparison-release
 glio-noncode review-queue --data-root .glio --scope open --output review-queue.json
 glio-noncode review-queue --data-root .glio --closure --output review-queue-closure.json
+glio-noncode review-operations --data-root .glio --as-of 2026-09-01T12:00:00Z --output review-operations.json
+glio-noncode review-operations --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output review-operations-closure.json
 glio-noncode review-assign run-<run-id> assignment.json --data-root .glio --output assignment-result.json
 ```
 
@@ -65,6 +67,13 @@ warnings, uncertainty, abstained evidence, and unassigned work while retaining
 explicit filters and content addresses. Assignments are append-only events, so
 reviewer, queue, due-time, and note metadata remain replayable rather than
 replacing the run history.
+
+The review-operations projection adds reproducible SLA state to that queue:
+overdue, due-soon, scheduled, undated, and invalid due dates are separated;
+case age and remaining time are explicit; and reviewer/queue workload rows show
+open, blocked, critical, overdue, and completed counts. Pass `--as-of` when
+producing a handoff so the same persisted inputs produce the same operational
+report.
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
 

@@ -30,6 +30,11 @@ from .run_catalog import (
     inspect_run,
 )
 from .review_queue import build_review_queue_closure, build_review_queue_page
+from .review_operations import (
+    REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
+    build_review_operations_closure,
+    build_review_operations_report,
+)
 from .runtime import CaseRuntime
 from .schema import schema_document
 from .service_surface import (
@@ -177,6 +182,48 @@ class ApiHandler(BaseHTTPRequestHandler):
                     limit=self._query_int(query, "limit", 25),
                 )
                 self._write(HTTPStatus.OK, page.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "run not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/review-operations" or path == "/v1/review-operations/closure":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                as_of = self._query_value(query, "as_of")
+                due_soon_hours = self._query_int(
+                    query,
+                    "due_soon_hours",
+                    REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
+                )
+                if path.endswith("/closure"):
+                    self._write(
+                        HTTPStatus.OK,
+                        build_review_operations_closure(
+                            self._runtime(),
+                            as_of=as_of,
+                            due_soon_hours=due_soon_hours,
+                        ),
+                    )
+                    return
+                report = build_review_operations_report(
+                    self._runtime(),
+                    scope=self._query_value(query, "scope") or "open",
+                    reviewer=self._query_value(query, "reviewer"),
+                    queue_id=self._query_value(query, "queue_id"),
+                    due_state=self._query_value(query, "due_state"),
+                    priority_band=self._query_value(query, "priority_band"),
+                    text=self._query_value(query, "text"),
+                    as_of=as_of,
+                    due_soon_hours=due_soon_hours,
+                    offset=self._query_int(query, "offset", 0),
+                    limit=self._query_int(query, "limit", 50),
+                )
+                self._write(HTTPStatus.OK, report.to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "run not found"})
             except GlioError as exc:

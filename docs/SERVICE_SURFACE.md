@@ -35,6 +35,8 @@ report or runtime from which it was derived.
 | POST | `/v1/runs/{run_id}/review` | Attach a typed human review and create a new dossier snapshot |
 | GET | `/v1/review-queue` | Return a bounded deterministic priority queue for review operations |
 | GET | `/v1/review-queue/closure` | Return the complete review queue with state and priority counters |
+| GET | `/v1/review-operations` | Return an as-of SLA, aging, and reviewer workload projection |
+| GET | `/v1/review-operations/closure` | Return the complete SLA and workload closure |
 | POST | `/v1/runs/{run_id}/assignment` | Append a durable reviewer assignment and create a new dossier snapshot |
 | POST | `/v1/evaluate` | Existing case evaluation endpoint |
 
@@ -64,6 +66,15 @@ integrity blocks, returned or pending reviews, missing reviews, runtime warnings
 uncertainty, abstained evidence, and missing assignments contribute explicit
 priority reasons. The queue remains a projection over replay-verified runs and
 fails closed when any persisted run is corrupted.
+
+Review operations accepts the same scope plus `reviewer`, `queue_id`,
+`due_state`, `priority_band`, `text`, `offset`, `limit`, `as_of`, and
+`due_soon_hours`. Due states are `completed`, `overdue`, `due_soon`,
+`scheduled`, `undated`, and `invalid`. Every report includes the normalized UTC
+clock, age in seconds, remaining seconds when a due time exists, an explicit
+operational action, deterministic reviewer/queue workloads, and content
+addresses. Supplying `as_of` is recommended for reproducible exports; omitting
+it uses the current UTC instant for interactive use.
 
 ## CLI and offline closure
 
@@ -98,6 +109,8 @@ glio-noncode run-release run-<run-id> --data-root .glio --output dossier-release
 glio-noncode run-release-verify dossier-release --output release-verification.json
 glio-noncode review-queue --data-root .glio --scope open --output review-queue.json
 glio-noncode review-queue --data-root .glio --closure --output review-queue-closure.json
+glio-noncode review-operations --data-root .glio --as-of 2026-09-01T12:00:00Z --output review-operations.json
+glio-noncode review-operations --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output review-operations-closure.json
 glio-noncode review-assign run-<run-id> assignment.json --data-root .glio --output assignment-result.json
 ```
 

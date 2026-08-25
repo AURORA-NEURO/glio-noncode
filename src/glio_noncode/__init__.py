@@ -10137,6 +10137,20 @@ from .review_queue import (
     build_review_queue_closure,
     build_review_queue_page,
 )
+from .review_operations import (
+    REVIEW_DUE_STATES,
+    REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS,
+    REVIEW_OPERATIONS_DEFAULT_LIMIT,
+    REVIEW_OPERATIONS_MAX_DUE_SOON_HOURS,
+    REVIEW_OPERATIONS_MAX_LIMIT,
+    REVIEW_OPERATIONS_VERSION,
+    REVIEW_OPERATIONAL_ACTIONS,
+    ReviewOperationItem,
+    ReviewOperationsReport,
+    ReviewWorkload,
+    build_review_operations_closure,
+    build_review_operations_report,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10204,6 +10218,14 @@ __all__ += [
     "REVIEW_PRIORITY_BANDS", "REVIEW_QUEUE_DEFAULT_LIMIT", "REVIEW_QUEUE_MAX_LIMIT",
     "REVIEW_QUEUE_SCOPES", "REVIEW_QUEUE_VERSION", "ReviewAssignmentView",
     "ReviewQueueItem", "ReviewQueuePage", "build_review_queue_closure", "build_review_queue_page",
+]
+
+__all__ += [
+    "REVIEW_DUE_STATES", "REVIEW_OPERATIONS_DEFAULT_DUE_SOON_HOURS",
+    "REVIEW_OPERATIONS_DEFAULT_LIMIT", "REVIEW_OPERATIONS_MAX_DUE_SOON_HOURS",
+    "REVIEW_OPERATIONS_MAX_LIMIT", "REVIEW_OPERATIONS_VERSION", "REVIEW_OPERATIONAL_ACTIONS",
+    "ReviewOperationItem", "ReviewOperationsReport", "ReviewWorkload",
+    "build_review_operations_closure", "build_review_operations_report",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403
