@@ -1702,6 +1702,12 @@ from .run_workspace import (
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
 )
+from .review_workspace import (
+    ReviewWorkspaceConfig,
+    build_persisted_review_workspace,
+    review_workspace_capabilities,
+    review_workspace_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -3296,6 +3302,27 @@ def build_parser() -> argparse.ArgumentParser:
     run_workspace.add_argument("--limit", default=RUN_WORKSPACE_DEFAULT_LIMIT, type=int)
     run_workspace.add_argument("--closure", action="store_true")
     run_workspace.add_argument("--output", default=None)
+
+    review_workspace = subparsers.add_parser(
+        "review-workspace",
+        help="render a provenance-first replay-gated review workspace",
+    )
+    review_workspace.add_argument("run_id", type=str)
+    review_workspace.add_argument("--data-root", default=".glio")
+    review_workspace.add_argument("--baseline-run-id", default=None)
+    review_workspace.add_argument("--uncertainty-review-threshold", default=0.5, type=float)
+    review_workspace.add_argument("--context-fit-review-threshold", default=0.75, type=float)
+    review_workspace.add_argument("--output", default=None)
+    review_workspace_schema_parser = subparsers.add_parser(
+        "review-workspace-schema",
+        help="emit the provenance-first review workspace schema",
+    )
+    review_workspace_schema_parser.add_argument("--output", default=None)
+    review_workspace_capabilities_parser = subparsers.add_parser(
+        "review-workspace-capabilities",
+        help="emit operational review workspace capabilities",
+    )
+    review_workspace_capabilities_parser.add_argument("--output", default=None)
 
     run_workspace_history = subparsers.add_parser(
         "run-workspace-history",
@@ -22043,6 +22070,24 @@ def main(argv: list[str] | None = None) -> int:
                 ).to_dict()
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "review-workspace":
+            report = build_persisted_review_workspace(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+                config=ReviewWorkspaceConfig(
+                    uncertainty_review_threshold=args.uncertainty_review_threshold,
+                    context_fit_review_threshold=args.context_fit_review_threshold,
+                ),
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "review-workspace-schema":
+            _write_json(review_workspace_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-capabilities":
+            _write_json(review_workspace_capabilities(), args.output)
+            return 0
         if args.command == "run-workspace-history":
             history = build_persisted_workspace_history(
                 CaseRuntime(args.data_root),

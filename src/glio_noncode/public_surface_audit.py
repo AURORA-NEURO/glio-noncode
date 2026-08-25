@@ -44,6 +44,7 @@ from .reference_track_adapters import (
     reference_track_adapter_schema,
 )
 from .cohort_benchmarks import cohort_benchmark_capabilities, cohort_benchmark_schema
+from .review_workspace import review_workspace_capabilities, review_workspace_schema
 from .variant_stream import (
     breakend_normalization_schema,
     streaming_intake_capabilities,
@@ -56,7 +57,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 39
+PUBLIC_SURFACE_EXPECTED_COUNT = 41
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -272,6 +273,8 @@ def default_public_surface_inventory(
         "reference-adapter-capabilities": reference_track_adapter_capabilities(),
         "cohort-benchmark-schema": cohort_benchmark_schema(),
         "cohort-benchmark-capabilities": cohort_benchmark_capabilities(),
+        "review-workspace-schema": review_workspace_schema(),
+        "review-workspace-capabilities": review_workspace_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 39-surface audit, including the
+schema fields. The result is a deterministic 41-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema, and
 versioned reference manifest/schema, suitable for local release checks and CI.
 
@@ -754,6 +754,18 @@ glio-noncode cohort-benchmark-capabilities --output cohort-benchmark-capabilitie
 ```
 
 See [cohort benchmark operations](docs/COHORT_BENCHMARKS.md).
+
+The provenance-first review workspace keeps hypotheses, evidence edges,
+alternatives, source lineage, review work items, and per-dimension deltas
+separate from any aggregate score:
+
+```powershell
+glio-noncode review-workspace RUN_ID --data-root .glio --output review-workspace.json
+glio-noncode review-workspace RUN_ID --baseline-run-id BASELINE_RUN_ID --data-root .glio --output review-deltas.json
+glio-noncode review-workspace-schema --output review-workspace-schema.json
+```
+
+See [review workspace operations](docs/REVIEW_WORKSPACE.md).
 
 See [reference manifest operations](docs/REFERENCE_MANIFEST.md). Reference
 manifests carry source receipts, declared access and license terms,

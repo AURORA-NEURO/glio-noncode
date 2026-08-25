@@ -3861,6 +3861,24 @@ single variant and only declared relationships. The regulatory track browser
 turns parsed intervals into source-accounted overlap-searchable records while
 keeping parse issues and the annotation-only limitation visible.
 
+The replay-gated review workspace is the provenance-first companion to that
+navigation model. It renders typed hypothesis edges, payload-free evidence
+claims, explicit alternatives, source-centric provenance, explainable human
+review queue items, and per-dimension deltas between two verified runs. Support,
+uncertainty, context fit, evidence score/confidence, categorical state changes,
+and presence changes remain separate dimensions; there is no aggregate review
+score. Current and baseline runs must both pass replay verification, and raw
+evidence payloads plus producer metadata are withheld from the public view.
+
+```powershell
+glio-noncode review-workspace RUN_ID --data-root .glio --output review-workspace.json
+glio-noncode review-workspace RUN_ID --baseline-run-id BASELINE_RUN_ID --data-root .glio --output review-deltas.json
+glio-noncode review-workspace-schema --output review-workspace-schema.json
+glio-noncode review-workspace-capabilities --output review-workspace-capabilities.json
+```
+
+See [the review workspace contract](REVIEW_WORKSPACE.md).
+
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source
 receipts: one positive and three controls per operation. Evaluation executes
@@ -4066,7 +4084,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 39 named surfaces: service status, capabilities, program, operational,
+audits 41 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4089,7 +4107,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 39-surface inventory or any
+The command exits non-zero when the closed 41-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary

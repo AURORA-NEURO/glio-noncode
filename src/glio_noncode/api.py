@@ -228,6 +228,12 @@ from .run_workspace import (
     build_persisted_run_workspace_closure,
     workspace_query_from_filters,
 )
+from .review_workspace import (
+    ReviewWorkspaceConfig,
+    build_persisted_review_workspace,
+    review_workspace_capabilities,
+    review_workspace_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -585,6 +591,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/cohort/benchmark/capabilities":
             self._write(HTTPStatus.OK, cohort_benchmark_capabilities())
+            return
+        if path == "/v1/review-workspace/schema":
+            self._write(HTTPStatus.OK, review_workspace_schema())
+            return
+        if path == "/v1/review-workspace/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
@@ -2049,6 +2061,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write(HTTPStatus.OK, build_run_history(runtime, run_id).to_dict())
                     return
                 is_workspace = len(segments) == 4 and segments[3] == "workspace"
+                is_review_workspace = len(segments) == 4 and segments[3] == "review-workspace"
                 is_workspace_closure = (
                     len(segments) == 5
                     and segments[3] == "workspace"
@@ -2074,6 +2087,20 @@ class ApiHandler(BaseHTTPRequestHandler):
                         HTTPStatus.OK,
                         build_persisted_workspace_release(runtime, run_id).to_dict(),
                     )
+                    return
+                if is_review_workspace:
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query, "config")
+                    config = ReviewWorkspaceConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    report = build_persisted_review_workspace(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query, "baseline_run_id"),
+                        config=config,
+                    )
+                    self._write(HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, report.to_dict())
                     return
                 if is_workspace_history:
                     query = parse_qs(parsed.query, keep_blank_values=False)
