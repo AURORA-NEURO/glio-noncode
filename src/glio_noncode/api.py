@@ -208,6 +208,23 @@ from .service_surface import (
     service_program_projection,
     service_surface_status,
 )
+from .service_release_bundle import build_service_release_snapshot
+from .service_release_certification import certify_service_release
+from .service_release_export import build_service_release_export
+from .service_release_failure_injection import run_service_release_failure_injections
+from .service_release_graph import build_service_release_graph
+from .service_release_indexes import audit_service_release_indexes, build_service_release_indexes
+from .service_release_observability import build_service_release_observability
+from .service_release_plan import audit_service_release_plan, build_service_release_plan
+from .service_release_query import query_service_release
+from .service_release_reconciliation import (
+    audit_service_release_summary,
+    build_service_release_summary,
+    reconcile_service_release,
+)
+from .service_release_runtime import run_service_release
+from .service_release_schema import service_release_schema, validate_service_release_schema
+from .service_release_views import audit_service_release_views, build_service_release_views
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -261,6 +278,19 @@ class ApiHandler(BaseHTTPRequestHandler):
         if snapshot is None:
             snapshot = build_service_surface_snapshot()
             setattr(self.server, "glio_service_surface", snapshot)  # noqa: B010 - lazy server-local cache
+        return snapshot
+
+    def _service_release(self, bundle_id: str):
+        """Cache one service-release registry per requested bundle identifier."""
+
+        cache = getattr(self.server, "glio_service_release_snapshots", None)
+        if cache is None:
+            cache = {}
+            setattr(self.server, "glio_service_release_snapshots", cache)
+        snapshot = cache.get(bundle_id)
+        if snapshot is None:
+            snapshot = build_service_release_snapshot(self._service_surface(), bundle_id=bundle_id)
+            cache[bundle_id] = snapshot
         return snapshot
 
     @staticmethod
@@ -376,6 +406,85 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/service-release",
+            "/v1/service-release/query",
+            "/v1/service-release/schema",
+            "/v1/service-release/indexes",
+            "/v1/service-release/reconciliation",
+            "/v1/service-release/summary",
+            "/v1/service-release/certification",
+            "/v1/service-release/observability",
+            "/v1/service-release/graph",
+            "/v1/service-release/failures",
+            "/v1/service-release/plan",
+            "/v1/service-release/views",
+            "/v1/service-release/runtime",
+            "/v1/service-release/export",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "glio-noncode-service-release"
+                run_id = self._query_value(query, "run_id") or "glio-noncode-service-release-run"
+                source = self._service_surface()
+                snapshot = self._service_release(bundle_id)
+                if path.endswith("/schema"):
+                    schema = service_release_schema()
+                    self._write(HTTPStatus.OK, {"schema": schema, "audit": [item.to_dict() for item in validate_service_release_schema(snapshot, schema)]})
+                    return
+                if path.endswith("/runtime"):
+                    self._write(HTTPStatus.OK, run_service_release(source, bundle_id=bundle_id, run_id=run_id).to_dict())
+                    return
+                if path.endswith("/export"):
+                    runtime = run_service_release(source, bundle_id=bundle_id, run_id=run_id)
+                    self._write(HTTPStatus.OK, build_service_release_export(runtime, source).to_dict())
+                    return
+                if path == "/v1/service-release":
+                    payload = snapshot.to_dict()
+                elif path.endswith("/query"):
+                    payload = query_service_release(
+                        snapshot,
+                        resource=self._query_value(query, "resource") or "surfaces",
+                        surface_id=self._query_value(query, "surface_id"),
+                        state=self._query_value(query, "state"),
+                        relation=self._query_value(query, "relation"),
+                        accepted_only=self._query_bool(query, "accepted"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/indexes"):
+                    indexes = build_service_release_indexes(snapshot)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_service_release_indexes(snapshot, indexes).to_dict()}
+                elif path.endswith("/reconciliation"):
+                    payload = reconcile_service_release(snapshot, source).to_dict()
+                elif path.endswith("/summary"):
+                    summary = build_service_release_summary(snapshot, source)
+                    payload = {"summary": summary.to_dict(), "audit": audit_service_release_summary(summary, source).to_dict()}
+                elif path.endswith("/certification"):
+                    payload = certify_service_release(snapshot).to_dict()
+                elif path.endswith("/observability"):
+                    payload = build_service_release_observability(snapshot).to_dict()
+                elif path.endswith("/graph"):
+                    payload = build_service_release_graph(snapshot).to_dict()
+                elif path.endswith("/failures"):
+                    payload = run_service_release_failure_injections(snapshot).to_dict()
+                elif path.endswith("/plan"):
+                    plan = build_service_release_plan(snapshot)
+                    payload = {"plan": plan.to_dict(), "audit": [item.to_dict() for item in audit_service_release_plan(plan)]}
+                elif path.endswith("/views"):
+                    views = build_service_release_views(snapshot)
+                    payload = {"views": views.to_dict(), "audit": [item.to_dict() for item in audit_service_release_views(views, snapshot)]}
+                else:
+                    payload = {"error": "unknown_service_release_path"}
+                self._write(HTTPStatus.OK, payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

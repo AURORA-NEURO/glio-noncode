@@ -1466,6 +1466,12 @@ jobs:
         run: python -m glio_noncode public-surface-audit --output /tmp/glio-public-surface-audit.json
       - name: Local service surface focused tests
         run: python -m unittest tests.test_service_surface
+      - name: Service release registry focused tests
+        run: python -m unittest tests.test_service_release
+      - name: Service release registry runtime command
+        run: python -m glio_noncode service-release --plane runtime --output /tmp/glio-service-release-runtime.json
+      - name: Service release registry schema command
+        run: python -m glio_noncode service-release --plane schema --output /tmp/glio-service-release-schema.json
       - name: Persisted run catalog focused tests
         run: python -m unittest tests.test_run_catalog tests.test_runtime
       - name: Dossier query and lineage focused tests

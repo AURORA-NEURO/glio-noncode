@@ -18,6 +18,19 @@ from .batch_release import (
 )
 from .serialization import jsonable
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
+from .service_release_bundle import build_service_release_snapshot
+from .service_release_certification import certify_service_release
+from .service_release_export import build_service_release_export, verify_service_release_export, write_service_release_export
+from .service_release_failure_injection import run_service_release_failure_injections
+from .service_release_graph import build_service_release_graph
+from .service_release_indexes import audit_service_release_indexes, build_service_release_indexes
+from .service_release_observability import build_service_release_observability
+from .service_release_plan import audit_service_release_plan, build_service_release_plan
+from .service_release_query import query_service_release
+from .service_release_reconciliation import audit_service_release_summary, build_service_release_summary, reconcile_service_release
+from .service_release_runtime import run_service_release
+from .service_release_schema import service_release_schema, validate_service_release_schema
+from .service_release_views import audit_service_release_views, build_service_release_views
 from .public_surface_audit import build_default_public_surface_audit
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
@@ -2811,6 +2824,35 @@ def build_parser() -> argparse.ArgumentParser:
     )
     service_surface.add_argument("--closure", action="store_true")
     service_surface.add_argument("--output", default=None)
+    service_release = subparsers.add_parser(
+        "service-release",
+        help="emit, query, certify, or export the complete public service-release registry",
+    )
+    service_release.add_argument(
+        "--plane",
+        choices=("snapshot", "query", "schema", "indexes", "reconciliation", "summary",
+                 "certification", "observability", "graph", "failures", "plan", "views",
+                 "runtime", "export"),
+        default="snapshot",
+    )
+    service_release.add_argument("--bundle-id", default="glio-noncode-service-release")
+    service_release.add_argument("--run-id", default="glio-noncode-service-release-run")
+    service_release.add_argument("--resource", default="surfaces")
+    service_release.add_argument("--surface-id", default=None)
+    service_release.add_argument("--state", default=None)
+    service_release.add_argument("--relation", default=None)
+    service_release.add_argument("--accepted", action="store_true")
+    service_release.add_argument("--text", default=None)
+    service_release.add_argument("--offset", default=0, type=int)
+    service_release.add_argument("--limit", default=50, type=int)
+    service_release.add_argument("--destination", default=None)
+    service_release.add_argument("--output", default=None)
+    service_release_verify = subparsers.add_parser(
+        "service-release-export-verify",
+        help="verify an exact-byte service-release export directory",
+    )
+    service_release_verify.add_argument("directory")
+    service_release_verify.add_argument("--output", default=None)
     public_surface_audit = subparsers.add_parser(
         "public-surface-audit",
         help="audit repository-wide service, bundle, schema, and closure projections",
@@ -20724,6 +20766,70 @@ def main(argv: list[str] | None = None) -> int:
             payload = build_service_surface_closure(snapshot) if args.closure else service_surface_status(snapshot)
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "service-release":
+            source = build_service_surface_snapshot()
+            snapshot = build_service_release_snapshot(source, bundle_id=args.bundle_id)
+            if args.plane == "snapshot":
+                payload = snapshot.to_dict()
+            elif args.plane == "query":
+                payload = query_service_release(
+                    snapshot,
+                    resource=args.resource,
+                    surface_id=args.surface_id,
+                    state=args.state,
+                    relation=args.relation,
+                    accepted_only=args.accepted,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            elif args.plane == "schema":
+                schema = service_release_schema()
+                payload = {"schema": schema, "audit": [item.to_dict() for item in validate_service_release_schema(snapshot, schema)]}
+            elif args.plane == "indexes":
+                indexes = build_service_release_indexes(snapshot)
+                payload = {"indexes": indexes.to_dict(), "audit": audit_service_release_indexes(snapshot, indexes).to_dict()}
+            elif args.plane == "reconciliation":
+                payload = reconcile_service_release(snapshot, source).to_dict()
+            elif args.plane == "summary":
+                summary = build_service_release_summary(snapshot, source)
+                payload = {"summary": summary.to_dict(), "audit": audit_service_release_summary(summary, source).to_dict()}
+            elif args.plane == "certification":
+                payload = certify_service_release(snapshot).to_dict()
+            elif args.plane == "observability":
+                payload = build_service_release_observability(snapshot).to_dict()
+            elif args.plane == "graph":
+                payload = build_service_release_graph(snapshot).to_dict()
+            elif args.plane == "failures":
+                payload = run_service_release_failure_injections(snapshot).to_dict()
+            elif args.plane == "plan":
+                plan = build_service_release_plan(snapshot)
+                payload = {"plan": plan.to_dict(), "audit": [item.to_dict() for item in audit_service_release_plan(plan)]}
+            elif args.plane == "views":
+                views = build_service_release_views(snapshot)
+                payload = {"views": views.to_dict(), "audit": [item.to_dict() for item in audit_service_release_views(views, snapshot)]}
+            elif args.plane == "runtime":
+                payload = run_service_release(source, bundle_id=args.bundle_id, run_id=args.run_id).to_dict()
+            else:
+                runtime = run_service_release(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                packet = build_service_release_export(runtime, source)
+                if args.destination:
+                    write_service_release_export(packet, args.destination)
+                payload = packet.to_dict()
+            if "accepted" not in payload:
+                audit = payload.get("audit")
+                if isinstance(audit, dict):
+                    payload["accepted"] = bool(audit.get("accepted", False))
+                elif isinstance(audit, list):
+                    payload["accepted"] = all(bool(item.get("passed", False)) for item in audit if isinstance(item, dict))
+                else:
+                    payload["accepted"] = False
+            _write_json(payload, args.output)
+            return 0 if payload.get("accepted", False) else 2
+        if args.command == "service-release-export-verify":
+            verification = verify_service_release_export(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "public-surface-audit":
             audit = build_default_public_surface_audit()
             _write_json(audit.to_dict(), args.output)

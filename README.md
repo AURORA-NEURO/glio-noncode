@@ -172,6 +172,25 @@ glio-noncode capability-certification-bundle-audit capability-certification-bund
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
+The service-release registry is the top-level aggregate handoff for the public
+service. It composes the accepted capability, architecture, operational, and
+D01-D16 program-release surfaces into six registry rows, 13 exact-byte
+artifacts, 15 dependencies, 24 gates, 78 observability events, 24 metrics,
+five reviewer views, eight negative controls, and a fourteen-stage replayable
+runtime:
+
+```text
+glio-noncode service-release --plane snapshot --output service-release.json
+glio-noncode service-release --plane query --resource gates --accepted --output service-release-gates.json
+glio-noncode service-release --plane runtime --output service-release-runtime.json
+glio-noncode service-release --plane export --destination service-release-export --output service-release-export.json
+glio-noncode service-release-export-verify service-release-export --output service-release-verification.json
+```
+
+See [docs/SERVICE_RELEASE_REGISTRY.md](docs/SERVICE_RELEASE_REGISTRY.md) for
+the full API, schema, query, export, reconciliation, negative-control, and
+replay contracts.
+
 See [docs/CAPABILITY_CERTIFICATION.md](docs/CAPABILITY_CERTIFICATION.md) for
 the row checks, global denominators, runtime stages, offline bundle contract,
 projection contract, and extension rules.
@@ -604,10 +623,11 @@ The [operations](docs/MODULE_FABRIC_OPERATIONS.md),
 
 `public-surface-audit` checks the repository's complete published projection
 inventory: service status and closures, both offline bundle manifests and
-schemas, and the service snapshot projections. It rejects attribution,
+schemas, the D01-D16 program-release snapshot, the service-release registry,
+and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 16-surface audit suitable for
+schema fields. The result is a deterministic 25-surface audit suitable for
 local release checks and CI.
 
 The D16 coordination architecture now composes all 16 platform-control

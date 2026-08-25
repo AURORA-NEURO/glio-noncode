@@ -10337,6 +10337,7 @@ from .service_surface import (
     service_capability_projection,
     service_diff_projection,
     service_operational_projection,
+    service_program_release_projection,
     service_program_projection,
     service_surface_status,
 )
@@ -10713,6 +10714,22 @@ from .program_runtime_offline_summary import (
     program_runtime_offline_summary_csv,
     program_runtime_offline_summary_markdown,
 )
+
+from .service_release_bundle import *
+from .service_release_certification import *
+from .service_release_contracts import *
+from .service_release_export import *
+from .service_release_failure_injection import *
+from .service_release_graph import *
+from .service_release_indexes import *
+from .service_release_observability import *
+from .service_release_plan import *
+from .service_release_query import *
+from .service_release_reconciliation import *
+from .service_release_runtime import *
+from .service_release_schema import *
+from .service_release_support import *
+from .service_release_views import *
 
 __all__ += [
     "PROGRAM_CHECKS_PER_DOMAIN", "PROGRAM_DOMAIN_COUNT", "PROGRAM_QUALITY_CHECK_COUNT", "PROGRAM_RELEASE_ARTIFACT_COUNT", "PROGRAM_RELEASE_CHECK_COUNT", "PROGRAM_RELEASE_DESCRIPTOR_FILENAME", "PROGRAM_RELEASE_MANIFEST_FILENAME", "PROGRAM_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_STAGE_IDS", "PROGRAM_OPERATIONAL_ARTIFACT_COUNT", "PROGRAM_OPERATIONAL_CHECK_COUNT", "PROGRAM_OPERATIONAL_STAGE_COUNT", "PROGRAM_OPERATIONAL_ARTIFACT_BUDGETS", "PROGRAM_OPERATIONAL_STAGE_BUDGETS", "PROGRAM_RUNTIME_DIFF_CHECK_COUNT", "PROGRAM_RUNTIME_DIFF_CONTROLS", "PROGRAM_RUNTIME_DIFF_DOMAIN_COUNT", "PROGRAM_RUNTIME_DIFF_STAGE_COUNT",
@@ -15914,6 +15931,25 @@ __all__ += sorted(
         or name.startswith("export_frontier_release")
         or name.startswith("verify_frontier_release")
         or name.startswith("write_frontier_release")
+    }
+)
+
+__all__ += sorted(
+    {
+        name
+        for name in globals()
+        if name.startswith("ServiceRelease")
+        or name.startswith("SERVICE_RELEASE")
+        or name.startswith("service_release")
+        or name.startswith("build_service_release")
+        or name.startswith("audit_service_release")
+        or name.startswith("certify_service_release")
+        or name.startswith("query_service_release")
+        or name.startswith("reconcile_service_release")
+        or name.startswith("run_service_release")
+        or name.startswith("export_service_release")
+        or name.startswith("verify_service_release")
+        or name.startswith("write_service_release")
     }
 )
 

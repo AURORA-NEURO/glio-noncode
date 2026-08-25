@@ -34,6 +34,13 @@ from .program_runtime_operational import (
     ProgramOperationalTrace,
     build_program_operational_trace,
 )
+from .program_release_closure_bundle import build_program_release_snapshot
+from .program_release_closure_contracts import (
+    PROGRAM_RELEASE_CLOSURE_DOMAIN_COUNT,
+    PROGRAM_RELEASE_CLOSURE_GATE_COUNT,
+    ProgramReleaseSnapshot,
+)
+from .program_release_closure_query import query_program_release_closure
 from .serialization import content_hash
 
 SERVICE_NAME = "glio-noncode"
@@ -48,6 +55,7 @@ class ServiceSurfaceSnapshot:
     capability_report: CapabilityCertificationReport
     program_runtime: ProgramRuntime
     operational_trace: ProgramOperationalTrace
+    program_release: ProgramReleaseSnapshot
     content_address: str
 
     @property
@@ -58,6 +66,7 @@ class ServiceSurfaceSnapshot:
             self.capability_report.accepted
             and self.program_runtime.accepted
             and self.operational_trace.accepted
+            and self.program_release.accepted
         )
 
 
@@ -113,6 +122,33 @@ def _operational_status(trace: ProgramOperationalTrace) -> dict[str, Any]:
     }
 
 
+def _program_release_status(snapshot: ProgramReleaseSnapshot) -> dict[str, Any]:
+    """Return the compact D01-D16 status used by service clients.
+
+    The service snapshot intentionally carries the immutable aggregate rather
+    than a second full runtime report.  Detailed closure planes remain
+    available through the dedicated program-release routes, while this status
+    makes the top-level service health answer complete and inexpensive to
+    consume.
+    """
+
+    return {
+        "snapshot_address": snapshot.content_address,
+        "bundle_id": snapshot.bundle_id,
+        "run_id": snapshot.run_id,
+        "accepted": snapshot.accepted,
+        "domain_count": len(snapshot.domains),
+        "artifact_count": len(snapshot.artifacts),
+        "dependency_count": len(snapshot.dependencies),
+        "gate_count": len(snapshot.gates),
+        "accepted_domain_count": sum(item.accepted for item in snapshot.domains),
+        "passed_gate_count": sum(item.passed for item in snapshot.gates),
+        "domain_percent": round(100.0 * len(snapshot.domains) / PROGRAM_RELEASE_CLOSURE_DOMAIN_COUNT, 2),
+        "gate_percent": round(100.0 * sum(item.passed for item in snapshot.gates) / PROGRAM_RELEASE_CLOSURE_GATE_COUNT, 2),
+        "boundary": snapshot.boundary,
+    }
+
+
 def _status_without_address(snapshot: ServiceSurfaceSnapshot) -> dict[str, Any]:
     return {
         "service": SERVICE_NAME,
@@ -122,6 +158,7 @@ def _status_without_address(snapshot: ServiceSurfaceSnapshot) -> dict[str, Any]:
         "capability_certification": _capability_status(snapshot.capability_report),
         "architecture_program": _program_status(snapshot.program_runtime),
         "operational": _operational_status(snapshot.operational_trace),
+        "program_release": _program_release_status(snapshot.program_release),
     }
 
 
@@ -131,16 +168,19 @@ def build_service_surface_snapshot() -> ServiceSurfaceSnapshot:
     capability_report = certify_capability_catalog()
     program_runtime = run_program_runtime()
     operational_trace = build_program_operational_trace(program_runtime)
+    program_release = build_program_release_snapshot()
     body = {
         "capability_report": capability_report.content_address,
         "program_runtime": program_runtime.content_address,
         "operational_trace": operational_trace.content_address,
-        "accepted": capability_report.accepted and program_runtime.accepted and operational_trace.accepted,
+        "program_release": program_release.content_address,
+        "accepted": capability_report.accepted and program_runtime.accepted and operational_trace.accepted and program_release.accepted,
     }
     return ServiceSurfaceSnapshot(
         capability_report=capability_report,
         program_runtime=program_runtime,
         operational_trace=operational_trace,
+        program_release=program_release,
         content_address=content_hash(body, prefix="service-surface"),
     )
 
@@ -216,6 +256,47 @@ def service_operational_projection(snapshot: ServiceSurfaceSnapshot) -> dict[str
     return snapshot.operational_trace.to_dict()
 
 
+def service_program_release_projection(
+    snapshot: ServiceSurfaceSnapshot,
+    *,
+    resource: str = "domains",
+    domain_id: str | None = None,
+    gate_type: str | None = None,
+    state: str | None = None,
+    relation: str | None = None,
+    accepted_only: bool = False,
+    text: str | None = None,
+    offset: int = 0,
+    limit: int = 50,
+) -> dict[str, Any]:
+    """Query the cached D01-D16 aggregate from the service surface.
+
+    This projection deliberately delegates filtering and bounds to the
+    closure query contract, so HTTP, CLI, and offline consumers receive the
+    same ordering, pagination metadata, and content-addressed result.
+    """
+
+    result = query_program_release_closure(
+        snapshot.program_release,
+        resource=resource,
+        domain_id=domain_id,
+        gate_type=gate_type,
+        state=state,
+        relation=relation,
+        accepted_only=accepted_only,
+        text=text,
+        offset=offset,
+        limit=limit,
+    )
+    return {
+        "service": SERVICE_NAME,
+        "snapshot_address": snapshot.program_release.content_address,
+        "release_status": _program_release_status(snapshot.program_release),
+        **result.to_dict(),
+        "has_more": result.offset + len(result.items) < result.total,
+    }
+
+
 def service_diff_projection(snapshot: ServiceSurfaceSnapshot, control: str = "none") -> dict[str, Any]:
     """Compare the current program surface with one named negative control."""
 
@@ -238,11 +319,18 @@ def build_service_surface_closure(snapshot: ServiceSurfaceSnapshot | None = None
         "capability_certification": selected.capability_report.to_dict(),
         "architecture_program_runtime": selected.program_runtime.to_dict(),
         "operational_trace": selected.operational_trace.to_dict(),
+        "program_release_snapshot": selected.program_release.to_dict(),
         "queries": {
             "capabilities": service_capability_projection(selected),
             "mvp_capabilities": service_capability_projection(selected, mvp_only=True),
             "architecture_program": service_program_projection(selected),
             "accepted_architecture_program": service_program_projection(selected, accepted_only=True),
+            "program_release_domains": service_program_release_projection(selected),
+            "accepted_program_release_gates": service_program_release_projection(
+                selected,
+                resource="gates",
+                accepted_only=True,
+            ),
         },
     }
     if contains_private_key(closure):
@@ -261,6 +349,7 @@ __all__ = [
     "service_capability_projection",
     "service_diff_projection",
     "service_operational_projection",
+    "service_program_release_projection",
     "service_program_projection",
     "service_surface_status",
 ]

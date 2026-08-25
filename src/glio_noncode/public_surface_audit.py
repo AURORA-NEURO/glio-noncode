@@ -33,9 +33,12 @@ from .workbench_release_frontier_offline_bundle import build_workbench_release_o
 from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 from .deployment_frontier_offline_bundle import build_deployment_frontier_offline_bundle
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
+from .service_release_bundle import build_service_release_snapshot
+from .service_release_query import query_service_release
+from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 22
+PUBLIC_SURFACE_EXPECTED_COUNT = 25
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -211,6 +214,7 @@ def default_public_surface_inventory(
     evidence_lifecycle_value = evidence_lifecycle_bundle or build_evidence_lifecycle_offline_bundle()
     workbench_release_value = workbench_release_bundle or build_workbench_release_offline_bundle()
     deployment_frontier_value = deployment_frontier_bundle or build_deployment_frontier_offline_bundle()
+    service_release_value = build_service_release_snapshot(selected)
     return {
         "capability-certification-bundle-manifest": capability_value.to_dict(include_payloads=False),
         "capability-certification-bundle-schema": capability_certification_bundle_schema(),
@@ -234,6 +238,9 @@ def default_public_surface_inventory(
         "service-schema": schema_document(),
         "service-status": service_surface_status(selected),
         "service-snapshot": selected,
+        "service-release-snapshot": service_release_value,
+        "service-release-schema": service_release_schema(),
+        "service-release-query": query_service_release(service_release_value),
     }
 
 

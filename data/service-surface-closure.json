@@ -69125,7 +69125,7 @@
     "state": "accepted",
     "total_checks": 2572
   },
-  "content_address": "service-surface-closure:073c4a0fe1163ec00cfbe200da30b076c2e5b0d1a3095800a853311acfc7063c",
+  "content_address": "service-surface-closure:b40c0f941f3bdea43deae5bfb0bc21a7040e2422fc4e4606ced65fac1a254a10",
   "operational_trace": {
     "accepted": true,
     "artifact_count": 11,
@@ -69686,6 +69686,2533 @@
       }
     ]
   },
+  "program_release_snapshot": {
+    "accepted": true,
+    "artifacts": [
+      {
+        "artifact_id": "capabilities",
+        "artifact_ref": "program:capabilities",
+        "byte_count": 6410,
+        "content_address": "program-release-closure-artifact:7116bc9f8f4bc95c64f9b7eb6e50098ce94719c1994a0e77b1d7eb34b1b1e06f",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-capabilities.json",
+        "source_address": "program-runtime-offline-artifact:8aee1b516cb22511ec7468cda078c26c8de30766fb6b4f2c1f58ceedca6db40d"
+      },
+      {
+        "artifact_id": "checks",
+        "artifact_ref": "program:checks",
+        "byte_count": 41767,
+        "content_address": "program-release-closure-artifact:d3d7a3ef72470ed643297c2d4547910c96fdce133e3867b5281dabbaf32ed6af",
+        "domain_id": "__program__",
+        "line_count": 173,
+        "media_type": "text/csv",
+        "relative_path": "program-checks.csv",
+        "source_address": "program-runtime-offline-artifact:429859b9ce9d97ef548e59158883008667c56d81cd3fab1e206df24b93ce75c7"
+      },
+      {
+        "artifact_id": "domains",
+        "artifact_ref": "program:domains",
+        "byte_count": 3868,
+        "content_address": "program-release-closure-artifact:da058c0634c928211b48662b785297c9bcc3f4ebe46452c63e3f750c76b79d65",
+        "domain_id": "__program__",
+        "line_count": 17,
+        "media_type": "text/csv",
+        "relative_path": "program-domains.csv",
+        "source_address": "program-runtime-offline-artifact:4d26862d4f9412e5ce30426b2c27d008562a4b3eb6bd99d1dab334c3dfc6423a"
+      },
+      {
+        "artifact_id": "failure-controls",
+        "artifact_ref": "program:failure-controls",
+        "byte_count": 1162,
+        "content_address": "program-release-closure-artifact:93d09918643ea589a79a5ab826e8efe853e0d87f8b31ac2ff83a0b0be906048b",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-failures.json",
+        "source_address": "program-runtime-offline-artifact:2d02f5f863cc087f3c22ebb59b4ce5dc86f19b46fb91e386a231892ca7509304"
+      },
+      {
+        "artifact_id": "markdown",
+        "artifact_ref": "program:markdown",
+        "byte_count": 3825,
+        "content_address": "program-release-closure-artifact:07c968a1faf7be9aa227ec53255bc74677560b2bdbdda7cc1e0cd5341c44fbe2",
+        "domain_id": "__program__",
+        "line_count": 45,
+        "media_type": "text/markdown",
+        "relative_path": "program-report.md",
+        "source_address": "program-runtime-offline-artifact:10fc674424bca21b44d7a6b83ca1ac3bf2186854966dfcd0258e8d74e3308acd"
+      },
+      {
+        "artifact_id": "matrix",
+        "artifact_ref": "program:matrix",
+        "byte_count": 6410,
+        "content_address": "program-release-closure-artifact:ca951a9d93bf20ae2fd84ae6eb81f50f2fd24181b3ca27f2c40e3bb812bc11a2",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-matrix.json",
+        "source_address": "program-runtime-offline-artifact:8aee1b516cb22511ec7468cda078c26c8de30766fb6b4f2c1f58ceedca6db40d"
+      },
+      {
+        "artifact_id": "operational",
+        "artifact_ref": "program:operational",
+        "byte_count": 15794,
+        "content_address": "program-release-closure-artifact:f41cf2b33f11e6de726914ef29dae143900ed3b1a3c30f3d804de016a25119e7",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-operational.json",
+        "source_address": "program-runtime-offline-artifact:7ffc11b8e2e8eb5f442bd8bd7c51c1e4ee15c9fec44e1f1009f08d95a57d0fb3"
+      },
+      {
+        "artifact_id": "operations",
+        "artifact_ref": "program:operations",
+        "byte_count": 14760,
+        "content_address": "program-release-closure-artifact:de40cf4ae263c6af408da8382831b246a2b61891f5b4b7804bd5966710b74bbd",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-operations.json",
+        "source_address": "program-runtime-offline-artifact:1c2247a6aec8604b20a4450955b49136928e59e687d9d761f4ae30a7066f9ed9"
+      },
+      {
+        "artifact_id": "quality",
+        "artifact_ref": "program:quality",
+        "byte_count": 5426,
+        "content_address": "program-release-closure-artifact:69a07fb54e779a5d3ee4a1676d236dc18c05d5c4ee1754ff81dcabd0d7910504",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-quality.json",
+        "source_address": "program-runtime-offline-artifact:436fe1491a17d290aa0662758fa4b69d3691cde4c79667fc2c84aa35a2befc99"
+      },
+      {
+        "artifact_id": "receipts",
+        "artifact_ref": "program:receipts",
+        "byte_count": 10548,
+        "content_address": "program-release-closure-artifact:f1b22a5c54dd557be9efc946725fbdf13568c9ff5ce4f4b65bd2b387a4af65cb",
+        "domain_id": "__program__",
+        "line_count": 17,
+        "media_type": "text/csv",
+        "relative_path": "program-receipts.csv",
+        "source_address": "program-runtime-offline-artifact:7803e7917603681d91248881ea61e7490d2da5a5559d8c9fa6e38d44bf46375b"
+      },
+      {
+        "artifact_id": "release-checks",
+        "artifact_ref": "program:release-checks",
+        "byte_count": 6911,
+        "content_address": "program-release-closure-artifact:04074e659576fe6c2d0370fe7bef6399e076c3a612469efb5e7235a4ee06f9d2",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-release-checks.json",
+        "source_address": "program-runtime-offline-artifact:d7715e9c49d1f89f9b1df18c79c602f6649c01a08445f4c7ff00388c5336d8d3"
+      },
+      {
+        "artifact_id": "replay",
+        "artifact_ref": "program:replay",
+        "byte_count": 609,
+        "content_address": "program-release-closure-artifact:8444f1e4364904e403be1e12eb468099c481c6de6efb7ccebeb117c9accacfe9",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-replay.json",
+        "source_address": "program-runtime-offline-artifact:a1ae2271d5703668d60f0b275bc18bd9bbeadbdc5bfe1efc1fbeb02a1ff72e09"
+      },
+      {
+        "artifact_id": "report",
+        "artifact_ref": "program:report",
+        "byte_count": 80925,
+        "content_address": "program-release-closure-artifact:774895d60540f70c7d708dcc43618ab7a2cc26d37d06e13106ab1d5945af1a0e",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-report.json",
+        "source_address": "program-runtime-offline-artifact:76f1b4152ff8ab3c84717241ed81ba30e29dffbc0d96efdebec61568b8933673"
+      },
+      {
+        "artifact_id": "runtime",
+        "artifact_ref": "program:runtime",
+        "byte_count": 92318,
+        "content_address": "program-release-closure-artifact:28bd5e9cc2f468ac44ee455d1045b65ce02180dd3f35120b291fb5dbfd1e942b",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-runtime.json",
+        "source_address": "program-runtime-offline-artifact:4d148a663e4ce01f752568db8e87f8216f74b770fff3d0ed22f681d0a202d7b2"
+      },
+      {
+        "artifact_id": "sources",
+        "artifact_ref": "program:sources",
+        "byte_count": 7306,
+        "content_address": "program-release-closure-artifact:bbb47a4ce97428c6bd11872058a6dd809e71e471f0300e377206756d3993c35e",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-sources.json",
+        "source_address": "program-runtime-offline-artifact:a06165c397c8f91d4ce84b4cdbcc0b3ff1f0efc30a6bc614eaca15fe5b1ae044"
+      },
+      {
+        "artifact_id": "specifications",
+        "artifact_ref": "program:specifications",
+        "byte_count": 7306,
+        "content_address": "program-release-closure-artifact:8296eae3d44882614a3f79e0f259b8efe620639c64ef7a31369bbb8e8aa5fe70",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-specifications.json",
+        "source_address": "program-runtime-offline-artifact:a06165c397c8f91d4ce84b4cdbcc0b3ff1f0efc30a6bc614eaca15fe5b1ae044"
+      },
+      {
+        "artifact_id": "stages",
+        "artifact_ref": "program:stages",
+        "byte_count": 5719,
+        "content_address": "program-release-closure-artifact:0b50874e210855ea282d4ebc5819f6c30b30ea6bafd779ae96f7f73251e49e98",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-stages.json",
+        "source_address": "program-runtime-offline-artifact:6109302b987014cb0b5cee3f911652c12416cd0b06e543084f94034041642c90"
+      },
+      {
+        "artifact_id": "summary",
+        "artifact_ref": "program:summary",
+        "byte_count": 6828,
+        "content_address": "program-release-closure-artifact:df8146997048f8a4293c37a35501129d37f2db2e1bdaa292068c0d7b34770144",
+        "domain_id": "__program__",
+        "line_count": 1,
+        "media_type": "application/json",
+        "relative_path": "program-summary.json",
+        "source_address": "program-runtime-offline-artifact:f158cbd49c1bfe5de82f53951c60db01363d8fb79a530b460f16c9a19356e49b"
+      }
+    ],
+    "boundary": "public_aggregate_program_release_closure_handoff",
+    "bundle_id": "glio-noncode-program-release-closure",
+    "content_address": "program-release-closure-v1:5a1be178023d8622afff06e5ad56a34af771382b63636e3f6040fa5510fdd858",
+    "dependencies": [
+      {
+        "content_address": "program-release-dependency:f90ff2547ec1de7189d64746ebb924366d3ea53ecd1f0b720cdbf2a6edef1549",
+        "dependency_id": "dependency:D01:D02",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D02",
+        "target_order": 2
+      },
+      {
+        "content_address": "program-release-dependency:d758b059f6c50f85a11a186d28dfba538bc7ea692b83e87eb610747bed78b32b",
+        "dependency_id": "dependency:D01:D03",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D03",
+        "target_order": 3
+      },
+      {
+        "content_address": "program-release-dependency:f0dcd4b1c3ebb379cac2d86bb397cfa264298869c92042cdc5d69ab0433fe79e",
+        "dependency_id": "dependency:D01:D04",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D04",
+        "target_order": 4
+      },
+      {
+        "content_address": "program-release-dependency:25a5e0fde3b7b1f466285b7fb1806f1b1de78a1b85be358805227a25ec278d57",
+        "dependency_id": "dependency:D01:D05",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D05",
+        "target_order": 5
+      },
+      {
+        "content_address": "program-release-dependency:476619c2f89d52d8f6cc880a138e3f7553cf00c9af7932ac86f110a3ad16f3d7",
+        "dependency_id": "dependency:D01:D06",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D06",
+        "target_order": 6
+      },
+      {
+        "content_address": "program-release-dependency:2321ff0bc311536610ed828e2b6f648dd623fa69f915e13228433ab9ae2b8379",
+        "dependency_id": "dependency:D01:D07",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D07",
+        "target_order": 7
+      },
+      {
+        "content_address": "program-release-dependency:fed6aa1a997c43320644dfbc2d03f0e6d29039c811e1c39efa4597b5a1860d46",
+        "dependency_id": "dependency:D01:D08",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D08",
+        "target_order": 8
+      },
+      {
+        "content_address": "program-release-dependency:0ac82fdd04cb9a9e530303413fbe1980d8b72526ca34c9aaecdec30a1130ddb8",
+        "dependency_id": "dependency:D01:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:8a3b73e61821274d1d32898ceeacfb8d6c0ee68a96afc008abc2760f35f89b0e",
+        "dependency_id": "dependency:D01:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:34410473220f64ea3199f8782aa423d2eebe37e8d27d987e78e0f509449534ba",
+        "dependency_id": "dependency:D01:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:fbde571f27913ee0a6ee5b5d525fe24e48441137b0044a60093453944cb634ea",
+        "dependency_id": "dependency:D01:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:5ec64f668fc7ccc6a88d8559fd14804cc22da0383a5945e8289726780672fac1",
+        "dependency_id": "dependency:D01:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:4de149f9684542eb11c30d6145c07f2d67d0982bcdc95f4a3b9e5b0abff2df2c",
+        "dependency_id": "dependency:D01:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:bc21fe50966f067707d03eaa3d3e77bd5a71c9a55c92299fd93886f029299049",
+        "dependency_id": "dependency:D01:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:c8db0b10187115f37e813f745e39c4fc93daad76aac9c5267a9e7aa2f6e46b36",
+        "dependency_id": "dependency:D01:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D01",
+        "source_order": 1,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:7bae42e8b2352957016fc5ab02b60a3731ae95b5a5406574fc70781aded0e30b",
+        "dependency_id": "dependency:D02:D03",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D03",
+        "target_order": 3
+      },
+      {
+        "content_address": "program-release-dependency:c48abb98c3684e44e33e31425bce7274678911d1854498ce63c68a8a63f1e260",
+        "dependency_id": "dependency:D02:D04",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D04",
+        "target_order": 4
+      },
+      {
+        "content_address": "program-release-dependency:8cc58a1eabdc7c440fb2a256b419cfd8c6feefef5ca1df98fa6e88c3158631c4",
+        "dependency_id": "dependency:D02:D05",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D05",
+        "target_order": 5
+      },
+      {
+        "content_address": "program-release-dependency:907e295ea0e87d06b8d5b27e9c1edb2fdbcd0159b6591a7833fae65daafedf4b",
+        "dependency_id": "dependency:D02:D06",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D06",
+        "target_order": 6
+      },
+      {
+        "content_address": "program-release-dependency:3387a2237b2e6b3d73ee3922e834dbd6d6a567f8b477831183b960aaf5b7463c",
+        "dependency_id": "dependency:D02:D07",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D07",
+        "target_order": 7
+      },
+      {
+        "content_address": "program-release-dependency:0c0ef572c211f652381c6e76288f13676a1e9cb45d2349cefe6228d5348d0c98",
+        "dependency_id": "dependency:D02:D08",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D08",
+        "target_order": 8
+      },
+      {
+        "content_address": "program-release-dependency:7cb8f2fac1598346fc783eec9255db59809a7fa1946cb6b46ceeece95666455d",
+        "dependency_id": "dependency:D02:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:669647eb5a452765c6f52a8410c43c5341f12657e8f5dedd5d16cb01fa4a954b",
+        "dependency_id": "dependency:D02:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:d8bd25e943cc0b2b998b2598a02607a46cefbde95cdc1b7ab1c4d122aba1615d",
+        "dependency_id": "dependency:D02:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:7094b71dc2a1dd558a842a3f251fc2a906bf2ea2b787f4208b4a1f91317084e5",
+        "dependency_id": "dependency:D02:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:bb4e811b1b52822e3f2b4954ddc886272d52f8be92b21debb51f3e41aefd8c0e",
+        "dependency_id": "dependency:D02:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:9056281dbca5b1262c9f3bbd207cfb396f329c8854453ea4c4e07c0fd235b916",
+        "dependency_id": "dependency:D02:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:7673f310fb3a23584fa40e27a5251a0afce7d8db35a0970eafdf4db7add8888e",
+        "dependency_id": "dependency:D02:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:185d30b12715981df81301091dfa4ddd5594a55abb5306eb81b0911373c3a541",
+        "dependency_id": "dependency:D02:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D02",
+        "source_order": 2,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:0b7b147de2c2c0742eb24d6eb39a7abcccf26339cf816fd4a9808f714264752b",
+        "dependency_id": "dependency:D03:D04",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D04",
+        "target_order": 4
+      },
+      {
+        "content_address": "program-release-dependency:693b293d39a9fc1f778a7cfdeafac7c67d7f16dc2196435f6fe51ed14bbe6bbb",
+        "dependency_id": "dependency:D03:D05",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D05",
+        "target_order": 5
+      },
+      {
+        "content_address": "program-release-dependency:81763b858ee9f9ef118dc9da6a1913ebd405517ceb46e628c64ac0282a30d2d7",
+        "dependency_id": "dependency:D03:D06",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D06",
+        "target_order": 6
+      },
+      {
+        "content_address": "program-release-dependency:4e3642c9263dce60fdc2e21a808553ea6203740c77c5d996fc05ccb505034dac",
+        "dependency_id": "dependency:D03:D07",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D07",
+        "target_order": 7
+      },
+      {
+        "content_address": "program-release-dependency:4978ef9897708f1098e39c97864cefaeb16bd5a735fc1e7dfbde7e42033df3ea",
+        "dependency_id": "dependency:D03:D08",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D08",
+        "target_order": 8
+      },
+      {
+        "content_address": "program-release-dependency:f7bcc26b8de4a4fdcc7f3bdd3beb2378270d0ed7d83406fd60b918d01601eaa5",
+        "dependency_id": "dependency:D03:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:41e016313be9421d579267a7bb5f18ff0711745270c2012df3f6e7b0c24292a4",
+        "dependency_id": "dependency:D03:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:ac1e880c55c16514521c70a7858fe63e7535e55bd240787fd11a3cb03e8e2ffc",
+        "dependency_id": "dependency:D03:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:574878e050bdf42b86461f2cf94126c622c1d3b857c2efa529bffdd30d68ae7e",
+        "dependency_id": "dependency:D03:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:13315c413d7118f27ffd9e74df9cf0656e79b4441b8064f8f906b723ab86b940",
+        "dependency_id": "dependency:D03:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:a6a64236a7a63223448d70f8a7679fdad0983fd5a1fd647810b5780797b9581a",
+        "dependency_id": "dependency:D03:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:24ae24e4d5a46da90f37c697ec7051ee8093c8a03eca8eed9dfa8f6b357c80f4",
+        "dependency_id": "dependency:D03:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:5bfec74e02546f454f1cf584ace6b5d40dff1f0462fe3b2fc167ab7c9cb09aa4",
+        "dependency_id": "dependency:D03:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D03",
+        "source_order": 3,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:ec299f7aaec9efe698393bca632b19730ee141d50d3cfff6e27fd741d0896790",
+        "dependency_id": "dependency:D04:D05",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D05",
+        "target_order": 5
+      },
+      {
+        "content_address": "program-release-dependency:989d3a6687863dcb10ff28704a09a8a67598d51350c595b401d83db109181e7f",
+        "dependency_id": "dependency:D04:D06",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D06",
+        "target_order": 6
+      },
+      {
+        "content_address": "program-release-dependency:6ffb743196dece3e45cf5ff1c3b8826a7214d5ca54d259fdd6c3c00f727f4177",
+        "dependency_id": "dependency:D04:D07",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D07",
+        "target_order": 7
+      },
+      {
+        "content_address": "program-release-dependency:a21b1c64a50ba6421a41fd7c425111f67982d53a9fa6221360c934b0accfa00a",
+        "dependency_id": "dependency:D04:D08",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D08",
+        "target_order": 8
+      },
+      {
+        "content_address": "program-release-dependency:2c388a71217c771b7839c8560a431ba612e293fdc7430122bf535af87aa9e8ec",
+        "dependency_id": "dependency:D04:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:59609d9efbd0b2e7b139ca76c35a619fe146a7502375674bebeb6b30cce63212",
+        "dependency_id": "dependency:D04:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:6e59abda7b564000dc3e2b7f91d82ac3bace5c4aa9a5aeca89397e90e41ed910",
+        "dependency_id": "dependency:D04:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:fdcbc0f62c6d1164f7f36c0658ef809b96a6e673d760461d7c90c4903a742f40",
+        "dependency_id": "dependency:D04:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:cc223b3f40555b4591afd0d28aee53fe55bdf7d37e0cf4d5aad849002bb1c6db",
+        "dependency_id": "dependency:D04:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:d2a4670b49cdd7829fa06c520a3eacbebe7a3a8a7282f9f9a7db4ec0b897a49b",
+        "dependency_id": "dependency:D04:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:d972be18be1be511dc98be7492c3b0c9053322bfe559d9525c1efd7607213270",
+        "dependency_id": "dependency:D04:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:951bf08467c802b24d51f791e4f7c6a939a648baf42bbd1404d8da0025a9bc30",
+        "dependency_id": "dependency:D04:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D04",
+        "source_order": 4,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:2a74817b0a2dbe2089cf3b5b15302c8a8eecc3e731646cf78844e0a5117dab6b",
+        "dependency_id": "dependency:D05:D06",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D06",
+        "target_order": 6
+      },
+      {
+        "content_address": "program-release-dependency:4e6034c189c2acce841e54b32d41f91f09b232ae8d7e1fbfae8b8b3168d406e0",
+        "dependency_id": "dependency:D05:D07",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D07",
+        "target_order": 7
+      },
+      {
+        "content_address": "program-release-dependency:bf6ad4550f898fb2cd26a7f32b41730e53dc95b06ca0302c6716b7a8914773b9",
+        "dependency_id": "dependency:D05:D08",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D08",
+        "target_order": 8
+      },
+      {
+        "content_address": "program-release-dependency:ac6a715ff3f6a7795a1907a87e776d46e2eede3fb1a8de19a210f914d8fc4598",
+        "dependency_id": "dependency:D05:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:99898f4129046c87568a9122a555c715c01d115d57a18ad8e7c1a2a545d0385c",
+        "dependency_id": "dependency:D05:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:30dab1c385524f93e06fbc88de9e339318e013753e340d83e47ac9895547f1cc",
+        "dependency_id": "dependency:D05:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:e02eba798f571fea96ffd2daa1122bb9121e7e76c5e2c4cf0d8406637ca271b8",
+        "dependency_id": "dependency:D05:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:6c130a03c6ccfac6112ce2c965a920897b50249150454cdd5b9fe25a4150ae54",
+        "dependency_id": "dependency:D05:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:badaf2889010400dfa1e6c1f3cfc6ef248aa3227184d8dbca7c3be74b61c8632",
+        "dependency_id": "dependency:D05:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:01994ca35759dc9160978f83165966bc955dc0e230c48d0c5498b8070565a919",
+        "dependency_id": "dependency:D05:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:5fd4e19686d5bcb05657e023f56aa128623770db70d9387b2b8ac82e69cb6d01",
+        "dependency_id": "dependency:D05:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D05",
+        "source_order": 5,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:20d499fe0f925373a861f95c11e05c1b174652bbbce3e5946199b418da363001",
+        "dependency_id": "dependency:D06:D07",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D07",
+        "target_order": 7
+      },
+      {
+        "content_address": "program-release-dependency:bcfe5d2954f94a6385ac2929017815a9225a438cba979e7690d3627823e31479",
+        "dependency_id": "dependency:D06:D08",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D08",
+        "target_order": 8
+      },
+      {
+        "content_address": "program-release-dependency:894c4f792e66470949a0147f3f31767f487117bb5e2d2ef7658b0c3a35587074",
+        "dependency_id": "dependency:D06:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:8b2ba4f6a730cbba248ae4d01bb1dc8cc405233edd34e0f9ad087f26c1b012ae",
+        "dependency_id": "dependency:D06:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:4fea49fa8fe33a6c2c0a79cc4519a14116f2c538c331bbfa1fc0bf730aecf1d8",
+        "dependency_id": "dependency:D06:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:4c616b75dbb38aa436690068ac52e6bed399143e32ded77b0e66a504cc23883f",
+        "dependency_id": "dependency:D06:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:24b8d8114b9f1be2e7286ebb903703670ea1e9b04227e2980286a964e73b20f0",
+        "dependency_id": "dependency:D06:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:b51e824763068204ce522e0e3d70e7a92c423d76a95687e3a84cd247c331344c",
+        "dependency_id": "dependency:D06:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:b9615aa7c8341739b27de8bf17788180f87ea2c28ebd7cc60cad072043bff11f",
+        "dependency_id": "dependency:D06:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:718f1830aa867456324b8c8a66b33463ebdfeaad65bf3dbd5f1cef1c70044457",
+        "dependency_id": "dependency:D06:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D06",
+        "source_order": 6,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:e69b5e631fcc27f2b3d99460e9c90f10a71aed544c929dc8d433cdc91a8142db",
+        "dependency_id": "dependency:D07:D08",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D08",
+        "target_order": 8
+      },
+      {
+        "content_address": "program-release-dependency:f55f830a9f482e3a194cefaf95137a1c3e17ba9e16d887432a117c1c37fff693",
+        "dependency_id": "dependency:D07:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:3ed3dbb693c94d8527477209da2be2ac510ee76616f14794d1629a8c9f7d3a36",
+        "dependency_id": "dependency:D07:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:479109a05c3440c0fd4cc6dd7a9518f50941c6c47147058f07bcea3b4d424ba7",
+        "dependency_id": "dependency:D07:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:f82940e65627f6642a134fe5b58c4e39b33cd25ff7d58506e06b42e1762190d9",
+        "dependency_id": "dependency:D07:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:a9960efb78bf599a5c8ae8fe68a568b3ec6c8eee08f1f97b33c618f535d044c7",
+        "dependency_id": "dependency:D07:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:081aa294188fbfff598dc3a3a3f5602411c7e090cf10e880539557e27ad5fda8",
+        "dependency_id": "dependency:D07:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:4e8fa3c3a00249b0a5c3a8531379cf4099dc52b7ffaa75cf71cc36bbb5e82d9e",
+        "dependency_id": "dependency:D07:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:370ffc500c4ad65ffd67b2c7d887b7753978e97d5e0f0addd0aff81f5ad37ade",
+        "dependency_id": "dependency:D07:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D07",
+        "source_order": 7,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:835fb90d61011c22009dacbf425f9e8889605d7f0150a4d5ae3815f748a3492a",
+        "dependency_id": "dependency:D08:D09",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D09",
+        "target_order": 9
+      },
+      {
+        "content_address": "program-release-dependency:11c11b31002d7173038c4c63b949d636c6ca9a2765d89ef031b2030f5e567c3e",
+        "dependency_id": "dependency:D08:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:385c3a416ca8a1ec9a2d4c02def2ed751f5f25a39765b0909bd8b4c1b4e14089",
+        "dependency_id": "dependency:D08:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:b213acc3fb3972671d6f5d219f4c030bec5bd62a4e510b4a3a0e4eb101f115ba",
+        "dependency_id": "dependency:D08:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:18cec77fea9dda6f3098f3a8b92e26143e99eaa331c99055a1b072273df5bdcd",
+        "dependency_id": "dependency:D08:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:82ca1c00718a967d1b8624fad7f3508ea34d8936ec0a012f0d3d034d957d1b53",
+        "dependency_id": "dependency:D08:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:58207e307feb86870c18873178dabd72bddf6a9844732123308a5d4da5eac32d",
+        "dependency_id": "dependency:D08:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:3acf46b1a6106bd8e8f2275ef5483fb77fbd8ed528908dd78117e0cb356f1e91",
+        "dependency_id": "dependency:D08:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D08",
+        "source_order": 8,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:36a2a5af00f4d1d51a0f218b53075de8cabf63c25e6352c525afd3074f1735ab",
+        "dependency_id": "dependency:D09:D10",
+        "relation": "release_precedes",
+        "source_domain_id": "D09",
+        "source_order": 9,
+        "target_domain_id": "D10",
+        "target_order": 10
+      },
+      {
+        "content_address": "program-release-dependency:c93756c145a960006951893c6e103cc9add782bfe095c08efc6feaa14f0db6eb",
+        "dependency_id": "dependency:D09:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D09",
+        "source_order": 9,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:b4e2af79695929e2f1997bf3bc7a16717a4649fcac0a2f22a29b83a12aa46304",
+        "dependency_id": "dependency:D09:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D09",
+        "source_order": 9,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:dc0daac4496011e5b6cc0acae399b1dd03fd869225379e1ad7c9f97487b6f840",
+        "dependency_id": "dependency:D09:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D09",
+        "source_order": 9,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:6f0e5f52a536b99df7b6e68b51bc93c383c8be1a338599083d729214efcd634f",
+        "dependency_id": "dependency:D09:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D09",
+        "source_order": 9,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:461bb8cff50cf49155249127fc74a0b505fbbd657c1800eee17f23b31256c0b6",
+        "dependency_id": "dependency:D09:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D09",
+        "source_order": 9,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:05259a0524b53f278efa1ad1c564a6871a798ff0b80a723ea501c94c8fab137d",
+        "dependency_id": "dependency:D09:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D09",
+        "source_order": 9,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:ac28989f54fd27d1c02319b6d151c24375d3bac1897f6ca2b628072fe64cc2d1",
+        "dependency_id": "dependency:D10:D11",
+        "relation": "release_precedes",
+        "source_domain_id": "D10",
+        "source_order": 10,
+        "target_domain_id": "D11",
+        "target_order": 11
+      },
+      {
+        "content_address": "program-release-dependency:4a83f0f4fc801133481ec8162a9e79b34c227fd18bcc40ac1dd7e16b1432fc83",
+        "dependency_id": "dependency:D10:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D10",
+        "source_order": 10,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:6dfbf620cc62f53369ad8745889e6cbcb36f3a43cf08731fb25cb5b07e25c5c4",
+        "dependency_id": "dependency:D10:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D10",
+        "source_order": 10,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:f47f85cdd325a5399f66ebf0b0bf18eb45774ac5289d79d382cd510c24bdeac9",
+        "dependency_id": "dependency:D10:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D10",
+        "source_order": 10,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:d21e377d574b26633e03279254ea800ee295b6d4ea791039b68a8836f30ab6e9",
+        "dependency_id": "dependency:D10:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D10",
+        "source_order": 10,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:84ff4d8ebaf28348a6a9ade9d66dca58ca289c80a623e2d9ccfedff9ff38d658",
+        "dependency_id": "dependency:D10:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D10",
+        "source_order": 10,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:da270ad4ebbe56108072b4e34538107fce0c34c0d64f020f4018ebfc53960836",
+        "dependency_id": "dependency:D11:D12",
+        "relation": "release_precedes",
+        "source_domain_id": "D11",
+        "source_order": 11,
+        "target_domain_id": "D12",
+        "target_order": 12
+      },
+      {
+        "content_address": "program-release-dependency:5a2c090367557cae3e889f981ca81828d3756d3c7319e4aba8f61decf181d760",
+        "dependency_id": "dependency:D11:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D11",
+        "source_order": 11,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:c9eb3abf6eef271c68a6caaffa233a712c6aae8b65536aec44a5474f7248921a",
+        "dependency_id": "dependency:D11:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D11",
+        "source_order": 11,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:927f0e606bb5da4bff7e27547484e2b98c0ac6232292014f3c498d203f74f25a",
+        "dependency_id": "dependency:D11:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D11",
+        "source_order": 11,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:4d22364d4550ae516c9ad8a9aeb9b404159a20da362d5c57f5b749cac48d8c1e",
+        "dependency_id": "dependency:D11:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D11",
+        "source_order": 11,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:d0506579908ce725ad92d9c861c4bfa61aed767d5ef997c877844d284b0cb773",
+        "dependency_id": "dependency:D12:D13",
+        "relation": "release_precedes",
+        "source_domain_id": "D12",
+        "source_order": 12,
+        "target_domain_id": "D13",
+        "target_order": 13
+      },
+      {
+        "content_address": "program-release-dependency:60c4150a7709f3ee2fb10b2f5808fd106c641b16de8c314a3ee76562ee6692ea",
+        "dependency_id": "dependency:D12:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D12",
+        "source_order": 12,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:7bc47351277efbbd625143e31ef444ac1332845086c18e3e4a9b3bd13f75343a",
+        "dependency_id": "dependency:D12:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D12",
+        "source_order": 12,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:6b97d9182a1784d11ffc19eef922d8a7b3e5fcaac318d7ae1394b119678ee612",
+        "dependency_id": "dependency:D12:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D12",
+        "source_order": 12,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:2ff2d54e1400c1ac47a41ef7bc3d47cfa18727191df593d980b471b077e5bd41",
+        "dependency_id": "dependency:D13:D14",
+        "relation": "release_precedes",
+        "source_domain_id": "D13",
+        "source_order": 13,
+        "target_domain_id": "D14",
+        "target_order": 14
+      },
+      {
+        "content_address": "program-release-dependency:4a580f2002766709be85d12232ddebe992fadc5a39e924baf50373d077bd6864",
+        "dependency_id": "dependency:D13:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D13",
+        "source_order": 13,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:fa20e02d3e3b05ea1f5807367317f35856fee7f37b6a540ef9e0c0bc10ee140a",
+        "dependency_id": "dependency:D13:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D13",
+        "source_order": 13,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:61a9ddac13e58c9e9cf73d5c978f3e2af7eabe1eaa93a8cf3408465c5d3adb87",
+        "dependency_id": "dependency:D14:D15",
+        "relation": "release_precedes",
+        "source_domain_id": "D14",
+        "source_order": 14,
+        "target_domain_id": "D15",
+        "target_order": 15
+      },
+      {
+        "content_address": "program-release-dependency:179dceb12b1a988970037bd50f0ddc2ecf614bbb46502418304373e6e2e0fa66",
+        "dependency_id": "dependency:D14:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D14",
+        "source_order": 14,
+        "target_domain_id": "D16",
+        "target_order": 16
+      },
+      {
+        "content_address": "program-release-dependency:9ef159a0ff3d85ee228ab14251cf6e3eaf1de21b32044b5fcd99a38f1cecdb8c",
+        "dependency_id": "dependency:D15:D16",
+        "relation": "release_precedes",
+        "source_domain_id": "D15",
+        "source_order": 15,
+        "target_domain_id": "D16",
+        "target_order": 16
+      }
+    ],
+    "domains": [
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a",
+        "dependency_order": 1,
+        "domain": "Variant Identity & Intake",
+        "domain_id": "D01",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 8,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:9727564423f99f992c911166763fbf2f22a68c705c4dbefcb2dd28c701d30849",
+        "source_runtime_address": "intake-runtime:d3a53641b9d12bb14cdd65f292e49df5d0de673ba370270b53211d6928d069ff",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb",
+        "dependency_order": 2,
+        "domain": "Structural Variation, Copy Number & Haplotype",
+        "domain_id": "D02",
+        "evaluation_check_count": 308,
+        "runtime_state": "published",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:494eed752664e41ad8208646e22df7d2963e5082868fbae3cbf242bbf1adf321",
+        "source_runtime_address": "structural-runtime:f49250f290f86f953d9596b2fea260ea2c88260f974cd985a4b02b0bf1f0442f",
+        "stage_count": 20
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb",
+        "dependency_order": 3,
+        "domain": "Specimen, Origin & Lineage",
+        "domain_id": "D03",
+        "evaluation_check_count": 458,
+        "runtime_state": "published",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:1f858fbd597973c0b010ca3fda3ff8d48acb35a2e997e38b5935c606c637044d",
+        "source_runtime_address": "specimen-runtime:9c51239c3a51f09bfc4d36dc0ee19d1e68539625d5d35a821be58c9f20598e7e",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d",
+        "dependency_order": 4,
+        "domain": "Reference & Annotation Governance",
+        "domain_id": "D04",
+        "evaluation_check_count": 458,
+        "runtime_state": "published",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:7c766a503ff8d8c6a7c1155a312faf7547a59ca39daebebd8390a612e841de5c",
+        "source_runtime_address": "reference-runtime:506d4b07cd4e5fe516df8f9c3edf9816616224139e63e9f92c9a2961cfa1dbdb",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413",
+        "dependency_order": 5,
+        "domain": "Glioma Regulatory Atlas",
+        "domain_id": "D05",
+        "evaluation_check_count": 458,
+        "runtime_state": "published",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:ff74608ce57300416a3f6d18ff4bd7c504babbe9cdcb11b9d3827379d5f4245a",
+        "source_runtime_address": "sha256:7095e0e77e9b0c394987f0090c49a0a74dc7007b2324970108212c8b3e6f0d24",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c",
+        "dependency_order": 6,
+        "domain": "Sequence Grammar & Variant Effect",
+        "domain_id": "D06",
+        "evaluation_check_count": 458,
+        "runtime_state": "published",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:ef9345987f211e73ab05dc1fb2bb6270220d1e6c06bf73cc20f411834e98dd71",
+        "source_runtime_address": "sha256:b8cabdac8305adc61d762c945fb0c37fe5e7dc17dbc1ea6a0564c6ace6321736",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8",
+        "dependency_order": 7,
+        "domain": "Chromatin, Accessibility & Methylation",
+        "domain_id": "D07",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:dd740a4533315eb88f4bfdd1604b6eba4d0ae7238112d7346dfc0188cf538588",
+        "source_runtime_address": "sha256:f170d40665ccc438b99cc6c0ce8598e2a042482ec4952a441442556eea5b1ed6",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357",
+        "dependency_order": 8,
+        "domain": "Cell State, Disease Class & Territory",
+        "domain_id": "D08",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:c6e388254b2063b462a09ca5fb166fc86715c1f09bcfc58f8e55fae4dc708eef",
+        "source_runtime_address": "sha256:03d1b5cf34ad794ebfb64b2b5a551c8d020e14c19e67bddbf035ddba2b81e26d",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd",
+        "dependency_order": 9,
+        "domain": "3D Genome & Regulatory Topology",
+        "domain_id": "D09",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:11475ab084192189a274c6577c5427c3788bbb426dd2759d639b665c536dd0c3",
+        "source_runtime_address": "sha256:47b9161434ee38ee5a83301dbcb6796bdc8f4605505fb8862704a5a1b4c34554",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a",
+        "dependency_order": 10,
+        "domain": "Variant-Element-Gene Linking",
+        "domain_id": "D10",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:9815178093b820ce9f1e5d647895df22de096fed7892230e1476e9e32c65a6e5",
+        "source_runtime_address": "sha256:a6a0e91e597ea214a52795acfc8338625f3733993093c03f5ae239e48d4798ee",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309",
+        "dependency_order": 11,
+        "domain": "Causal Chain & Regulatory Driver Inference",
+        "domain_id": "D11",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:7c4fe09f1de7629788fa484270786a3c15b0f4e7fab2d64bca5562be9f858a49",
+        "source_runtime_address": "sha256:53335ef15df5ef91911f1efa235d5d66559aa0fd8508edee80a4b0c008cc0f47",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9",
+        "dependency_order": 12,
+        "domain": "Cohort, Clonal & Longitudinal Discovery",
+        "domain_id": "D12",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:f0b851a6854ec7f9c232fb0a227b1ce83a1e0ada1c944d83a0842b139e56b70c",
+        "source_runtime_address": "sha256:7631972d0944452cb4e59ecc1101922e0a1e8e778c9729f59c81708ab4d77732",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb",
+        "dependency_order": 13,
+        "domain": "Functional Validation & Experiment Design",
+        "domain_id": "D13",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:4ba820c94d64ae384ff5bd2858585c1c3ebc90a4b0e53838e554eb4b3845cda3",
+        "source_runtime_address": "sha256:e79009eb80f930182a3acf1a24e56442f06845e7408560844fc6a87137a30e33",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f",
+        "dependency_order": 14,
+        "domain": "Evidence Graph, Review & Reclassification",
+        "domain_id": "D14",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:4cc7d85c23117e2f9164a8b3cfa17a989cbbea2b976c109e0b694dd6ecc8c315",
+        "source_runtime_address": "sha256:26e950b88f91a6b1a36b2d8e37e3842d65adad342813c161627395516856f9d3",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a",
+        "dependency_order": 15,
+        "domain": "Research Workbench & Collaboration",
+        "domain_id": "D15",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:1aa78f0d4de4af1a16dda756cee156a80167e2808973844ca01da5355ed53d6b",
+        "source_runtime_address": "sha256:0fd52a1c6811d4bcf03a5af42ec8bda5e842243abf03b02ca7d797c5393c4026",
+        "stage_count": 24
+      },
+      {
+        "accepted": true,
+        "content_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d",
+        "dependency_order": 16,
+        "domain": "Agentic Platform, Quality & Deployment",
+        "domain_id": "D16",
+        "evaluation_check_count": 458,
+        "runtime_state": "accepted",
+        "source_artifact_count": 6,
+        "source_bundle_id": "glio-noncode-program-release-closure",
+        "source_receipt_address": "architecture-program-receipt:cf8ff3831043766d6db8062c0d50d3fafcff2254cd46498433f1f7676cdebefb",
+        "source_runtime_address": "sha256:2956bf38df080391c9e284218f2e032a44eb6469bdd9b18b21288e3f3993326f",
+        "stage_count": 24
+      }
+    ],
+    "gates": [
+      {
+        "content_address": "program-release-gate:3c85bfd5641e0c7845a27397746bc7e11cb52a12555e07b75cb33353e2856a38",
+        "domain_id": "D01",
+        "expected": true,
+        "gate_id": "gate:D01:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+      },
+      {
+        "content_address": "program-release-gate:2326dab714a15449d3299d596cb53652293e2c4f4cc2c0196980247a5b05dc75",
+        "domain_id": "D01",
+        "expected": true,
+        "gate_id": "gate:D01:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+      },
+      {
+        "content_address": "program-release-gate:2364bd1ad6b8e4fdc6ecc29557713b011703803d76cc234dd4e79b6c33bb90cc",
+        "domain_id": "D01",
+        "expected": ">0",
+        "gate_id": "gate:D01:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+      },
+      {
+        "content_address": "program-release-gate:45b26a355d2b4b54ba749da3f7f31f0a2eeda3a08927b1087c73f3304a2a52f3",
+        "domain_id": "D01",
+        "expected": ">0",
+        "gate_id": "gate:D01:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+      },
+      {
+        "content_address": "program-release-gate:117d8e4acb81deb71de0b863cb32fb3e7bf503bc91f805b91cd395064fa5366c",
+        "domain_id": "D01",
+        "expected": ">0",
+        "gate_id": "gate:D01:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 8,
+        "passed": true,
+        "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+      },
+      {
+        "content_address": "program-release-gate:ab58239c48e7a84d40845e3d6693aca3da8179229d37ae9fa1f0df780d7312c5",
+        "domain_id": "D01",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D01:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+      },
+      {
+        "content_address": "program-release-gate:dfb92fea902af08b8039f8992a73c71da41232c3f100b953460b241087c011ca",
+        "domain_id": "D02",
+        "expected": true,
+        "gate_id": "gate:D02:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+      },
+      {
+        "content_address": "program-release-gate:4eda6e21d7a8ea4954c63dc8809e2840cd68972933898f16d9583eb937dc1b81",
+        "domain_id": "D02",
+        "expected": true,
+        "gate_id": "gate:D02:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+      },
+      {
+        "content_address": "program-release-gate:0282d43a6e30d3dd262f34f65060b8463839fe3b76cc91273e411db28783c942",
+        "domain_id": "D02",
+        "expected": ">0",
+        "gate_id": "gate:D02:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 20,
+        "passed": true,
+        "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+      },
+      {
+        "content_address": "program-release-gate:b838e97dd05f5fab19e2446ce645872b2a78cc0cec3d66e2bb8507b8a4f2066d",
+        "domain_id": "D02",
+        "expected": ">0",
+        "gate_id": "gate:D02:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 308,
+        "passed": true,
+        "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+      },
+      {
+        "content_address": "program-release-gate:cf068c6cb98a0b99c113e0b24cd29adab56545f258b69f48b4359337aebfd2ae",
+        "domain_id": "D02",
+        "expected": ">0",
+        "gate_id": "gate:D02:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+      },
+      {
+        "content_address": "program-release-gate:45680bfc69a13ff8b0d57de5cace17e6872d5a85a612be94c4c52141445cfa4c",
+        "domain_id": "D02",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D02:public_projection",
+        "gate_type": "public_projection",
+        "observed": "published",
+        "passed": true,
+        "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+      },
+      {
+        "content_address": "program-release-gate:c4b9f955e7a3158bcbbc716ee11bf9ce4fce4eaa7ebfdbe9b2298eb1535a588b",
+        "domain_id": "D03",
+        "expected": true,
+        "gate_id": "gate:D03:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+      },
+      {
+        "content_address": "program-release-gate:87497223d7357308b63d85bbc1c98b7793b5dc79f3508973df6543645a7d7f68",
+        "domain_id": "D03",
+        "expected": true,
+        "gate_id": "gate:D03:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+      },
+      {
+        "content_address": "program-release-gate:632b62ddcd8a56e5341aa40e033285dd17de34aa655cf3eda2e332228c04e2b8",
+        "domain_id": "D03",
+        "expected": ">0",
+        "gate_id": "gate:D03:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+      },
+      {
+        "content_address": "program-release-gate:5095d119353afc75b487b45fa66c8f0fc69d5f9d6e859e723a54241147909da7",
+        "domain_id": "D03",
+        "expected": ">0",
+        "gate_id": "gate:D03:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+      },
+      {
+        "content_address": "program-release-gate:6f28249864afa2e89cfa28621eb23874fd6cd879bf80d117f71f8e5c5a0affcc",
+        "domain_id": "D03",
+        "expected": ">0",
+        "gate_id": "gate:D03:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+      },
+      {
+        "content_address": "program-release-gate:3ee15b4edc935c3e09438f64d6530e7a024694172ccd271b531393588f8a6f5f",
+        "domain_id": "D03",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D03:public_projection",
+        "gate_type": "public_projection",
+        "observed": "published",
+        "passed": true,
+        "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+      },
+      {
+        "content_address": "program-release-gate:780d8064a4e2e37271fd536fd68c5000b739290d5ed240a0efa404ce45e7e340",
+        "domain_id": "D04",
+        "expected": true,
+        "gate_id": "gate:D04:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+      },
+      {
+        "content_address": "program-release-gate:886a26f11f298a2e9b0d92960bf4a836112acaf9097ef7f40a033db02d295e51",
+        "domain_id": "D04",
+        "expected": true,
+        "gate_id": "gate:D04:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+      },
+      {
+        "content_address": "program-release-gate:716fbe537ed2272412516a256593f20f3143b0f08b44d50c78bf0777cbd1dd24",
+        "domain_id": "D04",
+        "expected": ">0",
+        "gate_id": "gate:D04:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+      },
+      {
+        "content_address": "program-release-gate:b93693d6c381906f41376d41925739cacf791da8f30935f8fce7e6cd354eab24",
+        "domain_id": "D04",
+        "expected": ">0",
+        "gate_id": "gate:D04:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+      },
+      {
+        "content_address": "program-release-gate:b2626834d5cccd96fdc8e0ff06836d43121a6713328a5ee1212ee0a7a7d64cf0",
+        "domain_id": "D04",
+        "expected": ">0",
+        "gate_id": "gate:D04:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+      },
+      {
+        "content_address": "program-release-gate:31f860414cc08c788f399f4bd6e4be3a5bde0944e561ccfe92706508df2f6949",
+        "domain_id": "D04",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D04:public_projection",
+        "gate_type": "public_projection",
+        "observed": "published",
+        "passed": true,
+        "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+      },
+      {
+        "content_address": "program-release-gate:d80f886ecf197fd6637d5209fa88d9d925f5e7bff17486963ba7f742f823924e",
+        "domain_id": "D05",
+        "expected": true,
+        "gate_id": "gate:D05:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+      },
+      {
+        "content_address": "program-release-gate:d0fec8882660115672e2c038711b976565f0f30aee1ae0aafa8256da19b243ff",
+        "domain_id": "D05",
+        "expected": true,
+        "gate_id": "gate:D05:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+      },
+      {
+        "content_address": "program-release-gate:836ac539e590e853534dc5c661c6635b1f2c2383fd5969228e46aca5f13dc450",
+        "domain_id": "D05",
+        "expected": ">0",
+        "gate_id": "gate:D05:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+      },
+      {
+        "content_address": "program-release-gate:f5fae3d71bf254a124a277fe08bedad2b1ace978fad244962340692502ed1068",
+        "domain_id": "D05",
+        "expected": ">0",
+        "gate_id": "gate:D05:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+      },
+      {
+        "content_address": "program-release-gate:8cf954de2bb9c9d82f634812a31ce941d350e776e8efc32e1690d7ace0a96a2d",
+        "domain_id": "D05",
+        "expected": ">0",
+        "gate_id": "gate:D05:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+      },
+      {
+        "content_address": "program-release-gate:c874de15eab32c407ce048ce7c9683efe19423cf288052886acdeae62a272546",
+        "domain_id": "D05",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D05:public_projection",
+        "gate_type": "public_projection",
+        "observed": "published",
+        "passed": true,
+        "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+      },
+      {
+        "content_address": "program-release-gate:512e69a682dd490d582b473a58eda40a65a1ac6a4506dabac212035899997052",
+        "domain_id": "D06",
+        "expected": true,
+        "gate_id": "gate:D06:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+      },
+      {
+        "content_address": "program-release-gate:17200a95f309b4b345dd03d327a01337c3216de439d95b83df3380f49d24d181",
+        "domain_id": "D06",
+        "expected": true,
+        "gate_id": "gate:D06:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+      },
+      {
+        "content_address": "program-release-gate:653a44551c775311b2e17a1628451386b13fd947895ae260cefdbbd0d606af41",
+        "domain_id": "D06",
+        "expected": ">0",
+        "gate_id": "gate:D06:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+      },
+      {
+        "content_address": "program-release-gate:9a556ccef19c6bcc5770dc080aeea88b704e1e5a70d1b05a941fb97cc4c4c1c6",
+        "domain_id": "D06",
+        "expected": ">0",
+        "gate_id": "gate:D06:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+      },
+      {
+        "content_address": "program-release-gate:23684a49d084d8e2628beb2ba690fdb9bcd925c4417058a21b683336ca18bc8c",
+        "domain_id": "D06",
+        "expected": ">0",
+        "gate_id": "gate:D06:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+      },
+      {
+        "content_address": "program-release-gate:1f0aef06c2144e5671b6fdd8bfb269acba0578e77d92b2406dc27cd5c7f75069",
+        "domain_id": "D06",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D06:public_projection",
+        "gate_type": "public_projection",
+        "observed": "published",
+        "passed": true,
+        "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+      },
+      {
+        "content_address": "program-release-gate:e3e7f109584f3023fb47cd08d8495a1030625d8963241cf411ca76b3cb67d3d1",
+        "domain_id": "D07",
+        "expected": true,
+        "gate_id": "gate:D07:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+      },
+      {
+        "content_address": "program-release-gate:ebc67237e7b9cd27218f5cb5b06de005bd86da47a744eb9d3049ba1dc704a95f",
+        "domain_id": "D07",
+        "expected": true,
+        "gate_id": "gate:D07:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+      },
+      {
+        "content_address": "program-release-gate:60a673ae2fcca62a183f88f9c474767e78662de3756bc8033c62bcebdf38c418",
+        "domain_id": "D07",
+        "expected": ">0",
+        "gate_id": "gate:D07:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+      },
+      {
+        "content_address": "program-release-gate:1bd6e94d92b1838eb1740f8955ab0e4e9e3b2996b0e72104c77b34f1b9f3c55e",
+        "domain_id": "D07",
+        "expected": ">0",
+        "gate_id": "gate:D07:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+      },
+      {
+        "content_address": "program-release-gate:ad1fd78a815ca71f8692def8751ec9f61a3dbbf0e5505c9693a7bbc7a256c825",
+        "domain_id": "D07",
+        "expected": ">0",
+        "gate_id": "gate:D07:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+      },
+      {
+        "content_address": "program-release-gate:0fa45a85d9d6d8c0ecd229190a9f565990f96a6dba71619ca9e4783eca961a4f",
+        "domain_id": "D07",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D07:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+      },
+      {
+        "content_address": "program-release-gate:68c77f5cf6ba47de516550b1067f63650855aa6708d12ac1657f741d0585ca60",
+        "domain_id": "D08",
+        "expected": true,
+        "gate_id": "gate:D08:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+      },
+      {
+        "content_address": "program-release-gate:e1245258e747cec8cd8df9ad31c0c46ea12721a6242c859e6c24a1cc9a0d3140",
+        "domain_id": "D08",
+        "expected": true,
+        "gate_id": "gate:D08:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+      },
+      {
+        "content_address": "program-release-gate:edba736843e55ad00f4b8d6c633d091cc9d973d0b7c56f8a9162ff71910fb1c4",
+        "domain_id": "D08",
+        "expected": ">0",
+        "gate_id": "gate:D08:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+      },
+      {
+        "content_address": "program-release-gate:4c8ed3693cad7a116858eb677013266ce3de44e5a8117a7dfa6dc4c65b2fd8f5",
+        "domain_id": "D08",
+        "expected": ">0",
+        "gate_id": "gate:D08:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+      },
+      {
+        "content_address": "program-release-gate:554acef7ad1d66deb9602fac4922cadce60bbf56964ebf8cf2400ca34a3c2617",
+        "domain_id": "D08",
+        "expected": ">0",
+        "gate_id": "gate:D08:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+      },
+      {
+        "content_address": "program-release-gate:1ef8e7628813f9d2f26a140f825894052471bcda3ad5fc1a7d2eb8d597e21917",
+        "domain_id": "D08",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D08:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+      },
+      {
+        "content_address": "program-release-gate:a2e972e71c5d71426fe2a9635a45bc4fe76a173f538541000b90262720330acd",
+        "domain_id": "D09",
+        "expected": true,
+        "gate_id": "gate:D09:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+      },
+      {
+        "content_address": "program-release-gate:2022198c58f08829cbf79f5aabb9dec5346f8a8f5d533f1e9770ce4558bea450",
+        "domain_id": "D09",
+        "expected": true,
+        "gate_id": "gate:D09:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+      },
+      {
+        "content_address": "program-release-gate:3e99958040219e50eb828c2adedb182376d5dbf9b6ea2e9dd97bdc7f1cdea6c2",
+        "domain_id": "D09",
+        "expected": ">0",
+        "gate_id": "gate:D09:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+      },
+      {
+        "content_address": "program-release-gate:07a855f84e4d84bdcb410a73650b27a0952eda47a8b28db3ea89bd78f73b4497",
+        "domain_id": "D09",
+        "expected": ">0",
+        "gate_id": "gate:D09:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+      },
+      {
+        "content_address": "program-release-gate:db6868b65e57e8db6332050cf3120047516e13d77cb63d4cd849a54c1eb394b5",
+        "domain_id": "D09",
+        "expected": ">0",
+        "gate_id": "gate:D09:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+      },
+      {
+        "content_address": "program-release-gate:fe4d5795bb25dc5f0149348e4d113865992232a09c356e219f30b6795526ed7c",
+        "domain_id": "D09",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D09:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+      },
+      {
+        "content_address": "program-release-gate:571803e5d8769133e98c54366b601ffad73d02a0a76bd6ea9ab336afb8369e22",
+        "domain_id": "D10",
+        "expected": true,
+        "gate_id": "gate:D10:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a"
+      },
+      {
+        "content_address": "program-release-gate:92f92eecb61b7e2107e45be6730d247726952e4fc11bc4f4996f002f38fca919",
+        "domain_id": "D10",
+        "expected": true,
+        "gate_id": "gate:D10:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a"
+      },
+      {
+        "content_address": "program-release-gate:727c5b68d086bd91e8baded2ff00c4a1fb528450969d00d386d641ea5b86e317",
+        "domain_id": "D10",
+        "expected": ">0",
+        "gate_id": "gate:D10:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a"
+      },
+      {
+        "content_address": "program-release-gate:ae2864d10b7dab1380fa057a7daa2f0fc5298a9453cc0e5ec3bd48d84e2ae7ea",
+        "domain_id": "D10",
+        "expected": ">0",
+        "gate_id": "gate:D10:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a"
+      },
+      {
+        "content_address": "program-release-gate:3342688da311ac568debce60643eefe7866569aa7e932294b69824aec00e4452",
+        "domain_id": "D10",
+        "expected": ">0",
+        "gate_id": "gate:D10:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a"
+      },
+      {
+        "content_address": "program-release-gate:31f298192ef458b53c55715cbf4b43bf26a93e59f6b5521b96e4378ad3ba661d",
+        "domain_id": "D10",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D10:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a"
+      },
+      {
+        "content_address": "program-release-gate:26acad1a3db65c6f445ea4f9b158f17acc34eefcd93741d05b59aa76ca09d934",
+        "domain_id": "D11",
+        "expected": true,
+        "gate_id": "gate:D11:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309"
+      },
+      {
+        "content_address": "program-release-gate:5ff0a7ff1f22ba58bb5fe7cf597d97f4d337b9cfe1aaff906d8dd4364e927626",
+        "domain_id": "D11",
+        "expected": true,
+        "gate_id": "gate:D11:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309"
+      },
+      {
+        "content_address": "program-release-gate:e05e4114532b13a47f74de461d5890b7a9350abcdd416767637081dfe2491eb2",
+        "domain_id": "D11",
+        "expected": ">0",
+        "gate_id": "gate:D11:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309"
+      },
+      {
+        "content_address": "program-release-gate:58e5ba052febb1c9a33a0c139c851b04e8d04d6e47e052a9466c0bb7d0cae2f9",
+        "domain_id": "D11",
+        "expected": ">0",
+        "gate_id": "gate:D11:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309"
+      },
+      {
+        "content_address": "program-release-gate:ee1c10f4d6baac81678bf8b4815427a0066d1987a20cb4482ee0fbd7e7f66d03",
+        "domain_id": "D11",
+        "expected": ">0",
+        "gate_id": "gate:D11:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309"
+      },
+      {
+        "content_address": "program-release-gate:fe3f9485f4986f7abfe5add8bfd54b1453e5e41bfd4fd06f19500eab15119f89",
+        "domain_id": "D11",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D11:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309"
+      },
+      {
+        "content_address": "program-release-gate:8f011a90aa75ccb1c957aec6696de0ed11e4e1b2c98438e97e2b7ab55e4025e2",
+        "domain_id": "D12",
+        "expected": true,
+        "gate_id": "gate:D12:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9"
+      },
+      {
+        "content_address": "program-release-gate:8c0d738cdfbab3af193005efae784b167f229ce5e41865d7db573427e07506da",
+        "domain_id": "D12",
+        "expected": true,
+        "gate_id": "gate:D12:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9"
+      },
+      {
+        "content_address": "program-release-gate:371080b7225fc871163a78500033892b6e1f3e3ee07c5b83ae85fe39cbe9d7e5",
+        "domain_id": "D12",
+        "expected": ">0",
+        "gate_id": "gate:D12:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9"
+      },
+      {
+        "content_address": "program-release-gate:47b44f1846081afb97beb21e07a673a785d667010394e53ab657fca1f283ad0a",
+        "domain_id": "D12",
+        "expected": ">0",
+        "gate_id": "gate:D12:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9"
+      },
+      {
+        "content_address": "program-release-gate:625b2457bfb2a801a73f51c13113e3ed02944f12e9e54a4dfb786cca95ea11be",
+        "domain_id": "D12",
+        "expected": ">0",
+        "gate_id": "gate:D12:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9"
+      },
+      {
+        "content_address": "program-release-gate:10cc9f96a4a6a915cfb4f5737c086fe703cbcf8a4f153c407d3501639ba83307",
+        "domain_id": "D12",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D12:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9"
+      },
+      {
+        "content_address": "program-release-gate:841947b3f150ec4c9211abd3f6268a4e19d848e08d1f19e301b07ba12480e6a8",
+        "domain_id": "D13",
+        "expected": true,
+        "gate_id": "gate:D13:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb"
+      },
+      {
+        "content_address": "program-release-gate:983ffe54bcaef01298b637fea522907485ed0238243ef8a201af87da844804fe",
+        "domain_id": "D13",
+        "expected": true,
+        "gate_id": "gate:D13:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb"
+      },
+      {
+        "content_address": "program-release-gate:181355242a8ae26108838c8725c82a2cbf35dbff48ec46ab0fdc21b2e3e38936",
+        "domain_id": "D13",
+        "expected": ">0",
+        "gate_id": "gate:D13:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb"
+      },
+      {
+        "content_address": "program-release-gate:f627a046fdee2f8d1d0b7a87d471e9c2db3164899686ecaba216c32b111927da",
+        "domain_id": "D13",
+        "expected": ">0",
+        "gate_id": "gate:D13:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb"
+      },
+      {
+        "content_address": "program-release-gate:ae662c29767c74e008f29eb9294bea898abfce5f135e71ff07d4ee087572715f",
+        "domain_id": "D13",
+        "expected": ">0",
+        "gate_id": "gate:D13:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb"
+      },
+      {
+        "content_address": "program-release-gate:2cadf889316cff9f542fbe085c85b776a49cdc09a533ace0e099a576d157cabd",
+        "domain_id": "D13",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D13:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb"
+      },
+      {
+        "content_address": "program-release-gate:c6b75f1d133aee37a4d92b2aa5ea179ffa81ea8d610392cea173c3be366cab94",
+        "domain_id": "D14",
+        "expected": true,
+        "gate_id": "gate:D14:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f"
+      },
+      {
+        "content_address": "program-release-gate:5019e4373a895333a025190cb61abe2cebc8238fcdbef134fdee804c124f8f8b",
+        "domain_id": "D14",
+        "expected": true,
+        "gate_id": "gate:D14:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f"
+      },
+      {
+        "content_address": "program-release-gate:c6527594223f712fe2a5ffeaee115998ae02fa15651e062d85a848ca05772042",
+        "domain_id": "D14",
+        "expected": ">0",
+        "gate_id": "gate:D14:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f"
+      },
+      {
+        "content_address": "program-release-gate:108bb1655df8cdafa4b5404029c36280d8e4a8febd7e71713c8d5447ec23c2a4",
+        "domain_id": "D14",
+        "expected": ">0",
+        "gate_id": "gate:D14:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f"
+      },
+      {
+        "content_address": "program-release-gate:dab515d70eaff4d85c1d4e5226b8c5ca337676d1629143b5606dffc0abe3b719",
+        "domain_id": "D14",
+        "expected": ">0",
+        "gate_id": "gate:D14:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f"
+      },
+      {
+        "content_address": "program-release-gate:ddb2ac674fb60c68a798797e60619a8705ce3ddf349ae271a60a6a28ea1ae71a",
+        "domain_id": "D14",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D14:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f"
+      },
+      {
+        "content_address": "program-release-gate:d56da88cc420a8111fad4b04f794f3f07508740a6b5b78f0446a1a5562cbc2f3",
+        "domain_id": "D15",
+        "expected": true,
+        "gate_id": "gate:D15:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a"
+      },
+      {
+        "content_address": "program-release-gate:89c6cead49ad43ff30a671bfb1d1ec3c048a27a2d087a91b17dd8b641f37cf6e",
+        "domain_id": "D15",
+        "expected": true,
+        "gate_id": "gate:D15:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a"
+      },
+      {
+        "content_address": "program-release-gate:03472e18164c63bd290b94e5131b66abc4c9e62e33045e2604e8c952d373f32b",
+        "domain_id": "D15",
+        "expected": ">0",
+        "gate_id": "gate:D15:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a"
+      },
+      {
+        "content_address": "program-release-gate:557ac08d03e737ce3c381a1feb32ab46b3569e140074c7745245a3d0aeb1cefb",
+        "domain_id": "D15",
+        "expected": ">0",
+        "gate_id": "gate:D15:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a"
+      },
+      {
+        "content_address": "program-release-gate:415ebd6f121c0b5288a2f66e96fd26d0b69b72bde842013b09e5ff999e6026eb",
+        "domain_id": "D15",
+        "expected": ">0",
+        "gate_id": "gate:D15:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a"
+      },
+      {
+        "content_address": "program-release-gate:d9713b2e55645e988539d4949e7937202b52e5dfa3f87be37e7d1d810ffd8235",
+        "domain_id": "D15",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D15:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a"
+      },
+      {
+        "content_address": "program-release-gate:9b703956529ccc944d7d4b0b8e4dc28a6668659d72eba4177b2c202c7bbeb1df",
+        "domain_id": "D16",
+        "expected": true,
+        "gate_id": "gate:D16:bundle_accepted",
+        "gate_type": "bundle_accepted",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d"
+      },
+      {
+        "content_address": "program-release-gate:1c932f10c83a961efbe2c1eea21419a919ab79c090bcef262a2546f8dc8a17c0",
+        "domain_id": "D16",
+        "expected": true,
+        "gate_id": "gate:D16:runtime_address",
+        "gate_type": "runtime_address",
+        "observed": true,
+        "passed": true,
+        "source_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d"
+      },
+      {
+        "content_address": "program-release-gate:75f646d0c121e4cddd476f594f719baa66081246886e1f26b8fdefd63077fe8b",
+        "domain_id": "D16",
+        "expected": ">0",
+        "gate_id": "gate:D16:runtime_depth",
+        "gate_type": "runtime_depth",
+        "observed": 24,
+        "passed": true,
+        "source_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d"
+      },
+      {
+        "content_address": "program-release-gate:63ab6966011ff81644e344be51671c530380bc1753076eb149831e5adbb1aaa1",
+        "domain_id": "D16",
+        "expected": ">0",
+        "gate_id": "gate:D16:evaluation_checks",
+        "gate_type": "evaluation_checks",
+        "observed": 458,
+        "passed": true,
+        "source_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d"
+      },
+      {
+        "content_address": "program-release-gate:6030c0e2847bd8c966d79086bf44fc9f1cffaad3d8fbe44ed6a727a4ca021937",
+        "domain_id": "D16",
+        "expected": ">0",
+        "gate_id": "gate:D16:artifact_contribution",
+        "gate_type": "artifact_contribution",
+        "observed": 6,
+        "passed": true,
+        "source_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d"
+      },
+      {
+        "content_address": "program-release-gate:35da1b9e1ef26bd2b558c3886491ba1b42a31897fa608e5ddebdcde8285d6d83",
+        "domain_id": "D16",
+        "expected": [
+          "accepted",
+          "published"
+        ],
+        "gate_id": "gate:D16:public_projection",
+        "gate_type": "public_projection",
+        "observed": "accepted",
+        "passed": true,
+        "source_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d"
+      }
+    ],
+    "run_id": "glio-noncode-program-release-closure-run",
+    "source_bundle_address": "program-runtime-offline-bundle:753ea125cb2c1cfb1020fb096cb50e26f68d7a86736ee14789d29b982e92915b",
+    "source_bundle_id": "glio-noncode-program-release-closure"
+  },
   "queries": {
     "accepted_architecture_program": {
       "count": 16,
@@ -69966,6 +72493,567 @@
       ],
       "runtime_address": "architecture-program-runtime:b656d7e3726371ff470d998a5c74ee66fa0a90e50e1eb63fd7c9623f958898aa",
       "service": "glio-noncode"
+    },
+    "accepted_program_release_gates": {
+      "accepted": true,
+      "bundle_id": "glio-noncode-program-release-closure",
+      "content_address": "program-release-query:564d5fc74ce9bf525c4bec67eb4c2e1604cfbef6b46256ebffec3017d86b4331",
+      "filters": {
+        "accepted_only": true,
+        "domain_id": null,
+        "gate_type": null,
+        "relation": null,
+        "state": null,
+        "text": null
+      },
+      "has_more": true,
+      "items": [
+        {
+          "content_address": "program-release-gate:117d8e4acb81deb71de0b863cb32fb3e7bf503bc91f805b91cd395064fa5366c",
+          "domain_id": "D01",
+          "expected": ">0",
+          "gate_id": "gate:D01:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 8,
+          "passed": true,
+          "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+        },
+        {
+          "content_address": "program-release-gate:3c85bfd5641e0c7845a27397746bc7e11cb52a12555e07b75cb33353e2856a38",
+          "domain_id": "D01",
+          "expected": true,
+          "gate_id": "gate:D01:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+        },
+        {
+          "content_address": "program-release-gate:45b26a355d2b4b54ba749da3f7f31f0a2eeda3a08927b1087c73f3304a2a52f3",
+          "domain_id": "D01",
+          "expected": ">0",
+          "gate_id": "gate:D01:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 458,
+          "passed": true,
+          "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+        },
+        {
+          "content_address": "program-release-gate:ab58239c48e7a84d40845e3d6693aca3da8179229d37ae9fa1f0df780d7312c5",
+          "domain_id": "D01",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D01:public_projection",
+          "gate_type": "public_projection",
+          "observed": "accepted",
+          "passed": true,
+          "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+        },
+        {
+          "content_address": "program-release-gate:2326dab714a15449d3299d596cb53652293e2c4f4cc2c0196980247a5b05dc75",
+          "domain_id": "D01",
+          "expected": true,
+          "gate_id": "gate:D01:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+        },
+        {
+          "content_address": "program-release-gate:2364bd1ad6b8e4fdc6ecc29557713b011703803d76cc234dd4e79b6c33bb90cc",
+          "domain_id": "D01",
+          "expected": ">0",
+          "gate_id": "gate:D01:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 24,
+          "passed": true,
+          "source_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a"
+        },
+        {
+          "content_address": "program-release-gate:cf068c6cb98a0b99c113e0b24cd29adab56545f258b69f48b4359337aebfd2ae",
+          "domain_id": "D02",
+          "expected": ">0",
+          "gate_id": "gate:D02:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+        },
+        {
+          "content_address": "program-release-gate:dfb92fea902af08b8039f8992a73c71da41232c3f100b953460b241087c011ca",
+          "domain_id": "D02",
+          "expected": true,
+          "gate_id": "gate:D02:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+        },
+        {
+          "content_address": "program-release-gate:b838e97dd05f5fab19e2446ce645872b2a78cc0cec3d66e2bb8507b8a4f2066d",
+          "domain_id": "D02",
+          "expected": ">0",
+          "gate_id": "gate:D02:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 308,
+          "passed": true,
+          "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+        },
+        {
+          "content_address": "program-release-gate:45680bfc69a13ff8b0d57de5cace17e6872d5a85a612be94c4c52141445cfa4c",
+          "domain_id": "D02",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D02:public_projection",
+          "gate_type": "public_projection",
+          "observed": "published",
+          "passed": true,
+          "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+        },
+        {
+          "content_address": "program-release-gate:4eda6e21d7a8ea4954c63dc8809e2840cd68972933898f16d9583eb937dc1b81",
+          "domain_id": "D02",
+          "expected": true,
+          "gate_id": "gate:D02:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+        },
+        {
+          "content_address": "program-release-gate:0282d43a6e30d3dd262f34f65060b8463839fe3b76cc91273e411db28783c942",
+          "domain_id": "D02",
+          "expected": ">0",
+          "gate_id": "gate:D02:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 20,
+          "passed": true,
+          "source_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb"
+        },
+        {
+          "content_address": "program-release-gate:6f28249864afa2e89cfa28621eb23874fd6cd879bf80d117f71f8e5c5a0affcc",
+          "domain_id": "D03",
+          "expected": ">0",
+          "gate_id": "gate:D03:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+        },
+        {
+          "content_address": "program-release-gate:c4b9f955e7a3158bcbbc716ee11bf9ce4fce4eaa7ebfdbe9b2298eb1535a588b",
+          "domain_id": "D03",
+          "expected": true,
+          "gate_id": "gate:D03:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+        },
+        {
+          "content_address": "program-release-gate:5095d119353afc75b487b45fa66c8f0fc69d5f9d6e859e723a54241147909da7",
+          "domain_id": "D03",
+          "expected": ">0",
+          "gate_id": "gate:D03:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 458,
+          "passed": true,
+          "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+        },
+        {
+          "content_address": "program-release-gate:3ee15b4edc935c3e09438f64d6530e7a024694172ccd271b531393588f8a6f5f",
+          "domain_id": "D03",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D03:public_projection",
+          "gate_type": "public_projection",
+          "observed": "published",
+          "passed": true,
+          "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+        },
+        {
+          "content_address": "program-release-gate:87497223d7357308b63d85bbc1c98b7793b5dc79f3508973df6543645a7d7f68",
+          "domain_id": "D03",
+          "expected": true,
+          "gate_id": "gate:D03:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+        },
+        {
+          "content_address": "program-release-gate:632b62ddcd8a56e5341aa40e033285dd17de34aa655cf3eda2e332228c04e2b8",
+          "domain_id": "D03",
+          "expected": ">0",
+          "gate_id": "gate:D03:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 24,
+          "passed": true,
+          "source_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb"
+        },
+        {
+          "content_address": "program-release-gate:b2626834d5cccd96fdc8e0ff06836d43121a6713328a5ee1212ee0a7a7d64cf0",
+          "domain_id": "D04",
+          "expected": ">0",
+          "gate_id": "gate:D04:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+        },
+        {
+          "content_address": "program-release-gate:780d8064a4e2e37271fd536fd68c5000b739290d5ed240a0efa404ce45e7e340",
+          "domain_id": "D04",
+          "expected": true,
+          "gate_id": "gate:D04:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+        },
+        {
+          "content_address": "program-release-gate:b93693d6c381906f41376d41925739cacf791da8f30935f8fce7e6cd354eab24",
+          "domain_id": "D04",
+          "expected": ">0",
+          "gate_id": "gate:D04:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 458,
+          "passed": true,
+          "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+        },
+        {
+          "content_address": "program-release-gate:31f860414cc08c788f399f4bd6e4be3a5bde0944e561ccfe92706508df2f6949",
+          "domain_id": "D04",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D04:public_projection",
+          "gate_type": "public_projection",
+          "observed": "published",
+          "passed": true,
+          "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+        },
+        {
+          "content_address": "program-release-gate:886a26f11f298a2e9b0d92960bf4a836112acaf9097ef7f40a033db02d295e51",
+          "domain_id": "D04",
+          "expected": true,
+          "gate_id": "gate:D04:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+        },
+        {
+          "content_address": "program-release-gate:716fbe537ed2272412516a256593f20f3143b0f08b44d50c78bf0777cbd1dd24",
+          "domain_id": "D04",
+          "expected": ">0",
+          "gate_id": "gate:D04:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 24,
+          "passed": true,
+          "source_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d"
+        },
+        {
+          "content_address": "program-release-gate:8cf954de2bb9c9d82f634812a31ce941d350e776e8efc32e1690d7ace0a96a2d",
+          "domain_id": "D05",
+          "expected": ">0",
+          "gate_id": "gate:D05:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+        },
+        {
+          "content_address": "program-release-gate:d80f886ecf197fd6637d5209fa88d9d925f5e7bff17486963ba7f742f823924e",
+          "domain_id": "D05",
+          "expected": true,
+          "gate_id": "gate:D05:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+        },
+        {
+          "content_address": "program-release-gate:f5fae3d71bf254a124a277fe08bedad2b1ace978fad244962340692502ed1068",
+          "domain_id": "D05",
+          "expected": ">0",
+          "gate_id": "gate:D05:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 458,
+          "passed": true,
+          "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+        },
+        {
+          "content_address": "program-release-gate:c874de15eab32c407ce048ce7c9683efe19423cf288052886acdeae62a272546",
+          "domain_id": "D05",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D05:public_projection",
+          "gate_type": "public_projection",
+          "observed": "published",
+          "passed": true,
+          "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+        },
+        {
+          "content_address": "program-release-gate:d0fec8882660115672e2c038711b976565f0f30aee1ae0aafa8256da19b243ff",
+          "domain_id": "D05",
+          "expected": true,
+          "gate_id": "gate:D05:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+        },
+        {
+          "content_address": "program-release-gate:836ac539e590e853534dc5c661c6635b1f2c2383fd5969228e46aca5f13dc450",
+          "domain_id": "D05",
+          "expected": ">0",
+          "gate_id": "gate:D05:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 24,
+          "passed": true,
+          "source_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413"
+        },
+        {
+          "content_address": "program-release-gate:23684a49d084d8e2628beb2ba690fdb9bcd925c4417058a21b683336ca18bc8c",
+          "domain_id": "D06",
+          "expected": ">0",
+          "gate_id": "gate:D06:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+        },
+        {
+          "content_address": "program-release-gate:512e69a682dd490d582b473a58eda40a65a1ac6a4506dabac212035899997052",
+          "domain_id": "D06",
+          "expected": true,
+          "gate_id": "gate:D06:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+        },
+        {
+          "content_address": "program-release-gate:9a556ccef19c6bcc5770dc080aeea88b704e1e5a70d1b05a941fb97cc4c4c1c6",
+          "domain_id": "D06",
+          "expected": ">0",
+          "gate_id": "gate:D06:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 458,
+          "passed": true,
+          "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+        },
+        {
+          "content_address": "program-release-gate:1f0aef06c2144e5671b6fdd8bfb269acba0578e77d92b2406dc27cd5c7f75069",
+          "domain_id": "D06",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D06:public_projection",
+          "gate_type": "public_projection",
+          "observed": "published",
+          "passed": true,
+          "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+        },
+        {
+          "content_address": "program-release-gate:17200a95f309b4b345dd03d327a01337c3216de439d95b83df3380f49d24d181",
+          "domain_id": "D06",
+          "expected": true,
+          "gate_id": "gate:D06:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+        },
+        {
+          "content_address": "program-release-gate:653a44551c775311b2e17a1628451386b13fd947895ae260cefdbbd0d606af41",
+          "domain_id": "D06",
+          "expected": ">0",
+          "gate_id": "gate:D06:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 24,
+          "passed": true,
+          "source_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c"
+        },
+        {
+          "content_address": "program-release-gate:ad1fd78a815ca71f8692def8751ec9f61a3dbbf0e5505c9693a7bbc7a256c825",
+          "domain_id": "D07",
+          "expected": ">0",
+          "gate_id": "gate:D07:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+        },
+        {
+          "content_address": "program-release-gate:e3e7f109584f3023fb47cd08d8495a1030625d8963241cf411ca76b3cb67d3d1",
+          "domain_id": "D07",
+          "expected": true,
+          "gate_id": "gate:D07:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+        },
+        {
+          "content_address": "program-release-gate:1bd6e94d92b1838eb1740f8955ab0e4e9e3b2996b0e72104c77b34f1b9f3c55e",
+          "domain_id": "D07",
+          "expected": ">0",
+          "gate_id": "gate:D07:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 458,
+          "passed": true,
+          "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+        },
+        {
+          "content_address": "program-release-gate:0fa45a85d9d6d8c0ecd229190a9f565990f96a6dba71619ca9e4783eca961a4f",
+          "domain_id": "D07",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D07:public_projection",
+          "gate_type": "public_projection",
+          "observed": "accepted",
+          "passed": true,
+          "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+        },
+        {
+          "content_address": "program-release-gate:ebc67237e7b9cd27218f5cb5b06de005bd86da47a744eb9d3049ba1dc704a95f",
+          "domain_id": "D07",
+          "expected": true,
+          "gate_id": "gate:D07:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+        },
+        {
+          "content_address": "program-release-gate:60a673ae2fcca62a183f88f9c474767e78662de3756bc8033c62bcebdf38c418",
+          "domain_id": "D07",
+          "expected": ">0",
+          "gate_id": "gate:D07:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 24,
+          "passed": true,
+          "source_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8"
+        },
+        {
+          "content_address": "program-release-gate:554acef7ad1d66deb9602fac4922cadce60bbf56964ebf8cf2400ca34a3c2617",
+          "domain_id": "D08",
+          "expected": ">0",
+          "gate_id": "gate:D08:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+        },
+        {
+          "content_address": "program-release-gate:68c77f5cf6ba47de516550b1067f63650855aa6708d12ac1657f741d0585ca60",
+          "domain_id": "D08",
+          "expected": true,
+          "gate_id": "gate:D08:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+        },
+        {
+          "content_address": "program-release-gate:4c8ed3693cad7a116858eb677013266ce3de44e5a8117a7dfa6dc4c65b2fd8f5",
+          "domain_id": "D08",
+          "expected": ">0",
+          "gate_id": "gate:D08:evaluation_checks",
+          "gate_type": "evaluation_checks",
+          "observed": 458,
+          "passed": true,
+          "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+        },
+        {
+          "content_address": "program-release-gate:1ef8e7628813f9d2f26a140f825894052471bcda3ad5fc1a7d2eb8d597e21917",
+          "domain_id": "D08",
+          "expected": [
+            "accepted",
+            "published"
+          ],
+          "gate_id": "gate:D08:public_projection",
+          "gate_type": "public_projection",
+          "observed": "accepted",
+          "passed": true,
+          "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+        },
+        {
+          "content_address": "program-release-gate:e1245258e747cec8cd8df9ad31c0c46ea12721a6242c859e6c24a1cc9a0d3140",
+          "domain_id": "D08",
+          "expected": true,
+          "gate_id": "gate:D08:runtime_address",
+          "gate_type": "runtime_address",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+        },
+        {
+          "content_address": "program-release-gate:edba736843e55ad00f4b8d6c633d091cc9d973d0b7c56f8a9162ff71910fb1c4",
+          "domain_id": "D08",
+          "expected": ">0",
+          "gate_id": "gate:D08:runtime_depth",
+          "gate_type": "runtime_depth",
+          "observed": 24,
+          "passed": true,
+          "source_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357"
+        },
+        {
+          "content_address": "program-release-gate:db6868b65e57e8db6332050cf3120047516e13d77cb63d4cd849a54c1eb394b5",
+          "domain_id": "D09",
+          "expected": ">0",
+          "gate_id": "gate:D09:artifact_contribution",
+          "gate_type": "artifact_contribution",
+          "observed": 6,
+          "passed": true,
+          "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+        },
+        {
+          "content_address": "program-release-gate:a2e972e71c5d71426fe2a9635a45bc4fe76a173f538541000b90262720330acd",
+          "domain_id": "D09",
+          "expected": true,
+          "gate_id": "gate:D09:bundle_accepted",
+          "gate_type": "bundle_accepted",
+          "observed": true,
+          "passed": true,
+          "source_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd"
+        }
+      ],
+      "limit": 50,
+      "offset": 0,
+      "release_status": {
+        "accepted": true,
+        "accepted_domain_count": 16,
+        "artifact_count": 18,
+        "boundary": "public_aggregate_program_release_closure_handoff",
+        "bundle_id": "glio-noncode-program-release-closure",
+        "dependency_count": 120,
+        "domain_count": 16,
+        "domain_percent": 100.0,
+        "gate_count": 96,
+        "gate_percent": 100.0,
+        "passed_gate_count": 96,
+        "run_id": "glio-noncode-program-release-closure-run",
+        "snapshot_address": "program-release-closure-v1:5a1be178023d8622afff06e5ad56a34af771382b63636e3f6040fa5510fdd858"
+      },
+      "resource": "gates",
+      "service": "glio-noncode",
+      "snapshot_address": "program-release-closure-v1:5a1be178023d8622afff06e5ad56a34af771382b63636e3f6040fa5510fdd858",
+      "total": 96
     },
     "architecture_program": {
       "count": 16,
@@ -152489,6 +155577,267 @@
         }
       ],
       "service": "glio-noncode"
+    },
+    "program_release_domains": {
+      "accepted": true,
+      "bundle_id": "glio-noncode-program-release-closure",
+      "content_address": "program-release-query:4e543929e9fbbec9218da504c646280922696b9f4899112232452ed786aa29fc",
+      "filters": {
+        "accepted_only": false,
+        "domain_id": null,
+        "gate_type": null,
+        "relation": null,
+        "state": null,
+        "text": null
+      },
+      "has_more": false,
+      "items": [
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:0c7999ebcd88994f4cabd2f779cda2198c1120bb38575f54135724b63350ab9a",
+          "dependency_order": 1,
+          "domain": "Variant Identity & Intake",
+          "domain_id": "D01",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 8,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:9727564423f99f992c911166763fbf2f22a68c705c4dbefcb2dd28c701d30849",
+          "source_runtime_address": "intake-runtime:d3a53641b9d12bb14cdd65f292e49df5d0de673ba370270b53211d6928d069ff",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:6a34d2c7867550a916793fab7c52a82aa2d17f895772854b49de9e8a7e9161bb",
+          "dependency_order": 2,
+          "domain": "Structural Variation, Copy Number & Haplotype",
+          "domain_id": "D02",
+          "evaluation_check_count": 308,
+          "runtime_state": "published",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:494eed752664e41ad8208646e22df7d2963e5082868fbae3cbf242bbf1adf321",
+          "source_runtime_address": "structural-runtime:f49250f290f86f953d9596b2fea260ea2c88260f974cd985a4b02b0bf1f0442f",
+          "stage_count": 20
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:55c7367899d06e9927a9a43bae0c688673c5d11c77dc6f6d6d82ad09176d27bb",
+          "dependency_order": 3,
+          "domain": "Specimen, Origin & Lineage",
+          "domain_id": "D03",
+          "evaluation_check_count": 458,
+          "runtime_state": "published",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:1f858fbd597973c0b010ca3fda3ff8d48acb35a2e997e38b5935c606c637044d",
+          "source_runtime_address": "specimen-runtime:9c51239c3a51f09bfc4d36dc0ee19d1e68539625d5d35a821be58c9f20598e7e",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:7f4a59e8cce1f746c74af3ffadccb005a4792ad99b24944a781898937ee1752d",
+          "dependency_order": 4,
+          "domain": "Reference & Annotation Governance",
+          "domain_id": "D04",
+          "evaluation_check_count": 458,
+          "runtime_state": "published",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:7c766a503ff8d8c6a7c1155a312faf7547a59ca39daebebd8390a612e841de5c",
+          "source_runtime_address": "reference-runtime:506d4b07cd4e5fe516df8f9c3edf9816616224139e63e9f92c9a2961cfa1dbdb",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:e9b762337899ef9db5e98dd0803ff39ba7f5faf4b2ba847b6caa698d2ec1d413",
+          "dependency_order": 5,
+          "domain": "Glioma Regulatory Atlas",
+          "domain_id": "D05",
+          "evaluation_check_count": 458,
+          "runtime_state": "published",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:ff74608ce57300416a3f6d18ff4bd7c504babbe9cdcb11b9d3827379d5f4245a",
+          "source_runtime_address": "sha256:7095e0e77e9b0c394987f0090c49a0a74dc7007b2324970108212c8b3e6f0d24",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:3292122ce8d23b2106ba067f66c980c48709ccd09fb6748c73b6b355f980531c",
+          "dependency_order": 6,
+          "domain": "Sequence Grammar & Variant Effect",
+          "domain_id": "D06",
+          "evaluation_check_count": 458,
+          "runtime_state": "published",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:ef9345987f211e73ab05dc1fb2bb6270220d1e6c06bf73cc20f411834e98dd71",
+          "source_runtime_address": "sha256:b8cabdac8305adc61d762c945fb0c37fe5e7dc17dbc1ea6a0564c6ace6321736",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:427099aa622f0c54038f2a8bd6d8f9e54fbee478c140002c55fae4aabd1503d8",
+          "dependency_order": 7,
+          "domain": "Chromatin, Accessibility & Methylation",
+          "domain_id": "D07",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:dd740a4533315eb88f4bfdd1604b6eba4d0ae7238112d7346dfc0188cf538588",
+          "source_runtime_address": "sha256:f170d40665ccc438b99cc6c0ce8598e2a042482ec4952a441442556eea5b1ed6",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:b4f9b3df834a19e2fde47c53965fa59d8af44581b5748526addb62e4093d1357",
+          "dependency_order": 8,
+          "domain": "Cell State, Disease Class & Territory",
+          "domain_id": "D08",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:c6e388254b2063b462a09ca5fb166fc86715c1f09bcfc58f8e55fae4dc708eef",
+          "source_runtime_address": "sha256:03d1b5cf34ad794ebfb64b2b5a551c8d020e14c19e67bddbf035ddba2b81e26d",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:aea0e375d0d8bed5b2dbe2b2d432ec56907e425be7ba511c776ee7f615c9facd",
+          "dependency_order": 9,
+          "domain": "3D Genome & Regulatory Topology",
+          "domain_id": "D09",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:11475ab084192189a274c6577c5427c3788bbb426dd2759d639b665c536dd0c3",
+          "source_runtime_address": "sha256:47b9161434ee38ee5a83301dbcb6796bdc8f4605505fb8862704a5a1b4c34554",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:c8f7937a2d4ce219500f1fc183d5ad7f8770b31239909ec13f497b9ecfd9ca3a",
+          "dependency_order": 10,
+          "domain": "Variant-Element-Gene Linking",
+          "domain_id": "D10",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:9815178093b820ce9f1e5d647895df22de096fed7892230e1476e9e32c65a6e5",
+          "source_runtime_address": "sha256:a6a0e91e597ea214a52795acfc8338625f3733993093c03f5ae239e48d4798ee",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:eb1adf3d1de99ff02068d8da66ff825935adce33477eb3564b7a4b13a0f39309",
+          "dependency_order": 11,
+          "domain": "Causal Chain & Regulatory Driver Inference",
+          "domain_id": "D11",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:7c4fe09f1de7629788fa484270786a3c15b0f4e7fab2d64bca5562be9f858a49",
+          "source_runtime_address": "sha256:53335ef15df5ef91911f1efa235d5d66559aa0fd8508edee80a4b0c008cc0f47",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:0c3a710642b63634887ce5a188c3c50054042f3753b8708cccfad6a22f93cfd9",
+          "dependency_order": 12,
+          "domain": "Cohort, Clonal & Longitudinal Discovery",
+          "domain_id": "D12",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:f0b851a6854ec7f9c232fb0a227b1ce83a1e0ada1c944d83a0842b139e56b70c",
+          "source_runtime_address": "sha256:7631972d0944452cb4e59ecc1101922e0a1e8e778c9729f59c81708ab4d77732",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:ed382a3a3e63ba77a63bf07ff470342a86a17890e79c204967c56717514780bb",
+          "dependency_order": 13,
+          "domain": "Functional Validation & Experiment Design",
+          "domain_id": "D13",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:4ba820c94d64ae384ff5bd2858585c1c3ebc90a4b0e53838e554eb4b3845cda3",
+          "source_runtime_address": "sha256:e79009eb80f930182a3acf1a24e56442f06845e7408560844fc6a87137a30e33",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:71689638096f95817be8f6585057ed2e2f0f8aa17172af8628473fa02bc4a88f",
+          "dependency_order": 14,
+          "domain": "Evidence Graph, Review & Reclassification",
+          "domain_id": "D14",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:4cc7d85c23117e2f9164a8b3cfa17a989cbbea2b976c109e0b694dd6ecc8c315",
+          "source_runtime_address": "sha256:26e950b88f91a6b1a36b2d8e37e3842d65adad342813c161627395516856f9d3",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:c7140bf0d066a80c84d6f64aa6a553a5d048ab6506f03d3779f3b5806e509f8a",
+          "dependency_order": 15,
+          "domain": "Research Workbench & Collaboration",
+          "domain_id": "D15",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:1aa78f0d4de4af1a16dda756cee156a80167e2808973844ca01da5355ed53d6b",
+          "source_runtime_address": "sha256:0fd52a1c6811d4bcf03a5af42ec8bda5e842243abf03b02ca7d797c5393c4026",
+          "stage_count": 24
+        },
+        {
+          "accepted": true,
+          "content_address": "program-release-domain:ef1daab5db738e88101de4c7feaa05382c6a14ec365f5aeeb23e12f2df00ee2d",
+          "dependency_order": 16,
+          "domain": "Agentic Platform, Quality & Deployment",
+          "domain_id": "D16",
+          "evaluation_check_count": 458,
+          "runtime_state": "accepted",
+          "source_artifact_count": 6,
+          "source_bundle_id": "glio-noncode-program-release-closure",
+          "source_receipt_address": "architecture-program-receipt:cf8ff3831043766d6db8062c0d50d3fafcff2254cd46498433f1f7676cdebefb",
+          "source_runtime_address": "sha256:2956bf38df080391c9e284218f2e032a44eb6469bdd9b18b21288e3f3993326f",
+          "stage_count": 24
+        }
+      ],
+      "limit": 50,
+      "offset": 0,
+      "release_status": {
+        "accepted": true,
+        "accepted_domain_count": 16,
+        "artifact_count": 18,
+        "boundary": "public_aggregate_program_release_closure_handoff",
+        "bundle_id": "glio-noncode-program-release-closure",
+        "dependency_count": 120,
+        "domain_count": 16,
+        "domain_percent": 100.0,
+        "gate_count": 96,
+        "gate_percent": 100.0,
+        "passed_gate_count": 96,
+        "run_id": "glio-noncode-program-release-closure-run",
+        "snapshot_address": "program-release-closure-v1:5a1be178023d8622afff06e5ad56a34af771382b63636e3f6040fa5510fdd858"
+      },
+      "resource": "domains",
+      "service": "glio-noncode",
+      "snapshot_address": "program-release-closure-v1:5a1be178023d8622afff06e5ad56a34af771382b63636e3f6040fa5510fdd858",
+      "total": 16
     }
   },
   "status": {
@@ -152926,7 +156275,7 @@
       "state": "accepted",
       "total_checks": 2572
     },
-    "content_address": "service-surface:491826ed8893438e6c05070034ce7496fced6cce5071684fdee40092a71171d6",
+    "content_address": "service-surface:8edb656236f1be31895264939fd6eaceec1ea0c425dc5ee7ff2ff0efc60a1bef",
     "operational": {
       "accepted": true,
       "artifact_count": 11,
@@ -152951,6 +156300,21 @@
       "run_id": "architecture-program-runtime",
       "stage_count": 12,
       "trace_address": "architecture-program-operational:862fc14906c74a1a429ccb913d6b33e7e667414afda0c9924393dcf591430f6d"
+    },
+    "program_release": {
+      "accepted": true,
+      "accepted_domain_count": 16,
+      "artifact_count": 18,
+      "boundary": "public_aggregate_program_release_closure_handoff",
+      "bundle_id": "glio-noncode-program-release-closure",
+      "dependency_count": 120,
+      "domain_count": 16,
+      "domain_percent": 100.0,
+      "gate_count": 96,
+      "gate_percent": 100.0,
+      "passed_gate_count": 96,
+      "run_id": "glio-noncode-program-release-closure-run",
+      "snapshot_address": "program-release-closure-v1:5a1be178023d8622afff06e5ad56a34af771382b63636e3f6040fa5510fdd858"
     },
     "public_boundary": {
       "projection": "public",

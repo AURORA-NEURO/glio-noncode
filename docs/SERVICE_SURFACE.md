@@ -12,6 +12,20 @@ report or runtime from which it was derived.
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
 | GET | `/v1/public-surface/audit` | Audit the complete repository-wide public service and bundle projection inventory |
+| GET | `/v1/service-release` | Build the six-surface public service-release registry |
+| GET | `/v1/service-release/query` | Query service surfaces, artifacts, dependencies, or gates |
+| GET | `/v1/service-release/schema` | Return the service-release schema and boundary audit |
+| GET | `/v1/service-release/indexes` | Return six address-only registry indexes and their audit |
+| GET | `/v1/service-release/reconciliation` | Reconcile registry and cached service snapshot denominators |
+| GET | `/v1/service-release/summary` | Return conserved source and registry counters |
+| GET | `/v1/service-release/certification` | Return surface certification checks |
+| GET | `/v1/service-release/observability` | Return 78 deterministic registry events and 24 metrics |
+| GET | `/v1/service-release/graph` | Return the connected registry lineage graph |
+| GET | `/v1/service-release/failures` | Return eight registry negative controls |
+| GET | `/v1/service-release/plan` | Return the 23-step service-release plan |
+| GET | `/v1/service-release/views` | Return five reviewer-oriented registry views |
+| GET | `/v1/service-release/runtime` | Run the fourteen-stage registry runtime and replay gate |
+| GET | `/v1/service-release/export` | Return the exact-byte service-release packet manifest |
 | GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
 | GET | `/v1/module-fabric/bundle` | Build the public 21-artifact module-fabric bundle projection |
 | GET | `/v1/module-fabric/bundle/query` | Query bundle artifacts or public aggregate records |
@@ -106,7 +120,7 @@ report or runtime from which it was derived.
 | GET | `/v1/batches` | Paginated catalog of persisted batch evaluations |
 | GET | `/v1/batches/{batch_id}` | Reopen and verify one batch result |
 | GET | `/v1/batches/{batch_id}/release` | Build a gated portable batch handoff bundle |
-| GET | `/v1/status` | Compact capability, program, operational, and boundary status |
+| GET | `/v1/status` | Compact capability, program, operational, D01-D16, and boundary status |
 | GET | `/v1/capabilities` | Certified capability query |
 | GET | `/v1/architecture/program` | Architecture receipt query |
 | GET | `/v1/architecture/operational` | Full stage, artifact, and check handoff trace |
@@ -270,6 +284,34 @@ history or pending-review workspace can be exported for inspection, but its
 release remains unaccepted until replay, workspace-boundary, and human-review
 gates all pass.
 
+## Service-release registry
+
+The cached service snapshot now includes the D01-D16 program-release aggregate
+and exposes it in the top-level status, service closure, and public-boundary
+inventory. The separate service-release registry composes six accepted public
+surfaces into a promotion-ready handoff with 13 exact-byte artifacts, 15
+dependencies, 24 gates, 78 events, 24 metrics, five views, eight negative
+controls, and a fourteen-stage replayable runtime. See
+`docs/SERVICE_RELEASE_REGISTRY.md` for the full contract, query filters,
+export paths, and verification checklist.
+
+The service snapshot status includes:
+
+| Field | Meaning |
+| --- | --- |
+| `program_release.snapshot_address` | D01-D16 aggregate content address |
+| `program_release.domain_count` | Sixteen closed program domains |
+| `program_release.artifact_count` | Eighteen portable source artifacts |
+| `program_release.dependency_count` | One hundred twenty ordered dependencies |
+| `program_release.gate_count` | Ninety-six D01-D16 gates |
+| `program_release.domain_percent` | Accepted domain coverage |
+| `program_release.gate_percent` | Passed gate coverage |
+
+The registry is available through `/v1/service-release/*` and the
+`service-release` CLI command. Its API query is bounded to surfaces, artifacts,
+dependencies, and gates and returns a deterministic `has_more` pagination
+indicator.
+
 ## CLI and offline closure
 
 Run the compact status projection:
@@ -290,8 +332,9 @@ Run the repository-wide public-boundary audit:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The audit covers 14 named projections across the service, capability
-certification bundle, module-fabric bundle, schemas, and closures. Runtime
+The audit covers 25 named projections across the service, capability
+certification bundle, module-fabric bundle, schemas, service-release registry,
+and closures. Runtime
 projections must contain no attribution, language, or direct-private-key
 paths. The schema projection is the one deliberate exception: it may declare
 subject/sample input field names because those names define an input contract,

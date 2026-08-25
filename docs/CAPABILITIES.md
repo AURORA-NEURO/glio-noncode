@@ -4043,10 +4043,11 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 20 named surfaces: service status, capabilities, program and operational
-projections, both service closures, the service schema and snapshot, and the
-capability-certification, module-fabric, validation-design, and evidence-
-lifecycle and workbench-release bundle manifests and schemas. Each surface
+audits 25 named surfaces: service status, capabilities, program, operational,
+D01-D16 program-release, and service-release projections, both service
+closures, the service schema and snapshot, and the capability-certification,
+module-fabric, validation-design, evidence-lifecycle, and workbench-release
+bundle manifests and schemas. Each surface
 receives a deterministic content address and violation-path list.
 
 The D15 workbench-release closure extends that boundary with 56 artifact
@@ -4065,7 +4066,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 16-surface inventory or any
+The command exits non-zero when the closed 25-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary
