@@ -42,6 +42,7 @@ from .portfolio_release_lineage import build_portfolio_release_lineage, lineage_
 from .portfolio_release_observability import build_portfolio_release_observability
 from .portfolio_release_schema import portfolio_release_schema
 from .module_fabric_bundle import build_module_fabric_bundle
+from .module_fabric_bundle_audit import audit_module_fabric_bundle
 from .module_fabric_bundle_observability import build_module_fabric_bundle_observability
 from .module_fabric_bundle_query import query_module_fabric_bundle
 from .module_fabric_bundle_runtime import run_module_fabric_bundle_runtime
@@ -279,6 +280,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-fabric/bundle/observability",
             "/v1/module-fabric/bundle/runtime",
             "/v1/module-fabric/bundle/schema",
+            "/v1/module-fabric/bundle/audit",
         }:
             try:
                 if path.endswith("/schema"):
@@ -310,6 +312,8 @@ class ApiHandler(BaseHTTPRequestHandler):
                         bundle_id=bundle.bundle_id,
                         run_id=bundle.run_id,
                     ).to_dict()
+                elif path.endswith("/audit"):
+                    payload = audit_module_fabric_bundle(bundle).to_dict()
                 else:
                     payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
                 self._write(HTTPStatus.OK, payload)

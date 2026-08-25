@@ -17,6 +17,7 @@ report or runtime from which it was derived.
 | GET | `/v1/module-fabric/bundle/observability` | Return deterministic bundle events and metrics |
 | GET | `/v1/module-fabric/bundle/runtime` | Run the staged bundle assembly and replay receipt |
 | GET | `/v1/module-fabric/bundle/schema` | Return the closed bundle manifest schema |
+| GET | `/v1/module-fabric/bundle/audit` | Reconcile module-fabric fixture, runtime, release, and projection artifacts |
 | GET | `/v1/capability-certification/bundle` | Build the public 12-artifact capability certification bundle |
 | GET | `/v1/capability-certification/bundle/query` | Query certified bundle certificates, domains, checks, or artifacts |
 | GET | `/v1/capability-certification/bundle/observability` | Return certification bundle events and metrics |

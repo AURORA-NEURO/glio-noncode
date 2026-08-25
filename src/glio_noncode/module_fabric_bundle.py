@@ -684,6 +684,16 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
             "the materialized tree has no unexpected or missing files",
         )
     )
+    if actual_paths == expected_paths and all(item.passed for item in checks):
+        try:
+            from .module_fabric_bundle_audit import audit_module_fabric_bundle
+            from .module_fabric_bundle_query import load_module_fabric_bundle
+
+            loaded = load_module_fabric_bundle(root, include_payloads=True)
+            audit = audit_module_fabric_bundle(loaded)
+            checks.append(_check("cross-artifact-audit", FabricBundleCheckPlane.CLOSURE, audit.accepted, audit.failed_check_ids, (), "fixture, evaluation, runtime, release, replay, lineage, and projection artifacts reconcile"))
+        except (OSError, TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            checks.append(_check("cross-artifact-audit", FabricBundleCheckPlane.CLOSURE, False, type(exc).__name__, "accepted audit", "cross-artifact reconciliation could not be completed"))
     return _verification(bundle_id, checks)
 
 

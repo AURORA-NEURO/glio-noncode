@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from http.client import HTTPConnection
 from pathlib import Path
 from threading import Thread
@@ -17,6 +18,7 @@ from glio_noncode.module_fabric_bundle import (
     verify_module_fabric_bundle,
     write_module_fabric_bundle,
 )
+from glio_noncode.module_fabric_bundle_audit import audit_module_fabric_bundle
 from glio_noncode.module_fabric_bundle_observability import (
     build_module_fabric_bundle_observability,
     fabric_bundle_events_csv,
@@ -113,6 +115,27 @@ class ModuleFabricBundleTests(unittest.TestCase):
         self.assertIn("event_id", fabric_bundle_events_csv(observation))
         self.assertIn("metric_id", fabric_bundle_metrics_csv(observation))
 
+    def test_independent_audit_reconciles_all_artifact_planes(self) -> None:
+        audit = audit_module_fabric_bundle(self.bundle)
+        self.assertTrue(audit.accepted, audit.to_dict())
+        self.assertGreaterEqual(audit.passed_check_count, 55)
+        self.assertEqual(audit.failed_check_ids, ())
+
+    def test_independent_audit_rejects_fixture_drift(self) -> None:
+        fixture = next(item for item in self.bundle.artifacts if item.artifact_id == "fixture")
+        changed_document = json.loads(fixture.payload or "{}")
+        changed_document["fixture_id"] = "tampered-fixture"
+        from glio_noncode.serialization import canonical_json
+
+        changed_fixture = replace(fixture, payload=canonical_json(changed_document) + "\n")
+        changed_bundle = replace(
+            self.bundle,
+            artifacts=tuple(changed_fixture if item.artifact_id == "fixture" else item for item in self.bundle.artifacts),
+        )
+        audit = audit_module_fabric_bundle(changed_bundle)
+        self.assertFalse(audit.accepted)
+        self.assertTrue(any(item in audit.failed_check_ids for item in ("manifest-address", "artifact-byte-counts", "fixture-record-count")))
+
     def test_staged_runtime_replays(self) -> None:
         runtime = run_module_fabric_bundle_runtime()
         self.assertTrue(runtime.accepted, runtime.to_dict())
@@ -137,6 +160,9 @@ class ModuleFabricBundleTests(unittest.TestCase):
                 ),
                 0,
             )
+            audit_path = Path(directory) / "audit.json"
+            self.assertEqual(main(["module-fabric-bundle-audit", str(destination), "--output", str(audit_path)]), 0)
+            self.assertTrue(json.loads(audit_path.read_text(encoding="utf-8"))["accepted"])
             cli_payload = json.loads(payload_path.read_text(encoding="utf-8"))
             self.assertEqual(cli_payload["content_address"], self.bundle.content_address)
             self.assertEqual(
@@ -175,6 +201,10 @@ class ModuleFabricBundleTests(unittest.TestCase):
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
                 self.assertEqual(json.loads(response.read())["properties"]["version"]["const"], "module-fabric-bundle-v1")
+                connection.request("GET", "/v1/module-fabric/bundle/audit")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertTrue(json.loads(response.read())["accepted"])
                 connection.close()
             finally:
                 server.shutdown()

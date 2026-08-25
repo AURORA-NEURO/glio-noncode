@@ -3869,11 +3869,16 @@ glio-noncode module-fabric-bundle-diff module-fabric-bundle-a module-fabric-bund
 glio-noncode module-fabric-bundle-observability module-fabric-bundle --format metrics-csv
 glio-noncode module-fabric-bundle-schema
 glio-noncode module-fabric-bundle-runtime
+glio-noncode module-fabric-bundle-audit module-fabric-bundle
 ```
 
-The bundle is a public aggregate module-integration receipt. It does not
-publish subject-level records, infer biological truth, or convert reference
-resolution into a clinical or deployment decision.
+The bundle is a public aggregate module-integration receipt. Its independent
+audit reconciles the 32 fixture records, 394 evaluation checks, 24 runtime
+stages, 478 lineage nodes, 521 lineage edges, 20 quality checks, 12 compliance
+checks, 16 schema domains, five HTTPS source receipts, and all CSV/Markdown
+projections. The filesystem verifier runs this semantic audit after exact-byte
+verification. It does not publish subject-level records, infer biological
+truth, or convert reference resolution into a clinical or deployment decision.
 
 ### Cross-run portfolio release boundary
 

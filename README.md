@@ -363,6 +363,7 @@ glio-noncode module-fabric-bundle-query module-fabric-bundle --resource records 
 glio-noncode module-fabric-bundle-observability module-fabric-bundle --format metrics-csv --output module-fabric-bundle-metrics.csv
 glio-noncode module-fabric-bundle-schema --output module-fabric-bundle-schema.json
 glio-noncode module-fabric-bundle-runtime --output module-fabric-bundle-runtime.json
+glio-noncode module-fabric-bundle-audit module-fabric-bundle --output module-fabric-bundle-audit.json
 ```
 
 The operational ledger retains 20 ordered stage receipts, conserved 32-row

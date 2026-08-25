@@ -141,6 +141,7 @@ from .module_fabric_bundle import (
     verify_module_fabric_bundle,
     write_module_fabric_bundle,
 )
+from .module_fabric_bundle_audit import audit_module_fabric_bundle
 from .module_fabric_bundle_observability import (
     build_module_fabric_bundle_observability,
     fabric_bundle_events_csv,
@@ -3122,6 +3123,12 @@ def build_parser() -> argparse.ArgumentParser:
     module_fabric_bundle_runtime.add_argument("--bundle-id", default="module-fabric-public-bundle")
     module_fabric_bundle_runtime.add_argument("--run-id", default="module-fabric-bundle-runtime")
     module_fabric_bundle_runtime.add_argument("--output", default=None)
+    module_fabric_bundle_audit = subparsers.add_parser(
+        "module-fabric-bundle-audit",
+        help="reconcile all module-fabric bundle artifacts and denominators",
+    )
+    module_fabric_bundle_audit.add_argument("destination", type=str)
+    module_fabric_bundle_audit.add_argument("--output", default=None)
     capability_certification = subparsers.add_parser(
         "capability-certification",
         help="certify all 256 catalog capabilities against live repository evidence",
@@ -9312,6 +9319,10 @@ def main(argv: list[str] | None = None) -> int:
             report = run_module_fabric_bundle_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "module-fabric-bundle-audit":
+            audit = audit_module_fabric_bundle(load_module_fabric_bundle(args.destination, include_payloads=True))
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
         if args.command == "capability-certification-bundle":
             bundle = build_capability_certification_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
             write_capability_certification_bundle(bundle, args.destination)
