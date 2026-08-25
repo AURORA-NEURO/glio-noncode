@@ -6,7 +6,7 @@ import json
 from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from typing import Any
+from typing import Any, Iterator
 from urllib.parse import parse_qs, unquote, urlsplit
 
 from .batch_runtime import BatchRuntime
@@ -67,6 +67,15 @@ from .reference_manifest import (
     query_reference_manifest,
     reference_manifest_schema,
     reference_manifest_summary,
+)
+from .variant_stream import (
+    STREAMING_DEFAULT_MAX_INPUT_BYTES,
+    StreamingInputFormat,
+    StreamingVariantImporter,
+    breakend_normalization_schema,
+    iter_text_lines_from_chunks,
+    streaming_intake_capabilities,
+    streaming_intake_schema,
 )
 from .validation_design_frontier_bundle_audit import audit_validation_design_offline_bundle
 from .validation_design_frontier_bundle_query import query_validation_design_offline_bundle
@@ -496,6 +505,26 @@ class ApiHandler(BaseHTTPRequestHandler):
             raise ValueError("JSON body must be an object")
         return value
 
+    def _read_body_chunks(self, *, max_bytes: int) -> Iterator[bytes]:
+        """Yield a bounded raw request body without creating one large buffer."""
+
+        raw_length = self.headers.get("Content-Length", "0")
+        try:
+            length = int(raw_length)
+        except ValueError as exc:
+            raise ValueError("invalid Content-Length") from exc
+        if length < 1:
+            raise ValueError("streaming intake requires a non-empty Content-Length")
+        if length > max_bytes:
+            raise ValueError(f"streaming intake body exceeds {max_bytes} bytes")
+        remaining = length
+        while remaining:
+            chunk = self.rfile.read(min(65_536, remaining))
+            if not chunk:
+                raise ValueError("streaming intake body ended before Content-Length")
+            remaining -= len(chunk)
+            yield chunk
+
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlsplit(self.path)
         path = parsed.path
@@ -517,6 +546,15 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/reference/manifest/schema":
             self._write(HTTPStatus.OK, reference_manifest_schema())
+            return
+        if path == "/v1/intake/streaming/schema":
+            self._write(HTTPStatus.OK, streaming_intake_schema())
+            return
+        if path == "/v1/intake/streaming/capabilities":
+            self._write(HTTPStatus.OK, streaming_intake_capabilities())
+            return
+        if path == "/v1/intake/breakend/schema":
+            self._write(HTTPStatus.OK, breakend_normalization_schema())
             return
         if path == "/v1/reference/manifest/summary":
             self._write(HTTPStatus.OK, reference_manifest_summary(self._reference_manifest()))
@@ -2210,6 +2248,50 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/intake/stream":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                requested_format = self._query_value(query, "format") or "auto"
+                if requested_format == "auto":
+                    content_type = self.headers.get("Content-Type", "").lower()
+                    requested_format = (
+                        "bcf"
+                        if "octet-stream" in content_type or "bcf" in content_type
+                        else "vcf"
+                    )
+                if requested_format not in {item.value for item in StreamingInputFormat}:
+                    raise ValueError("format must be one of: auto, vcf, gvcf, bcf")
+                source_id = self._query_value(query, "source_id") or "api-stream"
+                genome_build = self._query_value(query, "genome_build") or "GRCh38"
+                sample_id = self._query_value(query, "sample_id")
+                importer = StreamingVariantImporter(default_build=genome_build)
+                chunks = self._read_body_chunks(max_bytes=STREAMING_DEFAULT_MAX_INPUT_BYTES)
+                common = {
+                    "source_id": source_id,
+                    "genome_build": genome_build,
+                    "sample_id": sample_id,
+                    "include_no_call": self._query_bool(query, "include_no_call"),
+                    "include_reference": self._query_bool(query, "include_reference"),
+                    "max_records": self._query_int(query, "max_records", 1_000_000),
+                    "max_retained_rows": self._query_int(query, "max_retained_rows", 100_000),
+                    "max_issues": self._query_int(query, "max_issues", 10_000),
+                }
+                if requested_format == StreamingInputFormat.BCF.value:
+                    report = importer.import_bcf(chunks, **common)
+                else:
+                    report = importer.import_vcf(
+                        iter_text_lines_from_chunks(chunks),
+                        input_format=requested_format,
+                        **common,
+                    )
+                self._write(HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, report.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (UnicodeError, ValueError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_stream", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/evaluate-batch":
             try:

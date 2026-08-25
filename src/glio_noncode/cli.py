@@ -2087,6 +2087,15 @@ from .variant_beta import (
     VAAnnotationEnvelopeBuilder,
 )
 from .variant_normalization import VRSNormalizer
+from .variant_normalization import NormalizationState
+from .variant_stream import (
+    StreamingInputFormat,
+    StreamingVariantImporter,
+    breakend_normalization_schema,
+    normalize_breakend,
+    streaming_intake_capabilities,
+    streaming_intake_schema,
+)
 from .variation_bundle import VariationBundleFormat, VariationEvidenceBundleBuilder
 from .variation_contracts import default_variation_contract_registry
 from .variation_fixture_eval import evaluate_variation_fixture
@@ -5434,6 +5443,51 @@ def build_parser() -> argparse.ArgumentParser:
     normalize.add_argument("--reference-sequence", default=None)
     normalize.add_argument("--reference-start", type=int, default=None)
     normalize.add_argument("--output", default=None)
+
+    stream_variants = subparsers.add_parser(
+        "stream-variants",
+        help="stream VCF, GVCF, raw BCF, or BGZF BCF into bounded normalization receipts",
+    )
+    stream_variants.add_argument("input", type=str)
+    stream_variants.add_argument("--source-id", default=None)
+    stream_variants.add_argument(
+        "--input-format",
+        choices=("auto", "vcf", "gvcf", "bcf"),
+        default="auto",
+    )
+    stream_variants.add_argument("--genome-build", default="GRCh38")
+    stream_variants.add_argument("--sample-id", default=None)
+    stream_variants.add_argument("--include-no-call", action="store_true")
+    stream_variants.add_argument("--include-reference", action="store_true")
+    stream_variants.add_argument("--max-records", type=int, default=1_000_000)
+    stream_variants.add_argument("--max-retained-rows", type=int, default=100_000)
+    stream_variants.add_argument("--max-issues", type=int, default=10_000)
+    stream_variants.add_argument("--output", default=None)
+
+    subparsers.add_parser(
+        "streaming-intake-schema",
+        help="emit the bounded streaming intake contract",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "streaming-intake-capabilities",
+        help="emit streaming intake operational capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "breakend-normalization-schema",
+        help="emit the explicit VCF breakend normalization boundary",
+    ).add_argument("--output", default=None)
+
+    normalize_breakend_command = subparsers.add_parser(
+        "normalize-breakend",
+        help="parse a VCF breakend ALT into a deferred mate-coordinate receipt",
+    )
+    normalize_breakend_command.add_argument("chromosome", type=str)
+    normalize_breakend_command.add_argument("position", type=int)
+    normalize_breakend_command.add_argument("alternate", type=str)
+    normalize_breakend_command.add_argument("--reference", default="N")
+    normalize_breakend_command.add_argument("--genome-build", default="GRCh38")
+    normalize_breakend_command.add_argument("--variant-id", default="breakend-cli")
+    normalize_breakend_command.add_argument("--output", default=None)
 
     normalize_categorical = subparsers.add_parser(
         "normalize-categorical",
@@ -13975,6 +14029,65 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(report.to_dict(), args.output)
             return 0
+        if args.command == "stream-variants":
+            input_path = Path(args.input)
+            source_id = args.source_id or input_path.stem
+            selected_format = args.input_format
+            if selected_format == "auto":
+                selected_format = "bcf" if input_path.suffix.lower() == ".bcf" else (
+                    "gvcf" if input_path.suffix.lower() in {".gvcf", ".gvcf.gz"} else "vcf"
+                )
+            importer = StreamingVariantImporter(default_build=args.genome_build)
+            if selected_format == StreamingInputFormat.BCF.value:
+                with input_path.open("rb") as stream:
+                    chunks = iter(lambda: stream.read(65_536), b"")
+                    report = importer.import_bcf(
+                        chunks,
+                        source_id=source_id,
+                        genome_build=args.genome_build,
+                        sample_id=args.sample_id,
+                        include_no_call=args.include_no_call,
+                        include_reference=args.include_reference,
+                        max_records=args.max_records,
+                        max_retained_rows=args.max_retained_rows,
+                        max_issues=args.max_issues,
+                    )
+            else:
+                with input_path.open("r", encoding="utf-8", newline="") as stream:
+                    report = importer.import_vcf(
+                        stream,
+                        source_id=source_id,
+                        genome_build=args.genome_build,
+                        sample_id=args.sample_id,
+                        include_no_call=args.include_no_call,
+                        include_reference=args.include_reference,
+                        input_format=selected_format,
+                        max_records=args.max_records,
+                        max_retained_rows=args.max_retained_rows,
+                        max_issues=args.max_issues,
+                    )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "streaming-intake-schema":
+            _write_json(streaming_intake_schema(), args.output)
+            return 0
+        if args.command == "streaming-intake-capabilities":
+            _write_json(streaming_intake_capabilities(), args.output)
+            return 0
+        if args.command == "breakend-normalization-schema":
+            _write_json(breakend_normalization_schema(), args.output)
+            return 0
+        if args.command == "normalize-breakend":
+            report = normalize_breakend(
+                chromosome=args.chromosome,
+                position=args.position,
+                reference=args.reference,
+                alternate=args.alternate,
+                genome_build=args.genome_build,
+                input_id=args.variant_id,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.state is not NormalizationState.INVALID else 2
         if args.command == "normalize-categorical":
             payload = _read_json(args.input)
             if args.catalog:

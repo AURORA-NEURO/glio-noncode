@@ -35,6 +35,11 @@ from .deployment_frontier_offline_bundle import build_deployment_frontier_offlin
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
 from .deployment_profiles import build_deployment_profile, deployment_profile_schema
 from .reference_manifest import build_default_reference_manifest, reference_manifest_schema
+from .variant_stream import (
+    breakend_normalization_schema,
+    streaming_intake_capabilities,
+    streaming_intake_schema,
+)
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_handoff import build_service_release_handoff
 from .service_release_query import query_service_release
@@ -42,7 +47,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 30
+PUBLIC_SURFACE_EXPECTED_COUNT = 33
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -249,6 +254,9 @@ def default_public_surface_inventory(
         "deployment-profile-schema": deployment_profile_schema(),
         "reference-manifest": reference_manifest_value,
         "reference-manifest-schema": reference_manifest_schema(),
+        "streaming-intake-schema": streaming_intake_schema(),
+        "streaming-intake-capabilities": streaming_intake_capabilities(),
+        "breakend-normalization-schema": breakend_normalization_schema(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

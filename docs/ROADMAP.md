@@ -12,7 +12,7 @@
 ## Next implementation wave
 
 1. Add a versioned reference manifest and adapter conformance tests. **Implemented:** addressed source receipts, access/license/context declarations, deterministic query/export projections, portable static-adapter probes, API/CLI surfaces, and fail-closed conformance states.
-2. Add streaming VCF/BCF and bounded breakend import with explicit normalization reports.
+2. Add streaming VCF/BCF and bounded breakend import with explicit normalization reports. **Implemented:** line- and block-streamed source traversal, complete-source and header hashes, bounded row/issue retention, multiallelic and genotype policy controls, raw/BGZF BCF framing, deterministic row receipts, and explicit breakend mate-coordinate outcomes are available through the CLI and API. See [docs/STREAMING_VARIANT_IMPORT.md](STREAMING_VARIANT_IMPORT.md).
 3. Add columnar interval indexes and context-lattice queries for public reference tracks.
 4. Replace fixture-only feature readings with adapters whose licenses and access modes are declared.
 5. Add cohort split, leakage, calibration, selective-risk, and transport benchmarks.

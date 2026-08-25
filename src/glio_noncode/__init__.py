@@ -7135,6 +7135,20 @@ from .variant_beta import (
     VariantBetaIssue,
 )
 from .variant_normalization import NormalizationReport, VRSNormalizer
+from .variant_stream import (
+    BreakendMate,
+    BreakendNormalizer,
+    StreamingImportIssue,
+    StreamingImportReport,
+    StreamingInputFormat,
+    StreamingNormalizationReport,
+    StreamingVariantImporter,
+    StreamingVariantRow,
+    breakend_normalization_schema,
+    normalize_breakend,
+    streaming_intake_capabilities,
+    streaming_intake_schema,
+)
 from .variation_bundle import (
     VariationBundleEntry,
     VariationBundleFormat,

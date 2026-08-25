@@ -45,7 +45,7 @@ Each domain receives five evidence roles:
 The twenty domain checks cover source addresses, denominator conservation,
 accepted partitions, evidence coverage, and readiness calculation. Eight
 cross-plane checks cover domain closure, source agreement, D01 program
-registration, the 30-surface audit, accepted totals, service acceptance, and
+registration, the 33-surface audit, accepted totals, service acceptance, and
 recursive public-boundary safety.
 
 All rows and checks use content addresses. Queries return address-only public

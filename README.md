@@ -162,6 +162,23 @@ preserves source hashes and sample/INFO fields, skips no-call and reference-only
 genotypes by default, and defers symbolic or breakend alleles to structural
 reconstruction. The bounded role/tool registry is available with `registry`.
 
+For larger variant sources, the streaming boundary reads VCF one line at a time
+and raw or BGZF BCF one byte block at a time while retaining a bounded result
+set and a complete input address:
+
+```powershell
+glio-noncode stream-variants variants.vcf --source-id cohort-vcf --output streaming.json
+glio-noncode stream-variants variants.bcf --input-format bcf --output streaming-bcf.json
+glio-noncode normalize-breakend 7 100 'G]17:198982]' --output breakend.json
+glio-noncode streaming-intake-schema
+```
+
+Breakend mate coordinates, bracket orientation, deferred structural status,
+source row hashes, duplicate accounting, and resource ceilings are visible in
+the streaming receipt. The matching raw-body API is `POST /v1/intake/stream`;
+see [docs/STREAMING_VARIANT_IMPORT.md](docs/STREAMING_VARIANT_IMPORT.md) for
+the full CLI, API, and limitation contract.
+
 The product denominator and evidence-backed implementation ledger are documented
 in [docs/CAPABILITIES.md](docs/CAPABILITIES.md). Regulatory tracks can be
 parsed with `parse-track`, and supported small variants can be normalized with
@@ -712,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 30-surface audit, including the
+schema fields. The result is a deterministic 33-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema, and
 versioned reference manifest/schema, suitable for local release checks and CI.
 
