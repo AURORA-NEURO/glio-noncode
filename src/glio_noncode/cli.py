@@ -1094,7 +1094,7 @@ from .methylation_beta import (
     MethylationSensitiveMotifDefinition,
 )
 from .mission_runtime import MissionPlanBuilder, MissionRequest
-from .models import CaseManifest, ReferenceContext, VariantIdentity
+from .models import CaseManifest, ReferenceContext, ReviewDecision, VariantIdentity
 from .molecular_atlas_bundle import MolecularAtlasBundleBuilder, MolecularAtlasBundleFormat
 from .molecular_atlas_contracts import default_molecular_atlas_contracts
 from .molecular_atlas_fixture_eval import evaluate_molecular_atlas_fixture
@@ -1224,6 +1224,12 @@ from .regulatory_atlas_runtime import run_regulatory_atlas_pipeline_file
 from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
+from .run_catalog import (
+    RUN_CATALOG_DEFAULT_LIMIT,
+    build_run_catalog_closure,
+    build_run_catalog_page,
+    inspect_run,
+)
 from .schema import schema_document
 from .sequence_adapters import (
     LongContextVariantEffectAdapter,
@@ -2369,6 +2375,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     service_surface.add_argument("--closure", action="store_true")
     service_surface.add_argument("--output", default=None)
+
+    run_catalog = subparsers.add_parser(
+        "run-catalog",
+        help="list and verify persisted case runs",
+    )
+    run_catalog.add_argument("--data-root", default=".glio")
+    run_catalog.add_argument("--case-id", default=None)
+    run_catalog.add_argument("--status", default=None)
+    run_catalog.add_argument("--text", default=None)
+    run_catalog.add_argument("--offset", default=0, type=int)
+    run_catalog.add_argument("--limit", default=RUN_CATALOG_DEFAULT_LIMIT, type=int)
+    run_catalog.add_argument("--closure", action="store_true")
+    run_catalog.add_argument("--output", default=None)
+
+    run_inspect = subparsers.add_parser(
+        "run-inspect",
+        help="reopen one persisted run and emit its replay-integrity inspection",
+    )
+    run_inspect.add_argument("run_id", type=str)
+    run_inspect.add_argument("--data-root", default=".glio")
+    run_inspect.add_argument("--output", default=None)
+
+    run_review = subparsers.add_parser(
+        "run-review",
+        help="attach a typed human review to a persisted run",
+    )
+    run_review.add_argument("run_id", type=str)
+    run_review.add_argument("review", type=str, help="JSON review decision")
+    run_review.add_argument("--data-root", default=".glio")
+    run_review.add_argument("--output", default=None)
 
     schema = subparsers.add_parser("schema", help="print the public contract summary")
     schema.add_argument("--output", default=None)
@@ -17761,6 +17797,30 @@ def main(argv: list[str] | None = None) -> int:
             payload = build_service_surface_closure(snapshot) if args.closure else service_surface_status(snapshot)
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "run-catalog":
+            runtime = CaseRuntime(args.data_root)
+            if args.closure:
+                payload = build_run_catalog_closure(runtime)
+            else:
+                payload = build_run_catalog_page(
+                    runtime,
+                    case_id=args.case_id,
+                    status=args.status,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
+        if args.command == "run-inspect":
+            inspection = inspect_run(CaseRuntime(args.data_root), args.run_id)
+            _write_json(inspection.to_dict(), args.output)
+            return 0 if inspection.accepted else 2
+        if args.command == "run-review":
+            review = ReviewDecision.from_dict(_read_json(args.review))
+            dossier = CaseRuntime(args.data_root).review_run(args.run_id, review)
+            _write_json(dossier.to_dict(), args.output)
+            return 0
     except (GlioError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

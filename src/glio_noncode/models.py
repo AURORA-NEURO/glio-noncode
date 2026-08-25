@@ -444,6 +444,21 @@ class ReviewDecision:
         if not self.reviewed_hypothesis_ids:
             raise ValidationError("review must name at least one hypothesis")
 
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "ReviewDecision":
+        """Rehydrate a review request from the public JSON contract."""
+
+        return cls(
+            review_id=str(raw.get("review_id", "")),
+            case_id=str(raw.get("case_id", "")),
+            reviewer=str(raw.get("reviewer", "")),
+            state=ReviewState(str(raw.get("state", ReviewState.PENDING.value))),
+            reviewed_hypothesis_ids=tuple(str(item) for item in raw.get("reviewed_hypothesis_ids", ())),
+            rationale=str(raw.get("rationale", "")),
+            checked_claim_ids=tuple(str(item) for item in raw.get("checked_claim_ids", ())),
+            created_at=str(raw.get("created_at", utc_now().isoformat())),
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
@@ -469,6 +484,104 @@ class Dossier:
     warnings: tuple[str, ...] = ()
     source_receipts: tuple[Mapping[str, Any], ...] = ()
     source_bundle_addresses: tuple[str, ...] = ()
+
+    @classmethod
+    def from_dict(cls, raw: Mapping[str, Any]) -> "Dossier":
+        """Rehydrate an immutable stored dossier for a follow-up review."""
+
+        hypotheses: list[Hypothesis] = []
+        for hypothesis_raw in raw.get("hypotheses", ()):
+            context = ReferenceContext.from_dict(hypothesis_raw.get("context", {}))
+            edges = tuple(
+                HypothesisEdge(
+                    edge_id=str(edge_raw.get("edge_id", "")),
+                    edge_type=EdgeType(str(edge_raw.get("edge_type", EdgeType.CAUSAL_PATH.value))),
+                    source_id=str(edge_raw.get("source_id", "")),
+                    target_id=str(edge_raw.get("target_id", "")),
+                    support=float(edge_raw.get("support", 0.0)),
+                    uncertainty=float(edge_raw.get("uncertainty", 0.0)),
+                    context_fit=float(edge_raw.get("context_fit", 0.0)),
+                    claim_ids=tuple(str(item) for item in edge_raw.get("claim_ids", ())),
+                    support_level=SupportLevel(str(edge_raw.get("support_level", SupportLevel.UNKNOWN.value))),
+                    alternatives=tuple(str(item) for item in edge_raw.get("alternatives", ())),
+                )
+                for edge_raw in hypothesis_raw.get("edges", ())
+            )
+            hypotheses.append(
+                Hypothesis(
+                    hypothesis_id=str(hypothesis_raw.get("hypothesis_id", "")),
+                    variant_id=str(hypothesis_raw.get("variant_id", "")),
+                    element_id=str(hypothesis_raw.get("element_id", "")),
+                    gene_id=str(hypothesis_raw.get("gene_id", "")),
+                    state_id=str(hypothesis_raw.get("state_id", "")),
+                    mechanism=str(hypothesis_raw.get("mechanism", "")),
+                    context=context,
+                    edges=edges,
+                    support=float(hypothesis_raw.get("support", 0.0)),
+                    uncertainty=float(hypothesis_raw.get("uncertainty", 0.0)),
+                    status=ResearchStatus(str(hypothesis_raw.get("status", ResearchStatus.DRAFT.value))),
+                    missing_evidence=tuple(str(item) for item in hypothesis_raw.get("missing_evidence", ())),
+                    negative_evidence=tuple(str(item) for item in hypothesis_raw.get("negative_evidence", ())),
+                    alternatives=tuple(str(item) for item in hypothesis_raw.get("alternatives", ())),
+                    provenance=tuple(str(item) for item in hypothesis_raw.get("provenance", ())),
+                )
+            )
+        evidence = tuple(
+            EvidenceClaim(
+                evidence_id=str(item.get("evidence_id", "")),
+                edge_id=str(item.get("edge_id", "")),
+                source_id=str(item.get("source_id", "")),
+                channel=str(item.get("channel", "")),
+                state=EvidenceState(str(item.get("state", EvidenceState.ABSTAINED.value))),
+                tier=EvidenceTier(str(item.get("tier", EvidenceTier.COMPUTED.value))),
+                score=None if item.get("score") is None else float(item.get("score")),
+                confidence=float(item.get("confidence", 0.0)),
+                context=ReferenceContext.from_dict(item.get("context", {})),
+                summary=str(item.get("summary", "")),
+                payload=dict(item.get("payload", {})),
+                depends_on=tuple(str(value) for value in item.get("depends_on", ())),
+                produced_by=str(item.get("produced_by", "deterministic_runtime")),
+                created_at=str(item.get("created_at", utc_now().isoformat())),
+                supersedes=item.get("supersedes"),
+            )
+            for item in raw.get("evidence", ())
+        )
+        experiments = tuple(
+            ExperimentOption(
+                option_id=str(item.get("option_id", "")),
+                assay=AssayType(str(item.get("assay", AssayType.PERTURBATION.value))),
+                tests_edges=tuple(str(value) for value in item.get("tests_edges", ())),
+                expected_information_gain=float(item.get("expected_information_gain", 0.0)),
+                feasibility=float(item.get("feasibility", 0.0)),
+                cost_class=str(item.get("cost_class", "unspecified")),
+                required_context=tuple(str(value) for value in item.get("required_context", ())),
+                controls=tuple(str(value) for value in item.get("controls", ())),
+                readouts=tuple(str(value) for value in item.get("readouts", ())),
+                limitations=tuple(str(value) for value in item.get("limitations", ())),
+            )
+            for item in raw.get("experiments", ())
+        )
+        review_raw = raw.get("review")
+        review = ReviewDecision.from_dict(review_raw) if isinstance(review_raw, Mapping) else None
+        return cls(
+            dossier_id=str(raw.get("dossier_id", "")),
+            case_id=str(raw.get("case_id", "")),
+            run_id=str(raw.get("run_id", "")),
+            created_at=str(raw.get("created_at", "")),
+            input_address=str(raw.get("input_address", "")),
+            hypotheses=tuple(hypotheses),
+            evidence=evidence,
+            experiments=experiments,
+            review=review,
+            research_use_only=bool(raw.get("research_use_only", False)),
+            policy_version=str(raw.get("policy_version", "")),
+            event_head=str(raw.get("event_head", "")),
+            content_address=str(raw.get("content_address", "")),
+            status=ResearchStatus(str(raw.get("status", ResearchStatus.DRAFT.value))),
+            warnings=tuple(str(item) for item in raw.get("warnings", ())),
+            source_receipts=tuple(dict(item) for item in raw.get("source_receipts", ())),
+            source_bundle_addresses=tuple(str(item) for item in raw.get("source_bundle_addresses", ())),
+        )
 
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)

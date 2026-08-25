@@ -21,6 +21,7 @@ from .models import (
     ReviewState,
 )
 from .policy import ResearchPolicy
+from .replay import ReplayVerifier
 from .serialization import content_hash, utc_now
 from .storage import RunStore
 
@@ -221,6 +222,24 @@ class CaseRuntime:
         updated = self._readdress(updated)
         self._persist(None, log, updated, dossier.input_address)
         return updated
+
+    def review_run(self, run_id: str, review: ReviewDecision) -> Dossier:
+        """Reopen a persisted run, attach a review, and persist a new snapshot."""
+
+        run_record = self.get_run(run_id)
+        event_record = self.store.store.get(str(run_record["event_address"]))
+        stored = self.get_dossier(str(run_record["dossier_address"]))
+        replay = ReplayVerifier().verify(run_record, event_record, stored)
+        if (
+            not replay.event_chain_valid
+            or not replay.stored_dossier_matches_address
+            or not self.store.store.exists(str(run_record["input_address"]))
+        ):
+            raise ValidationError("cannot review a run that fails replay integrity")
+        dossier = Dossier.from_dict(stored)
+        if dossier.run_id != run_id:
+            raise ValidationError("stored dossier run_id does not match requested run")
+        return self.review(dossier, review)
 
     def get_run(self, run_id: str) -> dict[str, Any]:
         """Read the run index without rehydrating mutable objects."""

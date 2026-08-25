@@ -76,7 +76,9 @@ class RunStore:
             "dossier_address": dossier_address,
         }
         path = self.runs / f"{run_id}.json"
-        path.write_text(canonical_json(record), encoding="utf-8")
+        temporary = path.with_suffix(".tmp")
+        temporary.write_text(canonical_json(record), encoding="utf-8")
+        temporary.replace(path)
         return path
 
     def get_run(self, run_id: str) -> dict[str, Any]:
@@ -84,3 +86,17 @@ class RunStore:
         if not path.exists():
             raise StoreError(f"run not found: {run_id}")
         return json.loads(path.read_text(encoding="utf-8"))
+
+    def list_runs(self) -> tuple[dict[str, Any], ...]:
+        """Return every persisted run record in deterministic run-id order."""
+
+        records: list[dict[str, Any]] = []
+        for path in sorted(self.runs.glob("run-*.json"), key=lambda item: item.name):
+            try:
+                value = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise StoreError(f"invalid run record: {path.name}") from exc
+            if not isinstance(value, dict):
+                raise StoreError(f"run record must be an object: {path.name}")
+            records.append(value)
+        return tuple(records)

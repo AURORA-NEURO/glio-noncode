@@ -10053,6 +10053,20 @@ from .service_surface import (
     service_program_projection,
     service_surface_status,
 )
+from .run_catalog import (
+    RUN_CATALOG_DEFAULT_LIMIT,
+    RUN_CATALOG_MAX_LIMIT,
+    RUN_CATALOG_VERSION,
+    RunCatalogPage,
+    RunInspection,
+    RunIntegrity,
+    RunSummary,
+    build_run_catalog_closure,
+    build_run_catalog_page,
+    get_run_dossier,
+    get_run_events,
+    inspect_run,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10081,6 +10095,12 @@ __all__ += [
     "SERVICE_API_VERSION", "SERVICE_NAME", "SERVICE_SURFACE_VERSION", "ServiceSurfaceSnapshot",
     "build_service_surface_closure", "build_service_surface_snapshot", "service_capability_projection",
     "service_diff_projection", "service_operational_projection", "service_program_projection", "service_surface_status",
+]
+
+__all__ += [
+    "RUN_CATALOG_DEFAULT_LIMIT", "RUN_CATALOG_MAX_LIMIT", "RUN_CATALOG_VERSION",
+    "RunCatalogPage", "RunInspection", "RunIntegrity", "RunSummary",
+    "build_run_catalog_closure", "build_run_catalog_page", "get_run_dossier", "get_run_events", "inspect_run",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403
