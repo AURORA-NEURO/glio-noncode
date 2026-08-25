@@ -15874,6 +15874,30 @@ from .frontier_release_closure_schema import *
 from .frontier_release_closure_summary import *
 from .frontier_release_closure_support import *
 
+from .program_release_closure_boundary import *
+from .program_release_closure_bundle import *
+from .program_release_closure_certification import *
+from .program_release_closure_contracts import *
+from .program_release_closure_export import *
+from .program_release_closure_failure_injection import *
+from .program_release_closure_graph import *
+from .program_release_closure_indexes import *
+from .program_release_closure_observability import *
+from .program_release_closure_operations import *
+from .program_release_closure_plan import *
+from .program_release_closure_query import *
+from .program_release_closure_reconciliation import *
+from .program_release_closure_runtime import *
+from .program_release_closure_schema import *
+from .program_release_closure_summary import *
+from .program_release_closure_support import *
+from .program_release_closure_views import *
+
+# Keep the long-standing program release artifact symbol stable while giving
+# the aggregate closure artifact its explicit public alias.
+ProgramReleaseClosureArtifact = ProgramReleaseArtifact
+from .program_runtime_release_contracts import ProgramReleaseArtifact
+
 __all__ += sorted(
     {
         name
@@ -15890,6 +15914,26 @@ __all__ += sorted(
         or name.startswith("export_frontier_release")
         or name.startswith("verify_frontier_release")
         or name.startswith("write_frontier_release")
+    }
+)
+
+__all__ += sorted(
+    {
+        name
+        for name in globals()
+        if name.startswith("ProgramReleaseClosure")
+        or name.startswith("PROGRAM_RELEASE_CLOSURE")
+        or name.startswith("program_release_closure")
+        or name.startswith("build_program_release")
+        or name.startswith("audit_program_release")
+        or name.startswith("certify_program_release")
+        or name.startswith("query_program_release")
+        or name.startswith("reconcile_program_release")
+        or name.startswith("run_program_release")
+        or name.startswith("export_program_release")
+        or name.startswith("verify_program_release")
+        or name.startswith("write_program_release")
+        or name.startswith("read_program_release")
     }
 )
 

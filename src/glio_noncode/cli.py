@@ -178,6 +178,22 @@ from .program_runtime_offline_runtime import (
     program_runtime_offline_runtime_json,
     run_program_runtime_offline_runtime,
 )
+from .program_release_closure_boundary import validate_program_release_closure_boundary
+from .program_release_closure_bundle import build_program_release_snapshot
+from .program_release_closure_certification import certify_program_release_closure
+from .program_release_closure_export import build_program_release_export, verify_program_release_export_directory, write_program_release_export
+from .program_release_closure_failure_injection import run_program_release_failure_injections
+from .program_release_closure_graph import build_program_release_graph
+from .program_release_closure_indexes import audit_program_release_closure_indexes, build_program_release_closure_indexes
+from .program_release_closure_observability import build_program_release_observability
+from .program_release_closure_operations import audit_program_release_operational_matrix, build_program_release_operational_matrix
+from .program_release_closure_plan import audit_program_release_closure_plan, build_program_release_closure_plan
+from .program_release_closure_query import query_program_release_closure
+from .program_release_closure_reconciliation import reconcile_program_release_closure
+from .program_release_closure_runtime import run_program_release_closure
+from .program_release_closure_schema import program_release_closure_schema, validate_program_release_closure_schema
+from .program_release_closure_summary import audit_program_release_closure_summary, build_program_release_closure_summary
+from .program_release_closure_views import audit_program_release_review_views, build_program_release_review_views
 from .program_runtime_offline_schema import (
     program_runtime_offline_bundle_schema,
     validate_program_runtime_offline_manifest,
@@ -3645,6 +3661,59 @@ def build_parser() -> argparse.ArgumentParser:
     architecture_program_offline_certification.add_argument("destination", type=str)
     architecture_program_offline_certification.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
     architecture_program_offline_certification.add_argument("--output", default=None)
+    program_release_closure = subparsers.add_parser(
+        "program-release-closure",
+        help="run the complete D01-D16 public aggregate program release closure",
+    )
+    program_release_closure.add_argument("--bundle-id", default="glio-noncode-program-release-closure")
+    program_release_closure.add_argument("--run-id", default="glio-noncode-program-release-closure-run")
+    program_release_closure.add_argument("--output", default=None)
+    program_release_closure_query = subparsers.add_parser(
+        "program-release-closure-query",
+        help="query D01-D16 closure domains, artifacts, dependencies, gates, or runtime",
+    )
+    program_release_closure_query.add_argument("--bundle-id", default="glio-noncode-program-release-closure")
+    program_release_closure_query.add_argument("--run-id", default="glio-noncode-program-release-closure-run")
+    program_release_closure_query.add_argument("--resource", choices=("domains", "artifacts", "dependencies", "gates", "runtime"), default="domains")
+    program_release_closure_query.add_argument("--domain-id", default=None)
+    program_release_closure_query.add_argument("--gate-type", default=None)
+    program_release_closure_query.add_argument("--state", default=None)
+    program_release_closure_query.add_argument("--relation", default=None)
+    program_release_closure_query.add_argument("--accepted", action="store_true")
+    program_release_closure_query.add_argument("--text", default=None)
+    program_release_closure_query.add_argument("--offset", default=0, type=int)
+    program_release_closure_query.add_argument("--limit", default=50, type=int)
+    program_release_closure_query.add_argument("--output", default=None)
+    program_release_closure_schema = subparsers.add_parser("program-release-closure-schema", help="print the D01-D16 closure schema and audit")
+    program_release_closure_schema.add_argument("--bundle-id", default="glio-noncode-program-release-closure")
+    program_release_closure_schema.add_argument("--run-id", default="glio-noncode-program-release-closure-run")
+    program_release_closure_schema.add_argument("--output", default=None)
+    for command, help_text in (
+        ("program-release-closure-boundary", "audit the public aggregate closure boundary"),
+        ("program-release-closure-indexes", "build and audit closure address indexes"),
+        ("program-release-closure-reconciliation", "reconcile source and aggregate denominators"),
+        ("program-release-closure-summary", "emit the D01-D16 closure denominator summary"),
+        ("program-release-closure-certification", "issue six certification receipts per domain"),
+        ("program-release-closure-observability", "emit closure events and metrics"),
+        ("program-release-closure-operations", "emit the sixteen-operation execution matrix"),
+        ("program-release-closure-views", "emit joined reviewer views for D01-D16"),
+        ("program-release-closure-graph", "emit the aggregate dependency graph"),
+        ("program-release-closure-failures", "run twelve closure negative controls"),
+        ("program-release-closure-plan", "emit the executable 23-step release plan"),
+        ("program-release-closure-runtime", "run the fourteen-stage closure runtime"),
+    ):
+        parser_item = subparsers.add_parser(command, help=help_text)
+        parser_item.add_argument("--bundle-id", default="glio-noncode-program-release-closure")
+        parser_item.add_argument("--run-id", default="glio-noncode-program-release-closure-run")
+        parser_item.add_argument("--output", default=None)
+    program_release_closure_export = subparsers.add_parser("program-release-closure-export", help="write the fifteen-artifact closure export")
+    program_release_closure_export.add_argument("--destination", required=True)
+    program_release_closure_export.add_argument("--bundle-id", default="glio-noncode-program-release-closure")
+    program_release_closure_export.add_argument("--run-id", default="glio-noncode-program-release-closure-run")
+    program_release_closure_export.add_argument("--output", default=None)
+    program_release_closure_export_verify = subparsers.add_parser("program-release-closure-export-verify", help="verify a closure export directory")
+    program_release_closure_export_verify.add_argument("destination", type=str)
+    program_release_closure_export_verify.add_argument("--output", default=None)
     architecture_program_operational = subparsers.add_parser(
         "architecture-program-operational",
         help="emit deterministic workload and handoff evidence for the architecture program",
@@ -10640,6 +10709,86 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "program-release-closure":
+            report = run_program_release_closure(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "program-release-closure-query":
+            source = build_program_runtime_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            snapshot = build_program_release_snapshot(source, bundle_id=args.bundle_id, run_id=args.run_id)
+            result = query_program_release_closure(snapshot, resource=args.resource, domain_id=args.domain_id, gate_type=args.gate_type, state=args.state, relation=args.relation, accepted_only=args.accepted, text=args.text, offset=args.offset, limit=args.limit)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "program-release-closure-schema":
+            source = build_program_runtime_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            snapshot = build_program_release_snapshot(source, bundle_id=args.bundle_id, run_id=args.run_id)
+            schema = program_release_closure_schema()
+            _write_json({"schema": schema, "audit": validate_program_release_closure_schema(snapshot, schema)}, args.output)
+            return 0 if snapshot.accepted else 2
+        if args.command in {
+            "program-release-closure-boundary", "program-release-closure-indexes", "program-release-closure-reconciliation",
+            "program-release-closure-summary", "program-release-closure-certification", "program-release-closure-observability",
+            "program-release-closure-operations",
+            "program-release-closure-views",
+            "program-release-closure-graph", "program-release-closure-failures", "program-release-closure-plan",
+            "program-release-closure-runtime",
+        }:
+            source = build_program_runtime_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            if args.command == "program-release-closure-runtime":
+                report = run_program_release_closure(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                _write_json(report.to_dict(), args.output)
+                return 0 if report.accepted else 2
+            snapshot = build_program_release_snapshot(source, bundle_id=args.bundle_id, run_id=args.run_id)
+            if args.command == "program-release-closure-boundary":
+                payload = validate_program_release_closure_boundary(snapshot)
+                accepted = payload["accepted"]
+            elif args.command == "program-release-closure-indexes":
+                indexes = build_program_release_closure_indexes(snapshot)
+                audit = audit_program_release_closure_indexes(snapshot, indexes)
+                payload, accepted = {"indexes": indexes.to_dict(), "audit": audit.to_dict()}, audit.accepted
+            elif args.command == "program-release-closure-reconciliation":
+                report = reconcile_program_release_closure(snapshot, source)
+                payload, accepted = report.to_dict(), report.accepted
+            elif args.command == "program-release-closure-summary":
+                summary = build_program_release_closure_summary(snapshot, source)
+                audit = audit_program_release_closure_summary(summary, source)
+                payload, accepted = {"summary": summary.to_dict(), "audit": audit.to_dict()}, audit.accepted
+            elif args.command == "program-release-closure-certification":
+                report = certify_program_release_closure(snapshot)
+                payload, accepted = report.to_dict(), report.accepted
+            elif args.command == "program-release-closure-observability":
+                report = build_program_release_observability(snapshot)
+                payload, accepted = report.to_dict(), report.accepted
+            elif args.command == "program-release-closure-operations":
+                operations = build_program_release_operational_matrix(snapshot)
+                audit = audit_program_release_operational_matrix(operations)
+                payload, accepted = {"operations": operations.to_dict(), "audit": audit.to_dict()}, audit.accepted
+            elif args.command == "program-release-closure-views":
+                views = build_program_release_review_views(snapshot)
+                audit = audit_program_release_review_views(views, snapshot)
+                payload, accepted = {"views": views.to_dict(), "audit": [item.to_dict() for item in audit]}, all(item.passed for item in audit)
+            elif args.command == "program-release-closure-graph":
+                report = build_program_release_graph(snapshot)
+                payload, accepted = report.to_dict(), report.accepted
+            elif args.command == "program-release-closure-failures":
+                report = run_program_release_failure_injections(snapshot)
+                payload, accepted = report.to_dict(), report.accepted
+            else:
+                plan = build_program_release_closure_plan(snapshot)
+                audit = audit_program_release_closure_plan(plan)
+                payload, accepted = {"plan": plan.to_dict(), "audit": [item.to_dict() for item in audit]}, all(item.passed for item in audit)
+            _write_json(payload, args.output)
+            return 0 if accepted else 2
+        if args.command == "program-release-closure-export":
+            report = run_program_release_closure(bundle_id=args.bundle_id, run_id=args.run_id)
+            packet = build_program_release_export(report)
+            write_program_release_export(packet, args.destination)
+            _write_json(packet.to_dict(), args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "program-release-closure-export-verify":
+            verification = verify_program_release_export_directory(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "architecture-program-operational":
             if args.closure:
                 operational = build_program_operational_closure()

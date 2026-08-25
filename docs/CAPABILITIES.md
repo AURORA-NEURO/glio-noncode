@@ -70,6 +70,36 @@ the `frontier-release-closure-*` CLI commands, and the
 operations](FRONTIER_RELEASE_CLOSURE_OPERATIONS.md) document maps every plane
 to its source, audit, query, export, and failure-control behavior.
 
+## Top-level D01-D16 program release closure
+
+The top-level program closure is the next aggregate layer above the accepted
+architecture-program offline handoff. It reuses one source bundle and adds a
+complete D01-D16 registry, ordered dependency matrix, per-domain gates,
+denominator reconciliation, certification, observability, graph, negative
+controls, execution plan, deterministic replay, and exact-byte export.
+
+| Aggregate plane | Verified denominator |
+| --- | ---: |
+| Domains | 16 |
+| Portable source artifacts | 18 |
+| Forward dependencies | 120 |
+| Release gates | 96 |
+| Source reconciliation checks | 19 |
+| Certification checks | 96 |
+| Observability events / metrics | 266 / 96 |
+| Connected graph nodes | 251 |
+| Negative controls | 12 |
+| Runtime stages / plan steps | 14 / 23 |
+| Exact-byte export artifacts | 15 |
+
+The layer is accepted only when source and aggregate denominators reconcile,
+every domain gate passes, certification reaches 100%, replay addresses match,
+all twelve mutations are rejected, and the export directory verifies. It is
+available through `program_release_closure_*` modules, the
+`program-release-closure-*` CLI commands, and `/v1/program-release/closure/*`.
+See [program release closure operations](PROGRAM_RELEASE_CLOSURE_OPERATIONS.md)
+for the full contract and review checklist.
+
 ## Domain 16 C01-C04 platform-control frontier
 
 The W1 platform-control slice is implemented as a fresh public aggregate

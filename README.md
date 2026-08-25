@@ -344,6 +344,34 @@ glio-noncode architecture-program-offline-certification architecture-program-bun
 glio-noncode architecture-program-offline-observability architecture-program-bundle --format metrics-csv
 ```
 
+The top-level D01-D16 program release closure composes that accepted offline
+handoff into a deterministic public release layer. It retains 16 domains, 18
+portable artifacts, 120 ordered dependencies, 96 release gates, 19 source and
+aggregate reconciliation checks, 96 certification checks, 266 observability
+events, 96 metrics, a 251-node connected graph, 12 negative controls, a
+23-step plan, a 14-stage runtime, and a 15-artifact exact-byte export. The
+runtime reuses one source bundle for projection, reconciliation, and replay.
+See [program release closure operations](docs/PROGRAM_RELEASE_CLOSURE_OPERATIONS.md)
+for the complete contract and review checklist.
+
+```text
+glio-noncode program-release-closure --output program-release-closure-runtime.json
+glio-noncode program-release-closure-query --resource gates --domain-id D01
+glio-noncode program-release-closure-schema
+glio-noncode program-release-closure-boundary
+glio-noncode program-release-closure-indexes
+glio-noncode program-release-closure-reconciliation
+glio-noncode program-release-closure-summary
+glio-noncode program-release-closure-certification
+glio-noncode program-release-closure-observability
+glio-noncode program-release-closure-operations
+glio-noncode program-release-closure-graph
+glio-noncode program-release-closure-failures
+glio-noncode program-release-closure-plan
+glio-noncode program-release-closure-export --destination program-release-export
+glio-noncode program-release-closure-export-verify program-release-export
+```
+
 The D16 deployment-governance frontier now has the same portable review
 surface. It covers C13 privacy/security policy, C14 local offline bundles,
 C15 federated execution, and C16 release/rollback gates. The source handoff

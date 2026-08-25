@@ -147,6 +147,22 @@ from .frontier_release_closure_reconciliation import reconcile_frontier_release
 from .frontier_release_closure_runtime import run_frontier_release_closure_runtime
 from .frontier_release_closure_schema import audit_frontier_release_schema, build_frontier_release_schema
 from .frontier_release_closure_summary import audit_frontier_release_summary, build_frontier_release_summary
+from .program_release_closure_boundary import validate_program_release_closure_boundary
+from .program_release_closure_bundle import build_program_release_snapshot
+from .program_release_closure_certification import certify_program_release_closure
+from .program_release_closure_export import build_program_release_export
+from .program_release_closure_failure_injection import run_program_release_failure_injections
+from .program_release_closure_graph import build_program_release_graph
+from .program_release_closure_indexes import audit_program_release_closure_indexes, build_program_release_closure_indexes
+from .program_release_closure_observability import build_program_release_observability
+from .program_release_closure_operations import audit_program_release_operational_matrix, build_program_release_operational_matrix
+from .program_release_closure_plan import audit_program_release_closure_plan, build_program_release_closure_plan
+from .program_release_closure_query import query_program_release_closure
+from .program_release_closure_reconciliation import reconcile_program_release_closure
+from .program_release_closure_runtime import run_program_release_closure
+from .program_release_closure_schema import program_release_closure_schema, validate_program_release_closure_schema
+from .program_release_closure_summary import audit_program_release_closure_summary, build_program_release_closure_summary
+from .program_release_closure_views import audit_program_release_review_views, build_program_release_review_views
 from .program_runtime_offline_audit import audit_program_runtime_offline_bundle
 from .program_runtime_offline_boundary import audit_program_runtime_offline_boundary
 from .program_runtime_offline_bundle import build_program_runtime_offline_bundle
@@ -223,6 +239,20 @@ class ApiHandler(BaseHTTPRequestHandler):
         bundle = cache.get(key)
         if bundle is None:
             bundle = build_program_runtime_offline_bundle(bundle_id=bundle_id, run_id=run_id)
+            cache[key] = bundle
+        return bundle
+
+    def _program_release_closure_source(self, bundle_id: str, run_id: str):
+        """Cache the expensive sixteen-domain source handoff for closure routes."""
+
+        cache = getattr(self.server, "glio_program_release_closure_sources", None)
+        if cache is None:
+            cache = {}
+            setattr(self.server, "glio_program_release_closure_sources", cache)
+        key = (bundle_id, run_id)
+        bundle = cache.get(key)
+        if bundle is None:
+            bundle = self._program_offline_bundle(bundle_id, run_id)
             cache[key] = bundle
         return bundle
 
@@ -346,6 +376,83 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/program-release/closure",
+            "/v1/program-release/closure/query",
+            "/v1/program-release/closure/schema",
+            "/v1/program-release/closure/boundary",
+            "/v1/program-release/closure/indexes",
+            "/v1/program-release/closure/reconciliation",
+            "/v1/program-release/closure/summary",
+            "/v1/program-release/closure/certification",
+            "/v1/program-release/closure/observability",
+            "/v1/program-release/closure/operations",
+            "/v1/program-release/closure/views",
+            "/v1/program-release/closure/graph",
+            "/v1/program-release/closure/failures",
+            "/v1/program-release/closure/plan",
+            "/v1/program-release/closure/runtime",
+            "/v1/program-release/closure/export",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "glio-noncode-program-release-closure"
+                run_id = self._query_value(query, "run_id") or "glio-noncode-program-release-closure-run"
+                source = self._program_release_closure_source(bundle_id, run_id)
+                if path.endswith("/schema"):
+                    snapshot = build_program_release_snapshot(source, bundle_id=bundle_id, run_id=run_id)
+                    schema = program_release_closure_schema()
+                    self._write(HTTPStatus.OK, {"schema": schema, "audit": validate_program_release_closure_schema(snapshot, schema)})
+                    return
+                if path.endswith("/runtime"):
+                    self._write(HTTPStatus.OK, run_program_release_closure(source, bundle_id=bundle_id, run_id=run_id).to_dict())
+                    return
+                if path.endswith("/export"):
+                    runtime = run_program_release_closure(source, bundle_id=bundle_id, run_id=run_id)
+                    self._write(HTTPStatus.OK, build_program_release_export(runtime).to_dict())
+                    return
+                snapshot = build_program_release_snapshot(source, bundle_id=bundle_id, run_id=run_id)
+                if path == "/v1/program-release/closure":
+                    payload = snapshot.to_dict()
+                elif path.endswith("/query"):
+                    payload = query_program_release_closure(snapshot, resource=self._query_value(query, "resource") or "domains", domain_id=self._query_value(query, "domain_id"), gate_type=self._query_value(query, "gate_type"), state=self._query_value(query, "state"), relation=self._query_value(query, "relation"), accepted_only=self._query_bool(query, "accepted"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).to_dict()
+                elif path.endswith("/boundary"):
+                    payload = validate_program_release_closure_boundary(snapshot)
+                elif path.endswith("/indexes"):
+                    indexes = build_program_release_closure_indexes(snapshot)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_program_release_closure_indexes(snapshot, indexes).to_dict()}
+                elif path.endswith("/reconciliation"):
+                    payload = reconcile_program_release_closure(snapshot, source).to_dict()
+                elif path.endswith("/summary"):
+                    summary = build_program_release_closure_summary(snapshot, source)
+                    payload = {"summary": summary.to_dict(), "audit": audit_program_release_closure_summary(summary, source).to_dict()}
+                elif path.endswith("/certification"):
+                    payload = certify_program_release_closure(snapshot).to_dict()
+                elif path.endswith("/observability"):
+                    payload = build_program_release_observability(snapshot).to_dict()
+                elif path.endswith("/operations"):
+                    operations = build_program_release_operational_matrix(snapshot)
+                    payload = {"operations": operations.to_dict(), "audit": audit_program_release_operational_matrix(operations).to_dict()}
+                elif path.endswith("/views"):
+                    views = build_program_release_review_views(snapshot)
+                    payload = {"views": views.to_dict(), "audit": [item.to_dict() for item in audit_program_release_review_views(views, snapshot)]}
+                elif path.endswith("/graph"):
+                    payload = build_program_release_graph(snapshot).to_dict()
+                elif path.endswith("/failures"):
+                    payload = run_program_release_failure_injections(snapshot).to_dict()
+                elif path.endswith("/plan"):
+                    plan = build_program_release_closure_plan(snapshot)
+                    payload = {"plan": plan.to_dict(), "audit": [item.to_dict() for item in audit_program_release_closure_plan(plan)]}
+                else:  # pragma: no cover - path set is exhaustive
+                    payload = {"error": "unknown_program_release_closure_path"}
+                self._write(HTTPStatus.OK, payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

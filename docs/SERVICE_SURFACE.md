@@ -80,6 +80,21 @@ report or runtime from which it was derived.
 | GET | `/v1/frontier-release/closure/plan` | Return the 13-step dependency-ordered release plan |
 | GET | `/v1/frontier-release/closure/runtime` | Run the 12-stage aggregate release runtime and replay gate |
 | GET | `/v1/frontier-release/closure/export` | Return the 13-artifact exact-byte aggregate release packet |
+| GET | `/v1/program-release/closure` | Build the top-level D01-D16 aggregate release snapshot |
+| GET | `/v1/program-release/closure/query` | Query domains, artifacts, dependencies, gates, or runtime rows |
+| GET | `/v1/program-release/closure/schema` | Return the D01-D16 schema and public-boundary audit |
+| GET | `/v1/program-release/closure/boundary` | Audit aggregate paths, identities, addresses, and public keys |
+| GET | `/v1/program-release/closure/indexes` | Return seven address-only indexes and their audit |
+| GET | `/v1/program-release/closure/reconciliation` | Return nineteen source and aggregate denominator checks |
+| GET | `/v1/program-release/closure/summary` | Return source and aggregate counters |
+| GET | `/v1/program-release/closure/certification` | Return 96 domain certification checks |
+| GET | `/v1/program-release/closure/observability` | Return 266 deterministic events and 96 metrics |
+| GET | `/v1/program-release/closure/operations` | Return the sixteen-operation execution matrix and audit |
+| GET | `/v1/program-release/closure/graph` | Return the connected 251-node aggregate graph |
+| GET | `/v1/program-release/closure/failures` | Return twelve negative-control results |
+| GET | `/v1/program-release/closure/plan` | Return the 23-step ordered release plan |
+| GET | `/v1/program-release/closure/runtime` | Run the fourteen-stage closure runtime and replay gate |
+| GET | `/v1/program-release/closure/export` | Return the fifteen-artifact exact-byte release packet |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
