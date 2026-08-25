@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from .batch_runtime import BatchRuntime
 from .comparison_release import build_persisted_comparison_release
 from .dossier_query import (
     DOSSIER_QUERY_DEFAULT_LIMIT,
@@ -162,6 +163,32 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path == "/v1/batches" or path.startswith("/v1/batches/"):
+            try:
+                batch_runtime = BatchRuntime(runtime=self._runtime())
+                if path == "/v1/batches":
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    page = batch_runtime.catalog(
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 25),
+                        text=self._query_value(query, "text"),
+                    )
+                    self._write(HTTPStatus.OK, page.to_dict())
+                    return
+                segments = [unquote(item) for item in path.split("/") if item]
+                if len(segments) != 3 or segments[0:2] != ["v1", "batches"]:
+                    self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "path": path})
+                    return
+                self._write(HTTPStatus.OK, batch_runtime.get(segments[2]).to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "batch not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/review-queue" or path == "/v1/review-queue/closure":
             try:
@@ -402,6 +429,19 @@ class ApiHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlsplit(self.path)
         path = parsed.path
+        if path == "/v1/evaluate-batch":
+            try:
+                result = BatchRuntime(runtime=self._runtime()).evaluate(self._read_json())
+                self._write(HTTPStatus.OK, result.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "batch object not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_json", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
         if path.startswith("/v1/runs/"):
             segments = [unquote(item) for item in path.split("/") if item]
             if len(segments) != 4 or segments[0:2] != ["v1", "runs"] or segments[3] not in {"review", "assignment"}:

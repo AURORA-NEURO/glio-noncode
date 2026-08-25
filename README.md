@@ -19,6 +19,7 @@ This repository does not diagnose, classify clinical significance, recommend tre
 ```powershell
 python -m pip install -e .
 glio-noncode evaluate examples/case-small.json --output dossier.json
+glio-noncode evaluate-batch examples/case-small.json --output batch-result.json
 glio-noncode schema
 glio-noncode sources
 glio-noncode registry
@@ -33,14 +34,22 @@ The same runtime can be served locally:
 glio-noncode serve --host 127.0.0.1 --port 8765
 ```
 
-Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `GET /v1/review-operations`, `GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
+Then send the JSON manifest to `POST http://127.0.0.1:8765/v1/evaluate` or a manifest list to `POST http://127.0.0.1:8765/v1/evaluate-batch`. `GET /healthz` reports service health and `GET /v1/schema` returns the contract summary. The certified capability and architecture surfaces are available from `GET /v1/status`, `GET /v1/capabilities`, `GET /v1/architecture/program`, `GET /v1/architecture/operational`, and `GET /v1/architecture/diff`. Persisted case runs can be listed, reopened, verified, queried, assigned, and reviewed through the `/v1/runs/{run_id}` projections, `GET /v1/batches`, `GET /v1/batches/{batch_id}`, `GET /v1/review-queue`, `GET /v1/review-queue/closure`, `GET /v1/review-operations`, `GET /v1/review-operations/closure`, `POST /v1/runs/{run_id}/assignment`, and `POST /v1/runs/{run_id}/review`; see [docs/SERVICE_SURFACE.md](docs/SERVICE_SURFACE.md) for query parameters and offline closures.
 
 To enrich a manifest from bounded live public references, use:
 
 ```powershell
 glio-noncode fetch-public examples/case-small.json --window-bp 2000 --output public-reference.json
 glio-noncode evaluate examples/case-small.json --live-reference --window-bp 2000 --output live-dossier.json
+glio-noncode evaluate-batch examples/case-small.json --data-root .glio --output batch-result.json
+glio-noncode batch-catalog --data-root .glio --output batch-catalog.json
 ```
+
+Batch evaluation isolates each manifest. Successful items retain their normal
+persisted run and dossier addresses; failed items retain their position, input
+address, and explicit error category. The batch remains rejected when any item
+fails, and identical canonical input reopens the existing content-addressed
+batch result.
 
 To inspect locally persisted runs and their replay evidence:
 

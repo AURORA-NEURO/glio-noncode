@@ -11,6 +11,8 @@ report or runtime from which it was derived.
 | --- | --- | --- |
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
+| GET | `/v1/batches` | Paginated catalog of persisted batch evaluations |
+| GET | `/v1/batches/{batch_id}` | Reopen and verify one batch result |
 | GET | `/v1/status` | Compact capability, program, operational, and boundary status |
 | GET | `/v1/capabilities` | Certified capability query |
 | GET | `/v1/architecture/program` | Architecture receipt query |
@@ -39,6 +41,7 @@ report or runtime from which it was derived.
 | GET | `/v1/review-operations/closure` | Return the complete SLA and workload closure |
 | POST | `/v1/runs/{run_id}/assignment` | Append a durable reviewer assignment and create a new dossier snapshot |
 | POST | `/v1/evaluate` | Existing case evaluation endpoint |
+| POST | `/v1/evaluate-batch` | Evaluate a manifest list with independent item outcomes |
 
 Capability queries accept `capability_id`, `domain_id`, `mvp_only`, `state`, and
 `text`. Architecture queries accept `domain_id`, `accepted_only`, and `text`.
@@ -51,6 +54,18 @@ The limit is bounded to 100 rows. Run identifiers are validated before they are
 used as filesystem paths. Missing runs return HTTP 404; an existing run can be
 accepted only when its input object, event chain, dossier address, and stored
 object links all verify.
+
+Batch catalog queries accept `text`, `offset`, and `limit`. Batch identifiers are
+derived from the canonical batch input address, so repeating an identical batch
+request reopens the existing result instead of creating a competing record.
+Batch evaluation accepts an object with `manifests`, optional `batch_id` or
+`label`, `live_reference`, `window_bp`, and `max_items`, or a bare JSON manifest
+list in offline CLI use; a single case manifest is also accepted as a one-item
+batch. Every item is evaluated independently. A failed item
+retains its index, case identifier, input address, stable error category, and
+error message beside successful run and dossier addresses. The batch is accepted
+only when every requested item succeeds; partial results remain inspectable but
+are never promoted as an accepted batch.
 
 Dossier-plane queries accept `offset`, `limit`, and resource-specific filters.
 Evidence supports `state`, `tier`, `channel`, `source_id`, `edge_id`, and
@@ -88,6 +103,14 @@ Run the detailed archival projection:
 
 ```text
 glio-noncode service-surface --closure --output service-surface-closure.json
+```
+
+Evaluate and reopen a durable batch:
+
+```text
+glio-noncode evaluate-batch batch.json --data-root .glio --output batch-result.json
+glio-noncode batch-inspect batch-<content-digest> --data-root .glio --output batch-inspection.json
+glio-noncode batch-catalog --data-root .glio --output batch-catalog.json
 ```
 
 Inspect persisted case work:

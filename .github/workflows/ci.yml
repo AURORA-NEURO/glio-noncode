@@ -1428,3 +1428,5 @@ jobs:
         run: python -m unittest tests.test_review_queue -v
       - name: Review operations focused tests
         run: python -m unittest tests.test_review_operations -v
+      - name: Batch runtime focused tests
+        run: python -m unittest tests.test_batch_runtime -v

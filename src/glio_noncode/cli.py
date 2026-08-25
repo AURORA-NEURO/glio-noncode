@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .api import create_server
+from .batch_runtime import BatchRuntime
 from .serialization import jsonable
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .atlas_alpha import (
@@ -1710,6 +1711,12 @@ def _read_json(path: str) -> dict[str, Any]:
     return payload
 
 
+def _read_json_document(path: str) -> Any:
+    """Read an object or list document for batch-oriented commands."""
+
+    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
 def _write_json(payload: Any, output: str | None) -> None:
     text = json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     if output:
@@ -2380,6 +2387,35 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate.add_argument(
         "--window-bp", default=2000, type=int, help="half-window for live reference retrieval"
     )
+
+    evaluate_batch = subparsers.add_parser(
+        "evaluate-batch",
+        help="evaluate a manifest list with durable per-item results",
+    )
+    evaluate_batch.add_argument("input", type=str, help="JSON batch object or manifest list")
+    evaluate_batch.add_argument("--data-root", default=".glio")
+    evaluate_batch.add_argument("--output", default=None)
+    evaluate_batch.add_argument("--live-reference", action="store_true")
+    evaluate_batch.add_argument("--window-bp", default=2000, type=int)
+    evaluate_batch.add_argument("--max-items", default=100, type=int)
+
+    batch_inspect = subparsers.add_parser(
+        "batch-inspect",
+        help="reopen and verify one persisted batch result",
+    )
+    batch_inspect.add_argument("batch_id", type=str)
+    batch_inspect.add_argument("--data-root", default=".glio")
+    batch_inspect.add_argument("--output", default=None)
+
+    batch_catalog = subparsers.add_parser(
+        "batch-catalog",
+        help="list persisted batch results",
+    )
+    batch_catalog.add_argument("--data-root", default=".glio")
+    batch_catalog.add_argument("--offset", default=0, type=int)
+    batch_catalog.add_argument("--limit", default=25, type=int)
+    batch_catalog.add_argument("--text", default=None)
+    batch_catalog.add_argument("--output", default=None)
 
     fetch_public = subparsers.add_parser(
         "fetch-public", help="retrieve and emit live public reference data for a manifest"
@@ -17916,6 +17952,27 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(dossier.to_dict(), args.output)
             return 0
+        if args.command == "evaluate-batch":
+            result = BatchRuntime(args.data_root).evaluate(
+                _read_json_document(args.input),
+                live_reference=args.live_reference,
+                window_bp=args.window_bp,
+                max_items=args.max_items,
+            )
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "batch-inspect":
+            result = BatchRuntime(args.data_root).get(args.batch_id)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "batch-catalog":
+            page = BatchRuntime(args.data_root).catalog(
+                offset=args.offset,
+                limit=args.limit,
+                text=args.text,
+            )
+            _write_json(page.to_dict(), args.output)
+            return 0 if page.accepted else 2
         if args.command == "fetch-public":
             manifest = CaseManifest.from_dict(_read_json(args.manifest))
             retriever = PublicReferenceRetriever(
