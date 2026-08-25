@@ -89,6 +89,8 @@ glio-noncode architecture-program-report --format markdown --output architecture
 glio-noncode architecture-program-runtime --output architecture-program-runtime.json
 glio-noncode architecture-program-operational --output architecture-program-operational.json
 glio-noncode architecture-program-operational --closure --output architecture-program-operational-closure.json
+glio-noncode architecture-program-diff --control missing-fixture --output architecture-program-diff.json
+glio-noncode architecture-program-diff --control missing-runtime --closure --output architecture-program-diff-closure.json
 glio-noncode architecture-program-summary
 glio-noncode architecture-program-receipts-csv --output architecture-program-receipts.csv
 glio-noncode architecture-program-checks-csv --output architecture-program-checks.csv
@@ -117,6 +119,11 @@ runtime and its eleven-artifact release. It records deterministic workload
 budgets, artifact byte budgets, 26 integrity and boundary checks, utilization
 counters, and a tamper-evident public projection in
 `data/architecture-program-operational-closure.json`.
+
+The program diff surface compares baseline and candidate domain receipts,
+checks, stages, and issue-code transitions. It retains accepted-to-review
+regressions and recovery controls as addressed public evidence instead of
+silently flattening them into a single status.
 
 The D16 C13–C16 deployment-governance depth surface can be rehearsed locally
 from its public aggregate fixture:

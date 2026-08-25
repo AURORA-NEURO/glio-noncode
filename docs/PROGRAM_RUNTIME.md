@@ -80,6 +80,9 @@ python -m glio_noncode architecture-program-replay
 python -m glio_noncode architecture-program-failures
 python -m glio_noncode architecture-program-operational
 python -m glio_noncode architecture-program-operational --closure
+python -m glio_noncode architecture-program-diff
+python -m glio_noncode architecture-program-diff --control missing-fixture
+python -m glio_noncode architecture-program-diff --control missing-runtime --closure
 ```
 
 Commands return `0` for an accepted projection and `2` when a reference,
@@ -111,6 +114,15 @@ data is recorded. The checked-in closure is
 The `--closure` form additionally embeds the runtime, release descriptor,
 replay and failure-control receipts, and each portable artifact as an ordered
 line set so the handoff can be inspected without reopening the release code.
+
+The diff command compares a baseline and candidate at four levels: domain
+receipts, normalized checks, runtime stages, and issue-code transitions. The
+`missing-fixture` and `missing-runtime` controls intentionally produce review
+candidates so regressions remain visible without being treated as a successful
+candidate. A comparison is accepted when its own structure, addresses, public
+boundary, and counters are valid; `candidate_accepted` remains separate from
+comparison validity. The checked-in diff closure is
+`data/architecture-program-diff-closure.json`.
 
 ## Extension rules
 

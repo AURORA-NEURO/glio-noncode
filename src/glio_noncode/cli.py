@@ -97,6 +97,11 @@ from .program_runtime_operational import (
     build_program_operational_closure,
     build_program_operational_trace,
 )
+from .program_runtime_diff import (
+    PROGRAM_RUNTIME_DIFF_CONTROLS,
+    build_program_runtime_diff,
+    build_program_runtime_diff_closure,
+)
 from .program_runtime_replay import (
     replay_architecture_program,
     run_program_runtime_failure_injections,
@@ -2612,6 +2617,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="include runtime, release, replay, controls, and artifact line sets",
     )
+    architecture_program_diff = subparsers.add_parser(
+        "architecture-program-diff",
+        help="compare a baseline architecture program run with a candidate control",
+    )
+    architecture_program_diff.add_argument(
+        "--control",
+        choices=PROGRAM_RUNTIME_DIFF_CONTROLS,
+        default="none",
+    )
+    architecture_program_diff.add_argument("--closure", action="store_true")
+    architecture_program_diff.add_argument("--output", default=None)
     coordination_fixture = subparsers.add_parser(
         "coordination-fixture",
         help="emit the D16 public aggregate coordination architecture fixture",
@@ -8677,6 +8693,14 @@ def main(argv: list[str] | None = None) -> int:
             operational = build_program_operational_trace()
             _write_json(operational.to_dict(), args.output)
             return 0 if operational.accepted else 2
+        if args.command == "architecture-program-diff":
+            if args.closure:
+                diff = build_program_runtime_diff_closure(args.control)
+                _write_json(diff, args.output)
+                return 0 if diff["accepted"] else 2
+            diff = build_program_runtime_diff(args.control)
+            _write_json(diff.to_dict(), args.output)
+            return 0 if diff.accepted else 2
         if args.command == "coordination-fixture":
             _write_text(coordination_fixture_json(), args.output)
             return 0

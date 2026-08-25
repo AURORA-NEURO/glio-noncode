@@ -10023,6 +10023,23 @@ from .program_runtime_operational import (
     build_program_operational_trace,
     verify_program_operational_trace,
 )
+from .program_runtime_diff import (
+    PROGRAM_RUNTIME_DIFF_CHECK_COUNT,
+    PROGRAM_RUNTIME_DIFF_CONTROLS,
+    PROGRAM_RUNTIME_DIFF_DOMAIN_COUNT,
+    PROGRAM_RUNTIME_DIFF_STAGE_COUNT,
+    ProgramCheckChange,
+    ProgramDiffCheck,
+    ProgramDomainChange,
+    ProgramRuntimeDiff,
+    ProgramStageChange,
+    build_program_runtime_control,
+    build_program_runtime_control_specs,
+    build_program_runtime_diff,
+    build_program_runtime_diff_closure,
+    compare_program_runtimes,
+    verify_program_runtime_diff,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10042,9 +10059,9 @@ from .program_runtime_replay import (
 )
 
 __all__ += [
-    "PROGRAM_CHECKS_PER_DOMAIN", "PROGRAM_DOMAIN_COUNT", "PROGRAM_QUALITY_CHECK_COUNT", "PROGRAM_RELEASE_ARTIFACT_COUNT", "PROGRAM_RELEASE_CHECK_COUNT", "PROGRAM_RELEASE_DESCRIPTOR_FILENAME", "PROGRAM_RELEASE_MANIFEST_FILENAME", "PROGRAM_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_STAGE_IDS", "PROGRAM_OPERATIONAL_ARTIFACT_COUNT", "PROGRAM_OPERATIONAL_CHECK_COUNT", "PROGRAM_OPERATIONAL_STAGE_COUNT", "PROGRAM_OPERATIONAL_ARTIFACT_BUDGETS", "PROGRAM_OPERATIONAL_STAGE_BUDGETS",
-    "ArchitectureProgramReceipt", "ArchitectureProgramReport", "ArchitectureProgramSpec", "ProgramArtifactKind", "ProgramRelease", "ProgramReleaseArtifact", "ProgramReleaseCheck", "ProgramReleaseCheckCategory", "ProgramReleaseManifest", "ProgramReleaseState", "ProgramReleaseVerification", "ProgramRuntime", "ProgramRuntimeCheck", "ProgramRuntimeCheckCategory", "ProgramRuntimeFailureProbe", "ProgramRuntimeFailureReport", "ProgramRuntimeQualityCheck", "ProgramRuntimeQualityReport", "ProgramRuntimeReplayReport", "ProgramRuntimeStage", "ProgramRuntimeState", "ProgramArtifactWorkReceipt", "ProgramOperationalCheck", "ProgramOperationalTrace", "ProgramStageWorkReceipt",
-    "architecture_program_checks_csv", "architecture_program_domain_matrix", "architecture_program_domains_csv", "architecture_program_percent", "architecture_program_receipts_csv", "architecture_program_report_json", "architecture_program_report_markdown", "architecture_program_runtime_json", "architecture_program_summary_json", "build_program_release", "build_program_operational_closure", "build_program_operational_trace", "default_architecture_program_specs", "load_program_release_manifest", "program_release_json", "program_release_manifest_json", "program_release_payloads", "query_architecture_program", "replay_architecture_program", "run_architecture_program", "run_program_runtime", "run_program_runtime_failure_injections", "run_program_runtime_quality_gate", "verify_program_operational_trace", "verify_program_release", "write_program_release",
+    "PROGRAM_CHECKS_PER_DOMAIN", "PROGRAM_DOMAIN_COUNT", "PROGRAM_QUALITY_CHECK_COUNT", "PROGRAM_RELEASE_ARTIFACT_COUNT", "PROGRAM_RELEASE_CHECK_COUNT", "PROGRAM_RELEASE_DESCRIPTOR_FILENAME", "PROGRAM_RELEASE_MANIFEST_FILENAME", "PROGRAM_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_STAGE_IDS", "PROGRAM_OPERATIONAL_ARTIFACT_COUNT", "PROGRAM_OPERATIONAL_CHECK_COUNT", "PROGRAM_OPERATIONAL_STAGE_COUNT", "PROGRAM_OPERATIONAL_ARTIFACT_BUDGETS", "PROGRAM_OPERATIONAL_STAGE_BUDGETS", "PROGRAM_RUNTIME_DIFF_CHECK_COUNT", "PROGRAM_RUNTIME_DIFF_CONTROLS", "PROGRAM_RUNTIME_DIFF_DOMAIN_COUNT", "PROGRAM_RUNTIME_DIFF_STAGE_COUNT",
+    "ArchitectureProgramReceipt", "ArchitectureProgramReport", "ArchitectureProgramSpec", "ProgramArtifactKind", "ProgramRelease", "ProgramReleaseArtifact", "ProgramReleaseCheck", "ProgramReleaseCheckCategory", "ProgramReleaseManifest", "ProgramReleaseState", "ProgramReleaseVerification", "ProgramRuntime", "ProgramRuntimeCheck", "ProgramRuntimeCheckCategory", "ProgramRuntimeFailureProbe", "ProgramRuntimeFailureReport", "ProgramRuntimeQualityCheck", "ProgramRuntimeQualityReport", "ProgramRuntimeReplayReport", "ProgramRuntimeStage", "ProgramRuntimeState", "ProgramArtifactWorkReceipt", "ProgramOperationalCheck", "ProgramOperationalTrace", "ProgramStageWorkReceipt", "ProgramCheckChange", "ProgramDiffCheck", "ProgramDomainChange", "ProgramRuntimeDiff", "ProgramStageChange",
+    "architecture_program_checks_csv", "architecture_program_domain_matrix", "architecture_program_domains_csv", "architecture_program_percent", "architecture_program_receipts_csv", "architecture_program_report_json", "architecture_program_report_markdown", "architecture_program_runtime_json", "architecture_program_summary_json", "build_program_release", "build_program_operational_closure", "build_program_operational_trace", "build_program_runtime_control", "build_program_runtime_control_specs", "build_program_runtime_diff", "build_program_runtime_diff_closure", "compare_program_runtimes", "default_architecture_program_specs", "load_program_release_manifest", "program_release_json", "program_release_manifest_json", "program_release_payloads", "query_architecture_program", "replay_architecture_program", "run_architecture_program", "run_program_runtime", "run_program_runtime_failure_injections", "run_program_runtime_quality_gate", "verify_program_operational_trace", "verify_program_runtime_diff", "verify_program_release", "write_program_release",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403

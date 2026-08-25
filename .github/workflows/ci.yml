@@ -1406,3 +1406,7 @@ jobs:
         run: python -m glio_noncode architecture-program-operational --closure --output /tmp/glio-architecture-program-operational-closure.json
       - name: Architecture program operational focused tests
         run: python -m unittest tests.test_program_runtime_operational tests.test_program_runtime_bundle tests.test_program_runtime_bundle_cli tests.test_program_runtime
+      - name: Architecture program diff controls
+        run: python -m glio_noncode architecture-program-diff --control missing-fixture --closure --output /tmp/glio-architecture-program-diff-closure.json
+      - name: Architecture program diff focused tests
+        run: python -m unittest tests.test_program_runtime_diff
