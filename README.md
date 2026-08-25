@@ -336,7 +336,7 @@ The repository-wide module fabric closes the integration boundary across all
 256 catalog capabilities and 16 domains. It resolves every declared
 implementation and test reference, evaluates 32 public aggregate rows (one
 positive and one held control per domain), emits 256 named record checks, and
-rehearses a 20-stage runtime with source closure, lineage, replay, quality,
+rehearses a 24-stage runtime with source closure, lineage, replay, quality,
 and release receipts:
 
 ```text
@@ -350,6 +350,12 @@ glio-noncode module-fabric-review-csv --output module-fabric-review.csv
 glio-noncode module-fabric-ledger --output module-fabric-ledger.json
 glio-noncode module-fabric-ledger-audit --output module-fabric-ledger-audit.json
 glio-noncode module-fabric-recovery --output module-fabric-recovery.json
+glio-noncode module-fabric-bundle --destination module-fabric-bundle --output module-fabric-bundle.json
+glio-noncode module-fabric-bundle-verify module-fabric-bundle --output module-fabric-bundle-verification.json
+glio-noncode module-fabric-bundle-query module-fabric-bundle --resource records --domain-id D01 --output module-fabric-records.json
+glio-noncode module-fabric-bundle-observability module-fabric-bundle --format metrics-csv --output module-fabric-bundle-metrics.csv
+glio-noncode module-fabric-bundle-schema --output module-fabric-bundle-schema.json
+glio-noncode module-fabric-bundle-runtime --output module-fabric-bundle-runtime.json
 ```
 
 The operational ledger retains 20 ordered stage receipts, conserved 32-row
@@ -364,6 +370,11 @@ The module fabric audits repository wiring only. It does not infer biological
 truth, validate clinical utility, authorize deployment, or copy private
 subject data. Its checked-in public aggregate fixture is
 [examples/module-fabric-public-aggregate.json](examples/module-fabric-public-aggregate.json).
+`module-fabric-bundle` materializes the full public runtime into a portable
+21-artifact directory. `module-fabric-bundle-verify` reopens it without the
+producer, checks canonical UTF-8 bytes, content addresses, safe paths,
+artifact closure, and public-boundary keys, while the query, diff,
+observability, schema, and staged-runtime commands support offline consumers.
 The [operations](docs/MODULE_FABRIC_OPERATIONS.md),
 [schema](docs/MODULE_FABRIC_SCHEMA.md), and
 [release](docs/MODULE_FABRIC_RELEASE.md) documents define its bounded use.

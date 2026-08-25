@@ -32,7 +32,7 @@ working.
 
 ## Runtime
 
-The runtime publishes 20 ordered stages:
+The full runtime publishes 24 ordered stages:
 
 1. fixture load;
 2. public boundary audit;
@@ -52,8 +52,16 @@ The runtime publishes 20 ordered stages:
 16. source-join retention;
 17. control-boundary retention;
 18. public projection sanitization;
-19. stage receipt addressing; and
-20. final release decision.
+19. stage receipt addressing;
+20. release decision;
+21. evaluation checks closure;
+22. compliance closure;
+23. observability closure; and
+24. runtime finalization.
+
+The separate operational ledger intentionally retains the stable first 20
+stages so downstream reconciliation consumers keep a fixed denominator. The
+bundle boundary includes the complete 24-stage runtime report.
 
 Each stage has an input address and output address. This makes a stage-level
 drift visible without copying domain payloads into the runtime report.

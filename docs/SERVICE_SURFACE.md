@@ -12,6 +12,11 @@ report or runtime from which it was derived.
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
 | GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
+| GET | `/v1/module-fabric/bundle` | Build the public 21-artifact module-fabric bundle projection |
+| GET | `/v1/module-fabric/bundle/query` | Query bundle artifacts or public aggregate records |
+| GET | `/v1/module-fabric/bundle/observability` | Return deterministic bundle events and metrics |
+| GET | `/v1/module-fabric/bundle/runtime` | Run the staged bundle assembly and replay receipt |
+| GET | `/v1/module-fabric/bundle/schema` | Return the closed bundle manifest schema |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
@@ -103,6 +108,16 @@ optional `focus_run_id`; the focused form returns that member and its
 downstream artifacts. `/v1/portfolio/release/observability` emits stable
 selection/member/check events plus byte, artifact, gate, and warning metrics.
 `/v1/portfolio/release/schema` is read-only and does not inspect the data root.
+
+The module-fabric bundle endpoints are read-only public aggregate projections.
+`/v1/module-fabric/bundle` accepts optional `bundle_id`, `run_id`, and
+`include_payloads` parameters. The query route accepts `resource` (`artifacts`
+or `records`), `domain_id`, `capability_id`, `role`, `state`,
+`artifact_kind`, `q` or `text`, `offset`, `limit`, and `include_payloads`.
+The bundle is assembled deterministically from the checked-in 16-domain
+fixture; the response includes its exact manifest address and 21-artifact
+inventory. The observability, runtime, and schema routes do not expose raw
+payloads unless explicitly requested through the public projection option.
 
 The storage audit is read-only and store-wide. It checks canonical UTF-8 JSON,
 filename content addresses, malformed object references, run and batch index

@@ -114,6 +114,27 @@ from .program_runtime_replay import (
     run_program_runtime_failure_injections,
 )
 from .module_fabric_catalog import default_module_fabric_catalog
+from .module_fabric_bundle import (
+    build_module_fabric_bundle,
+    verify_module_fabric_bundle,
+    write_module_fabric_bundle,
+)
+from .module_fabric_bundle_observability import (
+    build_module_fabric_bundle_observability,
+    fabric_bundle_events_csv,
+    fabric_bundle_metrics_csv,
+)
+from .module_fabric_bundle_query import (
+    diff_module_fabric_bundles,
+    export_module_fabric_bundle_query_csv,
+    load_module_fabric_bundle,
+    query_module_fabric_bundle,
+)
+from .module_fabric_bundle_runtime import run_module_fabric_bundle_runtime
+from .module_fabric_bundle_schema import (
+    module_fabric_bundle_schema,
+    validate_module_fabric_bundle_manifest,
+)
 from .module_fabric_compliance import run_module_fabric_compliance
 from .module_fabric_data_dictionary import default_module_fabric_data_dictionary
 from .module_fabric_depth import audit_module_fabric_depth
@@ -3015,6 +3036,70 @@ def build_parser() -> argparse.ArgumentParser:
         help="print the module-fabric data dictionary",
     )
     module_fabric_dictionary.add_argument("--output", default=None)
+    module_fabric_bundle = subparsers.add_parser(
+        "module-fabric-bundle",
+        help="materialize a verified public offline module-fabric bundle",
+    )
+    module_fabric_bundle.add_argument("--destination", required=True)
+    module_fabric_bundle.add_argument("--bundle-id", default="module-fabric-public-bundle")
+    module_fabric_bundle.add_argument("--run-id", default="module-fabric-bundle-runtime")
+    module_fabric_bundle.add_argument("--include-payloads", action="store_true")
+    module_fabric_bundle.add_argument("--output", default=None)
+    module_fabric_bundle_verify = subparsers.add_parser(
+        "module-fabric-bundle-verify",
+        help="verify exact bytes and public closure of a module-fabric bundle",
+    )
+    module_fabric_bundle_verify.add_argument("destination", type=str)
+    module_fabric_bundle_verify.add_argument("--output", default=None)
+    module_fabric_bundle_query = subparsers.add_parser(
+        "module-fabric-bundle-query",
+        help="query artifacts or records from an offline module-fabric bundle",
+    )
+    module_fabric_bundle_query.add_argument("destination", type=str)
+    module_fabric_bundle_query.add_argument("--resource", choices=("artifacts", "records"), default="artifacts")
+    module_fabric_bundle_query.add_argument("--domain-id", default=None)
+    module_fabric_bundle_query.add_argument("--capability-id", default=None)
+    module_fabric_bundle_query.add_argument("--role", default=None)
+    module_fabric_bundle_query.add_argument("--state", default=None)
+    module_fabric_bundle_query.add_argument("--artifact-kind", default=None)
+    module_fabric_bundle_query.add_argument("--text", default=None)
+    module_fabric_bundle_query.add_argument("--offset", default=0, type=int)
+    module_fabric_bundle_query.add_argument("--limit", default=50, type=int)
+    module_fabric_bundle_query.add_argument("--include-payloads", action="store_true")
+    module_fabric_bundle_query.add_argument("--format", choices=("json", "csv"), default="json")
+    module_fabric_bundle_query.add_argument("--output", default=None)
+    module_fabric_bundle_diff = subparsers.add_parser(
+        "module-fabric-bundle-diff",
+        help="compare two module-fabric bundle manifests by exact artifact addresses",
+    )
+    module_fabric_bundle_diff.add_argument("left", type=str)
+    module_fabric_bundle_diff.add_argument("right", type=str)
+    module_fabric_bundle_diff.add_argument("--output", default=None)
+    module_fabric_bundle_observability = subparsers.add_parser(
+        "module-fabric-bundle-observability",
+        help="emit module-fabric bundle events and metrics",
+    )
+    module_fabric_bundle_observability.add_argument("destination", type=str)
+    module_fabric_bundle_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    module_fabric_bundle_observability.add_argument("--output", default=None)
+    module_fabric_bundle_schema = subparsers.add_parser(
+        "module-fabric-bundle-schema",
+        help="print the closed module-fabric bundle manifest schema",
+    )
+    module_fabric_bundle_schema.add_argument("--output", default=None)
+    module_fabric_bundle_validate = subparsers.add_parser(
+        "module-fabric-bundle-validate",
+        help="validate a module-fabric bundle manifest JSON file",
+    )
+    module_fabric_bundle_validate.add_argument("input", type=str)
+    module_fabric_bundle_validate.add_argument("--output", default=None)
+    module_fabric_bundle_runtime = subparsers.add_parser(
+        "module-fabric-bundle-runtime",
+        help="run the staged module-fabric bundle runtime and replay gate",
+    )
+    module_fabric_bundle_runtime.add_argument("--bundle-id", default="module-fabric-public-bundle")
+    module_fabric_bundle_runtime.add_argument("--run-id", default="module-fabric-bundle-runtime")
+    module_fabric_bundle_runtime.add_argument("--output", default=None)
     capability_certification = subparsers.add_parser(
         "capability-certification",
         help="certify all 256 catalog capabilities against live repository evidence",
@@ -9083,6 +9168,58 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "module-fabric-data-dictionary":
             _write_json(default_module_fabric_data_dictionary().to_dict(), args.output)
             return 0
+        if args.command == "module-fabric-bundle":
+            bundle = build_module_fabric_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            write_module_fabric_bundle(bundle, args.destination)
+            _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "module-fabric-bundle-verify":
+            verification = verify_module_fabric_bundle(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-fabric-bundle-query":
+            result = query_module_fabric_bundle(
+                args.destination,
+                resource=args.resource,
+                domain_id=args.domain_id,
+                capability_id=args.capability_id,
+                role=args.role,
+                state=args.state,
+                artifact_kind=args.artifact_kind,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                include_payloads=args.include_payloads,
+            )
+            if args.format == "csv":
+                _write_text(export_module_fabric_bundle_query_csv(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-fabric-bundle-diff":
+            result = diff_module_fabric_bundles(args.left, args.right)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-fabric-bundle-observability":
+            report = build_module_fabric_bundle_observability(load_module_fabric_bundle(args.destination))
+            if args.format == "events-csv":
+                _write_text(fabric_bundle_events_csv(report), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(fabric_bundle_metrics_csv(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-bundle-schema":
+            _write_json(module_fabric_bundle_schema(), args.output)
+            return 0
+        if args.command == "module-fabric-bundle-validate":
+            report = validate_module_fabric_bundle_manifest(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-fabric-bundle-runtime":
+            report = run_module_fabric_bundle_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "capability-certification":
             report = certify_capability_catalog()
             _write_text(export_capability_certification_json(report), args.output)

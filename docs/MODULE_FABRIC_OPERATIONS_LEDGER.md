@@ -11,7 +11,8 @@ The ledger is intentionally bound to the public aggregate boundary:
 
 - the canonical fixture contains 32 rows, with one positive row and one held
   control row for each of the 16 domains;
-- the runtime contains 20 ordered stages;
+- the full runtime contains 24 ordered stages; the ledger preserves the stable
+  20-stage operational slice ending at `release-decision`;
 - every stage carries the same 32-record denominator and the same 16/16 role
   partition;
 - every stage input, stage output, ledger entry, and audit check is addressed;
@@ -50,7 +51,7 @@ reconcile counts and state transitions without receiving raw record payloads.
 
 `audit_module_fabric_operation_ledger` evaluates the following invariants:
 
-1. entries exist and include the expected 20-stage runtime surface;
+1. entries exist and include the expected stable 20-stage operational slice;
 2. ordinals are contiguous and stage IDs are unique;
 3. operation IDs and entry addresses are unique and present;
 4. stage input and output addresses are present;

@@ -41,6 +41,11 @@ from .portfolio_release import build_portfolio_release
 from .portfolio_release_lineage import build_portfolio_release_lineage, lineage_for_run
 from .portfolio_release_observability import build_portfolio_release_observability
 from .portfolio_release_schema import portfolio_release_schema
+from .module_fabric_bundle import build_module_fabric_bundle
+from .module_fabric_bundle_observability import build_module_fabric_bundle_observability
+from .module_fabric_bundle_query import query_module_fabric_bundle
+from .module_fabric_bundle_runtime import run_module_fabric_bundle_runtime
+from .module_fabric_bundle_schema import module_fabric_bundle_schema
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -204,6 +209,53 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/module-fabric/bundle",
+            "/v1/module-fabric/bundle/query",
+            "/v1/module-fabric/bundle/observability",
+            "/v1/module-fabric/bundle/runtime",
+            "/v1/module-fabric/bundle/schema",
+        }:
+            try:
+                if path.endswith("/schema"):
+                    self._write(HTTPStatus.OK, module_fabric_bundle_schema())
+                    return
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle = build_module_fabric_bundle(
+                    bundle_id=self._query_value(query, "bundle_id") or "module-fabric-public-bundle",
+                    run_id=self._query_value(query, "run_id") or "module-fabric-bundle-runtime",
+                )
+                if path.endswith("/query"):
+                    payload = query_module_fabric_bundle(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        domain_id=self._query_value(query, "domain_id"),
+                        capability_id=self._query_value(query, "capability_id"),
+                        role=self._query_value(query, "role"),
+                        state=self._query_value(query, "state"),
+                        artifact_kind=self._query_value(query, "artifact_kind"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                        include_payloads=self._query_bool(query, "include_payloads"),
+                    ).to_dict()
+                elif path.endswith("/observability"):
+                    payload = build_module_fabric_bundle_observability(bundle).to_dict()
+                elif path.endswith("/runtime"):
+                    payload = run_module_fabric_bundle_runtime(
+                        bundle_id=bundle.bundle_id,
+                        run_id=bundle.run_id,
+                    ).to_dict()
+                else:
+                    payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
+                self._write(HTTPStatus.OK, payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

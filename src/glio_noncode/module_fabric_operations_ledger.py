@@ -28,6 +28,7 @@ LEDGER_VERSION = "2026.08.module-fabric.ledger.v1"
 RECOVERY_VERSION = "2026.08.module-fabric.recovery.v1"
 LEDGER_BOUNDARY = "public_aggregate_operational_reconciliation"
 RECOVERY_BOUNDARY = "public_aggregate_manual_review_routing"
+LEDGER_STAGE_COUNT = 20
 
 
 @dataclass(frozen=True, slots=True)
@@ -227,7 +228,11 @@ def build_module_fabric_operation_ledger(
     run = _runtime_for(fixture or default_module_fabric_fixture(registry), registry, run_id)
     require_non_empty(run_id, "run_id")
     entries: list[FabricLedgerEntry] = []
-    for stage in run.stages:
+    # The runtime has grown additional compliance/observability finalization
+    # stages over time.  The operational ledger deliberately preserves the
+    # stable 20-stage handoff slice ending at the release decision; the full
+    # 24-stage runtime remains available from the runtime report and bundle.
+    for stage in run.stages[:LEDGER_STAGE_COUNT]:
         body = {
             "operation_id": f"MFO-{stage.ordinal:02d}-{stage.stage_id}",
             "stage_id": stage.stage_id,
@@ -267,7 +272,7 @@ def audit_module_fabric_operation_ledger(
 
     values = ledger.entries
     checks = (
-        _check("entries-present", bool(values), len(values), 20, "runtime entries are retained"),
+        _check("entries-present", len(values) == LEDGER_STAGE_COUNT, len(values), LEDGER_STAGE_COUNT, "stable operational stage slice is retained"),
         _check("ordinals-contiguous", tuple(item.ordinal for item in values) == tuple(range(1, len(values) + 1)), tuple(item.ordinal for item in values), "1..N", "operation order is contiguous"),
         _check("operation-ids-unique", len({item.operation_id for item in values}) == len(values), len({item.operation_id for item in values}), len(values), "operation identifiers are unique"),
         _check("stage-ids-unique", len({item.stage_id for item in values}) == len(values), len({item.stage_id for item in values}), len(values), "stage identifiers are unique"),
@@ -351,6 +356,7 @@ __all__ = [
     "FabricRecoveryItem",
     "FabricRecoveryReport",
     "LEDGER_VERSION",
+    "LEDGER_STAGE_COUNT",
     "RECOVERY_VERSION",
     "LEDGER_BOUNDARY",
     "RECOVERY_BOUNDARY",

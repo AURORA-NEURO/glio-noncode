@@ -3844,6 +3844,37 @@ execution or approval; launch plans do not execute code; HMAC integrity is not
 identity or scientific validation; access policy does not replace institutional
 controls. Secrets remain outside compact exports.
 
+### Module-fabric offline bundle boundary
+
+The repository-wide module-fabric runtime now has a materialized offline
+handoff in addition to its in-memory release manifest. `module-fabric-bundle`
+executes the 16-domain, 256-capability integration runtime and writes a closed
+21-artifact public directory containing fixture, evaluation, metrics, depth,
+lineage, replay, quality, release, runtime, compliance, catalog, schema,
+dictionary, source, summary, trace, review, check, and Markdown projections.
+
+The root manifest records exact UTF-8 byte counts, line counts, artifact
+addresses, check addresses, runtime identity, and the bundle address. The
+independent verifier reopens the directory without the producing runtime and
+rejects malformed JSON, non-UTF-8 bytes, unsafe paths, symlinks, duplicate or
+unexpected files, missing artifacts, address drift, schema mismatch, and
+direct-identifier or attribution/language metadata. Blocked bundles retain
+their diagnostics for review instead of being silently discarded.
+
+```powershell
+glio-noncode module-fabric-bundle --destination module-fabric-bundle
+glio-noncode module-fabric-bundle-verify module-fabric-bundle
+glio-noncode module-fabric-bundle-query module-fabric-bundle --resource records --domain-id D01
+glio-noncode module-fabric-bundle-diff module-fabric-bundle-a module-fabric-bundle-b
+glio-noncode module-fabric-bundle-observability module-fabric-bundle --format metrics-csv
+glio-noncode module-fabric-bundle-schema
+glio-noncode module-fabric-bundle-runtime
+```
+
+The bundle is a public aggregate module-integration receipt. It does not
+publish subject-level records, infer biological truth, or convert reference
+resolution into a clinical or deployment decision.
+
 ### Cross-run portfolio release boundary
 
 The persisted-run plane now has a repository-wide handoff contract in addition
