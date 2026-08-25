@@ -59,6 +59,15 @@ from .validation_design_frontier_bundle_query import query_validation_design_off
 from .validation_design_frontier_bundle_schema import validation_design_bundle_schema
 from .validation_design_frontier_offline_bundle import build_validation_design_offline_bundle
 from .validation_design_frontier_bundle_runtime import build_validation_design_bundle_observability, run_validation_design_bundle_runtime
+from .evidence_lifecycle_frontier_offline_audit import audit_evidence_lifecycle_offline_bundle
+from .evidence_lifecycle_frontier_offline_bundle import build_evidence_lifecycle_offline_bundle
+from .evidence_lifecycle_frontier_offline_query import query_evidence_lifecycle_offline_bundle
+from .evidence_lifecycle_frontier_offline_runtime import build_evidence_lifecycle_offline_observability, run_evidence_lifecycle_offline_bundle_runtime
+from .evidence_lifecycle_frontier_offline_schema import evidence_lifecycle_offline_bundle_schema
+from .evidence_lifecycle_frontier_offline_boundary import audit_evidence_lifecycle_offline_boundary
+from .evidence_lifecycle_frontier_offline_indexes import audit_evidence_lifecycle_offline_indexes, build_evidence_lifecycle_offline_indexes
+from .evidence_lifecycle_frontier_offline_reconciliation import reconcile_evidence_lifecycle_offline_bundle
+from .evidence_lifecycle_frontier_offline_summary import audit_evidence_lifecycle_offline_summary, build_evidence_lifecycle_offline_summary
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -378,6 +387,69 @@ class ApiHandler(BaseHTTPRequestHandler):
                         bundle_id=bundle.bundle_id,
                         run_id=bundle.run_id,
                     ).to_dict()
+                else:
+                    payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
+                self._write(HTTPStatus.OK, payload)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/evidence-lifecycle/bundle",
+            "/v1/evidence-lifecycle/bundle/query",
+            "/v1/evidence-lifecycle/bundle/schema",
+            "/v1/evidence-lifecycle/bundle/audit",
+            "/v1/evidence-lifecycle/bundle/observability",
+            "/v1/evidence-lifecycle/bundle/runtime",
+            "/v1/evidence-lifecycle/bundle/indexes",
+            "/v1/evidence-lifecycle/bundle/boundary",
+            "/v1/evidence-lifecycle/bundle/reconciliation",
+            "/v1/evidence-lifecycle/bundle/summary",
+        }:
+            try:
+                if path.endswith("/schema"):
+                    self._write(HTTPStatus.OK, evidence_lifecycle_offline_bundle_schema())
+                    return
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle = build_evidence_lifecycle_offline_bundle(
+                    bundle_id=self._query_value(query, "bundle_id") or "evidence-lifecycle-public-bundle",
+                    run_id=self._query_value(query, "run_id") or "evidence-lifecycle-offline-runtime",
+                )
+                if path.endswith("/query"):
+                    payload = query_evidence_lifecycle_offline_bundle(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        operation=self._query_value(query, "operation"),
+                        role=self._query_value(query, "role"),
+                        state=self._query_value(query, "state"),
+                        artifact_kind=self._query_value(query, "artifact_kind"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                        include_payloads=self._query_bool(query, "include_payloads"),
+                    ).to_dict()
+                elif path.endswith("/audit"):
+                    payload = audit_evidence_lifecycle_offline_bundle(bundle).to_dict()
+                elif path.endswith("/observability"):
+                    payload = build_evidence_lifecycle_offline_observability(bundle).to_dict()
+                elif path.endswith("/runtime"):
+                    payload = run_evidence_lifecycle_offline_bundle_runtime(
+                        bundle_id=bundle.bundle_id,
+                        run_id=bundle.run_id,
+                    ).to_dict()
+                elif path.endswith("/indexes"):
+                    catalog = build_evidence_lifecycle_offline_indexes(bundle)
+                    payload = {"catalog": catalog.to_dict(), "audit": audit_evidence_lifecycle_offline_indexes(bundle, catalog).to_dict()}
+                elif path.endswith("/boundary"):
+                    payload = audit_evidence_lifecycle_offline_boundary(bundle).to_dict()
+                elif path.endswith("/reconciliation"):
+                    payload = reconcile_evidence_lifecycle_offline_bundle(bundle).to_dict()
+                elif path.endswith("/summary"):
+                    summary = build_evidence_lifecycle_offline_summary(bundle)
+                    payload = {"summary": summary.to_dict(), "audit": audit_evidence_lifecycle_offline_summary(summary).to_dict()}
                 else:
                     payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
                 self._write(HTTPStatus.OK, payload)

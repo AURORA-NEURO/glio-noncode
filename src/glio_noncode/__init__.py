@@ -1741,6 +1741,114 @@ from .evidence_lifecycle_frontier_views import (
     EvidenceLifecycleReviewView,
     build_evidence_lifecycle_review_view,
 )
+from .evidence_lifecycle_frontier_offline_audit import (
+    EVIDENCE_LIFECYCLE_OFFLINE_AUDIT_VERSION,
+    EvidenceLifecycleOfflineAudit,
+    EvidenceLifecycleOfflineAuditCheck,
+    audit_evidence_lifecycle_offline_bundle,
+)
+from .evidence_lifecycle_frontier_offline_bundle import (
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_COUNT,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_BOUNDARY,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_VERSION,
+    EVIDENCE_LIFECYCLE_OFFLINE_CSV_MEDIA_TYPE,
+    EVIDENCE_LIFECYCLE_OFFLINE_JSON_MEDIA_TYPE,
+    build_evidence_lifecycle_offline_bundle,
+    evidence_lifecycle_offline_manifest_text,
+    verify_evidence_lifecycle_offline_bundle,
+    write_evidence_lifecycle_offline_bundle,
+)
+from .evidence_lifecycle_frontier_offline_contracts import (
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_PREFIX,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_CHECK_PREFIX,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_DEFAULT_LIMIT,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MAX_ARTIFACTS,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MAX_LIMIT,
+    EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_SCHEMA_VERSION,
+    EvidenceLifecycleOfflineArtifact,
+    EvidenceLifecycleOfflineArtifactKind,
+    EvidenceLifecycleOfflineBundle,
+    EvidenceLifecycleOfflineBundleState,
+    EvidenceLifecycleOfflineCheck,
+    EvidenceLifecycleOfflineCheckPlane,
+    EvidenceLifecycleOfflineDiff,
+    EvidenceLifecycleOfflineQueryResult,
+    EvidenceLifecycleOfflineVerification,
+    evidence_lifecycle_offline_check,
+)
+from .evidence_lifecycle_frontier_offline_query import (
+    diff_evidence_lifecycle_offline_bundles,
+    export_evidence_lifecycle_offline_query_csv,
+    load_evidence_lifecycle_offline_bundle,
+    query_evidence_lifecycle_offline_bundle,
+    verify_and_load_evidence_lifecycle_offline_bundle,
+)
+from .evidence_lifecycle_frontier_offline_runtime import (
+    EVIDENCE_LIFECYCLE_OFFLINE_RUNTIME_VERSION,
+    EvidenceLifecycleOfflineObservability,
+    EvidenceLifecycleOfflineReplay,
+    EvidenceLifecycleOfflineRuntimeReport,
+    EvidenceLifecycleOfflineRuntimeStage,
+    build_evidence_lifecycle_offline_observability,
+    replay_evidence_lifecycle_offline_bundle,
+    run_evidence_lifecycle_offline_bundle_runtime,
+)
+from .evidence_lifecycle_frontier_offline_schema import (
+    EvidenceLifecycleOfflineSchemaCheck,
+    EvidenceLifecycleOfflineSchemaValidation,
+    evidence_lifecycle_offline_bundle_schema,
+    validate_evidence_lifecycle_offline_manifest,
+)
+from .evidence_lifecycle_frontier_offline_boundary import (
+    EVIDENCE_LIFECYCLE_OFFLINE_BOUNDARY_VERSION,
+    EvidenceLifecycleOfflineBoundaryFinding,
+    EvidenceLifecycleOfflineBoundaryPolicy,
+    EvidenceLifecycleOfflineBoundaryReport,
+    audit_evidence_lifecycle_offline_boundary,
+    audit_evidence_lifecycle_offline_directory,
+    default_evidence_lifecycle_offline_boundary_policy,
+    evidence_lifecycle_offline_boundary_key_inventory,
+    evidence_lifecycle_offline_forbidden_key_paths,
+    evidence_lifecycle_offline_private_key_paths,
+)
+from .evidence_lifecycle_frontier_offline_indexes import (
+    EVIDENCE_LIFECYCLE_OFFLINE_INDEX_DEFAULT_LIMIT,
+    EVIDENCE_LIFECYCLE_OFFLINE_INDEX_MAX_LIMIT,
+    EVIDENCE_LIFECYCLE_OFFLINE_INDEX_VERSION,
+    EvidenceLifecycleOfflineIndex,
+    EvidenceLifecycleOfflineIndexAudit,
+    EvidenceLifecycleOfflineIndexCatalog,
+    EvidenceLifecycleOfflineIndexCheck,
+    EvidenceLifecycleOfflineIndexKey,
+    EvidenceLifecycleOfflineIndexQuery,
+    EvidenceLifecycleOfflineIndexResource,
+    EvidenceLifecycleOfflineIndexRow,
+    audit_evidence_lifecycle_offline_indexes,
+    build_evidence_lifecycle_offline_indexes,
+    export_evidence_lifecycle_offline_indexes_csv,
+    query_evidence_lifecycle_offline_indexes,
+)
+from .evidence_lifecycle_frontier_offline_reconciliation import (
+    EVIDENCE_LIFECYCLE_OFFLINE_RECONCILIATION_VERSION,
+    EvidenceLifecycleOfflineReconciliationCheck,
+    EvidenceLifecycleOfflineReconciliationDelta,
+    EvidenceLifecycleOfflineReconciliationReport,
+    compare_evidence_lifecycle_offline_bundles,
+    evidence_lifecycle_offline_reconciliation_markdown,
+    reconcile_evidence_lifecycle_offline_bundle,
+)
+from .evidence_lifecycle_frontier_offline_summary import (
+    EVIDENCE_LIFECYCLE_OFFLINE_SUMMARY_VERSION,
+    EvidenceLifecycleOfflineOperationSummary,
+    EvidenceLifecycleOfflineSummary,
+    EvidenceLifecycleOfflineSummaryAudit,
+    EvidenceLifecycleOfflineSummaryCheck,
+    audit_evidence_lifecycle_offline_summary,
+    build_evidence_lifecycle_offline_summary,
+    evidence_lifecycle_offline_summary_markdown,
+    export_evidence_lifecycle_offline_summary_csv,
+)
 from .workspace_frontier_adapters import (
     WorkspaceFrontierAdapterKind,
     WorkspaceFrontierAdapterReceipt,
@@ -9904,6 +10012,18 @@ __all__ += [
     "run_cohort_foundation_frontier_invariants",
     "observe_cohort_foundation_frontier",
     "validate_cohort_foundation_frontier_schema",
+]
+
+__all__ += [
+    "EVIDENCE_LIFECYCLE_OFFLINE_AUDIT_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_COUNT", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_ARTIFACT_PREFIX", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_BOUNDARY", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_CHECK_PREFIX", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_DEFAULT_LIMIT", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MANIFEST", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MAX_ARTIFACTS", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_MAX_LIMIT", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_SCHEMA_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_BUNDLE_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_CSV_MEDIA_TYPE", "EVIDENCE_LIFECYCLE_OFFLINE_JSON_MEDIA_TYPE", "EVIDENCE_LIFECYCLE_OFFLINE_RUNTIME_VERSION",
+    "EvidenceLifecycleOfflineArtifact", "EvidenceLifecycleOfflineArtifactKind", "EvidenceLifecycleOfflineAudit", "EvidenceLifecycleOfflineAuditCheck", "EvidenceLifecycleOfflineBundle", "EvidenceLifecycleOfflineBundleState", "EvidenceLifecycleOfflineCheck", "EvidenceLifecycleOfflineCheckPlane", "EvidenceLifecycleOfflineDiff", "EvidenceLifecycleOfflineObservability", "EvidenceLifecycleOfflineQueryResult", "EvidenceLifecycleOfflineReplay", "EvidenceLifecycleOfflineRuntimeReport", "EvidenceLifecycleOfflineRuntimeStage", "EvidenceLifecycleOfflineSchemaCheck", "EvidenceLifecycleOfflineSchemaValidation", "EvidenceLifecycleOfflineVerification",
+    "audit_evidence_lifecycle_offline_bundle", "build_evidence_lifecycle_offline_bundle", "build_evidence_lifecycle_offline_observability", "diff_evidence_lifecycle_offline_bundles", "evidence_lifecycle_offline_bundle_schema", "evidence_lifecycle_offline_check", "evidence_lifecycle_offline_manifest_text", "export_evidence_lifecycle_offline_query_csv", "load_evidence_lifecycle_offline_bundle", "query_evidence_lifecycle_offline_bundle", "replay_evidence_lifecycle_offline_bundle", "run_evidence_lifecycle_offline_bundle_runtime", "validate_evidence_lifecycle_offline_manifest", "verify_and_load_evidence_lifecycle_offline_bundle", "verify_evidence_lifecycle_offline_bundle", "write_evidence_lifecycle_offline_bundle",
+]
+
+__all__ += [
+    "EVIDENCE_LIFECYCLE_OFFLINE_BOUNDARY_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_INDEX_DEFAULT_LIMIT", "EVIDENCE_LIFECYCLE_OFFLINE_INDEX_MAX_LIMIT", "EVIDENCE_LIFECYCLE_OFFLINE_INDEX_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_RECONCILIATION_VERSION", "EVIDENCE_LIFECYCLE_OFFLINE_SUMMARY_VERSION",
+    "EvidenceLifecycleOfflineBoundaryFinding", "EvidenceLifecycleOfflineBoundaryPolicy", "EvidenceLifecycleOfflineBoundaryReport", "EvidenceLifecycleOfflineIndex", "EvidenceLifecycleOfflineIndexAudit", "EvidenceLifecycleOfflineIndexCatalog", "EvidenceLifecycleOfflineIndexCheck", "EvidenceLifecycleOfflineIndexKey", "EvidenceLifecycleOfflineIndexQuery", "EvidenceLifecycleOfflineIndexResource", "EvidenceLifecycleOfflineIndexRow", "EvidenceLifecycleOfflineOperationSummary", "EvidenceLifecycleOfflineReconciliationCheck", "EvidenceLifecycleOfflineReconciliationDelta", "EvidenceLifecycleOfflineReconciliationReport", "EvidenceLifecycleOfflineSummary", "EvidenceLifecycleOfflineSummaryAudit", "EvidenceLifecycleOfflineSummaryCheck",
+    "audit_evidence_lifecycle_offline_boundary", "audit_evidence_lifecycle_offline_directory", "audit_evidence_lifecycle_offline_indexes", "audit_evidence_lifecycle_offline_summary", "build_evidence_lifecycle_offline_indexes", "build_evidence_lifecycle_offline_summary", "compare_evidence_lifecycle_offline_bundles", "default_evidence_lifecycle_offline_boundary_policy", "evidence_lifecycle_offline_boundary_key_inventory", "evidence_lifecycle_offline_forbidden_key_paths", "evidence_lifecycle_offline_private_key_paths", "evidence_lifecycle_offline_reconciliation_markdown", "evidence_lifecycle_offline_summary_markdown", "export_evidence_lifecycle_offline_indexes_csv", "export_evidence_lifecycle_offline_summary_csv", "query_evidence_lifecycle_offline_indexes", "reconcile_evidence_lifecycle_offline_bundle",
 ]
 
 from .capability_certification import (

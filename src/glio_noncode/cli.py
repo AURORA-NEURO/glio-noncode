@@ -847,6 +847,46 @@ from .evidence_lifecycle_frontier_review_queue import build_evidence_lifecycle_r
 from .evidence_lifecycle_frontier_runtime import run_evidence_lifecycle_runtime
 from .evidence_lifecycle_frontier_schema import default_evidence_lifecycle_schema
 from .evidence_lifecycle_frontier_views import build_evidence_lifecycle_review_view
+from .evidence_lifecycle_frontier_offline_audit import audit_evidence_lifecycle_offline_bundle
+from .evidence_lifecycle_frontier_offline_bundle import (
+    build_evidence_lifecycle_offline_bundle,
+    verify_evidence_lifecycle_offline_bundle,
+    write_evidence_lifecycle_offline_bundle,
+)
+from .evidence_lifecycle_frontier_offline_query import (
+    diff_evidence_lifecycle_offline_bundles,
+    export_evidence_lifecycle_offline_query_csv,
+    load_evidence_lifecycle_offline_bundle,
+    query_evidence_lifecycle_offline_bundle,
+)
+from .evidence_lifecycle_frontier_offline_runtime import (
+    build_evidence_lifecycle_offline_observability,
+    run_evidence_lifecycle_offline_bundle_runtime,
+)
+from .evidence_lifecycle_frontier_offline_schema import (
+    evidence_lifecycle_offline_bundle_schema,
+    validate_evidence_lifecycle_offline_manifest,
+)
+from .evidence_lifecycle_frontier_offline_boundary import (
+    audit_evidence_lifecycle_offline_boundary,
+    audit_evidence_lifecycle_offline_directory,
+    evidence_lifecycle_offline_boundary_key_inventory,
+)
+from .evidence_lifecycle_frontier_offline_indexes import (
+    audit_evidence_lifecycle_offline_indexes,
+    build_evidence_lifecycle_offline_indexes,
+    export_evidence_lifecycle_offline_indexes_csv,
+)
+from .evidence_lifecycle_frontier_offline_reconciliation import (
+    evidence_lifecycle_offline_reconciliation_markdown,
+    reconcile_evidence_lifecycle_offline_bundle,
+)
+from .evidence_lifecycle_frontier_offline_summary import (
+    audit_evidence_lifecycle_offline_summary,
+    build_evidence_lifecycle_offline_summary,
+    evidence_lifecycle_offline_summary_markdown,
+    export_evidence_lifecycle_offline_summary_csv,
+)
 from .workspace_frontier_adapters import default_workspace_frontier_adapters
 from .workspace_frontier_artifacts import build_workspace_frontier_artifact_inventory
 from .workspace_frontier_bundle import assemble_workspace_frontier_bundle
@@ -7580,6 +7620,102 @@ def build_parser() -> argparse.ArgumentParser:
     )
     evidence_lifecycle_csv.add_argument("input", nargs="?", default=None)
     evidence_lifecycle_csv.add_argument("--output", default=None)
+    evidence_lifecycle_offline_bundle = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle",
+        help="materialize a verified public offline D14 evidence lifecycle bundle",
+    )
+    evidence_lifecycle_offline_bundle.add_argument("--destination", required=True)
+    evidence_lifecycle_offline_bundle.add_argument("--bundle-id", default="evidence-lifecycle-public-bundle")
+    evidence_lifecycle_offline_bundle.add_argument("--run-id", default="evidence-lifecycle-offline-runtime")
+    evidence_lifecycle_offline_bundle.add_argument("--include-payloads", action="store_true")
+    evidence_lifecycle_offline_bundle.add_argument("--output", default=None)
+    evidence_lifecycle_offline_verify = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-verify",
+        help="verify exact bytes and public closure of a D14 offline bundle",
+    )
+    evidence_lifecycle_offline_verify.add_argument("destination", type=str)
+    evidence_lifecycle_offline_verify.add_argument("--output", default=None)
+    evidence_lifecycle_offline_query = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-query",
+        help="query D14 offline artifacts, records, checks, sources, or events",
+    )
+    evidence_lifecycle_offline_query.add_argument("destination", type=str)
+    evidence_lifecycle_offline_query.add_argument("--resource", choices=("artifacts", "records", "checks", "sources", "events"), default="artifacts")
+    evidence_lifecycle_offline_query.add_argument("--operation", default=None)
+    evidence_lifecycle_offline_query.add_argument("--role", default=None)
+    evidence_lifecycle_offline_query.add_argument("--state", default=None)
+    evidence_lifecycle_offline_query.add_argument("--artifact-kind", default=None)
+    evidence_lifecycle_offline_query.add_argument("--text", default=None)
+    evidence_lifecycle_offline_query.add_argument("--offset", default=0, type=int)
+    evidence_lifecycle_offline_query.add_argument("--limit", default=50, type=int)
+    evidence_lifecycle_offline_query.add_argument("--include-payloads", action="store_true")
+    evidence_lifecycle_offline_query.add_argument("--format", choices=("json", "csv"), default="json")
+    evidence_lifecycle_offline_query.add_argument("--output", default=None)
+    evidence_lifecycle_offline_diff = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-diff",
+        help="compare two D14 offline manifests by exact artifact addresses",
+    )
+    evidence_lifecycle_offline_diff.add_argument("left", type=str)
+    evidence_lifecycle_offline_diff.add_argument("right", type=str)
+    evidence_lifecycle_offline_diff.add_argument("--output", default=None)
+    evidence_lifecycle_offline_schema = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-schema",
+        help="print the closed D14 offline bundle manifest schema",
+    )
+    evidence_lifecycle_offline_schema.add_argument("--output", default=None)
+    evidence_lifecycle_offline_validate = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-validate",
+        help="validate a D14 offline bundle manifest JSON file",
+    )
+    evidence_lifecycle_offline_validate.add_argument("input", type=str)
+    evidence_lifecycle_offline_validate.add_argument("--output", default=None)
+    evidence_lifecycle_offline_audit = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-audit",
+        help="reconcile all D14 offline bundle artifacts and denominators",
+    )
+    evidence_lifecycle_offline_audit.add_argument("destination", type=str)
+    evidence_lifecycle_offline_audit.add_argument("--output", default=None)
+    evidence_lifecycle_offline_observability = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-observability",
+        help="emit normalized D14 offline bundle observability",
+    )
+    evidence_lifecycle_offline_observability.add_argument("destination", type=str)
+    evidence_lifecycle_offline_observability.add_argument("--output", default=None)
+    evidence_lifecycle_offline_runtime = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-runtime",
+        help="run the staged D14 offline bundle runtime and replay gate",
+    )
+    evidence_lifecycle_offline_runtime.add_argument("--bundle-id", default="evidence-lifecycle-public-bundle")
+    evidence_lifecycle_offline_runtime.add_argument("--run-id", default="evidence-lifecycle-offline-runtime")
+    evidence_lifecycle_offline_runtime.add_argument("--output", default=None)
+    evidence_lifecycle_offline_indexes = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-indexes",
+        help="build address-only D14 offline lookup indexes",
+    )
+    evidence_lifecycle_offline_indexes.add_argument("destination", type=str)
+    evidence_lifecycle_offline_indexes.add_argument("--format", choices=("json", "csv"), default="json")
+    evidence_lifecycle_offline_indexes.add_argument("--output", default=None)
+    evidence_lifecycle_offline_boundary = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-boundary",
+        help="audit D14 public keys and offline filesystem shape",
+    )
+    evidence_lifecycle_offline_boundary.add_argument("destination", type=str)
+    evidence_lifecycle_offline_boundary.add_argument("--key-inventory", action="store_true")
+    evidence_lifecycle_offline_boundary.add_argument("--output", default=None)
+    evidence_lifecycle_offline_reconciliation = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-reconciliation",
+        help="independently reconcile D14 offline denominators and addresses",
+    )
+    evidence_lifecycle_offline_reconciliation.add_argument("destination", type=str)
+    evidence_lifecycle_offline_reconciliation.add_argument("--format", choices=("json", "markdown"), default="json")
+    evidence_lifecycle_offline_reconciliation.add_argument("--output", default=None)
+    evidence_lifecycle_offline_summary = subparsers.add_parser(
+        "evidence-lifecycle-offline-bundle-summary",
+        help="emit a compact D14 offline reviewer summary",
+    )
+    evidence_lifecycle_offline_summary.add_argument("destination", type=str)
+    evidence_lifecycle_offline_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    evidence_lifecycle_offline_summary.add_argument("--output", default=None)
 
     lifecycle_beta_frontier_commands = (
         ("lifecycle-beta-frontier-data-audit", "audit public Domain 14 C05-C12 aggregate receipts"),
@@ -15533,6 +15669,102 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             return 0
+        if args.command == "evidence-lifecycle-offline-bundle":
+            bundle = build_evidence_lifecycle_offline_bundle(
+                bundle_id=args.bundle_id,
+                run_id=args.run_id,
+            )
+            write_evidence_lifecycle_offline_bundle(bundle, args.destination)
+            _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-verify":
+            verification = verify_evidence_lifecycle_offline_bundle(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-query":
+            result = query_evidence_lifecycle_offline_bundle(
+                args.destination,
+                resource=args.resource,
+                operation=args.operation,
+                role=args.role,
+                state=args.state,
+                artifact_kind=args.artifact_kind,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                include_payloads=args.include_payloads,
+            )
+            if args.format == "csv":
+                _write_text(export_evidence_lifecycle_offline_query_csv(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-diff":
+            result = diff_evidence_lifecycle_offline_bundles(args.left, args.right)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-schema":
+            _write_json(evidence_lifecycle_offline_bundle_schema(), args.output)
+            return 0
+        if args.command == "evidence-lifecycle-offline-bundle-validate":
+            report = validate_evidence_lifecycle_offline_manifest(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-audit":
+            audit = audit_evidence_lifecycle_offline_bundle(
+                load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True)
+            )
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-observability":
+            report = build_evidence_lifecycle_offline_observability(
+                load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-runtime":
+            report = run_evidence_lifecycle_offline_bundle_runtime(
+                bundle_id=args.bundle_id,
+                run_id=args.run_id,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-indexes":
+            bundle = load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True)
+            catalog = build_evidence_lifecycle_offline_indexes(bundle)
+            audit = audit_evidence_lifecycle_offline_indexes(bundle, catalog)
+            if args.format == "csv":
+                _write_text(export_evidence_lifecycle_offline_indexes_csv(catalog), args.output)
+            else:
+                _write_json({"catalog": catalog.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-boundary":
+            bundle = load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True)
+            if args.key_inventory:
+                _write_json(evidence_lifecycle_offline_boundary_key_inventory(bundle), args.output)
+                return 0
+            report = audit_evidence_lifecycle_offline_directory(args.destination)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-reconciliation":
+            bundle = load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True)
+            report = reconcile_evidence_lifecycle_offline_bundle(bundle)
+            if args.format == "markdown":
+                _write_text(evidence_lifecycle_offline_reconciliation_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "evidence-lifecycle-offline-bundle-summary":
+            bundle = load_evidence_lifecycle_offline_bundle(args.destination, include_payloads=True)
+            summary = build_evidence_lifecycle_offline_summary(bundle)
+            audit = audit_evidence_lifecycle_offline_summary(summary)
+            if args.format == "csv":
+                _write_text(export_evidence_lifecycle_offline_summary_csv(summary), args.output)
+            elif args.format == "markdown":
+                _write_text(evidence_lifecycle_offline_summary_markdown(summary), args.output)
+            else:
+                _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
         if args.command == "evidence-lifecycle-release":
             fixture = _read_evidence_lifecycle_fixture(args.input)
             runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-release")

@@ -318,6 +318,27 @@ content addresses, public-boundary keys, and an independent cross-artifact
 audit. It does not diagnose, claim assay efficacy, infer individual outcomes,
 or establish causal certainty.
 
+The D14 evidence lifecycle surface also has a portable offline handoff with 21
+exact-byte artifacts, 16 aggregate records, 120 evaluation checks, 26
+observability events, five HTTPS receipts, and a normalized ten-stage runtime:
+
+```powershell
+glio-noncode evidence-lifecycle-offline-bundle --destination lifecycle-bundle --output lifecycle-bundle.json
+glio-noncode evidence-lifecycle-offline-bundle-verify lifecycle-bundle --output lifecycle-bundle-verification.json
+glio-noncode evidence-lifecycle-offline-bundle-query lifecycle-bundle --resource records --operation graph_construction
+glio-noncode evidence-lifecycle-offline-bundle-audit lifecycle-bundle --output lifecycle-bundle-audit.json
+glio-noncode evidence-lifecycle-offline-bundle-runtime --output lifecycle-bundle-runtime.json
+glio-noncode evidence-lifecycle-offline-bundle-indexes lifecycle-bundle --output lifecycle-bundle-indexes.json
+glio-noncode evidence-lifecycle-offline-bundle-boundary lifecycle-bundle --output lifecycle-bundle-boundary.json
+glio-noncode evidence-lifecycle-offline-bundle-reconciliation lifecycle-bundle --output lifecycle-bundle-reconciliation.json
+glio-noncode evidence-lifecycle-offline-bundle-summary lifecycle-bundle --format markdown --output lifecycle-bundle-summary.md
+```
+
+The verifier reconstructs the manifest address, checks canonical UTF-8 bytes,
+safe paths, exact artifact hashes, public-boundary keys, and release state. An
+independent audit reconciles fixture, evaluation, runtime, replay, release,
+review, queue, and observability artifacts without a service or database.
+
 The D13 C05–C08 editing-design frontier independently covers CRISPRi/CRISPRa,
 base-editing, prime-editing, and allele-specific reporter design. It executes
 16 aggregate scenarios, 80 checks, 70 assurance planes, and a 79-stage runtime.

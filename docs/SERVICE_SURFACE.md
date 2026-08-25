@@ -356,3 +356,21 @@ The capability-certification bundle surface is available at:
 The bundle endpoints expose the same addressed twelve-artifact public handoff
 as the CLI, including 256 certificates, 16 domains, 2,572 checks, bounded
 offline query filters, deterministic replay, and the closed public boundary.
+
+The D14 evidence-lifecycle offline bundle surface is available at:
+
+- `GET /v1/evidence-lifecycle/bundle`
+- `GET /v1/evidence-lifecycle/bundle/query?resource=records&operation=graph_construction`
+- `GET /v1/evidence-lifecycle/bundle/observability`
+- `GET /v1/evidence-lifecycle/bundle/runtime`
+- `GET /v1/evidence-lifecycle/bundle/schema`
+- `GET /v1/evidence-lifecycle/bundle/audit`
+- `GET /v1/evidence-lifecycle/bundle/indexes`
+- `GET /v1/evidence-lifecycle/bundle/boundary`
+- `GET /v1/evidence-lifecycle/bundle/reconciliation`
+- `GET /v1/evidence-lifecycle/bundle/summary`
+
+These endpoints expose the same 21-artifact handoff as the CLI, with bounded
+queries over artifacts, records, checks, sources, and events. The runtime and
+audit routes retain deterministic replay and independent cross-artifact
+reconciliation.

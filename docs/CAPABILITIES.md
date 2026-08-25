@@ -3552,6 +3552,38 @@ glio-noncode export-evidence-lifecycle-review-csv --output lifecycle-review.csv
 glio-noncode evidence-lifecycle-depth-audit --output lifecycle-depth.json
 ```
 
+### D14 evidence lifecycle portable offline handoff
+
+The D14 evidence lifecycle runtime now has a closed offline handoff with 21
+exact-byte artifacts. The handoff includes fixture and source receipts,
+operation contracts, schema, evaluation, metrics, policy, lineage,
+reconciliation, quality, release, replay, review, queue, scenario, inventory,
+observability, CSV, and normalized runtime projections. It conserves 16
+records, 120 evaluation checks, 26 events, five HTTPS receipts, four operation
+families, and the public aggregate boundary.
+
+```powershell
+glio-noncode evidence-lifecycle-offline-bundle --destination lifecycle-bundle --output lifecycle-bundle.json
+glio-noncode evidence-lifecycle-offline-bundle-verify lifecycle-bundle --output lifecycle-bundle-verification.json
+glio-noncode evidence-lifecycle-offline-bundle-query lifecycle-bundle --resource records --operation graph_construction
+glio-noncode evidence-lifecycle-offline-bundle-schema --output lifecycle-bundle-schema.json
+glio-noncode evidence-lifecycle-offline-bundle-validate lifecycle-bundle/bundle.json --output lifecycle-bundle-validation.json
+glio-noncode evidence-lifecycle-offline-bundle-audit lifecycle-bundle --output lifecycle-bundle-audit.json
+glio-noncode evidence-lifecycle-offline-bundle-observability lifecycle-bundle --output lifecycle-bundle-observability.json
+glio-noncode evidence-lifecycle-offline-bundle-runtime --output lifecycle-bundle-runtime.json
+glio-noncode evidence-lifecycle-offline-bundle-indexes lifecycle-bundle --output lifecycle-bundle-indexes.json
+glio-noncode evidence-lifecycle-offline-bundle-boundary lifecycle-bundle --output lifecycle-bundle-boundary.json
+glio-noncode evidence-lifecycle-offline-bundle-reconciliation lifecycle-bundle --output lifecycle-bundle-reconciliation.json
+glio-noncode evidence-lifecycle-offline-bundle-summary lifecycle-bundle --format markdown --output lifecycle-bundle-summary.md
+```
+
+The manifest and every artifact are independently inspectable after checkout.
+Verification rejects altered bytes, unsafe paths, missing artifacts, address
+drift, non-canonical JSON, private subject keys, forbidden attribution keys,
+and denominator drift. The bundle is research-operational evidence only; it
+does not make a clinical, diagnostic, prognostic, treatment, or individual
+risk determination.
+
 These lifecycle surfaces preserve source versions, row hashes, raw records,
 supersession, missing citations, context mismatch, disagreement state,
 abstention, review policy, release boundaries, and replay addresses. They do
@@ -3884,10 +3916,11 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 16 named surfaces: service status, capabilities, program and operational
+audits 18 named surfaces: service status, capabilities, program and operational
 projections, both service closures, the service schema and snapshot, and the
-capability-certification and module-fabric bundle manifests and schemas. Each
-surface receives a deterministic content address and violation-path list.
+capability-certification, module-fabric, validation-design, and evidence-
+lifecycle bundle manifests and schemas. Each surface receives a deterministic
+content address and violation-path list.
 
 Runtime values are rejected when they contain attribution, language, or direct
 private-key fields. Input schema declarations may retain subject/sample field
