@@ -62,6 +62,12 @@ from .capability_certification_bundle_query import query_capability_certificatio
 from .capability_certification_bundle_runtime import run_capability_certification_bundle_runtime
 from .capability_certification_bundle_schema import capability_certification_bundle_schema
 from .public_surface_audit import build_default_public_surface_audit
+from .reference_manifest import (
+    build_default_reference_manifest,
+    query_reference_manifest,
+    reference_manifest_schema,
+    reference_manifest_summary,
+)
 from .validation_design_frontier_bundle_audit import audit_validation_design_offline_bundle
 from .validation_design_frontier_bundle_query import query_validation_design_offline_bundle
 from .validation_design_frontier_bundle_schema import validation_design_bundle_schema
@@ -361,6 +367,15 @@ class ApiHandler(BaseHTTPRequestHandler):
             setattr(self.server, "glio_service_surface", snapshot)  # noqa: B010 - lazy server-local cache
         return snapshot
 
+    def _reference_manifest(self):
+        """Cache one immutable source receipt manifest per server instance."""
+
+        manifest = getattr(self.server, "glio_reference_manifest", None)
+        if manifest is None:
+            manifest = build_default_reference_manifest()
+            setattr(self.server, "glio_reference_manifest", manifest)  # noqa: B010 - server-local manifest cache
+        return manifest
+
     def _service_release(self, bundle_id: str):
         """Cache one service-release registry per requested bundle identifier."""
 
@@ -499,6 +514,45 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path == "/v1/reference/manifest/schema":
+            self._write(HTTPStatus.OK, reference_manifest_schema())
+            return
+        if path == "/v1/reference/manifest/summary":
+            self._write(HTTPStatus.OK, reference_manifest_summary(self._reference_manifest()))
+            return
+        if path == "/v1/reference/manifest/query":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                manifest = self._reference_manifest()
+                rows = query_reference_manifest(
+                    manifest,
+                    artifact_id=self._query_value(query, "artifact_id"),
+                    adapter_id=self._query_value(query, "adapter_id"),
+                    source_id=self._query_value(query, "source_id"),
+                    context=self._query_value(query, "context"),
+                    channel=self._query_value(query, "channel"),
+                    state=self._query_value(query, "state"),
+                    text=self._query_value(query, "text") or self._query_value(query, "q"),
+                    offset=self._query_int(query, "offset", 0),
+                    limit=self._query_int(query, "limit", 50),
+                )
+                self._write(
+                    HTTPStatus.OK,
+                    {
+                        "manifest_id": manifest.manifest_id,
+                        "manifest_address": manifest.content_address,
+                        "count": len(rows),
+                        "rows": [item.to_dict() for item in rows],
+                    },
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            return
+        if path == "/v1/reference/manifest":
+            self._write(HTTPStatus.OK, self._reference_manifest().to_dict())
             return
         if path == "/v1/deployment/profile":
             self._write(HTTPStatus.OK, self._deployment_guard().profile.to_dict())

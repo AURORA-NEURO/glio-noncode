@@ -323,9 +323,10 @@ may describe input shapes in their own schema plane, but the service-release
 registry itself contains aggregate release values only.
 
 The service snapshot, registry, and durable handoff are included in the
-repository-wide `public-surface-audit`. The inventory now certifies 28 named
+repository-wide `public-surface-audit`. The inventory now certifies 30 named
 projections, including the service-release snapshot, schema, default bounded
-query, handoff metadata packet, and authenticated deployment profile/schema.
+query, handoff metadata packet, authenticated deployment profile/schema, and
+versioned reference manifest/schema.
 
 ## Performance and caching
 

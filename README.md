@@ -712,9 +712,25 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 28-surface audit, including the
-durable service-release handoff and authenticated deployment profile/schema,
-suitable for local release checks and CI.
+schema fields. The result is a deterministic 30-surface audit, including the
+durable service-release handoff, authenticated deployment profile/schema, and
+versioned reference manifest/schema, suitable for local release checks and CI.
+
+The reference boundary is also available directly:
+
+```powershell
+glio-noncode reference-manifest --format summary --output reference-summary.json
+glio-noncode reference-manifest --format markdown --output reference-manifest.md
+glio-noncode reference-manifest-schema --output reference-manifest-schema.json
+glio-noncode adapter-conformance adapter-input.json --output adapter-conformance.json
+```
+
+See [reference manifest operations](docs/REFERENCE_MANIFEST.md). Reference
+manifests carry source receipts, declared access and license terms,
+coordinate system, supported contexts, channels, checksums when available,
+and explicit availability states. They contain metadata only; adapter
+conformance repeats bounded element and claim probes and records deterministic,
+context, output, and public-boundary checks without embedding reference data.
 
 The D16 coordination architecture now composes all 16 platform-control
 capabilities into one functional public-aggregate runtime. It contains 16

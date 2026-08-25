@@ -11,13 +11,13 @@
 
 ## Next implementation wave
 
-1. Add a versioned reference manifest and adapter conformance tests.
+1. Add a versioned reference manifest and adapter conformance tests. **Implemented:** addressed source receipts, access/license/context declarations, deterministic query/export projections, portable static-adapter probes, API/CLI surfaces, and fail-closed conformance states.
 2. Add streaming VCF/BCF and bounded breakend import with explicit normalization reports.
 3. Add columnar interval indexes and context-lattice queries for public reference tracks.
 4. Replace fixture-only feature readings with adapters whose licenses and access modes are declared.
 5. Add cohort split, leakage, calibration, selective-risk, and transport benchmarks.
 6. Add a review workspace that renders evidence edges, alternatives, deltas, and provenance without reducing them to one score.
-7. Add authenticated deployment profiles and audit export for institutional operation. **Implemented:** explicit non-loopback policy, API-key scopes, rate limiting, redacted hash-chained request audit, profile schema, CLI handling, and API endpoints.
+7. Add authenticated deployment profiles and audit export for institutional operation. **Implemented:** explicit non-loopback policy, API-key scopes, rate limiting, redacted hash-chained request audit, profile schema, CLI handling, durable replay verification, retention controls, and API endpoints.
 
 Every wave should preserve the same contracts, add fixtures and failure cases, and distinguish implemented behavior from externally evaluated science.
 

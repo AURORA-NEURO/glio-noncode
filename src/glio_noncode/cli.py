@@ -1571,6 +1571,20 @@ from .reference_governance_replay import replay_reference_governance_evaluation
 from .reference_governance_runtime import run_reference_governance_pipeline_file
 from .reference_governance_scenario_matrix import evaluate_reference_governance_scenarios
 from .reference_registry import default_reference_registry
+from .reference_manifest import (
+    adapter_conformance_csv,
+    adapter_conformance_input_from_dict,
+    adapter_conformance_markdown,
+    adapter_conformance_schema,
+    build_default_reference_manifest,
+    conform_adapter,
+    query_reference_manifest,
+    reference_manifest_csv,
+    reference_manifest_from_dict,
+    reference_manifest_markdown,
+    reference_manifest_schema,
+    reference_manifest_summary,
+)
 from .regulatory_atlas_bundle import RegulatoryAtlasBundleBuilder, RegulatoryAtlasBundleFormat
 from .regulatory_atlas_contracts import default_regulatory_atlas_contracts
 from .regulatory_atlas_fixture_eval import evaluate_regulatory_atlas_fixture
@@ -3464,6 +3478,43 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("bindings", help="print executable control-plane handler bindings")
     subparsers.add_parser("capabilities", help="print the 256-capability implementation ledger")
     subparsers.add_parser("references", help="print the reference assembly registry")
+    reference_manifest = subparsers.add_parser(
+        "reference-manifest",
+        help="verify, query, summarize, or export the versioned reference manifest",
+    )
+    reference_manifest.add_argument("--input", default=None)
+    reference_manifest.add_argument(
+        "--format", choices=("json", "csv", "markdown", "summary"), default="json"
+    )
+    reference_manifest.add_argument("--artifact-id", default=None)
+    reference_manifest.add_argument("--adapter-id", default=None)
+    reference_manifest.add_argument("--source-id", default=None)
+    reference_manifest.add_argument("--context", default=None)
+    reference_manifest.add_argument("--channel", default=None)
+    reference_manifest.add_argument("--state", default=None)
+    reference_manifest.add_argument("--text", default=None)
+    reference_manifest.add_argument("--offset", default=0, type=int)
+    reference_manifest.add_argument("--limit", default=50, type=int)
+    reference_manifest.add_argument("--output", default=None)
+    reference_manifest_schema_parser = subparsers.add_parser(
+        "reference-manifest-schema",
+        help="emit the closed versioned reference manifest schema",
+    )
+    reference_manifest_schema_parser.add_argument("--output", default=None)
+    adapter_conformance = subparsers.add_parser(
+        "adapter-conformance",
+        help="run deterministic conformance checks for a portable static adapter input",
+    )
+    adapter_conformance.add_argument("input", type=str)
+    adapter_conformance.add_argument(
+        "--format", choices=("json", "csv", "markdown"), default="json"
+    )
+    adapter_conformance.add_argument("--output", default=None)
+    adapter_conformance_schema_parser = subparsers.add_parser(
+        "adapter-conformance-schema",
+        help="emit the closed adapter conformance report schema",
+    )
+    adapter_conformance_schema_parser.add_argument("--output", default=None)
     module_fabric_fixture = subparsers.add_parser(
         "module-fabric-fixture",
         help="emit the public aggregate repository-wide module-fabric fixture",
@@ -13609,6 +13660,70 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "references":
             _write_json(default_reference_registry().manifest(), None)
+            return 0
+        if args.command == "reference-manifest":
+            manifest = (
+                reference_manifest_from_dict(_read_json(args.input))
+                if args.input
+                else build_default_reference_manifest()
+            )
+            if args.format == "summary":
+                _write_json(reference_manifest_summary(manifest), args.output)
+            elif any(
+                value is not None
+                for value in (
+                    args.artifact_id,
+                    args.adapter_id,
+                    args.source_id,
+                    args.context,
+                    args.channel,
+                    args.state,
+                    args.text,
+                )
+            ) or args.offset or args.limit != 50:
+                rows = query_reference_manifest(
+                    manifest,
+                    artifact_id=args.artifact_id,
+                    adapter_id=args.adapter_id,
+                    source_id=args.source_id,
+                    context=args.context,
+                    channel=args.channel,
+                    state=args.state,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json(
+                    {
+                        "manifest_id": manifest.manifest_id,
+                        "manifest_address": manifest.content_address,
+                        "count": len(rows),
+                        "rows": [item.to_dict() for item in rows],
+                    },
+                    args.output,
+                )
+            elif args.format == "csv":
+                _write_text(reference_manifest_csv(manifest), args.output)
+            elif args.format == "markdown":
+                _write_text(reference_manifest_markdown(manifest), args.output)
+            else:
+                _write_json(manifest.to_dict(), args.output)
+            return 0 if manifest.accepted else 2
+        if args.command == "reference-manifest-schema":
+            _write_json(reference_manifest_schema(), args.output)
+            return 0
+        if args.command == "adapter-conformance":
+            adapter, manifest, probes = adapter_conformance_input_from_dict(_read_json(args.input))
+            report = conform_adapter(adapter, manifest, probes)
+            if args.format == "csv":
+                _write_text(adapter_conformance_csv(report), args.output)
+            elif args.format == "markdown":
+                _write_text(adapter_conformance_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "adapter-conformance-schema":
+            _write_json(adapter_conformance_schema(), args.output)
             return 0
         if args.command == "resolve-variant-equivalence":
             payload = _read_json(args.input)

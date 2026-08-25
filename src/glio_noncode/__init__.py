@@ -11666,6 +11666,53 @@ __all__ += [
     "verify_deployment_audit_log",
 ]
 
+from .reference_manifest import (
+    ADAPTER_CONFORMANCE_MAX_PROBES,
+    ADAPTER_CONFORMANCE_VERSION,
+    REFERENCE_MANIFEST_MAX_ARTIFACTS,
+    REFERENCE_MANIFEST_MAX_QUERY_LIMIT,
+    REFERENCE_MANIFEST_SCHEMA_VERSION,
+    REFERENCE_MANIFEST_VERSION,
+    AdapterConformanceCategory,
+    AdapterConformanceCheck,
+    AdapterConformanceProbe,
+    AdapterConformanceReport,
+    AdapterConformanceState,
+    ReferenceAccessMode,
+    ReferenceArtifact,
+    ReferenceArtifactState,
+    ReferenceManifest,
+    adapter_conformance_csv,
+    adapter_conformance_input_from_dict,
+    adapter_conformance_markdown,
+    adapter_conformance_schema,
+    build_default_reference_manifest,
+    build_reference_manifest,
+    conform_adapter,
+    query_reference_manifest,
+    reference_manifest_csv,
+    reference_manifest_from_dict,
+    reference_manifest_markdown,
+    reference_manifest_schema,
+    reference_manifest_summary,
+    verify_reference_manifest,
+)
+
+__all__ += [
+    "ADAPTER_CONFORMANCE_MAX_PROBES", "ADAPTER_CONFORMANCE_VERSION",
+    "REFERENCE_MANIFEST_MAX_ARTIFACTS", "REFERENCE_MANIFEST_MAX_QUERY_LIMIT",
+    "REFERENCE_MANIFEST_SCHEMA_VERSION", "REFERENCE_MANIFEST_VERSION",
+    "AdapterConformanceCategory", "AdapterConformanceCheck", "AdapterConformanceProbe",
+    "AdapterConformanceReport", "AdapterConformanceState", "ReferenceAccessMode",
+    "ReferenceArtifact", "ReferenceArtifactState", "ReferenceManifest",
+    "adapter_conformance_csv", "adapter_conformance_input_from_dict",
+    "adapter_conformance_markdown", "adapter_conformance_schema",
+    "build_default_reference_manifest", "build_reference_manifest", "conform_adapter",
+    "query_reference_manifest", "reference_manifest_csv", "reference_manifest_from_dict",
+    "reference_manifest_markdown", "reference_manifest_schema", "reference_manifest_summary",
+    "verify_reference_manifest",
+]
+
 from .module_fabric_catalog import FabricContractCatalog, FabricDomainContract, default_module_fabric_catalog, validate_module_fabric_catalog
 from .module_fabric_bundle import MODULE_FABRIC_BUNDLE_BOUNDARY, bundle_artifact_bytes, bundle_artifact_csv, bundle_manifest_text, build_module_fabric_bundle, module_fabric_bundle_filesystem_integrity_ok, verify_module_fabric_bundle, write_module_fabric_bundle
 from .module_fabric_bundle_audit import MODULE_FABRIC_BUNDLE_AUDIT_VERSION, FabricBundleAuditCheck, FabricBundleAuditPlane, ModuleFabricBundleAudit, audit_module_fabric_bundle

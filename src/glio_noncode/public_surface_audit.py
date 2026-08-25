@@ -34,6 +34,7 @@ from .workbench_release_frontier_offline_schema import workbench_release_offline
 from .deployment_frontier_offline_bundle import build_deployment_frontier_offline_bundle
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
 from .deployment_profiles import build_deployment_profile, deployment_profile_schema
+from .reference_manifest import build_default_reference_manifest, reference_manifest_schema
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_handoff import build_service_release_handoff
 from .service_release_query import query_service_release
@@ -41,7 +42,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 28
+PUBLIC_SURFACE_EXPECTED_COUNT = 30
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -230,6 +231,7 @@ def default_public_surface_inventory(
         service_release_runtime,
         selected,
     )
+    reference_manifest_value = build_default_reference_manifest()
     return {
         "capability-certification-bundle-manifest": capability_value.to_dict(include_payloads=False),
         "capability-certification-bundle-schema": capability_certification_bundle_schema(),
@@ -245,6 +247,8 @@ def default_public_surface_inventory(
         "deployment-frontier-bundle-schema": deployment_frontier_offline_bundle_schema(),
         "deployment-profile": deployment_profile_value,
         "deployment-profile-schema": deployment_profile_schema(),
+        "reference-manifest": reference_manifest_value,
+        "reference-manifest-schema": reference_manifest_schema(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),
