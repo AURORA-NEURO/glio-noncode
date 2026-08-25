@@ -3233,6 +3233,29 @@ distances, source IDs, cutoff criteria, partial/absent states, and exact-context
 out-of-domain behavior. These are negative-control constructions for research,
 not causal null proofs, clinical risk estimates, or treatment evidence.
 
+The aggregate cohort benchmark plane adds a deterministic evaluation boundary
+for declared source and target records. `cohort-benchmark` partitions rows by
+group, source, context, stable hash, or collection time; audits duplicate IDs,
+lineage reuse, optional source/context overlap, and temporal order; and then
+evaluates only the selected held-out split for calibration and selective risk.
+It reports Brier score, log loss, expected/maximum calibration error,
+calibration slope/intercept, coverage-risk curves, abstention rate, and area
+under the risk-coverage curve. A separate transport plane compares declared
+domains for feature overlap, positive-rate shift, score shift, and Brier shift.
+Every plane is addressed and states `accepted`, `review`, `blocked`, or
+`abstained`; leakage errors block the suite and insufficient labels/scores
+abstain. The implementation is descriptive and does not claim external
+validation, clinical performance, or transportability.
+
+```powershell
+glio-noncode cohort-benchmark cohort-records.json --split-strategy temporal --source-domain source --target-domain target --output cohort-benchmark.json
+glio-noncode cohort-benchmark-schema --output cohort-benchmark-schema.json
+glio-noncode cohort-benchmark-capabilities --output cohort-benchmark-capabilities.json
+```
+
+See [docs/COHORT_BENCHMARKS.md](COHORT_BENCHMARKS.md) for the complete row,
+configuration, CLI, API, reproducibility, and public-boundary contract.
+
 The Domain 12 scientific-beta extensions add four convergence surfaces:
 
 - `RegulatoryRecurrenceTester` deduplicates variant and sample observations,
@@ -4043,7 +4066,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 37 named surfaces: service status, capabilities, program, operational,
+audits 39 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4066,7 +4089,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 37-surface inventory or any
+The command exits non-zero when the closed 39-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary

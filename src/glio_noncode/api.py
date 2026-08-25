@@ -83,6 +83,12 @@ from .reference_track_adapters import (
     reference_track_adapter_capabilities,
     reference_track_adapter_schema,
 )
+from .cohort_benchmarks import (
+    CohortBenchmarkConfig,
+    cohort_benchmark_capabilities,
+    cohort_benchmark_schema,
+    run_cohort_benchmark,
+)
 from .variant_stream import (
     STREAMING_DEFAULT_MAX_INPUT_BYTES,
     StreamingInputFormat,
@@ -573,6 +579,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/reference/adapters/capabilities":
             self._write(HTTPStatus.OK, reference_track_adapter_capabilities())
+            return
+        if path == "/v1/cohort/benchmark/schema":
+            self._write(HTTPStatus.OK, cohort_benchmark_schema())
+            return
+        if path == "/v1/cohort/benchmark/capabilities":
+            self._write(HTTPStatus.OK, cohort_benchmark_capabilities())
             return
         if path == "/v1/intake/streaming/schema":
             self._write(HTTPStatus.OK, streaming_intake_schema())
@@ -2275,6 +2287,33 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/cohort/benchmark":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError("cohort benchmark request must be an object")
+                rows = payload.get("records", payload.get("rows", ()))
+                if not isinstance(rows, list):
+                    raise ValueError("cohort benchmark requires a records list")
+                config_raw = payload.get("config", {})
+                if not isinstance(config_raw, Mapping):
+                    raise ValueError("cohort benchmark config must be an object")
+                report = run_cohort_benchmark(
+                    rows,
+                    dataset_id=str(payload.get("dataset_id", "cohort-benchmark")),
+                    config=CohortBenchmarkConfig.from_mapping(config_raw),
+                )
+                self._write(
+                    HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    report.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_cohort_benchmark", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/reference/index/build":
             try:

@@ -656,6 +656,19 @@ from .cohort_beta import (
     SetKind,
 )
 from .cohort_discovery import CohortQuery, CohortQueryBuilder, CohortVariantRecord
+from .cohort_benchmarks import (
+    CalibrationConfig,
+    CohortBenchmarkConfig,
+    LeakagePolicy,
+    SelectiveRiskConfig,
+    SplitConfig,
+    SplitStrategy,
+    TransportConfig,
+    cohort_benchmark_capabilities,
+    cohort_benchmark_schema,
+    load_cohort_benchmark_records,
+    run_cohort_benchmark,
+)
 from .cohort_foundation_frontier_accessibility import (
     build_cohort_foundation_frontier_accessibility_report,
 )
@@ -3614,6 +3627,54 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit operational capabilities for declared reference adapters",
     )
     reference_adapter_capabilities_parser.add_argument("--output", default=None)
+    cohort_benchmark = subparsers.add_parser(
+        "cohort-benchmark",
+        help="run deterministic split, leakage, calibration, selective-risk, and transport benchmarks",
+    )
+    cohort_benchmark.add_argument("input", type=str)
+    cohort_benchmark.add_argument("--dataset-id", default="cohort-benchmark")
+    cohort_benchmark.add_argument(
+        "--split-strategy",
+        choices=tuple(item.value for item in SplitStrategy),
+        default=SplitStrategy.GROUP.value,
+    )
+    cohort_benchmark.add_argument("--seed", default="cohort-benchmark-seed")
+    cohort_benchmark.add_argument("--train-fraction", default=0.6, type=float)
+    cohort_benchmark.add_argument("--validation-fraction", default=0.2, type=float)
+    cohort_benchmark.add_argument("--test-fraction", default=0.2, type=float)
+    cohort_benchmark.add_argument("--minimum-records-per-split", default=1, type=int)
+    cohort_benchmark.add_argument("--evaluation-split", default="test")
+    cohort_benchmark.add_argument("--transport-split", default="all")
+    cohort_benchmark.add_argument("--source-domain", default=None)
+    cohort_benchmark.add_argument("--target-domain", action="append", default=[])
+    cohort_benchmark.add_argument("--leakage-source-overlap-error", action="store_true")
+    cohort_benchmark.add_argument("--leakage-context-overlap-error", action="store_true")
+    cohort_benchmark.add_argument("--calibration-bins", default=10, type=int)
+    cohort_benchmark.add_argument("--calibration-minimum-records", default=5, type=int)
+    cohort_benchmark.add_argument("--maximum-ece", default=0.15, type=float)
+    cohort_benchmark.add_argument("--maximum-mce", default=0.25, type=float)
+    cohort_benchmark.add_argument("--maximum-brier", default=0.25, type=float)
+    cohort_benchmark.add_argument("--selective-minimum-coverage", default=0.5, type=float)
+    cohort_benchmark.add_argument("--selective-maximum-risk", default=0.25, type=float)
+    cohort_benchmark.add_argument("--selective-maximum-uncertainty", default=0.25, type=float)
+    cohort_benchmark.add_argument("--selective-points", default=21, type=int)
+    cohort_benchmark.add_argument("--selective-minimum-records", default=5, type=int)
+    cohort_benchmark.add_argument("--transport-minimum-records", default=2, type=int)
+    cohort_benchmark.add_argument("--minimum-feature-overlap", default=0.75, type=float)
+    cohort_benchmark.add_argument("--maximum-positive-rate-shift", default=0.2, type=float)
+    cohort_benchmark.add_argument("--maximum-score-shift", default=0.2, type=float)
+    cohort_benchmark.add_argument("--maximum-brier-shift", default=0.15, type=float)
+    cohort_benchmark.add_argument("--output", default=None)
+    cohort_benchmark_schema_parser = subparsers.add_parser(
+        "cohort-benchmark-schema",
+        help="emit the cohort benchmark interchange schema",
+    )
+    cohort_benchmark_schema_parser.add_argument("--output", default=None)
+    cohort_benchmark_capabilities_parser = subparsers.add_parser(
+        "cohort-benchmark-capabilities",
+        help="emit operational cohort benchmark capabilities",
+    )
+    cohort_benchmark_capabilities_parser.add_argument("--output", default=None)
     adapter_conformance = subparsers.add_parser(
         "adapter-conformance",
         help="run deterministic conformance checks for a portable static adapter input",
@@ -13963,6 +14024,59 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "reference-adapter-capabilities":
             _write_json(reference_track_adapter_capabilities(), args.output)
+            return 0
+        if args.command == "cohort-benchmark":
+            config = CohortBenchmarkConfig(
+                split=SplitConfig(
+                    strategy=SplitStrategy(args.split_strategy),
+                    seed=args.seed,
+                    train_fraction=args.train_fraction,
+                    validation_fraction=args.validation_fraction,
+                    test_fraction=args.test_fraction,
+                    minimum_records_per_split=args.minimum_records_per_split,
+                ),
+                leakage=LeakagePolicy(
+                    error_on_source_overlap=args.leakage_source_overlap_error,
+                    error_on_context_overlap=args.leakage_context_overlap_error,
+                ),
+                calibration=CalibrationConfig(
+                    bins=args.calibration_bins,
+                    minimum_records=args.calibration_minimum_records,
+                    maximum_ece=args.maximum_ece,
+                    maximum_mce=args.maximum_mce,
+                    maximum_brier=args.maximum_brier,
+                ),
+                selective_risk=SelectiveRiskConfig(
+                    minimum_coverage=args.selective_minimum_coverage,
+                    maximum_risk=args.selective_maximum_risk,
+                    maximum_uncertainty=args.selective_maximum_uncertainty,
+                    points=args.selective_points,
+                    minimum_records=args.selective_minimum_records,
+                ),
+                transport=TransportConfig(
+                    minimum_feature_overlap=args.minimum_feature_overlap,
+                    maximum_positive_rate_shift=args.maximum_positive_rate_shift,
+                    maximum_score_shift=args.maximum_score_shift,
+                    maximum_brier_shift=args.maximum_brier_shift,
+                    minimum_records_per_domain=args.transport_minimum_records,
+                ),
+                evaluation_split=args.evaluation_split,
+                transport_split=args.transport_split,
+                source_domain=args.source_domain,
+                target_domains=tuple(args.target_domain),
+            )
+            report = run_cohort_benchmark(
+                load_cohort_benchmark_records(args.input),
+                dataset_id=args.dataset_id,
+                config=config,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "cohort-benchmark-schema":
+            _write_json(cohort_benchmark_schema(), args.output)
+            return 0
+        if args.command == "cohort-benchmark-capabilities":
+            _write_json(cohort_benchmark_capabilities(), args.output)
             return 0
         if args.command == "adapter-conformance":
             adapter, manifest, probes = adapter_conformance_input_from_dict(_read_json(args.input))

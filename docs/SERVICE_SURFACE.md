@@ -12,6 +12,9 @@ report or runtime from which it was derived.
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
 | GET | `/v1/public-surface/audit` | Audit the complete repository-wide public service and bundle projection inventory |
+| GET | `/v1/cohort/benchmark/schema` | Return the aggregate cohort benchmark schema |
+| GET | `/v1/cohort/benchmark/capabilities` | Return split, leakage, calibration, selective-risk, and transport capabilities |
+| POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |
 | GET | `/v1/service-release` | Build the six-surface public service-release registry |
 | GET | `/v1/service-release/query` | Query service surfaces, artifacts, dependencies, or gates |
 | GET | `/v1/service-release/schema` | Return the service-release schema and boundary audit |
@@ -339,7 +342,7 @@ Run the repository-wide public-boundary audit:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The audit covers 37 named projections across the service, capability
+The audit covers 39 named projections across the service, capability
 certification bundle, module-fabric bundle, schemas, service-release registry,
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and closures. Runtime

@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 37-surface audit, including the
+schema fields. The result is a deterministic 39-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema, and
 versioned reference manifest/schema, suitable for local release checks and CI.
 
@@ -741,6 +741,19 @@ glio-noncode reference-manifest --format markdown --output reference-manifest.md
 glio-noncode reference-manifest-schema --output reference-manifest-schema.json
 glio-noncode adapter-conformance adapter-input.json --output adapter-conformance.json
 ```
+
+The cohort benchmark suite evaluates aggregate records across deterministic
+splits, leakage controls, held-out calibration, selective-risk coverage, and
+declared source-to-target transport shifts. It is descriptive research
+infrastructure and abstains when evidence is insufficient:
+
+```powershell
+glio-noncode cohort-benchmark cohort-records.json --split-strategy temporal --source-domain source --target-domain target --output cohort-benchmark.json
+glio-noncode cohort-benchmark-schema --output cohort-benchmark-schema.json
+glio-noncode cohort-benchmark-capabilities --output cohort-benchmark-capabilities.json
+```
+
+See [cohort benchmark operations](docs/COHORT_BENCHMARKS.md).
 
 See [reference manifest operations](docs/REFERENCE_MANIFEST.md). Reference
 manifests carry source receipts, declared access and license terms,
