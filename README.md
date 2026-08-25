@@ -217,6 +217,20 @@ Explicit readiness thresholds are available with
 `glio-noncode release-assurance --plane thresholds` and
 `GET /v1/release-assurance/thresholds`.
 
+The durable handoff packages 19 aggregate artifacts for offline transfer and
+verification:
+
+```text
+glio-noncode release-assurance-handoff --plane build --destination release-assurance-handoff
+glio-noncode release-assurance-handoff --plane verify --directory release-assurance-handoff
+glio-noncode release-assurance-handoff --plane query --directory release-assurance-handoff --role runtime
+glio-noncode release-assurance-handoff --plane replay --directory release-assurance-handoff
+glio-noncode release-assurance-handoff-verify release-assurance-handoff
+```
+
+See [docs/RELEASE_ASSURANCE.md](docs/RELEASE_ASSURANCE.md) for the manifest,
+atomic write, query, diff, replay, and tamper-verification contract.
+
 The matching read-only API starts at `GET /v1/release-assurance` and includes
 status, bounded queries, schema, indexes, summaries, observability, graph,
 negative controls, plan, views, runtime, and export routes. See

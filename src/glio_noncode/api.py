@@ -234,6 +234,15 @@ from .release_assurance_export import build_release_assurance_export
 from .release_assurance_failure_injection import run_release_assurance_failure_injections
 from .release_assurance_graph import build_release_assurance_graph
 from .release_assurance_history import audit_release_assurance_history, build_release_assurance_history, query_release_assurance_history
+from .release_assurance_handoff import (
+    build_release_assurance_handoff,
+    diff_release_assurance_handoffs,
+    inspect_release_assurance_handoff,
+    query_release_assurance_handoff,
+    release_assurance_handoff_status,
+    replay_release_assurance_handoff,
+    verify_release_assurance_handoff,
+)
 from .release_assurance_indexes import audit_release_assurance_indexes, build_release_assurance_indexes
 from .release_assurance_observability import build_release_assurance_observability
 from .release_assurance_operations import audit_release_assurance_operations, build_release_assurance_operations
@@ -547,6 +556,13 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/release-assurance/review",
             "/v1/release-assurance/history",
             "/v1/release-assurance/thresholds",
+            "/v1/release-assurance/handoff",
+            "/v1/release-assurance/handoff/status",
+            "/v1/release-assurance/handoff/inspect",
+            "/v1/release-assurance/handoff/verify",
+            "/v1/release-assurance/handoff/query",
+            "/v1/release-assurance/handoff/diff",
+            "/v1/release-assurance/handoff/replay",
             "/v1/release-assurance/indexes",
             "/v1/release-assurance/summary",
             "/v1/release-assurance/observability",
@@ -571,12 +587,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                 elif path.endswith("/export"):
                     runtime = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id)
                     payload = build_release_assurance_export(runtime).to_dict()
-                elif path.endswith("/status"):
+                elif path == "/v1/release-assurance/status":
                     payload = release_assurance_status(snapshot)
                 elif path.endswith("/reconciliation"):
                     report = reconcile_release_assurance(snapshot, source_snapshot=source)
                     payload = {"report": report.to_dict(), "audit": [item.to_dict() for item in audit_release_assurance_reconciliation(report, snapshot)]}
-                elif path.endswith("/diff"):
+                elif path == "/v1/release-assurance/diff":
                     compare_bundle_id = self._query_value(query, "compare_bundle_id") or f"{bundle_id}-comparison"
                     compare_run_id = self._query_value(query, "compare_run_id") or f"{run_id}-comparison"
                     comparison = build_release_assurance_snapshot(source, bundle_id=compare_bundle_id, run_id=compare_run_id)
@@ -624,6 +640,50 @@ class ApiHandler(BaseHTTPRequestHandler):
                 elif path.endswith("/thresholds"):
                     report = evaluate_release_assurance_thresholds(snapshot)
                     payload = {"report": report.to_dict(), "status": release_assurance_threshold_status(report)}
+                elif path == "/v1/release-assurance/handoff":
+                    runtime = run_release_assurance(source, bundle_id=bundle_id, run_id=run_id)
+                    payload = build_release_assurance_handoff(runtime).to_dict()
+                elif path.endswith("/handoff/status"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for handoff status")
+                    payload = release_assurance_handoff_status(directory)
+                elif path.endswith("/handoff/inspect"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for handoff inspection")
+                    payload = inspect_release_assurance_handoff(directory).to_dict()
+                elif path.endswith("/handoff/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for handoff verification")
+                    payload = verify_release_assurance_handoff(directory).to_dict()
+                elif path.endswith("/handoff/query"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for handoff query")
+                    payload = query_release_assurance_handoff(
+                        directory,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        artifact_id=self._query_value(query, "artifact_id"),
+                        role=self._query_value(query, "role"),
+                        media_type=self._query_value(query, "media_type"),
+                        required_only=self._query_bool(query, "required_only"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/handoff/diff"):
+                    left_directory = self._query_value(query, "left_directory")
+                    right_directory = self._query_value(query, "right_directory")
+                    if not left_directory or not right_directory:
+                        raise ValueError("left_directory and right_directory are required for handoff diff")
+                    payload = diff_release_assurance_handoffs(left_directory, right_directory).to_dict()
+                elif path.endswith("/handoff/replay"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for handoff replay")
+                    payload = replay_release_assurance_handoff(directory)
                 elif path == "/v1/release-assurance":
                     payload = snapshot.to_dict()
                 elif path.endswith("/query"):

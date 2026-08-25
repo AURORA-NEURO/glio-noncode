@@ -44,6 +44,15 @@ RELEASE_ASSURANCE_METRIC_COUNT = 16
 RELEASE_ASSURANCE_VIEW_COUNT = 4
 RELEASE_ASSURANCE_FAILURE_CASE_COUNT = 8
 RELEASE_ASSURANCE_EXPORT_ARTIFACT_COUNT = 10
+RELEASE_ASSURANCE_HANDOFF_VERSION = "release-assurance-handoff-v1"
+RELEASE_ASSURANCE_HANDOFF_SCHEMA_VERSION = "release-assurance-handoff-schema-v1"
+RELEASE_ASSURANCE_HANDOFF_ARTIFACT_COUNT = 19
+RELEASE_ASSURANCE_HANDOFF_MAX_ARTIFACTS = 64
+RELEASE_ASSURANCE_HANDOFF_RESOURCE_NAMES = (
+    "artifacts",
+    "manifest",
+    "status",
+)
 RELEASE_ASSURANCE_RESOURCE_NAMES = (
     "domains",
     "checks",
@@ -62,6 +71,15 @@ class ReleaseAssuranceState(StrEnum):
 
     READY = "ready"
     BLOCKED = "blocked"
+
+
+class ReleaseAssuranceHandoffState(StrEnum):
+    """Filesystem state of a durable release-assurance handoff."""
+
+    READY = "ready"
+    BLOCKED = "blocked"
+    MISSING = "missing"
+    INSPECTED = "inspected"
 
 
 class ReleaseAssurancePlane(StrEnum):
@@ -909,6 +927,151 @@ class ReleaseAssuranceThresholdReport:
             "threshold_count": len(self.results),
             "failed_threshold_ids": self.failed_threshold_ids,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseAssuranceHandoffArtifact:
+    """One exact-byte artifact in a durable release handoff."""
+
+    artifact_id: str
+    relative_path: str
+    media_type: str
+    role: str
+    source_address: str
+    byte_count: int
+    line_count: int
+    content_address: str
+    required: bool
+    content: bytes
+
+    def metadata_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {"content": None}
+
+    def to_dict(self) -> dict[str, Any]:
+        return self.metadata_dict()
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseAssuranceHandoffManifest:
+    """Public manifest that can be inspected without loading source planes."""
+
+    version: str
+    schema_version: str
+    bundle_id: str
+    run_id: str
+    artifact_count: int
+    required_artifact_count: int
+    artifacts: tuple[dict[str, Any], ...]
+    source_addresses: tuple[tuple[str, str], ...]
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseAssuranceHandoffPacket:
+    """In-memory handoff packet ready for exact-byte persistence."""
+
+    bundle_id: str
+    run_id: str
+    artifacts: tuple[ReleaseAssuranceHandoffArtifact, ...]
+    manifest: ReleaseAssuranceHandoffManifest
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "bundle_id": self.bundle_id,
+            "run_id": self.run_id,
+            "artifacts": [item.metadata_dict() for item in self.artifacts],
+            "manifest": self.manifest.to_dict(),
+            "accepted": self.accepted,
+            "content_address": self.content_address,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseAssuranceHandoffVerification:
+    """Detailed filesystem verification result for a durable handoff."""
+
+    directory: str
+    state: ReleaseAssuranceHandoffState
+    bundle_id: str
+    run_id: str
+    checked_artifact_count: int
+    missing_paths: tuple[str, ...]
+    unexpected_paths: tuple[str, ...]
+    duplicate_paths: tuple[str, ...]
+    unsafe_paths: tuple[str, ...]
+    tampered_paths: tuple[str, ...]
+    boundary_violations: tuple[str, ...]
+    manifest_drift: tuple[str, ...]
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseAssuranceHandoffInspection:
+    """Manifest-only inspection result for offline tooling."""
+
+    directory: str
+    state: ReleaseAssuranceHandoffState
+    bundle_id: str
+    run_id: str
+    artifact_count: int
+    required_artifact_count: int
+    artifact_ids: tuple[str, ...]
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseAssuranceHandoffQueryResult:
+    """Bounded manifest catalog query result."""
+
+    directory: str
+    resource: str
+    total: int
+    offset: int
+    limit: int
+    items: tuple[dict[str, Any], ...]
+    accepted: bool
+    content_address: str
+
+    @property
+    def has_more(self) -> bool:
+        return self.offset + len(self.items) < self.total
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {"has_more": self.has_more}
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseAssuranceHandoffDiff:
+    """Address-only comparison between two persisted handoff manifests."""
+
+    left_directory: str
+    right_directory: str
+    left_manifest_address: str
+    right_manifest_address: str
+    added_artifact_ids: tuple[str, ...]
+    removed_artifact_ids: tuple[str, ...]
+    changed_artifact_ids: tuple[str, ...]
+    unchanged_artifact_ids: tuple[str, ...]
+    identical: bool
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
 
 
 def check(

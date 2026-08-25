@@ -40,6 +40,16 @@ from .release_assurance_diff import audit_release_assurance_diff, build_release_
 from .release_assurance_export import build_release_assurance_export, verify_release_assurance_export, write_release_assurance_export
 from .release_assurance_failure_injection import run_release_assurance_failure_injections
 from .release_assurance_graph import build_release_assurance_graph
+from .release_assurance_handoff import (
+    build_release_assurance_handoff,
+    diff_release_assurance_handoffs,
+    inspect_release_assurance_handoff,
+    query_release_assurance_handoff,
+    release_assurance_handoff_status,
+    replay_release_assurance_handoff,
+    verify_release_assurance_handoff,
+    write_release_assurance_handoff,
+)
 from .release_assurance_history import (
     audit_release_assurance_history,
     build_release_assurance_history,
@@ -2919,6 +2929,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     release_assurance_verify.add_argument("directory")
     release_assurance_verify.add_argument("--output", default=None)
+    release_assurance_handoff = subparsers.add_parser(
+        "release-assurance-handoff",
+        help="build, inspect, query, compare, replay, or verify a durable release-assurance handoff",
+    )
+    release_assurance_handoff.add_argument(
+        "--plane",
+        choices=("build", "status", "inspect", "verify", "query", "diff", "replay"),
+        default="build",
+    )
+    release_assurance_handoff.add_argument("--bundle-id", default="glio-noncode-release-assurance")
+    release_assurance_handoff.add_argument("--run-id", default="glio-noncode-release-assurance-run")
+    release_assurance_handoff.add_argument("--directory", default=None)
+    release_assurance_handoff.add_argument("--right-directory", default=None)
+    release_assurance_handoff.add_argument("--resource", default="artifacts")
+    release_assurance_handoff.add_argument("--artifact-id", default=None)
+    release_assurance_handoff.add_argument("--role", default=None)
+    release_assurance_handoff.add_argument("--media-type", default=None)
+    release_assurance_handoff.add_argument("--required-only", action="store_true")
+    release_assurance_handoff.add_argument("--text", default=None)
+    release_assurance_handoff.add_argument("--offset", default=0, type=int)
+    release_assurance_handoff.add_argument("--limit", default=50, type=int)
+    release_assurance_handoff.add_argument("--destination", default=None)
+    release_assurance_handoff.add_argument("--allow-existing", action="store_true")
+    release_assurance_handoff.add_argument("--output", default=None)
+    release_assurance_handoff_verify = subparsers.add_parser(
+        "release-assurance-handoff-verify",
+        help="verify an on-disk release-assurance handoff",
+    )
+    release_assurance_handoff_verify.add_argument("directory")
+    release_assurance_handoff_verify.add_argument("--output", default=None)
     public_surface_audit = subparsers.add_parser(
         "public-surface-audit",
         help="audit repository-wide service, bundle, schema, and closure projections",
@@ -21030,6 +21070,54 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if payload.get("accepted", False) else 2
         if args.command == "release-assurance-export-verify":
             verification = verify_release_assurance_export(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "release-assurance-handoff":
+            if args.plane == "build":
+                source = build_service_surface_snapshot()
+                runtime = run_release_assurance(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                packet = build_release_assurance_handoff(runtime)
+                if args.destination:
+                    write_release_assurance_handoff(packet, args.destination, allow_existing=args.allow_existing)
+                payload = packet.to_dict()
+            elif args.plane == "status":
+                if not args.directory:
+                    raise ValueError("--directory is required for handoff status")
+                payload = release_assurance_handoff_status(args.directory)
+            elif args.plane == "inspect":
+                if not args.directory:
+                    raise ValueError("--directory is required for handoff inspection")
+                payload = inspect_release_assurance_handoff(args.directory).to_dict()
+            elif args.plane == "verify":
+                if not args.directory:
+                    raise ValueError("--directory is required for handoff verification")
+                payload = verify_release_assurance_handoff(args.directory).to_dict()
+            elif args.plane == "query":
+                if not args.directory:
+                    raise ValueError("--directory is required for handoff query")
+                payload = query_release_assurance_handoff(
+                    args.directory,
+                    resource=args.resource,
+                    artifact_id=args.artifact_id,
+                    role=args.role,
+                    media_type=args.media_type,
+                    required_only=args.required_only,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            elif args.plane == "diff":
+                if not args.directory or not args.right_directory:
+                    raise ValueError("--directory and --right-directory are required for handoff diff")
+                payload = diff_release_assurance_handoffs(args.directory, args.right_directory).to_dict()
+            else:
+                if not args.directory:
+                    raise ValueError(f"--directory is required for handoff {args.plane}")
+                payload = replay_release_assurance_handoff(args.directory)
+            _write_json(payload, args.output)
+            return 0 if payload.get("accepted", False) else 2
+        if args.command == "release-assurance-handoff-verify":
+            verification = verify_release_assurance_handoff(args.directory)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
         if args.command == "public-surface-audit":

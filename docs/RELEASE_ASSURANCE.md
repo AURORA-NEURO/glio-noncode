@@ -233,6 +233,97 @@ count, content address, and exact bytes. `manifest.json` records the packet
 denominator and the artifact records. JSON artifacts are canonicalized with a
 terminal newline. CSV artifacts have sorted columns and a terminal newline.
 
+## Durable handoff
+
+`release-assurance-handoff` is the durable filesystem boundary above the
+in-memory runtime and the ten-artifact export. It packages nineteen aggregate
+artifacts and a public manifest so another machine can verify the release
+without rebuilding the capability, architecture, or service source planes.
+
+The handoff includes:
+
+1. `assurance/snapshot.json`
+2. `runtime/release-assurance.json`
+3. `runtime/status.json`
+4. `assurance/summary.json`
+5. `assurance/reconciliation.json`
+6. `assurance/catalog.json`
+7. `assurance/compliance.json`
+8. `assurance/performance.json`
+9. `assurance/operations.json`
+10. `assurance/checkpoint.json`
+11. `assurance/review.json`
+12. `assurance/history.json`
+13. `assurance/thresholds.json`
+14. `assurance/observability.json`
+15. `assurance/plan.json`
+16. `assurance/views.json`
+17. `assurance/schema.json`
+18. `reports/release-assurance.md`
+19. `reports/history.csv`
+
+The manifest records the bundle and run identifiers, artifact and required
+artifact denominators, source addresses, media types, safe paths, byte counts,
+line counts, exact-byte content addresses, roles, and acceptance. Artifact
+content is not embedded in the manifest. The manifest address is recomputed
+from its canonical public fields during verification.
+
+Build a new handoff with:
+
+```text
+glio-noncode release-assurance-handoff --plane build --destination release-assurance-handoff
+glio-noncode release-assurance-handoff --plane status --directory release-assurance-handoff
+glio-noncode release-assurance-handoff --plane inspect --directory release-assurance-handoff
+glio-noncode release-assurance-handoff --plane verify --directory release-assurance-handoff
+glio-noncode release-assurance-handoff --plane query --directory release-assurance-handoff --role runtime
+glio-noncode release-assurance-handoff --plane replay --directory release-assurance-handoff
+glio-noncode release-assurance-handoff-verify release-assurance-handoff
+```
+
+The handoff writer uses atomic sibling temporary files and refuses to write
+into a non-empty directory unless `--allow-existing` is explicitly supplied.
+It never recursively deletes an existing handoff. The verifier rejects missing
+files, unexpected files, duplicate artifact identifiers, duplicate paths,
+unsafe relative paths, symlinks, byte-count drift, line-count drift, content
+address drift, malformed JSON, boundary violations, stale manifest versions,
+and manifest denominator drift.
+
+Manifest inspection is intentionally cheaper than full verification and is
+useful for catalog tooling. A query always performs verification before
+returning artifact rows, so a failed or tampered directory remains visibly
+blocked. Query filters include resource, artifact identifier, role, media type,
+required-only, text, offset, and limit. The status projection returns the
+handoff state, acceptance, checked count, missing count, unexpected count,
+tampered count, and verification address.
+
+Two handoffs can be compared without opening their source projections:
+
+```text
+glio-noncode release-assurance-handoff --plane diff --directory release-assurance-handoff --right-directory release-assurance-handoff-next
+```
+
+The diff reports added, removed, changed, and unchanged artifact identifiers.
+It compares content addresses rather than paths or timestamps. Verification
+replay runs the full directory verifier twice and returns both verification
+addresses; a replay is accepted only when both are accepted and identical.
+
+The local API exposes the same boundary below
+`/v1/release-assurance/handoff`:
+
+| Endpoint | Output |
+| --- | --- |
+| `/v1/release-assurance/handoff` | build an in-memory handoff metadata packet |
+| `/v1/release-assurance/handoff/status` | verify and return compact status |
+| `/v1/release-assurance/handoff/inspect` | inspect manifest metadata |
+| `/v1/release-assurance/handoff/verify` | return detailed filesystem verification |
+| `/v1/release-assurance/handoff/query` | query verified manifest artifacts |
+| `/v1/release-assurance/handoff/diff` | compare two handoff directories |
+| `/v1/release-assurance/handoff/replay` | replay verification twice |
+
+The API build route returns packet metadata and exact artifact metadata, not
+filesystem bytes. Filesystem routes require an explicit local directory
+parameter and preserve all verification failures in their JSON response.
+
 ## Public-boundary policy
 
 The release-assurance support layer recursively converts values to JSON-safe
