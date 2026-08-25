@@ -3500,6 +3500,7 @@ def build_parser() -> argparse.ArgumentParser:
     module_fabric_bundle.add_argument("--bundle-id", default="module-fabric-public-bundle")
     module_fabric_bundle.add_argument("--run-id", default="module-fabric-bundle-runtime")
     module_fabric_bundle.add_argument("--include-payloads", action="store_true")
+    module_fabric_bundle.add_argument("--allow-existing", action="store_true")
     module_fabric_bundle.add_argument("--output", default=None)
     module_fabric_bundle_verify = subparsers.add_parser(
         "module-fabric-bundle-verify",
@@ -10546,7 +10547,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "module-fabric-bundle":
             bundle = build_module_fabric_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
-            write_module_fabric_bundle(bundle, args.destination)
+            write_module_fabric_bundle(bundle, args.destination, allow_existing=args.allow_existing)
             _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
             return 0 if bundle.accepted else 2
         if args.command == "module-fabric-bundle-verify":

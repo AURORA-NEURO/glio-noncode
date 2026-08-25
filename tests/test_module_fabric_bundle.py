@@ -12,6 +12,7 @@ from threading import Thread
 
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
+from glio_noncode.errors import ValidationError
 from glio_noncode.module_fabric_bundle import (
     build_module_fabric_bundle,
     bundle_artifact_csv,
@@ -61,17 +62,25 @@ class ModuleFabricBundleTests(unittest.TestCase):
         second = build_module_fabric_bundle().manifest_dict()
         self.assertEqual(first, second)
         self.assertFalse(any("payload" in item for item in first["artifacts"]))
-        self.assertEqual(self.bundle.to_dict(include_payloads=False)["content_address"], self.bundle.content_address)
+        self.assertEqual(
+            self.bundle.to_dict(include_payloads=False)["content_address"],
+            self.bundle.content_address,
+        )
 
     def test_write_and_verify_exact_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = write_module_fabric_bundle(self.bundle, directory)
             verification = verify_module_fabric_bundle(root)
             self.assertTrue(verification.accepted, verification.to_dict())
+            with self.assertRaises(ValidationError):
+                write_module_fabric_bundle(self.bundle, directory)
+            write_module_fabric_bundle(self.bundle, directory, allow_existing=True)
             (Path(directory) / "summary.json").write_text("{}\n", encoding="utf-8")
             broken = verify_module_fabric_bundle(directory)
             self.assertFalse(broken.accepted)
-            self.assertTrue(any(item.check_id == "bytes:summary" and not item.passed for item in broken.checks))
+            self.assertTrue(
+                any(item.check_id == "bytes:summary" and not item.passed for item in broken.checks)
+            )
 
     def test_unexpected_files_and_symlinks_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -80,7 +89,35 @@ class ModuleFabricBundleTests(unittest.TestCase):
             extra.write_text("unexpected\n", encoding="utf-8")
             verification = verify_module_fabric_bundle(directory)
             self.assertFalse(verification.accepted)
-            self.assertTrue(any(item.check_id == "unexpected-files" and not item.passed for item in verification.checks))
+            self.assertTrue(
+                any(item.check_id == "unexpected-files" and not item.passed for item in verification.checks)
+            )
+            with self.assertRaises(ValidationError):
+                load_module_fabric_bundle(directory)
+            with self.assertRaises(ValidationError):
+                query_module_fabric_bundle(directory, resource="artifacts")
+
+    def test_symlinked_artifact_is_rejected_by_writer_and_loader(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            tempfile.TemporaryDirectory() as external_directory,
+        ):
+            write_module_fabric_bundle(self.bundle, directory)
+            target = Path(directory) / "summary.json"
+            external = Path(external_directory) / "summary.json"
+            external.write_bytes(target.read_bytes())
+            target.unlink()
+            try:
+                target.symlink_to(external)
+            except (OSError, NotImplementedError) as exc:
+                self.skipTest(f"symlink creation unavailable: {exc}")
+            verification = verify_module_fabric_bundle(directory)
+            self.assertFalse(verification.accepted)
+            self.assertTrue(
+                any(item.check_id == "present:summary" and not item.passed for item in verification.checks)
+            )
+            with self.assertRaises(ValidationError):
+                load_module_fabric_bundle(directory, include_payloads=True)
 
     def test_query_records_and_artifacts_are_deterministic(self) -> None:
         records = query_module_fabric_bundle(self.bundle, resource="records", domain_id="D01", limit=100)

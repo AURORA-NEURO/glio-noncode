@@ -673,6 +673,13 @@ The module fabric audits repository wiring only. It does not infer biological
 truth, validate clinical utility, authorize deployment, or copy private
 subject data. Its checked-in public aggregate fixture is
 [examples/module-fabric-public-aggregate.json](examples/module-fabric-public-aggregate.json).
+
+Materialized module-fabric bundles are durable offline handoffs: writes are
+atomic, non-empty destinations require explicit overwrite intent, symlinked
+paths are refused, and filesystem-backed loads or queries verify exact bytes
+and closed-tree integrity before exposing data. Release-blocked bundles remain
+inspectable when their filesystem integrity is intact; tampered trees fail
+closed.
 `module-fabric-bundle` materializes the full public runtime into a portable
 21-artifact directory. `module-fabric-bundle-verify` reopens it without the
 producer, checks canonical UTF-8 bytes, content addresses, safe paths,

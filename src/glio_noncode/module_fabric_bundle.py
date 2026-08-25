@@ -19,6 +19,8 @@ from __future__ import annotations
 import csv
 import io
 import json
+import os
+import tempfile
 from collections.abc import Iterable, Mapping
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -90,6 +92,41 @@ def _safe_relative_path(value: str) -> bool:
     if any(part in {"", ".", ".."} for part in path.parts):
         return False
     return all(len(part) <= 160 for part in path.parts)
+
+
+def _path_has_symlink(root: Path, relative_path: str = "") -> bool:
+    """Return whether a bundle path or any of its parents is a symlink."""
+
+    if root.is_symlink():
+        return True
+    current = root
+    for part in PurePosixPath(relative_path).parts:
+        current = current / part
+        if current.is_symlink():
+            return True
+    return False
+
+
+def _atomic_write_bytes(target: Path, payload: bytes) -> None:
+    """Replace one bundle file atomically after a durable temporary write."""
+
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{target.name}.",
+        suffix=".tmp",
+        dir=str(target.parent),
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, target)
+    except BaseException:
+        try:
+            temporary.unlink(missing_ok=True)
+        finally:
+            raise
 
 
 def _public_value(value: Any) -> Any:
@@ -400,18 +437,43 @@ def bundle_manifest_text(bundle: FabricBundle) -> str:
 def write_module_fabric_bundle(
     bundle: FabricBundle,
     destination: str | Path,
+    *,
+    allow_existing: bool = False,
 ) -> Path:
-    """Write a bundle without deleting unrelated files from the destination."""
+    """Write a closed bundle with atomic file replacement.
+
+    Existing destinations are refused by default so a stale or unrelated tree
+    cannot be mistaken for the newly requested bundle.  ``allow_existing`` is
+    an explicit overwrite mode; the verifier still rejects any stale files
+    that are not part of the resulting closed tree.
+    """
 
     root = Path(destination)
+    if root.exists() and root.is_symlink():
+        raise ValidationError("module-fabric bundle destination cannot be a symlink")
     root.mkdir(parents=True, exist_ok=True)
+    if not root.is_dir():
+        raise ValidationError("module-fabric bundle destination must be a directory")
+    if not allow_existing and any(root.iterdir()):
+        raise ValidationError(
+            "module-fabric bundle destination is not empty; pass allow_existing=True to overwrite"
+        )
     for artifact in bundle.artifacts:
         if artifact.payload is None:
             raise ValidationError(f"artifact {artifact.artifact_id} has no payload")
+        if not _safe_relative_path(artifact.relative_path):
+            raise ValidationError(f"artifact {artifact.artifact_id} has an unsafe relative path")
         target = root / Path(*PurePosixPath(artifact.relative_path).parts)
+        if _path_has_symlink(root, artifact.relative_path):
+            raise ValidationError(f"artifact {artifact.artifact_id} path contains a symlink")
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(artifact.payload.encode("utf-8"))
-    (root / MODULE_FABRIC_BUNDLE_MANIFEST).write_bytes(bundle_manifest_text(bundle).encode("utf-8"))
+        if _path_has_symlink(root, artifact.relative_path):
+            raise ValidationError(f"artifact {artifact.artifact_id} path contains a symlink")
+        _atomic_write_bytes(target, artifact.payload.encode("utf-8"))
+    manifest_target = root / MODULE_FABRIC_BUNDLE_MANIFEST
+    if _path_has_symlink(root, MODULE_FABRIC_BUNDLE_MANIFEST):
+        raise ValidationError("module-fabric bundle manifest path contains a symlink")
+    _atomic_write_bytes(manifest_target, bundle_manifest_text(bundle).encode("utf-8"))
     return root
 
 
@@ -600,7 +662,12 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
             continue
         expected_paths.add(path_value)
         target = root / Path(*PurePosixPath(path_value).parts)
-        regular = target.exists() and target.is_file() and not target.is_symlink()
+        regular = (
+            not _path_has_symlink(root, path_value)
+            and target.exists()
+            and target.is_file()
+            and not target.is_symlink()
+        )
         checks.append(
             _check(
                 f"present:{item.get('artifact_id', 'unknown')}",
@@ -689,12 +756,22 @@ def verify_module_fabric_bundle(destination: str | Path) -> FabricBundleVerifica
             from .module_fabric_bundle_audit import audit_module_fabric_bundle
             from .module_fabric_bundle_query import load_module_fabric_bundle
 
-            loaded = load_module_fabric_bundle(root, include_payloads=True)
+            loaded = load_module_fabric_bundle(root, include_payloads=True, verify=False)
             audit = audit_module_fabric_bundle(loaded)
             checks.append(_check("cross-artifact-audit", FabricBundleCheckPlane.CLOSURE, audit.accepted, audit.failed_check_ids, (), "fixture, evaluation, runtime, release, replay, lineage, and projection artifacts reconcile"))
         except (OSError, TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as exc:
             checks.append(_check("cross-artifact-audit", FabricBundleCheckPlane.CLOSURE, False, type(exc).__name__, "accepted audit", "cross-artifact reconciliation could not be completed"))
     return _verification(bundle_id, checks)
+
+
+def module_fabric_bundle_filesystem_integrity_ok(verification: FabricBundleVerification) -> bool:
+    """Allow offline inspection of blocked releases only after tree integrity passes."""
+
+    return all(
+        item.passed
+        for item in verification.checks
+        if item.check_id != "manifest-release-accepted"
+    )
 
 
 def bundle_artifact_bytes(bundle: FabricBundle, artifact_id: str) -> bytes:
@@ -728,6 +805,7 @@ __all__ = [
     "bundle_artifact_csv",
     "bundle_manifest_text",
     "build_module_fabric_bundle",
+    "module_fabric_bundle_filesystem_integrity_ok",
     "verify_module_fabric_bundle",
     "write_module_fabric_bundle",
 ]

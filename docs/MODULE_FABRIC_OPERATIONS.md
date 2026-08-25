@@ -59,11 +59,27 @@ python -m glio_noncode module-fabric-runtime
 python -m glio_noncode module-fabric-report --format markdown
 python -m glio_noncode module-fabric-review-csv
 python -m glio_noncode module-fabric-failures
+python -m glio_noncode module-fabric-bundle --destination module-fabric-bundle --allow-existing
+python -m glio_noncode module-fabric-bundle-query module-fabric-bundle --resource records --domain-id D01
 ```
 
 The commands return success only when their own acceptance state is true.
 `module-fabric-review-csv` is a projection command and returns success after
 serializing the bounded rows; it does not turn review rows into accepted rows.
+
+## Offline bundle safety
+
+Bundle materialization refuses a non-empty destination unless the caller opts
+into `--allow-existing`. Each artifact and the manifest is written through a
+same-directory temporary file and atomic replacement, and destination paths
+containing symlinks are rejected. Existing mode does not remove stale files;
+the closed-tree verifier remains responsible for detecting unexpected files.
+
+Filesystem-backed loading and querying verify the manifest, exact UTF-8 bytes,
+content addresses, safe paths, regular-file closure, and public JSON boundary
+before returning data. A release-blocked bundle can remain inspectable when
+those filesystem checks pass, but tampered or incomplete trees fail closed with
+an explicit validation error.
 
 ## Reference resolution
 

@@ -10,7 +10,10 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .errors import ValidationError
-from .module_fabric_bundle import verify_module_fabric_bundle
+from .module_fabric_bundle import (
+    module_fabric_bundle_filesystem_integrity_ok,
+    verify_module_fabric_bundle,
+)
 from .module_fabric_bundle_contracts import (
     MODULE_FABRIC_BUNDLE_DEFAULT_LIMIT,
     MODULE_FABRIC_BUNDLE_MANIFEST,
@@ -62,8 +65,19 @@ def load_module_fabric_bundle(
     destination: str | Path,
     *,
     include_payloads: bool = False,
+    verify: bool = True,
 ) -> FabricBundle:
-    """Load a bundle manifest and optionally hydrate exact artifact bytes."""
+    """Load a bundle and optionally hydrate exact artifact bytes.
+
+    Filesystem-backed loads verify the complete tree before exposing the
+    manifest.  The independent verifier uses ``verify=False`` only after it
+    has already completed its own path and byte checks.
+    """
+
+    if verify:
+        verification = verify_module_fabric_bundle(destination)
+        if not module_fabric_bundle_filesystem_integrity_ok(verification):
+            raise ValidationError("module-fabric bundle filesystem integrity verification failed")
 
     root, manifest = _load_mapping(destination)
     artifacts_value = manifest.get("artifacts", ())
@@ -312,7 +326,12 @@ def verify_and_load_module_fabric_bundle(
     """Load a bundle alongside its independent filesystem verification."""
 
     verification = verify_module_fabric_bundle(destination)
-    return load_module_fabric_bundle(destination, include_payloads=include_payloads), verification
+    if not module_fabric_bundle_filesystem_integrity_ok(verification):
+        raise ValidationError("module-fabric bundle filesystem integrity verification failed")
+    return (
+        load_module_fabric_bundle(destination, include_payloads=include_payloads, verify=False),
+        verification,
+    )
 
 
 __all__ = [
