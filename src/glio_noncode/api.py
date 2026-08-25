@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import parse_qs, unquote, urlsplit
 
+from .comparison_release import build_persisted_comparison_release
 from .dossier_query import (
     DOSSIER_QUERY_DEFAULT_LIMIT,
     build_persisted_dossier_query_closure,
@@ -195,6 +196,17 @@ class ApiHandler(BaseHTTPRequestHandler):
                         target_snapshot=self._query_optional_int(query, "target_snapshot"),
                     )
                     self._write(HTTPStatus.OK, comparison.to_dict())
+                    return
+                if len(segments) == 6 and segments[3] == "compare" and segments[5] == "release":
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    bundle = build_persisted_comparison_release(
+                        runtime,
+                        run_id,
+                        segments[4],
+                        source_snapshot=self._query_optional_int(query, "source_snapshot"),
+                        target_snapshot=self._query_optional_int(query, "target_snapshot"),
+                    )
+                    self._write(HTTPStatus.OK, bundle.to_dict())
                     return
                 if len(segments) == 4 and segments[3] == "query-closure":
                     self._write(HTTPStatus.OK, build_persisted_dossier_query_closure(runtime, run_id))

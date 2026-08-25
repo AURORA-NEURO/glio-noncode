@@ -24,6 +24,7 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/inspection` | Return the complete run inspection closure |
 | GET | `/v1/runs/{run_id}/history` | List content-addressed dossier snapshots for one run |
 | GET | `/v1/runs/{run_id}/compare/{target_run_id}` | Compare current or selected snapshots from two runs |
+| GET | `/v1/runs/{run_id}/compare/{target_run_id}/release` | Build a gated portable comparison handoff bundle |
 | GET | `/v1/runs/{run_id}/summary` | Aggregate evidence, review, and validation counters |
 | GET | `/v1/runs/{run_id}/query-closure` | Complete content-addressed dossier query projection |
 | GET | `/v1/runs/{run_id}/hypotheses` | Filter bounded hypothesis projections |
@@ -80,6 +81,8 @@ glio-noncode run-query run-<run-id> closure --data-root .glio --output dossier-q
 glio-noncode run-history run-<run-id> --data-root .glio --output run-history.json
 glio-noncode run-compare run-<source-id> run-<target-id> --data-root .glio --output run-comparison.json
 glio-noncode run-compare run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output review-transition.json
+glio-noncode run-compare-release run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output comparison-release
+glio-noncode run-compare-release-verify comparison-release --output comparison-verification.json
 glio-noncode run-release run-<run-id> --data-root .glio --output dossier-release
 glio-noncode run-release-verify dossier-release --output release-verification.json
 ```
@@ -103,6 +106,13 @@ return semantic additions, removals, and field-level changes for metadata,
 hypotheses, evidence, and experiments. Comparisons require replay integrity,
 matching case identity, a complete bounded projection, and the public boundary;
 failed checks remain visible in the returned evidence.
+
+Comparison handoffs are portable ten-artifact bundles containing canonical JSON,
+summary/check JSON, Markdown, source and target history closures, and separate
+metadata, hypothesis, evidence, and experiment CSV deltas. The release route and
+`run-compare-release` command retain blocked comparisons as inspectable bundles;
+`run-compare-release-verify` reopens the directory and verifies every byte,
+manifest address, size, line count, and safe artifact path.
 
 The release route and CLI export ten portable artifacts: canonical dossier JSON,
 Markdown, summary and query-closure JSON, replay events, release-gate evidence,

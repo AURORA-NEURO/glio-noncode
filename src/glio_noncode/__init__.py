@@ -10096,6 +10096,19 @@ from .dossier_release import (
     verify_dossier_release_bundle,
     write_dossier_release_bundle,
 )
+from .comparison_release import (
+    COMPARISON_RELEASE_MANIFEST,
+    COMPARISON_RELEASE_VERSION,
+    ComparisonReleaseArtifact,
+    ComparisonReleaseBundle,
+    ComparisonReleaseCheck,
+    ComparisonReleaseVerification,
+    build_comparison_release_bundle,
+    build_persisted_comparison_release,
+    render_comparison_markdown,
+    verify_comparison_release_bundle,
+    write_comparison_release_bundle,
+)
 from .run_comparison import (
     DOSSIER_COMPARISON_MAX_CHANGES,
     DOSSIER_COMPARISON_VERSION,
@@ -10159,6 +10172,13 @@ __all__ += [
     "DOSSIER_RELEASE_MANIFEST", "DOSSIER_RELEASE_VERSION", "DossierReleaseBundle",
     "ReleaseArtifact", "ReleaseCheck", "ReleaseVerification", "build_dossier_release_bundle",
     "build_persisted_dossier_release", "verify_dossier_release_bundle", "write_dossier_release_bundle",
+]
+
+__all__ += [
+    "COMPARISON_RELEASE_MANIFEST", "COMPARISON_RELEASE_VERSION", "ComparisonReleaseArtifact",
+    "ComparisonReleaseBundle", "ComparisonReleaseCheck", "ComparisonReleaseVerification",
+    "build_comparison_release_bundle", "build_persisted_comparison_release",
+    "render_comparison_markdown", "verify_comparison_release_bundle", "write_comparison_release_bundle",
 ]
 
 __all__ += [

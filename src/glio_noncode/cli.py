@@ -1224,6 +1224,11 @@ from .regulatory_atlas_runtime import run_regulatory_atlas_pipeline_file
 from .regulatory_atlas_scenario_matrix import evaluate_regulatory_atlas_scenarios
 from .regulatory_tracks import RegulatoryTrackFormat, RegulatoryTrackParser
 from .runtime import CaseRuntime
+from .comparison_release import (
+    build_persisted_comparison_release,
+    verify_comparison_release_bundle,
+    write_comparison_release_bundle,
+)
 from .dossier_query import (
     DOSSIER_QUERY_DEFAULT_LIMIT,
     DOSSIER_QUERY_RESOURCES,
@@ -2463,6 +2468,25 @@ def build_parser() -> argparse.ArgumentParser:
     run_compare.add_argument("--target-snapshot", default=None, type=int)
     run_compare.add_argument("--change-limit", default=5000, type=int)
     run_compare.add_argument("--output", default=None)
+
+    run_compare_release = subparsers.add_parser(
+        "run-compare-release",
+        help="build a portable verified handoff bundle for a persisted comparison",
+    )
+    run_compare_release.add_argument("source_run_id", type=str)
+    run_compare_release.add_argument("target_run_id", type=str)
+    run_compare_release.add_argument("--data-root", default=".glio")
+    run_compare_release.add_argument("--source-snapshot", default=None, type=int)
+    run_compare_release.add_argument("--target-snapshot", default=None, type=int)
+    run_compare_release.add_argument("--change-limit", default=5000, type=int)
+    run_compare_release.add_argument("--output", required=True)
+
+    run_compare_release_verify = subparsers.add_parser(
+        "run-compare-release-verify",
+        help="verify a previously written comparison handoff bundle",
+    )
+    run_compare_release_verify.add_argument("input", type=str)
+    run_compare_release_verify.add_argument("--output", default=None)
 
     run_release = subparsers.add_parser(
         "run-release",
@@ -17944,6 +17968,22 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(comparison.to_dict(), args.output)
             return 0 if comparison.accepted else 2
+        if args.command == "run-compare-release":
+            bundle = build_persisted_comparison_release(
+                CaseRuntime(args.data_root),
+                args.source_run_id,
+                args.target_run_id,
+                source_snapshot=args.source_snapshot,
+                target_snapshot=args.target_snapshot,
+                change_limit=args.change_limit,
+            )
+            write_comparison_release_bundle(bundle, args.output)
+            print(f"comparison release written to {args.output}")
+            return 0 if bundle.accepted else 2
+        if args.command == "run-compare-release-verify":
+            verification = verify_comparison_release_bundle(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "run-release":
             bundle = build_persisted_dossier_release(CaseRuntime(args.data_root), args.run_id)
             write_dossier_release_bundle(bundle, args.output)
