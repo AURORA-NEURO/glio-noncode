@@ -20,6 +20,7 @@ from .dossier_release import build_persisted_dossier_release
 from .errors import GlioError, StoreError
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
+from .run_comparison import build_run_history, compare_persisted_runs
 from .run_catalog import (
     RUN_CATALOG_DEFAULT_LIMIT,
     build_run_catalog_page,
@@ -90,6 +91,16 @@ class ApiHandler(BaseHTTPRequestHandler):
         value = cls._query_value(query, name)
         if value is None:
             return default
+        try:
+            return int(value)
+        except ValueError as exc:
+            raise ValueError(f"query parameter {name} must be an integer") from exc
+
+    @classmethod
+    def _query_optional_int(cls, query: dict[str, list[str]], name: str) -> int | None:
+        value = cls._query_value(query, name)
+        if value is None:
+            return None
         try:
             return int(value)
         except ValueError as exc:
@@ -170,6 +181,20 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 if len(segments) == 4 and segments[3] == "summary":
                     self._write(HTTPStatus.OK, summarize_persisted_dossier(runtime, run_id).to_dict())
+                    return
+                if len(segments) == 4 and segments[3] == "history":
+                    self._write(HTTPStatus.OK, build_run_history(runtime, run_id).to_dict())
+                    return
+                if len(segments) == 5 and segments[3] == "compare":
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    comparison = compare_persisted_runs(
+                        runtime,
+                        run_id,
+                        segments[4],
+                        source_snapshot=self._query_optional_int(query, "source_snapshot"),
+                        target_snapshot=self._query_optional_int(query, "target_snapshot"),
+                    )
+                    self._write(HTTPStatus.OK, comparison.to_dict())
                     return
                 if len(segments) == 4 and segments[3] == "query-closure":
                     self._write(HTTPStatus.OK, build_persisted_dossier_query_closure(runtime, run_id))

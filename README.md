@@ -51,6 +51,8 @@ glio-noncode run-review run-<run-id> review.json --data-root .glio --output revi
 glio-noncode run-query run-<run-id> evidence --state supported --data-root .glio --output supported-evidence.json
 glio-noncode run-query run-<run-id> lineage --data-root .glio --output run-lineage.json
 glio-noncode run-query run-<run-id> closure --data-root .glio --output dossier-query-closure.json
+glio-noncode run-history run-<run-id> --data-root .glio --output run-history.json
+glio-noncode run-compare run-<run-id> run-<run-id> --source-snapshot 0 --target-snapshot 1 --data-root .glio --output review-transition.json
 ```
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.

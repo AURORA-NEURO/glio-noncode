@@ -1237,6 +1237,7 @@ from .dossier_release import (
     verify_dossier_release_bundle,
     write_dossier_release_bundle,
 )
+from .run_comparison import build_run_history, compare_persisted_runs
 from .run_catalog import (
     RUN_CATALOG_DEFAULT_LIMIT,
     build_run_catalog_closure,
@@ -2442,6 +2443,26 @@ def build_parser() -> argparse.ArgumentParser:
     run_query.add_argument("--option-id", default=None)
     run_query.add_argument("--assay", default=None)
     run_query.add_argument("--output", default=None)
+
+    run_history = subparsers.add_parser(
+        "run-history",
+        help="inspect the addressed dossier snapshot history for one persisted run",
+    )
+    run_history.add_argument("run_id", type=str)
+    run_history.add_argument("--data-root", default=".glio")
+    run_history.add_argument("--output", default=None)
+
+    run_compare = subparsers.add_parser(
+        "run-compare",
+        help="compare current or historical dossier snapshots from two persisted runs",
+    )
+    run_compare.add_argument("source_run_id", type=str)
+    run_compare.add_argument("target_run_id", type=str)
+    run_compare.add_argument("--data-root", default=".glio")
+    run_compare.add_argument("--source-snapshot", default=None, type=int)
+    run_compare.add_argument("--target-snapshot", default=None, type=int)
+    run_compare.add_argument("--change-limit", default=5000, type=int)
+    run_compare.add_argument("--output", default=None)
 
     run_release = subparsers.add_parser(
         "run-release",
@@ -17908,6 +17929,21 @@ def main(argv: list[str] | None = None) -> int:
                 ).to_dict()
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "run-history":
+            history = build_run_history(CaseRuntime(args.data_root), args.run_id)
+            _write_json(history.to_dict(), args.output)
+            return 0 if history.accepted else 2
+        if args.command == "run-compare":
+            comparison = compare_persisted_runs(
+                CaseRuntime(args.data_root),
+                args.source_run_id,
+                args.target_run_id,
+                source_snapshot=args.source_snapshot,
+                target_snapshot=args.target_snapshot,
+                change_limit=args.change_limit,
+            )
+            _write_json(comparison.to_dict(), args.output)
+            return 0 if comparison.accepted else 2
         if args.command == "run-release":
             bundle = build_persisted_dossier_release(CaseRuntime(args.data_root), args.run_id)
             write_dossier_release_bundle(bundle, args.output)

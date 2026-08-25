@@ -10096,6 +10096,22 @@ from .dossier_release import (
     verify_dossier_release_bundle,
     write_dossier_release_bundle,
 )
+from .run_comparison import (
+    DOSSIER_COMPARISON_MAX_CHANGES,
+    DOSSIER_COMPARISON_VERSION,
+    RUN_HISTORY_MAX_SNAPSHOTS,
+    RUN_HISTORY_VERSION,
+    ComparisonChange,
+    ComparisonCheck,
+    ComparisonDimension,
+    DossierComparison,
+    RunHistory,
+    RunSnapshot,
+    build_dossier_comparison,
+    build_run_history,
+    compare_persisted_runs,
+    compare_run_snapshots,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10143,6 +10159,13 @@ __all__ += [
     "DOSSIER_RELEASE_MANIFEST", "DOSSIER_RELEASE_VERSION", "DossierReleaseBundle",
     "ReleaseArtifact", "ReleaseCheck", "ReleaseVerification", "build_dossier_release_bundle",
     "build_persisted_dossier_release", "verify_dossier_release_bundle", "write_dossier_release_bundle",
+]
+
+__all__ += [
+    "DOSSIER_COMPARISON_MAX_CHANGES", "DOSSIER_COMPARISON_VERSION", "RUN_HISTORY_MAX_SNAPSHOTS",
+    "RUN_HISTORY_VERSION", "ComparisonChange", "ComparisonCheck", "ComparisonDimension",
+    "DossierComparison", "RunHistory", "RunSnapshot", "build_dossier_comparison",
+    "build_run_history", "compare_persisted_runs", "compare_run_snapshots",
 ]
 
 from .planning_architecture_exports import *  # noqa: F401,F403

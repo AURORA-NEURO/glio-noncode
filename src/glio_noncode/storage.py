@@ -68,14 +68,46 @@ class RunStore:
         self.runs = self.root / "runs"
         self.runs.mkdir(parents=True, exist_ok=True)
 
-    def save_run(self, run_id: str, *, input_address: str, event_address: str, dossier_address: str) -> Path:
+    def save_run(
+        self,
+        run_id: str,
+        *,
+        input_address: str,
+        event_address: str,
+        dossier_address: str,
+        dossier_history: tuple[str, ...] | None = None,
+    ) -> Path:
+        """Persist the current run pointers and retain every dossier address.
+
+        Older run records do not contain ``dossier_history``.  They are upgraded
+        deterministically on the next write by retaining their current pointer
+        before appending the new snapshot address.
+        """
+
+        path = self.runs / f"{run_id}.json"
+        previous: dict[str, Any] = {}
+        if path.exists():
+            try:
+                stored = json.loads(path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise StoreError(f"invalid run record: {path.name}") from exc
+            if not isinstance(stored, dict):
+                raise StoreError(f"run record must be an object: {path.name}")
+            previous = stored
+
+        history = list(dossier_history or previous.get("dossier_history", ()))
+        previous_address = str(previous.get("dossier_address", ""))
+        if previous_address and previous_address not in history:
+            history.append(previous_address)
+        if dossier_address not in history:
+            history.append(dossier_address)
         record = {
             "run_id": run_id,
             "input_address": input_address,
             "event_address": event_address,
             "dossier_address": dossier_address,
+            "dossier_history": history,
         }
-        path = self.runs / f"{run_id}.json"
         temporary = path.with_suffix(".tmp")
         temporary.write_text(canonical_json(record), encoding="utf-8")
         temporary.replace(path)
