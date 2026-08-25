@@ -18,6 +18,7 @@ from .batch_release import (
 )
 from .serialization import jsonable
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
+from .public_surface_audit import build_default_public_surface_audit
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
     MethylationTrackHarmonizer,
@@ -2571,6 +2572,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     service_surface.add_argument("--closure", action="store_true")
     service_surface.add_argument("--output", default=None)
+    public_surface_audit = subparsers.add_parser(
+        "public-surface-audit",
+        help="audit repository-wide service, bundle, schema, and closure projections",
+    )
+    public_surface_audit.add_argument("--output", default=None)
 
     run_catalog = subparsers.add_parser(
         "run-catalog",
@@ -18633,6 +18639,10 @@ def main(argv: list[str] | None = None) -> int:
             payload = build_service_surface_closure(snapshot) if args.closure else service_surface_status(snapshot)
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "public-surface-audit":
+            audit = build_default_public_surface_audit()
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
         if args.command == "run-catalog":
             runtime = CaseRuntime(args.data_root)
             if args.closure:

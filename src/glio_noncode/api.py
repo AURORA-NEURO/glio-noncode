@@ -53,6 +53,7 @@ from .capability_certification_bundle_observability import certification_bundle_
 from .capability_certification_bundle_query import query_capability_certification_bundle
 from .capability_certification_bundle_runtime import run_capability_certification_bundle_runtime
 from .capability_certification_bundle_schema import capability_certification_bundle_schema
+from .public_surface_audit import build_default_public_surface_audit
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -210,6 +211,14 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path == "/v1/public-surface/audit":
+            try:
+                self._write(HTTPStatus.OK, build_default_public_surface_audit().to_dict())
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/storage/audit":
             try:

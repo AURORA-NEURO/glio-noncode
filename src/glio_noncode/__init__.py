@@ -11228,6 +11228,7 @@ from .module_fabric_bundle_observability import FabricBundleEvent, FabricBundleM
 from .module_fabric_bundle_query import diff_module_fabric_bundles, export_module_fabric_bundle_query_csv, load_module_fabric_bundle, query_module_fabric_bundle, verify_and_load_module_fabric_bundle
 from .module_fabric_bundle_runtime import FabricBundleRuntimeReport, FabricBundleRuntimeStage, replay_module_fabric_bundle, run_module_fabric_bundle_runtime
 from .module_fabric_bundle_schema import FabricBundleSchemaCheck, FabricBundleSchemaValidation, module_fabric_bundle_schema, validate_module_fabric_bundle_manifest
+from .public_surface_audit import PUBLIC_SURFACE_AUDIT_VERSION, PUBLIC_SURFACE_EXPECTED_COUNT, PublicSurfaceAudit, PublicSurfaceAuditCheck, PublicSurfaceAuditPlane, build_default_public_surface_audit, build_public_surface_audit, default_public_surface_inventory
 from .module_fabric_compliance import find_module_fabric_forbidden_paths, find_module_fabric_metadata_paths, run_module_fabric_compliance
 from .module_fabric_contracts import FabricCheck, FabricCheckPlane, FabricComplianceCheck, FabricComplianceReport, FabricDepthAudit, FabricDepthCheck, FabricEvaluation, FabricExecution, FabricFailureProbe, FabricFailureReport, FabricFixture, FabricLineage, FabricLineageEdge, FabricLineageNode, FabricMetrics, FabricOperationResult, FabricQualityCheck, FabricQualityReport, FabricRecord, FabricReferenceKind, FabricReferenceReceipt, FabricReferenceState, FabricReleaseArtifact, FabricReleaseManifest, FabricReplayCheck, FabricReplayReport, FabricRole, FabricRuntimeReport, FabricRuntimeStage, FabricSourceReceipt, FabricState, MODULE_FABRIC_ARTIFACT_COUNT, MODULE_FABRIC_CHECK_COUNT, MODULE_FABRIC_CHECKS_PER_RECORD, MODULE_FABRIC_GLOBAL_CHECK_COUNT, MODULE_FABRIC_QUALITY_CHECK_COUNT, MODULE_FABRIC_STAGE_COUNT
 from .module_fabric_data_dictionary import FabricDataDictionary, FabricDictionaryEntry, default_module_fabric_data_dictionary
@@ -11263,6 +11264,17 @@ __all__ += [
     "FabricBundleAuditPlane",
     "ModuleFabricBundleAudit",
     "audit_module_fabric_bundle",
+]
+
+__all__ += [
+    "PUBLIC_SURFACE_AUDIT_VERSION",
+    "PUBLIC_SURFACE_EXPECTED_COUNT",
+    "PublicSurfaceAudit",
+    "PublicSurfaceAuditCheck",
+    "PublicSurfaceAuditPlane",
+    "build_default_public_surface_audit",
+    "build_public_surface_audit",
+    "default_public_surface_inventory",
 ]
 
 from .validation_design_frontier_access import ValidationDesignAccessManifest, build_validation_design_access_manifest

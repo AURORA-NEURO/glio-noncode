@@ -11,6 +11,7 @@ report or runtime from which it was derived.
 | --- | --- | --- |
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
+| GET | `/v1/public-surface/audit` | Audit the complete repository-wide public service and bundle projection inventory |
 | GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
 | GET | `/v1/module-fabric/bundle` | Build the public 21-artifact module-fabric bundle projection |
 | GET | `/v1/module-fabric/bundle/query` | Query bundle artifacts or public aggregate records |
@@ -212,6 +213,19 @@ Run the detailed archival projection:
 ```text
 glio-noncode service-surface --closure --output service-surface-closure.json
 ```
+
+Run the repository-wide public-boundary audit:
+
+```text
+glio-noncode public-surface-audit --output public-surface-audit.json
+```
+
+The audit covers 14 named projections across the service, capability
+certification bundle, module-fabric bundle, schemas, and closures. Runtime
+projections must contain no attribution, language, or direct-private-key
+paths. The schema projection is the one deliberate exception: it may declare
+subject/sample input field names because those names define an input contract,
+but it may not publish values for those fields.
 
 Evaluate and reopen a durable batch:
 
