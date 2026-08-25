@@ -742,6 +742,15 @@ auditing, and deterministic offline replay. Domain 16 includes deny-by-default p
 offline deployment manifests, site-local federated coordination, and explicit
 release/rollback gates.
 
+The D13 validation-design bundle closure is independently addressable. It
+checks 27 artifact identities and safe public paths, builds nine address-only
+indexes, reconciles 33 cross-artifact joins, emits conserved summary counters
+and operation partitions, certifies eight domains with 48 evidence-linked
+checks, and exposes 158 events plus 18 aggregate metrics. The closure runtime
+has 12 deterministic stages and a replay comparison against the exact bundle
+address. Its query surface covers artifacts, records, executions, checks,
+sources, stages, planes, operations, issues, states, and review rows.
+
 Run the full frontier evidence gate locally or in CI:
 
 ```powershell

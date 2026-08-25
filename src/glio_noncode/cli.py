@@ -774,6 +774,47 @@ from .validation_design_frontier_bundle_runtime import (
     build_validation_design_bundle_observability,
     run_validation_design_bundle_runtime,
 )
+from .validation_design_frontier_bundle_closure_boundary import validate_validation_design_closure_boundary
+from .validation_design_frontier_bundle_closure_certification import (
+    certify_validation_design_closure,
+    export_validation_design_closure_certification_csv,
+    export_validation_design_closure_certification_domains_csv,
+)
+from .validation_design_frontier_bundle_closure_indexes import (
+    audit_validation_design_closure_indexes,
+    build_validation_design_closure_indexes,
+)
+from .validation_design_frontier_bundle_closure_observability import (
+    build_validation_design_closure_observability,
+    export_validation_design_closure_events_csv,
+    export_validation_design_closure_metrics_csv,
+)
+from .validation_design_frontier_bundle_closure_query import (
+    export_validation_design_closure_csv,
+    export_validation_design_closure_markdown,
+    query_validation_design_closure,
+)
+from .validation_design_frontier_bundle_closure_reconciliation import reconcile_validation_design_closure
+from .validation_design_frontier_bundle_closure_runtime import run_validation_design_closure_runtime
+from .validation_design_frontier_bundle_closure_schema import (
+    validate_validation_design_closure_projection,
+    validation_design_closure_schema,
+)
+from .validation_design_frontier_bundle_closure_summary import (
+    audit_validation_design_closure_summary,
+    build_validation_design_closure_summary,
+    export_validation_design_closure_summary_csv,
+    export_validation_design_closure_summary_markdown,
+)
+from .validation_design_frontier_bundle_closure_export import (
+    build_validation_design_closure_export,
+    verify_validation_design_closure_export,
+    write_validation_design_closure_export,
+)
+from .validation_design_frontier_bundle_closure_failure_injection import (
+    export_validation_design_closure_failures_csv,
+    rehearse_validation_design_closure_failures,
+)
 from .editing_design_frontier_access import build_editing_design_access
 from .editing_design_frontier_adapters import build_editing_design_adapters
 from .editing_design_frontier_depth import build_editing_design_depth
@@ -8366,6 +8407,75 @@ def build_parser() -> argparse.ArgumentParser:
     validation_design_bundle_runtime.add_argument("--bundle-id", default="validation-design-public-bundle")
     validation_design_bundle_runtime.add_argument("--run-id", default="validation-design-bundle-runtime")
     validation_design_bundle_runtime.add_argument("--output", default=None)
+    validation_design_closure_query = subparsers.add_parser(
+        "validation-design-frontier-bundle-closure-query",
+        help="query every addressable resource in a D13 closure handoff",
+    )
+    validation_design_closure_query.add_argument("destination", type=str)
+    validation_design_closure_query.add_argument("--resource", default="artifacts")
+    validation_design_closure_query.add_argument("--operation", default=None)
+    validation_design_closure_query.add_argument("--role", default=None)
+    validation_design_closure_query.add_argument("--state", default=None)
+    validation_design_closure_query.add_argument("--artifact-kind", default=None)
+    validation_design_closure_query.add_argument("--plane-id", default=None)
+    validation_design_closure_query.add_argument("--stage-id", default=None)
+    validation_design_closure_query.add_argument("--issue-code", default=None)
+    validation_design_closure_query.add_argument("--text", default=None)
+    validation_design_closure_query.add_argument("--offset", default=0, type=int)
+    validation_design_closure_query.add_argument("--limit", default=50, type=int)
+    validation_design_closure_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    validation_design_closure_query.add_argument("--output", default=None)
+    for command_name, help_text in (
+        ("validation-design-frontier-bundle-closure-boundary", "validate the D13 closure public boundary"),
+        ("validation-design-frontier-bundle-closure-indexes", "build and audit D13 closure address-only indexes"),
+        ("validation-design-frontier-bundle-closure-reconciliation", "reconcile D13 closure joins and denominators"),
+        ("validation-design-frontier-bundle-closure-summary", "emit D13 closure counters and operation summaries"),
+        ("validation-design-frontier-bundle-closure-certification", "run the D13 closure certification domains"),
+        ("validation-design-frontier-bundle-closure-observability", "emit detailed D13 closure events and metrics"),
+    ):
+        closure_parser = subparsers.add_parser(command_name, help=help_text)
+        closure_parser.add_argument("destination", type=str)
+        closure_parser.add_argument("--format", choices=("json", "csv", "markdown", "events-csv", "metrics-csv", "domains-csv"), default="json")
+        closure_parser.add_argument("--output", default=None)
+    validation_design_closure_schema = subparsers.add_parser(
+        "validation-design-frontier-bundle-closure-schema",
+        help="print the D13 closure runtime schema",
+    )
+    validation_design_closure_schema.add_argument("--output", default=None)
+    validation_design_closure_validate = subparsers.add_parser(
+        "validation-design-frontier-bundle-closure-validate",
+        help="validate a serialized D13 closure runtime report",
+    )
+    validation_design_closure_validate.add_argument("input", type=str)
+    validation_design_closure_validate.add_argument("--output", default=None)
+    validation_design_closure_runtime = subparsers.add_parser(
+        "validation-design-frontier-bundle-closure-runtime",
+        help="run the complete D13 closure runtime with certification and replay",
+    )
+    validation_design_closure_runtime.add_argument("--bundle-id", default="validation-design-public-bundle")
+    validation_design_closure_runtime.add_argument("--run-id", default="validation-design-closure-runtime")
+    validation_design_closure_runtime.add_argument("--output", default=None)
+    validation_design_closure_failures = subparsers.add_parser(
+        "validation-design-frontier-bundle-closure-failure-injection",
+        help="rehearse D13 closure negative controls without mutating the bundle",
+    )
+    validation_design_closure_failures.add_argument("destination", type=str)
+    validation_design_closure_failures.add_argument("--format", choices=("json", "csv"), default="json")
+    validation_design_closure_failures.add_argument("--output", default=None)
+    validation_design_closure_export = subparsers.add_parser(
+        "validation-design-frontier-bundle-closure-export",
+        help="write a self-verifying exact-byte D13 closure export packet",
+    )
+    validation_design_closure_export.add_argument("destination", type=str)
+    validation_design_closure_export.add_argument("--bundle-id", default="validation-design-public-bundle")
+    validation_design_closure_export.add_argument("--run-id", default="validation-design-closure-runtime")
+    validation_design_closure_export.add_argument("--output", default=None)
+    validation_design_closure_export_verify = subparsers.add_parser(
+        "validation-design-frontier-bundle-closure-export-verify",
+        help="verify a D13 closure export packet byte-for-byte",
+    )
+    validation_design_closure_export_verify.add_argument("destination", type=str)
+    validation_design_closure_export_verify.add_argument("--output", default=None)
 
     editing_design_frontier_commands = (
         ("editing-design-frontier-data-audit", "audit D13 C05-C08 public aggregate editing data"),
@@ -17241,6 +17351,102 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(report.to_dict(), args.output)
             return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-query":
+            result = query_validation_design_closure(
+                args.destination,
+                resource=args.resource,
+                operation=args.operation,
+                role=args.role,
+                state=args.state,
+                artifact_kind=args.artifact_kind,
+                plane_id=args.plane_id,
+                stage_id=args.stage_id,
+                issue_code=args.issue_code,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(export_validation_design_closure_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(export_validation_design_closure_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-boundary":
+            report = validate_validation_design_closure_boundary(load_validation_design_offline_bundle(args.destination, include_payloads=True))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-indexes":
+            bundle = load_validation_design_offline_bundle(args.destination, include_payloads=True)
+            indexes = build_validation_design_closure_indexes(bundle)
+            audit = audit_validation_design_closure_indexes(bundle, indexes)
+            _write_json({"indexes": indexes.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-reconciliation":
+            report = reconcile_validation_design_closure(load_validation_design_offline_bundle(args.destination, include_payloads=True))
+            if args.format == "markdown":
+                _write_text("# D13 closure reconciliation\n\n" + "\n".join(f"- {item.check_id}: {'pass' if item.passed else 'fail'} — {item.detail}" for item in report.checks) + "\n", args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-summary":
+            bundle = load_validation_design_offline_bundle(args.destination, include_payloads=True)
+            summary = build_validation_design_closure_summary(bundle)
+            audit = audit_validation_design_closure_summary(bundle, summary)
+            if args.format == "csv":
+                _write_text(export_validation_design_closure_summary_csv(summary), args.output)
+            elif args.format == "markdown":
+                _write_text(export_validation_design_closure_summary_markdown(summary), args.output)
+            else:
+                _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-certification":
+            report = certify_validation_design_closure(load_validation_design_offline_bundle(args.destination, include_payloads=True))
+            if args.format == "csv":
+                _write_text(export_validation_design_closure_certification_csv(report), args.output)
+            elif args.format == "domains-csv":
+                _write_text(export_validation_design_closure_certification_domains_csv(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-observability":
+            report = build_validation_design_closure_observability(load_validation_design_offline_bundle(args.destination, include_payloads=True))
+            if args.format == "events-csv":
+                _write_text(export_validation_design_closure_events_csv(report), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(export_validation_design_closure_metrics_csv(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-schema":
+            _write_json(validation_design_closure_schema(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-bundle-closure-validate":
+            _write_json(validate_validation_design_closure_projection(_read_json(args.input)), args.output)
+            return 0 if validate_validation_design_closure_projection(_read_json(args.input)).get("accepted") else 2
+        if args.command == "validation-design-frontier-bundle-closure-runtime":
+            report = run_validation_design_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-failure-injection":
+            report = rehearse_validation_design_closure_failures(load_validation_design_offline_bundle(args.destination, include_payloads=True))
+            if args.format == "csv":
+                _write_text(export_validation_design_closure_failures_csv(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-export":
+            runtime_report = run_validation_design_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            failure_report = rehearse_validation_design_closure_failures(runtime_report.bundle)
+            export = build_validation_design_closure_export(runtime_report, failure_report=failure_report)
+            write_validation_design_closure_export(export, args.destination)
+            _write_json(export.to_dict(), args.output)
+            return 0 if export.accepted else 2
+        if args.command == "validation-design-frontier-bundle-closure-export-verify":
+            verification = verify_validation_design_closure_export(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "editing-design-frontier-data-audit":
             _write_json(
                 audit_editing_design_frontier_data(

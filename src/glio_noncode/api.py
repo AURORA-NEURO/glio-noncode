@@ -59,6 +59,16 @@ from .validation_design_frontier_bundle_query import query_validation_design_off
 from .validation_design_frontier_bundle_schema import validation_design_bundle_schema
 from .validation_design_frontier_offline_bundle import build_validation_design_offline_bundle
 from .validation_design_frontier_bundle_runtime import build_validation_design_bundle_observability, run_validation_design_bundle_runtime
+from .validation_design_frontier_bundle_closure_boundary import validate_validation_design_closure_boundary
+from .validation_design_frontier_bundle_closure_certification import certify_validation_design_closure
+from .validation_design_frontier_bundle_closure_indexes import audit_validation_design_closure_indexes, build_validation_design_closure_indexes
+from .validation_design_frontier_bundle_closure_observability import build_validation_design_closure_observability
+from .validation_design_frontier_bundle_closure_query import query_validation_design_closure
+from .validation_design_frontier_bundle_closure_reconciliation import reconcile_validation_design_closure
+from .validation_design_frontier_bundle_closure_runtime import run_validation_design_closure_runtime
+from .validation_design_frontier_bundle_closure_schema import validation_design_closure_schema
+from .validation_design_frontier_bundle_closure_summary import audit_validation_design_closure_summary, build_validation_design_closure_summary
+from .validation_design_frontier_bundle_closure_failure_injection import rehearse_validation_design_closure_failures
 from .evidence_lifecycle_frontier_offline_audit import audit_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_bundle import build_evidence_lifecycle_offline_bundle
 from .evidence_lifecycle_frontier_offline_query import query_evidence_lifecycle_offline_bundle
@@ -605,8 +615,21 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/validation-design/bundle/audit",
             "/v1/validation-design/bundle/observability",
             "/v1/validation-design/bundle/runtime",
+            "/v1/validation-design/bundle/closure-query",
+            "/v1/validation-design/bundle/boundary",
+            "/v1/validation-design/bundle/indexes",
+            "/v1/validation-design/bundle/reconciliation",
+            "/v1/validation-design/bundle/summary",
+            "/v1/validation-design/bundle/certification",
+            "/v1/validation-design/bundle/closure-observability",
+            "/v1/validation-design/bundle/closure-runtime",
+            "/v1/validation-design/bundle/closure-schema",
+            "/v1/validation-design/bundle/closure-failures",
         }:
             try:
+                if path.endswith("/closure-schema"):
+                    self._write(HTTPStatus.OK, validation_design_closure_schema())
+                    return
                 if path.endswith("/schema"):
                     self._write(HTTPStatus.OK, validation_design_bundle_schema())
                     return
@@ -615,7 +638,22 @@ class ApiHandler(BaseHTTPRequestHandler):
                     bundle_id=self._query_value(query, "bundle_id") or "validation-design-public-bundle",
                     run_id=self._query_value(query, "run_id") or "validation-design-bundle-runtime",
                 )
-                if path.endswith("/query"):
+                if path.endswith("/closure-query"):
+                    payload = query_validation_design_closure(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        operation=self._query_value(query, "operation"),
+                        role=self._query_value(query, "role"),
+                        state=self._query_value(query, "state"),
+                        artifact_kind=self._query_value(query, "artifact_kind"),
+                        plane_id=self._query_value(query, "plane_id"),
+                        stage_id=self._query_value(query, "stage_id"),
+                        issue_code=self._query_value(query, "issue_code"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/query"):
                     payload = query_validation_design_offline_bundle(
                         bundle,
                         resource=self._query_value(query, "resource") or "artifacts",
@@ -638,6 +676,27 @@ class ApiHandler(BaseHTTPRequestHandler):
                         bundle_id=bundle.bundle_id,
                         run_id=bundle.run_id,
                     ).to_dict()
+                elif path.endswith("/boundary"):
+                    payload = validate_validation_design_closure_boundary(bundle).to_dict()
+                elif path.endswith("/indexes"):
+                    indexes = build_validation_design_closure_indexes(bundle)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_validation_design_closure_indexes(bundle, indexes).to_dict()}
+                elif path.endswith("/reconciliation"):
+                    payload = reconcile_validation_design_closure(bundle).to_dict()
+                elif path.endswith("/summary"):
+                    summary = build_validation_design_closure_summary(bundle)
+                    payload = {"summary": summary.to_dict(), "audit": audit_validation_design_closure_summary(bundle, summary).to_dict()}
+                elif path.endswith("/certification"):
+                    payload = certify_validation_design_closure(bundle).to_dict()
+                elif path.endswith("/closure-observability"):
+                    payload = build_validation_design_closure_observability(bundle).to_dict()
+                elif path.endswith("/closure-runtime"):
+                    payload = run_validation_design_closure_runtime(
+                        bundle_id=bundle.bundle_id,
+                        run_id=self._query_value(query, "run_id") or "validation-design-closure-runtime",
+                    ).to_dict()
+                elif path.endswith("/closure-failures"):
+                    payload = rehearse_validation_design_closure_failures(bundle).to_dict()
                 else:
                     payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
                 self._write(HTTPStatus.OK, payload)

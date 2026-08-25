@@ -367,6 +367,16 @@ glio-noncode validation-design-frontier-bundle-schema --output validation-design
 glio-noncode validation-design-frontier-bundle-audit validation-design-bundle --output validation-design-bundle-audit.json
 glio-noncode validation-design-frontier-bundle-observability validation-design-bundle --output validation-design-bundle-observability.json
 glio-noncode validation-design-frontier-bundle-runtime --output validation-design-bundle-runtime.json
+glio-noncode validation-design-frontier-bundle-closure-boundary validation-design-bundle --output validation-design-closure-boundary.json
+glio-noncode validation-design-frontier-bundle-closure-indexes validation-design-bundle --output validation-design-closure-indexes.json
+glio-noncode validation-design-frontier-bundle-closure-reconciliation validation-design-bundle --output validation-design-closure-reconciliation.json
+glio-noncode validation-design-frontier-bundle-closure-summary validation-design-bundle --format markdown --output validation-design-closure-summary.md
+glio-noncode validation-design-frontier-bundle-closure-certification validation-design-bundle --output validation-design-closure-certification.json
+glio-noncode validation-design-frontier-bundle-closure-observability validation-design-bundle --output validation-design-closure-observability.json
+glio-noncode validation-design-frontier-bundle-closure-runtime --output validation-design-closure-runtime.json
+glio-noncode validation-design-frontier-bundle-closure-failure-injection validation-design-bundle --output validation-design-closure-failures.json
+glio-noncode validation-design-frontier-bundle-closure-export validation-design-closure-export --output validation-design-closure-export.json
+glio-noncode validation-design-frontier-bundle-closure-export-verify validation-design-closure-export --output validation-design-closure-export-verification.json
 ```
 
 The planning boundary is public aggregate research use. Its offline bundle
@@ -376,6 +386,13 @@ observability projections. The verifier checks safe paths, exact bytes,
 content addresses, public-boundary keys, and an independent cross-artifact
 audit. It does not diagnose, claim assay efficacy, infer individual outcomes,
 or establish causal certainty.
+
+The closure handoff adds an independent 33-check reconciliation, nine
+address-only indexes, eight certification domains with 48 evidence-linked
+checks, 158 timestamp-free events, 18 aggregate metrics, 11 bounded query
+resources, and a 12-stage runtime replay. Its public boundary excludes agent,
+model, language, and direct identity attribution fields. See
+[D13 closure operations](docs/VALIDATION_DESIGN_CLOSURE_OPERATIONS.md).
 
 The D14 evidence lifecycle surface also has a portable offline handoff with 21
 exact-byte artifacts, 16 aggregate records, 120 evaluation checks, 26
