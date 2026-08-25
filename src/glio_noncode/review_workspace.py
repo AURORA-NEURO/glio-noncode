@@ -1096,6 +1096,21 @@ def review_workspace_schema() -> dict[str, Any]:
             "deltas are per-item before/after changes and never an aggregate ranking",
             "baseline deltas require replay verification for both runs",
         ],
+        "exports": {
+            "json": "review-workspace.json",
+            "markdown": "review-workspace.md",
+            "csv_collections": [
+                "hypotheses",
+                "edges",
+                "evidence",
+                "alternatives",
+                "deltas",
+                "provenance",
+                "review_queue",
+            ],
+            "portable_release": "review-workspace-release-v1",
+            "manifest_exact_byte_verification": True,
+        },
         "limits": {
             "max_hypotheses": REVIEW_WORKSPACE_MAX_HYPOTHESES,
             "max_edges": REVIEW_WORKSPACE_MAX_EDGES,
@@ -1124,6 +1139,14 @@ def review_workspace_capabilities() -> dict[str, Any]:
             "provenance_is_source_centric": True,
             "review_queue_has_explainable_priority": True,
             "deltas_are_item_level": True,
+        },
+        "exports": {
+            "json": True,
+            "markdown": True,
+            "csv": True,
+            "portable_release": True,
+            "exact_byte_manifest_verification": True,
+            "filesystem_writes_are_cli_explicit": True,
         },
         "privacy": {
             "raw_evidence_payloads_published": False,

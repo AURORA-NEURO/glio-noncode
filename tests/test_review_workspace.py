@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import csv
+import io
 import tempfile
 import unittest
 from dataclasses import replace
@@ -17,6 +19,13 @@ from glio_noncode.review_workspace import (
     build_review_workspace,
     review_workspace_capabilities,
     review_workspace_schema,
+)
+from glio_noncode.review_workspace_exports import (
+    build_review_workspace_release,
+    render_review_workspace_markdown,
+    review_workspace_export_payloads,
+    verify_review_workspace_release,
+    write_review_workspace_release,
 )
 from glio_noncode.runtime import CaseRuntime
 
@@ -111,6 +120,83 @@ class ReviewWorkspaceTests(unittest.TestCase):
         self.assertEqual(config.uncertainty_review_threshold, 0.4)
         self.assertEqual(review_workspace_schema()["version"], "review-workspace-schema-v1")
         self.assertTrue(review_workspace_capabilities()["replay_gate"]["current_run_required"])
+        self.assertTrue(review_workspace_capabilities()["exports"]["portable_release"])
+
+    def test_exports_are_deterministic_and_release_is_exact_byte_verified(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, dossier = self._runtime(directory)
+            report = build_persisted_review_workspace(runtime, dossier.run_id)
+            first = review_workspace_export_payloads(report)
+            second = review_workspace_export_payloads(report)
+            self.assertEqual(first, second)
+            self.assertEqual(first["review-workspace.md"], render_review_workspace_markdown(report).encode("utf-8"))
+            rows = list(csv.DictReader(io.StringIO(first["hypotheses.csv"].decode("utf-8"))))
+            self.assertEqual(len(rows), len(report.hypotheses))
+            self.assertEqual(rows[0]["hypothesis_id"], report.hypotheses[0].hypothesis_id)
+
+            bundle = build_review_workspace_release(report)
+            self.assertEqual(len({item.artifact_id for item in bundle.artifacts}), len(bundle.artifacts))
+            release = Path(directory) / "review-release"
+            write_review_workspace_release(bundle, release)
+            verified = verify_review_workspace_release(release)
+            self.assertTrue(verified.accepted)
+            self.assertEqual(verified.artifact_count, 9)
+            (release / "edges.csv").write_bytes((release / "edges.csv").read_bytes() + b"tamper")
+            tampered = verify_review_workspace_release(release)
+            self.assertFalse(tampered.accepted)
+            self.assertIn("edges.csv", tampered.tampered_files)
+
+    def test_export_cli_and_raw_api_surfaces(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime, dossier = self._runtime(directory)
+            markdown = Path(directory) / "review.md"
+            self.assertEqual(
+                main([
+                    "review-workspace-export", dossier.run_id, "--data-root", directory,
+                    "--format", "markdown", "--output", str(markdown),
+                ]),
+                0,
+            )
+            self.assertIn("# Review workspace", markdown.read_text(encoding="utf-8"))
+            release = Path(directory) / "portable"
+            self.assertEqual(
+                main([
+                    "review-workspace-release", dossier.run_id, "--data-root", directory,
+                    "--output", str(release),
+                ]),
+                0,
+            )
+            verification = Path(directory) / "verification.json"
+            self.assertEqual(
+                main(["review-workspace-release-verify", str(release), "--output", str(verification)]),
+                0,
+            )
+            self.assertTrue(json.loads(verification.read_text(encoding="utf-8"))["accepted"])
+
+            server = create_server("127.0.0.1", 0, directory)
+            thread = Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                host, port = server.server_address
+                connection = HTTPConnection(host, port, timeout=30)
+                connection.request("GET", f"/v1/runs/{dossier.run_id}/review-workspace/export?format=markdown")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertIn("text/markdown", response.getheader("Content-Type", ""))
+                self.assertIn("# Review workspace", response.read().decode("utf-8"))
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/export?format=csv&collection=edges",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertIn("text/csv", response.getheader("Content-Type", ""))
+                self.assertIn("edge_id", response.read().decode("utf-8").splitlines()[0])
+                connection.close()
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=3)
 
     def test_cli_and_api_surfaces_return_the_same_review_contract(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

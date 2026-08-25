@@ -763,6 +763,10 @@ separate from any aggregate score:
 glio-noncode review-workspace RUN_ID --data-root .glio --output review-workspace.json
 glio-noncode review-workspace RUN_ID --baseline-run-id BASELINE_RUN_ID --data-root .glio --output review-deltas.json
 glio-noncode review-workspace-schema --output review-workspace-schema.json
+glio-noncode review-workspace-export RUN_ID --data-root .glio --format markdown --output review-workspace.md
+glio-noncode review-workspace-export RUN_ID --data-root .glio --format csv --collection evidence --output evidence.csv
+glio-noncode review-workspace-release RUN_ID --data-root .glio --output review-release
+glio-noncode review-workspace-release-verify review-release --output verification.json
 ```
 
 See [review workspace operations](docs/REVIEW_WORKSPACE.md).

@@ -3875,6 +3875,9 @@ glio-noncode review-workspace RUN_ID --data-root .glio --output review-workspace
 glio-noncode review-workspace RUN_ID --baseline-run-id BASELINE_RUN_ID --data-root .glio --output review-deltas.json
 glio-noncode review-workspace-schema --output review-workspace-schema.json
 glio-noncode review-workspace-capabilities --output review-workspace-capabilities.json
+glio-noncode review-workspace-export RUN_ID --data-root .glio --format markdown --output review-workspace.md
+glio-noncode review-workspace-release RUN_ID --data-root .glio --output review-release
+glio-noncode review-workspace-release-verify review-release --output verification.json
 ```
 
 See [the review workspace contract](REVIEW_WORKSPACE.md).

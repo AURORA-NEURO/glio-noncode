@@ -145,6 +145,7 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/inspection` | Return the complete run inspection closure |
 | GET | `/v1/runs/{run_id}/workspace` | Reopen a replay-verified case as a bounded workspace projection |
 | GET | `/v1/runs/{run_id}/review-workspace` | Reopen a replay-verified run as a provenance-first review workspace; optional `baseline_run_id` emits deltas |
+| GET | `/v1/runs/{run_id}/review-workspace/export` | Return deterministic JSON, Markdown, or one CSV review projection; use `format` and optional `collection` query parameters |
 | GET | `/v1/runs/{run_id}/workspace/closure` | Return the complete content-addressed run workspace closure |
 | GET | `/v1/runs/{run_id}/workspace/history` | Rebuild every verified dossier snapshot as a workspace timeline |
 | GET | `/v1/runs/{run_id}/workspace/compare` | Compare two historical workspace snapshots by public record identity |

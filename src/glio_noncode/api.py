@@ -234,6 +234,10 @@ from .review_workspace import (
     review_workspace_capabilities,
     review_workspace_schema,
 )
+from .review_workspace_exports import (
+    render_review_workspace_markdown,
+    review_workspace_collection_csv,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -511,6 +515,23 @@ class ApiHandler(BaseHTTPRequestHandler):
         body = _json_bytes(payload)
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        for name, value in (headers or {}).items():
+            self.send_header(name, value)
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _write_bytes(
+        self,
+        status: int,
+        body: bytes,
+        *,
+        content_type: str,
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         for name, value in (headers or {}).items():
@@ -2062,6 +2083,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
                 is_workspace = len(segments) == 4 and segments[3] == "workspace"
                 is_review_workspace = len(segments) == 4 and segments[3] == "review-workspace"
+                is_review_workspace_export = (
+                    len(segments) == 5
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "export"
+                )
                 is_workspace_closure = (
                     len(segments) == 5
                     and segments[3] == "workspace"
@@ -2101,6 +2127,37 @@ class ApiHandler(BaseHTTPRequestHandler):
                         config=config,
                     )
                     self._write(HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, report.to_dict())
+                    return
+                if is_review_workspace_export:
+                    query = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query, "config")
+                    config = ReviewWorkspaceConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    report = build_persisted_review_workspace(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query, "baseline_run_id"),
+                        config=config,
+                    )
+                    export_format = (self._query_value(query, "format") or "json").casefold()
+                    if export_format == "markdown":
+                        payload = render_review_workspace_markdown(report).encode("utf-8")
+                        media_type = "text/markdown; charset=utf-8"
+                    elif export_format == "csv":
+                        collection = self._query_value(query, "collection") or "hypotheses"
+                        payload = review_workspace_collection_csv(report, collection).encode("utf-8")
+                        media_type = "text/csv; charset=utf-8"
+                    elif export_format == "json":
+                        payload = (_json_bytes(report.to_dict()) + b"\n")
+                        media_type = "application/json; charset=utf-8"
+                    else:
+                        raise ValueError("review workspace export format must be json, markdown, or csv")
+                    self._write_bytes(
+                        HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        payload,
+                        content_type=media_type,
+                    )
                     return
                 if is_workspace_history:
                     query = parse_qs(parsed.query, keep_blank_values=False)

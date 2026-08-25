@@ -1708,6 +1708,13 @@ from .review_workspace import (
     review_workspace_capabilities,
     review_workspace_schema,
 )
+from .review_workspace_exports import (
+    build_review_workspace_release,
+    render_review_workspace_markdown,
+    review_workspace_collection_csv,
+    verify_review_workspace_release,
+    write_review_workspace_release,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -3323,6 +3330,40 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit operational review workspace capabilities",
     )
     review_workspace_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_export = subparsers.add_parser(
+        "review-workspace-export",
+        help="export one deterministic JSON, Markdown, or CSV review projection",
+    )
+    review_workspace_export.add_argument("run_id", type=str)
+    review_workspace_export.add_argument("--data-root", default=".glio")
+    review_workspace_export.add_argument("--baseline-run-id", default=None)
+    review_workspace_export.add_argument(
+        "--format", choices=("json", "markdown", "csv"), default="json"
+    )
+    review_workspace_export.add_argument(
+        "--collection",
+        choices=("hypotheses", "edges", "evidence", "alternatives", "deltas", "provenance", "review_queue"),
+        default="hypotheses",
+    )
+    review_workspace_export.add_argument("--output", default=None)
+
+    review_workspace_release = subparsers.add_parser(
+        "review-workspace-release",
+        help="write a deterministic portable review workspace release",
+    )
+    review_workspace_release.add_argument("run_id", type=str)
+    review_workspace_release.add_argument("--data-root", default=".glio")
+    review_workspace_release.add_argument("--baseline-run-id", default=None)
+    review_workspace_release.add_argument("--output", required=True)
+    review_workspace_release.add_argument("--allow-existing", action="store_true")
+
+    review_workspace_release_verify = subparsers.add_parser(
+        "review-workspace-release-verify",
+        help="verify a deterministic portable review workspace release",
+    )
+    review_workspace_release_verify.add_argument("input", type=str)
+    review_workspace_release_verify.add_argument("--output", default=None)
 
     run_workspace_history = subparsers.add_parser(
         "run-workspace-history",
@@ -22088,6 +22129,33 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "review-workspace-capabilities":
             _write_json(review_workspace_capabilities(), args.output)
             return 0
+        if args.command == "review-workspace-export":
+            report = build_persisted_review_workspace(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            if args.format == "markdown":
+                _write_text(render_review_workspace_markdown(report), args.output)
+            elif args.format == "csv":
+                _write_text(review_workspace_collection_csv(report, args.collection), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "review-workspace-release":
+            report = build_persisted_review_workspace(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            bundle = build_review_workspace_release(report)
+            write_review_workspace_release(bundle, args.output, allow_existing=args.allow_existing)
+            print(f"review workspace release written to {args.output}")
+            return 0 if bundle.accepted else 2
+        if args.command == "review-workspace-release-verify":
+            verification = verify_review_workspace_release(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "run-workspace-history":
             history = build_persisted_workspace_history(
                 CaseRuntime(args.data_root),

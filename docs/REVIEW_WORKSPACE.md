@@ -40,12 +40,33 @@ glio-noncode review-workspace RUN_ID --data-root .glio --output review-workspace
 glio-noncode review-workspace RUN_ID --data-root .glio --baseline-run-id BASELINE_RUN_ID --output review-deltas.json
 glio-noncode review-workspace-schema --output review-workspace-schema.json
 glio-noncode review-workspace-capabilities --output review-workspace-capabilities.json
+glio-noncode review-workspace-export RUN_ID --data-root .glio --format markdown --output review-workspace.md
+glio-noncode review-workspace-export RUN_ID --data-root .glio --format csv --collection edges --output edges.csv
+glio-noncode review-workspace-release RUN_ID --data-root .glio --output review-release
+glio-noncode review-workspace-release-verify review-release --output verification.json
 ```
 
 The command exits successfully when the public projection is safe to consume,
 including when its review state is `review`. `abstained` and `blocked` are
 content states that remain inspectable when the run itself is valid; failed
 replay verification returns no reasoning collections.
+
+## Exports and portable release
+
+`review-workspace-export` renders JSON, Markdown, or one named CSV collection.
+The named collections are `hypotheses`, `edges`, `evidence`, `alternatives`,
+`deltas`, `provenance`, and `review_queue`. Markdown includes coverage,
+integrity, warnings, and all review collections; CSV uses stable headers,
+sorted source views, JSON-encoded collection cells, and LF line endings.
+
+`review-workspace-release` packages the JSON projection, Markdown report, and
+all seven CSV collections into nine UTF-8 artifacts. `manifest.json` records
+byte count, line count, media type, and a content address for each artifact.
+`review-workspace-release-verify` independently checks the manifest address,
+exact bytes, safe direct filenames, unexpected files, and the public boundary.
+The API remains read-only: `GET /v1/runs/{run_id}/review-workspace/export`
+supports `format=json|markdown|csv` and `collection` for CSV; filesystem
+materialization is an explicit CLI operation.
 
 ## API
 
