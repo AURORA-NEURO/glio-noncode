@@ -45,6 +45,15 @@ class PublicSurfaceAuditTests(unittest.TestCase):
         self.assertFalse(bad_check.accepted)
         self.assertIn("$.agent_id", bad_check.violation_paths)
 
+    def test_inventory_closes_the_durable_service_release_handoff(self) -> None:
+        handoff = next(
+            item
+            for item in self.audit.checks
+            if item.surface_id == "service-release-handoff"
+        )
+        self.assertTrue(handoff.accepted)
+        self.assertEqual(handoff.violation_paths, ())
+
     def test_cli_writes_accepted_audit(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             output = f"{directory}/public-surface-audit.json"

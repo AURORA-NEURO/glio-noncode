@@ -6,7 +6,11 @@ from collections.abc import Mapping
 from typing import Any
 
 from .capability_certification_contracts import CapabilityCertificationState
-from .public_surface_audit import PublicSurfaceAudit, build_default_public_surface_audit
+from .public_surface_audit import (
+    PUBLIC_SURFACE_EXPECTED_COUNT,
+    PublicSurfaceAudit,
+    build_default_public_surface_audit,
+)
 from .serialization import content_hash, jsonable, require_non_empty
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_contracts import ServiceReleaseSnapshot
@@ -214,9 +218,10 @@ def _cross_checks(
             "cross:public-audit",
             "cross-plane",
             ReleaseAssurancePlane.PUBLIC_BOUNDARY,
-            public_audit.surface_count == 25 and public_audit.passed_surface_count == 25,
+            public_audit.surface_count == PUBLIC_SURFACE_EXPECTED_COUNT
+            and public_audit.passed_surface_count == PUBLIC_SURFACE_EXPECTED_COUNT,
             public_audit.surface_count,
-            25,
+            PUBLIC_SURFACE_EXPECTED_COUNT,
             (public_audit.content_address,),
         ),
         check(

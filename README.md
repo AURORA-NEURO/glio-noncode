@@ -688,8 +688,8 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 25-surface audit suitable for
-local release checks and CI.
+schema fields. The result is a deterministic 26-surface audit, including the
+durable service-release handoff, suitable for local release checks and CI.
 
 The D16 coordination architecture now composes all 16 platform-control
 capabilities into one functional public-aggregate runtime. It contains 16

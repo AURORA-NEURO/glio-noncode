@@ -34,11 +34,13 @@ from .workbench_release_frontier_offline_schema import workbench_release_offline
 from .deployment_frontier_offline_bundle import build_deployment_frontier_offline_bundle
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
 from .service_release_bundle import build_service_release_snapshot
+from .service_release_handoff import build_service_release_handoff
 from .service_release_query import query_service_release
+from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 25
+PUBLIC_SURFACE_EXPECTED_COUNT = 26
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -204,6 +206,7 @@ def default_public_surface_inventory(
     evidence_lifecycle_bundle: Any | None = None,
     workbench_release_bundle: Any | None = None,
     deployment_frontier_bundle: Any | None = None,
+    service_release_handoff: Any | None = None,
 ) -> dict[str, Any]:
     """Build the stable inventory of service, bundle, schema, and closure views."""
 
@@ -215,6 +218,15 @@ def default_public_surface_inventory(
     workbench_release_value = workbench_release_bundle or build_workbench_release_offline_bundle()
     deployment_frontier_value = deployment_frontier_bundle or build_deployment_frontier_offline_bundle()
     service_release_value = build_service_release_snapshot(selected)
+    service_release_runtime = run_service_release(
+        selected,
+        bundle_id="glio-noncode-public-surface-service-release",
+        run_id="glio-noncode-public-surface-service-release-run",
+    )
+    service_release_handoff_value = service_release_handoff or build_service_release_handoff(
+        service_release_runtime,
+        selected,
+    )
     return {
         "capability-certification-bundle-manifest": capability_value.to_dict(include_payloads=False),
         "capability-certification-bundle-schema": capability_certification_bundle_schema(),
@@ -241,6 +253,7 @@ def default_public_surface_inventory(
         "service-release-snapshot": service_release_value,
         "service-release-schema": service_release_schema(),
         "service-release-query": query_service_release(service_release_value),
+        "service-release-handoff": service_release_handoff_value,
     }
 
 
@@ -253,6 +266,7 @@ def build_default_public_surface_audit(
     evidence_lifecycle_bundle: Any | None = None,
     workbench_release_bundle: Any | None = None,
     deployment_frontier_bundle: Any | None = None,
+    service_release_handoff: Any | None = None,
 ) -> PublicSurfaceAudit:
     """Execute and audit all default public service and handoff projections."""
 
@@ -265,6 +279,7 @@ def build_default_public_surface_audit(
             evidence_lifecycle_bundle=evidence_lifecycle_bundle,
             workbench_release_bundle=workbench_release_bundle,
             deployment_frontier_bundle=deployment_frontier_bundle,
+            service_release_handoff=service_release_handoff,
         )
     )
 
