@@ -17,6 +17,11 @@ report or runtime from which it was derived.
 | GET | `/v1/module-fabric/bundle/observability` | Return deterministic bundle events and metrics |
 | GET | `/v1/module-fabric/bundle/runtime` | Run the staged bundle assembly and replay receipt |
 | GET | `/v1/module-fabric/bundle/schema` | Return the closed bundle manifest schema |
+| GET | `/v1/capability-certification/bundle` | Build the public 12-artifact capability certification bundle |
+| GET | `/v1/capability-certification/bundle/query` | Query certified bundle certificates, domains, checks, or artifacts |
+| GET | `/v1/capability-certification/bundle/observability` | Return certification bundle events and metrics |
+| GET | `/v1/capability-certification/bundle/runtime` | Run bundle assembly and deterministic replay |
+| GET | `/v1/capability-certification/bundle/schema` | Return the closed certification bundle schema |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
