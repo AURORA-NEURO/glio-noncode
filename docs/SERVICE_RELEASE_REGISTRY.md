@@ -85,6 +85,13 @@ reuse the immutable registry object.
 | GET | `/v1/service-release/views` | Five reviewer-oriented tables |
 | GET | `/v1/service-release/runtime` | Fourteen-stage runtime report |
 | GET | `/v1/service-release/export` | Exact-byte export packet manifest |
+| GET | `/v1/service-release/handoff` | Durable 13-artifact handoff metadata packet |
+| GET | `/v1/service-release/handoff/status?directory=...` | Compact verified handoff status |
+| GET | `/v1/service-release/handoff/inspect?directory=...` | Manifest-only handoff inspection |
+| GET | `/v1/service-release/handoff/verify?directory=...` | Independent filesystem verification |
+| GET | `/v1/service-release/handoff/query?directory=...` | Bounded verified artifact query |
+| GET | `/v1/service-release/handoff/diff?left_directory=...&right_directory=...` | Address-only handoff diff |
+| GET | `/v1/service-release/handoff/replay?directory=...` | Deterministic verification replay |
 
 Query accepts `resource`, `surface_id`, `state`, `relation`, `accepted`, `q`,
 `offset`, and `limit`. The resource contract is bounded to `surfaces`,
@@ -174,6 +181,43 @@ The verifier rejects missing files, unexpected files, duplicate paths, parent
 traversal, drive-qualified paths, altered bytes, invalid UTF-8, and public
 boundary violations. It also verifies that the manifest lists the same path
 set that exists on disk.
+
+## Durable handoff
+
+The handoff is the operational filesystem boundary above the in-memory
+registry and the compatibility export. It retains the same thirteen aggregate
+artifacts while adding stable artifact identifiers, surface IDs, source
+addresses, required-artifact denominators, a schema version, a run ID, and a
+manifest content address. Artifact payloads remain outside the manifest so a
+consumer can inspect catalog metadata before reading bytes.
+
+Build and verify it with:
+
+```text
+glio-noncode service-release-handoff --plane build --destination service-release-handoff --output service-release-handoff.json
+glio-noncode service-release-handoff --plane status --directory service-release-handoff
+glio-noncode service-release-handoff --plane inspect --directory service-release-handoff
+glio-noncode service-release-handoff --plane verify --directory service-release-handoff
+glio-noncode service-release-handoff --plane query --directory service-release-handoff --surface-id program-release
+glio-noncode service-release-handoff --plane diff --directory service-release-handoff --right-directory service-release-handoff-next
+glio-noncode service-release-handoff --plane replay --directory service-release-handoff
+glio-noncode service-release-handoff-verify service-release-handoff
+```
+
+Writes use sibling temporary files, flush and sync each payload, and atomically
+replace the target. A non-empty destination requires explicit
+`--allow-existing`; no recursive deletion is performed. Verification rejects
+missing or unexpected files, duplicate IDs and paths, unsafe paths,
+symlinked parents, byte-count drift, line-count drift, content-address drift,
+malformed JSON, forbidden public-boundary headers, and manifest denominator or
+version drift. Queries verify the directory first and preserve a blocked state
+in their result rather than presenting tampered metadata as accepted.
+
+The API build route returns packet metadata only. Filesystem routes require an
+explicit local `directory` parameter and never return artifact bytes through
+the service surface. Diff compares artifact content addresses and separately
+retains manifest identity changes; replay runs the verifier twice and requires
+identical verification addresses.
 
 ## Address and replay model
 

@@ -1472,6 +1472,10 @@ jobs:
         run: python -m glio_noncode service-release --plane runtime --output /tmp/glio-service-release-runtime.json
       - name: Service release registry schema command
         run: python -m glio_noncode service-release --plane schema --output /tmp/glio-service-release-schema.json
+      - name: Durable service release handoff focused tests
+        run: python -m unittest tests.test_service_release_handoff
+      - name: Durable service release handoff build and verification
+        run: python -m glio_noncode service-release-handoff --plane build --destination /tmp/glio-service-release-handoff --output /tmp/glio-service-release-handoff.json && python -m glio_noncode service-release-handoff-verify /tmp/glio-service-release-handoff --output /tmp/glio-service-release-handoff-verification.json
       - name: Whole-product release assurance focused tests
         run: python -m unittest tests.test_release_assurance
       - name: Durable release assurance handoff focused tests

@@ -26,6 +26,13 @@ report or runtime from which it was derived.
 | GET | `/v1/service-release/views` | Return five reviewer-oriented registry views |
 | GET | `/v1/service-release/runtime` | Run the fourteen-stage registry runtime and replay gate |
 | GET | `/v1/service-release/export` | Return the exact-byte service-release packet manifest |
+| GET | `/v1/service-release/handoff` | Build durable service-release handoff metadata |
+| GET | `/v1/service-release/handoff/status?directory=...` | Verify and return handoff status |
+| GET | `/v1/service-release/handoff/inspect?directory=...` | Inspect handoff manifest metadata |
+| GET | `/v1/service-release/handoff/verify?directory=...` | Verify handoff files and boundaries |
+| GET | `/v1/service-release/handoff/query?directory=...` | Query verified handoff artifacts |
+| GET | `/v1/service-release/handoff/diff?left_directory=...&right_directory=...` | Compare handoff addresses |
+| GET | `/v1/service-release/handoff/replay?directory=...` | Replay handoff verification |
 | GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
 | GET | `/v1/module-fabric/bundle` | Build the public 21-artifact module-fabric bundle projection |
 | GET | `/v1/module-fabric/bundle/query` | Query bundle artifacts or public aggregate records |

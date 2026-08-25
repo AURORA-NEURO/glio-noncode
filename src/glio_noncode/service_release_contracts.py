@@ -20,6 +20,8 @@ SERVICE_RELEASE_VERSION = "service-release-v1"
 SERVICE_RELEASE_SCHEMA_VERSION = "service-release-schema-v1"
 SERVICE_RELEASE_RUNTIME_VERSION = "service-release-runtime-v1"
 SERVICE_RELEASE_EXPORT_VERSION = "service-release-export-v1"
+SERVICE_RELEASE_HANDOFF_VERSION = "service-release-handoff-v1"
+SERVICE_RELEASE_HANDOFF_SCHEMA_VERSION = "service-release-handoff-schema-v1"
 SERVICE_RELEASE_BOUNDARY = "public_service_release_registry_handoff"
 SERVICE_RELEASE_DEFAULT_LIMIT = 50
 SERVICE_RELEASE_MAX_LIMIT = 500
@@ -57,6 +59,9 @@ SERVICE_RELEASE_RESOURCE_NAMES = (
     "metrics",
     "views",
 )
+SERVICE_RELEASE_HANDOFF_ARTIFACT_COUNT = SERVICE_RELEASE_ARTIFACT_COUNT
+SERVICE_RELEASE_HANDOFF_MAX_ARTIFACTS = 32
+SERVICE_RELEASE_HANDOFF_RESOURCE_NAMES = ("artifacts", "manifest", "status")
 
 
 class ServiceReleaseState(StrEnum):
@@ -64,6 +69,15 @@ class ServiceReleaseState(StrEnum):
 
     READY = "ready"
     BLOCKED = "blocked"
+
+
+class ServiceReleaseHandoffState(StrEnum):
+    """Filesystem state of a durable service-release handoff."""
+
+    READY = "ready"
+    BLOCKED = "blocked"
+    MISSING = "missing"
+    INSPECTED = "inspected"
 
 
 class ServiceReleasePlane(StrEnum):
@@ -639,6 +653,151 @@ class ServiceReleaseExportVerification:
     unsafe_paths: tuple[str, ...]
     tampered_paths: tuple[str, ...]
     boundary_violations: tuple[str, ...]
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceReleaseHandoffArtifact:
+    """One exact-byte artifact in the durable service-release handoff."""
+
+    artifact_id: str
+    surface_id: str
+    relative_path: str
+    media_type: str
+    source_address: str
+    byte_count: int
+    line_count: int
+    content_address: str
+    required: bool
+    content: bytes
+
+    def metadata_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {"content": None}
+
+    def to_dict(self) -> dict[str, Any]:
+        return self.metadata_dict()
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceReleaseHandoffManifest:
+    """Manifest metadata that can be verified without source code."""
+
+    version: str
+    schema_version: str
+    bundle_id: str
+    run_id: str
+    artifact_count: int
+    required_artifact_count: int
+    artifacts: tuple[dict[str, Any], ...]
+    source_addresses: tuple[tuple[str, str], ...]
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceReleaseHandoffPacket:
+    """In-memory service-release handoff ready for filesystem persistence."""
+
+    bundle_id: str
+    run_id: str
+    artifacts: tuple[ServiceReleaseHandoffArtifact, ...]
+    manifest: ServiceReleaseHandoffManifest
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "bundle_id": self.bundle_id,
+            "run_id": self.run_id,
+            "artifacts": [item.metadata_dict() for item in self.artifacts],
+            "manifest": self.manifest.to_dict(),
+            "accepted": self.accepted,
+            "content_address": self.content_address,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceReleaseHandoffVerification:
+    """Independent filesystem verification for a service-release handoff."""
+
+    directory: str
+    state: ServiceReleaseHandoffState
+    bundle_id: str
+    run_id: str
+    checked_artifact_count: int
+    missing_paths: tuple[str, ...]
+    unexpected_paths: tuple[str, ...]
+    duplicate_paths: tuple[str, ...]
+    unsafe_paths: tuple[str, ...]
+    tampered_paths: tuple[str, ...]
+    boundary_violations: tuple[str, ...]
+    manifest_drift: tuple[str, ...]
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceReleaseHandoffInspection:
+    """Manifest-only metadata inspection for catalog tooling."""
+
+    directory: str
+    state: ServiceReleaseHandoffState
+    bundle_id: str
+    run_id: str
+    artifact_count: int
+    required_artifact_count: int
+    artifact_ids: tuple[str, ...]
+    accepted: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceReleaseHandoffQueryResult:
+    """Bounded query result over verified service-release handoff metadata."""
+
+    directory: str
+    resource: str
+    total: int
+    offset: int
+    limit: int
+    items: tuple[dict[str, Any], ...]
+    accepted: bool
+    content_address: str
+
+    @property
+    def has_more(self) -> bool:
+        return self.offset + len(self.items) < self.total
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self) | {"has_more": self.has_more}
+
+
+@dataclass(frozen=True, slots=True)
+class ServiceReleaseHandoffDiff:
+    """Address-only comparison between two service-release handoffs."""
+
+    left_directory: str
+    right_directory: str
+    left_manifest_address: str
+    right_manifest_address: str
+    added_artifact_ids: tuple[str, ...]
+    removed_artifact_ids: tuple[str, ...]
+    changed_artifact_ids: tuple[str, ...]
+    unchanged_artifact_ids: tuple[str, ...]
+    identical: bool
     accepted: bool
     content_address: str
 

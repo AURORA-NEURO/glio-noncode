@@ -211,6 +211,15 @@ from .service_surface import (
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
 from .service_release_export import build_service_release_export
+from .service_release_handoff import (
+    build_service_release_handoff,
+    diff_service_release_handoffs,
+    inspect_service_release_handoff,
+    query_service_release_handoff,
+    replay_service_release_handoff,
+    service_release_handoff_status,
+    verify_service_release_handoff,
+)
 from .service_release_failure_injection import run_service_release_failure_injections
 from .service_release_graph import build_service_release_graph
 from .service_release_indexes import audit_service_release_indexes, build_service_release_indexes
@@ -476,6 +485,13 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/service-release/views",
             "/v1/service-release/runtime",
             "/v1/service-release/export",
+            "/v1/service-release/handoff",
+            "/v1/service-release/handoff/status",
+            "/v1/service-release/handoff/inspect",
+            "/v1/service-release/handoff/verify",
+            "/v1/service-release/handoff/query",
+            "/v1/service-release/handoff/diff",
+            "/v1/service-release/handoff/replay",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
@@ -494,7 +510,51 @@ class ApiHandler(BaseHTTPRequestHandler):
                     runtime = run_service_release(source, bundle_id=bundle_id, run_id=run_id)
                     self._write(HTTPStatus.OK, build_service_release_export(runtime, source).to_dict())
                     return
-                if path == "/v1/service-release":
+                if path == "/v1/service-release/handoff":
+                    runtime = run_service_release(source, bundle_id=bundle_id, run_id=run_id)
+                    payload = build_service_release_handoff(runtime, source).to_dict()
+                elif path.endswith("/handoff/status"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for service-release handoff status")
+                    payload = service_release_handoff_status(directory)
+                elif path.endswith("/handoff/inspect"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for service-release handoff inspection")
+                    payload = inspect_service_release_handoff(directory).to_dict()
+                elif path.endswith("/handoff/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for service-release handoff verification")
+                    payload = verify_service_release_handoff(directory).to_dict()
+                elif path.endswith("/handoff/query"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for service-release handoff query")
+                    payload = query_service_release_handoff(
+                        directory,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        artifact_id=self._query_value(query, "artifact_id"),
+                        surface_id=self._query_value(query, "surface_id"),
+                        media_type=self._query_value(query, "media_type"),
+                        required_only=self._query_bool(query, "required_only"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/handoff/diff"):
+                    left_directory = self._query_value(query, "left_directory")
+                    right_directory = self._query_value(query, "right_directory")
+                    if not left_directory or not right_directory:
+                        raise ValueError("left_directory and right_directory are required for service-release handoff diff")
+                    payload = diff_service_release_handoffs(left_directory, right_directory).to_dict()
+                elif path.endswith("/handoff/replay"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for service-release handoff replay")
+                    payload = replay_service_release_handoff(directory)
+                elif path == "/v1/service-release":
                     payload = snapshot.to_dict()
                 elif path.endswith("/query"):
                     payload = query_service_release(

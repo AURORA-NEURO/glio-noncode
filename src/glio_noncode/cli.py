@@ -21,6 +21,16 @@ from .service_surface import build_service_surface_closure, build_service_surfac
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
 from .service_release_export import build_service_release_export, verify_service_release_export, write_service_release_export
+from .service_release_handoff import (
+    build_service_release_handoff,
+    diff_service_release_handoffs,
+    inspect_service_release_handoff,
+    query_service_release_handoff,
+    replay_service_release_handoff,
+    service_release_handoff_status,
+    verify_service_release_handoff,
+    write_service_release_handoff,
+)
 from .service_release_failure_injection import run_service_release_failure_injections
 from .service_release_graph import build_service_release_graph
 from .service_release_indexes import audit_service_release_indexes, build_service_release_indexes
@@ -2896,6 +2906,36 @@ def build_parser() -> argparse.ArgumentParser:
     )
     service_release_verify.add_argument("directory")
     service_release_verify.add_argument("--output", default=None)
+    service_release_handoff = subparsers.add_parser(
+        "service-release-handoff",
+        help="build, inspect, query, compare, replay, or verify a durable service-release handoff",
+    )
+    service_release_handoff.add_argument(
+        "--plane",
+        choices=("build", "status", "inspect", "verify", "query", "diff", "replay"),
+        default="build",
+    )
+    service_release_handoff.add_argument("--bundle-id", default="glio-noncode-service-release")
+    service_release_handoff.add_argument("--run-id", default="glio-noncode-service-release-run")
+    service_release_handoff.add_argument("--directory", default=None)
+    service_release_handoff.add_argument("--right-directory", default=None)
+    service_release_handoff.add_argument("--resource", default="artifacts")
+    service_release_handoff.add_argument("--artifact-id", default=None)
+    service_release_handoff.add_argument("--surface-id", default=None)
+    service_release_handoff.add_argument("--media-type", default=None)
+    service_release_handoff.add_argument("--required-only", action="store_true")
+    service_release_handoff.add_argument("--text", default=None)
+    service_release_handoff.add_argument("--offset", default=0, type=int)
+    service_release_handoff.add_argument("--limit", default=50, type=int)
+    service_release_handoff.add_argument("--destination", default=None)
+    service_release_handoff.add_argument("--allow-existing", action="store_true")
+    service_release_handoff.add_argument("--output", default=None)
+    service_release_handoff_verify = subparsers.add_parser(
+        "service-release-handoff-verify",
+        help="verify an on-disk service-release handoff",
+    )
+    service_release_handoff_verify.add_argument("directory")
+    service_release_handoff_verify.add_argument("--output", default=None)
     release_assurance = subparsers.add_parser(
         "release-assurance",
         help="emit, query, audit, or export the whole-product release-assurance gate",
@@ -20934,6 +20974,58 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if payload.get("accepted", False) else 2
         if args.command == "service-release-export-verify":
             verification = verify_service_release_export(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "service-release-handoff":
+            if args.plane == "build":
+                source = build_service_surface_snapshot()
+                runtime = run_service_release(source, bundle_id=args.bundle_id, run_id=args.run_id)
+                packet = build_service_release_handoff(runtime, source)
+                if args.destination:
+                    write_service_release_handoff(
+                        packet,
+                        args.destination,
+                        allow_existing=args.allow_existing,
+                    )
+                payload = packet.to_dict()
+            elif args.plane == "status":
+                if not args.directory:
+                    raise ValueError("--directory is required for service-release handoff status")
+                payload = service_release_handoff_status(args.directory)
+            elif args.plane == "inspect":
+                if not args.directory:
+                    raise ValueError("--directory is required for service-release handoff inspection")
+                payload = inspect_service_release_handoff(args.directory).to_dict()
+            elif args.plane == "verify":
+                if not args.directory:
+                    raise ValueError("--directory is required for service-release handoff verification")
+                payload = verify_service_release_handoff(args.directory).to_dict()
+            elif args.plane == "query":
+                if not args.directory:
+                    raise ValueError("--directory is required for service-release handoff query")
+                payload = query_service_release_handoff(
+                    args.directory,
+                    resource=args.resource,
+                    artifact_id=args.artifact_id,
+                    surface_id=args.surface_id,
+                    media_type=args.media_type,
+                    required_only=args.required_only,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            elif args.plane == "diff":
+                if not args.directory or not args.right_directory:
+                    raise ValueError("--directory and --right-directory are required for service-release handoff diff")
+                payload = diff_service_release_handoffs(args.directory, args.right_directory).to_dict()
+            else:
+                if not args.directory:
+                    raise ValueError(f"--directory is required for service-release handoff {args.plane}")
+                payload = replay_service_release_handoff(args.directory)
+            _write_json(payload, args.output)
+            return 0 if payload.get("accepted", False) else 2
+        if args.command == "service-release-handoff-verify":
+            verification = verify_service_release_handoff(args.directory)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
         if args.command == "release-assurance":

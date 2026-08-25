@@ -187,6 +187,21 @@ glio-noncode service-release --plane export --destination service-release-export
 glio-noncode service-release-export-verify service-release-export --output service-release-verification.json
 ```
 
+The durable service-release handoff adds a versioned, independently verified
+filesystem boundary over the same 13 aggregate artifacts:
+
+```text
+glio-noncode service-release-handoff --plane build --destination service-release-handoff --output service-release-handoff.json
+glio-noncode service-release-handoff --plane verify --directory service-release-handoff --output service-release-handoff-verification.json
+glio-noncode service-release-handoff --plane query --directory service-release-handoff --surface-id program-release
+glio-noncode service-release-handoff --plane replay --directory service-release-handoff
+glio-noncode service-release-handoff-verify service-release-handoff
+```
+
+See [docs/SERVICE_RELEASE_REGISTRY.md](docs/SERVICE_RELEASE_REGISTRY.md) for
+atomic writes, manifest inspection, bounded queries, address-only diffs,
+replay receipts, symlink controls, and public-boundary verification.
+
 See [docs/SERVICE_RELEASE_REGISTRY.md](docs/SERVICE_RELEASE_REGISTRY.md) for
 the full API, schema, query, export, reconciliation, negative-control, and
 replay contracts.
