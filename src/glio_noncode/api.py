@@ -121,6 +121,18 @@ from .deployment_frontier_offline_reconciliation import reconcile_deployment_fro
 from .deployment_frontier_offline_runtime import build_deployment_frontier_offline_observability, run_deployment_frontier_offline_runtime
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
 from .deployment_frontier_offline_summary import audit_deployment_frontier_offline_summary, build_deployment_frontier_offline_summary
+from .deployment_frontier_offline_closure_boundary import audit_deployment_frontier_closure_boundary
+from .deployment_frontier_offline_closure_certification import certify_deployment_frontier_closure
+from .deployment_frontier_offline_closure_export import build_deployment_frontier_closure_export
+from .deployment_frontier_offline_closure_failure_injection import build_deployment_frontier_closure_failure_report
+from .deployment_frontier_offline_closure_graph import build_deployment_frontier_closure_graph
+from .deployment_frontier_offline_closure_indexes import audit_deployment_frontier_closure_indexes, build_deployment_frontier_closure_indexes
+from .deployment_frontier_offline_closure_observability import build_deployment_frontier_closure_observability
+from .deployment_frontier_offline_closure_query import query_deployment_frontier_closure
+from .deployment_frontier_offline_closure_reconciliation import reconcile_deployment_frontier_closure
+from .deployment_frontier_offline_closure_runtime import run_deployment_frontier_closure_runtime
+from .deployment_frontier_offline_closure_schema import build_deployment_frontier_closure_schema
+from .deployment_frontier_offline_closure_summary import audit_deployment_frontier_closure_summary, build_deployment_frontier_closure_summary
 from .program_runtime_offline_audit import audit_program_runtime_offline_bundle
 from .program_runtime_offline_boundary import audit_program_runtime_offline_boundary
 from .program_runtime_offline_bundle import build_program_runtime_offline_bundle
@@ -320,6 +332,75 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/deployment-frontier/bundle/closure-query",
+            "/v1/deployment-frontier/bundle/closure-schema",
+            "/v1/deployment-frontier/bundle/closure-boundary",
+            "/v1/deployment-frontier/bundle/closure-indexes",
+            "/v1/deployment-frontier/bundle/closure-reconciliation",
+            "/v1/deployment-frontier/bundle/closure-summary",
+            "/v1/deployment-frontier/bundle/closure-certification",
+            "/v1/deployment-frontier/bundle/closure-observability",
+            "/v1/deployment-frontier/bundle/closure-runtime",
+            "/v1/deployment-frontier/bundle/closure-failures",
+            "/v1/deployment-frontier/bundle/closure-graph",
+            "/v1/deployment-frontier/bundle/closure-export",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "deployment-frontier-public-bundle"
+                run_id = self._query_value(query, "run_id") or "deployment-frontier-offline-runtime"
+                if path.endswith("/closure-schema"):
+                    self._write(HTTPStatus.OK, build_deployment_frontier_closure_schema())
+                    return
+                bundle = build_deployment_frontier_offline_bundle(bundle_id=bundle_id, run_id=run_id)
+                if path.endswith("/closure-query"):
+                    payload = query_deployment_frontier_closure(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "records",
+                        operation=self._query_value(query, "operation"),
+                        role=self._query_value(query, "role"),
+                        state=self._query_value(query, "state"),
+                        capability=self._query_value(query, "capability"),
+                        priority=self._query_value(query, "priority"),
+                        severity=self._query_value(query, "severity"),
+                        stage_id=self._query_value(query, "stage_id"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/closure-boundary"):
+                    payload = audit_deployment_frontier_closure_boundary(bundle).to_dict()
+                elif path.endswith("/closure-indexes"):
+                    indexes = build_deployment_frontier_closure_indexes(bundle)
+                    payload = {"indexes": indexes.to_dict(), "audit": audit_deployment_frontier_closure_indexes(bundle, indexes).to_dict()}
+                elif path.endswith("/closure-reconciliation"):
+                    payload = reconcile_deployment_frontier_closure(bundle).to_dict()
+                elif path.endswith("/closure-summary"):
+                    summary = build_deployment_frontier_closure_summary(bundle)
+                    payload = {"summary": summary.to_dict(), "audit": audit_deployment_frontier_closure_summary(summary).to_dict()}
+                elif path.endswith("/closure-certification"):
+                    payload = certify_deployment_frontier_closure(bundle).to_dict()
+                elif path.endswith("/closure-observability"):
+                    payload = build_deployment_frontier_closure_observability(bundle).to_dict()
+                elif path.endswith("/closure-runtime"):
+                    payload = run_deployment_frontier_closure_runtime(bundle_id=bundle_id, run_id=run_id).to_dict()
+                elif path.endswith("/closure-failures"):
+                    payload = build_deployment_frontier_closure_failure_report(bundle).to_dict()
+                elif path.endswith("/closure-graph"):
+                    payload = build_deployment_frontier_closure_graph(bundle).to_dict()
+                elif path.endswith("/closure-export"):
+                    payload = build_deployment_frontier_closure_export(bundle).to_dict()
+                else:  # pragma: no cover - path set is exhaustive
+                    payload = {"error": "unknown_closure_path"}
+                self._write(HTTPStatus.OK, payload)
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

@@ -1024,6 +1024,18 @@ from .deployment_frontier_offline_runtime import build_deployment_frontier_offli
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema, validate_deployment_frontier_offline_manifest
 from .deployment_frontier_offline_summary import audit_deployment_frontier_offline_summary, build_deployment_frontier_offline_summary, deployment_frontier_offline_summary_markdown, export_deployment_frontier_offline_summary_csv
 from .deployment_frontier_offline_indexes import audit_deployment_frontier_offline_indexes, build_deployment_frontier_offline_indexes
+from .deployment_frontier_offline_closure_boundary import audit_deployment_frontier_closure_boundary, deployment_frontier_closure_key_inventory
+from .deployment_frontier_offline_closure_certification import certify_deployment_frontier_closure
+from .deployment_frontier_offline_closure_export import build_deployment_frontier_closure_export, verify_deployment_frontier_closure_export, write_deployment_frontier_closure_export
+from .deployment_frontier_offline_closure_failure_injection import build_deployment_frontier_closure_failure_report
+from .deployment_frontier_offline_closure_graph import build_deployment_frontier_closure_graph
+from .deployment_frontier_offline_closure_indexes import audit_deployment_frontier_closure_indexes, build_deployment_frontier_closure_indexes
+from .deployment_frontier_offline_closure_observability import build_deployment_frontier_closure_observability
+from .deployment_frontier_offline_closure_query import export_deployment_frontier_closure_csv, export_deployment_frontier_closure_markdown, query_deployment_frontier_closure
+from .deployment_frontier_offline_closure_reconciliation import deployment_frontier_closure_reconciliation_markdown, reconcile_deployment_frontier_closure
+from .deployment_frontier_offline_closure_runtime import run_deployment_frontier_closure_runtime
+from .deployment_frontier_offline_closure_schema import audit_deployment_frontier_closure_schema, build_deployment_frontier_closure_schema
+from .deployment_frontier_offline_closure_summary import audit_deployment_frontier_closure_summary, build_deployment_frontier_closure_summary, deployment_frontier_closure_summary_csv, deployment_frontier_closure_summary_markdown
 from .workspace_frontier_adapters import default_workspace_frontier_adapters
 from .workspace_frontier_artifacts import build_workspace_frontier_artifact_inventory
 from .workspace_frontier_bundle import assemble_workspace_frontier_bundle
@@ -8285,6 +8297,71 @@ def build_parser() -> argparse.ArgumentParser:
     deployment_frontier_offline_certification.add_argument("destination", type=str)
     deployment_frontier_offline_certification.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
     deployment_frontier_offline_certification.add_argument("--output", default=None)
+
+    deployment_frontier_closure_query = subparsers.add_parser(
+        "deployment-frontier-offline-bundle-closure-query",
+        help="query bounded D16 deployment closure resources",
+    )
+    deployment_frontier_closure_query.add_argument("destination", type=str)
+    deployment_frontier_closure_query.add_argument("--resource", default="records")
+    deployment_frontier_closure_query.add_argument("--operation", default=None)
+    deployment_frontier_closure_query.add_argument("--role", default=None)
+    deployment_frontier_closure_query.add_argument("--state", default=None)
+    deployment_frontier_closure_query.add_argument("--capability", default=None)
+    deployment_frontier_closure_query.add_argument("--priority", default=None)
+    deployment_frontier_closure_query.add_argument("--severity", default=None)
+    deployment_frontier_closure_query.add_argument("--stage-id", default=None)
+    deployment_frontier_closure_query.add_argument("--text", default=None)
+    deployment_frontier_closure_query.add_argument("--offset", default=0, type=int)
+    deployment_frontier_closure_query.add_argument("--limit", default=50, type=int)
+    deployment_frontier_closure_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    deployment_frontier_closure_query.add_argument("--output", default=None)
+    deployment_frontier_closure_schema = subparsers.add_parser("deployment-frontier-offline-bundle-closure-schema", help="print D16 closure resource schemas")
+    deployment_frontier_closure_schema.add_argument("--output", default=None)
+    deployment_frontier_closure_validate = subparsers.add_parser("deployment-frontier-offline-bundle-closure-validate", help="validate D16 closure row schema")
+    deployment_frontier_closure_validate.add_argument("destination", type=str)
+    deployment_frontier_closure_validate.add_argument("--output", default=None)
+    deployment_frontier_closure_boundary = subparsers.add_parser("deployment-frontier-offline-bundle-closure-boundary", help="audit D16 closure boundary")
+    deployment_frontier_closure_boundary.add_argument("destination", type=str)
+    deployment_frontier_closure_boundary.add_argument("--key-inventory", action="store_true")
+    deployment_frontier_closure_boundary.add_argument("--output", default=None)
+    deployment_frontier_closure_indexes = subparsers.add_parser("deployment-frontier-offline-bundle-closure-indexes", help="emit D16 closure indexes")
+    deployment_frontier_closure_indexes.add_argument("destination", type=str)
+    deployment_frontier_closure_indexes.add_argument("--output", default=None)
+    deployment_frontier_closure_reconciliation = subparsers.add_parser("deployment-frontier-offline-bundle-closure-reconciliation", help="reconcile D16 closure joins")
+    deployment_frontier_closure_reconciliation.add_argument("destination", type=str)
+    deployment_frontier_closure_reconciliation.add_argument("--format", choices=("json", "markdown"), default="json")
+    deployment_frontier_closure_reconciliation.add_argument("--output", default=None)
+    deployment_frontier_closure_summary = subparsers.add_parser("deployment-frontier-offline-bundle-closure-summary", help="emit D16 closure reviewer summary")
+    deployment_frontier_closure_summary.add_argument("destination", type=str)
+    deployment_frontier_closure_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    deployment_frontier_closure_summary.add_argument("--output", default=None)
+    deployment_frontier_closure_certification = subparsers.add_parser("deployment-frontier-offline-bundle-closure-certification", help="certify D16 closure across ten domains")
+    deployment_frontier_closure_certification.add_argument("destination", type=str)
+    deployment_frontier_closure_certification.add_argument("--output", default=None)
+    deployment_frontier_closure_observability = subparsers.add_parser("deployment-frontier-offline-bundle-closure-observability", help="emit D16 closure observability")
+    deployment_frontier_closure_observability.add_argument("destination", type=str)
+    deployment_frontier_closure_observability.add_argument("--output", default=None)
+    deployment_frontier_closure_runtime = subparsers.add_parser("deployment-frontier-offline-bundle-closure-runtime", help="run fourteen D16 closure stages")
+    deployment_frontier_closure_runtime.add_argument("--bundle-id", default="deployment-frontier-public-bundle")
+    deployment_frontier_closure_runtime.add_argument("--run-id", default="deployment-frontier-closure-runtime")
+    deployment_frontier_closure_runtime.add_argument("--output", default=None)
+    deployment_frontier_closure_failures = subparsers.add_parser("deployment-frontier-offline-bundle-closure-failures", help="run D16 closure negative controls")
+    deployment_frontier_closure_failures.add_argument("destination", type=str)
+    deployment_frontier_closure_failures.add_argument("--output", default=None)
+    deployment_frontier_closure_graph = subparsers.add_parser("deployment-frontier-offline-bundle-closure-graph", help="build D16 closure graph")
+    deployment_frontier_closure_graph.add_argument("destination", type=str)
+    deployment_frontier_closure_graph.add_argument("--output", default=None)
+    deployment_frontier_closure_export = subparsers.add_parser("deployment-frontier-offline-bundle-closure-export", help="write exact-byte D16 closure export")
+    deployment_frontier_closure_export.add_argument("--destination", required=True)
+    deployment_frontier_closure_export.add_argument("--bundle-id", default="deployment-frontier-public-bundle")
+    deployment_frontier_closure_export.add_argument("--run-id", default="deployment-frontier-closure-runtime")
+    deployment_frontier_closure_export.add_argument("--output", default=None)
+    deployment_frontier_closure_export_verify = subparsers.add_parser("deployment-frontier-offline-bundle-closure-export-verify", help="verify exact-byte D16 closure export")
+    deployment_frontier_closure_export_verify.add_argument("destination", type=str)
+    deployment_frontier_closure_export_verify.add_argument("--bundle-id", default="deployment-frontier-public-bundle")
+    deployment_frontier_closure_export_verify.add_argument("--run-id", default="deployment-frontier-closure-runtime")
+    deployment_frontier_closure_export_verify.add_argument("--output", default=None)
 
     lifecycle_beta_frontier_commands = (
         ("lifecycle-beta-frontier-data-audit", "audit public Domain 14 C05-C12 aggregate receipts"),
@@ -16878,6 +16955,107 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json({"certification": report.to_dict(), "audit": audit.to_dict()}, args.output)
             return 0 if audit.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-query":
+            result = query_deployment_frontier_closure(
+                args.destination,
+                resource=args.resource,
+                operation=args.operation,
+                role=args.role,
+                state=args.state,
+                capability=args.capability,
+                priority=args.priority,
+                severity=args.severity,
+                stage_id=args.stage_id,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(export_deployment_frontier_closure_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(export_deployment_frontier_closure_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-schema":
+            _write_json(build_deployment_frontier_closure_schema(), args.output)
+            return 0
+        if args.command == "deployment-frontier-offline-bundle-closure-validate":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            schema = build_deployment_frontier_closure_schema()
+            report = audit_deployment_frontier_closure_schema(bundle, schema)
+            _write_json({"schema": schema, "audit": [item.to_dict() for item in report]}, args.output)
+            return 0 if all(item.passed for item in report) else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-boundary":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            if args.key_inventory:
+                _write_json(deployment_frontier_closure_key_inventory(bundle), args.output)
+                return 0
+            report = audit_deployment_frontier_closure_boundary(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-indexes":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            indexes = build_deployment_frontier_closure_indexes(bundle)
+            audit = audit_deployment_frontier_closure_indexes(bundle, indexes)
+            _write_json({"indexes": indexes.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-reconciliation":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            report = reconcile_deployment_frontier_closure(bundle)
+            if args.format == "markdown":
+                _write_text(deployment_frontier_closure_reconciliation_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-summary":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            summary = build_deployment_frontier_closure_summary(bundle)
+            audit = audit_deployment_frontier_closure_summary(summary)
+            if args.format == "csv":
+                _write_text(deployment_frontier_closure_summary_csv(summary), args.output)
+            elif args.format == "markdown":
+                _write_text(deployment_frontier_closure_summary_markdown(summary), args.output)
+            else:
+                _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-certification":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            report = certify_deployment_frontier_closure(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-observability":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            report = build_deployment_frontier_closure_observability(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-runtime":
+            report = run_deployment_frontier_closure_runtime(bundle_id=args.bundle_id, run_id=args.run_id)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-failures":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            report = build_deployment_frontier_closure_failure_report(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-graph":
+            bundle = load_deployment_frontier_offline_bundle(args.destination, include_payloads=True)
+            report = build_deployment_frontier_closure_graph(bundle)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-export":
+            bundle = build_deployment_frontier_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            packet = build_deployment_frontier_closure_export(bundle)
+            write_deployment_frontier_closure_export(packet, args.destination)
+            _write_json(packet.to_dict(), args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "deployment-frontier-offline-bundle-closure-export-verify":
+            packet = build_deployment_frontier_closure_export(
+                build_deployment_frontier_offline_bundle(bundle_id=args.bundle_id, run_id=args.run_id)
+            )
+            verification = verify_deployment_frontier_closure_export(packet, args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
         if args.command == "evidence-lifecycle-release":
             fixture = _read_evidence_lifecycle_fixture(args.input)
             runtime = run_evidence_lifecycle_runtime(fixture, run_id="evidence-lifecycle-release")

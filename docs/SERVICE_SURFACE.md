@@ -54,6 +54,18 @@ report or runtime from which it was derived.
 | GET | `/v1/workbench-release/bundle/closure-failures` | Return twelve D15 negative-control results |
 | GET | `/v1/workbench-release/bundle/closure-graph` | Return the connected D15 closure graph |
 | GET | `/v1/workbench-release/bundle/closure-export` | Return the exact-byte D15 closure export manifest |
+| GET | `/v1/deployment-frontier/bundle/closure-query` | Query 19 independent D16 closure resources with bounded filters |
+| GET | `/v1/deployment-frontier/bundle/closure-schema` | Return D16 closure row schemas and aggregate-only policy |
+| GET | `/v1/deployment-frontier/bundle/closure-boundary` | Audit D16 closure paths, addresses, and public keys |
+| GET | `/v1/deployment-frontier/bundle/closure-indexes` | Return ten D16 closure lookup indexes and their audit |
+| GET | `/v1/deployment-frontier/bundle/closure-reconciliation` | Return 47 independent D16 closure reconciliation checks |
+| GET | `/v1/deployment-frontier/bundle/closure-summary` | Return D16 operation, state, issue, queue, and runtime counters |
+| GET | `/v1/deployment-frontier/bundle/closure-certification` | Return ten-domain, 60-check D16 closure certification |
+| GET | `/v1/deployment-frontier/bundle/closure-observability` | Return 151 D16 closure events and 24 aggregate metrics |
+| GET | `/v1/deployment-frontier/bundle/closure-runtime` | Run the fourteen-stage D16 closure runtime and replay gate |
+| GET | `/v1/deployment-frontier/bundle/closure-failures` | Return twelve D16 structural negative-control results |
+| GET | `/v1/deployment-frontier/bundle/closure-graph` | Return the connected D16 closure graph |
+| GET | `/v1/deployment-frontier/bundle/closure-export` | Return the exact-byte D16 closure export packet |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
 | GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |

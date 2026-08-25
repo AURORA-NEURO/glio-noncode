@@ -742,6 +742,20 @@ auditing, and deterministic offline replay. Domain 16 includes deny-by-default p
 offline deployment manifests, site-local federated coordination, and explicit
 release/rollback gates.
 
+The D16 deployment closure is a separate, addressable handoff plane. It
+projects 19 resources from the public source bundle: artifacts, fixture
+records, executions, checks, source receipts, validation cells, evidence,
+lineage edges, review views, queues, diagnostics, runtime stages, stage
+indexes, operation partitions, controls, failure probes, audit events,
+transcript events, and trace observations. It conserves 51 artifacts, 16
+records, 80 checks, 64 validation cells, 16 evidence rows, 52 lineage edges,
+38 runtime stages, 32 audit events, 33 transcript events, and 37 trace
+observations. Ten address-only indexes, 47 reconciliation checks, 60
+certification checks, 151 events, 24 metrics, and a connected 599-node graph
+make the release decision independently inspectable. The 14-stage runtime
+replays the source bundle and emits an exact-byte export packet containing 14
+JSON artifacts plus its manifest.
+
 The D13 validation-design bundle closure is independently addressable. It
 checks 27 artifact identities and safe public paths, builds nine address-only
 indexes, reconciles 33 cross-artifact joins, emits conserved summary counters

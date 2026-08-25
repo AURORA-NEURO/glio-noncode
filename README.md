@@ -346,10 +346,15 @@ glio-noncode architecture-program-offline-observability architecture-program-bun
 
 The D16 deployment-governance frontier now has the same portable review
 surface. It covers C13 privacy/security policy, C14 local offline bundles,
-C15 federated execution, and C16 release/rollback gates. The handoff closes
-51 exact-byte artifacts, 5 sources, 16 records, 4 positives, 12 controls,
-80 evaluation checks, 38 runtime stages, 8 indexes, and 7 certification
-domains. See [deployment frontier offline operations](docs/DEPLOYMENT_FRONTIER_OFFLINE_OPERATIONS.md)
+C15 federated execution, and C16 release/rollback gates. The source handoff
+closes 51 exact-byte artifacts, 5 sources, 16 records, 4 positives, 12
+controls, 80 evaluation checks, and 38 runtime stages. Its independent D16
+closure adds 19 bounded resources, 10 indexes, 47 reconciliation checks, 22
+summary checks, 60 certification checks across 10 domains, 151 observability
+events, 24 metrics, a 599-node/866-edge connected graph, 12 negative
+controls, and a 14-stage deterministic runtime. See [deployment frontier
+offline operations](docs/DEPLOYMENT_FRONTIER_OFFLINE_OPERATIONS.md) and
+[deployment frontier closure operations](docs/DEPLOYMENT_FRONTIER_CLOSURE_OPERATIONS.md)
 for the full CLI, HTTP, query, verification, and replay workflow.
 
 ```text
@@ -359,6 +364,10 @@ glio-noncode deployment-frontier-offline-bundle-query deployment-frontier-bundle
 glio-noncode deployment-frontier-offline-bundle-audit deployment-frontier-bundle --output deployment-frontier-audit.json
 glio-noncode deployment-frontier-offline-bundle-runtime --output deployment-frontier-runtime.json
 glio-noncode deployment-frontier-offline-bundle-certification deployment-frontier-bundle --format markdown --output deployment-frontier-certification.md
+glio-noncode deployment-frontier-offline-bundle-closure-query deployment-frontier-bundle --resource records --operation privacy_security_policy --format markdown
+glio-noncode deployment-frontier-offline-bundle-closure-certification deployment-frontier-bundle --output deployment-frontier-closure-certification.json
+glio-noncode deployment-frontier-offline-bundle-closure-export --destination deployment-frontier-closure-export --output deployment-frontier-closure-export.json
+glio-noncode deployment-frontier-offline-bundle-closure-export-verify deployment-frontier-closure-export --output deployment-frontier-closure-verification.json
 ```
 
 The offline boundary verifies canonical UTF-8 bytes, safe relative paths,

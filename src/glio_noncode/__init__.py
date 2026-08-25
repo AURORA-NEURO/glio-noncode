@@ -12300,6 +12300,41 @@ from .deployment_frontier_offline_reconciliation import DeploymentFrontierOfflin
 from .deployment_frontier_offline_runtime import DeploymentFrontierOfflineObservability, DeploymentFrontierOfflineReplay, DeploymentFrontierOfflineRuntimeReport, DeploymentFrontierOfflineRuntimeStage, build_deployment_frontier_offline_observability, replay_deployment_frontier_offline_bundle, run_deployment_frontier_offline_runtime
 from .deployment_frontier_offline_schema import DeploymentFrontierOfflineSchemaCheck, DeploymentFrontierOfflineSchemaValidation, deployment_frontier_offline_bundle_schema, validate_deployment_frontier_offline_manifest
 from .deployment_frontier_offline_summary import DEPLOYMENT_FRONTIER_OFFLINE_SUMMARY_VERSION, DeploymentFrontierOfflineOperationSummary, DeploymentFrontierOfflineSummary, DeploymentFrontierOfflineSummaryAudit, DeploymentFrontierOfflineSummaryCheck, audit_deployment_frontier_offline_summary, build_deployment_frontier_offline_summary, deployment_frontier_offline_summary_markdown, export_deployment_frontier_offline_summary_csv
+from .deployment_frontier_offline_closure_contracts import *
+from .deployment_frontier_offline_closure_boundary import *
+from .deployment_frontier_offline_closure_certification import *
+from .deployment_frontier_offline_closure_export import *
+from .deployment_frontier_offline_closure_failure_injection import *
+from .deployment_frontier_offline_closure_graph import *
+from .deployment_frontier_offline_closure_indexes import *
+from .deployment_frontier_offline_closure_observability import *
+from .deployment_frontier_offline_closure_query import *
+from .deployment_frontier_offline_closure_reconciliation import *
+from .deployment_frontier_offline_closure_runtime import *
+from .deployment_frontier_offline_closure_schema import *
+from .deployment_frontier_offline_closure_summary import *
+
+__all__ += [
+    name
+    for name in globals()
+    if name.startswith(
+        (
+            "DEPLOYMENT_FRONTIER_CLOSURE",
+            "DeploymentFrontierClosure",
+            "deployment_frontier_closure",
+            "build_deployment_frontier_closure",
+            "audit_deployment_frontier_closure",
+            "certify_deployment_frontier_closure",
+            "diff_deployment_frontier_closure",
+            "export_deployment_frontier_closure",
+            "query_deployment_frontier_closure",
+            "reconcile_deployment_frontier_closure",
+            "run_deployment_frontier_closure",
+            "verify_deployment_frontier_closure",
+            "write_deployment_frontier_closure",
+        )
+    )
+]
 
 build_platform_frontier_data_dictionary = default_platform_frontier_data_dictionary
 build_deployment_frontier_data_dictionary = default_deployment_frontier_data_dictionary
