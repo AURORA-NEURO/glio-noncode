@@ -3884,7 +3884,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 14 named surfaces: service status, capabilities, program and operational
+audits 16 named surfaces: service status, capabilities, program and operational
 projections, both service closures, the service schema and snapshot, and the
 capability-certification and module-fabric bundle manifests and schemas. Each
 surface receives a deterministic content address and violation-path list.
@@ -3898,7 +3898,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 14-surface inventory or any
+The command exits non-zero when the closed 16-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary

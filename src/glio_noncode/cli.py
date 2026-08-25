@@ -702,6 +702,26 @@ from .validation_design_frontier_runtime import run_validation_design_runtime
 from .validation_design_frontier_schema import default_validation_design_frontier_schema
 from .validation_design_frontier_thresholds import build_validation_design_threshold_report
 from .validation_design_frontier_validation_matrix import build_validation_design_validation_matrix
+from .validation_design_frontier_bundle_audit import audit_validation_design_offline_bundle
+from .validation_design_frontier_bundle_query import (
+    diff_validation_design_offline_bundles,
+    export_validation_design_bundle_query_csv,
+    load_validation_design_offline_bundle,
+    query_validation_design_offline_bundle,
+)
+from .validation_design_frontier_bundle_schema import (
+    validate_validation_design_bundle_manifest,
+    validation_design_bundle_schema,
+)
+from .validation_design_frontier_offline_bundle import (
+    build_validation_design_offline_bundle,
+    verify_validation_design_offline_bundle,
+    write_validation_design_offline_bundle,
+)
+from .validation_design_frontier_bundle_runtime import (
+    build_validation_design_bundle_observability,
+    run_validation_design_bundle_runtime,
+)
 from .editing_design_frontier_access import build_editing_design_access
 from .editing_design_frontier_adapters import build_editing_design_adapters
 from .editing_design_frontier_depth import build_editing_design_depth
@@ -7763,6 +7783,75 @@ def build_parser() -> argparse.ArgumentParser:
         "validation-design-frontier-review-csv", help="export D13 C01-C04 planning review rows"
     )
     validation_design_frontier_csv.add_argument("--output", default=None)
+    validation_design_bundle = subparsers.add_parser(
+        "validation-design-frontier-bundle",
+        help="materialize a verified public offline D13 validation-design bundle",
+    )
+    validation_design_bundle.add_argument("--destination", required=True)
+    validation_design_bundle.add_argument("--bundle-id", default="validation-design-public-bundle")
+    validation_design_bundle.add_argument("--run-id", default="validation-design-bundle-runtime")
+    validation_design_bundle.add_argument("--include-payloads", action="store_true")
+    validation_design_bundle.add_argument("--output", default=None)
+    validation_design_bundle_verify = subparsers.add_parser(
+        "validation-design-frontier-bundle-verify",
+        help="verify exact bytes and public closure of a D13 validation-design bundle",
+    )
+    validation_design_bundle_verify.add_argument("destination", type=str)
+    validation_design_bundle_verify.add_argument("--output", default=None)
+    validation_design_bundle_query = subparsers.add_parser(
+        "validation-design-frontier-bundle-query",
+        help="query artifacts, records, checks, or sources from a D13 bundle",
+    )
+    validation_design_bundle_query.add_argument("destination", type=str)
+    validation_design_bundle_query.add_argument("--resource", choices=("artifacts", "records", "checks", "sources"), default="artifacts")
+    validation_design_bundle_query.add_argument("--operation", default=None)
+    validation_design_bundle_query.add_argument("--capability", default=None)
+    validation_design_bundle_query.add_argument("--role", default=None)
+    validation_design_bundle_query.add_argument("--state", default=None)
+    validation_design_bundle_query.add_argument("--artifact-kind", default=None)
+    validation_design_bundle_query.add_argument("--text", default=None)
+    validation_design_bundle_query.add_argument("--offset", default=0, type=int)
+    validation_design_bundle_query.add_argument("--limit", default=50, type=int)
+    validation_design_bundle_query.add_argument("--include-payloads", action="store_true")
+    validation_design_bundle_query.add_argument("--format", choices=("json", "csv"), default="json")
+    validation_design_bundle_query.add_argument("--output", default=None)
+    validation_design_bundle_diff = subparsers.add_parser(
+        "validation-design-frontier-bundle-diff",
+        help="compare two D13 validation-design bundle manifests by exact artifact addresses",
+    )
+    validation_design_bundle_diff.add_argument("left", type=str)
+    validation_design_bundle_diff.add_argument("right", type=str)
+    validation_design_bundle_diff.add_argument("--output", default=None)
+    validation_design_bundle_schema = subparsers.add_parser(
+        "validation-design-frontier-bundle-schema",
+        help="print the closed D13 validation-design bundle manifest schema",
+    )
+    validation_design_bundle_schema.add_argument("--output", default=None)
+    validation_design_bundle_validate = subparsers.add_parser(
+        "validation-design-frontier-bundle-validate",
+        help="validate a D13 validation-design bundle manifest JSON file",
+    )
+    validation_design_bundle_validate.add_argument("input", type=str)
+    validation_design_bundle_validate.add_argument("--output", default=None)
+    validation_design_bundle_audit = subparsers.add_parser(
+        "validation-design-frontier-bundle-audit",
+        help="reconcile all D13 validation-design bundle artifacts and denominators",
+    )
+    validation_design_bundle_audit.add_argument("destination", type=str)
+    validation_design_bundle_audit.add_argument("--output", default=None)
+    validation_design_bundle_observability = subparsers.add_parser(
+        "validation-design-frontier-bundle-observability",
+        help="emit normalized D13 validation-design bundle observability",
+    )
+    validation_design_bundle_observability.add_argument("destination", type=str)
+    validation_design_bundle_observability.add_argument("--output", default=None)
+    validation_design_bundle_runtime = subparsers.add_parser(
+        "validation-design-frontier-bundle-runtime",
+        help="run the staged D13 validation-design bundle runtime and replay gate",
+    )
+    validation_design_bundle_runtime.add_argument("--bundle-id", default="validation-design-public-bundle")
+    validation_design_bundle_runtime.add_argument("--run-id", default="validation-design-bundle-runtime")
+    validation_design_bundle_runtime.add_argument("--output", default=None)
 
     editing_design_frontier_commands = (
         ("editing-design-frontier-data-audit", "audit D13 C05-C08 public aggregate editing data"),
@@ -16183,6 +16272,67 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             return 0
+        if args.command == "validation-design-frontier-bundle":
+            bundle = build_validation_design_offline_bundle(
+                bundle_id=args.bundle_id,
+                run_id=args.run_id,
+            )
+            write_validation_design_offline_bundle(bundle, args.destination)
+            _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "validation-design-frontier-bundle-verify":
+            verification = verify_validation_design_offline_bundle(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "validation-design-frontier-bundle-query":
+            result = query_validation_design_offline_bundle(
+                args.destination,
+                resource=args.resource,
+                operation=args.operation,
+                capability=args.capability,
+                role=args.role,
+                state=args.state,
+                artifact_kind=args.artifact_kind,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                include_payloads=args.include_payloads,
+            )
+            if args.format == "csv":
+                _write_text(export_validation_design_bundle_query_csv(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "validation-design-frontier-bundle-diff":
+            result = diff_validation_design_offline_bundles(args.left, args.right)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "validation-design-frontier-bundle-schema":
+            _write_json(validation_design_bundle_schema(), args.output)
+            return 0
+        if args.command == "validation-design-frontier-bundle-validate":
+            report = validate_validation_design_bundle_manifest(_read_json(args.input))
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-audit":
+            audit = audit_validation_design_offline_bundle(
+                load_validation_design_offline_bundle(args.destination, include_payloads=True)
+            )
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "validation-design-frontier-bundle-observability":
+            report = build_validation_design_bundle_observability(
+                load_validation_design_offline_bundle(args.destination, include_payloads=True)
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "validation-design-frontier-bundle-runtime":
+            report = run_validation_design_bundle_runtime(
+                bundle_id=args.bundle_id,
+                run_id=args.run_id,
+            )
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "editing-design-frontier-data-audit":
             _write_json(
                 audit_editing_design_frontier_data(

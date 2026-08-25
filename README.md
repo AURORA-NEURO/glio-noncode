@@ -301,10 +301,22 @@ glio-noncode validation-design-frontier-data-audit --output validation-design-da
 glio-noncode validation-design-frontier-evaluate --output validation-design-evaluation.json
 glio-noncode validation-design-frontier-pipeline --output validation-design-runtime.json
 glio-noncode validation-design-frontier-review-csv --output validation-design-review.csv
+glio-noncode validation-design-frontier-bundle --destination validation-design-bundle --output validation-design-bundle.json
+glio-noncode validation-design-frontier-bundle-verify validation-design-bundle --output validation-design-bundle-verification.json
+glio-noncode validation-design-frontier-bundle-query validation-design-bundle --resource records --operation gap_analysis
+glio-noncode validation-design-frontier-bundle-schema --output validation-design-bundle-schema.json
+glio-noncode validation-design-frontier-bundle-audit validation-design-bundle --output validation-design-bundle-audit.json
+glio-noncode validation-design-frontier-bundle-observability validation-design-bundle --output validation-design-bundle-observability.json
+glio-noncode validation-design-frontier-bundle-runtime --output validation-design-bundle-runtime.json
 ```
 
-The planning boundary is public aggregate research use. It does not diagnose,
-claim assay efficacy, infer individual outcomes, or establish causal certainty.
+The planning boundary is public aggregate research use. Its offline bundle
+materializes 27 exact-byte artifacts, including fixture, evaluation, runtime,
+quality, lineage, replay, release, review, source, schema, report, and
+observability projections. The verifier checks safe paths, exact bytes,
+content addresses, public-boundary keys, and an independent cross-artifact
+audit. It does not diagnose, claim assay efficacy, infer individual outcomes,
+or establish causal certainty.
 
 The D13 C05–C08 editing-design frontier independently covers CRISPRi/CRISPRa,
 base-editing, prime-editing, and allele-specific reporter design. It executes
@@ -393,7 +405,7 @@ inventory: service status and closures, both offline bundle manifests and
 schemas, and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 14-surface audit suitable for
+schema fields. The result is a deterministic 16-surface audit suitable for
 local release checks and CI.
 
 The D16 coordination architecture now composes all 16 platform-control

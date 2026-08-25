@@ -19,6 +19,12 @@ report or runtime from which it was derived.
 | GET | `/v1/module-fabric/bundle/runtime` | Run the staged bundle assembly and replay receipt |
 | GET | `/v1/module-fabric/bundle/schema` | Return the closed bundle manifest schema |
 | GET | `/v1/module-fabric/bundle/audit` | Reconcile module-fabric fixture, runtime, release, and projection artifacts |
+| GET | `/v1/validation-design/bundle` | Build the public 27-artifact D13 validation-design bundle |
+| GET | `/v1/validation-design/bundle/query` | Query validation-design artifacts, records, checks, or source receipts |
+| GET | `/v1/validation-design/bundle/schema` | Return the closed validation-design bundle manifest schema |
+| GET | `/v1/validation-design/bundle/audit` | Reconcile validation-design fixture, runtime, release, replay, and projections |
+| GET | `/v1/validation-design/bundle/observability` | Return normalized D13 bundle stage counts and address health |
+| GET | `/v1/validation-design/bundle/runtime` | Run the staged D13 bundle assembly, audit, observability, and replay gate |
 | GET | `/v1/capability-certification/bundle` | Build the public 12-artifact capability certification bundle |
 | GET | `/v1/capability-certification/bundle/query` | Query certified bundle certificates, domains, checks, or artifacts |
 | GET | `/v1/capability-certification/bundle/observability` | Return certification bundle events and metrics |

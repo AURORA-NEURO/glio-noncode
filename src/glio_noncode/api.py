@@ -54,6 +54,11 @@ from .capability_certification_bundle_query import query_capability_certificatio
 from .capability_certification_bundle_runtime import run_capability_certification_bundle_runtime
 from .capability_certification_bundle_schema import capability_certification_bundle_schema
 from .public_surface_audit import build_default_public_surface_audit
+from .validation_design_frontier_bundle_audit import audit_validation_design_offline_bundle
+from .validation_design_frontier_bundle_query import query_validation_design_offline_bundle
+from .validation_design_frontier_bundle_schema import validation_design_bundle_schema
+from .validation_design_frontier_offline_bundle import build_validation_design_offline_bundle
+from .validation_design_frontier_bundle_runtime import build_validation_design_bundle_observability, run_validation_design_bundle_runtime
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -323,6 +328,56 @@ class ApiHandler(BaseHTTPRequestHandler):
                     ).to_dict()
                 elif path.endswith("/audit"):
                     payload = audit_module_fabric_bundle(bundle).to_dict()
+                else:
+                    payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
+                self._write(HTTPStatus.OK, payload)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/validation-design/bundle",
+            "/v1/validation-design/bundle/query",
+            "/v1/validation-design/bundle/schema",
+            "/v1/validation-design/bundle/audit",
+            "/v1/validation-design/bundle/observability",
+            "/v1/validation-design/bundle/runtime",
+        }:
+            try:
+                if path.endswith("/schema"):
+                    self._write(HTTPStatus.OK, validation_design_bundle_schema())
+                    return
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle = build_validation_design_offline_bundle(
+                    bundle_id=self._query_value(query, "bundle_id") or "validation-design-public-bundle",
+                    run_id=self._query_value(query, "run_id") or "validation-design-bundle-runtime",
+                )
+                if path.endswith("/query"):
+                    payload = query_validation_design_offline_bundle(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        operation=self._query_value(query, "operation"),
+                        capability=self._query_value(query, "capability"),
+                        role=self._query_value(query, "role"),
+                        state=self._query_value(query, "state"),
+                        artifact_kind=self._query_value(query, "artifact_kind"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                        include_payloads=self._query_bool(query, "include_payloads"),
+                    ).to_dict()
+                elif path.endswith("/audit"):
+                    payload = audit_validation_design_offline_bundle(bundle).to_dict()
+                elif path.endswith("/observability"):
+                    payload = build_validation_design_bundle_observability(bundle).to_dict()
+                elif path.endswith("/runtime"):
+                    payload = run_validation_design_bundle_runtime(
+                        bundle_id=bundle.bundle_id,
+                        run_id=bundle.run_id,
+                    ).to_dict()
                 else:
                     payload = bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads"))
                 self._write(HTTPStatus.OK, payload)
