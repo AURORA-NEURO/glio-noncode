@@ -10513,10 +10513,122 @@ from .program_runtime_replay import (
     run_program_runtime_failure_injections,
 )
 
+from .program_runtime_offline_contracts import (
+    PROGRAM_RUNTIME_OFFLINE_ARTIFACT_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_ARTIFACT_PREFIX,
+    PROGRAM_RUNTIME_OFFLINE_BOUNDARY,
+    PROGRAM_RUNTIME_OFFLINE_BUNDLE_VERSION,
+    PROGRAM_RUNTIME_OFFLINE_CERTIFICATION_VERSION,
+    PROGRAM_RUNTIME_OFFLINE_CHECK_PREFIX,
+    PROGRAM_RUNTIME_OFFLINE_DEFAULT_LIMIT,
+    PROGRAM_RUNTIME_OFFLINE_DOMAIN_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_HANDOFF_STAGE_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME,
+    PROGRAM_RUNTIME_OFFLINE_MAX_ARTIFACTS,
+    PROGRAM_RUNTIME_OFFLINE_MAX_LIMIT,
+    PROGRAM_RUNTIME_OFFLINE_OPERATION_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_PROGRAM_CHECK_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_QUALITY_CHECK_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_RECONCILIATION_VERSION,
+    PROGRAM_RUNTIME_OFFLINE_RELEASE_ARTIFACT_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_RUNTIME_STAGE_COUNT,
+    PROGRAM_RUNTIME_OFFLINE_RUNTIME_VERSION,
+    PROGRAM_RUNTIME_OFFLINE_SCHEMA_VERSION,
+    ProgramRuntimeOfflineArtifact,
+    ProgramRuntimeOfflineArtifactKind,
+    ProgramRuntimeOfflineAudit,
+    ProgramRuntimeOfflineBundle,
+    ProgramRuntimeOfflineBundleState,
+    ProgramRuntimeOfflineCheck,
+    ProgramRuntimeOfflineCheckPlane,
+    ProgramRuntimeOfflineDiff,
+    ProgramRuntimeOfflineQueryResult,
+    ProgramRuntimeOfflineReplay,
+    ProgramRuntimeOfflineRuntimeStage,
+    ProgramRuntimeOfflineVerification,
+    program_runtime_offline_check,
+)
+from .program_runtime_offline_audit import (
+    audit_program_runtime_offline_bundle,
+    audit_program_runtime_offline_directory,
+    verify_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_boundary import (
+    audit_program_runtime_offline_boundary,
+    program_runtime_offline_key_inventory,
+)
+from .program_runtime_offline_bundle import (
+    build_program_runtime_offline_bundle,
+    load_program_runtime_offline_bundle,
+    program_runtime_offline_payloads,
+    public_program_projection,
+    write_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_certification import (
+    ProgramRuntimeOfflineCertificationCheck,
+    ProgramRuntimeOfflineCertificationDomain,
+    ProgramRuntimeOfflineCertificationReport,
+    certify_program_runtime_offline_bundle,
+    program_runtime_offline_certification_csv,
+    program_runtime_offline_certification_markdown,
+)
+from .program_runtime_offline_indexes import (
+    ProgramRuntimeOfflineIndexAudit,
+    ProgramRuntimeOfflineIndexEntry,
+    ProgramRuntimeOfflineIndexes,
+    audit_program_runtime_offline_indexes,
+    build_program_runtime_offline_indexes,
+)
+from .program_runtime_offline_query import (
+    diff_program_runtime_offline_bundles,
+    export_program_runtime_offline_query_csv,
+    query_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_observability import (
+    ProgramRuntimeOfflineEvent,
+    ProgramRuntimeOfflineMetric,
+    ProgramRuntimeOfflineObservabilityReport,
+    audit_program_runtime_offline_observability,
+    build_program_runtime_offline_observability,
+    program_runtime_offline_events_csv,
+    program_runtime_offline_metrics_csv,
+)
+from .program_runtime_offline_reconciliation import (
+    ProgramRuntimeOfflineReconciliationCheck,
+    ProgramRuntimeOfflineReconciliationDelta,
+    ProgramRuntimeOfflineReconciliationReport,
+    compare_program_runtime_offline_bundles,
+    program_runtime_offline_reconciliation_markdown,
+    reconcile_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_runtime import (
+    program_runtime_offline_runtime_json,
+    run_program_runtime_offline_runtime,
+)
+from .program_runtime_offline_schema import (
+    program_runtime_offline_bundle_schema,
+    validate_program_runtime_offline_manifest,
+)
+from .program_runtime_offline_summary import (
+    ProgramRuntimeOfflineSummary,
+    ProgramRuntimeOfflineSummaryAudit,
+    audit_program_runtime_offline_summary,
+    build_program_runtime_offline_summary,
+    program_runtime_offline_summary_csv,
+    program_runtime_offline_summary_markdown,
+)
+
 __all__ += [
     "PROGRAM_CHECKS_PER_DOMAIN", "PROGRAM_DOMAIN_COUNT", "PROGRAM_QUALITY_CHECK_COUNT", "PROGRAM_RELEASE_ARTIFACT_COUNT", "PROGRAM_RELEASE_CHECK_COUNT", "PROGRAM_RELEASE_DESCRIPTOR_FILENAME", "PROGRAM_RELEASE_MANIFEST_FILENAME", "PROGRAM_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_STAGE_IDS", "PROGRAM_OPERATIONAL_ARTIFACT_COUNT", "PROGRAM_OPERATIONAL_CHECK_COUNT", "PROGRAM_OPERATIONAL_STAGE_COUNT", "PROGRAM_OPERATIONAL_ARTIFACT_BUDGETS", "PROGRAM_OPERATIONAL_STAGE_BUDGETS", "PROGRAM_RUNTIME_DIFF_CHECK_COUNT", "PROGRAM_RUNTIME_DIFF_CONTROLS", "PROGRAM_RUNTIME_DIFF_DOMAIN_COUNT", "PROGRAM_RUNTIME_DIFF_STAGE_COUNT",
     "ArchitectureProgramReceipt", "ArchitectureProgramReport", "ArchitectureProgramSpec", "ProgramArtifactKind", "ProgramRelease", "ProgramReleaseArtifact", "ProgramReleaseCheck", "ProgramReleaseCheckCategory", "ProgramReleaseManifest", "ProgramReleaseState", "ProgramReleaseVerification", "ProgramRuntime", "ProgramRuntimeCheck", "ProgramRuntimeCheckCategory", "ProgramRuntimeFailureProbe", "ProgramRuntimeFailureReport", "ProgramRuntimeQualityCheck", "ProgramRuntimeQualityReport", "ProgramRuntimeReplayReport", "ProgramRuntimeStage", "ProgramRuntimeState", "ProgramArtifactWorkReceipt", "ProgramOperationalCheck", "ProgramOperationalTrace", "ProgramStageWorkReceipt", "ProgramCheckChange", "ProgramDiffCheck", "ProgramDomainChange", "ProgramRuntimeDiff", "ProgramStageChange",
     "architecture_program_checks_csv", "architecture_program_domain_matrix", "architecture_program_domains_csv", "architecture_program_percent", "architecture_program_receipts_csv", "architecture_program_report_json", "architecture_program_report_markdown", "architecture_program_runtime_json", "architecture_program_summary_json", "build_program_release", "build_program_operational_closure", "build_program_operational_trace", "build_program_runtime_control", "build_program_runtime_control_specs", "build_program_runtime_diff", "build_program_runtime_diff_closure", "compare_program_runtimes", "default_architecture_program_specs", "load_program_release_manifest", "program_release_json", "program_release_manifest_json", "program_release_payloads", "query_architecture_program", "replay_architecture_program", "run_architecture_program", "run_program_runtime", "run_program_runtime_failure_injections", "run_program_runtime_quality_gate", "verify_program_operational_trace", "verify_program_runtime_diff", "verify_program_release", "write_program_release",
+]
+
+__all__ += [
+    "PROGRAM_RUNTIME_OFFLINE_ARTIFACT_COUNT", "PROGRAM_RUNTIME_OFFLINE_ARTIFACT_PREFIX", "PROGRAM_RUNTIME_OFFLINE_BOUNDARY", "PROGRAM_RUNTIME_OFFLINE_BUNDLE_VERSION", "PROGRAM_RUNTIME_OFFLINE_CERTIFICATION_VERSION", "PROGRAM_RUNTIME_OFFLINE_CHECK_PREFIX", "PROGRAM_RUNTIME_OFFLINE_DEFAULT_LIMIT", "PROGRAM_RUNTIME_OFFLINE_DOMAIN_COUNT", "PROGRAM_RUNTIME_OFFLINE_HANDOFF_STAGE_COUNT", "PROGRAM_RUNTIME_OFFLINE_MANIFEST_FILENAME", "PROGRAM_RUNTIME_OFFLINE_MAX_ARTIFACTS", "PROGRAM_RUNTIME_OFFLINE_MAX_LIMIT", "PROGRAM_RUNTIME_OFFLINE_OPERATION_COUNT", "PROGRAM_RUNTIME_OFFLINE_PROGRAM_CHECK_COUNT", "PROGRAM_RUNTIME_OFFLINE_QUALITY_CHECK_COUNT", "PROGRAM_RUNTIME_OFFLINE_RECONCILIATION_VERSION", "PROGRAM_RUNTIME_OFFLINE_RELEASE_ARTIFACT_COUNT", "PROGRAM_RUNTIME_OFFLINE_RUNTIME_STAGE_COUNT", "PROGRAM_RUNTIME_OFFLINE_RUNTIME_VERSION", "PROGRAM_RUNTIME_OFFLINE_SCHEMA_VERSION",
+    "ProgramRuntimeOfflineArtifact", "ProgramRuntimeOfflineArtifactKind", "ProgramRuntimeOfflineAudit", "ProgramRuntimeOfflineBundle", "ProgramRuntimeOfflineBundleState", "ProgramRuntimeOfflineCertificationCheck", "ProgramRuntimeOfflineCertificationDomain", "ProgramRuntimeOfflineCertificationReport", "ProgramRuntimeOfflineCheck", "ProgramRuntimeOfflineCheckPlane", "ProgramRuntimeOfflineDiff", "ProgramRuntimeOfflineIndexAudit", "ProgramRuntimeOfflineIndexEntry", "ProgramRuntimeOfflineIndexes", "ProgramRuntimeOfflineQueryResult", "ProgramRuntimeOfflineReconciliationCheck", "ProgramRuntimeOfflineReconciliationDelta", "ProgramRuntimeOfflineReconciliationReport", "ProgramRuntimeOfflineReplay", "ProgramRuntimeOfflineRuntimeStage", "ProgramRuntimeOfflineSummary", "ProgramRuntimeOfflineSummaryAudit", "ProgramRuntimeOfflineVerification",
+    "ProgramRuntimeOfflineEvent", "ProgramRuntimeOfflineMetric", "ProgramRuntimeOfflineObservabilityReport",
+    "audit_program_runtime_offline_bundle", "audit_program_runtime_offline_boundary", "audit_program_runtime_offline_directory", "audit_program_runtime_offline_indexes", "audit_program_runtime_offline_observability", "audit_program_runtime_offline_summary", "build_program_runtime_offline_bundle", "build_program_runtime_offline_indexes", "build_program_runtime_offline_observability", "build_program_runtime_offline_summary", "certify_program_runtime_offline_bundle", "compare_program_runtime_offline_bundles", "diff_program_runtime_offline_bundles", "export_program_runtime_offline_query_csv", "load_program_runtime_offline_bundle", "program_runtime_offline_bundle_schema", "program_runtime_offline_certification_csv", "program_runtime_offline_certification_markdown", "program_runtime_offline_check", "program_runtime_offline_events_csv", "program_runtime_offline_key_inventory", "program_runtime_offline_metrics_csv", "program_runtime_offline_payloads", "program_runtime_offline_reconciliation_markdown", "program_runtime_offline_runtime_json", "program_runtime_offline_summary_csv", "program_runtime_offline_summary_markdown", "public_program_projection", "query_program_runtime_offline_bundle", "reconcile_program_runtime_offline_bundle", "run_program_runtime_offline_runtime", "validate_program_runtime_offline_manifest", "verify_program_runtime_offline_bundle", "write_program_runtime_offline_bundle",
 ]
 
 __all__ += [

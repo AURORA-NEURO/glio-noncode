@@ -136,6 +136,58 @@ from .program_runtime_replay import (
     replay_architecture_program,
     run_program_runtime_failure_injections,
 )
+from .program_runtime_offline_audit import (
+    audit_program_runtime_offline_bundle,
+    audit_program_runtime_offline_directory,
+    verify_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_boundary import (
+    audit_program_runtime_offline_boundary,
+    program_runtime_offline_key_inventory,
+)
+from .program_runtime_offline_bundle import (
+    build_program_runtime_offline_bundle,
+    load_program_runtime_offline_bundle,
+    write_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_certification import (
+    certify_program_runtime_offline_bundle,
+    program_runtime_offline_certification_csv,
+    program_runtime_offline_certification_markdown,
+)
+from .program_runtime_offline_indexes import (
+    audit_program_runtime_offline_indexes,
+    build_program_runtime_offline_indexes,
+)
+from .program_runtime_offline_query import (
+    diff_program_runtime_offline_bundles,
+    export_program_runtime_offline_query_csv,
+    query_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_reconciliation import (
+    program_runtime_offline_reconciliation_markdown,
+    reconcile_program_runtime_offline_bundle,
+)
+from .program_runtime_offline_observability import (
+    audit_program_runtime_offline_observability,
+    build_program_runtime_offline_observability,
+    program_runtime_offline_events_csv,
+    program_runtime_offline_metrics_csv,
+)
+from .program_runtime_offline_runtime import (
+    program_runtime_offline_runtime_json,
+    run_program_runtime_offline_runtime,
+)
+from .program_runtime_offline_schema import (
+    program_runtime_offline_bundle_schema,
+    validate_program_runtime_offline_manifest,
+)
+from .program_runtime_offline_summary import (
+    audit_program_runtime_offline_summary,
+    build_program_runtime_offline_summary,
+    program_runtime_offline_summary_csv,
+    program_runtime_offline_summary_markdown,
+)
 from .module_fabric_catalog import default_module_fabric_catalog
 from .module_fabric_bundle import (
     build_module_fabric_bundle,
@@ -3401,6 +3453,107 @@ def build_parser() -> argparse.ArgumentParser:
     )
     architecture_program_verify_bundle.add_argument("input", type=str)
     architecture_program_verify_bundle.add_argument("--output", default=None)
+    architecture_program_offline_bundle = subparsers.add_parser(
+        "architecture-program-offline-bundle",
+        help="materialize the public aggregate architecture-program offline handoff",
+    )
+    architecture_program_offline_bundle.add_argument("--destination", required=True)
+    architecture_program_offline_bundle.add_argument("--bundle-id", default="architecture-program-public-bundle")
+    architecture_program_offline_bundle.add_argument("--run-id", default="architecture-program-offline-runtime")
+    architecture_program_offline_bundle.add_argument("--include-payloads", action="store_true")
+    architecture_program_offline_bundle.add_argument("--output", default=None)
+    architecture_program_offline_verify = subparsers.add_parser(
+        "architecture-program-offline-verify",
+        help="verify exact bytes and public closure of an architecture-program offline handoff",
+    )
+    architecture_program_offline_verify.add_argument("destination", type=str)
+    architecture_program_offline_verify.add_argument("--output", default=None)
+    architecture_program_offline_query = subparsers.add_parser(
+        "architecture-program-offline-query",
+        help="query architecture-program offline artifacts, domains, checks, or stages",
+    )
+    architecture_program_offline_query.add_argument("destination", type=str)
+    architecture_program_offline_query.add_argument("--resource", choices=("artifacts", "domains", "operations", "checks", "stages", "quality", "release_checks", "specifications", "capabilities", "states"), default="artifacts")
+    architecture_program_offline_query.add_argument("--domain-id", default=None)
+    architecture_program_offline_query.add_argument("--state", default=None)
+    architecture_program_offline_query.add_argument("--accepted-only", action="store_true")
+    architecture_program_offline_query.add_argument("--text", default=None)
+    architecture_program_offline_query.add_argument("--offset", default=0, type=int)
+    architecture_program_offline_query.add_argument("--limit", default=50, type=int)
+    architecture_program_offline_query.add_argument("--format", choices=("json", "csv"), default="json")
+    architecture_program_offline_query.add_argument("--output", default=None)
+    architecture_program_offline_diff = subparsers.add_parser(
+        "architecture-program-offline-diff",
+        help="compare two architecture-program offline handoffs by exact artifact addresses",
+    )
+    architecture_program_offline_diff.add_argument("left", type=str)
+    architecture_program_offline_diff.add_argument("right", type=str)
+    architecture_program_offline_diff.add_argument("--output", default=None)
+    architecture_program_offline_schema = subparsers.add_parser(
+        "architecture-program-offline-schema",
+        help="print the closed architecture-program offline manifest schema",
+    )
+    architecture_program_offline_schema.add_argument("--output", default=None)
+    architecture_program_offline_validate = subparsers.add_parser(
+        "architecture-program-offline-validate",
+        help="validate an architecture-program offline manifest JSON file",
+    )
+    architecture_program_offline_validate.add_argument("input", type=str)
+    architecture_program_offline_validate.add_argument("--output", default=None)
+    architecture_program_offline_audit = subparsers.add_parser(
+        "architecture-program-offline-audit",
+        help="audit architecture-program offline bytes, joins, and denominators",
+    )
+    architecture_program_offline_audit.add_argument("destination", type=str)
+    architecture_program_offline_audit.add_argument("--output", default=None)
+    architecture_program_offline_boundary = subparsers.add_parser(
+        "architecture-program-offline-boundary",
+        help="audit architecture-program public keys and filesystem shape",
+    )
+    architecture_program_offline_boundary.add_argument("destination", type=str)
+    architecture_program_offline_boundary.add_argument("--key-inventory", action="store_true")
+    architecture_program_offline_boundary.add_argument("--output", default=None)
+    architecture_program_offline_indexes = subparsers.add_parser(
+        "architecture-program-offline-indexes",
+        help="build address-only architecture-program offline lookup indexes",
+    )
+    architecture_program_offline_indexes.add_argument("destination", type=str)
+    architecture_program_offline_indexes.add_argument("--output", default=None)
+    architecture_program_offline_reconciliation = subparsers.add_parser(
+        "architecture-program-offline-reconciliation",
+        help="reconcile architecture-program offline identities and denominators",
+    )
+    architecture_program_offline_reconciliation.add_argument("destination", type=str)
+    architecture_program_offline_reconciliation.add_argument("--format", choices=("json", "markdown"), default="json")
+    architecture_program_offline_reconciliation.add_argument("--output", default=None)
+    architecture_program_offline_summary = subparsers.add_parser(
+        "architecture-program-offline-summary",
+        help="emit the compact architecture-program offline reviewer summary",
+    )
+    architecture_program_offline_summary.add_argument("destination", type=str)
+    architecture_program_offline_summary.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    architecture_program_offline_summary.add_argument("--output", default=None)
+    architecture_program_offline_runtime = subparsers.add_parser(
+        "architecture-program-offline-runtime",
+        help="run the staged architecture-program offline verification runtime",
+    )
+    architecture_program_offline_runtime.add_argument("--bundle-id", default="architecture-program-public-bundle")
+    architecture_program_offline_runtime.add_argument("--run-id", default="architecture-program-offline-runtime")
+    architecture_program_offline_runtime.add_argument("--output", default=None)
+    architecture_program_offline_observability = subparsers.add_parser(
+        "architecture-program-offline-observability",
+        help="emit deterministic architecture-program offline events and metrics",
+    )
+    architecture_program_offline_observability.add_argument("destination", type=str)
+    architecture_program_offline_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    architecture_program_offline_observability.add_argument("--output", default=None)
+    architecture_program_offline_certification = subparsers.add_parser(
+        "architecture-program-offline-certification",
+        help="certify architecture-program offline handoff domains",
+    )
+    architecture_program_offline_certification.add_argument("destination", type=str)
+    architecture_program_offline_certification.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    architecture_program_offline_certification.add_argument("--output", default=None)
     architecture_program_operational = subparsers.add_parser(
         "architecture-program-operational",
         help="emit deterministic workload and handoff evidence for the architecture program",
@@ -9963,6 +10116,119 @@ def main(argv: list[str] | None = None) -> int:
             verification = verify_program_release(args.input)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
+        if args.command == "architecture-program-offline-bundle":
+            bundle = build_program_runtime_offline_bundle(
+                bundle_id=args.bundle_id,
+                run_id=args.run_id,
+            )
+            write_program_runtime_offline_bundle(
+                bundle,
+                args.destination,
+                include_payloads=args.include_payloads,
+            )
+            _write_json(bundle.to_dict(include_payloads=args.include_payloads), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "architecture-program-offline-verify":
+            verification = verify_program_runtime_offline_bundle(args.destination)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "architecture-program-offline-query":
+            bundle = load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            result = query_program_runtime_offline_bundle(
+                bundle,
+                resource=args.resource,
+                domain_id=args.domain_id,
+                state=args.state,
+                accepted_only=args.accepted_only,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(export_program_runtime_offline_query_csv(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "architecture-program-offline-diff":
+            left = load_program_runtime_offline_bundle(args.left, include_payloads=False)
+            right = load_program_runtime_offline_bundle(args.right, include_payloads=False)
+            result = diff_program_runtime_offline_bundles(left, right)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "architecture-program-offline-schema":
+            _write_json(program_runtime_offline_bundle_schema(), args.output)
+            return 0
+        if args.command == "architecture-program-offline-validate":
+            report = validate_program_runtime_offline_manifest(_read_json(args.input))
+            _write_json(report, args.output)
+            return 0 if report["accepted"] else 2
+        if args.command == "architecture-program-offline-audit":
+            audit = audit_program_runtime_offline_bundle(
+                load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            )
+            _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "architecture-program-offline-boundary":
+            bundle = load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            if args.key_inventory:
+                _write_json(program_runtime_offline_key_inventory(bundle), args.output)
+                return 0
+            report = audit_program_runtime_offline_directory(args.destination)
+            _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-offline-indexes":
+            bundle = load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            indexes = build_program_runtime_offline_indexes(bundle)
+            audit = audit_program_runtime_offline_indexes(bundle, indexes)
+            _write_json({"indexes": indexes.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "architecture-program-offline-reconciliation":
+            bundle = load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            report = reconcile_program_runtime_offline_bundle(bundle)
+            if args.format == "markdown":
+                _write_text(program_runtime_offline_reconciliation_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-offline-summary":
+            bundle = load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            summary = build_program_runtime_offline_summary(bundle)
+            audit = audit_program_runtime_offline_summary(summary)
+            if args.format == "csv":
+                _write_text(program_runtime_offline_summary_csv(summary), args.output)
+            elif args.format == "markdown":
+                _write_text(program_runtime_offline_summary_markdown(summary), args.output)
+            else:
+                _write_json({"summary": summary.to_dict(), "audit": audit.to_dict()}, args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "architecture-program-offline-runtime":
+            report = run_program_runtime_offline_runtime(
+                bundle_id=args.bundle_id,
+                run_id=args.run_id,
+            )
+            _write_text(program_runtime_offline_runtime_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "architecture-program-offline-observability":
+            bundle = load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            report = build_program_runtime_offline_observability(bundle)
+            audit = audit_program_runtime_offline_observability(report)
+            if args.format == "events-csv":
+                _write_text(program_runtime_offline_events_csv(report), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(program_runtime_offline_metrics_csv(report), args.output)
+            else:
+                _write_json({"observability": report.to_dict(), "audit": audit}, args.output)
+            return 0 if audit["accepted"] else 2
+        if args.command == "architecture-program-offline-certification":
+            bundle = load_program_runtime_offline_bundle(args.destination, include_payloads=True)
+            report = certify_program_runtime_offline_bundle(bundle)
+            if args.format == "csv":
+                _write_text(program_runtime_offline_certification_csv(report), args.output)
+            elif args.format == "markdown":
+                _write_text(program_runtime_offline_certification_markdown(report), args.output)
+            else:
+                _write_json(report.to_dict(), args.output)
+            return 0 if report.accepted else 2
         if args.command == "architecture-program-operational":
             if args.closure:
                 operational = build_program_operational_closure()

@@ -3969,6 +3969,43 @@ glio-noncode portfolio-release-diff portfolio-release-a portfolio-release-b --ou
 glio-noncode portfolio-release-runtime --data-root .glio --release-ready-only --output portfolio-runtime.json
 ```
 
+### Architecture program offline handoff boundary
+
+The sixteen-domain architecture program now has a producer-independent public
+transport boundary. Its 18 exact-byte artifacts retain the eleven existing
+runtime/release projections and add operational, domain-operation, stage,
+quality, release-check, specification, and capability projections. The handoff
+closes 172 program checks, 18 quality checks, 12 source stages, seven
+certification domains, and 36 certification checks. Artifact hashes cover the
+bytes written, and the root address covers the complete manifest inventory and
+checks.
+
+The offline boundary rejects direct identifiers, attribution and model keys,
+unsafe paths, missing or extra files, byte drift, denominator drift, malformed
+JSON, and non-deterministic replay. Address-only indexes support artifact,
+path, domain, check, stage, and state lookups; bounded queries support JSON or
+CSV output. Seven certification domains independently cover manifest,
+inventory, runtime, release, reconciliation, query, and public-boundary
+closure.
+
+```powershell
+glio-noncode architecture-program-offline-bundle --destination architecture-program-bundle
+glio-noncode architecture-program-offline-verify architecture-program-bundle
+glio-noncode architecture-program-offline-query architecture-program-bundle --resource domains --domain-id D08
+glio-noncode architecture-program-offline-indexes architecture-program-bundle
+glio-noncode architecture-program-offline-reconciliation architecture-program-bundle --format markdown
+glio-noncode architecture-program-offline-summary architecture-program-bundle --format markdown
+glio-noncode architecture-program-offline-certification architecture-program-bundle --format markdown
+glio-noncode architecture-program-offline-runtime --output architecture-program-offline-runtime.json
+glio-noncode architecture-program-offline-observability architecture-program-bundle --format metrics-csv
+```
+
+The HTTP equivalents are `/v1/architecture/offline/bundle`, `/query`,
+`/schema`, `/audit`, `/boundary`, `/indexes`, `/reconciliation`, `/summary`,
+`/runtime`, and `/certification`. The service reuses one immutable bundle for
+related requests with the same identifiers. `/observability` adds a
+timestamp-free stage event stream and twelve aggregate metrics.
+
 ## Domain 16 typed mission runtime
 
 The mission runtime combines the declared control-plane registry with workflow

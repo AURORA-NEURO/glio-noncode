@@ -88,6 +88,20 @@ from .deployment_frontier_offline_reconciliation import reconcile_deployment_fro
 from .deployment_frontier_offline_runtime import build_deployment_frontier_offline_observability, run_deployment_frontier_offline_runtime
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
 from .deployment_frontier_offline_summary import audit_deployment_frontier_offline_summary, build_deployment_frontier_offline_summary
+from .program_runtime_offline_audit import audit_program_runtime_offline_bundle
+from .program_runtime_offline_boundary import audit_program_runtime_offline_boundary
+from .program_runtime_offline_bundle import build_program_runtime_offline_bundle
+from .program_runtime_offline_certification import certify_program_runtime_offline_bundle
+from .program_runtime_offline_indexes import audit_program_runtime_offline_indexes, build_program_runtime_offline_indexes
+from .program_runtime_offline_query import query_program_runtime_offline_bundle
+from .program_runtime_offline_reconciliation import reconcile_program_runtime_offline_bundle
+from .program_runtime_offline_observability import (
+    audit_program_runtime_offline_observability,
+    build_program_runtime_offline_observability,
+)
+from .program_runtime_offline_runtime import run_program_runtime_offline_runtime
+from .program_runtime_offline_schema import program_runtime_offline_bundle_schema
+from .program_runtime_offline_summary import audit_program_runtime_offline_summary, build_program_runtime_offline_summary
 from .storage_audit import build_storage_audit
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -138,6 +152,20 @@ class ApiHandler(BaseHTTPRequestHandler):
             runtime = factory()
             setattr(self.server, "glio_runtime", runtime)  # noqa: B010 - the HTTP server is intentionally extended
         return runtime
+
+    def _program_offline_bundle(self, bundle_id: str, run_id: str):
+        """Reuse one immutable offline build across related GET projections."""
+
+        cache = getattr(self.server, "glio_program_offline_bundles", None)
+        if cache is None:
+            cache = {}
+            setattr(self.server, "glio_program_offline_bundles", cache)
+        key = (bundle_id, run_id)
+        bundle = cache.get(key)
+        if bundle is None:
+            bundle = build_program_runtime_offline_bundle(bundle_id=bundle_id, run_id=run_id)
+            cache[key] = bundle
+        return bundle
 
     def _service_surface(self):
         snapshot = getattr(self.server, "glio_service_surface", None)
@@ -259,6 +287,78 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/architecture/offline/bundle",
+            "/v1/architecture/offline/query",
+            "/v1/architecture/offline/schema",
+            "/v1/architecture/offline/audit",
+            "/v1/architecture/offline/boundary",
+            "/v1/architecture/offline/indexes",
+            "/v1/architecture/offline/reconciliation",
+            "/v1/architecture/offline/summary",
+            "/v1/architecture/offline/runtime",
+            "/v1/architecture/offline/certification",
+            "/v1/architecture/offline/observability",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path.endswith("/schema"):
+                    self._write(HTTPStatus.OK, program_runtime_offline_bundle_schema())
+                    return
+                if path.endswith("/runtime"):
+                    report = run_program_runtime_offline_runtime(
+                        bundle_id=self._query_value(query, "bundle_id") or "architecture-program-public-bundle",
+                        run_id=self._query_value(query, "run_id") or "architecture-program-offline-runtime",
+                    )
+                    self._write(HTTPStatus.OK, report.to_dict())
+                    return
+                bundle = self._program_offline_bundle(
+                    self._query_value(query, "bundle_id") or "architecture-program-public-bundle",
+                    self._query_value(query, "run_id") or "architecture-program-offline-runtime",
+                )
+                if path.endswith("/query"):
+                    result = query_program_runtime_offline_bundle(
+                        bundle,
+                        resource=self._query_value(query, "resource") or "artifacts",
+                        domain_id=self._query_value(query, "domain_id"),
+                        state=self._query_value(query, "state"),
+                        accepted_only=self._query_bool(query, "accepted_only"),
+                        text=self._query_value(query, "text") or self._query_value(query, "q"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                    self._write(HTTPStatus.OK, result.to_dict())
+                elif path.endswith("/audit"):
+                    self._write(HTTPStatus.OK, audit_program_runtime_offline_bundle(bundle).to_dict())
+                elif path.endswith("/boundary"):
+                    self._write(HTTPStatus.OK, audit_program_runtime_offline_boundary(bundle))
+                elif path.endswith("/indexes"):
+                    indexes = build_program_runtime_offline_indexes(bundle)
+                    audit = audit_program_runtime_offline_indexes(bundle, indexes)
+                    self._write(HTTPStatus.OK, {"indexes": indexes.to_dict(), "audit": audit.to_dict()})
+                elif path.endswith("/reconciliation"):
+                    self._write(HTTPStatus.OK, reconcile_program_runtime_offline_bundle(bundle).to_dict())
+                elif path.endswith("/summary"):
+                    summary = build_program_runtime_offline_summary(bundle)
+                    audit = audit_program_runtime_offline_summary(summary)
+                    self._write(HTTPStatus.OK, {"summary": summary.to_dict(), "audit": audit.to_dict()})
+                elif path.endswith("/certification"):
+                    self._write(HTTPStatus.OK, certify_program_runtime_offline_bundle(bundle).to_dict())
+                elif path.endswith("/observability"):
+                    report = build_program_runtime_offline_observability(bundle)
+                    self._write(
+                        HTTPStatus.OK,
+                        {"observability": report.to_dict(), "audit": audit_program_runtime_offline_observability(report)},
+                    )
+                else:
+                    self._write(HTTPStatus.OK, bundle.to_dict(include_payloads=self._query_bool(query, "include_payloads")))
             except GlioError as exc:
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:

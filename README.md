@@ -310,6 +310,23 @@ glio-noncode workbench-release-offline-bundle-summary workbench-release-bundle -
 glio-noncode workbench-release-offline-bundle-certification workbench-release-bundle --format markdown --output workbench-release-certification.md
 ```
 
+The architecture program now has a portable public handoff for its complete
+sixteen-domain runtime. It closes 18 exact-byte artifacts, 172 program checks,
+18 quality checks, 12 source runtime stages, 11 source release projections,
+seven certification domains, and 36 certification checks. See
+[architecture program offline operations](docs/ARCHITECTURE_PROGRAM_OFFLINE_OPERATIONS.md)
+for the complete transport, query, verification, and replay workflow.
+
+```text
+glio-noncode architecture-program-offline-bundle --destination architecture-program-bundle
+glio-noncode architecture-program-offline-bundle-verify architecture-program-bundle
+glio-noncode architecture-program-offline-query architecture-program-bundle --resource domains --domain-id D08
+glio-noncode architecture-program-offline-audit architecture-program-bundle
+glio-noncode architecture-program-offline-runtime --output architecture-program-runtime.json
+glio-noncode architecture-program-offline-certification architecture-program-bundle --format markdown
+glio-noncode architecture-program-offline-observability architecture-program-bundle --format metrics-csv
+```
+
 The D16 deployment-governance frontier now has the same portable review
 surface. It covers C13 privacy/security policy, C14 local offline bundles,
 C15 federated execution, and C16 release/rollback gates. The handoff closes
