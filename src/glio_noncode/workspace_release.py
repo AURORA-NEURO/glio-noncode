@@ -437,7 +437,9 @@ def build_workspace_release_bundle(history: WorkspaceHistory) -> WorkspaceReleas
 
     release_id = f"workspace-release-{history.content_address.split(':', 1)[-1][:24]}"
     snapshot_valid = bool(history.snapshots) and 0 <= history.current_snapshot_index < len(history.snapshots)
-    current_valid = snapshot_valid and history.snapshots[history.current_snapshot_index].accepted
+    current_snapshot = history.snapshots[history.current_snapshot_index] if snapshot_valid else None
+    current_valid = current_snapshot is not None and current_snapshot.accepted
+    review_accepted = current_snapshot is not None and current_snapshot.review_state == "accepted"
     public_body = history.to_dict()
     checks = (
         _check(
@@ -453,6 +455,13 @@ def build_workspace_release_bundle(history: WorkspaceHistory) -> WorkspaceReleas
             history.current_snapshot_index if snapshot_valid else None,
             "accepted current snapshot",
             "the current workspace snapshot must exist and pass its boundary",
+        ),
+        _check(
+            "review-accepted",
+            review_accepted,
+            current_snapshot.review_state if current_snapshot is not None else None,
+            "accepted",
+            "portable workspace release requires an accepted human review",
         ),
         _check(
             "public-boundary",

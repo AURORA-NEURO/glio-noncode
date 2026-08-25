@@ -82,6 +82,15 @@ class WorkspaceReleaseTests(unittest.TestCase):
             self.assertEqual(verification.failed_artifact_ids, ())
             self.assertEqual(verification.unexpected_filenames, ())
 
+    def test_pending_review_workspace_is_not_release_ready(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            runtime = CaseRuntime(directory)
+            dossier = runtime.evaluate(fixture_manifest())
+            bundle = build_persisted_workspace_release(runtime, dossier.run_id)
+            self.assertFalse(bundle.accepted)
+            self.assertIn("review-accepted", bundle.failed_check_ids)
+            self.assertEqual(bundle.state, "blocked")
+
     def test_build_is_deterministic_and_manifest_reconstructs_exact_bytes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime, original = self._reviewed_runtime(directory)

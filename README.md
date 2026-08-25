@@ -63,6 +63,8 @@ To inspect locally persisted runs and their replay evidence:
 ```powershell
 glio-noncode run-catalog --data-root .glio
 glio-noncode run-inspect run-<run-id> --data-root .glio --output run-inspection.json
+glio-noncode run-portfolio --data-root .glio --as-of 2026-09-01T12:00:00Z --output run-portfolio.json
+glio-noncode run-portfolio --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output run-portfolio-closure.json
 glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
 glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
@@ -98,6 +100,13 @@ projections. It can find hypotheses, evidence claims, validation routes,
 reviews, and run summaries with deterministic ranking and filters. Corrupt runs
 remain visible as blocked operational evidence without leaking their scientific
 records; a complete search closure is suitable for offline handoff.
+
+The run portfolio joins replay integrity, review/SLA state, workspace history,
+and portable release readiness for every persisted run. It is useful for
+operator triage and offline handoff planning: a pending-review run remains
+inspectable, while its release is explicitly held until the human-review gate
+passes. The fixed `--as-of` timestamp makes due-state and portfolio addresses
+reproducible.
 
 Live retrieval is optional. Each request is rate-limited, retried only with unchanged semantics, cached locally, and recorded with source/version/URL/response hashes. A source failure remains a warning or abstention; it is never converted to a negative measurement.
 

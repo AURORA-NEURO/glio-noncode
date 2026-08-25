@@ -1434,3 +1434,7 @@ jobs:
         run: python -m unittest tests.test_batch_release -v
       - name: Run search focused tests
         run: python -m unittest tests.test_run_search -v
+      - name: Run portfolio focused tests
+        run: python -m unittest tests.test_run_portfolio -v
+      - name: Workspace history and release focused tests
+        run: python -m unittest tests.test_workspace_history tests.test_workspace_release -v

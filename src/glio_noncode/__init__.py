@@ -10219,6 +10219,16 @@ from .workspace_release import (
     verify_workspace_release_bundle,
     write_workspace_release_bundle,
 )
+from .run_portfolio import (
+    RUN_PORTFOLIO_DEFAULT_LIMIT,
+    RUN_PORTFOLIO_MAX_LIMIT,
+    RUN_PORTFOLIO_RELEASE_STATES,
+    RUN_PORTFOLIO_VERSION,
+    RunPortfolio,
+    RunPortfolioRow,
+    build_run_portfolio,
+    build_run_portfolio_closure,
+)
 from .program_runtime_release_contracts import (
     ProgramArtifactKind,
     ProgramRelease,
@@ -10325,6 +10335,12 @@ __all__ += [
     "WorkspaceReleaseCheck", "WorkspaceReleaseVerification", "build_persisted_workspace_release",
     "build_workspace_release_bundle", "verify_workspace_release_bundle",
     "write_workspace_release_bundle",
+]
+
+__all__ += [
+    "RUN_PORTFOLIO_DEFAULT_LIMIT", "RUN_PORTFOLIO_MAX_LIMIT", "RUN_PORTFOLIO_RELEASE_STATES",
+    "RUN_PORTFOLIO_VERSION", "RunPortfolio", "RunPortfolioRow", "build_run_portfolio",
+    "build_run_portfolio_closure",
 ]
 
 __all__ += [

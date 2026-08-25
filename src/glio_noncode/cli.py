@@ -1261,6 +1261,12 @@ from .run_search import (
     build_run_search_closure,
     search_persisted_runs,
 )
+from .run_portfolio import (
+    RUN_PORTFOLIO_DEFAULT_LIMIT,
+    RUN_PORTFOLIO_RELEASE_STATES,
+    build_run_portfolio,
+    build_run_portfolio_closure,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -2514,6 +2520,29 @@ def build_parser() -> argparse.ArgumentParser:
     run_catalog.add_argument("--limit", default=RUN_CATALOG_DEFAULT_LIMIT, type=int)
     run_catalog.add_argument("--closure", action="store_true")
     run_catalog.add_argument("--output", default=None)
+
+    run_portfolio = subparsers.add_parser(
+        "run-portfolio",
+        help="reconcile persisted runs, review operations, workspaces, and release readiness",
+    )
+    run_portfolio.add_argument("--data-root", default=".glio")
+    run_portfolio.add_argument("--case-id", default=None)
+    run_portfolio.add_argument("--status", default=None)
+    run_portfolio.add_argument("--reviewer", default=None)
+    run_portfolio.add_argument(
+        "--due-state",
+        choices=("completed", "overdue", "due_soon", "scheduled", "undated", "invalid"),
+        default=None,
+    )
+    run_portfolio.add_argument("--release-state", choices=RUN_PORTFOLIO_RELEASE_STATES, default=None)
+    run_portfolio.add_argument("--text", default=None)
+    run_portfolio.add_argument("--release-ready-only", action="store_true")
+    run_portfolio.add_argument("--as-of", default=None)
+    run_portfolio.add_argument("--due-soon-hours", default=48, type=int)
+    run_portfolio.add_argument("--offset", default=0, type=int)
+    run_portfolio.add_argument("--limit", default=RUN_PORTFOLIO_DEFAULT_LIMIT, type=int)
+    run_portfolio.add_argument("--closure", action="store_true")
+    run_portfolio.add_argument("--output", default=None)
 
     run_inspect = subparsers.add_parser(
         "run-inspect",
@@ -18193,6 +18222,31 @@ def main(argv: list[str] | None = None) -> int:
                     case_id=args.case_id,
                     status=args.status,
                     text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            _write_json(payload, args.output)
+            return 0 if payload["accepted"] else 2
+        if args.command == "run-portfolio":
+            runtime = CaseRuntime(args.data_root)
+            if args.closure:
+                payload = build_run_portfolio_closure(
+                    runtime,
+                    as_of=args.as_of,
+                    due_soon_hours=args.due_soon_hours,
+                )
+            else:
+                payload = build_run_portfolio(
+                    runtime,
+                    case_id=args.case_id,
+                    status=args.status,
+                    reviewer=args.reviewer,
+                    due_state=args.due_state,
+                    release_state=args.release_state,
+                    text=args.text,
+                    release_ready_only=args.release_ready_only,
+                    as_of=args.as_of,
+                    due_soon_hours=args.due_soon_hours,
                     offset=args.offset,
                     limit=args.limit,
                 ).to_dict()

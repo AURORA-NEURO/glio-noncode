@@ -13,6 +13,8 @@ report or runtime from which it was derived.
 | GET | `/v1/schema` | Existing case contract summary |
 | GET | `/v1/search` | Replay-gated cross-run search over public dossier resources |
 | GET | `/v1/search/closure` | Complete content-addressed cross-run search closure |
+| GET | `/v1/portfolio` | Reconcile run integrity, review operations, workspace state, and release readiness |
+| GET | `/v1/portfolio/closure` | Complete cross-run portfolio closure for offline operations |
 | GET | `/v1/batches` | Paginated catalog of persisted batch evaluations |
 | GET | `/v1/batches/{batch_id}` | Reopen and verify one batch result |
 | GET | `/v1/batches/{batch_id}/release` | Build a gated portable batch handoff bundle |
@@ -73,6 +75,14 @@ Corrupt or incomplete runs contribute only a bounded blocked-run record for
 reviews. Results use deterministic token matching, ranking, pagination, and
 content addresses. `/v1/search/closure` disables pagination and returns the
 complete replay-gated projection for offline handoff.
+
+The run portfolio joins each persisted run's replay integrity, review queue and
+SLA state, current workspace history, and portable workspace release gate. It
+accepts `case_id`, `status`, `reviewer`, `due_state`, `release_state`, `q` or
+`text`, `release_ready_only`, `as_of`, `due_soon_hours`, `offset`, and `limit`.
+Rows distinguish a valid inspectable run from a release-ready run: a pending
+review can remain accepted as operational evidence while its release remains
+blocked. `/v1/portfolio/closure` returns every row and aggregate status counts.
 
 Batch catalog queries accept `text`, `offset`, and `limit`. Batch identifiers are
 derived from the canonical batch input address, so repeating an identical batch
@@ -137,7 +147,9 @@ artifacts: current and historical JSON projections, a summary, snapshot/record/
 transition CSVs, gate evidence, and a Markdown report. `release.json` addresses
 the exact artifact bytes and the verifier rejects missing, extra, unsafe,
 duplicate, tampered, non-UTF-8, and public-boundary-violating files. A blocked
-history can be exported for inspection, but its release remains unaccepted.
+history or pending-review workspace can be exported for inspection, but its
+release remains unaccepted until replay, workspace-boundary, and human-review
+gates all pass.
 
 ## CLI and offline closure
 
@@ -177,6 +189,8 @@ Search the persisted corpus across runs:
 ```text
 glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
 glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
+glio-noncode run-portfolio --data-root .glio --as-of 2026-09-01T12:00:00Z --output run-portfolio.json
+glio-noncode run-portfolio --data-root .glio --closure --as-of 2026-09-01T12:00:00Z --output run-portfolio-closure.json
 ```
 
 The search command is the offline equivalent of the two search endpoints. It

@@ -32,6 +32,11 @@ from .run_catalog import (
     inspect_run,
 )
 from .run_search import build_run_search_closure, search_persisted_runs
+from .run_portfolio import (
+    RUN_PORTFOLIO_DEFAULT_LIMIT,
+    build_run_portfolio,
+    build_run_portfolio_closure,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -188,6 +193,45 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path == "/v1/portfolio" or path == "/v1/portfolio/closure":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                as_of = self._query_value(query, "as_of")
+                due_soon_hours = self._query_int(query, "due_soon_hours", 48)
+                if path.endswith("/closure"):
+                    self._write(
+                        HTTPStatus.OK,
+                        build_run_portfolio_closure(
+                            self._runtime(),
+                            as_of=as_of,
+                            due_soon_hours=due_soon_hours,
+                        ),
+                    )
+                    return
+                page = build_run_portfolio(
+                    self._runtime(),
+                    case_id=self._query_value(query, "case_id"),
+                    status=self._query_value(query, "status"),
+                    reviewer=self._query_value(query, "reviewer"),
+                    due_state=self._query_value(query, "due_state"),
+                    release_state=self._query_value(query, "release_state"),
+                    text=self._query_value(query, "q") or self._query_value(query, "text"),
+                    release_ready_only=self._query_bool(query, "release_ready_only"),
+                    as_of=as_of,
+                    due_soon_hours=due_soon_hours,
+                    offset=self._query_int(query, "offset", 0),
+                    limit=self._query_int(query, "limit", RUN_PORTFOLIO_DEFAULT_LIMIT),
+                )
+                self._write(HTTPStatus.OK, page.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "run not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/search" or path == "/v1/search/closure":
             try:
