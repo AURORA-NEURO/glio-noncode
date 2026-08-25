@@ -11610,6 +11610,54 @@ __all__ += [
     "addressed", "audit_coordination_data", "audit_coordination_deployment", "audit_coordination_depth", "audit_coordination_observations", "audit_coordination_plan", "build_coordination_access_manifest", "build_coordination_assignments", "build_coordination_compute_registry", "build_coordination_deployment_artifacts", "build_coordination_ledger", "build_coordination_observations", "build_coordination_reference_registry", "build_coordination_review_queue", "build_coordination_runbook", "build_coordination_tool_registry", "build_coordination_trace", "build_coordination_validation_matrix", "compile_coordination_plan", "coordination_fixture_json", "coordination_invariants", "coordination_quality_json", "coordination_report_markdown", "coordination_review_csv", "coordination_runtime_json", "coordination_summary", "default_coordination_fixture", "default_coordination_operations", "default_coordination_schema", "default_coordination_sources", "evaluate_coordination_case", "evaluate_coordination_fixture", "evaluate_coordination_policy", "evaluate_coordination_security", "execute_coordination_case", "execute_coordination_sandbox", "load_coordination_fixture", "query_coordination", "reconcile_coordination_evaluation", "replay_coordination_runtime", "review_queue_summary", "route_coordination_fallback", "run_coordination_architecture", "run_coordination_failure_injections", "run_coordination_quality_gate", "runbook_is_executable", "sandbox_projection", "schedule_coordination_plan", "validate_coordination_registry", "validate_coordination_schema", "validate_coordination_tool_registry", "verify_coordination_ledger", "verify_coordination_release", "verify_coordination_trace",
 ]
 
+from .deployment_profiles import (
+    DEPLOYMENT_ALL_SCOPES,
+    DEPLOYMENT_AUDIT_VERSION,
+    DEPLOYMENT_DEFAULT_PUBLIC_PATHS,
+    DEPLOYMENT_DEFAULT_RATE_LIMIT_PER_MINUTE,
+    DEPLOYMENT_MAX_RATE_LIMIT_PER_MINUTE,
+    DEPLOYMENT_PROFILE_SCHEMA_VERSION,
+    DEPLOYMENT_PROFILE_VERSION,
+    DeploymentAuthentication,
+    DeploymentAuthorization,
+    DeploymentAuditEvent,
+    DeploymentAuditLog,
+    DeploymentDecision,
+    DeploymentExposure,
+    DeploymentGuard,
+    DeploymentOperation,
+    DeploymentPrincipal,
+    DeploymentProfile,
+    api_key_digest,
+    build_deployment_audit_log,
+    build_deployment_principal,
+    build_deployment_profile,
+    default_deployment_profile,
+    deployment_audit_csv,
+    deployment_audit_log_from_dict,
+    deployment_audit_markdown,
+    deployment_profile_from_dict,
+    deployment_profile_issues,
+    deployment_profile_schema,
+    load_deployment_credentials,
+    verify_deployment_audit_events,
+    verify_deployment_audit_log,
+)
+
+__all__ += [
+    "DEPLOYMENT_ALL_SCOPES", "DEPLOYMENT_AUDIT_VERSION", "DEPLOYMENT_DEFAULT_PUBLIC_PATHS",
+    "DEPLOYMENT_DEFAULT_RATE_LIMIT_PER_MINUTE", "DEPLOYMENT_MAX_RATE_LIMIT_PER_MINUTE",
+    "DEPLOYMENT_PROFILE_SCHEMA_VERSION", "DEPLOYMENT_PROFILE_VERSION",
+    "DeploymentAuthentication", "DeploymentAuthorization", "DeploymentAuditEvent",
+    "DeploymentAuditLog", "DeploymentDecision", "DeploymentExposure", "DeploymentGuard",
+    "DeploymentOperation", "DeploymentPrincipal", "DeploymentProfile", "api_key_digest",
+    "build_deployment_audit_log", "build_deployment_principal", "build_deployment_profile",
+    "default_deployment_profile", "deployment_audit_csv", "deployment_audit_log_from_dict",
+    "deployment_audit_markdown", "deployment_profile_from_dict", "deployment_profile_issues",
+    "deployment_profile_schema", "load_deployment_credentials", "verify_deployment_audit_events",
+    "verify_deployment_audit_log",
+]
+
 from .module_fabric_catalog import FabricContractCatalog, FabricDomainContract, default_module_fabric_catalog, validate_module_fabric_catalog
 from .module_fabric_bundle import MODULE_FABRIC_BUNDLE_BOUNDARY, bundle_artifact_bytes, bundle_artifact_csv, bundle_manifest_text, build_module_fabric_bundle, module_fabric_bundle_filesystem_integrity_ok, verify_module_fabric_bundle, write_module_fabric_bundle
 from .module_fabric_bundle_audit import MODULE_FABRIC_BUNDLE_AUDIT_VERSION, FabricBundleAuditCheck, FabricBundleAuditPlane, ModuleFabricBundleAudit, audit_module_fabric_bundle

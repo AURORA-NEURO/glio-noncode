@@ -17,7 +17,7 @@
 4. Replace fixture-only feature readings with adapters whose licenses and access modes are declared.
 5. Add cohort split, leakage, calibration, selective-risk, and transport benchmarks.
 6. Add a review workspace that renders evidence edges, alternatives, deltas, and provenance without reducing them to one score.
-7. Add authenticated deployment profiles and audit export for institutional operation.
+7. Add authenticated deployment profiles and audit export for institutional operation. **Implemented:** explicit non-loopback policy, API-key scopes, rate limiting, redacted hash-chained request audit, profile schema, CLI handling, and API endpoints.
 
 Every wave should preserve the same contracts, add fixtures and failure cases, and distinguish implemented behavior from externally evaluated science.
 

@@ -33,6 +33,7 @@ from .workbench_release_frontier_offline_bundle import build_workbench_release_o
 from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 from .deployment_frontier_offline_bundle import build_deployment_frontier_offline_bundle
 from .deployment_frontier_offline_schema import deployment_frontier_offline_bundle_schema
+from .deployment_profiles import build_deployment_profile, deployment_profile_schema
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_handoff import build_service_release_handoff
 from .service_release_query import query_service_release
@@ -40,7 +41,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 26
+PUBLIC_SURFACE_EXPECTED_COUNT = 28
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -206,6 +207,7 @@ def default_public_surface_inventory(
     evidence_lifecycle_bundle: Any | None = None,
     workbench_release_bundle: Any | None = None,
     deployment_frontier_bundle: Any | None = None,
+    deployment_profile: Any | None = None,
     service_release_handoff: Any | None = None,
 ) -> dict[str, Any]:
     """Build the stable inventory of service, bundle, schema, and closure views."""
@@ -217,6 +219,7 @@ def default_public_surface_inventory(
     evidence_lifecycle_value = evidence_lifecycle_bundle or build_evidence_lifecycle_offline_bundle()
     workbench_release_value = workbench_release_bundle or build_workbench_release_offline_bundle()
     deployment_frontier_value = deployment_frontier_bundle or build_deployment_frontier_offline_bundle()
+    deployment_profile_value = deployment_profile or build_deployment_profile()
     service_release_value = build_service_release_snapshot(selected)
     service_release_runtime = run_service_release(
         selected,
@@ -240,6 +243,8 @@ def default_public_surface_inventory(
         "workbench-release-bundle-schema": workbench_release_offline_bundle_schema(),
         "deployment-frontier-bundle-manifest": deployment_frontier_value.to_dict(include_payloads=False),
         "deployment-frontier-bundle-schema": deployment_frontier_offline_bundle_schema(),
+        "deployment-profile": deployment_profile_value,
+        "deployment-profile-schema": deployment_profile_schema(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),
@@ -266,6 +271,7 @@ def build_default_public_surface_audit(
     evidence_lifecycle_bundle: Any | None = None,
     workbench_release_bundle: Any | None = None,
     deployment_frontier_bundle: Any | None = None,
+    deployment_profile: Any | None = None,
     service_release_handoff: Any | None = None,
 ) -> PublicSurfaceAudit:
     """Execute and audit all default public service and handoff projections."""
@@ -279,6 +285,7 @@ def build_default_public_surface_audit(
             evidence_lifecycle_bundle=evidence_lifecycle_bundle,
             workbench_release_bundle=workbench_release_bundle,
             deployment_frontier_bundle=deployment_frontier_bundle,
+            deployment_profile=deployment_profile,
             service_release_handoff=service_release_handoff,
         )
     )

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -20,6 +20,11 @@ from .dossier_query import (
     summarize_persisted_dossier,
 )
 from .dossier_release import build_persisted_dossier_release
+from .deployment_profiles import (
+    DeploymentGuard,
+    DeploymentProfile,
+    default_deployment_profile,
+)
 from .errors import GlioError, StoreError
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
@@ -242,7 +247,7 @@ from .release_assurance_diff import audit_release_assurance_diff, build_release_
 from .release_assurance_export import build_release_assurance_export
 from .release_assurance_failure_injection import run_release_assurance_failure_injections
 from .release_assurance_graph import build_release_assurance_graph
-from .release_assurance_history import audit_release_assurance_history, build_release_assurance_history, query_release_assurance_history
+from .release_assurance_history import build_release_assurance_history, query_release_assurance_history
 from .release_assurance_handoff import (
     build_release_assurance_handoff,
     diff_release_assurance_handoffs,
@@ -285,6 +290,38 @@ class ApiHandler(BaseHTTPRequestHandler):
             runtime = factory()
             setattr(self.server, "glio_runtime", runtime)  # noqa: B010 - the HTTP server is intentionally extended
         return runtime
+
+    def _deployment_guard(self) -> DeploymentGuard:
+        guard = getattr(self.server, "glio_deployment_guard", None)
+        if guard is None:
+            guard = DeploymentGuard(default_deployment_profile("127.0.0.1"))
+            setattr(self.server, "glio_deployment_guard", guard)  # noqa: B010 - server-local policy attachment
+        return guard
+
+    def _authorize_request(self) -> bool:
+        """Apply the deployment profile before dispatching any API route."""
+
+        authorization = self.headers.get("Authorization", "")
+        token = authorization[7:].strip() if authorization.lower().startswith("bearer ") else None
+        decision = self._deployment_guard().authorize(
+            self.command,
+            urlsplit(self.path).path,
+            token=token,
+        )
+        if decision.allowed:
+            return True
+        status = HTTPStatus.UNAUTHORIZED if decision.reason == "missing_or_invalid_credential" else HTTPStatus.FORBIDDEN
+        self._write(
+            status,
+            {
+                "error": "authentication_required" if status is HTTPStatus.UNAUTHORIZED else "forbidden",
+                "message": decision.reason,
+                "operation": decision.operation.value,
+                "audit_sequence": decision.audit_sequence,
+            },
+            headers={"WWW-Authenticate": "Bearer"} if status is HTTPStatus.UNAUTHORIZED else None,
+        )
+        return False
 
     def _program_offline_bundle(self, bundle_id: str, run_id: str):
         """Reuse one immutable offline build across related GET projections."""
@@ -410,12 +447,20 @@ class ApiHandler(BaseHTTPRequestHandler):
         except ValueError as exc:
             raise ValueError(f"query parameter {name} must be a number") from exc
 
-    def _write(self, status: int, payload: Any) -> None:
+    def _write(
+        self,
+        status: int,
+        payload: Any,
+        *,
+        headers: Mapping[str, str] | None = None,
+    ) -> None:
         body = _json_bytes(payload)
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        for name, value in (headers or {}).items():
+            self.send_header(name, value)
         self.end_headers()
         self.wfile.write(body)
 
@@ -436,6 +481,8 @@ class ApiHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlsplit(self.path)
         path = parsed.path
+        if not self._authorize_request():
+            return
         if path == "/healthz":
             self._write(
                 HTTPStatus.OK,
@@ -449,6 +496,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/schema":
             self._write(HTTPStatus.OK, schema_document())
+            return
+        if path == "/v1/deployment/profile":
+            self._write(HTTPStatus.OK, self._deployment_guard().profile.to_dict())
+            return
+        if path == "/v1/deployment/audit":
+            self._write(HTTPStatus.OK, self._deployment_guard().audit_log.to_dict())
             return
         if path == "/v1/public-surface/audit":
             try:
@@ -2096,6 +2149,8 @@ class ApiHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlsplit(self.path)
         path = parsed.path
+        if not self._authorize_request():
+            return
         if path == "/v1/evaluate-batch":
             try:
                 result = BatchRuntime(runtime=self._runtime()).evaluate(self._read_json())
@@ -2160,9 +2215,19 @@ class ApiHandler(BaseHTTPRequestHandler):
         return
 
 
-def create_server(host: str = "127.0.0.1", port: int = 8765, data_root: str = ".glio") -> ThreadingHTTPServer:
-    """Create a local threaded HTTP server with an isolated runtime."""
+def create_server(
+    host: str = "127.0.0.1",
+    port: int = 8765,
+    data_root: str = ".glio",
+    *,
+    deployment_profile: DeploymentProfile | None = None,
+    credentials: Mapping[str, str] | None = None,
+) -> ThreadingHTTPServer:
+    """Create a threaded server with an explicit deployment policy."""
 
+    profile = deployment_profile or default_deployment_profile(host)
+    guard = DeploymentGuard(profile, credentials)
     server = ThreadingHTTPServer((host, port), ApiHandler)
     setattr(server, "glio_runtime", CaseRuntime(data_root))  # noqa: B010 - server-local runtime attachment
+    setattr(server, "glio_deployment_guard", guard)  # noqa: B010 - server-local policy attachment
     return server

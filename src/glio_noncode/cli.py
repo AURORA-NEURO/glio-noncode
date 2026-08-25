@@ -10,6 +10,19 @@ from pathlib import Path
 from typing import Any
 
 from .api import create_server
+from .deployment_profiles import (
+    DeploymentAuthentication,
+    DeploymentExposure,
+    build_deployment_principal,
+    build_deployment_profile,
+    deployment_audit_csv,
+    deployment_audit_log_from_dict,
+    deployment_audit_markdown,
+    deployment_profile_from_dict,
+    deployment_profile_schema,
+    load_deployment_credentials,
+    verify_deployment_audit_log,
+)
 from .batch_runtime import BatchRuntime
 from .batch_release import (
     build_persisted_batch_release,
@@ -2870,6 +2883,44 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", default=8765, type=int)
     serve.add_argument("--data-root", default=".glio")
+    serve.add_argument("--deployment-profile", default=None)
+    serve.add_argument("--api-key-file", default=None)
+
+    deployment_profile = subparsers.add_parser(
+        "deployment-profile",
+        help="emit an authenticated deployment profile without credential material",
+    )
+    deployment_profile.add_argument("--profile-id", default="glio-noncode-local")
+    deployment_profile.add_argument("--host", default="127.0.0.1")
+    deployment_profile.add_argument(
+        "--exposure",
+        choices=tuple(item.value for item in DeploymentExposure),
+        default=None,
+    )
+    deployment_profile.add_argument(
+        "--authentication",
+        choices=tuple(item.value for item in DeploymentAuthentication),
+        default=None,
+    )
+    deployment_profile.add_argument("--tls-required", action="store_true")
+    deployment_profile.add_argument("--audit-disabled", action="store_true")
+    deployment_profile.add_argument("--rate-limit-per-minute", default=60, type=int)
+    deployment_profile.add_argument("--principal-id", action="append", default=[])
+    deployment_profile.add_argument("--role", default="operator")
+    deployment_profile.add_argument("--scopes", nargs="*", default=None)
+    deployment_profile.add_argument("--output", default=None)
+    deployment_schema = subparsers.add_parser(
+        "deployment-profile-schema",
+        help="emit the closed deployment profile schema",
+    )
+    deployment_schema.add_argument("--output", default=None)
+    deployment_audit = subparsers.add_parser(
+        "deployment-audit",
+        help="verify and export a redacted deployment audit log",
+    )
+    deployment_audit.add_argument("input", type=str)
+    deployment_audit.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    deployment_audit.add_argument("--output", default=None)
 
     service_surface = subparsers.add_parser(
         "service-surface",
@@ -20903,8 +20954,59 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(report.to_dict(), args.output)
             return 0 if report.passed else 2
+        if args.command == "deployment-profile":
+            principals = tuple(
+                build_deployment_principal(
+                    principal_id,
+                    role=args.role,
+                    scopes=args.scopes or ("audit", "read", "review", "write"),
+                )
+                for principal_id in args.principal_id
+            )
+            profile = build_deployment_profile(
+                profile_id=args.profile_id,
+                host=args.host,
+                exposure=args.exposure,
+                authentication=args.authentication,
+                tls_required=True if args.tls_required else None,
+                audit_enabled=not args.audit_disabled,
+                rate_limit_per_minute=args.rate_limit_per_minute,
+                principals=principals,
+            )
+            _write_json(profile.to_dict(), args.output)
+            return 0
+        if args.command == "deployment-profile-schema":
+            _write_json(deployment_profile_schema(), args.output)
+            return 0
+        if args.command == "deployment-audit":
+            log = deployment_audit_log_from_dict(_read_json(args.input))
+            if verify_deployment_audit_log(log):
+                return 2
+            if args.format == "csv":
+                _write_text(deployment_audit_csv(log), args.output)
+            elif args.format == "markdown":
+                _write_text(deployment_audit_markdown(log), args.output)
+            else:
+                _write_json(log.to_dict(), args.output)
+            return 0
         if args.command == "serve":
-            server = create_server(args.host, args.port, args.data_root)
+            profile = (
+                deployment_profile_from_dict(_read_json(args.deployment_profile))
+                if args.deployment_profile
+                else None
+            )
+            credentials = None
+            if args.api_key_file:
+                credentials = load_deployment_credentials(args.api_key_file)
+                if profile is not None and "default" in credentials and len(profile.principals) == 1:
+                    credentials = {profile.principals[0].principal_id: credentials["default"]}
+            server = create_server(
+                args.host,
+                args.port,
+                args.data_root,
+                deployment_profile=profile,
+                credentials=credentials,
+            )
             print(f"glio-noncode listening on http://{args.host}:{args.port}")
             server.serve_forever()
             return 0

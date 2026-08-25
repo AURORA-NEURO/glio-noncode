@@ -41,4 +41,9 @@ addresses at every child boundary.
 
 ## API
 
-The dependency-free local HTTP API exposes health, schema, and evaluation endpoints. It is not an internet-facing service by itself. Authentication, authorization, rate limiting, and audit export belong at the deployment boundary before binding to a non-loopback interface.
+The deployment profile is the institutional boundary for the API: loopback is
+the default, while non-loopback binds require API-key scopes, TLS intent,
+rate limiting, declared principals, and a redacted audit ledger. The profile
+and schema are included in the repository-wide public projection audit.
+
+The dependency-free local HTTP API exposes health, schema, and evaluation endpoints. It is not an internet-facing service by itself. The deployment profile boundary now enforces API-key authentication, scoped authorization, rate limiting, and redacted audit export before a private or public bind is accepted; see [deployment profiles](DEPLOYMENT_PROFILES.md).

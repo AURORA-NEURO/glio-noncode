@@ -339,9 +339,9 @@ Run the repository-wide public-boundary audit:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The audit covers 26 named projections across the service, capability
+The audit covers 28 named projections across the service, capability
 certification bundle, module-fabric bundle, schemas, service-release registry,
-durable service-release handoff, and closures. Runtime
+durable service-release handoff, authenticated deployment profile/schema, and closures. Runtime
 projections must contain no attribution, language, or direct-private-key
 paths. The schema projection is the one deliberate exception: it may declare
 subject/sample input field names because those names define an input contract,
