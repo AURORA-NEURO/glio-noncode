@@ -4502,3 +4502,53 @@ glio-noncode monitor-drift drift-observations.json --monitor-id monitor-1 --cont
 This runtime is for bounded research orchestration. It does not authorize a
 clinical claim, treatment decision, or release beyond the existing review and
 research-use policy.
+
+## Module certification and contract coverage
+
+Wave 10 adds a per-module certification matrix layered on the static module
+inventory. It records eight checks for every source row: parse state, symbol
+surface, dependency closure, test evidence, documentation evidence, package
+export evidence, public-boundary safety, and implementation scale. The matrix
+is content addressed and preserves all failed checks as actionable gaps.
+
+The new surfaces are:
+
+- `module_certification`: deterministic evidence extraction, row scoring, gap
+  construction, and matrix verification;
+- `module_certification_policy`: explicit aggregate thresholds and independent
+  policy checks;
+- `module_certification_tasks`: one stable remediation task per failed check;
+- `module_certification_review`: module-grouped severity routing for open gaps;
+- `module_certification_diff`: baseline-to-candidate score, gap, symbol, line,
+  and check-state changes;
+- `module_certification_schema`: field registry and conservation validation;
+- `module_certification_runtime`: seven timestamp-free stages from inventory to
+  public boundary;
+- `module_certification_observability`: bounded events and aggregate metrics;
+- `module_certification_packet`: ten exact-byte offline artifacts plus manifest;
+- `module_certification_packet_query`: verified offline query, diff, and replay.
+
+The checks are static and source-execution-free. Test and Markdown files are
+read once per file and tokenized; package exposure is collected from the
+initializer AST. Internal modules may receive `not_applicable` coverage checks,
+while public modules need explicit test, documentation, and export evidence.
+This makes the aggregate percentage explainable without treating a scalar as a
+scientific result.
+
+```powershell
+glio-noncode module-certification --format summary
+glio-noncode module-certification --format markdown --output certification.md
+glio-noncode module-certification-tasks --format csv --output certification-tasks.csv
+glio-noncode module-certification-audit --output certification-audit.json
+glio-noncode module-certification-runtime --output certification-runtime.json
+glio-noncode module-certification-observability --format metrics-csv --output certification-metrics.csv
+glio-noncode module-certification-packet --destination certification-packet
+glio-noncode module-certification-packet-verify certification-packet
+glio-noncode module-certification-packet-query certification-packet --resource gaps --limit 50
+```
+
+The HTTP boundary is `/v1/module-certification`, with bounded query routes for
+modules, checks, gaps, and tasks plus policy, runtime, observability, audit,
+packet verification, packet query, packet diff, and packet replay. Continuous
+integration materializes the schemas and capabilities and runs the focused
+31-test certification contract suite.

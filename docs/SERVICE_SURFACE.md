@@ -46,6 +46,32 @@ report or runtime from which it was derived.
 | GET | `/v1/module-impact/packet/query?directory=...` | Query a verified impact packet offline |
 | GET | `/v1/module-impact/packet/diff?left_directory=...&right_directory=...` | Compare verified packet artifact addresses |
 | GET | `/v1/module-impact/packet/replay?directory=...` | Replay verified impact packet closure |
+| GET | `/v1/module-certification` | Return the complete per-module certification matrix or summary/CSV/Markdown projections |
+| GET | `/v1/module-certification/query` | Page module, check, gap, or remediation-task rows with bounded filters |
+| GET | `/v1/module-certification/schema` | Return the combined certification, policy, task, runtime, audit, observability, and packet schemas |
+| GET | `/v1/module-certification/capabilities` | Return capabilities for every certification control-plane component |
+| GET | `/v1/module-certification/audit` | Run independent matrix, gap, task, gate, runtime, and public-boundary checks |
+| GET | `/v1/module-certification/audit/schema` | Return certification audit schema |
+| GET | `/v1/module-certification/audit/capabilities` | Return certification audit capabilities |
+| GET | `/v1/module-certification/policy` | Return the default aggregate certification policy |
+| GET | `/v1/module-certification/policy/schema` | Return certification policy schema |
+| GET | `/v1/module-certification/policy/capabilities` | Return certification policy capabilities |
+| GET | `/v1/module-certification/tasks` | Return bounded remediation tasks and task queries |
+| GET | `/v1/module-certification/tasks/schema` | Return certification task schema |
+| GET | `/v1/module-certification/tasks/capabilities` | Return certification task capabilities |
+| GET | `/v1/module-certification/runtime` | Return the seven-stage timestamp-free certification runtime |
+| GET | `/v1/module-certification/runtime/schema` | Return certification runtime schema |
+| GET | `/v1/module-certification/runtime/capabilities` | Return certification runtime capabilities |
+| GET | `/v1/module-certification/observability` | Return timestamp-free certification events and metrics |
+| GET | `/v1/module-certification/observability/schema` | Return certification observability schema |
+| GET | `/v1/module-certification/observability/capabilities` | Return certification observability capabilities |
+| GET | `/v1/module-certification/packet` | Build a ten-artifact exact-byte certification packet manifest |
+| GET | `/v1/module-certification/packet/verify?directory=...` | Verify a certification packet directory |
+| GET | `/v1/module-certification/packet/query?directory=...` | Query a verified certification packet offline |
+| GET | `/v1/module-certification/packet/diff?left_directory=...&right_directory=...` | Compare certification packet artifact addresses |
+| GET | `/v1/module-certification/packet/replay?directory=...` | Replay certification packet verification and resource closure |
+| GET | `/v1/module-certification/packet/schema` | Return certification packet schema |
+| GET | `/v1/module-certification/packet/capabilities` | Return certification packet capabilities |
 | GET | `/v1/cohort/benchmark/schema` | Return the aggregate cohort benchmark schema |
 | GET | `/v1/cohort/benchmark/capabilities` | Return split, leakage, calibration, selective-risk, and transport capabilities |
 | POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |

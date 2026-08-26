@@ -1096,6 +1096,40 @@ audit, runtime, and observability review. See
 [docs/MODULE_IMPACT.md](docs/MODULE_IMPACT.md) for thresholds, API routes,
 limitations, and the verification model.
 
+## Module certification and contract coverage
+
+The certification control plane evaluates every discovered source module against
+the same explicit contract matrix. Each row records parse integrity, symbol
+surface, local dependency closure, test evidence, documentation evidence,
+package export evidence, public-boundary safety, and implementation scale. The
+result is a scoreable review surface: failed checks become stable gaps, gaps
+become ordered remediation tasks, and module gaps are grouped into a severity
+routed review queue.
+
+```powershell
+glio-noncode module-certification --format summary --output certification-summary.json
+glio-noncode module-certification --format markdown --output certification.md
+glio-noncode module-certification-tasks --format csv --output certification-tasks.csv
+glio-noncode module-certification-audit --output certification-audit.json
+glio-noncode module-certification-runtime --output certification-runtime.json
+glio-noncode module-certification-observability --format metrics-csv --output certification-metrics.csv
+glio-noncode module-certification-packet --destination module-certification-packet
+glio-noncode module-certification-packet-verify module-certification-packet
+glio-noncode module-certification-packet-query module-certification-packet --resource gaps --limit 50
+```
+
+The matrix is static and source-execution-free. It reads each evidence file
+once, uses content addresses rather than machine paths, keeps internal modules
+eligible for `not_applicable` checks, and leaves every failed check visible in
+the gap and task projections. The default policy is intentionally conservative;
+it can be replaced with an explicit threshold policy for staged development.
+The HTTP equivalents are under `/v1/module-certification` and include bounded
+module/check/gap/task queries, policy, runtime, observability, audit, packet,
+packet verification, packet query, packet diff, and packet replay.
+
+See [docs/MODULE_CERTIFICATION.md](docs/MODULE_CERTIFICATION.md) for the field
+contract, scoring rules, route matrix, artifact layout, and failure behavior.
+
 ## Design boundaries
 
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.

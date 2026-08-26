@@ -2104,6 +2104,18 @@ from .module_impact_query import query_module_impact
 from .module_impact_runtime import module_impact_runtime_capabilities, module_impact_runtime_schema, run_module_impact
 from .module_impact_schema import default_module_impact_schema, module_impact_schema_capabilities
 from .module_impact_verification import build_module_impact_verification_plan, module_impact_verification_capabilities, module_impact_verification_schema, query_module_impact_tasks
+from .module_certification import build_module_certification, module_certification_capabilities, module_certification_schema
+from .module_certification_audit import audit_module_certification, module_certification_audit_capabilities, module_certification_audit_schema
+from .module_certification_exports import module_certification_checks_csv, module_certification_rows_csv, module_certification_summary, render_module_certification_markdown
+from .module_certification_observability import build_module_certification_observability, module_certification_events_csv, module_certification_metrics_csv, module_certification_observability_capabilities, module_certification_observability_schema
+from .module_certification_packet import build_module_certification_packet, module_certification_packet_capabilities, module_certification_packet_schema, verify_module_certification_packet, write_module_certification_packet
+from .module_certification_packet_query import diff_module_certification_packets, module_certification_packet_query_capabilities, module_certification_packet_query_schema, query_module_certification_packet, replay_module_certification_packet
+from .module_certification_policy import default_module_certification_policy, evaluate_module_certification_gate, module_certification_policy_capabilities, module_certification_policy_schema
+from .module_certification_runtime import module_certification_runtime_capabilities, module_certification_runtime_schema, run_module_certification
+from .module_certification_tasks import build_module_certification_task_plan, module_certification_gaps_csv, module_certification_tasks_capabilities, module_certification_tasks_csv, module_certification_tasks_schema, query_module_certification
+from .module_certification_diff import build_module_certification_diff, module_certification_diff_capabilities, module_certification_diff_schema, query_module_certification_diff
+from .module_certification_review import build_module_certification_review_queue, module_certification_review_capabilities, module_certification_review_schema, query_module_certification_review, render_module_certification_review_markdown
+from .module_certification_schema import module_certification_schema_capabilities, module_certification_schema_report_schema, validate_module_certification_schema
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4255,6 +4267,129 @@ def build_parser() -> argparse.ArgumentParser:
     module_impact_packet_replay = subparsers.add_parser("module-impact-packet-replay", help="replay a verified module impact packet")
     module_impact_packet_replay.add_argument("directory", type=str)
     module_impact_packet_replay.add_argument("--output", default=None)
+    module_certification = subparsers.add_parser("module-certification", help="certify every source module against static coverage contracts")
+    module_certification.add_argument("--source-root", default=None)
+    module_certification.add_argument("--test-root", default=None)
+    module_certification.add_argument("--docs-root", default=None)
+    module_certification.add_argument("--resource", choices=("modules", "checks", "gaps", "tasks"), default="modules")
+    module_certification.add_argument("--module-id", default=None)
+    module_certification.add_argument("--kind", default=None)
+    module_certification.add_argument("--state", default=None)
+    module_certification.add_argument("--text", default=None)
+    module_certification.add_argument("--offset", default=0, type=int)
+    module_certification.add_argument("--limit", default=50, type=int)
+    module_certification.add_argument("--format", choices=("json", "summary", "rows-csv", "checks-csv", "gaps-csv", "markdown"), default="json")
+    module_certification.add_argument("--include-rows", action="store_true")
+    module_certification.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-schema", help="print module certification schemas").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-capabilities", help="print module certification capabilities").add_argument("--output", default=None)
+    module_certification_audit = subparsers.add_parser("module-certification-audit", help="audit a module certification closure")
+    module_certification_audit.add_argument("--source-root", default=None)
+    module_certification_audit.add_argument("--test-root", default=None)
+    module_certification_audit.add_argument("--docs-root", default=None)
+    module_certification_audit.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-audit-schema", help="print module certification audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-audit-capabilities", help="print module certification audit capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-policy", help="print the default module certification policy").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-policy-schema", help="print module certification policy schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-policy-capabilities", help="print module certification policy capabilities").add_argument("--output", default=None)
+    module_certification_tasks = subparsers.add_parser("module-certification-tasks", help="build or query module certification remediation tasks")
+    module_certification_tasks.add_argument("--source-root", default=None)
+    module_certification_tasks.add_argument("--test-root", default=None)
+    module_certification_tasks.add_argument("--docs-root", default=None)
+    module_certification_tasks.add_argument("--resource", choices=("modules", "checks", "gaps", "tasks"), default="tasks")
+    module_certification_tasks.add_argument("--module-id", default=None)
+    module_certification_tasks.add_argument("--kind", default=None)
+    module_certification_tasks.add_argument("--state", default=None)
+    module_certification_tasks.add_argument("--offset", default=0, type=int)
+    module_certification_tasks.add_argument("--limit", default=50, type=int)
+    module_certification_tasks.add_argument("--format", choices=("json", "csv"), default="json")
+    module_certification_tasks.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-tasks-schema", help="print module certification task schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-tasks-capabilities", help="print module certification task capabilities").add_argument("--output", default=None)
+    module_certification_runtime = subparsers.add_parser("module-certification-runtime", help="run the module certification runtime")
+    module_certification_runtime.add_argument("--source-root", default=None)
+    module_certification_runtime.add_argument("--test-root", default=None)
+    module_certification_runtime.add_argument("--docs-root", default=None)
+    module_certification_runtime.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-runtime-schema", help="print module certification runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-runtime-capabilities", help="print module certification runtime capabilities").add_argument("--output", default=None)
+    module_certification_observability = subparsers.add_parser("module-certification-observability", help="emit module certification observability")
+    module_certification_observability.add_argument("--source-root", default=None)
+    module_certification_observability.add_argument("--test-root", default=None)
+    module_certification_observability.add_argument("--docs-root", default=None)
+    module_certification_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    module_certification_observability.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-observability-schema", help="print module certification observability schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-observability-capabilities", help="print module certification observability capabilities").add_argument("--output", default=None)
+    module_certification_packet = subparsers.add_parser("module-certification-packet", help="write an exact-byte module certification packet")
+    module_certification_packet.add_argument("--source-root", default=None)
+    module_certification_packet.add_argument("--test-root", default=None)
+    module_certification_packet.add_argument("--docs-root", default=None)
+    module_certification_packet.add_argument("--packet-id", default="glio-noncode-module-certification-packet")
+    module_certification_packet.add_argument("--destination", required=True)
+    module_certification_packet.add_argument("--allow-existing", action="store_true")
+    module_certification_packet.add_argument("--output", default=None)
+    module_certification_packet_verify = subparsers.add_parser("module-certification-packet-verify", help="verify a module certification packet")
+    module_certification_packet_verify.add_argument("directory", type=str)
+    module_certification_packet_verify.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-packet-schema", help="print module certification packet schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-packet-capabilities", help="print module certification packet capabilities").add_argument("--output", default=None)
+    module_certification_packet_query = subparsers.add_parser("module-certification-packet-query", help="query a verified module certification packet")
+    module_certification_packet_query.add_argument("directory", type=str)
+    module_certification_packet_query.add_argument("--resource", default="artifacts")
+    module_certification_packet_query.add_argument("--module-id", default=None)
+    module_certification_packet_query.add_argument("--kind", default=None)
+    module_certification_packet_query.add_argument("--state", default=None)
+    module_certification_packet_query.add_argument("--text", default=None)
+    module_certification_packet_query.add_argument("--offset", default=0, type=int)
+    module_certification_packet_query.add_argument("--limit", default=50, type=int)
+    module_certification_packet_query.add_argument("--output", default=None)
+    module_certification_packet_diff = subparsers.add_parser("module-certification-packet-diff", help="diff two verified module certification packets")
+    module_certification_packet_diff.add_argument("left_directory", type=str)
+    module_certification_packet_diff.add_argument("right_directory", type=str)
+    module_certification_packet_diff.add_argument("--output", default=None)
+    module_certification_packet_replay = subparsers.add_parser("module-certification-packet-replay", help="replay a verified module certification packet")
+    module_certification_packet_replay.add_argument("directory", type=str)
+    module_certification_packet_replay.add_argument("--output", default=None)
+
+    module_certification_diff = subparsers.add_parser("module-certification-diff", help="compare two module certification matrices")
+    module_certification_diff.add_argument("--left-source-root", default=None)
+    module_certification_diff.add_argument("--right-source-root", default=None)
+    module_certification_diff.add_argument("--left-test-root", default=None)
+    module_certification_diff.add_argument("--right-test-root", default=None)
+    module_certification_diff.add_argument("--left-docs-root", default=None)
+    module_certification_diff.add_argument("--right-docs-root", default=None)
+    module_certification_diff.add_argument("--change", default=None)
+    module_certification_diff.add_argument("--module-id", default=None)
+    module_certification_diff.add_argument("--check-kind", default=None)
+    module_certification_diff.add_argument("--offset", default=0, type=int)
+    module_certification_diff.add_argument("--limit", default=50, type=int)
+    module_certification_diff.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-diff-schema", help="print module certification diff schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-diff-capabilities", help="print module certification diff capabilities").add_argument("--output", default=None)
+    module_certification_review = subparsers.add_parser("module-certification-review", help="build or query the module certification review queue")
+    module_certification_review.add_argument("--source-root", default=None)
+    module_certification_review.add_argument("--test-root", default=None)
+    module_certification_review.add_argument("--docs-root", default=None)
+    module_certification_review.add_argument("--severity", default=None)
+    module_certification_review.add_argument("--role", default=None)
+    module_certification_review.add_argument("--disposition", default=None)
+    module_certification_review.add_argument("--text", default=None)
+    module_certification_review.add_argument("--offset", default=0, type=int)
+    module_certification_review.add_argument("--limit", default=50, type=int)
+    module_certification_review.add_argument("--format", choices=("json", "markdown"), default="json")
+    module_certification_review.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-review-schema", help="print module certification review schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-review-capabilities", help="print module certification review capabilities").add_argument("--output", default=None)
+    module_certification_schema_report = subparsers.add_parser("module-certification-schema-report", help="validate a module certification schema report")
+    module_certification_schema_report.add_argument("--source-root", default=None)
+    module_certification_schema_report.add_argument("--test-root", default=None)
+    module_certification_schema_report.add_argument("--docs-root", default=None)
+    module_certification_schema_report.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-schema-report-schema", help="print module certification schema report schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-schema-capabilities", help="print module certification schema capabilities").add_argument("--output", default=None)
+
     module_inventory = subparsers.add_parser(
         "module-inventory",
         help="inspect the static module, symbol, dependency, and depth inventory",
@@ -25177,6 +25312,184 @@ def main(argv: list[str] | None = None) -> int:
             result = replay_module_impact_packet(args.directory)
             _write_json(result, args.output)
             return 0 if result.get("accepted", False) else 2
+        if args.command == "module-certification-schema":
+            _write_json({"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema()}, args.output)
+            return 0
+        if args.command == "module-certification-capabilities":
+            _write_json({"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities()}, args.output)
+            return 0
+        if args.command == "module-certification-policy":
+            _write_json(default_module_certification_policy().to_dict(), args.output)
+            return 0
+        if args.command == "module-certification-policy-schema":
+            _write_json(module_certification_policy_schema(), args.output)
+            return 0
+        if args.command == "module-certification-policy-capabilities":
+            _write_json(module_certification_policy_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-audit-schema":
+            _write_json(module_certification_audit_schema(), args.output)
+            return 0
+        if args.command == "module-certification-audit-capabilities":
+            _write_json(module_certification_audit_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-tasks-schema":
+            _write_json(module_certification_tasks_schema(), args.output)
+            return 0
+        if args.command == "module-certification-tasks-capabilities":
+            _write_json(module_certification_tasks_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-runtime-schema":
+            _write_json(module_certification_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-certification-runtime-capabilities":
+            _write_json(module_certification_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-observability-schema":
+            _write_json(module_certification_observability_schema(), args.output)
+            return 0
+        if args.command == "module-certification-observability-capabilities":
+            _write_json(module_certification_observability_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-packet-schema":
+            _write_json(module_certification_packet_schema(), args.output)
+            return 0
+        if args.command == "module-certification-packet-capabilities":
+            _write_json(module_certification_packet_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            plan = build_module_certification_task_plan(matrix)
+            gate = evaluate_module_certification_gate(matrix, plan)
+            if args.format == "summary":
+                _write_json(module_certification_summary(matrix) | {"gate_accepted": gate.accepted}, args.output)
+            elif args.format == "rows-csv":
+                _write_text(module_certification_rows_csv(matrix), args.output)
+            elif args.format == "checks-csv":
+                _write_text(module_certification_checks_csv(matrix), args.output)
+            elif args.format == "gaps-csv":
+                _write_text(module_certification_gaps_csv(matrix), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_certification_markdown(matrix), args.output)
+            elif any(value is not None for value in (args.module_id, args.kind, args.state, args.text)) or args.offset or args.limit != 50 or args.resource != "modules":
+                _write_json(query_module_certification(matrix, plan, resource=args.resource, module_id=args.module_id, kind=args.kind, state=args.state, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(matrix.to_dict(include_rows=args.include_rows), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "module-certification-audit":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            plan = build_module_certification_task_plan(matrix)
+            gate = evaluate_module_certification_gate(matrix, plan)
+            runtime = run_module_certification(inventory=inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            result = audit_module_certification(matrix, plan, gate, runtime)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-certification-tasks":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            plan = build_module_certification_task_plan(matrix)
+            filtered = any(value is not None for value in (args.module_id, args.kind, args.state)) or args.offset or args.limit != 50 or args.resource != "tasks"
+            if args.format == "csv":
+                _write_text(module_certification_tasks_csv(plan), args.output)
+            elif filtered:
+                _write_json(query_module_certification(matrix, plan, resource=args.resource, module_id=args.module_id, kind=args.kind, state=args.state, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(plan.to_dict(), args.output)
+            return 0 if plan.accepted else 2
+        if args.command == "module-certification-runtime":
+            runtime = run_module_certification(args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "module-certification-observability":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            plan = build_module_certification_task_plan(matrix)
+            gate = evaluate_module_certification_gate(matrix, plan)
+            runtime = run_module_certification(inventory=inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            observation = build_module_certification_observability(matrix, plan, gate, runtime)
+            if args.format == "events-csv":
+                _write_text(module_certification_events_csv(observation), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(module_certification_metrics_csv(observation), args.output)
+            else:
+                _write_json(observation.to_dict(), args.output)
+            return 0 if observation.accepted else 2
+        if args.command == "module-certification-packet":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            plan = build_module_certification_task_plan(matrix)
+            gate = evaluate_module_certification_gate(matrix, plan)
+            runtime = run_module_certification(inventory=inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            audit = audit_module_certification(matrix, plan, gate, runtime)
+            observation = build_module_certification_observability(matrix, plan, gate, runtime)
+            packet = build_module_certification_packet(matrix, plan, gate, runtime, audit, observation, packet_id=args.packet_id)
+            write_module_certification_packet(packet, args.destination, allow_existing=args.allow_existing)
+            _write_json(packet.to_dict(include_payloads=False) | {"destination": str(args.destination)}, args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "module-certification-packet-verify":
+            result = verify_module_certification_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-certification-packet-query":
+            result = query_module_certification_packet(args.directory, resource=args.resource, module_id=args.module_id, kind=args.kind, state=args.state, text=args.text, offset=args.offset, limit=args.limit)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-certification-packet-diff":
+            result = diff_module_certification_packets(args.left_directory, args.right_directory)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-certification-packet-replay":
+            result = replay_module_certification_packet(args.directory)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-certification-diff-schema":
+            _write_json(module_certification_diff_schema(), args.output)
+            return 0
+        if args.command == "module-certification-diff-capabilities":
+            _write_json(module_certification_diff_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-diff":
+            left_inventory = build_module_inventory(args.left_source_root, test_root=args.left_test_root)
+            right_inventory = build_module_inventory(args.right_source_root, test_root=args.right_test_root)
+            left_matrix = build_module_certification(left_inventory, source_root=args.left_source_root, test_root=args.left_test_root, docs_root=args.left_docs_root)
+            right_matrix = build_module_certification(right_inventory, source_root=args.right_source_root, test_root=args.right_test_root, docs_root=args.right_docs_root)
+            diff = build_module_certification_diff(left_matrix, right_matrix)
+            if any(value is not None for value in (args.change, args.module_id, args.check_kind)) or args.offset or args.limit != 50:
+                _write_json(query_module_certification_diff(diff, change=args.change, module_id=args.module_id, check_kind=args.check_kind, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(diff.to_dict(), args.output)
+            return 0 if diff.accepted else 2
+        if args.command == "module-certification-review-schema":
+            _write_json(module_certification_review_schema(), args.output)
+            return 0
+        if args.command == "module-certification-review-capabilities":
+            _write_json(module_certification_review_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-review":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            queue = build_module_certification_review_queue(matrix)
+            if args.format == "markdown":
+                _write_text(render_module_certification_review_markdown(queue), args.output)
+            elif any(value is not None for value in (args.severity, args.role, args.disposition, args.text)) or args.offset or args.limit != 50:
+                _write_json(query_module_certification_review(queue, severity=args.severity, role=args.role, disposition=args.disposition, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(queue.to_dict(), args.output)
+            return 0 if queue.accepted else 2
+        if args.command == "module-certification-schema-report-schema":
+            _write_json(module_certification_schema_report_schema(), args.output)
+            return 0
+        if args.command == "module-certification-schema-capabilities":
+            _write_json(module_certification_schema_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-schema-report":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            result = validate_module_certification_schema(matrix)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
         if args.command == "module-inventory":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             if args.format == "modules-csv":

@@ -692,6 +692,15 @@ from .module_impact_query import query_module_impact
 from .module_impact_runtime import module_impact_runtime_capabilities, module_impact_runtime_schema, run_module_impact
 from .module_impact_schema import default_module_impact_schema, module_impact_schema_capabilities, validate_module_impact_schema
 from .module_impact_verification import build_module_impact_verification_plan, module_impact_verification_capabilities, module_impact_verification_schema, query_module_impact_tasks
+from .module_certification import build_module_certification, module_certification_capabilities, module_certification_schema
+from .module_certification_audit import audit_module_certification, module_certification_audit_capabilities, module_certification_audit_schema
+from .module_certification_exports import module_certification_checks_csv, module_certification_rows_csv, module_certification_summary, render_module_certification_markdown
+from .module_certification_observability import build_module_certification_observability, module_certification_events_csv, module_certification_metrics_csv, module_certification_observability_capabilities, module_certification_observability_schema
+from .module_certification_packet import build_module_certification_packet, module_certification_packet_capabilities, module_certification_packet_schema, verify_module_certification_packet
+from .module_certification_packet_query import diff_module_certification_packets, module_certification_packet_query_capabilities, module_certification_packet_query_schema, query_module_certification_packet, replay_module_certification_packet
+from .module_certification_policy import default_module_certification_policy, evaluate_module_certification_gate, module_certification_policy_capabilities, module_certification_policy_schema
+from .module_certification_runtime import module_certification_runtime_capabilities, module_certification_runtime_schema, run_module_certification
+from .module_certification_tasks import build_module_certification_task_plan, module_certification_gaps_csv, module_certification_tasks_capabilities, module_certification_tasks_csv, module_certification_tasks_schema, query_module_certification
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1873,6 +1882,145 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_module_impact_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/module-certification",
+            "/v1/module-certification/query",
+            "/v1/module-certification/schema",
+            "/v1/module-certification/capabilities",
+            "/v1/module-certification/audit",
+            "/v1/module-certification/audit/schema",
+            "/v1/module-certification/audit/capabilities",
+            "/v1/module-certification/policy",
+            "/v1/module-certification/policy/schema",
+            "/v1/module-certification/policy/capabilities",
+            "/v1/module-certification/tasks",
+            "/v1/module-certification/tasks/schema",
+            "/v1/module-certification/tasks/capabilities",
+            "/v1/module-certification/runtime",
+            "/v1/module-certification/runtime/schema",
+            "/v1/module-certification/runtime/capabilities",
+            "/v1/module-certification/observability",
+            "/v1/module-certification/observability/schema",
+            "/v1/module-certification/observability/capabilities",
+            "/v1/module-certification/packet",
+            "/v1/module-certification/packet/verify",
+            "/v1/module-certification/packet/query",
+            "/v1/module-certification/packet/diff",
+            "/v1/module-certification/packet/replay",
+            "/v1/module-certification/packet/schema",
+            "/v1/module-certification/packet/capabilities",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path == "/v1/module-certification/schema":
+                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema()})
+                    return
+                if path == "/v1/module-certification/capabilities":
+                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities()})
+                    return
+                schema_routes = {
+                    "/v1/module-certification/audit/schema": module_certification_audit_schema,
+                    "/v1/module-certification/policy/schema": module_certification_policy_schema,
+                    "/v1/module-certification/tasks/schema": module_certification_tasks_schema,
+                    "/v1/module-certification/runtime/schema": module_certification_runtime_schema,
+                    "/v1/module-certification/observability/schema": module_certification_observability_schema,
+                    "/v1/module-certification/packet/schema": module_certification_packet_schema,
+                }
+                if path in schema_routes:
+                    self._write(HTTPStatus.OK, schema_routes[path]())
+                    return
+                capability_routes = {
+                    "/v1/module-certification/audit/capabilities": module_certification_audit_capabilities,
+                    "/v1/module-certification/policy/capabilities": module_certification_policy_capabilities,
+                    "/v1/module-certification/tasks/capabilities": module_certification_tasks_capabilities,
+                    "/v1/module-certification/runtime/capabilities": module_certification_runtime_capabilities,
+                    "/v1/module-certification/observability/capabilities": module_certification_observability_capabilities,
+                    "/v1/module-certification/packet/capabilities": module_certification_packet_capabilities,
+                }
+                if path in capability_routes:
+                    self._write(HTTPStatus.OK, capability_routes[path]())
+                    return
+                if path == "/v1/module-certification/packet/verify":
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for certification packet verification")
+                    self._write(HTTPStatus.OK, verify_module_certification_packet(directory).to_dict())
+                    return
+                if path == "/v1/module-certification/packet/query":
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for certification packet query")
+                    payload = query_module_certification_packet(directory, resource=self._query_value(query, "resource") or "artifacts", module_id=self._query_value(query, "module_id"), kind=self._query_value(query, "kind"), state=self._query_value(query, "state"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    self._write(HTTPStatus.OK if payload.get("accepted", False) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+                    return
+                if path == "/v1/module-certification/packet/diff":
+                    left = self._query_value(query, "left_directory")
+                    right = self._query_value(query, "right_directory")
+                    if not left or not right:
+                        raise ValueError("left_directory and right_directory are required for certification packet diff")
+                    self._write(HTTPStatus.OK, diff_module_certification_packets(left, right))
+                    return
+                if path == "/v1/module-certification/packet/replay":
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for certification packet replay")
+                    self._write(HTTPStatus.OK, replay_module_certification_packet(directory))
+                    return
+                inventory = build_module_inventory()
+                matrix = build_module_certification(inventory)
+                plan = build_module_certification_task_plan(matrix)
+                gate = evaluate_module_certification_gate(matrix, plan)
+                runtime = run_module_certification(inventory=inventory)
+                if path == "/v1/module-certification/policy":
+                    payload = default_module_certification_policy().to_dict()
+                elif path == "/v1/module-certification/runtime":
+                    payload = runtime.to_dict()
+                elif path == "/v1/module-certification/audit":
+                    payload = audit_module_certification(matrix, plan, gate, runtime).to_dict()
+                elif path == "/v1/module-certification/tasks":
+                    payload = query_module_certification(matrix, plan, resource=self._query_value(query, "resource") or "tasks", module_id=self._query_value(query, "module_id"), kind=self._query_value(query, "kind"), state=self._query_value(query, "state"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                elif path == "/v1/module-certification/query":
+                    payload = query_module_certification(matrix, plan, resource=self._query_value(query, "resource") or "modules", module_id=self._query_value(query, "module_id"), kind=self._query_value(query, "kind"), state=self._query_value(query, "state"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                elif path == "/v1/module-certification/observability":
+                    observation = build_module_certification_observability(matrix, plan, gate, runtime)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "events-csv":
+                        self._write_bytes(HTTPStatus.OK, module_certification_events_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "metrics-csv":
+                        self._write_bytes(HTTPStatus.OK, module_certification_metrics_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    payload = observation.to_dict()
+                elif path == "/v1/module-certification/packet":
+                    observation = build_module_certification_observability(matrix, plan, gate, runtime)
+                    audit = audit_module_certification(matrix, plan, gate, runtime)
+                    payload = build_module_certification_packet(matrix, plan, gate, runtime, audit, observation).to_dict(include_payloads=False)
+                else:
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        payload = module_certification_summary(matrix)
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_module_certification_markdown(matrix).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    elif output_format == "rows-csv":
+                        self._write_bytes(HTTPStatus.OK, module_certification_rows_csv(matrix).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "checks-csv":
+                        self._write_bytes(HTTPStatus.OK, module_certification_checks_csv(matrix).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "gaps-csv":
+                        self._write_bytes(HTTPStatus.OK, module_certification_gaps_csv(matrix).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    else:
+                        payload = matrix.to_dict(include_rows=self._query_bool(query, "include_rows") is True)
+                self._write(HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_module_certification_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

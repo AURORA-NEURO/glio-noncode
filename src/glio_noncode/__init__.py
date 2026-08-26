@@ -10833,6 +10833,145 @@ __all__ += [
     "validate_cohort_foundation_frontier_schema",
 ]
 
+from .module_certification_diff import (
+    ModuleCertificationDiff,
+    ModuleCertificationRowDiff,
+    build_module_certification_diff,
+    module_certification_diff_capabilities,
+    module_certification_diff_json,
+    module_certification_diff_schema,
+    query_module_certification_diff,
+)
+from .module_certification_review import (
+    CertificationReviewSeverity,
+    ModuleCertificationReviewItem,
+    ModuleCertificationReviewQueue,
+    build_module_certification_review_queue,
+    module_certification_review_capabilities,
+    module_certification_review_schema,
+    query_module_certification_review,
+    render_module_certification_review_markdown,
+)
+from .module_certification_schema import (
+    ModuleCertificationSchemaCheck,
+    ModuleCertificationSchemaField,
+    ModuleCertificationSchemaReport,
+    default_module_certification_fields,
+    module_certification_schema_capabilities,
+    module_certification_schema_report_schema,
+    validate_module_certification_schema,
+)
+from .module_certification import (
+    build_module_certification,
+    module_certification_capabilities,
+    module_certification_json,
+    module_certification_schema,
+    verify_module_certification,
+)
+from .module_certification_audit import (
+    ModuleCertificationAudit,
+    ModuleCertificationAuditCheck,
+    audit_module_certification,
+    module_certification_audit_capabilities,
+    module_certification_audit_schema,
+)
+from .module_certification_contracts import (
+    CertificationCheckKind,
+    CertificationCheckPlane,
+    CertificationCheckState,
+    CertificationGateState,
+    CertificationResource,
+    CertificationStageState,
+    CertificationState,
+    CertificationTaskKind,
+    ModuleCertificationCheck,
+    ModuleCertificationEvent,
+    ModuleCertificationGap,
+    ModuleCertificationGate,
+    ModuleCertificationGateCheck,
+    ModuleCertificationMatrix,
+    ModuleCertificationMetric,
+    ModuleCertificationObservability,
+    ModuleCertificationPolicy,
+    ModuleCertificationRow,
+    ModuleCertificationRuntime,
+    ModuleCertificationStage,
+    ModuleCertificationTask,
+    ModuleCertificationTaskPlan,
+)
+from .module_certification_exports import (
+    module_certification_checks_csv,
+    module_certification_exports_capabilities,
+    module_certification_exports_schema,
+    module_certification_gaps_csv,
+    module_certification_matrix_json,
+    module_certification_rows_csv,
+    module_certification_summary,
+    module_certification_tasks_csv,
+    render_module_certification_markdown,
+)
+from .module_certification_observability import (
+    build_module_certification_observability,
+    module_certification_events_csv,
+    module_certification_metrics_csv,
+    module_certification_observability_capabilities,
+    module_certification_observability_json,
+    module_certification_observability_schema,
+    query_module_certification_observability,
+)
+from .module_certification_packet import (
+    build_module_certification_packet,
+    load_module_certification_packet,
+    module_certification_packet_capabilities,
+    module_certification_packet_json,
+    module_certification_packet_schema,
+    verify_module_certification_packet,
+    write_module_certification_packet,
+)
+from .module_certification_packet_contracts import (
+    MODULE_CERTIFICATION_PACKET_ARTIFACT_COUNT,
+    MODULE_CERTIFICATION_PACKET_ARTIFACT_PREFIX,
+    MODULE_CERTIFICATION_PACKET_BOUNDARY,
+    MODULE_CERTIFICATION_PACKET_MANIFEST,
+    MODULE_CERTIFICATION_PACKET_VERSION,
+    ModuleCertificationPacket,
+    ModuleCertificationPacketArtifact,
+    ModuleCertificationPacketArtifactKind,
+    ModuleCertificationPacketCheck,
+    ModuleCertificationPacketCheckPlane,
+    ModuleCertificationPacketState,
+    ModuleCertificationPacketVerification,
+)
+from .module_certification_packet_query import (
+    diff_module_certification_packets,
+    module_certification_packet_query_capabilities,
+    module_certification_packet_query_schema,
+    query_module_certification_packet,
+    replay_module_certification_packet,
+)
+from .module_certification_policy import (
+    build_module_certification_policy,
+    default_module_certification_policy,
+    evaluate_module_certification_gate,
+    module_certification_policy_capabilities,
+    module_certification_policy_json,
+    module_certification_policy_schema,
+)
+from .module_certification_runtime import (
+    module_certification_runtime_capabilities,
+    module_certification_runtime_json,
+    module_certification_runtime_schema,
+    run_module_certification,
+)
+from .module_certification_tasks import (
+    build_module_certification_task_plan,
+    module_certification_tasks_capabilities,
+    module_certification_tasks_csv,
+    module_certification_tasks_json,
+    module_certification_tasks_schema,
+    query_module_certification,
+    verify_module_certification_tasks,
+)
 from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema, verify_module_inventory
 from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
 from .module_inventory_contracts import (
@@ -10950,6 +11089,18 @@ from .module_inventory_schema import (
     module_inventory_schema_capabilities,
     validate_module_inventory_schema,
 )
+__all__ += [
+    "CertificationReviewSeverity", "ModuleCertificationDiff", "ModuleCertificationReviewItem", "ModuleCertificationReviewQueue", "ModuleCertificationRowDiff", "ModuleCertificationSchemaCheck", "ModuleCertificationSchemaField", "ModuleCertificationSchemaReport",
+    "build_module_certification_diff", "build_module_certification_review_queue", "default_module_certification_fields", "module_certification_diff_capabilities", "module_certification_diff_json", "module_certification_diff_schema", "module_certification_review_capabilities", "module_certification_review_schema", "module_certification_schema_capabilities", "module_certification_schema_report_schema", "query_module_certification_diff", "query_module_certification_review", "render_module_certification_review_markdown", "validate_module_certification_schema",
+]
+
+__all__ += [
+    "CertificationCheckKind", "CertificationCheckPlane", "CertificationCheckState", "CertificationGateState", "CertificationResource", "CertificationStageState", "CertificationState", "CertificationTaskKind",
+    "MODULE_CERTIFICATION_PACKET_ARTIFACT_COUNT", "MODULE_CERTIFICATION_PACKET_ARTIFACT_PREFIX", "MODULE_CERTIFICATION_PACKET_BOUNDARY", "MODULE_CERTIFICATION_PACKET_MANIFEST", "MODULE_CERTIFICATION_PACKET_VERSION",
+    "ModuleCertificationAudit", "ModuleCertificationAuditCheck", "ModuleCertificationCheck", "ModuleCertificationEvent", "ModuleCertificationGap", "ModuleCertificationGate", "ModuleCertificationGateCheck", "ModuleCertificationMatrix", "ModuleCertificationMetric", "ModuleCertificationObservability", "ModuleCertificationPacket", "ModuleCertificationPacketArtifact", "ModuleCertificationPacketArtifactKind", "ModuleCertificationPacketCheck", "ModuleCertificationPacketCheckPlane", "ModuleCertificationPacketState", "ModuleCertificationPacketVerification", "ModuleCertificationPolicy", "ModuleCertificationRow", "ModuleCertificationRuntime", "ModuleCertificationStage", "ModuleCertificationTask", "ModuleCertificationTaskPlan",
+    "audit_module_certification", "build_module_certification", "build_module_certification_observability", "build_module_certification_packet", "build_module_certification_policy", "build_module_certification_task_plan", "default_module_certification_policy", "diff_module_certification_packets", "evaluate_module_certification_gate", "load_module_certification_packet", "module_certification_audit_capabilities", "module_certification_audit_schema", "module_certification_capabilities", "module_certification_checks_csv", "module_certification_events_csv", "module_certification_exports_capabilities", "module_certification_exports_schema", "module_certification_gaps_csv", "module_certification_json", "module_certification_matrix_json", "module_certification_metrics_csv", "module_certification_observability_capabilities", "module_certification_observability_json", "module_certification_observability_schema", "module_certification_packet_capabilities", "module_certification_packet_json", "module_certification_packet_query_capabilities", "module_certification_packet_query_schema", "module_certification_packet_schema", "module_certification_policy_capabilities", "module_certification_policy_json", "module_certification_policy_schema", "module_certification_rows_csv", "module_certification_runtime_capabilities", "module_certification_runtime_json", "module_certification_runtime_schema", "module_certification_schema", "module_certification_summary", "module_certification_tasks_capabilities", "module_certification_tasks_csv", "module_certification_tasks_json", "module_certification_tasks_schema", "query_module_certification", "query_module_certification_observability", "query_module_certification_packet", "render_module_certification_markdown", "replay_module_certification_packet", "run_module_certification", "verify_module_certification", "verify_module_certification_packet", "verify_module_certification_tasks", "write_module_certification_packet",
+]
+
 from .module_impact import (
     build_module_impact_diff,
     build_module_impact_report,

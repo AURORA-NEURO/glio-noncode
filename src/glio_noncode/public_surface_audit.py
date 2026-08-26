@@ -179,9 +179,20 @@ from .module_impact_policy import module_impact_policy_capabilities, module_impa
 from .module_impact_runtime import module_impact_runtime_capabilities, module_impact_runtime_schema
 from .module_impact_schema import default_module_impact_schema, module_impact_schema_capabilities
 from .module_impact_verification import module_impact_verification_capabilities, module_impact_verification_schema
+from .module_certification import module_certification_capabilities, module_certification_schema
+from .module_certification_audit import module_certification_audit_capabilities, module_certification_audit_schema
+from .module_certification_observability import module_certification_observability_capabilities, module_certification_observability_schema
+from .module_certification_packet import module_certification_packet_capabilities, module_certification_packet_schema
+from .module_certification_packet_query import module_certification_packet_query_capabilities, module_certification_packet_query_schema
+from .module_certification_policy import module_certification_policy_capabilities, module_certification_policy_schema
+from .module_certification_runtime import module_certification_runtime_capabilities, module_certification_runtime_schema
+from .module_certification_tasks import module_certification_tasks_capabilities, module_certification_tasks_schema
+from .module_certification_diff import module_certification_diff_capabilities, module_certification_diff_schema
+from .module_certification_review import module_certification_review_capabilities, module_certification_review_schema
+from .module_certification_schema import module_certification_schema_capabilities, module_certification_schema_report_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 180
+PUBLIC_SURFACE_EXPECTED_COUNT = 202
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -563,6 +574,28 @@ def default_public_surface_inventory(
         "module-impact-packet-capabilities": module_impact_packet_capabilities(),
         "module-impact-packet-query-schema": module_impact_packet_query_schema(),
         "module-impact-packet-query-capabilities": module_impact_packet_query_capabilities(),
+        "module-certification-schema": module_certification_schema(),
+        "module-certification-capabilities": module_certification_capabilities(),
+        "module-certification-audit-schema": module_certification_audit_schema(),
+        "module-certification-audit-capabilities": module_certification_audit_capabilities(),
+        "module-certification-policy-schema": module_certification_policy_schema(),
+        "module-certification-policy-capabilities": module_certification_policy_capabilities(),
+        "module-certification-tasks-schema": module_certification_tasks_schema(),
+        "module-certification-tasks-capabilities": module_certification_tasks_capabilities(),
+        "module-certification-runtime-schema": module_certification_runtime_schema(),
+        "module-certification-runtime-capabilities": module_certification_runtime_capabilities(),
+        "module-certification-observability-schema": module_certification_observability_schema(),
+        "module-certification-observability-capabilities": module_certification_observability_capabilities(),
+        "module-certification-packet-schema": module_certification_packet_schema(),
+        "module-certification-packet-capabilities": module_certification_packet_capabilities(),
+        "module-certification-packet-query-schema": module_certification_packet_query_schema(),
+        "module-certification-packet-query-capabilities": module_certification_packet_query_capabilities(),
+        "module-certification-diff-schema": module_certification_diff_schema(),
+        "module-certification-diff-capabilities": module_certification_diff_capabilities(),
+        "module-certification-review-schema": module_certification_review_schema(),
+        "module-certification-review-capabilities": module_certification_review_capabilities(),
+        "module-certification-schema-capabilities": module_certification_schema_capabilities(),
+        "module-certification-schema-report-schema": module_certification_schema_report_schema(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

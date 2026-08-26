@@ -33,6 +33,13 @@ jobs:
           python -m glio_noncode module-impact-policy --output /tmp/glio-module-impact-policy.json
       - name: Module impact focused tests
         run: python -m unittest tests.test_module_impact -v
+      - name: Module certification contract commands
+        run: |
+          python -m glio_noncode module-certification-schema --output /tmp/glio-module-certification-schema.json
+          python -m glio_noncode module-certification-capabilities --output /tmp/glio-module-certification-capabilities.json
+          python -m glio_noncode module-certification-policy --output /tmp/glio-module-certification-policy.json
+      - name: Module certification focused tests
+        run: python -m unittest tests.test_module_certification -v
       - name: Unit tests
         run: python -m unittest discover -s tests -t . -v
       - name: Architecture program offline handoff tests
