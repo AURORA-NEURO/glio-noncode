@@ -42,8 +42,13 @@ REVIEW_WORKSPACE_EXECUTION_OPERATIONS_VERSION = "review-workspace-execution-oper
 REVIEW_WORKSPACE_EXECUTION_OPERATIONS_SCHEMA_VERSION = (
     "review-workspace-execution-operations-schema-v1"
 )
+REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION = (
+    "review-workspace-execution-operations-query-v1"
+)
 REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_ITEMS = 50_000
 REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_RATIONALE = 512
+REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_TEXT = 256
+REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_PAGE = 500
 
 
 class ReviewWorkspaceExecutionAttentionKind(StrEnum):
@@ -110,6 +115,40 @@ _FORBIDDEN_KEYS = frozenset(
 
 def _address(body: Any, prefix: str) -> str:
     return content_hash(body, prefix=prefix)
+
+
+def _optional_text(value: Any, field: str) -> str | None:
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    return normalized or None
+
+
+def _normalize_enum(value: Any, field: str, values: set[str]) -> str | None:
+    normalized = _optional_text(value, field)
+    if normalized is None:
+        return None
+    normalized = normalized.casefold()
+    if normalized not in values:
+        raise ValidationError(f"{field} is invalid")
+    return normalized
+
+
+def _normalize_optional_bool(value: Any, field: str) -> bool | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().casefold()
+    if normalized in {"true", "1", "yes"}:
+        return True
+    if normalized in {"false", "0", "no"}:
+        return False
+    raise ValidationError(f"{field} must be boolean")
+
+
+def _facet(values: list[str] | tuple[str, ...]) -> dict[str, int]:
+    return dict(sorted(Counter(values).items()))
 
 
 def _rationale(kind: ReviewWorkspaceExecutionAttentionKind, action: ReviewPlanActionExecution) -> str:
@@ -220,6 +259,119 @@ class ReviewWorkspaceExecutionOperations:
     recommended_transition: str
     metrics_address: str
     items: tuple[ReviewWorkspaceExecutionAttentionItem, ...]
+    warnings: tuple[str, ...]
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewWorkspaceExecutionOperationsQuery:
+    """Bounded filters for the ranked public execution attention queue."""
+
+    attention_kind: str | None = None
+    status: str | None = None
+    lane: str | None = None
+    action_kind: str | None = None
+    action_id: str | None = None
+    priority: int | None = None
+    text: str | None = None
+    ready: bool | None = None
+    dependency_action_id: str | None = None
+    offset: int = 0
+    limit: int | None = 50
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "attention_kind",
+            _normalize_enum(
+                self.attention_kind,
+                "attention_kind",
+                {item.value for item in ReviewWorkspaceExecutionAttentionKind},
+            ),
+        )
+        object.__setattr__(
+            self,
+            "status",
+            _normalize_enum(
+                self.status,
+                "status",
+                {item.value for item in ReviewPlanExecutionStatus},
+            ),
+        )
+        for name in ("lane", "action_kind", "action_id", "dependency_action_id"):
+            object.__setattr__(self, name, _optional_text(getattr(self, name), name))
+        if self.priority is not None and (
+            isinstance(self.priority, bool) or not isinstance(self.priority, int)
+        ):
+            raise ValidationError("operations query priority must be an integer")
+        if self.text is not None:
+            text = str(self.text).strip()
+            if len(text) > REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_TEXT:
+                raise ValidationError("operations query text exceeds the bound")
+            object.__setattr__(self, "text", text or None)
+        else:
+            object.__setattr__(self, "text", None)
+        object.__setattr__(self, "ready", _normalize_optional_bool(self.ready, "ready"))
+        for name in ("offset",):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ValidationError(f"operations query {name} must be non-negative")
+        if self.limit is not None and (
+            isinstance(self.limit, bool)
+            or not isinstance(self.limit, int)
+            or self.limit < 1
+            or self.limit > REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_PAGE
+        ):
+            raise ValidationError("operations query limit is outside the bound")
+
+    @classmethod
+    def from_mapping(
+        cls,
+        raw: Mapping[str, Any] | None,
+    ) -> "ReviewWorkspaceExecutionOperationsQuery":
+        if raw is None:
+            return cls()
+        if not isinstance(raw, Mapping):
+            raise ValidationError("operations query must be an object")
+        priority = raw.get("priority")
+        return cls(
+            attention_kind=raw.get("attention_kind"),
+            status=raw.get("status"),
+            lane=raw.get("lane"),
+            action_kind=raw.get("action_kind"),
+            action_id=raw.get("action_id"),
+            priority=None if priority in (None, "") else int(priority),
+            text=raw.get("text"),
+            ready=raw.get("ready"),
+            dependency_action_id=raw.get("dependency_action_id"),
+            offset=int(raw.get("offset", 0)),
+            limit=None if raw.get("limit") is None else int(raw.get("limit", 50)),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewWorkspaceExecutionOperationsQueryResult:
+    """A deterministic page and complete-match facets for queue queries."""
+
+    execution_address: str
+    operations_address: str
+    operations_version: str
+    operations_query_version: str
+    queue_count: int
+    query: ReviewWorkspaceExecutionOperationsQuery
+    rows: tuple[ReviewWorkspaceExecutionAttentionItem, ...]
+    total_count: int
+    has_more: bool
+    facets: Mapping[str, Mapping[str, int]]
+    first_rank: int | None
+    last_rank: int | None
+    accepted: bool
     warnings: tuple[str, ...]
     content_address: str
 
@@ -502,12 +654,129 @@ def review_workspace_execution_operations_export_payloads(
     }
 
 
+def _operation_text(item: ReviewWorkspaceExecutionAttentionItem) -> str:
+    return " ".join(
+        (
+            item.action_id,
+            item.queue_item_id,
+            item.target_id,
+            item.title,
+            item.purpose,
+            item.lane,
+            item.action_kind,
+            str(item.priority),
+            str(item.sequence),
+            item.status,
+            item.attention_kind.value,
+            " ".join(item.unresolved_dependencies),
+            item.rationale,
+            item.recommended_transition,
+            item.content_address,
+        )
+    ).casefold()
+
+
+def _operation_matches(
+    item: ReviewWorkspaceExecutionAttentionItem,
+    query: ReviewWorkspaceExecutionOperationsQuery,
+) -> bool:
+    if query.attention_kind is not None and item.attention_kind.value != query.attention_kind:
+        return False
+    if query.status is not None and item.status != query.status:
+        return False
+    if query.lane is not None and item.lane != query.lane:
+        return False
+    if query.action_kind is not None and item.action_kind != query.action_kind:
+        return False
+    if query.action_id is not None and item.action_id != query.action_id:
+        return False
+    if query.priority is not None and item.priority != query.priority:
+        return False
+    if query.ready is not None and item.ready is not query.ready:
+        return False
+    if (
+        query.dependency_action_id is not None
+        and query.dependency_action_id not in item.unresolved_dependencies
+    ):
+        return False
+    if query.text is not None and query.text.casefold() not in _operation_text(item):
+        return False
+    return True
+
+
+def query_review_workspace_execution_operations(
+    operations: ReviewWorkspaceExecutionOperations,
+    query: ReviewWorkspaceExecutionOperationsQuery | Mapping[str, Any] | None = None,
+) -> ReviewWorkspaceExecutionOperationsQueryResult:
+    """Return a stable page over the ranked attention queue."""
+
+    if not isinstance(operations, ReviewWorkspaceExecutionOperations):
+        raise ValidationError("operations query requires a typed operations projection")
+    selected = (
+        query
+        if isinstance(query, ReviewWorkspaceExecutionOperationsQuery)
+        else ReviewWorkspaceExecutionOperationsQuery.from_mapping(query)
+    )
+    boundary_valid = not contains_private_key(operations.to_dict())
+    matched = tuple(item for item in operations.items if _operation_matches(item, selected))
+    page_matches = (
+        matched[selected.offset:]
+        if selected.limit is None
+        else matched[selected.offset : selected.offset + selected.limit]
+    )
+    rows = tuple(page_matches)
+    facets = {
+        "attention_kinds": _facet([item.attention_kind.value for item in matched]),
+        "statuses": _facet([item.status for item in matched]),
+        "lanes": _facet([item.lane for item in matched]),
+        "action_kinds": _facet([item.action_kind for item in matched]),
+        "priorities": _facet([str(item.priority) for item in matched]),
+        "dependencies": _facet(
+            [dependency for item in matched for dependency in item.unresolved_dependencies]
+        ),
+    }
+    body = {
+        "operations_query_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION,
+        "execution_address": operations.execution_address,
+        "operations_address": operations.content_address,
+        "operations_version": operations.operations_version,
+        "queue_count": operations.queue_count,
+        "query": selected,
+        "rows": rows,
+        "total_count": len(matched),
+        "has_more": selected.offset + len(rows) < len(matched),
+        "facets": facets,
+        "first_rank": rows[0].rank if rows else None,
+        "last_rank": rows[-1].rank if rows else None,
+        "accepted": operations.accepted and boundary_valid,
+        "warnings": operations.warnings,
+    }
+    return ReviewWorkspaceExecutionOperationsQueryResult(
+        execution_address=operations.execution_address,
+        operations_address=operations.content_address,
+        operations_version=operations.operations_version,
+        operations_query_version=REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION,
+        queue_count=operations.queue_count,
+        query=selected,
+        rows=rows,
+        total_count=len(matched),
+        has_more=selected.offset + len(rows) < len(matched),
+        facets=facets,
+        first_rank=rows[0].rank if rows else None,
+        last_rank=rows[-1].rank if rows else None,
+        accepted=operations.accepted and boundary_valid,
+        warnings=operations.warnings,
+        content_address=content_hash(body, prefix="review-workspace-execution-operations-query"),
+    )
+
+
 def review_workspace_execution_operations_schema() -> dict[str, Any]:
     """Return the operations queue contract."""
 
     return {
         "version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_SCHEMA_VERSION,
         "operations_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_VERSION,
+        "query_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION,
         "type": "execution_attention_queue",
         "attention_kinds": [item.value for item in ReviewWorkspaceExecutionAttentionKind],
         "ordering": ["attention_rank", "plan_priority", "plan_sequence", "action_id"],
@@ -524,9 +793,39 @@ def review_workspace_execution_operations_schema() -> dict[str, Any]:
             "items",
             "content_address",
         ],
+        "filters": {
+            "attention_kind": "exact queue class",
+            "status": "exact public execution status",
+            "lane": "exact plan lane",
+            "action_kind": "exact plan action kind",
+            "action_id": "exact plan action identifier",
+            "priority": "exact integer plan priority",
+            "text": "case-insensitive bounded search across public queue fields",
+            "ready": "whether the action is dependency-ready",
+            "dependency_action_id": "queue row contains this unresolved dependency",
+            "offset": "bounded page offset",
+            "limit": "bounded page size",
+        },
+        "result": {
+            "rows": "typed ranked attention items",
+            "facets": [
+                "attention_kinds",
+                "statuses",
+                "lanes",
+                "action_kinds",
+                "priorities",
+                "dependencies",
+            ],
+            "complete_match_facets": True,
+            "has_more": True,
+            "first_rank": True,
+            "last_rank": True,
+        },
         "limits": {
             "max_items": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_ITEMS,
             "max_rationale": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_RATIONALE,
+            "max_text": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_TEXT,
+            "max_page": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_PAGE,
         },
         "boundary": {
             "raw_evidence": False,
@@ -556,18 +855,30 @@ def review_workspace_execution_operations_capabilities() -> dict[str, Any]:
         "content_addressed": True,
         "public_boundary_audit": True,
         "offline_reproducible": True,
+        "bounded_query": True,
+        "query_pagination": True,
+        "complete_match_facets": True,
+        "attention_kind_filtering": True,
+        "dependency_filtering": True,
+        "case_insensitive_public_text_search": True,
     }
 
 
 __all__ = [
     "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_ITEMS",
     "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_RATIONALE",
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_TEXT",
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_PAGE",
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_SCHEMA_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_VERSION",
     "ReviewWorkspaceExecutionAttentionItem",
     "ReviewWorkspaceExecutionAttentionKind",
     "ReviewWorkspaceExecutionOperations",
+    "ReviewWorkspaceExecutionOperationsQuery",
+    "ReviewWorkspaceExecutionOperationsQueryResult",
     "build_review_workspace_execution_operations",
+    "query_review_workspace_execution_operations",
     "render_review_workspace_execution_operations_markdown",
     "review_workspace_execution_operations_capabilities",
     "review_workspace_execution_operations_csv",

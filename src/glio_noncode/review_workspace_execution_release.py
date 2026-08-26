@@ -48,8 +48,12 @@ from .review_workspace_execution_metrics_diff import (
     diff_review_workspace_execution_metrics,
 )
 from .review_workspace_execution_operations import (
+    REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION,
+    ReviewWorkspaceExecutionOperationsQuery,
+    ReviewWorkspaceExecutionOperationsQueryResult,
     ReviewWorkspaceExecutionOperations,
     build_review_workspace_execution_operations,
+    query_review_workspace_execution_operations,
     review_workspace_execution_operations_export_payloads,
 )
 from .serialization import canonical_json, content_hash, hash_bytes, jsonable
@@ -1017,6 +1021,16 @@ def query_review_workspace_execution_release_operations(
     return value.operations
 
 
+def query_review_workspace_execution_release_operations_view(
+    release: ReviewWorkspaceOfflineExecutionRelease | str | Path,
+    query: ReviewWorkspaceExecutionOperationsQuery | Mapping[str, Any] | None = None,
+) -> ReviewWorkspaceExecutionOperationsQueryResult:
+    """Apply bounded attention-queue filters to a verified portable release."""
+
+    value = _as_release(release)
+    return query_review_workspace_execution_operations(value.operations, query)
+
+
 def _address_map(items: Iterable[Any], identifier: str) -> dict[str, str]:
     result: dict[str, str] = {}
     for item in items:
@@ -1232,6 +1246,7 @@ def review_workspace_execution_release_schema() -> dict[str, Any]:
         },
         "operations": {
             "required": True,
+            "query_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION,
             "artifacts": [
                 "review-workspace-execution-operations.json",
                 "review-workspace-execution-operations.md",
@@ -1242,6 +1257,8 @@ def review_workspace_execution_release_schema() -> dict[str, Any]:
             "metrics_linked": True,
             "deterministic_attention_ranking": True,
             "completed_actions_excluded": True,
+            "bounded_query": True,
+            "complete_match_facets": True,
         },
         "diff": {
             "metrics_diff_version": "review-workspace-execution-metrics-diff-v1",
@@ -1300,6 +1317,9 @@ def review_workspace_execution_release_capabilities() -> dict[str, Any]:
         "deterministic_operations_ranking": True,
         "operations_artifacts": True,
         "operations_verification": True,
+        "operations_query": True,
+        "operations_query_filters": True,
+        "operations_query_facets": True,
         "release_diff": True,
         "symlink_and_path_safety": True,
         "public_boundary_audit": True,
@@ -1328,6 +1348,7 @@ __all__ = [
     "query_review_workspace_execution_release",
     "query_review_workspace_execution_release_metrics",
     "query_review_workspace_execution_release_operations",
+    "query_review_workspace_execution_release_operations_view",
     "query_review_workspace_execution_release_timeline",
     "review_workspace_execution_release_capabilities",
     "review_workspace_execution_release_schema",

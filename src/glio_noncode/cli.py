@@ -1761,7 +1761,9 @@ from .review_workspace_execution_metrics import (
     review_workspace_execution_metrics_schema,
 )
 from .review_workspace_execution_operations import (
+    ReviewWorkspaceExecutionOperationsQuery,
     build_review_workspace_execution_operations,
+    query_review_workspace_execution_operations,
     review_workspace_execution_operations_capabilities,
     review_workspace_execution_operations_schema,
 )
@@ -1781,7 +1783,7 @@ from .review_workspace_execution_release import (
     load_review_workspace_execution_release,
     query_review_workspace_execution_release,
     query_review_workspace_execution_release_metrics,
-    query_review_workspace_execution_release_operations,
+    query_review_workspace_execution_release_operations_view,
     query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
@@ -3629,6 +3631,9 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_query.add_argument("--lane", default=None)
     review_workspace_plan_execution_query.add_argument("--action-kind", default=None)
     review_workspace_plan_execution_query.add_argument("--action-id", default=None)
+    review_workspace_plan_execution_query.add_argument("--attention-kind", default=None)
+    review_workspace_plan_execution_query.add_argument("--dependency-action-id", default=None)
+    review_workspace_plan_execution_query.add_argument("--ready", choices=("true", "false"), default=None)
     review_workspace_plan_execution_query.add_argument("--event-kind", default=None)
     review_workspace_plan_execution_query.add_argument("--priority", type=int, default=None)
     review_workspace_plan_execution_query.add_argument("--text", default=None)
@@ -3701,6 +3706,9 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_release_query.add_argument("--lane", default=None)
     review_workspace_plan_execution_release_query.add_argument("--action-kind", default=None)
     review_workspace_plan_execution_release_query.add_argument("--action-id", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--attention-kind", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--dependency-action-id", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--ready", choices=("true", "false"), default=None)
     review_workspace_plan_execution_release_query.add_argument("--event-kind", default=None)
     review_workspace_plan_execution_release_query.add_argument("--priority", type=int, default=None)
     review_workspace_plan_execution_release_query.add_argument("--text", default=None)
@@ -22749,7 +22757,25 @@ def main(argv: list[str] | None = None) -> int:
                     args.run_id,
                     baseline_run_id=args.baseline_run_id,
                 )
-                result = build_review_workspace_execution_operations(plan, execution)
+                operations = build_review_workspace_execution_operations(plan, execution)
+                result = query_review_workspace_execution_operations(
+                    operations,
+                    ReviewWorkspaceExecutionOperationsQuery.from_mapping(
+                        {
+                            "attention_kind": args.attention_kind,
+                            "status": args.status,
+                            "lane": args.lane,
+                            "action_kind": args.action_kind,
+                            "action_id": args.action_id,
+                            "priority": args.priority,
+                            "text": args.text,
+                            "ready": args.ready,
+                            "dependency_action_id": args.dependency_action_id,
+                            "offset": args.offset,
+                            "limit": args.limit,
+                        }
+                    ),
+                )
             elif args.view == "metrics":
                 runtime = CaseRuntime(args.data_root)
                 plan = build_persisted_review_workspace_plan(
@@ -22852,7 +22878,24 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-release-query":
             if args.view == "operations":
-                result = query_review_workspace_execution_release_operations(args.input)
+                result = query_review_workspace_execution_release_operations_view(
+                    args.input,
+                    ReviewWorkspaceExecutionOperationsQuery.from_mapping(
+                        {
+                            "attention_kind": args.attention_kind,
+                            "status": args.status,
+                            "lane": args.lane,
+                            "action_kind": args.action_kind,
+                            "action_id": args.action_id,
+                            "priority": args.priority,
+                            "text": args.text,
+                            "ready": args.ready,
+                            "dependency_action_id": args.dependency_action_id,
+                            "offset": args.offset,
+                            "limit": args.limit,
+                        }
+                    ),
+                )
             elif args.view == "metrics":
                 result = query_review_workspace_execution_release_metrics(args.input)
             elif args.view == "events":

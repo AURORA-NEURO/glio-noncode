@@ -264,7 +264,11 @@ from .review_workspace_execution_timeline import (
     query_review_workspace_execution_timeline,
 )
 from .review_workspace_execution_metrics import build_review_workspace_execution_metrics
-from .review_workspace_execution_operations import build_review_workspace_execution_operations
+from .review_workspace_execution_operations import (
+    ReviewWorkspaceExecutionOperationsQuery,
+    build_review_workspace_execution_operations,
+    query_review_workspace_execution_operations,
+)
 from .review_workspace_execution_release import (
     build_review_workspace_execution_release,
     review_workspace_execution_release_capabilities,
@@ -2362,7 +2366,32 @@ class ApiHandler(BaseHTTPRequestHandler):
                             baseline_run_id=self._query_value(query_values, "baseline_run_id"),
                             config=plan_config,
                         )
-                        result = build_review_workspace_execution_operations(plan, execution)
+                        operations = build_review_workspace_execution_operations(plan, execution)
+                        result = query_review_workspace_execution_operations(
+                            operations,
+                            ReviewWorkspaceExecutionOperationsQuery.from_mapping(
+                                {
+                                    "attention_kind": self._query_value(query_values, "attention_kind"),
+                                    "status": self._query_value(query_values, "status"),
+                                    "lane": self._query_value(query_values, "lane"),
+                                    "action_kind": self._query_value(query_values, "action_kind"),
+                                    "action_id": self._query_value(query_values, "action_id"),
+                                    "priority": self._query_optional_int(query_values, "priority"),
+                                    "text": self._query_value(query_values, "text"),
+                                    "ready": self._query_value(query_values, "ready"),
+                                    "dependency_action_id": self._query_value(
+                                        query_values,
+                                        "dependency_action_id",
+                                    ),
+                                    "offset": self._query_int(query_values, "offset", 0),
+                                    "limit": (
+                                        50
+                                        if self._query_optional_int(query_values, "limit") is None
+                                        else self._query_optional_int(query_values, "limit")
+                                    ),
+                                }
+                            ),
+                        )
                     elif view == "metrics":
                         plan = build_persisted_review_workspace_plan(
                             runtime,
@@ -2457,7 +2486,32 @@ class ApiHandler(BaseHTTPRequestHandler):
                             baseline_run_id=self._query_value(query_values, "baseline_run_id"),
                             config=plan_config,
                         )
-                        result = build_review_workspace_execution_operations(plan, execution)
+                        operations = build_review_workspace_execution_operations(plan, execution)
+                        result = query_review_workspace_execution_operations(
+                            operations,
+                            ReviewWorkspaceExecutionOperationsQuery.from_mapping(
+                                {
+                                    "attention_kind": self._query_value(query_values, "attention_kind"),
+                                    "status": self._query_value(query_values, "status"),
+                                    "lane": self._query_value(query_values, "lane"),
+                                    "action_kind": self._query_value(query_values, "action_kind"),
+                                    "action_id": self._query_value(query_values, "action_id"),
+                                    "priority": self._query_optional_int(query_values, "priority"),
+                                    "text": self._query_value(query_values, "text"),
+                                    "ready": self._query_value(query_values, "ready"),
+                                    "dependency_action_id": self._query_value(
+                                        query_values,
+                                        "dependency_action_id",
+                                    ),
+                                    "offset": self._query_int(query_values, "offset", 0),
+                                    "limit": (
+                                        50
+                                        if self._query_optional_int(query_values, "limit") is None
+                                        else self._query_optional_int(query_values, "limit")
+                                    ),
+                                }
+                            ),
+                        )
                     elif view == "metrics":
                         plan = build_persisted_review_workspace_plan(
                             runtime,

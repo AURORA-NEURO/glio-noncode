@@ -46,7 +46,9 @@ from glio_noncode.review_workspace_execution_metrics_diff import (
 )
 from glio_noncode.review_workspace_execution_operations import (
     ReviewWorkspaceExecutionAttentionKind,
+    ReviewWorkspaceExecutionOperationsQuery,
     build_review_workspace_execution_operations,
+    query_review_workspace_execution_operations,
     review_workspace_execution_operations_capabilities,
     review_workspace_execution_operations_export_payloads,
     review_workspace_execution_operations_schema,
@@ -452,6 +454,57 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
             )
             self.assertEqual(skipped_item.recommended_transition, "reopen")
 
+    def test_execution_operations_query_filters_facets_and_paginates(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, _, plan = self._context(directory)
+            operations = build_review_workspace_execution_operations(
+                plan,
+                replay_review_workspace_plan_execution(plan),
+            )
+            ready = query_review_workspace_execution_operations(
+                operations,
+                ReviewWorkspaceExecutionOperationsQuery(attention_kind="READY", limit=1),
+            )
+            self.assertTrue(ready.accepted)
+            self.assertEqual(ready.operations_version, "review-workspace-execution-operations-v1")
+            self.assertEqual(ready.queue_count, len(plan.actions))
+            self.assertEqual(ready.total_count, 1)
+            self.assertFalse(ready.has_more)
+            self.assertEqual(ready.first_rank, 0)
+            self.assertEqual(ready.rows[0].attention_kind, ReviewWorkspaceExecutionAttentionKind.READY)
+            self.assertEqual(ready.facets["attention_kinds"], {"ready": 1})
+
+            dependency = query_review_workspace_execution_operations(
+                operations,
+                {
+                    "dependency_action_id": plan.actions[0].action_id,
+                    "ready": "false",
+                    "limit": 2,
+                },
+            )
+            self.assertEqual(dependency.total_count, 4)
+            self.assertTrue(dependency.has_more)
+            self.assertEqual(dependency.facets["dependencies"][plan.actions[0].action_id], 4)
+            self.assertEqual(dependency.rows[0].rank, 1)
+            self.assertEqual(dependency.rows[1].rank, 2)
+
+            text_match = query_review_workspace_execution_operations(
+                operations,
+                {"text": "inspect queued review target"},
+            )
+            self.assertEqual(text_match.total_count, 1)
+            self.assertEqual(text_match.rows[0].action_id, plan.actions[0].action_id)
+            self.assertEqual(
+                text_match.content_address,
+                query_review_workspace_execution_operations(operations, {"text": "inspect queued review target"}).content_address,
+            )
+            with self.assertRaises(ValidationError):
+                ReviewWorkspaceExecutionOperationsQuery(attention_kind="unknown")
+            with self.assertRaises(ValidationError):
+                ReviewWorkspaceExecutionOperationsQuery(text="x" * 257)
+            with self.assertRaises(ValidationError):
+                ReviewWorkspaceExecutionOperationsQuery(limit=501)
+
     def test_cli_event_append_and_api_read_query_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime, dossier, plan = self._context(directory)
@@ -576,6 +629,25 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 "review-workspace-execution-operations-v1",
             )
             self.assertGreater(operations_payload["queue_count"], 0)
+            filtered_operations = Path(directory) / "execution-release-ready.json"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release-query",
+                    str(release),
+                    "--view",
+                    "operations",
+                    "--attention-kind",
+                    "in_progress",
+                    "--limit",
+                    "1",
+                    "--output",
+                    str(filtered_operations),
+                ]),
+                0,
+            )
+            filtered_operations_payload = json.loads(filtered_operations.read_text(encoding="utf-8"))
+            self.assertEqual(filtered_operations_payload["total_count"], 1)
+            self.assertEqual(filtered_operations_payload["rows"][0]["attention_kind"], "in_progress")
             server = create_server("127.0.0.1", 0, directory)
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -627,6 +699,19 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 self.assertEqual(
                     live_operations_payload["operations_version"],
                     "review-workspace-execution-operations-v1",
+                )
+                params = urlencode({"view": "operations", "attention_kind": "in_progress", "limit": "1"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                filtered_live_operations_payload = json.loads(response.read())
+                self.assertEqual(filtered_live_operations_payload["total_count"], 1)
+                self.assertEqual(
+                    filtered_live_operations_payload["rows"][0]["attention_kind"],
+                    "in_progress",
                 )
                 connection.request("GET", "/v1/review-workspace/plan/execution-release/schema")
                 response = connection.getresponse()
@@ -684,6 +769,16 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                     release_operations_payload["operations_version"],
                     "review-workspace-execution-operations-v1",
                 )
+                params = urlencode({"view": "operations", "lane": "intake", "limit": "1"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                filtered_release_operations_payload = json.loads(response.read())
+                self.assertEqual(filtered_release_operations_payload["total_count"], 1)
+                self.assertEqual(filtered_release_operations_payload["rows"][0]["lane"], "intake")
                 connection.close()
             finally:
                 server.shutdown()

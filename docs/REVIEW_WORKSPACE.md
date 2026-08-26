@@ -177,6 +177,13 @@ deterministic JSON, Markdown, and CSV. Its schema and capability metadata are
 available from `review-workspace-plan-execution-operations-schema` and
 `review-workspace-plan-execution-operations-capabilities`.
 
+Operations queries accept `--attention-kind`, `--status`, `--lane`,
+`--action-kind`, `--action-id`, `--priority`, `--ready`,
+`--dependency-action-id`, `--text`, `--offset`, and `--limit`. Results preserve
+queue rank, expose complete-match facets for attention kinds, statuses, lanes,
+action kinds, priorities, and dependencies, and include `has_more` plus the
+first and last returned ranks.
+
 ## Portable execution release
 
 `review-workspace-plan-execution-release` packages seventeen exact-byte artifacts:
@@ -232,6 +239,9 @@ accepts `baseline_run_id` plus an optional JSON `config` object. The nested
 execution contract. `GET /v1/runs/{run_id}/review-workspace/plan/execution`
 replays the local ledger; `/execution/query` applies bounded action filters by
 default and accepts `view=events`, `view=metrics`, or `view=operations`.
+Operations query parameters include `attention_kind`, `status`, `lane`,
+`action_kind`, `action_id`, `priority`, `ready`, `dependency_action_id`,
+`text`, `offset`, and `limit`.
 Timeline filters
 include `kind`, `event_id`, `action_id`, `check_id`, `reference_address`,
 `occurred_from`, `occurred_to`, `sequence_start`, `sequence_end`, `text`,
@@ -246,7 +256,8 @@ release projection in memory, and `/execution-release/query` applies its
 bounded filters. Add `view=events` to query the verified event timeline with
 the same ordering and facets, `view=metrics` for derived operational metrics,
 or `view=operations` for the verified attention queue. The HTTP release
-projection is read-only and does not write a filesystem package.
+projection is read-only and does not write a filesystem package; operations
+filters use the same names as the live query.
 
 ## Offline release operations
 

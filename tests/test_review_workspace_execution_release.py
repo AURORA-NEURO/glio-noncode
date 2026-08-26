@@ -150,6 +150,11 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         self.assertEqual(schema["version"], "review-workspace-execution-release-schema-v1")
         self.assertEqual(len(schema["artifact_filenames"]), 17)
         self.assertEqual(schema["query_views"], ["actions", "events", "metrics", "operations"])
+        self.assertEqual(
+            schema["operations"]["query_version"],
+            "review-workspace-execution-operations-query-v1",
+        )
+        self.assertTrue(schema["operations"]["complete_match_facets"])
         self.assertTrue(schema["event_timeline"]["replay_verified"])
         self.assertTrue(schema["diff"]["metrics_diff_version"])
         self.assertTrue(capabilities["independent_manifest_verification"])
@@ -158,6 +163,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         self.assertTrue(capabilities["metrics_diff"])
         self.assertTrue(capabilities["execution_operations"])
         self.assertTrue(capabilities["operations_verification"])
+        self.assertTrue(capabilities["operations_query"])
+        self.assertTrue(capabilities["operations_query_facets"])
         self.assertTrue(capabilities["public_boundary_audit"])
 
     def test_metrics_artifact_tampering_is_rejected(self) -> None:
