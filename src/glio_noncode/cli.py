@@ -2011,6 +2011,45 @@ from .storage_maintenance_review import (
     storage_maintenance_review_markdown,
     storage_maintenance_review_schema,
 )
+from .storage_lineage import (
+    build_storage_lineage,
+    diff_storage_lineage,
+    query_storage_lineage,
+    storage_lineage_edges_csv,
+    storage_lineage_json,
+    storage_lineage_markdown,
+    storage_lineage_nodes_csv,
+    storage_lineage_capabilities,
+    storage_lineage_schema,
+)
+from .storage_lineage_contracts import StorageLineageGraph
+from .storage_lineage_observability import (
+    build_storage_lineage_observability,
+    query_storage_lineage_events,
+    storage_lineage_events_csv,
+    storage_lineage_metrics_csv,
+    storage_lineage_observability_capabilities,
+    storage_lineage_observability_json,
+    storage_lineage_observability_schema,
+)
+from .storage_lineage_review import (
+    build_storage_lineage_review_queue,
+    query_storage_lineage_review,
+    storage_lineage_review_capabilities,
+    storage_lineage_review_csv,
+    storage_lineage_review_json,
+    storage_lineage_review_markdown,
+    storage_lineage_review_schema,
+)
+from .storage_lineage_packet import (
+    build_storage_lineage_packet,
+    load_storage_lineage_packet,
+    storage_lineage_packet_capabilities,
+    storage_lineage_packet_json,
+    storage_lineage_packet_schema,
+    verify_storage_lineage_packet,
+    write_storage_lineage_packet,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3946,6 +3985,133 @@ def build_parser() -> argparse.ArgumentParser:
         help="print maintenance review queue capabilities",
     )
     storage_maintenance_review_capabilities_parser.add_argument("--output", default=None)
+
+    storage_lineage = subparsers.add_parser(
+        "storage-lineage",
+        help="inspect the deterministic address-only storage provenance graph",
+    )
+    storage_lineage.add_argument("--data-root", default=".glio")
+    storage_lineage.add_argument("--resource", choices=("nodes", "edges"), default="nodes")
+    storage_lineage.add_argument("--node-kind", default=None)
+    storage_lineage.add_argument("--edge-kind", default=None)
+    storage_lineage.add_argument("--root-only", action="store_true")
+    storage_lineage.add_argument("--orphan-only", action="store_true")
+    storage_lineage.add_argument("--missing-only", action="store_true")
+    storage_lineage.add_argument("--text", default=None)
+    storage_lineage.add_argument("--offset", default=0, type=int)
+    storage_lineage.add_argument("--limit", default=50, type=int)
+    storage_lineage.add_argument("--format", choices=("json", "nodes-csv", "edges-csv", "markdown"), default="json")
+    storage_lineage.add_argument("--output", default=None)
+
+    storage_lineage_schema_parser = subparsers.add_parser(
+        "storage-lineage-schema",
+        help="print the storage lineage graph schema",
+    )
+    storage_lineage_schema_parser.add_argument("--output", default=None)
+
+    storage_lineage_capabilities_parser = subparsers.add_parser(
+        "storage-lineage-capabilities",
+        help="print storage lineage graph capabilities",
+    )
+    storage_lineage_capabilities_parser.add_argument("--output", default=None)
+
+    storage_lineage_verify = subparsers.add_parser(
+        "storage-lineage-verify",
+        help="validate a storage lineage graph JSON file",
+    )
+    storage_lineage_verify.add_argument("input", type=str)
+    storage_lineage_verify.add_argument("--output", default=None)
+
+    storage_lineage_diff = subparsers.add_parser(
+        "storage-lineage-diff",
+        help="compare two storage lineage graph JSON files",
+    )
+    storage_lineage_diff.add_argument("left", type=str)
+    storage_lineage_diff.add_argument("right", type=str)
+    storage_lineage_diff.add_argument("--output", default=None)
+
+    storage_lineage_observability = subparsers.add_parser(
+        "storage-lineage-observability",
+        help="emit deterministic storage lineage events and metrics",
+    )
+    storage_lineage_observability.add_argument("--data-root", default=".glio")
+    storage_lineage_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    storage_lineage_observability.add_argument("--output", default=None)
+
+    storage_lineage_observability_schema_parser = subparsers.add_parser(
+        "storage-lineage-observability-schema",
+        help="print the storage lineage observability schema",
+    )
+    storage_lineage_observability_schema_parser.add_argument("--output", default=None)
+
+    storage_lineage_observability_capabilities_parser = subparsers.add_parser(
+        "storage-lineage-observability-capabilities",
+        help="print storage lineage observability capabilities",
+    )
+    storage_lineage_observability_capabilities_parser.add_argument("--output", default=None)
+
+    storage_lineage_review = subparsers.add_parser(
+        "storage-lineage-review",
+        help="emit a prioritized storage lineage review queue",
+    )
+    storage_lineage_review.add_argument("--data-root", default=".glio")
+    storage_lineage_review.add_argument("--issue", default=None)
+    storage_lineage_review.add_argument("--severity", default=None)
+    storage_lineage_review.add_argument("--disposition", default=None)
+    storage_lineage_review.add_argument("--priority-min", default=0, type=int)
+    storage_lineage_review.add_argument("--text", default=None)
+    storage_lineage_review.add_argument("--offset", default=0, type=int)
+    storage_lineage_review.add_argument("--limit", default=50, type=int)
+    storage_lineage_review.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    storage_lineage_review.add_argument("--output", default=None)
+
+    storage_lineage_review_schema_parser = subparsers.add_parser(
+        "storage-lineage-review-schema",
+        help="print the storage lineage review schema",
+    )
+    storage_lineage_review_schema_parser.add_argument("--output", default=None)
+
+    storage_lineage_review_capabilities_parser = subparsers.add_parser(
+        "storage-lineage-review-capabilities",
+        help="print storage lineage review capabilities",
+    )
+    storage_lineage_review_capabilities_parser.add_argument("--output", default=None)
+
+    storage_lineage_packet = subparsers.add_parser(
+        "storage-lineage-packet",
+        help="write a fixed exact-byte storage lineage packet",
+    )
+    storage_lineage_packet.add_argument("--data-root", default=".glio")
+    storage_lineage_packet.add_argument("--packet-id", default="glio-noncode-storage-lineage-packet")
+    storage_lineage_packet.add_argument("--destination", required=True)
+    storage_lineage_packet.add_argument("--allow-existing", action="store_true")
+    storage_lineage_packet.add_argument("--output", default=None)
+
+    storage_lineage_packet_verify = subparsers.add_parser(
+        "storage-lineage-packet-verify",
+        help="verify a fixed storage lineage packet directory",
+    )
+    storage_lineage_packet_verify.add_argument("directory", type=str)
+    storage_lineage_packet_verify.add_argument("--output", default=None)
+
+    storage_lineage_packet_load = subparsers.add_parser(
+        "storage-lineage-packet-load",
+        help="hydrate a verified storage lineage packet offline",
+    )
+    storage_lineage_packet_load.add_argument("directory", type=str)
+    storage_lineage_packet_load.add_argument("--output", default=None)
+
+    storage_lineage_packet_schema_parser = subparsers.add_parser(
+        "storage-lineage-packet-schema",
+        help="print the storage lineage packet schema",
+    )
+    storage_lineage_packet_schema_parser.add_argument("--output", default=None)
+
+    storage_lineage_packet_capabilities_parser = subparsers.add_parser(
+        "storage-lineage-packet-capabilities",
+        help="print storage lineage packet capabilities",
+    )
+    storage_lineage_packet_capabilities_parser.add_argument("--output", default=None)
 
     run_inspect = subparsers.add_parser(
         "run-inspect",
@@ -24485,6 +24651,120 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "storage-maintenance-review-capabilities":
             _write_json(storage_maintenance_review_capabilities(), args.output)
+            return 0
+        if args.command == "storage-lineage":
+            graph = build_storage_lineage(CaseRuntime(args.data_root))
+            filtered = any(
+                value is not None
+                for value in (args.node_kind, args.edge_kind, args.text)
+            ) or args.root_only or args.orphan_only or args.missing_only or args.offset or args.limit != 50
+            if filtered:
+                if args.format != "json":
+                    raise ValueError("filtered storage lineage output supports JSON only")
+                result = query_storage_lineage(
+                    graph,
+                    resource=args.resource,
+                    node_kind=args.node_kind,
+                    edge_kind=args.edge_kind,
+                    root_only=args.root_only,
+                    orphan_only=args.orphan_only,
+                    missing_only=args.missing_only,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json(result.to_dict(), args.output)
+            elif args.format == "nodes-csv":
+                _write_text(storage_lineage_nodes_csv(graph), args.output)
+            elif args.format == "edges-csv":
+                _write_text(storage_lineage_edges_csv(graph), args.output)
+            elif args.format == "markdown":
+                _write_text(storage_lineage_markdown(graph), args.output)
+            else:
+                _write_text(storage_lineage_json(graph) + "\n", args.output)
+            return 0 if graph.accepted else 2
+        if args.command == "storage-lineage-schema":
+            _write_json(storage_lineage_schema(), args.output)
+            return 0
+        if args.command == "storage-lineage-capabilities":
+            _write_json(storage_lineage_capabilities(), args.output)
+            return 0
+        if args.command == "storage-lineage-verify":
+            graph = StorageLineageGraph.from_mapping(_read_json(args.input))
+            _write_json(graph.to_dict(), args.output)
+            return 0 if graph.accepted else 2
+        if args.command == "storage-lineage-diff":
+            result = diff_storage_lineage(_read_json(args.left), _read_json(args.right))
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "storage-lineage-observability":
+            observation = build_storage_lineage_observability(build_storage_lineage(CaseRuntime(args.data_root)))
+            if args.format == "events-csv":
+                _write_text(storage_lineage_events_csv(observation), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(storage_lineage_metrics_csv(observation), args.output)
+            else:
+                _write_text(storage_lineage_observability_json(observation) + "\n", args.output)
+            return 0 if observation.accepted else 2
+        if args.command == "storage-lineage-observability-schema":
+            _write_json(storage_lineage_observability_schema(), args.output)
+            return 0
+        if args.command == "storage-lineage-observability-capabilities":
+            _write_json(storage_lineage_observability_capabilities(), args.output)
+            return 0
+        if args.command == "storage-lineage-review":
+            queue = build_storage_lineage_review_queue(build_storage_lineage(CaseRuntime(args.data_root)))
+            filtered = any(
+                value is not None
+                for value in (args.issue, args.severity, args.disposition, args.text)
+            ) or args.priority_min or args.offset or args.limit != 50
+            if filtered:
+                if args.format != "json":
+                    raise ValueError("filtered storage lineage review output supports JSON only")
+                result = query_storage_lineage_review(
+                    queue,
+                    issue=args.issue,
+                    severity=args.severity,
+                    disposition=args.disposition,
+                    priority_min=args.priority_min,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json({"count": len(result), "items": [item.to_dict() for item in result]}, args.output)
+            elif args.format == "csv":
+                _write_text(storage_lineage_review_csv(queue), args.output)
+            elif args.format == "markdown":
+                _write_text(storage_lineage_review_markdown(queue), args.output)
+            else:
+                _write_text(storage_lineage_review_json(queue) + "\n", args.output)
+            return 0 if queue.accepted else 2
+        if args.command == "storage-lineage-review-schema":
+            _write_json(storage_lineage_review_schema(), args.output)
+            return 0
+        if args.command == "storage-lineage-review-capabilities":
+            _write_json(storage_lineage_review_capabilities(), args.output)
+            return 0
+        if args.command == "storage-lineage-packet":
+            packet = build_storage_lineage_packet(CaseRuntime(args.data_root), packet_id=args.packet_id)
+            write_storage_lineage_packet(packet, args.destination, allow_existing=args.allow_existing)
+            payload = packet.to_dict()
+            payload["destination"] = str(args.destination)
+            _write_json(payload, args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "storage-lineage-packet-verify":
+            result = verify_storage_lineage_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "storage-lineage-packet-load":
+            result = load_storage_lineage_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.verification.accepted else 2
+        if args.command == "storage-lineage-packet-schema":
+            _write_json(storage_lineage_packet_schema(), args.output)
+            return 0
+        if args.command == "storage-lineage-packet-capabilities":
+            _write_json(storage_lineage_packet_capabilities(), args.output)
             return 0
         if args.command == "run-inspect":
             inspection = inspect_run(CaseRuntime(args.data_root), args.run_id)

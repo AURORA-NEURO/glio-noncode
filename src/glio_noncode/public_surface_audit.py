@@ -164,7 +164,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 132
+PUBLIC_SURFACE_EXPECTED_COUNT = 140
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -352,6 +352,10 @@ def default_public_surface_inventory(
     from .storage_maintenance_packet import storage_maintenance_packet_capabilities, storage_maintenance_packet_schema
     from .storage_maintenance_observability import storage_maintenance_observability_capabilities, storage_maintenance_observability_schema
     from .storage_maintenance_review import storage_maintenance_review_capabilities, storage_maintenance_review_schema
+    from .storage_lineage import storage_lineage_capabilities, storage_lineage_schema
+    from .storage_lineage_observability import storage_lineage_observability_capabilities, storage_lineage_observability_schema
+    from .storage_lineage_review import storage_lineage_review_capabilities, storage_lineage_review_schema
+    from .storage_lineage_packet import storage_lineage_packet_capabilities, storage_lineage_packet_schema
 
     selected = snapshot or build_service_surface_snapshot()
     capability_value = capability_bundle or build_capability_certification_bundle()
@@ -487,6 +491,14 @@ def default_public_surface_inventory(
         "storage-maintenance-observability-capabilities": storage_maintenance_observability_capabilities(),
         "storage-maintenance-review-schema": storage_maintenance_review_schema(),
         "storage-maintenance-review-capabilities": storage_maintenance_review_capabilities(),
+        "storage-lineage-schema": storage_lineage_schema(),
+        "storage-lineage-capabilities": storage_lineage_capabilities(),
+        "storage-lineage-observability-schema": storage_lineage_observability_schema(),
+        "storage-lineage-observability-capabilities": storage_lineage_observability_capabilities(),
+        "storage-lineage-review-schema": storage_lineage_review_schema(),
+        "storage-lineage-review-capabilities": storage_lineage_review_capabilities(),
+        "storage-lineage-packet-schema": storage_lineage_packet_schema(),
+        "storage-lineage-packet-capabilities": storage_lineage_packet_capabilities(),
         "mission-plan-conformance-schema": mission_plan_public_conformance_schema(),
         "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
         "mission-plan-replay-schema": mission_plan_public_replay_schema(),

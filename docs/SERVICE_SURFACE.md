@@ -45,6 +45,28 @@ report or runtime from which it was derived.
 | GET | `/v1/service-release/handoff/diff?left_directory=...&right_directory=...` | Compare handoff addresses |
 | GET | `/v1/service-release/handoff/replay?directory=...` | Replay handoff verification |
 | GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
+| GET | `/v1/storage/lineage` | Build and page the deterministic address-only storage provenance graph |
+| GET | `/v1/storage/lineage/nodes.csv` | Export address-only lineage nodes |
+| GET | `/v1/storage/lineage/edges.csv` | Export address-only lineage edges |
+| GET | `/v1/storage/lineage/schema` | Return the storage lineage graph schema |
+| GET | `/v1/storage/lineage/capabilities` | Return storage lineage graph capabilities |
+| POST | `/v1/storage/lineage/verify` | Strictly verify a supplied storage lineage graph |
+| POST | `/v1/storage/lineage/query` | Page nodes or edges from a supplied graph |
+| POST | `/v1/storage/lineage/diff` | Compare two storage lineage graphs by stable addresses |
+| GET | `/v1/storage/lineage/observability` | Return deterministic lineage events or filtered event pages |
+| GET | `/v1/storage/lineage/observability/schema` | Return lineage observability schema |
+| GET | `/v1/storage/lineage/observability/capabilities` | Return lineage observability capabilities |
+| GET | `/v1/storage/lineage/observability/events.csv` | Export lineage event rows |
+| GET | `/v1/storage/lineage/observability/metrics.csv` | Export lineage metric rows |
+| POST | `/v1/storage/lineage/observability/query` | Page events from a supplied observation |
+| GET | `/v1/storage/lineage/review` | Build and page the prioritized lineage review queue |
+| GET | `/v1/storage/lineage/review/schema` | Return lineage review schema |
+| GET | `/v1/storage/lineage/review/capabilities` | Return lineage review capabilities |
+| POST | `/v1/storage/lineage/review/query` | Page review items from a supplied queue |
+| GET | `/v1/storage/lineage/packet` | Build fixed exact-byte lineage packet metadata |
+| GET | `/v1/storage/lineage/packet/schema` | Return lineage packet schema |
+| GET | `/v1/storage/lineage/packet/capabilities` | Return lineage packet capabilities |
+| POST | `/v1/storage/lineage/packet/verify` | Verify a written lineage packet directory |
 | GET | `/v1/storage/maintenance` | Build and page a bounded, review-only storage maintenance plan |
 | GET | `/v1/storage/maintenance/schema` | Return the storage maintenance plan schema |
 | GET | `/v1/storage/maintenance/capabilities` | Return storage maintenance capabilities |
@@ -261,6 +283,14 @@ filename content addresses, malformed object references, run and batch index
 structure, replay reopening, missing pointers, unexpected filesystem entries,
 and unreachable object files. It returns metadata and addresses only; it never
 returns object payloads or repairs/deletes anything.
+
+The storage-lineage routes add an address-only relationship plane over that
+audit. They retain run and batch roots, present and missing object addresses,
+orphan state, depth, degree, and connectedness, then expose deterministic
+observability, prioritized review, and exact-byte offline packet projections.
+These projections remain read-only and timestamp-free; supplied graph,
+observation, and review documents can be verified or queried without reopening
+the source store.
 
 Batch catalog queries accept `text`, `offset`, and `limit`. Batch identifiers are
 derived from the canonical batch input address, so repeating an identical batch

@@ -250,6 +250,38 @@ from .storage_maintenance_review import (
     storage_maintenance_review_capabilities,
     storage_maintenance_review_schema,
 )
+from .storage_lineage import (
+    build_storage_lineage,
+    diff_storage_lineage,
+    query_storage_lineage,
+    storage_lineage_edges_csv,
+    storage_lineage_json,
+    storage_lineage_markdown,
+    storage_lineage_nodes_csv,
+    storage_lineage_capabilities,
+    storage_lineage_schema,
+)
+from .storage_lineage_contracts import StorageLineageGraph
+from .storage_lineage_observability import (
+    build_storage_lineage_observability,
+    query_storage_lineage_events,
+    storage_lineage_events_csv,
+    storage_lineage_metrics_csv,
+    storage_lineage_observability_capabilities,
+    storage_lineage_observability_schema,
+)
+from .storage_lineage_review import (
+    build_storage_lineage_review_queue,
+    query_storage_lineage_review,
+    storage_lineage_review_capabilities,
+    storage_lineage_review_schema,
+)
+from .storage_lineage_packet import (
+    build_storage_lineage_packet,
+    storage_lineage_packet_capabilities,
+    storage_lineage_packet_schema,
+    verify_storage_lineage_packet,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -1175,6 +1207,144 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                graph = build_storage_lineage(self._runtime())
+                result = query_storage_lineage(
+                    graph,
+                    resource=self._query_value(query, "resource") or "nodes",
+                    node_kind=self._query_value(query, "node_kind"),
+                    edge_kind=self._query_value(query, "edge_kind"),
+                    root_only=self._query_value(query, "root_only") == "true",
+                    orphan_only=self._query_value(query, "orphan_only") == "true",
+                    missing_only=self._query_value(query, "missing_only") == "true",
+                    text=self._query_value(query, "text") or self._query_value(query, "q"),
+                    offset=int(self._query_value(query, "offset") or 0),
+                    limit=int(self._query_value(query, "limit") or 50),
+                )
+                self._write(HTTPStatus.OK, {"graph": graph.to_dict(), "query": result.to_dict()})
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/schema":
+            self._write(HTTPStatus.OK, storage_lineage_schema())
+            return
+        if path == "/v1/storage/lineage/capabilities":
+            self._write(HTTPStatus.OK, storage_lineage_capabilities())
+            return
+        if path == "/v1/storage/lineage/nodes.csv":
+            try:
+                self._write_bytes(HTTPStatus.OK, storage_lineage_nodes_csv(build_storage_lineage(self._runtime())).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/edges.csv":
+            try:
+                self._write_bytes(HTTPStatus.OK, storage_lineage_edges_csv(build_storage_lineage(self._runtime())).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/observability":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                observation = build_storage_lineage_observability(build_storage_lineage(self._runtime()))
+                filters = any(self._query_value(query, name) for name in ("event_type", "kind", "state", "text", "q"))
+                if filters:
+                    events = query_storage_lineage_events(
+                        observation,
+                        event_type=self._query_value(query, "event_type"),
+                        kind=self._query_value(query, "kind"),
+                        state=self._query_value(query, "state"),
+                        text=self._query_value(query, "text") or self._query_value(query, "q"),
+                        offset=int(self._query_value(query, "offset") or 0),
+                        limit=int(self._query_value(query, "limit") or 50),
+                    )
+                    self._write(HTTPStatus.OK, {"observability_address": observation.content_address, "events": [item.to_dict() for item in events]})
+                else:
+                    self._write(HTTPStatus.OK, observation.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/observability/schema":
+            self._write(HTTPStatus.OK, storage_lineage_observability_schema())
+            return
+        if path == "/v1/storage/lineage/observability/capabilities":
+            self._write(HTTPStatus.OK, storage_lineage_observability_capabilities())
+            return
+        if path == "/v1/storage/lineage/observability/events.csv":
+            try:
+                observation = build_storage_lineage_observability(build_storage_lineage(self._runtime()))
+                self._write_bytes(HTTPStatus.OK, storage_lineage_events_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/observability/metrics.csv":
+            try:
+                observation = build_storage_lineage_observability(build_storage_lineage(self._runtime()))
+                self._write_bytes(HTTPStatus.OK, storage_lineage_metrics_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/review":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                queue = build_storage_lineage_review_queue(build_storage_lineage(self._runtime()))
+                result = query_storage_lineage_review(
+                    queue,
+                    issue=self._query_value(query, "issue"),
+                    severity=self._query_value(query, "severity"),
+                    disposition=self._query_value(query, "disposition"),
+                    priority_min=int(self._query_value(query, "priority_min") or 0),
+                    text=self._query_value(query, "text") or self._query_value(query, "q"),
+                    offset=int(self._query_value(query, "offset") or 0),
+                    limit=int(self._query_value(query, "limit") or 50),
+                )
+                self._write(HTTPStatus.OK, {"queue": queue.to_dict(), "items": [item.to_dict() for item in result]})
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/review/schema":
+            self._write(HTTPStatus.OK, storage_lineage_review_schema())
+            return
+        if path == "/v1/storage/lineage/review/capabilities":
+            self._write(HTTPStatus.OK, storage_lineage_review_capabilities())
+            return
+        if path == "/v1/storage/lineage/packet":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                packet = build_storage_lineage_packet(
+                    build_storage_lineage(self._runtime()),
+                    packet_id=self._query_value(query, "packet_id") or "glio-noncode-storage-lineage-packet",
+                )
+                self._write(HTTPStatus.OK, packet.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/packet/schema":
+            self._write(HTTPStatus.OK, storage_lineage_packet_schema())
+            return
+        if path == "/v1/storage/lineage/packet/capabilities":
+            self._write(HTTPStatus.OK, storage_lineage_packet_capabilities())
             return
         if path == "/v1/storage/maintenance":
             try:
@@ -3912,6 +4082,100 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/storage/lineage/verify":
+            try:
+                payload = self._read_json()
+                source = payload.get("graph", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("storage lineage verification requires a graph object")
+                graph = StorageLineageGraph.from_mapping(source)
+                self._write(HTTPStatus.OK if graph.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, graph.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_lineage_graph", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("graph")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("storage lineage query requires graph and query objects")
+                result = query_storage_lineage(source, **dict(query))
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_lineage_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/diff":
+            try:
+                payload = self._read_json()
+                baseline = payload.get("baseline")
+                candidate = payload.get("candidate")
+                if not isinstance(baseline, Mapping) or not isinstance(candidate, Mapping):
+                    raise ValueError("storage lineage diff requires baseline and candidate objects")
+                result = diff_storage_lineage(baseline, candidate)
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_lineage_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/observability/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("observability")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("storage lineage observability query requires observability and query objects")
+                result = query_storage_lineage_events(source, **dict(query))
+                self._write(HTTPStatus.OK, {"count": len(result), "events": [item.to_dict() for item in result]})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_lineage_observability_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/review/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("queue")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("storage lineage review query requires queue and query objects")
+                result = query_storage_lineage_review(source, **dict(query))
+                self._write(HTTPStatus.OK, {"count": len(result), "items": [item.to_dict() for item in result]})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_lineage_review_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/lineage/packet/verify":
+            try:
+                payload = self._read_json()
+                directory = payload.get("directory")
+                if not directory:
+                    raise ValueError("directory is required for storage lineage packet verification")
+                result = verify_storage_lineage_packet(directory)
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_lineage_packet", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/storage/maintenance/verify":
             try:

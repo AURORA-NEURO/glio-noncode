@@ -154,6 +154,16 @@ priority-ordered queue with explicit recovery, repair, replay, reopen, and
 quarantine routes. These are read-only projections and are included in the
 exact-byte maintenance packet.
 
+`storage-lineage` projects the store audit into a deterministic, address-only
+graph of run/batch roots, object references, missing addresses, and orphan
+objects. It supports bounded node/edge queries, structural diffs, CSV and
+Markdown exports, and strict graph verification. The companion
+`storage-lineage-observability` and `storage-lineage-review` commands expose
+timestamp-free events, graph health metrics, and prioritized non-mutating review
+recommendations. `storage-lineage-packet` creates a fixed ten-artifact,
+exact-byte offline handoff; its verifier rejects path, byte, identity, and
+public-boundary drift before hydration.
+
 `portfolio-release` is the repository-wide handoff boundary. It selects a
 bounded set of persisted runs, retains a namespaced dossier and workspace
 release closure for every member, emits run summaries/events, CSV and Markdown
