@@ -1586,6 +1586,53 @@ from .mission_plan_release_catalog_report import (
     mission_plan_release_catalog_report_markdown,
     mission_plan_release_catalog_report_schema,
 )
+from .mission_plan_release_catalog_gate import (
+    build_mission_plan_release_catalog_gate,
+    mission_plan_release_catalog_gate_capabilities,
+    mission_plan_release_catalog_gate_csv,
+    mission_plan_release_catalog_gate_json,
+    mission_plan_release_catalog_gate_markdown,
+    mission_plan_release_catalog_gate_schema,
+)
+from .mission_plan_release_catalog_gate_runtime import (
+    mission_plan_release_catalog_gate_runtime_capabilities,
+    mission_plan_release_catalog_gate_runtime_csv,
+    mission_plan_release_catalog_gate_runtime_json,
+    mission_plan_release_catalog_gate_runtime_markdown,
+    mission_plan_release_catalog_gate_runtime_schema,
+    run_mission_plan_release_catalog_gate_runtime,
+)
+from .mission_plan_release_catalog_gate_packet import (
+    build_mission_plan_release_catalog_gate_packet,
+    mission_plan_release_catalog_gate_packet_capabilities,
+    mission_plan_release_catalog_gate_packet_schema,
+    verify_mission_plan_release_catalog_gate_packet,
+    write_mission_plan_release_catalog_gate_packet,
+)
+from .mission_plan_release_catalog_gate_query import (
+    mission_plan_release_catalog_gate_query_capabilities,
+    mission_plan_release_catalog_gate_query_csv,
+    mission_plan_release_catalog_gate_query_json,
+    mission_plan_release_catalog_gate_query_markdown,
+    mission_plan_release_catalog_gate_query_schema,
+    query_mission_plan_release_catalog_gate,
+)
+from .mission_plan_release_catalog_gate_diff import (
+    diff_mission_plan_release_catalog_gates,
+    mission_plan_release_catalog_gate_diff_capabilities,
+    mission_plan_release_catalog_gate_diff_csv,
+    mission_plan_release_catalog_gate_diff_json,
+    mission_plan_release_catalog_gate_diff_markdown,
+    mission_plan_release_catalog_gate_diff_schema,
+)
+from .mission_plan_release_catalog_gate_observability import (
+    build_mission_plan_release_catalog_gate_observability,
+    mission_plan_release_catalog_gate_observability_capabilities,
+    mission_plan_release_catalog_gate_observability_csv,
+    mission_plan_release_catalog_gate_observability_json,
+    mission_plan_release_catalog_gate_observability_markdown,
+    mission_plan_release_catalog_gate_observability_schema,
+)
 from .mission_plan_public_conformance import (
     conform_mission_plan_public,
     mission_plan_public_conformance_capabilities,
@@ -6566,6 +6613,68 @@ def build_parser() -> argparse.ArgumentParser:
     mission_release_catalog_report.add_argument("input", type=str)
     mission_release_catalog_report.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
     mission_release_catalog_report.add_argument("--output", default=None)
+    mission_release_catalog_gate = subparsers.add_parser(
+        "mission-plan-release-catalog-gate",
+        help="apply a deterministic policy gate to a public mission-plan release catalog",
+    )
+    mission_release_catalog_gate.add_argument("input", type=str)
+    mission_release_catalog_gate.add_argument("--policy", default=None)
+    mission_release_catalog_gate.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_gate.add_argument("--output", default=None)
+    mission_release_catalog_gate_runtime = subparsers.add_parser(
+        "mission-plan-release-catalog-gate-runtime",
+        help="run the deterministic catalog gate runtime",
+    )
+    mission_release_catalog_gate_runtime.add_argument("input", type=str)
+    mission_release_catalog_gate_runtime.add_argument("--policy", default=None)
+    mission_release_catalog_gate_runtime.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_gate_runtime.add_argument("--output", default=None)
+    mission_release_catalog_gate_packet = subparsers.add_parser(
+        "mission-plan-release-catalog-gate-packet",
+        help="build a portable exact-byte catalog gate packet",
+    )
+    mission_release_catalog_gate_packet.add_argument("input", type=str)
+    mission_release_catalog_gate_packet.add_argument("--policy", default=None)
+    mission_release_catalog_gate_packet.add_argument("--packet-id", default=None)
+    mission_release_catalog_gate_packet.add_argument("--destination", required=True)
+    mission_release_catalog_gate_packet.add_argument("--allow-existing", action="store_true")
+    mission_release_catalog_gate_packet.add_argument("--output", default=None)
+    mission_release_catalog_gate_packet_verify = subparsers.add_parser(
+        "mission-plan-release-catalog-gate-packet-verify",
+        help="verify a portable catalog gate packet",
+    )
+    mission_release_catalog_gate_packet_verify.add_argument("input", type=str)
+    mission_release_catalog_gate_packet_verify.add_argument("--output", default=None)
+    mission_release_catalog_gate_query = subparsers.add_parser(
+        "mission-plan-release-catalog-gate-query",
+        help="query checks from a deterministic catalog gate",
+    )
+    mission_release_catalog_gate_query.add_argument("input", type=str)
+    mission_release_catalog_gate_query.add_argument("--check-id", default=None)
+    mission_release_catalog_gate_query.add_argument("--category", default=None)
+    mission_release_catalog_gate_query.add_argument("--accepted", action="store_true", default=None)
+    mission_release_catalog_gate_query.add_argument("--rejected", action="store_true")
+    mission_release_catalog_gate_query.add_argument("--text", default=None)
+    mission_release_catalog_gate_query.add_argument("--offset", type=int, default=0)
+    mission_release_catalog_gate_query.add_argument("--limit", type=int, default=50)
+    mission_release_catalog_gate_query.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_gate_query.add_argument("--output", default=None)
+    mission_release_catalog_gate_diff = subparsers.add_parser(
+        "mission-plan-release-catalog-gate-diff",
+        help="compare two public mission-plan release catalog gates",
+    )
+    mission_release_catalog_gate_diff.add_argument("left", type=str)
+    mission_release_catalog_gate_diff.add_argument("right", type=str)
+    mission_release_catalog_gate_diff.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_gate_diff.add_argument("--output", default=None)
+    mission_release_catalog_gate_observability = subparsers.add_parser(
+        "mission-plan-release-catalog-gate-observability",
+        help="summarize aggregate catalog-gate and runtime metrics",
+    )
+    mission_release_catalog_gate_observability.add_argument("input", type=str)
+    mission_release_catalog_gate_observability.add_argument("--runtime", default=None)
+    mission_release_catalog_gate_observability.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_gate_observability.add_argument("--output", default=None)
     subparsers.add_parser(
         "mission-plan-release-catalog-diff-schema",
         help="emit the mission-plan release catalog diff schema",
@@ -6589,6 +6698,54 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "mission-plan-release-catalog-report-capabilities",
         help="emit mission-plan release catalog report capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-schema",
+        help="emit the mission-plan release catalog gate schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-capabilities",
+        help="emit mission-plan release catalog gate capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-runtime-schema",
+        help="emit the mission-plan release catalog gate runtime schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-runtime-capabilities",
+        help="emit mission-plan release catalog gate runtime capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-packet-schema",
+        help="emit the mission-plan release catalog gate packet schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-packet-capabilities",
+        help="emit mission-plan release catalog gate packet capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-query-schema",
+        help="emit the mission-plan release catalog gate query schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-query-capabilities",
+        help="emit mission-plan release catalog gate query capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-diff-schema",
+        help="emit the mission-plan release catalog gate diff schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-diff-capabilities",
+        help="emit mission-plan release catalog gate diff capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-observability-schema",
+        help="emit the mission-plan release catalog gate observability schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-gate-observability-capabilities",
+        help="emit mission-plan release catalog gate observability capabilities",
     ).add_argument("--output", default=None)
     mission_conformance = subparsers.add_parser(
         "mission-plan-conformance",
@@ -15524,6 +15681,82 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_text(mission_plan_release_catalog_report_json(report), args.output)
             return 0 if report.accepted else 2
+        if args.command == "mission-plan-release-catalog-gate":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            policy = None if args.policy is None else _read_json(args.policy)
+            gate = build_mission_plan_release_catalog_gate(source, policy)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_gate_markdown(gate), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_gate_csv(gate), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_gate_json(gate), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "mission-plan-release-catalog-gate-runtime":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            policy = None if args.policy is None else _read_json(args.policy)
+            runtime = run_mission_plan_release_catalog_gate_runtime(source, policy)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_gate_runtime_markdown(runtime), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_gate_runtime_csv(runtime), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_gate_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "mission-plan-release-catalog-gate-packet":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            policy = None if args.policy is None else _read_json(args.policy)
+            packet = build_mission_plan_release_catalog_gate_packet(source, policy, packet_id=args.packet_id)
+            write_mission_plan_release_catalog_gate_packet(packet, args.destination, allow_existing=args.allow_existing)
+            _write_json(packet.to_dict(), args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "mission-plan-release-catalog-gate-packet-verify":
+            verification = verify_mission_plan_release_catalog_gate_packet(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "mission-plan-release-catalog-gate-query":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            accepted = True if args.accepted else False if args.rejected else None
+            result = query_mission_plan_release_catalog_gate(
+                source,
+                {
+                    "check_id": args.check_id,
+                    "category": args.category,
+                    "accepted": accepted,
+                    "text": args.text,
+                    "offset": args.offset,
+                    "limit": args.limit,
+                },
+            )
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_gate_query_markdown(result), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_gate_query_csv(result), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_gate_query_json(result), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-diff":
+            left = _read_json(args.left)
+            right = _read_json(args.right)
+            diff = diff_mission_plan_release_catalog_gates(left, right)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_gate_diff_markdown(diff), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_gate_diff_csv(diff), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_gate_diff_json(diff), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-observability":
+            gate = _read_json(args.input)
+            runtime = None if args.runtime is None else _read_json(args.runtime)
+            observability = build_mission_plan_release_catalog_gate_observability(gate, runtime)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_gate_observability_markdown(observability), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_gate_observability_csv(observability), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_gate_observability_json(observability), args.output)
+            return 0 if observability.accepted else 2
         if args.command == "mission-plan-release-catalog-diff-schema":
             _write_json(mission_plan_release_catalog_diff_schema(), args.output)
             return 0
@@ -15541,6 +15774,42 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "mission-plan-release-catalog-report-capabilities":
             _write_json(mission_plan_release_catalog_report_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-schema":
+            _write_json(mission_plan_release_catalog_gate_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-capabilities":
+            _write_json(mission_plan_release_catalog_gate_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-runtime-schema":
+            _write_json(mission_plan_release_catalog_gate_runtime_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-runtime-capabilities":
+            _write_json(mission_plan_release_catalog_gate_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-packet-schema":
+            _write_json(mission_plan_release_catalog_gate_packet_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-packet-capabilities":
+            _write_json(mission_plan_release_catalog_gate_packet_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-query-schema":
+            _write_json(mission_plan_release_catalog_gate_query_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-query-capabilities":
+            _write_json(mission_plan_release_catalog_gate_query_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-diff-schema":
+            _write_json(mission_plan_release_catalog_gate_diff_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-diff-capabilities":
+            _write_json(mission_plan_release_catalog_gate_diff_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-observability-schema":
+            _write_json(mission_plan_release_catalog_gate_observability_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-gate-observability-capabilities":
+            _write_json(mission_plan_release_catalog_gate_observability_capabilities(), args.output)
             return 0
         if args.command == "mission-plan-conformance":
             source = _read_json(args.input)

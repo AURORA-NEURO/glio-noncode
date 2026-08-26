@@ -107,6 +107,39 @@ class MissionPlanReleaseCatalogAuditCheck:
     def to_dict(self) -> dict[str, Any]:
         return jsonable(self)
 
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> "MissionPlanReleaseCatalogAuditCheck":
+        if not isinstance(value, Mapping):
+            raise ValidationError("catalog audit check must be an object")
+        body = {str(key): child for key, child in value.items()}
+        allowed = {"check_id", "category", "accepted", "observed", "expected", "message", "content_address"}
+        unknown = set(body) - allowed
+        if unknown:
+            raise ValidationError(f"catalog audit check contains unsupported fields: {sorted(unknown)}")
+        check = cls(
+            check_id=_text(body.get("check_id"), "catalog_audit_check.check_id", maximum=128),
+            category=_text(body.get("category"), "catalog_audit_check.category", maximum=64),
+            accepted=bool(body.get("accepted")),
+            observed=body.get("observed"),
+            expected=body.get("expected"),
+            message=_text(body.get("message"), "catalog_audit_check.message", maximum=400),
+            content_address=_text(body.get("content_address"), "catalog_audit_check.content_address"),
+        )
+        expected_address = content_hash(
+            {
+                "check_id": check.check_id,
+                "category": check.category,
+                "accepted": check.accepted,
+                "observed": check.observed,
+                "expected": check.expected,
+                "message": check.message,
+            },
+            prefix="mission-plan-release-catalog-audit-check",
+        )
+        if check.content_address != expected_address:
+            raise ValidationError("catalog audit check content address does not reconcile")
+        return check
+
 
 @dataclass(frozen=True, slots=True)
 class MissionPlanReleaseCatalogAudit:
@@ -138,6 +171,60 @@ class MissionPlanReleaseCatalogAudit:
     @property
     def failed_check_count(self) -> int:
         return len(self.checks) - self.passed_check_count
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> "MissionPlanReleaseCatalogAudit":
+        if not isinstance(value, Mapping):
+            raise ValidationError("catalog audit must be an object")
+        body = {str(key): child for key, child in value.items()}
+        allowed = {
+            "audit_version",
+            "catalog_id",
+            "catalog_address",
+            "check_count",
+            "passed_check_count",
+            "failed_check_count",
+            "checks",
+            "accepted",
+            "content_address",
+        }
+        unknown = set(body) - allowed
+        if unknown:
+            raise ValidationError(f"catalog audit contains unsupported fields: {sorted(unknown)}")
+        raw_checks = body.get("checks", ())
+        if not isinstance(raw_checks, (list, tuple)):
+            raise ValidationError("catalog audit checks must be an array")
+        audit = cls(
+            audit_version=_text(body.get("audit_version"), "catalog_audit.audit_version"),
+            catalog_id=_text(body.get("catalog_id"), "catalog_audit.catalog_id", maximum=96),
+            catalog_address=_text(body.get("catalog_address"), "catalog_audit.catalog_address"),
+            checks=tuple(MissionPlanReleaseCatalogAuditCheck.from_mapping(item) for item in raw_checks),
+            accepted=bool(body.get("accepted")),
+            content_address=_text(body.get("content_address"), "catalog_audit.content_address"),
+        )
+        if body.get("check_count") != len(audit.checks):
+            raise ValidationError("catalog audit check count does not reconcile")
+        if body.get("passed_check_count") != audit.passed_check_count:
+            raise ValidationError("catalog audit passed check count does not reconcile")
+        if body.get("failed_check_count") != audit.failed_check_count:
+            raise ValidationError("catalog audit failed check count does not reconcile")
+        expected_address = content_hash(
+            {
+                "audit_version": audit.audit_version,
+                "catalog_id": audit.catalog_id,
+                "catalog_address": audit.catalog_address,
+                "checks": audit.checks,
+                "accepted": audit.accepted,
+            },
+            prefix="mission-plan-release-catalog-audit",
+        )
+        if audit.content_address != expected_address:
+            raise ValidationError("catalog audit content address does not reconcile")
+        if audit.accepted != all(item.accepted for item in audit.checks):
+            raise ValidationError("catalog audit acceptance does not reconcile")
+        if _private_paths(audit.to_dict()):
+            raise ValidationError("catalog audit contains restricted metadata")
+        return audit
 
     def to_dict(self) -> dict[str, Any]:
         body = {

@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 87-surface audit, including the
+schema fields. The result is a deterministic 99-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and portable execution-release contracts,
 suitable for local release checks and CI.
@@ -762,6 +762,13 @@ glio-noncode mission-plan-release-catalog-query release-catalog --workflow-kind 
 glio-noncode mission-plan-release-catalog-diff old-catalog new-catalog --format markdown --output catalog-diff.md
 glio-noncode mission-plan-release-catalog-audit release-catalog --output catalog-audit.json
 glio-noncode mission-plan-release-catalog-report release-catalog --format markdown --output catalog-report.md
+glio-noncode mission-plan-release-catalog-gate release-catalog --format markdown --output catalog-gate.md
+glio-noncode mission-plan-release-catalog-gate-runtime release-catalog --output catalog-gate-runtime.json
+glio-noncode mission-plan-release-catalog-gate-packet release-catalog --destination catalog-gate-packet --output catalog-gate-packet.json
+glio-noncode mission-plan-release-catalog-gate-packet-verify catalog-gate-packet --output catalog-gate-packet-verification.json
+glio-noncode mission-plan-release-catalog-gate-query catalog-gate-packet --accepted --format csv --output accepted-gate-checks.csv
+glio-noncode mission-plan-release-catalog-gate-diff old-gate.json new-gate.json --format markdown --output gate-diff.md
+glio-noncode mission-plan-release-catalog-gate-observability catalog-gate.json --runtime catalog-gate-runtime.json --output gate-metrics.json
 glio-noncode mission-plan-conformance mission-plan.json --output conformance.json
 glio-noncode mission-plan-replay mission-plan.json --format markdown --output replay.md
 ```
@@ -775,7 +782,12 @@ Catalogs inventory multiple releases with exact-byte verification and bounded
 queries, semantic audits, and aggregate reports; conformance and replay
 independently reconcile public receipts without executing handlers. Reports
 conserve release counts and expose state, decision, and workflow distributions
-with integer basis-point shares.
+with integer basis-point shares. The catalog gate composes those reports with
+explicit thresholds, required state/decision/workflow coverage, a public-key
+boundary check, and failure-visible addressed checks. Its runtime rehearses
+the gate without handlers; its packet closes the catalog, gate, report, audit,
+runtime, policy, summary, and manifest into exact UTF-8 bytes for offline
+verification and bounded queries.
 
 The reference boundary is also available directly:
 

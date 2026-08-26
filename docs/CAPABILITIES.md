@@ -4179,7 +4179,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 87 named surfaces: service status, capabilities, program, operational,
+audits 99 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4202,7 +4202,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 87-surface inventory or any
+The command exits non-zero when the closed 99-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary
@@ -4353,7 +4353,15 @@ addressed plan-to-plan diffs with structural and resource deltas; a
 timestamp-free six-stage runtime rehearsal; and configurable policy gates for
 workflow, resource, artifact, boundary, and warning acceptance. The release,
 query, diff, runtime, and policy schema/capability projections are included
-in the repository's 87-surface audit.
+in the repository's 99-surface audit. Catalog gates add explicit policy
+thresholds, required coverage, aggregate resource limits, failure-visible
+checks, and strict public-boundary validation. The gate runtime records a
+timestamp-free six-stage rehearsal; the packet materializes eight exact-byte
+JSON artifacts with manifest and offline verification; and the bounded gate
+query filters checks by identity, category, acceptance, or text.
+Gate diffs classify added, removed, changed, and unchanged checks between
+two addressed decisions; gate observability conserves aggregate gate and
+runtime counters as timestamp-free metrics.
 
 ```powershell
 glio-noncode mission-plan-release mission.json --destination mission-release --output mission-release.json
@@ -4367,6 +4375,13 @@ glio-noncode mission-plan-release-catalog-query release-catalog --workflow-kind 
 glio-noncode mission-plan-release-catalog-diff old-catalog new-catalog --format markdown --output catalog-diff.md
 glio-noncode mission-plan-release-catalog-audit release-catalog --output catalog-audit.json
 glio-noncode mission-plan-release-catalog-report release-catalog --format markdown --output catalog-report.md
+glio-noncode mission-plan-release-catalog-gate release-catalog --format markdown --output catalog-gate.md
+glio-noncode mission-plan-release-catalog-gate-runtime release-catalog --output catalog-gate-runtime.json
+glio-noncode mission-plan-release-catalog-gate-packet release-catalog --destination catalog-gate-packet --output catalog-gate-packet.json
+glio-noncode mission-plan-release-catalog-gate-packet-verify catalog-gate-packet --output catalog-gate-packet-verification.json
+glio-noncode mission-plan-release-catalog-gate-query catalog-gate-packet --category acceptance --output gate-acceptance.json
+glio-noncode mission-plan-release-catalog-gate-diff old-gate.json new-gate.json --format markdown --output gate-diff.md
+glio-noncode mission-plan-release-catalog-gate-observability catalog-gate.json --runtime catalog-gate-runtime.json --output gate-metrics.json
 glio-noncode mission-plan-conformance mission-plan.json --output conformance.json
 glio-noncode mission-plan-replay mission-plan.json --format markdown --output replay.md
 glio-noncode mission-plan-release-schema --output mission-plan-release-schema.json

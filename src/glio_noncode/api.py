@@ -310,7 +310,6 @@ from .mission_plan_release import (
     mission_plan_release_schema,
 )
 from .mission_plan_release_query import (
-    MissionPlanReleaseQuery,
     mission_plan_release_query_capabilities,
     mission_plan_release_query_schema,
     query_mission_plan_receipt,
@@ -364,6 +363,36 @@ from .mission_plan_release_catalog_report import (
     build_mission_plan_release_catalog_report,
     mission_plan_release_catalog_report_capabilities,
     mission_plan_release_catalog_report_schema,
+)
+from .mission_plan_release_catalog_gate import (
+    build_mission_plan_release_catalog_gate,
+    mission_plan_release_catalog_gate_capabilities,
+    mission_plan_release_catalog_gate_schema,
+)
+from .mission_plan_release_catalog_gate_runtime import (
+    mission_plan_release_catalog_gate_runtime_capabilities,
+    mission_plan_release_catalog_gate_runtime_schema,
+    run_mission_plan_release_catalog_gate_runtime,
+)
+from .mission_plan_release_catalog_gate_packet import (
+    build_mission_plan_release_catalog_gate_packet,
+    mission_plan_release_catalog_gate_packet_capabilities,
+    mission_plan_release_catalog_gate_packet_schema,
+)
+from .mission_plan_release_catalog_gate_query import (
+    mission_plan_release_catalog_gate_query_capabilities,
+    mission_plan_release_catalog_gate_query_schema,
+    query_mission_plan_release_catalog_gate,
+)
+from .mission_plan_release_catalog_gate_diff import (
+    diff_mission_plan_release_catalog_gates,
+    mission_plan_release_catalog_gate_diff_capabilities,
+    mission_plan_release_catalog_gate_diff_schema,
+)
+from .mission_plan_release_catalog_gate_observability import (
+    build_mission_plan_release_catalog_gate_observability,
+    mission_plan_release_catalog_gate_observability_capabilities,
+    mission_plan_release_catalog_gate_observability_schema,
 )
 from .mission_plan_public_conformance import (
     conform_mission_plan_public,
@@ -825,6 +854,42 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/mission/plan/release/catalog/report/capabilities":
             self._write(HTTPStatus.OK, mission_plan_release_catalog_report_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/runtime/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_runtime_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/runtime/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_runtime_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/packet/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_packet_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/packet/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_packet_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/query/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_query_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/query/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_query_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/diff/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_diff_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/diff/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_diff_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/observability/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_observability_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/observability/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_gate_observability_capabilities())
             return
         if path == "/v1/mission/plan/conformance/schema":
             self._write(HTTPStatus.OK, mission_plan_public_conformance_schema())
@@ -3642,6 +3707,109 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except (TypeError, ValueError, json.JSONDecodeError) as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_report", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/gate":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("catalog"), Mapping):
+                    raise ValueError("mission plan release catalog gate requires a catalog object")
+                policy = payload.get("policy")
+                if policy is not None and not isinstance(policy, Mapping):
+                    raise ValueError("mission plan release catalog gate policy must be an object")
+                gate = build_mission_plan_release_catalog_gate(payload["catalog"], policy)
+                self._write(HTTPStatus.OK if gate.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, gate.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_gate", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/runtime":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("catalog"), Mapping):
+                    raise ValueError("mission plan release catalog gate runtime requires a catalog object")
+                policy = payload.get("policy")
+                if policy is not None and not isinstance(policy, Mapping):
+                    raise ValueError("mission plan release catalog gate runtime policy must be an object")
+                runtime = run_mission_plan_release_catalog_gate_runtime(payload["catalog"], policy)
+                self._write(HTTPStatus.OK if runtime.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, runtime.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_gate_runtime", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/packet":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("catalog"), Mapping):
+                    raise ValueError("mission plan release catalog gate packet requires a catalog object")
+                policy = payload.get("policy")
+                if policy is not None and not isinstance(policy, Mapping):
+                    raise ValueError("mission plan release catalog gate packet policy must be an object")
+                packet = build_mission_plan_release_catalog_gate_packet(
+                    payload["catalog"],
+                    policy,
+                    packet_id=None if payload.get("packet_id") is None else str(payload["packet_id"]),
+                )
+                self._write(HTTPStatus.OK if packet.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, packet.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_gate_packet", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/query":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("gate"), Mapping):
+                    raise ValueError("mission plan release catalog gate query requires a gate object")
+                query = payload.get("query")
+                if query is not None and not isinstance(query, Mapping):
+                    raise ValueError("mission plan release catalog gate query filters must be an object")
+                result = query_mission_plan_release_catalog_gate(payload["gate"], query)
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_gate_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/diff":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("left"), Mapping) or not isinstance(payload.get("right"), Mapping):
+                    raise ValueError("mission plan release catalog gate diff requires left and right gate objects")
+                result = diff_mission_plan_release_catalog_gates(payload["left"], payload["right"])
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_gate_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/gate/observability":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("gate"), Mapping):
+                    raise ValueError("mission plan release catalog gate observability requires a gate object")
+                runtime = payload.get("runtime")
+                if runtime is not None and not isinstance(runtime, Mapping):
+                    raise ValueError("mission plan release catalog gate observability runtime must be an object")
+                result = build_mission_plan_release_catalog_gate_observability(payload["gate"], runtime)
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_gate_observability", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

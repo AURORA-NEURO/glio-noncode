@@ -122,6 +122,30 @@ from .mission_plan_release_catalog_report import (
     mission_plan_release_catalog_report_capabilities,
     mission_plan_release_catalog_report_schema,
 )
+from .mission_plan_release_catalog_gate import (
+    mission_plan_release_catalog_gate_capabilities,
+    mission_plan_release_catalog_gate_schema,
+)
+from .mission_plan_release_catalog_gate_runtime import (
+    mission_plan_release_catalog_gate_runtime_capabilities,
+    mission_plan_release_catalog_gate_runtime_schema,
+)
+from .mission_plan_release_catalog_gate_packet import (
+    mission_plan_release_catalog_gate_packet_capabilities,
+    mission_plan_release_catalog_gate_packet_schema,
+)
+from .mission_plan_release_catalog_gate_query import (
+    mission_plan_release_catalog_gate_query_capabilities,
+    mission_plan_release_catalog_gate_query_schema,
+)
+from .mission_plan_release_catalog_gate_diff import (
+    mission_plan_release_catalog_gate_diff_capabilities,
+    mission_plan_release_catalog_gate_diff_schema,
+)
+from .mission_plan_release_catalog_gate_observability import (
+    mission_plan_release_catalog_gate_observability_capabilities,
+    mission_plan_release_catalog_gate_observability_schema,
+)
 from .mission_plan_public_conformance import (
     mission_plan_public_conformance_capabilities,
     mission_plan_public_conformance_schema,
@@ -140,7 +164,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 87
+PUBLIC_SURFACE_EXPECTED_COUNT = 99
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -400,6 +424,18 @@ def default_public_surface_inventory(
         "mission-plan-release-catalog-audit-capabilities": mission_plan_release_catalog_audit_capabilities(),
         "mission-plan-release-catalog-report-schema": mission_plan_release_catalog_report_schema(),
         "mission-plan-release-catalog-report-capabilities": mission_plan_release_catalog_report_capabilities(),
+        "mission-plan-release-catalog-gate-schema": mission_plan_release_catalog_gate_schema(),
+        "mission-plan-release-catalog-gate-capabilities": mission_plan_release_catalog_gate_capabilities(),
+        "mission-plan-release-catalog-gate-runtime-schema": mission_plan_release_catalog_gate_runtime_schema(),
+        "mission-plan-release-catalog-gate-runtime-capabilities": mission_plan_release_catalog_gate_runtime_capabilities(),
+        "mission-plan-release-catalog-gate-packet-schema": mission_plan_release_catalog_gate_packet_schema(),
+        "mission-plan-release-catalog-gate-packet-capabilities": mission_plan_release_catalog_gate_packet_capabilities(),
+        "mission-plan-release-catalog-gate-query-schema": mission_plan_release_catalog_gate_query_schema(),
+        "mission-plan-release-catalog-gate-query-capabilities": mission_plan_release_catalog_gate_query_capabilities(),
+        "mission-plan-release-catalog-gate-diff-schema": mission_plan_release_catalog_gate_diff_schema(),
+        "mission-plan-release-catalog-gate-diff-capabilities": mission_plan_release_catalog_gate_diff_capabilities(),
+        "mission-plan-release-catalog-gate-observability-schema": mission_plan_release_catalog_gate_observability_schema(),
+        "mission-plan-release-catalog-gate-observability-capabilities": mission_plan_release_catalog_gate_observability_capabilities(),
         "mission-plan-conformance-schema": mission_plan_public_conformance_schema(),
         "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
         "mission-plan-replay-schema": mission_plan_public_replay_schema(),

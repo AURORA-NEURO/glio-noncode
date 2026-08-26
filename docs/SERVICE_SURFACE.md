@@ -358,7 +358,7 @@ Run the repository-wide public-boundary audit:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The audit covers 87 named projections across the service, capability
+The audit covers 99 named projections across the service, capability
 certification bundle, module-fabric bundle, schemas, service-release registry,
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and closures. Runtime
