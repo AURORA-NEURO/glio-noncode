@@ -1477,7 +1477,14 @@ from .methylation_beta import (
     MethylationSensitiveMotifAnalyzer,
     MethylationSensitiveMotifDefinition,
 )
-from .mission_runtime import MissionPlanBuilder, MissionRequest
+from .mission_runtime_public import (
+    build_public_mission_plan,
+    mission_plan_public_capabilities,
+    mission_plan_public_csv,
+    mission_plan_public_json,
+    mission_plan_public_schema,
+    render_mission_plan_public_markdown,
+)
 from .models import CaseManifest, ReferenceContext, ReviewDecision, VariantIdentity
 from .molecular_atlas_bundle import MolecularAtlasBundleBuilder, MolecularAtlasBundleFormat
 from .molecular_atlas_contracts import default_molecular_atlas_contracts
@@ -6233,7 +6240,18 @@ def build_parser() -> argparse.ArgumentParser:
         "mission-plan", help="expand a mission request into a typed plan and compiled workflow"
     )
     mission_plan.add_argument("input", type=str)
+    mission_plan.add_argument(
+        "--format", choices=("json", "markdown", "steps-csv"), default="json"
+    )
     mission_plan.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-schema",
+        help="emit the public mission-plan schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-capabilities",
+        help="emit public mission-plan capabilities",
+    ).add_argument("--output", default=None)
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
     intake.add_argument("input", type=str)
@@ -14922,35 +14940,19 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "mission-plan":
             payload = _read_json(args.input)
-            raw = dict(payload.get("mission", payload))
-            mission = MissionContext(
-                mission_id=str(raw.get("mission_id", "mission-cli")),
-                project_id=str(raw.get("project_id", "glio-noncode")),
-                intended_use=str(raw.get("intended_use", "research hypothesis exploration")),
-                requested_question=str(raw.get("requested_question", "bounded research question")),
-                claim_ceiling=ClaimCeiling(
-                    str(raw.get("claim_ceiling", ClaimCeiling.HYPOTHESIS.value))
-                ),
-                allowed_source_ids=tuple(str(item) for item in raw.get("allowed_source_ids", ())),
-                allowed_data_scopes=tuple(
-                    str(item)
-                    for item in raw.get("allowed_data_scopes", ("synthetic", "public_reference"))
-                ),
-                allowed_mutations=tuple(
-                    str(item)
-                    for item in raw.get(
-                        "allowed_mutations", ("none", "event_log", "content_addressed_store")
-                    )
-                ),
-            )
-            request = MissionRequest(
-                mission=mission,
-                requested_agent_ids=tuple(
-                    str(item) for item in payload.get("requested_agent_ids", ())
-                ),
-                workflow_id=str(payload.get("workflow_id", "mission-cli-workflow")),
-            )
-            _write_json(MissionPlanBuilder().plan(request).to_dict(), args.output)
+            receipt = build_public_mission_plan(payload)
+            if args.format == "markdown":
+                _write_text(render_mission_plan_public_markdown(receipt), args.output)
+            elif args.format == "steps-csv":
+                _write_text(mission_plan_public_csv(receipt), args.output)
+            else:
+                _write_text(mission_plan_public_json(receipt), args.output)
+            return 0
+        if args.command == "mission-plan-schema":
+            _write_json(mission_plan_public_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-capabilities":
+            _write_json(mission_plan_public_capabilities(), args.output)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)

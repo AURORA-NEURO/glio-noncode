@@ -69,6 +69,10 @@ from .review_workspace_execution_audit import (
     review_workspace_execution_audit_capabilities,
     review_workspace_execution_audit_schema,
 )
+from .mission_runtime_public import (
+    mission_plan_public_capabilities,
+    mission_plan_public_schema,
+)
 from .variant_stream import (
     breakend_normalization_schema,
     streaming_intake_capabilities,
@@ -81,7 +85,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 57
+PUBLIC_SURFACE_EXPECTED_COUNT = 59
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -315,6 +319,8 @@ def default_public_surface_inventory(
         "review-workspace-plan-execution-batch-capabilities": review_workspace_execution_batch_capabilities(),
         "review-workspace-plan-execution-audit-schema": review_workspace_execution_audit_schema(),
         "review-workspace-plan-execution-audit-capabilities": review_workspace_execution_audit_capabilities(),
+        "mission-plan-schema": mission_plan_public_schema(),
+        "mission-plan-capabilities": mission_plan_public_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

@@ -4179,7 +4179,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 57 named surfaces: service status, capabilities, program, operational,
+audits 59 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4202,7 +4202,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 57-surface inventory or any
+The command exits non-zero when the closed 59-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary
@@ -4319,6 +4319,29 @@ glio-noncode schedule-budget work-items.json --max-cost-units 1000 --output budg
 glio-noncode route-fallback fallback.json --output fallback-route.json
 glio-noncode queue-human-review review-items.json --roles domain_expert statistical_review --output review-queue.json
 ```
+
+The public mission-plan projection is intentionally separate from the typed
+internal planner. It preserves the decision state, workflow DAG, dependency
+order, resource envelope, review flags, aggregate selection counts, registry
+address, and content address while omitting internal routing identifiers and
+raw request metadata. The receipt is hydrated with address verification and
+can be exported as canonical JSON, Markdown, or step-level CSV. The public
+contract and capability declarations are available as both CLI and HTTP
+surfaces:
+
+```powershell
+glio-noncode mission-plan mission.json --format json --output mission-plan.json
+glio-noncode mission-plan mission.json --format markdown --output mission-plan.md
+glio-noncode mission-plan mission.json --format steps-csv --output mission-plan-steps.csv
+glio-noncode mission-plan-schema --output mission-plan-schema.json
+glio-noncode mission-plan-capabilities --output mission-plan-capabilities.json
+```
+
+The corresponding API routes are `POST /v1/mission/plan`,
+`GET /v1/mission/plan/schema`, and `GET /v1/mission/plan/capabilities`.
+Malformed workflows, duplicate identifiers, cycles, restricted metadata, and
+tampered content addresses fail closed. This is a read-only research planning
+surface; it does not execute handlers or authorize clinical decisions.
 
 The Domain 16 external-alpha runtime controls add four inspectable registry
 and quality surfaces:

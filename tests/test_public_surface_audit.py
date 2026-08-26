@@ -114,6 +114,8 @@ class PublicSurfaceAuditTests(unittest.TestCase):
             "review-workspace-plan-execution-batch-capabilities",
             "review-workspace-plan-execution-audit-schema",
             "review-workspace-plan-execution-audit-capabilities",
+            "mission-plan-schema",
+            "mission-plan-capabilities",
         ):
             check = next(item for item in self.audit.checks if item.surface_id == surface_id)
             self.assertTrue(check.accepted, check.to_dict())

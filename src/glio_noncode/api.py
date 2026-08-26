@@ -298,6 +298,11 @@ from .review_workspace_execution_release import (
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
 )
+from .mission_runtime_public import (
+    build_public_mission_plan,
+    mission_plan_public_capabilities,
+    mission_plan_public_schema,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -672,6 +677,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/cohort/benchmark/capabilities":
             self._write(HTTPStatus.OK, cohort_benchmark_capabilities())
+            return
+        if path == "/v1/mission/plan/schema":
+            self._write(HTTPStatus.OK, mission_plan_public_schema())
+            return
+        if path == "/v1/mission/plan/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_public_capabilities())
             return
         if path == "/v1/review-workspace/schema":
             self._write(HTTPStatus.OK, review_workspace_schema())
@@ -3233,6 +3244,23 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except (ValueError, json.JSONDecodeError) as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_json", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError("mission plan request must be an object")
+                receipt = build_public_mission_plan(payload)
+                self._write(
+                    HTTPStatus.OK if receipt.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    receipt.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

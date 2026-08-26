@@ -729,10 +729,20 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 57-surface audit, including the
+schema fields. The result is a deterministic 59-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and portable execution-release contracts,
 suitable for local release checks and CI.
+
+The public mission-plan contract is a separate lossy projection over the
+typed planner. `mission-plan` emits a deterministic receipt with workflow
+steps, dependencies, resource totals, review state, aggregate selection
+counts, registry address, and a content address; internal routing identifiers
+and raw request metadata are rejected at the boundary. Consumers can retrieve
+the contract and capability declarations with `mission-plan-schema` and
+`mission-plan-capabilities`, or use `POST /v1/mission/plan` and the matching
+schema/capabilities endpoints. JSON, Markdown, and step-level CSV exports are
+available for offline review.
 
 The reference boundary is also available directly:
 

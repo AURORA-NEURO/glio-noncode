@@ -430,8 +430,10 @@ class CliApiTests(unittest.TestCase):
             )
             self.assertEqual(main(["mission-plan", str(source), "--output", str(output)]), 0)
             payload = json.loads(output.read_text(encoding="utf-8"))
-            self.assertIn("A01", payload["selected_agent_ids"])
-            self.assertEqual(payload["workflow"]["steps"][0]["step_id"], "ingest")
+            self.assertEqual(payload["selected_role_count"], 2)
+            self.assertNotIn("selected_agent_ids", payload)
+            self.assertNotIn("selected_tool_ids", payload)
+            self.assertEqual(payload["steps"][0]["step_id"], "ingest")
 
     def test_cohort_query_command_writes_context_selection(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
