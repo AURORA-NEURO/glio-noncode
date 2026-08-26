@@ -3934,7 +3934,9 @@ closure, and the public boundary before offline loading. Verified releases
 support bounded action, metrics, and operations views plus deterministic
 event/action/check and source-plan diffs without a live run store. Release
 diffs also carry deterministic operations deltas for queue movement, attention
-class changes, and recommendation changes.
+class changes, and recommendation changes. CI runs this execution/release
+surface explicitly, including all operations and operations-diff schema and
+capability commands, on every push and pull request.
 
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source
