@@ -164,7 +164,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 140
+PUBLIC_SURFACE_EXPECTED_COUNT = 146
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -356,6 +356,9 @@ def default_public_surface_inventory(
     from .storage_lineage_observability import storage_lineage_observability_capabilities, storage_lineage_observability_schema
     from .storage_lineage_review import storage_lineage_review_capabilities, storage_lineage_review_schema
     from .storage_lineage_packet import storage_lineage_packet_capabilities, storage_lineage_packet_schema
+    from .storage_catalog import storage_catalog_capabilities, storage_catalog_schema
+    from .storage_catalog_observability import storage_catalog_observability_capabilities, storage_catalog_observability_schema
+    from .storage_catalog_packet import storage_catalog_packet_capabilities, storage_catalog_packet_schema
 
     selected = snapshot or build_service_surface_snapshot()
     capability_value = capability_bundle or build_capability_certification_bundle()
@@ -499,6 +502,12 @@ def default_public_surface_inventory(
         "storage-lineage-review-capabilities": storage_lineage_review_capabilities(),
         "storage-lineage-packet-schema": storage_lineage_packet_schema(),
         "storage-lineage-packet-capabilities": storage_lineage_packet_capabilities(),
+        "storage-catalog-schema": storage_catalog_schema(),
+        "storage-catalog-capabilities": storage_catalog_capabilities(),
+        "storage-catalog-observability-schema": storage_catalog_observability_schema(),
+        "storage-catalog-observability-capabilities": storage_catalog_observability_capabilities(),
+        "storage-catalog-packet-schema": storage_catalog_packet_schema(),
+        "storage-catalog-packet-capabilities": storage_catalog_packet_capabilities(),
         "mission-plan-conformance-schema": mission_plan_public_conformance_schema(),
         "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
         "mission-plan-replay-schema": mission_plan_public_replay_schema(),

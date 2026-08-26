@@ -282,6 +282,35 @@ from .storage_lineage_packet import (
     storage_lineage_packet_schema,
     verify_storage_lineage_packet,
 )
+from .storage_catalog import (
+    build_storage_catalog,
+    diff_storage_catalog,
+    query_storage_catalog,
+    storage_catalog_capabilities,
+    storage_catalog_entries_csv,
+    storage_catalog_indexes_csv,
+    storage_catalog_json,
+    storage_catalog_markdown,
+    storage_catalog_schema,
+    verify_storage_catalog,
+)
+from .storage_catalog_contracts import StorageCatalog
+from .storage_catalog_observability import (
+    build_storage_catalog_observability,
+    query_storage_catalog_observability,
+    storage_catalog_observability_capabilities,
+    storage_catalog_observability_events_csv,
+    storage_catalog_observability_json,
+    storage_catalog_observability_metrics_csv,
+    storage_catalog_observability_schema,
+)
+from .storage_catalog_packet import (
+    build_storage_catalog_packet,
+    storage_catalog_packet_capabilities,
+    storage_catalog_packet_json,
+    storage_catalog_packet_schema,
+    verify_storage_catalog_packet,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -1207,6 +1236,117 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                catalog = build_storage_catalog(self._runtime())
+                accepted_value = self._query_value(query, "accepted")
+                referenced_value = self._query_value(query, "referenced")
+                result = query_storage_catalog(
+                    catalog,
+                    resource=self._query_value(query, "resource") or "entries",
+                    kind=self._query_value(query, "kind"),
+                    state=self._query_value(query, "state"),
+                    prefix=self._query_value(query, "prefix"),
+                    text=self._query_value(query, "text") or self._query_value(query, "q"),
+                    accepted=None if accepted_value is None else self._query_bool(query, "accepted"),
+                    referenced=None if referenced_value is None else self._query_bool(query, "referenced"),
+                    offset=self._query_int(query, "offset", 0),
+                    limit=self._query_int(query, "limit", 50),
+                )
+                self._write(HTTPStatus.OK, {"catalog": catalog.to_dict(), "query": result.to_dict()})
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/schema":
+            self._write(HTTPStatus.OK, storage_catalog_schema())
+            return
+        if path == "/v1/storage/catalog/capabilities":
+            self._write(HTTPStatus.OK, storage_catalog_capabilities())
+            return
+        if path == "/v1/storage/catalog/entries.csv":
+            try:
+                self._write_bytes(HTTPStatus.OK, storage_catalog_entries_csv(build_storage_catalog(self._runtime())).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/indexes.csv":
+            try:
+                self._write_bytes(HTTPStatus.OK, storage_catalog_indexes_csv(build_storage_catalog(self._runtime())).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/observability":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                observation = build_storage_catalog_observability(build_storage_catalog(self._runtime()))
+                filters = any(self._query_value(query, name) for name in ("event_type", "state", "text", "q"))
+                if filters:
+                    result = query_storage_catalog_observability(
+                        observation,
+                        event_type=self._query_value(query, "event_type"),
+                        state=self._query_value(query, "state"),
+                        text=self._query_value(query, "text") or self._query_value(query, "q"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                    self._write(HTTPStatus.OK, {"observability": observation.to_dict(), "query": result.to_dict()})
+                else:
+                    self._write(HTTPStatus.OK, observation.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/observability/schema":
+            self._write(HTTPStatus.OK, storage_catalog_observability_schema())
+            return
+        if path == "/v1/storage/catalog/observability/capabilities":
+            self._write(HTTPStatus.OK, storage_catalog_observability_capabilities())
+            return
+        if path == "/v1/storage/catalog/observability/events.csv":
+            try:
+                observation = build_storage_catalog_observability(build_storage_catalog(self._runtime()))
+                self._write_bytes(HTTPStatus.OK, storage_catalog_observability_events_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/observability/metrics.csv":
+            try:
+                observation = build_storage_catalog_observability(build_storage_catalog(self._runtime()))
+                self._write_bytes(HTTPStatus.OK, storage_catalog_observability_metrics_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/packet":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                packet = build_storage_catalog_packet(
+                    self._runtime(),
+                    packet_id=self._query_value(query, "packet_id") or "glio-noncode-storage-catalog-packet",
+                )
+                self._write(HTTPStatus.OK, packet.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/packet/schema":
+            self._write(HTTPStatus.OK, storage_catalog_packet_schema())
+            return
+        if path == "/v1/storage/catalog/packet/capabilities":
+            self._write(HTTPStatus.OK, storage_catalog_packet_capabilities())
             return
         if path == "/v1/storage/lineage":
             try:
@@ -4082,6 +4222,84 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/storage/catalog/verify":
+            try:
+                payload = self._read_json()
+                source = payload.get("catalog", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("storage catalog verification requires a catalog object")
+                catalog = verify_storage_catalog(source)
+                self._write(HTTPStatus.OK if catalog.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, catalog.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_catalog", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("catalog")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("storage catalog query requires catalog and query objects")
+                result = query_storage_catalog(source, **dict(query))
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_catalog_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/diff":
+            try:
+                payload = self._read_json()
+                baseline = payload.get("baseline")
+                candidate = payload.get("candidate")
+                if not isinstance(baseline, Mapping) or not isinstance(candidate, Mapping):
+                    raise ValueError("storage catalog diff requires baseline and candidate objects")
+                result = diff_storage_catalog(baseline, candidate)
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_catalog_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/observability/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("observability")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("storage catalog observability query requires observability and query objects")
+                result = query_storage_catalog_observability(source, **dict(query))
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_catalog_observability_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/catalog/packet/verify":
+            try:
+                payload = self._read_json()
+                directory = payload.get("directory")
+                if not directory:
+                    raise ValueError("directory is required for storage catalog packet verification")
+                result = verify_storage_catalog_packet(directory)
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_catalog_packet", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/storage/lineage/verify":
             try:

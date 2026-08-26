@@ -2050,6 +2050,37 @@ from .storage_lineage_packet import (
     verify_storage_lineage_packet,
     write_storage_lineage_packet,
 )
+from .storage_catalog import (
+    build_storage_catalog,
+    diff_storage_catalog,
+    query_storage_catalog,
+    storage_catalog_capabilities,
+    storage_catalog_entries_csv,
+    storage_catalog_indexes_csv,
+    storage_catalog_json,
+    storage_catalog_markdown,
+    storage_catalog_schema,
+    verify_storage_catalog,
+)
+from .storage_catalog_contracts import StorageCatalog
+from .storage_catalog_observability import (
+    build_storage_catalog_observability,
+    query_storage_catalog_observability,
+    storage_catalog_observability_capabilities,
+    storage_catalog_observability_events_csv,
+    storage_catalog_observability_json,
+    storage_catalog_observability_metrics_csv,
+    storage_catalog_observability_schema,
+)
+from .storage_catalog_packet import (
+    build_storage_catalog_packet,
+    load_storage_catalog_packet,
+    storage_catalog_packet_capabilities,
+    storage_catalog_packet_json,
+    storage_catalog_packet_schema,
+    verify_storage_catalog_packet,
+    write_storage_catalog_packet,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4112,6 +4143,111 @@ def build_parser() -> argparse.ArgumentParser:
         help="print storage lineage packet capabilities",
     )
     storage_lineage_packet_capabilities_parser.add_argument("--output", default=None)
+
+    storage_catalog = subparsers.add_parser(
+        "storage-catalog",
+        help="inspect the deterministic address-only storage catalog",
+    )
+    storage_catalog.add_argument("--data-root", default=".glio")
+    storage_catalog.add_argument("--resource", choices=("entries", "objects", "runs", "batches", "missing", "unexpected"), default="entries")
+    storage_catalog.add_argument("--kind", default=None)
+    storage_catalog.add_argument("--state", default=None)
+    storage_catalog.add_argument("--prefix", default=None)
+    storage_catalog.add_argument("--text", default=None)
+    storage_catalog.add_argument("--accepted", choices=("true", "false"), default=None)
+    storage_catalog.add_argument("--referenced", choices=("true", "false"), default=None)
+    storage_catalog.add_argument("--offset", default=0, type=int)
+    storage_catalog.add_argument("--limit", default=50, type=int)
+    storage_catalog.add_argument("--format", choices=("json", "entries-csv", "indexes-csv", "markdown"), default="json")
+    storage_catalog.add_argument("--output", default=None)
+
+    storage_catalog_schema_parser = subparsers.add_parser(
+        "storage-catalog-schema",
+        help="print the storage catalog schema",
+    )
+    storage_catalog_schema_parser.add_argument("--output", default=None)
+
+    storage_catalog_capabilities_parser = subparsers.add_parser(
+        "storage-catalog-capabilities",
+        help="print storage catalog capabilities",
+    )
+    storage_catalog_capabilities_parser.add_argument("--output", default=None)
+
+    storage_catalog_verify = subparsers.add_parser(
+        "storage-catalog-verify",
+        help="validate a storage catalog JSON file",
+    )
+    storage_catalog_verify.add_argument("input", type=str)
+    storage_catalog_verify.add_argument("--output", default=None)
+
+    storage_catalog_diff = subparsers.add_parser(
+        "storage-catalog-diff",
+        help="compare two storage catalog JSON files",
+    )
+    storage_catalog_diff.add_argument("left", type=str)
+    storage_catalog_diff.add_argument("right", type=str)
+    storage_catalog_diff.add_argument("--output", default=None)
+
+    storage_catalog_observability = subparsers.add_parser(
+        "storage-catalog-observability",
+        help="emit deterministic storage catalog events and metrics",
+    )
+    storage_catalog_observability.add_argument("--data-root", default=".glio")
+    storage_catalog_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    storage_catalog_observability.add_argument("--event-type", default=None)
+    storage_catalog_observability.add_argument("--state", default=None)
+    storage_catalog_observability.add_argument("--text", default=None)
+    storage_catalog_observability.add_argument("--offset", default=0, type=int)
+    storage_catalog_observability.add_argument("--limit", default=50, type=int)
+    storage_catalog_observability.add_argument("--output", default=None)
+
+    storage_catalog_observability_schema_parser = subparsers.add_parser(
+        "storage-catalog-observability-schema",
+        help="print storage catalog observability schema",
+    )
+    storage_catalog_observability_schema_parser.add_argument("--output", default=None)
+
+    storage_catalog_observability_capabilities_parser = subparsers.add_parser(
+        "storage-catalog-observability-capabilities",
+        help="print storage catalog observability capabilities",
+    )
+    storage_catalog_observability_capabilities_parser.add_argument("--output", default=None)
+
+    storage_catalog_packet = subparsers.add_parser(
+        "storage-catalog-packet",
+        help="write a fixed exact-byte storage catalog packet",
+    )
+    storage_catalog_packet.add_argument("--data-root", default=".glio")
+    storage_catalog_packet.add_argument("--packet-id", default="glio-noncode-storage-catalog-packet")
+    storage_catalog_packet.add_argument("--destination", required=True)
+    storage_catalog_packet.add_argument("--allow-existing", action="store_true")
+    storage_catalog_packet.add_argument("--output", default=None)
+
+    storage_catalog_packet_verify = subparsers.add_parser(
+        "storage-catalog-packet-verify",
+        help="verify a fixed storage catalog packet directory",
+    )
+    storage_catalog_packet_verify.add_argument("directory", type=str)
+    storage_catalog_packet_verify.add_argument("--output", default=None)
+
+    storage_catalog_packet_load = subparsers.add_parser(
+        "storage-catalog-packet-load",
+        help="hydrate a verified storage catalog packet offline",
+    )
+    storage_catalog_packet_load.add_argument("directory", type=str)
+    storage_catalog_packet_load.add_argument("--output", default=None)
+
+    storage_catalog_packet_schema_parser = subparsers.add_parser(
+        "storage-catalog-packet-schema",
+        help="print storage catalog packet schema",
+    )
+    storage_catalog_packet_schema_parser.add_argument("--output", default=None)
+
+    storage_catalog_packet_capabilities_parser = subparsers.add_parser(
+        "storage-catalog-packet-capabilities",
+        help="print storage catalog packet capabilities",
+    )
+    storage_catalog_packet_capabilities_parser.add_argument("--output", default=None)
 
     run_inspect = subparsers.add_parser(
         "run-inspect",
@@ -24765,6 +24901,104 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "storage-lineage-packet-capabilities":
             _write_json(storage_lineage_packet_capabilities(), args.output)
+            return 0
+        if args.command == "storage-catalog":
+            catalog = build_storage_catalog(CaseRuntime(args.data_root))
+            accepted = None if args.accepted is None else args.accepted == "true"
+            referenced = None if args.referenced is None else args.referenced == "true"
+            filtered = (
+                args.resource != "entries"
+                or any(value is not None for value in (args.kind, args.state, args.prefix, args.text, args.accepted, args.referenced))
+                or args.offset
+                or args.limit != 50
+            )
+            if filtered:
+                if args.format != "json":
+                    raise ValueError("filtered storage catalog output supports JSON only")
+                result = query_storage_catalog(
+                    catalog,
+                    resource=args.resource,
+                    kind=args.kind,
+                    state=args.state,
+                    prefix=args.prefix,
+                    text=args.text,
+                    accepted=accepted,
+                    referenced=referenced,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json({"catalog": catalog.to_dict(), "query": result.to_dict()}, args.output)
+            elif args.format == "entries-csv":
+                _write_text(storage_catalog_entries_csv(catalog), args.output)
+            elif args.format == "indexes-csv":
+                _write_text(storage_catalog_indexes_csv(catalog), args.output)
+            elif args.format == "markdown":
+                _write_text(storage_catalog_markdown(catalog), args.output)
+            else:
+                _write_text(storage_catalog_json(catalog) + "\n", args.output)
+            return 0 if catalog.accepted else 2
+        if args.command == "storage-catalog-schema":
+            _write_json(storage_catalog_schema(), args.output)
+            return 0
+        if args.command == "storage-catalog-capabilities":
+            _write_json(storage_catalog_capabilities(), args.output)
+            return 0
+        if args.command == "storage-catalog-verify":
+            catalog = verify_storage_catalog(_read_json(args.input))
+            _write_json(catalog.to_dict(), args.output)
+            return 0 if catalog.accepted else 2
+        if args.command == "storage-catalog-diff":
+            result = diff_storage_catalog(_read_json(args.left), _read_json(args.right))
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "storage-catalog-observability":
+            observation = build_storage_catalog_observability(build_storage_catalog(CaseRuntime(args.data_root)))
+            filtered = any(value is not None for value in (args.event_type, args.state, args.text)) or args.offset or args.limit != 50
+            if filtered:
+                if args.format != "json":
+                    raise ValueError("filtered storage catalog observability output supports JSON only")
+                result = query_storage_catalog_observability(
+                    observation,
+                    event_type=args.event_type,
+                    state=args.state,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json({"observability": observation.to_dict(), "query": result.to_dict()}, args.output)
+            elif args.format == "events-csv":
+                _write_text(storage_catalog_observability_events_csv(observation), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(storage_catalog_observability_metrics_csv(observation), args.output)
+            else:
+                _write_text(storage_catalog_observability_json(observation) + "\n", args.output)
+            return 0 if observation.accepted else 2
+        if args.command == "storage-catalog-observability-schema":
+            _write_json(storage_catalog_observability_schema(), args.output)
+            return 0
+        if args.command == "storage-catalog-observability-capabilities":
+            _write_json(storage_catalog_observability_capabilities(), args.output)
+            return 0
+        if args.command == "storage-catalog-packet":
+            packet = build_storage_catalog_packet(CaseRuntime(args.data_root), packet_id=args.packet_id)
+            write_storage_catalog_packet(packet, args.destination, allow_existing=args.allow_existing)
+            payload = packet.to_dict()
+            payload["destination"] = str(args.destination)
+            _write_json(payload, args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "storage-catalog-packet-verify":
+            result = verify_storage_catalog_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "storage-catalog-packet-load":
+            result = load_storage_catalog_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.verification.accepted else 2
+        if args.command == "storage-catalog-packet-schema":
+            _write_json(storage_catalog_packet_schema(), args.output)
+            return 0
+        if args.command == "storage-catalog-packet-capabilities":
+            _write_json(storage_catalog_packet_capabilities(), args.output)
             return 0
         if args.command == "run-inspect":
             inspection = inspect_run(CaseRuntime(args.data_root), args.run_id)

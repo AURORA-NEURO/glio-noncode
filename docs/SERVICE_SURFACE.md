@@ -45,6 +45,24 @@ report or runtime from which it was derived.
 | GET | `/v1/service-release/handoff/diff?left_directory=...&right_directory=...` | Compare handoff addresses |
 | GET | `/v1/service-release/handoff/replay?directory=...` | Replay handoff verification |
 | GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
+| GET | `/v1/storage/catalog` | Build and page the normalized address-only storage catalog |
+| GET | `/v1/storage/catalog/entries.csv` | Export normalized catalog entries |
+| GET | `/v1/storage/catalog/indexes.csv` | Export catalog lookup indexes |
+| GET | `/v1/storage/catalog/schema` | Return storage catalog schema |
+| GET | `/v1/storage/catalog/capabilities` | Return storage catalog capabilities |
+| POST | `/v1/storage/catalog/verify` | Strictly verify a supplied storage catalog |
+| POST | `/v1/storage/catalog/query` | Page rows from a supplied storage catalog |
+| POST | `/v1/storage/catalog/diff` | Compare two storage catalogs by stable addresses |
+| GET | `/v1/storage/catalog/observability` | Return deterministic catalog events or filtered pages |
+| GET | `/v1/storage/catalog/observability/schema` | Return catalog observability schema |
+| GET | `/v1/storage/catalog/observability/capabilities` | Return catalog observability capabilities |
+| GET | `/v1/storage/catalog/observability/events.csv` | Export catalog observation events |
+| GET | `/v1/storage/catalog/observability/metrics.csv` | Export catalog observation metrics |
+| POST | `/v1/storage/catalog/observability/query` | Page events from supplied catalog observations |
+| GET | `/v1/storage/catalog/packet` | Build fixed exact-byte catalog packet metadata |
+| GET | `/v1/storage/catalog/packet/schema` | Return catalog packet schema |
+| GET | `/v1/storage/catalog/packet/capabilities` | Return catalog packet capabilities |
+| POST | `/v1/storage/catalog/packet/verify` | Verify a written catalog packet directory |
 | GET | `/v1/storage/lineage` | Build and page the deterministic address-only storage provenance graph |
 | GET | `/v1/storage/lineage/nodes.csv` | Export address-only lineage nodes |
 | GET | `/v1/storage/lineage/edges.csv` | Export address-only lineage edges |
@@ -291,6 +309,13 @@ observability, prioritized review, and exact-byte offline packet projections.
 These projections remain read-only and timestamp-free; supplied graph,
 observation, and review documents can be verified or queried without reopening
 the source store.
+
+The storage-catalog routes add a normalized indexed read model over the same
+audit. They expose object, missing, run, batch, and unexpected rows plus address,
+path, kind, and state indexes. Catalog queries are bounded and deterministic;
+catalog observability is timestamp-free; and the fixed packet route covers the
+catalog, indexes, schemas, capabilities, observation events, metrics, and
+public-boundary declaration without copying source object bytes.
 
 Batch catalog queries accept `text`, `offset`, and `limit`. Batch identifiers are
 derived from the canonical batch input address, so repeating an identical batch

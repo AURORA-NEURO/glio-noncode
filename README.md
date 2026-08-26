@@ -91,6 +91,10 @@ glio-noncode portfolio-release-schema --output portfolio-release-schema.json
 glio-noncode portfolio-release-runtime --data-root .glio --release-ready-only --output portfolio-runtime.json
 glio-noncode storage-audit --data-root .glio --output storage-audit.json
 glio-noncode storage-maintenance --data-root .glio --format markdown --output storage-maintenance.md
+glio-noncode storage-catalog --data-root .glio --format markdown --output storage-catalog.md
+glio-noncode storage-catalog-observability --data-root .glio --format metrics-csv --output storage-catalog-metrics.csv
+glio-noncode storage-catalog-packet --data-root .glio --destination storage-catalog-packet
+glio-noncode storage-catalog-packet-verify storage-catalog-packet --output storage-catalog-verification.json
 glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
 glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
@@ -163,6 +167,16 @@ timestamp-free events, graph health metrics, and prioritized non-mutating review
 recommendations. `storage-lineage-packet` creates a fixed ten-artifact,
 exact-byte offline handoff; its verifier rejects path, byte, identity, and
 public-boundary drift before hydration.
+
+`storage-catalog` is the normalized indexed read model over that audit. It
+unifies object, missing-reference, run, batch, and unexpected filesystem rows,
+then closes address, path, kind, and state indexes for bounded deterministic
+queries. Its observability plane emits timestamp-free events and aggregate
+metrics for row quality and index coverage. `storage-catalog-packet` creates a
+fixed ten-artifact offline handoff whose verifier checks exact bytes, identities,
+safe paths, unexpected files, and the public metadata boundary before loading.
+See [docs/STORAGE_CATALOG.md](docs/STORAGE_CATALOG.md) for the complete
+contract and route matrix.
 
 `portfolio-release` is the repository-wide handoff boundary. It selects a
 bounded set of persisted runs, retains a namespaced dossier and workspace

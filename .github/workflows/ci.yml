@@ -1570,6 +1570,10 @@ jobs:
         run: python -m unittest tests.test_storage_maintenance -v
       - name: Storage lineage focused tests
         run: python -m unittest tests.test_storage_lineage -v
+      - name: Storage catalog focused tests
+        run: python -m unittest tests.test_storage_catalog -v
+      - name: Storage catalog public schema and capabilities
+        run: python -m glio_noncode storage-catalog-schema --output /tmp/glio-storage-catalog-schema.json && python -m glio_noncode storage-catalog-capabilities --output /tmp/glio-storage-catalog-capabilities.json && python -m glio_noncode storage-catalog-observability-schema --output /tmp/glio-storage-catalog-observability-schema.json && python -m glio_noncode storage-catalog-observability-capabilities --output /tmp/glio-storage-catalog-observability-capabilities.json && python -m glio_noncode storage-catalog-packet-schema --output /tmp/glio-storage-catalog-packet-schema.json && python -m glio_noncode storage-catalog-packet-capabilities --output /tmp/glio-storage-catalog-packet-capabilities.json
       - name: Storage lineage public schema
         run: python -m glio_noncode storage-lineage-schema --output /tmp/glio-storage-lineage-schema.json
       - name: Storage lineage public capabilities
