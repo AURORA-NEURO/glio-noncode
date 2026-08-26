@@ -180,7 +180,9 @@ timeline and its sequence-aware facets, or `--view metrics` for the verified
 metrics projection. `review-workspace-plan-execution-release-diff`
 compares source-plan action, lane, and check changes in addition to event IDs,
 action status/address changes, execution checks, and artifact addresses between
-two verified packages. Release operations are read-only at the API boundary;
+two verified packages. Its nested metrics diff reports right-minus-left
+completion, timing, check, dependency-wait, status-count, event-kind, action,
+lane, and critical-path deltas. Release operations are read-only at the API boundary;
 filesystem materialization remains an explicit CLI action.
 
 ## API

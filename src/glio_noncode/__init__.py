@@ -10779,6 +10779,16 @@ from .review_workspace_execution_metrics import (
     review_workspace_execution_metrics_json,
     review_workspace_execution_metrics_schema,
 )
+from .review_workspace_execution_metrics_diff import (
+    REVIEW_WORKSPACE_EXECUTION_METRICS_DIFF_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_METRICS_DIFF_VERSION,
+    ReviewWorkspaceExecutionActionMetricsDiff,
+    ReviewWorkspaceExecutionLaneMetricsDiff,
+    ReviewWorkspaceExecutionMetricsDiff,
+    diff_review_workspace_execution_metrics,
+    review_workspace_execution_metrics_diff_capabilities,
+    review_workspace_execution_metrics_diff_schema,
+)
 from .review_workspace_execution_release import (
     REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX,
     REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION,
@@ -11250,6 +11260,17 @@ __all__ += [
     "review_workspace_execution_metrics_export_payloads",
     "review_workspace_execution_metrics_json",
     "review_workspace_execution_metrics_schema",
+]
+
+__all__ += [
+    "REVIEW_WORKSPACE_EXECUTION_METRICS_DIFF_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_METRICS_DIFF_VERSION",
+    "ReviewWorkspaceExecutionActionMetricsDiff",
+    "ReviewWorkspaceExecutionLaneMetricsDiff",
+    "ReviewWorkspaceExecutionMetricsDiff",
+    "diff_review_workspace_execution_metrics",
+    "review_workspace_execution_metrics_diff_capabilities",
+    "review_workspace_execution_metrics_diff_schema",
 ]
 
 __all__ += [

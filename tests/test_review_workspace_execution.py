@@ -39,6 +39,11 @@ from glio_noncode.review_workspace_execution_metrics import (
     review_workspace_execution_metrics_export_payloads,
     review_workspace_execution_metrics_schema,
 )
+from glio_noncode.review_workspace_execution_metrics_diff import (
+    diff_review_workspace_execution_metrics,
+    review_workspace_execution_metrics_diff_capabilities,
+    review_workspace_execution_metrics_diff_schema,
+)
 from glio_noncode.review_workspace_plan import build_review_workspace_plan
 from glio_noncode.runtime import CaseRuntime
 
@@ -307,6 +312,27 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 "review-workspace-execution-metrics.csv",
             })
             self.assertNotIn("agent_id", _keys(metrics.to_dict()))
+            empty_metrics = build_review_workspace_execution_metrics(
+                plan,
+                replay_review_workspace_plan_execution(plan),
+            )
+            delta = diff_review_workspace_execution_metrics(empty_metrics, metrics)
+            self.assertTrue(delta.metrics_changed)
+            self.assertEqual(delta.event_count_delta, 2)
+            self.assertGreater(delta.completion_basis_points_delta, 0)
+            delta_action = next(item for item in delta.action_diffs if item.action_id == action.action_id)
+            self.assertEqual(delta_action.event_count_delta, 2)
+            identity = diff_review_workspace_execution_metrics(metrics, metrics)
+            self.assertFalse(identity.metrics_changed)
+            self.assertEqual(
+                identity.content_address,
+                diff_review_workspace_execution_metrics(metrics, metrics).content_address,
+            )
+            self.assertTrue(review_workspace_execution_metrics_diff_capabilities()["lane_level_deltas"])
+            self.assertEqual(
+                review_workspace_execution_metrics_diff_schema()["delta_direction"],
+                "right minus left",
+            )
 
     def test_cli_event_append_and_api_read_query_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -43,6 +43,10 @@ from .review_workspace_execution_metrics import (
     build_review_workspace_execution_metrics,
     review_workspace_execution_metrics_export_payloads,
 )
+from .review_workspace_execution_metrics_diff import (
+    ReviewWorkspaceExecutionMetricsDiff,
+    diff_review_workspace_execution_metrics,
+)
 from .serialization import canonical_json, content_hash, hash_bytes, jsonable
 
 
@@ -353,6 +357,7 @@ class ReviewWorkspaceExecutionReleaseDiff:
     added_plan_check_ids: tuple[str, ...]
     removed_plan_check_ids: tuple[str, ...]
     changed_plan_check_ids: tuple[str, ...]
+    metrics_diff: ReviewWorkspaceExecutionMetricsDiff
     added_event_ids: tuple[str, ...]
     removed_event_ids: tuple[str, ...]
     changed_event_ids: tuple[str, ...]
@@ -387,6 +392,7 @@ class ReviewWorkspaceExecutionReleaseDiff:
             "added_plan_check_ids": list(self.added_plan_check_ids),
             "removed_plan_check_ids": list(self.removed_plan_check_ids),
             "changed_plan_check_ids": list(self.changed_plan_check_ids),
+            "metrics_diff": self.metrics_diff.to_dict(),
             "added_event_ids": list(self.added_event_ids),
             "removed_event_ids": list(self.removed_event_ids),
             "changed_event_ids": list(self.changed_event_ids),
@@ -988,6 +994,7 @@ def diff_review_workspace_execution_releases(
 
     left_value = _as_release(left)
     right_value = _as_release(right)
+    metrics_diff = diff_review_workspace_execution_metrics(left_value.metrics, right_value.metrics)
     left_events = _address_map(left_value.report.events, "event_id")
     right_events = _address_map(right_value.report.events, "event_id")
     event_ids_left = set(left_events)
@@ -1071,6 +1078,7 @@ def diff_review_workspace_execution_releases(
         "added_plan_check_ids": added_plan_checks,
         "removed_plan_check_ids": removed_plan_checks,
         "changed_plan_check_ids": changed_plan_checks,
+        "metrics_diff": metrics_diff.to_dict(),
         "added_event_ids": added_events,
         "removed_event_ids": removed_events,
         "changed_event_ids": changed_events,
@@ -1085,8 +1093,10 @@ def diff_review_workspace_execution_releases(
         "unchanged_artifact_ids": unchanged_artifacts,
         "accepted": left_value.accepted and right_value.accepted,
     }
+    constructor_body = dict(body)
+    constructor_body["metrics_diff"] = metrics_diff
     return ReviewWorkspaceExecutionReleaseDiff(
-        **body,
+        **constructor_body,
         content_address=content_hash(body, prefix="review-workspace-execution-release-diff"),
     )
 
@@ -1150,6 +1160,12 @@ def review_workspace_execution_release_schema() -> dict[str, Any]:
             "replay_derived": True,
             "integer_basis_points": True,
         },
+        "diff": {
+            "metrics_diff_version": "review-workspace-execution-metrics-diff-v1",
+            "delta_direction": "right minus left",
+            "action_and_lane_deltas": True,
+            "aggregate_count_deltas": True,
+        },
         "artifact_filenames": sorted(_REQUIRED_ARTIFACTS),
         "source_plan": {
             "required": True,
@@ -1190,6 +1206,8 @@ def review_workspace_execution_release_capabilities() -> dict[str, Any]:
         "action_timing_metrics": True,
         "lane_throughput_metrics": True,
         "critical_path_metrics": True,
+        "metrics_diff": True,
+        "baseline_delta_analysis": True,
         "release_diff": True,
         "symlink_and_path_safety": True,
         "public_boundary_audit": True,

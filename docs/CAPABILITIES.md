@@ -3892,6 +3892,7 @@ glio-noncode review-workspace-plan-execution-release-verify execution-release --
 glio-noncode review-workspace-plan-execution-release-query execution-release --status open --output execution-release-query.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --view events --kind start --output execution-release-events.json
 glio-noncode review-workspace-plan-execution-release-diff execution-release-a execution-release-b --output execution-release-diff.json
+glio-noncode review-workspace-plan-execution-metrics-diff-schema --output execution-metrics-diff-schema.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 

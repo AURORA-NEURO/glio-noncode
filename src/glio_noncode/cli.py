@@ -1760,6 +1760,10 @@ from .review_workspace_execution_metrics import (
     review_workspace_execution_metrics_capabilities,
     review_workspace_execution_metrics_schema,
 )
+from .review_workspace_execution_metrics_diff import (
+    review_workspace_execution_metrics_diff_capabilities,
+    review_workspace_execution_metrics_diff_schema,
+)
 from .review_workspace_execution_exports import (
     render_review_workspace_execution_markdown,
     review_workspace_execution_actions_csv,
@@ -3749,6 +3753,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-plan execution metrics capabilities",
     )
     review_workspace_execution_metrics_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_metrics_diff_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-metrics-diff-schema",
+        help="emit the review-plan execution metrics-diff schema",
+    )
+    review_workspace_execution_metrics_diff_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_metrics_diff_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-metrics-diff-capabilities",
+        help="emit review-plan execution metrics-diff capabilities",
+    )
+    review_workspace_execution_metrics_diff_capabilities_parser.add_argument("--output", default=None)
 
     review_workspace_execution_release_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-release-schema",
@@ -22867,6 +22883,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-metrics-capabilities":
             _write_json(review_workspace_execution_metrics_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-metrics-diff-schema":
+            _write_json(review_workspace_execution_metrics_diff_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-metrics-diff-capabilities":
+            _write_json(review_workspace_execution_metrics_diff_capabilities(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-release-schema":
             _write_json(review_workspace_execution_release_schema(), args.output)

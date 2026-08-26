@@ -66,6 +66,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             self.assertFalse(identity.plan_changed)
             self.assertEqual(identity.left_plan_address, plan.content_address)
             self.assertEqual(identity.added_plan_action_ids, ())
+            self.assertFalse(identity.metrics_diff.metrics_changed)
+            self.assertEqual(identity.metrics_diff.event_count_delta, 0)
             self.assertEqual(identity.added_event_ids, ())
             self.assertEqual(identity.changed_artifact_ids, ())
             self.assertEqual(identity.content_address, diff_review_workspace_execution_releases(loaded, loaded).content_address)
@@ -142,9 +144,11 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         self.assertEqual(len(schema["artifact_filenames"]), 14)
         self.assertEqual(schema["query_views"], ["actions", "events", "metrics"])
         self.assertTrue(schema["event_timeline"]["replay_verified"])
+        self.assertTrue(schema["diff"]["metrics_diff_version"])
         self.assertTrue(capabilities["independent_manifest_verification"])
         self.assertTrue(capabilities["event_timeline_query"])
         self.assertTrue(capabilities["execution_metrics"])
+        self.assertTrue(capabilities["metrics_diff"])
         self.assertTrue(capabilities["public_boundary_audit"])
 
     def test_metrics_artifact_tampering_is_rejected(self) -> None:
