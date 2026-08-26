@@ -3898,6 +3898,7 @@ glio-noncode review-workspace-plan-execution-release-diff execution-release-a ex
 glio-noncode review-workspace-plan-execution-metrics-diff-schema --output execution-metrics-diff-schema.json
 glio-noncode review-workspace-plan-execution-operations-schema --output execution-operations-schema.json
 glio-noncode review-workspace-plan-execution-operations-capabilities --output execution-operations-capabilities.json
+glio-noncode review-workspace-plan-execution-operations-diff-schema --output execution-operations-diff-schema.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
@@ -3931,7 +3932,9 @@ checks safe paths, manifest addresses, nested plan/report/action/check
 addresses, event-stream replay, metrics reconciliation, required artifact
 closure, and the public boundary before offline loading. Verified releases
 support bounded action, metrics, and operations views plus deterministic
-event/action/check and source-plan diffs without a live run store.
+event/action/check and source-plan diffs without a live run store. Release
+diffs also carry deterministic operations deltas for queue movement, attention
+class changes, and recommendation changes.
 
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source

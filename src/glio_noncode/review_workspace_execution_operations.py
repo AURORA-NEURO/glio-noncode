@@ -45,6 +45,12 @@ REVIEW_WORKSPACE_EXECUTION_OPERATIONS_SCHEMA_VERSION = (
 REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION = (
     "review-workspace-execution-operations-query-v1"
 )
+REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_VERSION = (
+    "review-workspace-execution-operations-diff-v1"
+)
+REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_SCHEMA_VERSION = (
+    "review-workspace-execution-operations-diff-schema-v1"
+)
 REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_ITEMS = 50_000
 REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_RATIONALE = 512
 REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_TEXT = 256
@@ -371,6 +377,67 @@ class ReviewWorkspaceExecutionOperationsQueryResult:
     facets: Mapping[str, Mapping[str, int]]
     first_rank: int | None
     last_rank: int | None
+    accepted: bool
+    warnings: tuple[str, ...]
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewWorkspaceExecutionOperationDiff:
+    """Queue placement and state change for one action across executions."""
+
+    action_id: str
+    left_rank: int | None
+    right_rank: int | None
+    left_attention_kind: str | None
+    right_attention_kind: str | None
+    left_status: str | None
+    right_status: str | None
+    left_lane: str | None
+    right_lane: str | None
+    left_address: str | None
+    right_address: str | None
+    rank_changed: bool
+    attention_kind_changed: bool
+    status_changed: bool
+    lane_changed: bool
+    changed: bool
+    content_address: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return jsonable(self)
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewWorkspaceExecutionOperationsDiff:
+    """Complete deterministic comparison of two attention-queue projections."""
+
+    left_execution_address: str
+    right_execution_address: str
+    operations_diff_version: str
+    left_operations_address: str
+    right_operations_address: str
+    left_metrics_address: str
+    right_metrics_address: str
+    queue_count_delta: int
+    completed_action_count_delta: int
+    left_recommended_transition: str
+    right_recommended_transition: str
+    recommendation_changed: bool
+    added_action_ids: tuple[str, ...]
+    removed_action_ids: tuple[str, ...]
+    changed_action_ids: tuple[str, ...]
+    unchanged_action_ids: tuple[str, ...]
+    rank_changed_action_ids: tuple[str, ...]
+    attention_kind_changed_action_ids: tuple[str, ...]
+    status_changed_action_ids: tuple[str, ...]
+    lane_changed_action_ids: tuple[str, ...]
+    attention_kind_count_deltas: Mapping[str, int]
+    lane_queue_count_deltas: Mapping[str, int]
+    action_diffs: tuple[ReviewWorkspaceExecutionOperationDiff, ...]
     accepted: bool
     warnings: tuple[str, ...]
     content_address: str
@@ -770,6 +837,139 @@ def query_review_workspace_execution_operations(
     )
 
 
+def _operation_map(
+    operations: ReviewWorkspaceExecutionOperations,
+) -> dict[str, ReviewWorkspaceExecutionAttentionItem]:
+    result: dict[str, ReviewWorkspaceExecutionAttentionItem] = {}
+    for item in operations.items:
+        if item.action_id in result:
+            raise ValidationError(f"duplicate operations action identifier: {item.action_id}")
+        result[item.action_id] = item
+    return result
+
+
+def _delta_counts(
+    left: Mapping[str, int],
+    right: Mapping[str, int],
+) -> dict[str, int]:
+    return {
+        key: right.get(key, 0) - left.get(key, 0)
+        for key in sorted(set(left) | set(right))
+        if right.get(key, 0) - left.get(key, 0) != 0
+    }
+
+
+def _operation_diff(
+    action_id: str,
+    left: ReviewWorkspaceExecutionAttentionItem | None,
+    right: ReviewWorkspaceExecutionAttentionItem | None,
+) -> ReviewWorkspaceExecutionOperationDiff:
+    left_rank = None if left is None else left.rank
+    right_rank = None if right is None else right.rank
+    left_attention_kind = None if left is None else left.attention_kind.value
+    right_attention_kind = None if right is None else right.attention_kind.value
+    left_status = None if left is None else left.status
+    right_status = None if right is None else right.status
+    left_lane = None if left is None else left.lane
+    right_lane = None if right is None else right.lane
+    body = {
+        "action_id": action_id,
+        "left_rank": left_rank,
+        "right_rank": right_rank,
+        "left_attention_kind": left_attention_kind,
+        "right_attention_kind": right_attention_kind,
+        "left_status": left_status,
+        "right_status": right_status,
+        "left_lane": left_lane,
+        "right_lane": right_lane,
+        "left_address": None if left is None else left.content_address,
+        "right_address": None if right is None else right.content_address,
+        "rank_changed": left is not None and right is not None and left_rank != right_rank,
+        "attention_kind_changed": (
+            left is not None and right is not None and left_attention_kind != right_attention_kind
+        ),
+        "status_changed": left is not None and right is not None and left_status != right_status,
+        "lane_changed": left is not None and right is not None and left_lane != right_lane,
+        "changed": (None if left is None else left.content_address)
+        != (None if right is None else right.content_address),
+    }
+    if contains_private_key(body):
+        raise ValidationError("execution operations diff failed the public boundary")
+    return ReviewWorkspaceExecutionOperationDiff(
+        **body,
+        content_address=content_hash(body, prefix="review-workspace-execution-operation-diff"),
+    )
+
+
+def diff_review_workspace_execution_operations(
+    left: ReviewWorkspaceExecutionOperations,
+    right: ReviewWorkspaceExecutionOperations,
+) -> ReviewWorkspaceExecutionOperationsDiff:
+    """Compare two verified attention queues without reordering either queue."""
+
+    if not isinstance(left, ReviewWorkspaceExecutionOperations):
+        raise ValidationError("operations diff requires a typed left projection")
+    if not isinstance(right, ReviewWorkspaceExecutionOperations):
+        raise ValidationError("operations diff requires a typed right projection")
+    if contains_private_key(left.to_dict()) or contains_private_key(right.to_dict()):
+        raise ValidationError("operations diff failed the public boundary")
+    left_rows = _operation_map(left)
+    right_rows = _operation_map(right)
+    action_ids = sorted(set(left_rows) | set(right_rows))
+    action_diffs = tuple(_operation_diff(action_id, left_rows.get(action_id), right_rows.get(action_id)) for action_id in action_ids)
+    added = tuple(sorted(set(right_rows) - set(left_rows)))
+    removed = tuple(sorted(set(left_rows) - set(right_rows)))
+    common = set(left_rows) & set(right_rows)
+    changed = tuple(sorted(action_id for action_id in common if left_rows[action_id].content_address != right_rows[action_id].content_address))
+    unchanged = tuple(sorted(action_id for action_id in common if left_rows[action_id].content_address == right_rows[action_id].content_address))
+    rank_changed = tuple(sorted(action_id for action_id in common if left_rows[action_id].rank != right_rows[action_id].rank))
+    attention_kind_changed = tuple(
+        sorted(
+            action_id
+            for action_id in common
+            if left_rows[action_id].attention_kind != right_rows[action_id].attention_kind
+        )
+    )
+    status_changed = tuple(sorted(action_id for action_id in common if left_rows[action_id].status != right_rows[action_id].status))
+    lane_changed = tuple(sorted(action_id for action_id in common if left_rows[action_id].lane != right_rows[action_id].lane))
+    warnings = tuple(dict.fromkeys((*left.warnings, *right.warnings)))
+    body = {
+        "operations_diff_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_VERSION,
+        "left_execution_address": left.execution_address,
+        "right_execution_address": right.execution_address,
+        "left_operations_address": left.content_address,
+        "right_operations_address": right.content_address,
+        "left_metrics_address": left.metrics_address,
+        "right_metrics_address": right.metrics_address,
+        "queue_count_delta": right.queue_count - left.queue_count,
+        "completed_action_count_delta": right.completed_action_count - left.completed_action_count,
+        "left_recommended_transition": left.recommended_transition,
+        "right_recommended_transition": right.recommended_transition,
+        "recommendation_changed": left.recommended_transition != right.recommended_transition,
+        "added_action_ids": added,
+        "removed_action_ids": removed,
+        "changed_action_ids": changed,
+        "unchanged_action_ids": unchanged,
+        "rank_changed_action_ids": rank_changed,
+        "attention_kind_changed_action_ids": attention_kind_changed,
+        "status_changed_action_ids": status_changed,
+        "lane_changed_action_ids": lane_changed,
+        "attention_kind_count_deltas": _delta_counts(left.attention_kind_counts, right.attention_kind_counts),
+        "lane_queue_count_deltas": _delta_counts(left.lane_queue_counts, right.lane_queue_counts),
+        "action_diffs": tuple(item.to_dict() for item in action_diffs),
+        "accepted": left.accepted and right.accepted,
+        "warnings": warnings,
+    }
+    if contains_private_key(body):
+        raise ValidationError("execution operations diff failed the public boundary")
+    constructor_body = dict(body)
+    constructor_body["action_diffs"] = action_diffs
+    return ReviewWorkspaceExecutionOperationsDiff(
+        **constructor_body,
+        content_address=content_hash(body, prefix="review-workspace-execution-operations-diff"),
+    )
+
+
 def review_workspace_execution_operations_schema() -> dict[str, Any]:
     """Return the operations queue contract."""
 
@@ -777,6 +977,7 @@ def review_workspace_execution_operations_schema() -> dict[str, Any]:
         "version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_SCHEMA_VERSION,
         "operations_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_VERSION,
         "query_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_QUERY_VERSION,
+        "diff_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_VERSION,
         "type": "execution_attention_queue",
         "attention_kinds": [item.value for item in ReviewWorkspaceExecutionAttentionKind],
         "ordering": ["attention_rank", "plan_priority", "plan_sequence", "action_id"],
@@ -861,10 +1062,86 @@ def review_workspace_execution_operations_capabilities() -> dict[str, Any]:
         "attention_kind_filtering": True,
         "dependency_filtering": True,
         "case_insensitive_public_text_search": True,
+        "operations_diff": True,
+        "per_action_queue_movement": True,
+        "aggregate_queue_deltas": True,
+    }
+
+
+def review_workspace_execution_operations_diff_schema() -> dict[str, Any]:
+    """Return the public contract for comparing attention queues."""
+
+    return {
+        "version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_SCHEMA_VERSION,
+        "operations_diff_version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_VERSION,
+        "type": "execution_operations_diff",
+        "delta_direction": "right minus left for numeric counts",
+        "per_action_fields": [
+            "left_rank",
+            "right_rank",
+            "left_attention_kind",
+            "right_attention_kind",
+            "left_status",
+            "right_status",
+            "left_lane",
+            "right_lane",
+            "left_address",
+            "right_address",
+            "rank_changed",
+            "attention_kind_changed",
+            "status_changed",
+            "lane_changed",
+        ],
+        "aggregate_fields": [
+            "queue_count_delta",
+            "completed_action_count_delta",
+            "attention_kind_count_deltas",
+            "lane_queue_count_deltas",
+            "recommendation_changed",
+        ],
+        "action_sets": [
+            "added_action_ids",
+            "removed_action_ids",
+            "changed_action_ids",
+            "unchanged_action_ids",
+            "rank_changed_action_ids",
+            "attention_kind_changed_action_ids",
+            "status_changed_action_ids",
+            "lane_changed_action_ids",
+        ],
+        "content_addressed": True,
+        "public_boundary": {
+            "raw_evidence": False,
+            "reviewer_identity": False,
+            "agent_identity": False,
+            "model_metadata": False,
+            "programming_language_metadata": False,
+            "scientific_decision": False,
+        },
+    }
+
+
+def review_workspace_execution_operations_diff_capabilities() -> dict[str, Any]:
+    """Return capability metadata for queue comparisons."""
+
+    return {
+        "version": REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_VERSION,
+        "per_action_queue_movement": True,
+        "rank_change_detection": True,
+        "attention_kind_change_detection": True,
+        "status_change_detection": True,
+        "lane_change_detection": True,
+        "aggregate_count_deltas": True,
+        "recommendation_change_detection": True,
+        "added_removed_action_sets": True,
+        "deterministic_content_address": True,
+        "public_boundary_audit": True,
     }
 
 
 __all__ = [
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_DIFF_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_ITEMS",
     "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_RATIONALE",
     "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_TEXT",
@@ -875,12 +1152,17 @@ __all__ = [
     "ReviewWorkspaceExecutionAttentionItem",
     "ReviewWorkspaceExecutionAttentionKind",
     "ReviewWorkspaceExecutionOperations",
+    "ReviewWorkspaceExecutionOperationDiff",
+    "ReviewWorkspaceExecutionOperationsDiff",
     "ReviewWorkspaceExecutionOperationsQuery",
     "ReviewWorkspaceExecutionOperationsQueryResult",
     "build_review_workspace_execution_operations",
     "query_review_workspace_execution_operations",
+    "diff_review_workspace_execution_operations",
     "render_review_workspace_execution_operations_markdown",
     "review_workspace_execution_operations_capabilities",
+    "review_workspace_execution_operations_diff_capabilities",
+    "review_workspace_execution_operations_diff_schema",
     "review_workspace_execution_operations_csv",
     "review_workspace_execution_operations_export_payloads",
     "review_workspace_execution_operations_json",

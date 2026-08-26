@@ -48,8 +48,11 @@ from glio_noncode.review_workspace_execution_operations import (
     ReviewWorkspaceExecutionAttentionKind,
     ReviewWorkspaceExecutionOperationsQuery,
     build_review_workspace_execution_operations,
+    diff_review_workspace_execution_operations,
     query_review_workspace_execution_operations,
     review_workspace_execution_operations_capabilities,
+    review_workspace_execution_operations_diff_capabilities,
+    review_workspace_execution_operations_diff_schema,
     review_workspace_execution_operations_export_payloads,
     review_workspace_execution_operations_schema,
 )
@@ -416,6 +419,30 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
             self.assertEqual(progressed_operations.completed_action_count, 1)
             self.assertEqual(progressed_operations.items[0].attention_kind, ReviewWorkspaceExecutionAttentionKind.READY)
             self.assertEqual(progressed_operations.items[0].action_id, plan.actions[1].action_id)
+            in_progress_diff = diff_review_workspace_execution_operations(
+                operations,
+                in_progress_operations,
+            )
+            self.assertEqual(in_progress_diff.queue_count_delta, 0)
+            self.assertEqual(in_progress_diff.completed_action_count_delta, 0)
+            self.assertEqual(in_progress_diff.status_changed_action_ids, (plan.actions[0].action_id,))
+            self.assertEqual(
+                in_progress_diff.attention_kind_changed_action_ids,
+                (plan.actions[0].action_id,),
+            )
+            self.assertTrue(in_progress_diff.recommendation_changed)
+            self.assertTrue(review_workspace_execution_operations_diff_capabilities()["rank_change_detection"])
+            self.assertEqual(
+                review_workspace_execution_operations_diff_schema()["delta_direction"],
+                "right minus left for numeric counts",
+            )
+            completed_diff = diff_review_workspace_execution_operations(
+                operations,
+                progressed_operations,
+            )
+            self.assertEqual(completed_diff.queue_count_delta, -1)
+            self.assertEqual(completed_diff.completed_action_count_delta, 1)
+            self.assertEqual(completed_diff.removed_action_ids, (plan.actions[0].action_id,))
 
             blocked_event = self._event(
                 plan,

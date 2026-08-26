@@ -790,6 +790,7 @@ glio-noncode review-workspace-plan-execution-release-diff execution-release-a ex
 glio-noncode review-workspace-plan-execution-metrics-diff-schema --output execution-metrics-diff-schema.json
 glio-noncode review-workspace-plan-execution-operations-schema --output execution-operations-schema.json
 glio-noncode review-workspace-plan-execution-operations-capabilities --output execution-operations-capabilities.json
+glio-noncode review-workspace-plan-execution-operations-diff-schema --output execution-operations-diff-schema.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 

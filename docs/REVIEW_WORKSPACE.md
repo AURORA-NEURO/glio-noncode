@@ -208,8 +208,11 @@ compares source-plan action, lane, and check changes in addition to event IDs,
 action status/address changes, execution checks, and artifact addresses between
 two verified packages. Its nested metrics diff reports right-minus-left
 completion, timing, check, dependency-wait, status-count, event-kind, action,
-lane, and critical-path deltas. Release operations are read-only at the API boundary;
-filesystem materialization remains an explicit CLI action.
+lane, and critical-path deltas. Its nested operations diff reports queue-count
+and completion deltas, added/removed queue actions, rank movement, attention
+class/status/lane changes, class and lane count deltas, and recommendation
+changes. Release operations are read-only at the API boundary; filesystem
+materialization remains an explicit CLI action.
 
 ## API
 
