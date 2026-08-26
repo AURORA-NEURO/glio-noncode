@@ -10764,6 +10764,21 @@ from .review_workspace_execution_timeline import (
     review_workspace_execution_timeline_capabilities,
     review_workspace_execution_timeline_schema,
 )
+from .review_workspace_execution_metrics import (
+    REVIEW_WORKSPACE_EXECUTION_METRICS_MAX_ROWS,
+    REVIEW_WORKSPACE_EXECUTION_METRICS_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_METRICS_VERSION,
+    ReviewWorkspaceExecutionActionMetrics,
+    ReviewWorkspaceExecutionLaneMetrics,
+    ReviewWorkspaceExecutionMetrics,
+    build_review_workspace_execution_metrics,
+    render_review_workspace_execution_metrics_markdown,
+    review_workspace_execution_metrics_capabilities,
+    review_workspace_execution_metrics_csv,
+    review_workspace_execution_metrics_export_payloads,
+    review_workspace_execution_metrics_json,
+    review_workspace_execution_metrics_schema,
+)
 from .review_workspace_execution_release import (
     REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX,
     REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION,
@@ -10782,6 +10797,7 @@ from .review_workspace_execution_release import (
     diff_review_workspace_execution_releases,
     load_review_workspace_execution_release,
     query_review_workspace_execution_release,
+    query_review_workspace_execution_release_metrics,
     query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
@@ -11221,6 +11237,22 @@ __all__ += [
 ]
 
 __all__ += [
+    "REVIEW_WORKSPACE_EXECUTION_METRICS_MAX_ROWS",
+    "REVIEW_WORKSPACE_EXECUTION_METRICS_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_METRICS_VERSION",
+    "ReviewWorkspaceExecutionActionMetrics",
+    "ReviewWorkspaceExecutionLaneMetrics",
+    "ReviewWorkspaceExecutionMetrics",
+    "build_review_workspace_execution_metrics",
+    "render_review_workspace_execution_metrics_markdown",
+    "review_workspace_execution_metrics_capabilities",
+    "review_workspace_execution_metrics_csv",
+    "review_workspace_execution_metrics_export_payloads",
+    "review_workspace_execution_metrics_json",
+    "review_workspace_execution_metrics_schema",
+]
+
+__all__ += [
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST",
@@ -11238,6 +11270,7 @@ __all__ += [
     "diff_review_workspace_execution_releases",
     "load_review_workspace_execution_release",
     "query_review_workspace_execution_release",
+    "query_review_workspace_execution_release_metrics",
     "query_review_workspace_execution_release_timeline",
     "review_workspace_execution_release_capabilities",
     "review_workspace_execution_release_schema",

@@ -263,6 +263,7 @@ from .review_workspace_execution_timeline import (
     ReviewWorkspaceExecutionTimelineQuery,
     query_review_workspace_execution_timeline,
 )
+from .review_workspace_execution_metrics import build_review_workspace_execution_metrics
 from .review_workspace_execution_release import (
     build_review_workspace_execution_release,
     review_workspace_execution_release_capabilities,
@@ -2353,7 +2354,15 @@ class ApiHandler(BaseHTTPRequestHandler):
                         plan_config=plan_config,
                     )
                     view = (self._query_value(query_values, "view") or "actions").casefold()
-                    if view == "events":
+                    if view == "metrics":
+                        plan = build_persisted_review_workspace_plan(
+                            runtime,
+                            run_id,
+                            baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                            config=plan_config,
+                        )
+                        result = build_review_workspace_execution_metrics(plan, execution)
+                    elif view == "events":
                         result = query_review_workspace_execution_timeline(
                             execution,
                             ReviewWorkspaceExecutionTimelineQuery(
@@ -2396,7 +2405,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             ),
                         )
                     else:
-                        raise ValidationError("execution query view must be actions or events")
+                        raise ValidationError("execution query view must be actions, events, or metrics")
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),
@@ -2432,7 +2441,15 @@ class ApiHandler(BaseHTTPRequestHandler):
                         plan_config=plan_config,
                     )
                     view = (self._query_value(query_values, "view") or "actions").casefold()
-                    if view == "events":
+                    if view == "metrics":
+                        plan = build_persisted_review_workspace_plan(
+                            runtime,
+                            run_id,
+                            baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                            config=plan_config,
+                        )
+                        result = build_review_workspace_execution_metrics(plan, execution)
+                    elif view == "events":
                         result = query_review_workspace_execution_timeline(
                             execution,
                             ReviewWorkspaceExecutionTimelineQuery(
@@ -2475,7 +2492,7 @@ class ApiHandler(BaseHTTPRequestHandler):
                             ),
                         )
                     else:
-                        raise ValidationError("execution release query view must be actions or events")
+                        raise ValidationError("execution release query view must be actions, events, or metrics")
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),

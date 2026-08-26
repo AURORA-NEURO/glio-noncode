@@ -46,11 +46,14 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             write_review_workspace_execution_release(bundle, destination)
             verification = verify_review_workspace_execution_release(destination)
             self.assertTrue(verification.accepted, verification.to_dict())
-            self.assertEqual(verification.artifact_count, 11)
-            self.assertEqual(verification.verified_artifact_count, 11)
+            self.assertEqual(verification.artifact_count, 14)
+            self.assertEqual(verification.verified_artifact_count, 14)
             loaded = load_review_workspace_execution_release(destination)
             self.assertEqual(loaded.execution_address, report.content_address)
             self.assertEqual(loaded.plan.content_address, plan.content_address)
+            self.assertEqual(loaded.metrics.plan_address, plan.content_address)
+            self.assertEqual(loaded.metrics.event_count, report.event_count)
+            self.assertTrue(verification.metrics_valid)
             self.assertEqual(loaded.report.to_dict(), report.to_dict())
             query = query_review_workspace_execution_release(
                 loaded,
@@ -136,13 +139,28 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         schema = review_workspace_execution_release_schema()
         capabilities = review_workspace_execution_release_capabilities()
         self.assertEqual(schema["version"], "review-workspace-execution-release-schema-v1")
-        self.assertEqual(len(schema["artifact_filenames"]), 11)
-        self.assertEqual(schema["query_views"], ["actions", "events"])
+        self.assertEqual(len(schema["artifact_filenames"]), 14)
+        self.assertEqual(schema["query_views"], ["actions", "events", "metrics"])
         self.assertTrue(schema["event_timeline"]["replay_verified"])
         self.assertTrue(capabilities["independent_manifest_verification"])
         self.assertTrue(capabilities["event_timeline_query"])
+        self.assertTrue(capabilities["execution_metrics"])
         self.assertTrue(capabilities["public_boundary_audit"])
 
+    def test_metrics_artifact_tampering_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, plan, report = self._report(directory)
+            bundle = build_review_workspace_execution_release(report, plan)
+            destination = Path(directory) / "execution-release"
+            write_review_workspace_execution_release(bundle, destination)
+            metrics_path = destination / "review-workspace-execution-metrics.json"
+            payload = json.loads(metrics_path.read_text(encoding="utf-8"))
+            payload["completion_basis_points"] = 10_000
+            metrics_path.write_text(json.dumps(payload), encoding="utf-8")
+            verification = verify_review_workspace_execution_release(destination)
+            self.assertFalse(verification.accepted)
+            self.assertFalse(verification.metrics_valid)
+            self.assertIn("review-workspace-execution-metrics.json", verification.tampered_files)
     def test_source_plan_hydration_rejects_graph_address_tampering(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             _, plan, _ = self._report(directory)

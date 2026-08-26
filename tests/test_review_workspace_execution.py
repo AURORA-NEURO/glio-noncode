@@ -32,6 +32,13 @@ from glio_noncode.review_workspace_execution_timeline import (
     review_workspace_execution_timeline_capabilities,
     review_workspace_execution_timeline_schema,
 )
+from glio_noncode.review_workspace_execution_metrics import (
+    build_review_workspace_execution_metrics,
+    render_review_workspace_execution_metrics_markdown,
+    review_workspace_execution_metrics_capabilities,
+    review_workspace_execution_metrics_export_payloads,
+    review_workspace_execution_metrics_schema,
+)
 from glio_noncode.review_workspace_plan import build_review_workspace_plan
 from glio_noncode.runtime import CaseRuntime
 
@@ -255,6 +262,52 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                     occurred_to="2026-08-25T12:00:00Z",
                 )
 
+    def test_execution_metrics_measure_timing_checks_lanes_and_critical_path(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, _, plan = self._context(directory)
+            action = plan.actions[0]
+            start = self._event(
+                plan,
+                action,
+                "metrics-start",
+                ReviewPlanExecutionEventKind.START,
+                "2026-08-25T12:00:00Z",
+            )
+            complete = self._event(
+                plan,
+                action,
+                "metrics-complete",
+                ReviewPlanExecutionEventKind.COMPLETE,
+                "2026-08-25T12:01:00Z",
+                previous=start.content_address,
+                checks=action.required_checks,
+            )
+            report = replay_review_workspace_plan_execution(plan, (start, complete))
+            metrics = build_review_workspace_execution_metrics(plan, report)
+            action_metrics = metrics.action_metrics[0]
+            self.assertEqual(metrics.metrics_version, "review-workspace-execution-metrics-v1")
+            self.assertEqual(metrics.event_count, 2)
+            self.assertEqual(action_metrics.execution_seconds, 60)
+            self.assertEqual(action_metrics.event_kind_counts["start"], 1)
+            self.assertEqual(action_metrics.event_kind_counts["complete"], 1)
+            self.assertEqual(action_metrics.completion_check_coverage_basis_points, 10_000)
+            self.assertGreater(metrics.completion_basis_points, 0)
+            self.assertIn(action.action_id, metrics.critical_path_action_ids)
+            self.assertEqual(len(metrics.lane_metrics), 5)
+            self.assertTrue(review_workspace_execution_metrics_capabilities()["critical_path_estimate"])
+            self.assertEqual(
+                review_workspace_execution_metrics_schema()["numeric_semantics"]["percentages"],
+                "integer basis points where 10000 equals 100 percent",
+            )
+            self.assertIn("# Review Workspace Execution Metrics", render_review_workspace_execution_metrics_markdown(metrics))
+            payloads = review_workspace_execution_metrics_export_payloads(metrics)
+            self.assertEqual(set(payloads), {
+                "review-workspace-execution-metrics.json",
+                "review-workspace-execution-metrics.md",
+                "review-workspace-execution-metrics.csv",
+            })
+            self.assertNotIn("agent_id", _keys(metrics.to_dict()))
+
     def test_cli_event_append_and_api_read_query_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime, dossier, plan = self._context(directory)
@@ -347,6 +400,20 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
             event_payload = json.loads(release_events.read_text(encoding="utf-8"))
             self.assertEqual(event_payload["total_count"], 1)
             self.assertEqual(event_payload["rows"][0]["sequence"], 0)
+            release_metrics = Path(directory) / "execution-release-metrics.json"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release-query",
+                    str(release),
+                    "--view",
+                    "metrics",
+                    "--output",
+                    str(release_metrics),
+                ]),
+                0,
+            )
+            metrics_payload = json.loads(release_metrics.read_text(encoding="utf-8"))
+            self.assertEqual(metrics_payload["metrics_version"], "review-workspace-execution-metrics-v1")
             server = create_server("127.0.0.1", 0, directory)
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -378,6 +445,15 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 self.assertEqual(timeline_payload["total_count"], 1)
                 self.assertEqual(timeline_payload["rows"][0]["sequence"], 0)
                 self.assertEqual(timeline_payload["rows"][0]["event"]["event_id"], "cli-start")
+                params = urlencode({"view": "metrics"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                live_metrics_payload = json.loads(response.read())
+                self.assertEqual(live_metrics_payload["metrics_version"], "review-workspace-execution-metrics-v1")
                 connection.request("GET", "/v1/review-workspace/plan/execution-release/schema")
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
@@ -392,6 +468,7 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
                 self.assertTrue(json.loads(response.read())["accepted"])
+                params = urlencode({"status": "in_progress", "limit": "2"})
                 connection.request(
                     "GET",
                     f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release/query?{params}",
@@ -409,6 +486,18 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 release_timeline_payload = json.loads(response.read())
                 self.assertEqual(release_timeline_payload["total_count"], 1)
                 self.assertEqual(release_timeline_payload["rows"][0]["sequence"], 0)
+                params = urlencode({"view": "metrics"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                release_metrics_payload = json.loads(response.read())
+                self.assertEqual(
+                    release_metrics_payload["metrics_version"],
+                    "review-workspace-execution-metrics-v1",
+                )
                 connection.close()
             finally:
                 server.shutdown()

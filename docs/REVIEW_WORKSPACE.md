@@ -151,14 +151,24 @@ text and occurrence-range filters; sequence windows; pagination; and complete-
 match facets for kinds, actions, checks, and references. Timeline results are
 derived only from the replay-verified report and never create a second ledger.
 
+## Execution metrics
+
+`review-workspace-plan-execution-query --view metrics` derives deterministic
+operational metrics from the typed source plan and replay report. It reports
+integer-basis-point completion, declared estimate units, action timing and
+transition counts, lane aggregation, dependency waits, required-check
+coverage, blocked work, and the estimated critical path. It can be rendered as
+canonical JSON, Markdown, or CSV through the portable release and never acts as
+a scientific score.
+
 ## Portable execution release
 
-`review-workspace-plan-execution-release` packages eleven exact-byte artifacts:
+`review-workspace-plan-execution-release` packages fourteen exact-byte artifacts:
 the typed execution report, human report, action CSV, event CSV, check CSV,
 canonical `events.jsonl`, and five source-plan artifacts covering the typed plan,
-plan Markdown, plan actions, plan lanes, and plan checks. The manifest carries
-each artifact's byte count, line count, media type, and content address, plus the
-execution and plan addresses.
+plan Markdown, plan actions, plan lanes, and plan checks, plus metrics JSON,
+Markdown, and CSV. The manifest carries each artifact's byte count, line count,
+media type, and content address, plus execution, plan, and metrics addresses.
 `review-workspace-plan-execution-release-verify` independently validates safe
 paths, artifact closure, nested report/action/check addresses, event-stream
 reconciliation, manifest bytes, and the public boundary. A verified package can
@@ -166,7 +176,8 @@ be loaded, queried, and diffed without a local runtime or plan store.
 
 `review-workspace-plan-execution-release-query` applies the live bounded action
 filters to a verified package; pass `--view events` for the same offline event
-timeline and its sequence-aware facets. `review-workspace-plan-execution-release-diff`
+timeline and its sequence-aware facets, or `--view metrics` for the verified
+metrics projection. `review-workspace-plan-execution-release-diff`
 compares source-plan action, lane, and check changes in addition to event IDs,
 action status/address changes, execution checks, and artifact addresses between
 two verified packages. Release operations are read-only at the API boundary;
@@ -211,8 +222,9 @@ portable handoff contract. `GET
 /v1/runs/{run_id}/review-workspace/plan/execution-release` returns the current
 release projection in memory, and `/execution-release/query` applies its
 bounded filters. Add `view=events` to query the verified event timeline with
-the same ordering and facets. The HTTP release projection is read-only and does
-not write a filesystem package.
+the same ordering and facets, or `view=metrics` for derived operational
+metrics. The HTTP release projection is read-only and does not write a
+filesystem package.
 
 ## Offline release operations
 
