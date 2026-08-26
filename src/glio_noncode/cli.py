@@ -1783,6 +1783,11 @@ from .review_workspace_execution_simulation import (
     review_workspace_execution_simulation_schema,
     simulate_review_workspace_plan_execution,
 )
+from .review_workspace_execution_batch import (
+    append_review_workspace_plan_execution_batch,
+    review_workspace_execution_batch_capabilities,
+    review_workspace_execution_batch_schema,
+)
 from .review_workspace_execution_metrics_diff import (
     review_workspace_execution_metrics_diff_capabilities,
     review_workspace_execution_metrics_diff_schema,
@@ -3645,6 +3650,21 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_simulate.add_argument("--include-report", action="store_true")
     review_workspace_plan_execution_simulate.add_argument("--output", default=None)
 
+    review_workspace_plan_execution_batch = subparsers.add_parser(
+        "review-workspace-plan-execution-batch",
+        help="simulate and atomically append a review-plan execution batch",
+    )
+    review_workspace_plan_execution_batch.add_argument("run_id", type=str)
+    review_workspace_plan_execution_batch.add_argument("--proposals", required=True)
+    review_workspace_plan_execution_batch.add_argument("--expected-execution-address", default=None)
+    review_workspace_plan_execution_batch.add_argument("--expected-event-count", type=int, default=None)
+    review_workspace_plan_execution_batch.add_argument("--expected-last-event-address", default=None)
+    review_workspace_plan_execution_batch.add_argument("--data-root", default=".glio")
+    review_workspace_plan_execution_batch.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_execution_batch.add_argument("--include-report", action="store_true")
+    review_workspace_plan_execution_batch.add_argument("--include-simulation", action="store_true")
+    review_workspace_plan_execution_batch.add_argument("--output", default=None)
+
     review_workspace_plan_execution_query = subparsers.add_parser(
         "review-workspace-plan-execution-query",
         help="query replayed review-plan action execution state",
@@ -3789,6 +3809,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-plan execution simulation capabilities",
     )
     review_workspace_execution_simulation_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_batch_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-batch-schema",
+        help="emit the atomic review-plan execution-batch schema",
+    )
+    review_workspace_execution_batch_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_batch_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-batch-capabilities",
+        help="emit atomic review-plan execution-batch capabilities",
+    )
+    review_workspace_execution_batch_capabilities_parser.add_argument("--output", default=None)
 
     review_workspace_execution_timeline_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-timeline-schema",
@@ -22851,6 +22883,27 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             return 0 if simulation.accepted else 2
+        if args.command == "review-workspace-plan-execution-batch":
+            raw_proposals = _read_json_document(args.proposals)
+            if not isinstance(raw_proposals, list):
+                raise ValidationError("execution batch proposals input must be an array")
+            result = append_review_workspace_plan_execution_batch(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                raw_proposals,
+                expected_execution_address=args.expected_execution_address,
+                expected_event_count=args.expected_event_count,
+                expected_last_event_address=args.expected_last_event_address,
+                baseline_run_id=args.baseline_run_id,
+            )
+            _write_json(
+                result.to_dict(
+                    include_simulation=args.include_simulation,
+                    include_report=args.include_report,
+                ),
+                args.output,
+            )
+            return 0 if result.accepted else 2
         if args.command == "review-workspace-plan-execution-query":
             execution = build_persisted_review_workspace_plan_execution(
                 CaseRuntime(args.data_root),
@@ -23102,6 +23155,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-simulation-capabilities":
             _write_json(review_workspace_execution_simulation_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-batch-schema":
+            _write_json(review_workspace_execution_batch_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-batch-capabilities":
+            _write_json(review_workspace_execution_batch_capabilities(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-timeline-schema":
             _write_json(review_workspace_execution_timeline_schema(), args.output)

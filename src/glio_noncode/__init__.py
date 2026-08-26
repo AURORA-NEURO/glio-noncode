@@ -10868,6 +10868,22 @@ from .review_workspace_execution_simulation import (
     render_review_workspace_execution_simulation_markdown,
     simulate_review_workspace_plan_execution,
 )
+from .review_workspace_execution_batch import (
+    REVIEW_WORKSPACE_EXECUTION_BATCH_MAX_MESSAGE,
+    REVIEW_WORKSPACE_EXECUTION_BATCH_MAX_PROPOSALS,
+    REVIEW_WORKSPACE_EXECUTION_BATCH_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_BATCH_VERSION,
+    ReviewWorkspaceExecutionBatchRequest,
+    ReviewWorkspaceExecutionBatchResult,
+    append_review_workspace_plan_execution_batch,
+    render_review_workspace_execution_batch_markdown,
+    review_workspace_execution_batch_capabilities,
+    review_workspace_execution_batch_csv,
+    review_workspace_execution_batch_export_payloads,
+    review_workspace_execution_batch_from_mapping,
+    review_workspace_execution_batch_json,
+    review_workspace_execution_batch_schema,
+)
 from .review_workspace_execution_release import (
     REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX,
     REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION,
@@ -11431,6 +11447,20 @@ __all__ += [
     "review_workspace_execution_simulation_schema",
     "render_review_workspace_execution_simulation_markdown",
     "simulate_review_workspace_plan_execution",
+    "REVIEW_WORKSPACE_EXECUTION_BATCH_MAX_MESSAGE",
+    "REVIEW_WORKSPACE_EXECUTION_BATCH_MAX_PROPOSALS",
+    "REVIEW_WORKSPACE_EXECUTION_BATCH_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_BATCH_VERSION",
+    "ReviewWorkspaceExecutionBatchRequest",
+    "ReviewWorkspaceExecutionBatchResult",
+    "append_review_workspace_plan_execution_batch",
+    "render_review_workspace_execution_batch_markdown",
+    "review_workspace_execution_batch_capabilities",
+    "review_workspace_execution_batch_csv",
+    "review_workspace_execution_batch_export_payloads",
+    "review_workspace_execution_batch_from_mapping",
+    "review_workspace_execution_batch_json",
+    "review_workspace_execution_batch_schema",
 ]
 
 __all__ += [

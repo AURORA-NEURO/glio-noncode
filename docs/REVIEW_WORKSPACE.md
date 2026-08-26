@@ -218,6 +218,9 @@ ledger, and stops at the first failure. Later proposals are returned as
 glio-noncode review-workspace-plan-execution-simulate RUN_ID --data-root .glio --proposals proposals.json --include-report --output simulation.json
 glio-noncode review-workspace-plan-execution-simulation-schema --output simulation-schema.json
 glio-noncode review-workspace-plan-execution-simulation-capabilities --output simulation-capabilities.json
+glio-noncode review-workspace-plan-execution-batch RUN_ID --data-root .glio --proposals proposals.json --include-simulation --output batch.json
+glio-noncode review-workspace-plan-execution-batch-schema --output batch-schema.json
+glio-noncode review-workspace-plan-execution-batch-capabilities --output batch-capabilities.json
 ```
 
 The result includes the baseline and projected execution addresses, accepted
@@ -227,6 +230,20 @@ and transition-frontier addresses. The same read-only operation is available as
 add `include_report=true` when the projected replay report is needed. Simulation
 reports export deterministic JSON, Markdown, and CSV from the Python API and
 remain ephemeral rather than becoming release artifacts.
+
+## Atomic execution batches
+
+`review-workspace-plan-execution-batch` takes the same proposal array as the
+simulator, captures the current execution address and event count, and appends
+the accepted hypothetical events with one manifest refresh. Callers may supply
+`--expected-execution-address`, `--expected-event-count`, and
+`--expected-last-event-address` to reject stale writers deterministically. A
+failed simulation or stale base returns a structured receipt and leaves the
+ledger unchanged; a successful batch returns committed event IDs and the new
+replay address. The CLI operation is the explicit write path. The HTTP write
+surface is `POST /v1/runs/RUN_ID/review-workspace/plan/execution/batch` with a
+JSON body containing `proposals` and optional expected-base fields; set
+`include_simulation` or `include_report` to request expanded receipts.
 
 ## Portable execution release
 

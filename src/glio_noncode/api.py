@@ -283,6 +283,11 @@ from .review_workspace_execution_simulation import (
     review_workspace_execution_simulation_schema,
     simulate_review_workspace_plan_execution,
 )
+from .review_workspace_execution_batch import (
+    append_review_workspace_plan_execution_batch,
+    review_workspace_execution_batch_capabilities,
+    review_workspace_execution_batch_schema,
+)
 from .review_workspace_execution_release import (
     build_review_workspace_execution_release,
     review_workspace_execution_release_capabilities,
@@ -692,6 +697,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/plan/execution/simulation/capabilities":
             self._write(HTTPStatus.OK, review_workspace_execution_simulation_capabilities())
+            return
+        if path == "/v1/review-workspace/plan/execution/batch/schema":
+            self._write(HTTPStatus.OK, review_workspace_execution_batch_schema())
+            return
+        if path == "/v1/review-workspace/plan/execution/batch/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_execution_batch_capabilities())
             return
         if path == "/v1/review-workspace/plan/execution/transitions/schema":
             self._write(HTTPStatus.OK, review_workspace_execution_transitions_schema())
@@ -2952,6 +2963,55 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        segments = [unquote(item) for item in path.split("/") if item]
+        if (
+            len(segments) == 7
+            and segments[0:2] == ["v1", "runs"]
+            and segments[3:7] == ["review-workspace", "plan", "execution", "batch"]
+        ):
+            try:
+                payload = self._read_json()
+                raw_proposals = payload.get("proposals", ())
+                if not isinstance(raw_proposals, list):
+                    raise ValueError("execution batch proposals must be an array")
+                expected_event_count = payload.get("expected_event_count")
+                if expected_event_count is not None:
+                    expected_event_count = int(expected_event_count)
+                for field in ("include_simulation", "include_report"):
+                    if field in payload and not isinstance(payload[field], bool):
+                        raise ValueError(f"execution batch {field} must be boolean")
+                result = append_review_workspace_plan_execution_batch(
+                    self._runtime(),
+                    segments[2],
+                    raw_proposals,
+                    expected_execution_address=payload.get("expected_execution_address"),
+                    expected_event_count=expected_event_count,
+                    expected_last_event_address=payload.get("expected_last_event_address"),
+                    baseline_run_id=payload.get("baseline_run_id"),
+                )
+                self._write(
+                    HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    result.to_dict(
+                        include_simulation=payload.get("include_simulation", True),
+                        include_report=payload.get("include_report", False),
+                    ),
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_execution_batch", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
             return
         if path == "/v1/cohort/benchmark":
             try:

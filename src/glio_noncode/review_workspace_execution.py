@@ -1088,27 +1088,50 @@ class ReviewPlanExecutionStore:
     ) -> ReviewWorkspaceExecutionReport:
         """Append one valid event and atomically refresh the manifest."""
 
-        if event.plan_id != plan.plan_id or event.plan_address != plan.content_address:
-            raise ValidationError("execution event does not belong to the supplied plan")
-        _validate_event_address(event)
+        return self.append_many(plan, (event,))
+
+    def append_many(
+        self,
+        plan: ReviewWorkspacePlan,
+        events: Iterable[ReviewPlanExecutionEvent],
+    ) -> ReviewWorkspaceExecutionReport:
+        """Append a prevalidated sequence with one durable manifest refresh.
+
+        All event, chain, duplicate-ID, replay, and capacity checks run before
+        the event file is replaced.  A rejected sequence therefore leaves the
+        existing event bytes and manifest untouched.
+        """
+
+        pending = tuple(events)
         existing = self.read_events(plan)
         previous = existing[-1].content_address if existing else None
-        if event.previous_event_address != previous:
-            raise ValidationError("execution event previous address does not match the ledger tail")
-        if any(item.event_id == event.event_id for item in existing):
-            raise ValidationError("execution event ID already exists in the ledger")
-        report = replay_review_workspace_plan_execution(plan, (*existing, event))
+        seen_event_ids = {item.event_id for item in existing}
+        for event in pending:
+            if event.plan_id != plan.plan_id or event.plan_address != plan.content_address:
+                raise ValidationError("execution event does not belong to the supplied plan")
+            _validate_event_address(event)
+            if event.previous_event_address != previous:
+                raise ValidationError(
+                    "execution event previous address does not match the ledger tail"
+                )
+            if event.event_id in seen_event_ids:
+                raise ValidationError("execution event ID already exists in the ledger")
+            seen_event_ids.add(event.event_id)
+            previous = event.content_address
+        if len(existing) + len(pending) > REVIEW_WORKSPACE_EXECUTION_MAX_EVENTS:
+            raise ValidationError("execution event count exceeds the bound")
+        report = replay_review_workspace_plan_execution(plan, (*existing, *pending))
         directory, events_path, manifest_path = self._paths(plan)
         _safe_file(self.root, directory=True)
         self.root.mkdir(parents=True, exist_ok=True)
         directory.mkdir(parents=True, exist_ok=True)
         _safe_file(directory, directory=True)
         old_bytes = events_path.read_bytes() if events_path.exists() else b""
-        new_bytes = old_bytes + _canonical_event_line(event)
+        new_bytes = old_bytes + b"".join(_canonical_event_line(event) for event in pending)
         temporary_events = events_path.with_suffix(".tmp")
         temporary_events.write_bytes(new_bytes)
         temporary_events.replace(events_path)
-        manifest_body = _manifest_body(plan, (*existing, event), new_bytes)
+        manifest_body = _manifest_body(plan, (*existing, *pending), new_bytes)
         manifest = manifest_body | {
             "manifest_address": _address(manifest_body, "review-plan-execution-manifest")
         }
