@@ -58,6 +58,17 @@ from .review_workspace_execution_operations import (
     query_review_workspace_execution_operations,
     review_workspace_execution_operations_export_payloads,
 )
+from .review_workspace_execution_transitions import (
+    ReviewWorkspaceExecutionTransitions,
+    ReviewWorkspaceExecutionTransitionsDiff,
+    ReviewWorkspaceExecutionTransitionsQuery,
+    ReviewWorkspaceExecutionTransitionsQueryResult,
+    build_review_workspace_execution_transitions,
+    diff_review_workspace_execution_transitions,
+    query_review_workspace_execution_transitions,
+    review_workspace_execution_transitions_export_payloads,
+    review_workspace_execution_transitions_from_mapping,
+)
 from .serialization import canonical_json, content_hash, hash_bytes, jsonable
 
 
@@ -88,6 +99,9 @@ _REQUIRED_ARTIFACTS = frozenset(
         "review-workspace-execution-operations.csv",
         "review-workspace-execution-operations.json",
         "review-workspace-execution-operations.md",
+        "review-workspace-execution-transitions.csv",
+        "review-workspace-execution-transitions.json",
+        "review-workspace-execution-transitions.md",
     }
 )
 _FORBIDDEN_KEYS = frozenset(
@@ -235,6 +249,7 @@ class ReviewWorkspaceExecutionReleaseBundle:
     accepted: bool
     metrics: ReviewWorkspaceExecutionMetrics
     operations: ReviewWorkspaceExecutionOperations
+    transitions: ReviewWorkspaceExecutionTransitions
     artifacts: tuple[ReviewWorkspaceExecutionReleaseArtifact, ...]
     manifest: Mapping[str, Any]
     content_address: str
@@ -252,6 +267,8 @@ class ReviewWorkspaceExecutionReleaseBundle:
             "critical_path_estimate_units": self.metrics.critical_path_estimate_units,
             "operations_address": self.operations.content_address,
             "queue_count": self.operations.queue_count,
+            "transitions_address": self.transitions.content_address,
+            "transition_option_count": self.transitions.option_count,
             "workspace_id": self.workspace_id,
             "run_id": self.run_id,
             "case_id": self.case_id,
@@ -259,6 +276,7 @@ class ReviewWorkspaceExecutionReleaseBundle:
             "accepted": self.accepted,
             "metrics": self.metrics.to_dict(),
             "operations": self.operations.to_dict(),
+            "transitions": self.transitions.to_dict(),
             "artifact_count": len(self.artifacts),
             "artifacts": [item.to_dict(include_payload=include_payloads) for item in self.artifacts],
             "manifest": jsonable(self.manifest),
@@ -279,6 +297,7 @@ class ReviewWorkspaceExecutionReleaseVerification:
     replay_valid: bool
     metrics_valid: bool
     operations_valid: bool
+    transitions_valid: bool
     execution_address_valid: bool
     public_boundary_valid: bool
     artifact_count: int
@@ -308,6 +327,7 @@ class ReviewWorkspaceOfflineExecutionRelease:
     plan: ReviewWorkspacePlan
     metrics: ReviewWorkspaceExecutionMetrics
     operations: ReviewWorkspaceExecutionOperations
+    transitions: ReviewWorkspaceExecutionTransitions
     workspace_id: str
     run_id: str
     case_id: str
@@ -329,6 +349,8 @@ class ReviewWorkspaceOfflineExecutionRelease:
             "metrics_address": self.metrics.content_address,
             "operations_address": self.operations.content_address,
             "queue_count": self.operations.queue_count,
+            "transitions_address": self.transitions.content_address,
+            "transition_option_count": self.transitions.option_count,
             "workspace_id": self.workspace_id,
             "run_id": self.run_id,
             "case_id": self.case_id,
@@ -342,6 +364,7 @@ class ReviewWorkspaceOfflineExecutionRelease:
             body["report"] = self.report.to_dict()
             body["metrics"] = self.metrics.to_dict()
             body["operations"] = self.operations.to_dict()
+            body["transitions"] = self.transitions.to_dict()
         return body
 
 
@@ -383,6 +406,7 @@ class ReviewWorkspaceExecutionReleaseDiff:
     changed_plan_check_ids: tuple[str, ...]
     metrics_diff: ReviewWorkspaceExecutionMetricsDiff
     operations_diff: ReviewWorkspaceExecutionOperationsDiff
+    transitions_diff: ReviewWorkspaceExecutionTransitionsDiff
     added_event_ids: tuple[str, ...]
     removed_event_ids: tuple[str, ...]
     changed_event_ids: tuple[str, ...]
@@ -419,6 +443,7 @@ class ReviewWorkspaceExecutionReleaseDiff:
             "changed_plan_check_ids": list(self.changed_plan_check_ids),
             "metrics_diff": self.metrics_diff.to_dict(),
             "operations_diff": self.operations_diff.to_dict(),
+            "transitions_diff": self.transitions_diff.to_dict(),
             "added_event_ids": list(self.added_event_ids),
             "removed_event_ids": list(self.removed_event_ids),
             "changed_event_ids": list(self.changed_event_ids),
@@ -440,6 +465,7 @@ def _manifest_body(
     report: ReviewWorkspaceExecutionReport,
     metrics: ReviewWorkspaceExecutionMetrics,
     operations: ReviewWorkspaceExecutionOperations,
+    transitions: ReviewWorkspaceExecutionTransitions,
     release_id: str,
     artifacts: tuple[ReviewWorkspaceExecutionReleaseArtifact, ...],
     accepted: bool,
@@ -464,6 +490,8 @@ def _manifest_body(
         "critical_path_estimate_units": metrics.critical_path_estimate_units,
         "operations_address": operations.content_address,
         "queue_count": operations.queue_count,
+        "transitions_address": transitions.content_address,
+        "transition_option_count": transitions.option_count,
         "artifact_count": len(artifacts),
         "artifacts": [item.to_dict() for item in artifacts],
         "public_boundary_valid": not contains_private_key(report.to_dict()),
@@ -495,6 +523,7 @@ def build_review_workspace_execution_release(
         raise ValidationError("execution report does not replay against its source plan")
     metrics = build_review_workspace_execution_metrics(source_plan, report)
     operations = build_review_workspace_execution_operations(source_plan, report, metrics)
+    transitions = build_review_workspace_execution_transitions(source_plan, report)
     public_body = report.to_dict()
     plan_body = source_plan.to_dict()
     if contains_private_key(public_body) or contains_private_key(plan_body):
@@ -519,6 +548,12 @@ def build_review_workspace_execution_release(
             for filename, content in review_workspace_execution_operations_export_payloads(operations).items()
         }
     )
+    payloads.update(
+        {
+            filename: content.encode("utf-8")
+            for filename, content in review_workspace_execution_transitions_export_payloads(transitions).items()
+        }
+    )
     payloads["events.jsonl"] = _event_stream(report)
     payloads.update(
         {
@@ -532,13 +567,14 @@ def build_review_workspace_execution_release(
     )
     accepted = report.accepted and source_plan.accepted and set(payloads) == _REQUIRED_ARTIFACTS
     release_id = f"review-execution-release-{report.content_address.split(':', 1)[-1][:24]}"
-    manifest = _manifest_body(report, metrics, operations, release_id, artifacts, accepted)
+    manifest = _manifest_body(report, metrics, operations, transitions, release_id, artifacts, accepted)
     body = {
         "release_id": release_id,
         "execution_id": report.execution_id,
         "execution_address": report.content_address,
         "metrics": metrics,
         "operations": operations,
+        "transitions": transitions,
         "manifest": manifest,
         "artifacts": [item.to_dict() for item in artifacts],
         "accepted": accepted,
@@ -556,6 +592,7 @@ def build_review_workspace_execution_release(
         accepted=accepted,
         metrics=metrics,
         operations=operations,
+        transitions=transitions,
         artifacts=artifacts,
         manifest=manifest,
         content_address=content_hash(body, prefix="review-workspace-execution-release"),
@@ -610,6 +647,7 @@ def _verification(
     tampered_files: Iterable[str] = (),
     boundary_violations: Iterable[str] = (),
     warnings: Iterable[str] = (),
+    transitions_valid: bool = False,
 ) -> ReviewWorkspaceExecutionReleaseVerification:
     body = {
         "path": str(root),
@@ -621,6 +659,7 @@ def _verification(
         "replay_valid": replay_valid,
         "metrics_valid": metrics_valid,
         "operations_valid": operations_valid,
+        "transitions_valid": transitions_valid,
         "execution_address_valid": execution_address_valid,
         "public_boundary_valid": public_boundary_valid,
         "artifact_count": artifact_count,
@@ -723,10 +762,12 @@ def verify_review_workspace_execution_release(
     plan: ReviewWorkspacePlan | None = None
     metrics_body: Mapping[str, Any] | None = None
     operations_body: Mapping[str, Any] | None = None
+    transitions_body: Mapping[str, Any] | None = None
     plan_address_valid = False
     replay_valid = False
     metrics_valid = False
     operations_valid = False
+    transitions_valid = False
     execution_address_valid = False
     for raw_artifact in listed:
         if not isinstance(raw_artifact, dict):
@@ -781,12 +822,19 @@ def verify_review_workspace_execution_release(
                         operations_body = artifact_body
                     else:
                         raise ValidationError("execution operations artifact must be an object")
+                elif filename == "review-workspace-execution-transitions.json":
+                    if isinstance(artifact_body, Mapping):
+                        transitions_body = artifact_body
+                    else:
+                        raise ValidationError("execution transitions artifact must be an object")
             except (UnicodeError, json.JSONDecodeError, TypeError, ValidationError):
                 tampered.append(filename)
                 if filename == "review-workspace-execution.json":
                     report = None
                 elif filename == "review-workspace-plan.json":
                     plan = None
+                elif filename == "review-workspace-execution-transitions.json":
+                    transitions_body = None
         elif filename == "events.jsonl":
             if report is not None and payload != _event_stream(report):
                 tampered.append(filename)
@@ -847,6 +895,32 @@ def verify_review_workspace_execution_release(
             tampered.append("review-workspace-execution-operations.json")
     else:
         tampered.append("review-workspace-execution-operations.json")
+    if (
+        report is not None
+        and plan is not None
+        and transitions_body is not None
+        and replay_valid
+    ):
+        try:
+            loaded_transitions = review_workspace_execution_transitions_from_mapping(transitions_body)
+            transitions = build_review_workspace_execution_transitions(plan, report)
+            transitions_valid = (
+                loaded_transitions.to_dict() == dict(transitions_body)
+                and transitions.to_dict() == loaded_transitions.to_dict()
+            )
+            if transitions_valid:
+                if manifest.get("transitions_address") != loaded_transitions.content_address:
+                    tampered.append("manifest.transitions_address")
+                    transitions_valid = False
+                if manifest.get("transition_option_count") != loaded_transitions.option_count:
+                    tampered.append("manifest.transition_option_count")
+                    transitions_valid = False
+        except ValidationError:
+            transitions_valid = False
+        if not transitions_valid:
+            tampered.append("review-workspace-execution-transitions.json")
+    else:
+        tampered.append("review-workspace-execution-transitions.json")
     actual = sorted(
         path.relative_to(root).as_posix()
         for path in root.rglob("*")
@@ -870,6 +944,7 @@ def verify_review_workspace_execution_release(
         and replay_valid
         and metrics_valid
         and operations_valid
+        and transitions_valid
         and execution_address_valid
         and public_boundary_valid
         and not any((missing, unexpected, unsafe, tampered))
@@ -888,6 +963,7 @@ def verify_review_workspace_execution_release(
         replay_valid=replay_valid,
         metrics_valid=metrics_valid,
         operations_valid=operations_valid,
+        transitions_valid=transitions_valid,
         execution_address_valid=execution_address_valid,
         public_boundary_valid=public_boundary_valid,
         artifact_count=len(expected),
@@ -940,6 +1016,7 @@ def load_review_workspace_execution_release(
         raise ValidationError("execution release report does not replay against the plan")
     metrics = build_review_workspace_execution_metrics(plan, report)
     operations = build_review_workspace_execution_operations(plan, report, metrics)
+    transitions = build_review_workspace_execution_transitions(plan, report)
     body = {
         "path": str(root),
         "release_id": _text(manifest.get("release_id"), "release_id"),
@@ -950,6 +1027,7 @@ def load_review_workspace_execution_release(
         "plan": plan,
         "metrics": metrics,
         "operations": operations,
+        "transitions": transitions,
         "workspace_id": report.workspace_id,
         "run_id": report.run_id,
         "case_id": report.case_id,
@@ -968,6 +1046,7 @@ def load_review_workspace_execution_release(
         plan=plan,
         metrics=metrics,
         operations=operations,
+        transitions=transitions,
         workspace_id=report.workspace_id,
         run_id=report.run_id,
         case_id=report.case_id,
@@ -1035,6 +1114,16 @@ def query_review_workspace_execution_release_operations_view(
     return query_review_workspace_execution_operations(value.operations, query)
 
 
+def query_review_workspace_execution_release_transitions_view(
+    release: ReviewWorkspaceOfflineExecutionRelease | str | Path,
+    query: ReviewWorkspaceExecutionTransitionsQuery | Mapping[str, Any] | None = None,
+) -> ReviewWorkspaceExecutionTransitionsQueryResult:
+    """Apply bounded transition-frontier filters to a verified release."""
+
+    value = _as_release(release)
+    return query_review_workspace_execution_transitions(value.transitions, query)
+
+
 def _address_map(items: Iterable[Any], identifier: str) -> dict[str, str]:
     result: dict[str, str] = {}
     for item in items:
@@ -1084,6 +1173,10 @@ def diff_review_workspace_execution_releases(
     right_value = _as_release(right)
     metrics_diff = diff_review_workspace_execution_metrics(left_value.metrics, right_value.metrics)
     operations_diff = diff_review_workspace_execution_operations(left_value.operations, right_value.operations)
+    transitions_diff = diff_review_workspace_execution_transitions(
+        left_value.transitions,
+        right_value.transitions,
+    )
     left_events = _address_map(left_value.report.events, "event_id")
     right_events = _address_map(right_value.report.events, "event_id")
     event_ids_left = set(left_events)
@@ -1169,6 +1262,7 @@ def diff_review_workspace_execution_releases(
         "changed_plan_check_ids": changed_plan_checks,
         "metrics_diff": metrics_diff.to_dict(),
         "operations_diff": operations_diff.to_dict(),
+        "transitions_diff": transitions_diff.to_dict(),
         "added_event_ids": added_events,
         "removed_event_ids": removed_events,
         "changed_event_ids": changed_events,
@@ -1186,6 +1280,7 @@ def diff_review_workspace_execution_releases(
     constructor_body = dict(body)
     constructor_body["metrics_diff"] = metrics_diff
     constructor_body["operations_diff"] = operations_diff
+    constructor_body["transitions_diff"] = transitions_diff
     return ReviewWorkspaceExecutionReleaseDiff(
         **constructor_body,
         content_address=content_hash(body, prefix="review-workspace-execution-release-diff"),
@@ -1233,7 +1328,7 @@ def review_workspace_execution_release_schema() -> dict[str, Any]:
             "manifest": {"type": "object"},
             "content_address": {"type": "string"},
         },
-        "query_views": ["actions", "events", "metrics", "operations"],
+        "query_views": ["actions", "events", "metrics", "operations", "transitions"],
         "event_timeline": {
             "query_version": "review-workspace-execution-timeline-query-v1",
             "ordering": "ascending ledger sequence",
@@ -1267,14 +1362,31 @@ def review_workspace_execution_release_schema() -> dict[str, Any]:
             "bounded_query": True,
             "complete_match_facets": True,
         },
+        "transitions": {
+            "required": True,
+            "artifacts": [
+                "review-workspace-execution-transitions.json",
+                "review-workspace-execution-transitions.md",
+                "review-workspace-execution-transitions.csv",
+            ],
+            "content_addressed": True,
+            "replay_derived": True,
+            "state_machine_preflight": True,
+            "dependency_preflight": True,
+            "required_check_preflight": True,
+            "bounded_query": True,
+            "complete_match_facets": True,
+        },
         "diff": {
             "metrics_diff_version": "review-workspace-execution-metrics-diff-v1",
             "operations_diff_version": "review-workspace-execution-operations-diff-v1",
+            "transitions_diff_version": "review-workspace-execution-transitions-diff-v1",
             "delta_direction": "right minus left",
             "action_and_lane_deltas": True,
             "aggregate_count_deltas": True,
             "queue_rank_and_attention_deltas": True,
             "recommendation_change_detection": True,
+            "transition_preflight_change_detection": True,
         },
         "artifact_filenames": sorted(_REQUIRED_ARTIFACTS),
         "source_plan": {
@@ -1331,6 +1443,16 @@ def review_workspace_execution_release_capabilities() -> dict[str, Any]:
         "operations_query": True,
         "operations_query_filters": True,
         "operations_query_facets": True,
+        "execution_transitions": True,
+        "transition_state_machine_preflight": True,
+        "transition_dependency_preflight": True,
+        "transition_check_preflight": True,
+        "transition_artifacts": True,
+        "transition_verification": True,
+        "transition_query": True,
+        "transition_query_filters": True,
+        "transition_query_facets": True,
+        "transition_diff": True,
         "release_diff": True,
         "symlink_and_path_safety": True,
         "public_boundary_audit": True,
@@ -1360,6 +1482,7 @@ __all__ = [
     "query_review_workspace_execution_release_metrics",
     "query_review_workspace_execution_release_operations",
     "query_review_workspace_execution_release_operations_view",
+    "query_review_workspace_execution_release_transitions_view",
     "query_review_workspace_execution_release_timeline",
     "review_workspace_execution_release_capabilities",
     "review_workspace_execution_release_schema",

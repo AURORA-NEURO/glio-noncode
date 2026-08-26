@@ -3888,17 +3888,23 @@ glio-noncode review-workspace-plan-execution RUN_ID --data-root .glio --output e
 glio-noncode review-workspace-plan-execution-query RUN_ID --view events --kind start --data-root .glio --output execution-events.json
 glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --data-root .glio --output execution-operations.json
 glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --attention-kind blocked --limit 25 --data-root .glio --output blocked-operations.json
+glio-noncode review-workspace-plan-execution-query RUN_ID --view transitions --kind complete --disposition requires_checks --data-root .glio --output execution-transitions.json
 glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
 glio-noncode review-workspace-plan-execution-release RUN_ID --data-root .glio --output execution-release
 glio-noncode review-workspace-plan-execution-release-verify execution-release --output execution-release-verification.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --status open --output execution-release-query.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --view events --kind start --output execution-release-events.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --view operations --output execution-release-operations.json
+glio-noncode review-workspace-plan-execution-release-query execution-release --view transitions --executable true --output execution-release-transitions.json
 glio-noncode review-workspace-plan-execution-release-diff execution-release-a execution-release-b --output execution-release-diff.json
 glio-noncode review-workspace-plan-execution-metrics-diff-schema --output execution-metrics-diff-schema.json
 glio-noncode review-workspace-plan-execution-operations-schema --output execution-operations-schema.json
 glio-noncode review-workspace-plan-execution-operations-capabilities --output execution-operations-capabilities.json
 glio-noncode review-workspace-plan-execution-operations-diff-schema --output execution-operations-diff-schema.json
+glio-noncode review-workspace-plan-execution-transitions-schema --output execution-transitions-schema.json
+glio-noncode review-workspace-plan-execution-transitions-capabilities --output execution-transitions-capabilities.json
+glio-noncode review-workspace-plan-execution-transitions-diff-schema --output execution-transitions-diff-schema.json
+glio-noncode review-workspace-plan-execution-transitions-diff-capabilities --output execution-transitions-diff-capabilities.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
@@ -3923,20 +3929,24 @@ exact-byte manifest checks, and deterministic action/event/check exports. The
 HTTP execution surface is read-only; CLI event appends are the only write path.
 
 The execution-release layer packages the replay report, event stream, metrics,
-attention operations, and deterministic JSON/Markdown/CSV projections into
-seventeen exact-byte
+attention operations, transition preflight, and deterministic JSON/Markdown/CSV
+projections into twenty exact-byte
 artifacts, including the source plan, dependency graph, required-check
 declarations, plan-level exports, action timing, lane throughput, dependency
 wait, check-coverage, and critical-path metrics. Its independent verifier
 checks safe paths, manifest addresses, nested plan/report/action/check
 addresses, event-stream replay, metrics reconciliation, required artifact
-closure, and the public boundary before offline loading. Verified releases
-support bounded action, metrics, and operations views plus deterministic
+closure, transition-frontier reconciliation, and the public boundary before
+offline loading. Verified releases support bounded action, metrics, operations,
+and transition-frontier views plus deterministic
 event/action/check and source-plan diffs without a live run store. Release
 diffs also carry deterministic operations deltas for queue movement, attention
-class changes, and recommendation changes. CI runs this execution/release
-surface explicitly, including all operations and operations-diff schema and
-capability commands, on every push and pull request.
+class changes, and recommendation changes. The transition diff additionally
+tracks appendable-option movement, precondition changes, per-action
+recommendations, and right-minus-left frontier counts. CI runs this
+execution/release surface explicitly, including operations, operations-diff,
+transition-frontier, and transition-diff schema and capability commands, on
+every push and pull request.
 
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source

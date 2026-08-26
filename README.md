@@ -779,6 +779,7 @@ glio-noncode review-workspace-plan-execution-query RUN_ID --view events --kind s
 glio-noncode review-workspace-plan-execution-query RUN_ID --view metrics --data-root .glio --output execution-metrics.json
 glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --data-root .glio --output execution-operations.json
 glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --attention-kind blocked --limit 25 --data-root .glio --output blocked-operations.json
+glio-noncode review-workspace-plan-execution-query RUN_ID --view transitions --kind complete --disposition requires_checks --data-root .glio --output execution-transitions.json
 glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
 glio-noncode review-workspace-plan-execution-release RUN_ID --data-root .glio --output execution-release
 glio-noncode review-workspace-plan-execution-release-verify execution-release --output execution-release-verification.json
@@ -786,11 +787,16 @@ glio-noncode review-workspace-plan-execution-release-query execution-release --s
 glio-noncode review-workspace-plan-execution-release-query execution-release --view events --kind start --output execution-release-events.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --view metrics --output execution-release-metrics.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --view operations --output execution-release-operations.json
+glio-noncode review-workspace-plan-execution-release-query execution-release --view transitions --executable true --output execution-release-transitions.json
 glio-noncode review-workspace-plan-execution-release-diff execution-release-a execution-release-b --output execution-release-diff.json
 glio-noncode review-workspace-plan-execution-metrics-diff-schema --output execution-metrics-diff-schema.json
 glio-noncode review-workspace-plan-execution-operations-schema --output execution-operations-schema.json
 glio-noncode review-workspace-plan-execution-operations-capabilities --output execution-operations-capabilities.json
 glio-noncode review-workspace-plan-execution-operations-diff-schema --output execution-operations-diff-schema.json
+glio-noncode review-workspace-plan-execution-transitions-schema --output execution-transitions-schema.json
+glio-noncode review-workspace-plan-execution-transitions-capabilities --output execution-transitions-capabilities.json
+glio-noncode review-workspace-plan-execution-transitions-diff-schema --output execution-transitions-diff-schema.json
+glio-noncode review-workspace-plan-execution-transitions-diff-capabilities --output execution-transitions-diff-capabilities.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 

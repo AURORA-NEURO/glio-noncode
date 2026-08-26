@@ -1769,6 +1769,15 @@ from .review_workspace_execution_operations import (
     review_workspace_execution_operations_diff_schema,
     review_workspace_execution_operations_schema,
 )
+from .review_workspace_execution_transitions import (
+    ReviewWorkspaceExecutionTransitionsQuery,
+    build_review_workspace_execution_transitions,
+    query_review_workspace_execution_transitions,
+    review_workspace_execution_transitions_capabilities,
+    review_workspace_execution_transitions_diff_capabilities,
+    review_workspace_execution_transitions_diff_schema,
+    review_workspace_execution_transitions_schema,
+)
 from .review_workspace_execution_metrics_diff import (
     review_workspace_execution_metrics_diff_capabilities,
     review_workspace_execution_metrics_diff_schema,
@@ -1786,6 +1795,7 @@ from .review_workspace_execution_release import (
     query_review_workspace_execution_release,
     query_review_workspace_execution_release_metrics,
     query_review_workspace_execution_release_operations_view,
+    query_review_workspace_execution_release_transitions_view,
     query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
@@ -3627,7 +3637,7 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_query.add_argument("--data-root", default=".glio")
     review_workspace_plan_execution_query.add_argument("--baseline-run-id", default=None)
     review_workspace_plan_execution_query.add_argument(
-        "--view", choices=("actions", "events", "metrics", "operations"), default="actions"
+        "--view", choices=("actions", "events", "metrics", "operations", "transitions"), default="actions"
     )
     review_workspace_plan_execution_query.add_argument("--status", default=None)
     review_workspace_plan_execution_query.add_argument("--lane", default=None)
@@ -3636,6 +3646,9 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_query.add_argument("--attention-kind", default=None)
     review_workspace_plan_execution_query.add_argument("--dependency-action-id", default=None)
     review_workspace_plan_execution_query.add_argument("--ready", choices=("true", "false"), default=None)
+    review_workspace_plan_execution_query.add_argument("--disposition", default=None)
+    review_workspace_plan_execution_query.add_argument("--executable", choices=("true", "false"), default=None)
+    review_workspace_plan_execution_query.add_argument("--permitted", choices=("true", "false"), default=None)
     review_workspace_plan_execution_query.add_argument("--event-kind", default=None)
     review_workspace_plan_execution_query.add_argument("--priority", type=int, default=None)
     review_workspace_plan_execution_query.add_argument("--text", default=None)
@@ -3702,7 +3715,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     review_workspace_plan_execution_release_query.add_argument("input", type=str)
     review_workspace_plan_execution_release_query.add_argument(
-        "--view", choices=("actions", "events", "metrics", "operations"), default="actions"
+        "--view", choices=("actions", "events", "metrics", "operations", "transitions"), default="actions"
     )
     review_workspace_plan_execution_release_query.add_argument("--status", default=None)
     review_workspace_plan_execution_release_query.add_argument("--lane", default=None)
@@ -3711,6 +3724,9 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_release_query.add_argument("--attention-kind", default=None)
     review_workspace_plan_execution_release_query.add_argument("--dependency-action-id", default=None)
     review_workspace_plan_execution_release_query.add_argument("--ready", choices=("true", "false"), default=None)
+    review_workspace_plan_execution_release_query.add_argument("--disposition", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--executable", choices=("true", "false"), default=None)
+    review_workspace_plan_execution_release_query.add_argument("--permitted", choices=("true", "false"), default=None)
     review_workspace_plan_execution_release_query.add_argument("--event-kind", default=None)
     review_workspace_plan_execution_release_query.add_argument("--priority", type=int, default=None)
     review_workspace_plan_execution_release_query.add_argument("--text", default=None)
@@ -3793,6 +3809,30 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-plan execution operations-diff capabilities",
     )
     review_workspace_execution_operations_diff_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_transitions_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-transitions-schema",
+        help="emit the review-plan execution transition-frontier schema",
+    )
+    review_workspace_execution_transitions_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_transitions_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-transitions-capabilities",
+        help="emit review-plan execution transition-frontier capabilities",
+    )
+    review_workspace_execution_transitions_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_transitions_diff_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-transitions-diff-schema",
+        help="emit the review-plan execution transition-diff schema",
+    )
+    review_workspace_execution_transitions_diff_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_transitions_diff_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-transitions-diff-capabilities",
+        help="emit review-plan execution transition-diff capabilities",
+    )
+    review_workspace_execution_transitions_diff_capabilities_parser.add_argument("--output", default=None)
 
     review_workspace_execution_metrics_diff_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-metrics-diff-schema",
@@ -22790,6 +22830,33 @@ def main(argv: list[str] | None = None) -> int:
                         }
                     ),
                 )
+            elif args.view == "transitions":
+                runtime = CaseRuntime(args.data_root)
+                plan = build_persisted_review_workspace_plan(
+                    runtime,
+                    args.run_id,
+                    baseline_run_id=args.baseline_run_id,
+                )
+                transitions = build_review_workspace_execution_transitions(plan, execution)
+                result = query_review_workspace_execution_transitions(
+                    transitions,
+                    ReviewWorkspaceExecutionTransitionsQuery.from_mapping(
+                        {
+                            "action_id": args.action_id,
+                            "kind": args.kind,
+                            "disposition": args.disposition,
+                            "status": args.status,
+                            "lane": args.lane,
+                            "action_kind": args.action_kind,
+                            "priorities": () if args.priority is None else (args.priority,),
+                            "executable": args.executable,
+                            "permitted": args.permitted,
+                            "text": args.text,
+                            "offset": args.offset,
+                            "limit": args.limit,
+                        }
+                    ),
+                )
             elif args.view == "metrics":
                 runtime = CaseRuntime(args.data_root)
                 plan = build_persisted_review_workspace_plan(
@@ -22910,6 +22977,26 @@ def main(argv: list[str] | None = None) -> int:
                         }
                     ),
                 )
+            elif args.view == "transitions":
+                result = query_review_workspace_execution_release_transitions_view(
+                    args.input,
+                    ReviewWorkspaceExecutionTransitionsQuery.from_mapping(
+                        {
+                            "action_id": args.action_id,
+                            "kind": args.kind,
+                            "disposition": args.disposition,
+                            "status": args.status,
+                            "lane": args.lane,
+                            "action_kind": args.action_kind,
+                            "priorities": () if args.priority is None else (args.priority,),
+                            "executable": args.executable,
+                            "permitted": args.permitted,
+                            "text": args.text,
+                            "offset": args.offset,
+                            "limit": args.limit,
+                        }
+                    ),
+                )
             elif args.view == "metrics":
                 result = query_review_workspace_execution_release_metrics(args.input)
             elif args.view == "events":
@@ -22980,6 +23067,18 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-operations-diff-capabilities":
             _write_json(review_workspace_execution_operations_diff_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-transitions-schema":
+            _write_json(review_workspace_execution_transitions_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-transitions-capabilities":
+            _write_json(review_workspace_execution_transitions_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-transitions-diff-schema":
+            _write_json(review_workspace_execution_transitions_diff_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-transitions-diff-capabilities":
+            _write_json(review_workspace_execution_transitions_diff_capabilities(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-metrics-diff-schema":
             _write_json(review_workspace_execution_metrics_diff_schema(), args.output)

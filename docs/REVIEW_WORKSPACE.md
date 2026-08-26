@@ -184,25 +184,47 @@ queue rank, expose complete-match facets for attention kinds, statuses, lanes,
 action kinds, priorities, and dependencies, and include `has_more` plus the
 first and last returned ranks.
 
+## Execution transition frontier
+
+`review-workspace-plan-execution-query --view transitions` expands every
+planned action into the five explicit ledger transition kinds: start, complete,
+block, skip, and reopen. Each option states whether the current state permits
+it, whether it is executable without more input, and whether it is waiting on
+dependencies, required public checks, or a bounded reason. It also carries the
+last event ID and predecessor address so an explicit append can be preflighted
+without trusting an unverified summary.
+
+The transition frontier exports deterministic JSON, Markdown, and CSV. Queries
+support `--action-id`, `--kind`, `--disposition`, `--status`, `--lane`,
+`--action-kind`, `--priority`, `--executable`, `--permitted`, `--text`,
+`--offset`, and `--limit`, with complete-match facets. Its schema and
+capabilities are available from
+`review-workspace-plan-execution-transitions-schema` and
+`review-workspace-plan-execution-transitions-capabilities`; the transition-diff
+schema and capabilities expose deterministic cross-snapshot changes.
+
 ## Portable execution release
 
-`review-workspace-plan-execution-release` packages seventeen exact-byte artifacts:
+`review-workspace-plan-execution-release` packages twenty exact-byte artifacts:
 the typed execution report, human report, action CSV, event CSV, check CSV,
 canonical `events.jsonl`, and five source-plan artifacts covering the typed plan,
 plan Markdown, plan actions, plan lanes, and plan checks, plus metrics JSON,
-Markdown, and CSV, plus operations JSON, Markdown, and CSV. The manifest carries
+Markdown, and CSV, plus operations JSON, Markdown, and CSV, plus transition-
+frontier JSON, Markdown, and CSV. The manifest carries
 each artifact's byte count, line count, media type, and content address, plus
-execution, plan, metrics, and operations addresses.
+execution, plan, metrics, operations, and transitions addresses.
 `review-workspace-plan-execution-release-verify` independently validates safe
 paths, artifact closure, nested report/action/check addresses, event-stream
-reconciliation, metrics and operations derivation, manifest bytes, and the
-public boundary. A verified package can
+reconciliation, metrics and operations derivation, transition-frontier
+reconciliation, manifest bytes, and the public boundary. A verified package can
 be loaded, queried, and diffed without a local runtime or plan store.
 
 `review-workspace-plan-execution-release-query` applies the live bounded action
 filters to a verified package; pass `--view events` for the same offline event
 timeline and its sequence-aware facets, or `--view metrics` for the verified
-metrics projection, or `--view operations` for the verified attention queue.
+metrics projection, `--view operations` for the verified attention queue, or
+`--view transitions` for the verified transition preflight and its bounded
+facets.
 `review-workspace-plan-execution-release-diff`
 compares source-plan action, lane, and check changes in addition to event IDs,
 action status/address changes, execution checks, and artifact addresses between
@@ -211,7 +233,9 @@ completion, timing, check, dependency-wait, status-count, event-kind, action,
 lane, and critical-path deltas. Its nested operations diff reports queue-count
 and completion deltas, added/removed queue actions, rank movement, attention
 class/status/lane changes, class and lane count deltas, and recommendation
-changes. Release operations are read-only at the API boundary; filesystem
+changes. Its nested transition diff reports added, removed, changed, and
+unchanged transition options, per-action recommendation movement, and
+right-minus-left frontier count deltas. Release operations are read-only at the API boundary; filesystem
 materialization remains an explicit CLI action.
 
 ## API
@@ -242,6 +266,10 @@ accepts `baseline_run_id` plus an optional JSON `config` object. The nested
 execution contract. `GET /v1/runs/{run_id}/review-workspace/plan/execution`
 replays the local ledger; `/execution/query` applies bounded action filters by
 default and accepts `view=events`, `view=metrics`, or `view=operations`.
+It also accepts `view=transitions` for a complete transition preflight.
+Transition query parameters include `kind`, `disposition`, `status`, `lane`,
+`action_kind`, `action_id`, `priority`, `executable`, `permitted`, `text`,
+`offset`, and `limit`.
 Operations query parameters include `attention_kind`, `status`, `lane`,
 `action_kind`, `action_id`, `priority`, `ready`, `dependency_action_id`,
 `text`, `offset`, and `limit`.
@@ -258,7 +286,8 @@ portable handoff contract. `GET
 release projection in memory, and `/execution-release/query` applies its
 bounded filters. Add `view=events` to query the verified event timeline with
 the same ordering and facets, `view=metrics` for derived operational metrics,
-or `view=operations` for the verified attention queue. The HTTP release
+or `view=operations` for the verified attention queue, or `view=transitions`
+for the verified transition preflight. The HTTP release
 projection is read-only and does not write a filesystem package; operations
 filters use the same names as the live query.
 

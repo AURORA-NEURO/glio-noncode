@@ -675,6 +675,28 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
             filtered_operations_payload = json.loads(filtered_operations.read_text(encoding="utf-8"))
             self.assertEqual(filtered_operations_payload["total_count"], 1)
             self.assertEqual(filtered_operations_payload["rows"][0]["attention_kind"], "in_progress")
+            release_transitions = Path(directory) / "execution-release-transitions.json"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release-query",
+                    str(release),
+                    "--view",
+                    "transitions",
+                    "--kind",
+                    "complete",
+                    "--status",
+                    "in_progress",
+                    "--limit",
+                    "2",
+                    "--output",
+                    str(release_transitions),
+                ]),
+                0,
+            )
+            transitions_payload = json.loads(release_transitions.read_text(encoding="utf-8"))
+            self.assertEqual(transitions_payload["total_count"], 1)
+            self.assertEqual(transitions_payload["rows"][0]["kind"], "complete")
+            self.assertEqual(transitions_payload["rows"][0]["disposition"], "requires_checks")
             server = create_server("127.0.0.1", 0, directory)
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -739,6 +761,29 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 self.assertEqual(
                     filtered_live_operations_payload["rows"][0]["attention_kind"],
                     "in_progress",
+                )
+                params = urlencode(
+                    {"view": "transitions", "kind": "complete", "status": "in_progress", "limit": "2"}
+                )
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                live_transitions_payload = json.loads(response.read())
+                self.assertEqual(live_transitions_payload["total_count"], 1)
+                self.assertEqual(live_transitions_payload["rows"][0]["kind"], "complete")
+                connection.request(
+                    "GET",
+                    "/v1/review-workspace/plan/execution/transitions/schema",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                transition_schema = json.loads(response.read())
+                self.assertEqual(
+                    transition_schema["version"],
+                    "review-workspace-execution-transitions-schema-v1",
                 )
                 connection.request("GET", "/v1/review-workspace/plan/execution-release/schema")
                 response = connection.getresponse()
@@ -806,6 +851,18 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 filtered_release_operations_payload = json.loads(response.read())
                 self.assertEqual(filtered_release_operations_payload["total_count"], 1)
                 self.assertEqual(filtered_release_operations_payload["rows"][0]["lane"], "intake")
+                params = urlencode(
+                    {"view": "transitions", "kind": "complete", "status": "in_progress", "limit": "2"}
+                )
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                release_transitions_payload = json.loads(response.read())
+                self.assertEqual(release_transitions_payload["total_count"], 1)
+                self.assertEqual(release_transitions_payload["rows"][0]["kind"], "complete")
                 connection.close()
             finally:
                 server.shutdown()

@@ -269,6 +269,15 @@ from .review_workspace_execution_operations import (
     build_review_workspace_execution_operations,
     query_review_workspace_execution_operations,
 )
+from .review_workspace_execution_transitions import (
+    ReviewWorkspaceExecutionTransitionsQuery,
+    build_review_workspace_execution_transitions,
+    query_review_workspace_execution_transitions,
+    review_workspace_execution_transitions_capabilities,
+    review_workspace_execution_transitions_diff_capabilities,
+    review_workspace_execution_transitions_diff_schema,
+    review_workspace_execution_transitions_schema,
+)
 from .review_workspace_execution_release import (
     build_review_workspace_execution_release,
     review_workspace_execution_release_capabilities,
@@ -672,6 +681,18 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/plan/execution/capabilities":
             self._write(HTTPStatus.OK, review_workspace_execution_capabilities())
+            return
+        if path == "/v1/review-workspace/plan/execution/transitions/schema":
+            self._write(HTTPStatus.OK, review_workspace_execution_transitions_schema())
+            return
+        if path == "/v1/review-workspace/plan/execution/transitions/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_execution_transitions_capabilities())
+            return
+        if path == "/v1/review-workspace/plan/execution/transitions/diff/schema":
+            self._write(HTTPStatus.OK, review_workspace_execution_transitions_diff_schema())
+            return
+        if path == "/v1/review-workspace/plan/execution/transitions/diff/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_execution_transitions_diff_capabilities())
             return
         if path == "/v1/review-workspace/plan/execution-release/schema":
             self._write(HTTPStatus.OK, review_workspace_execution_release_schema())
@@ -2392,6 +2413,40 @@ class ApiHandler(BaseHTTPRequestHandler):
                                 }
                             ),
                         )
+                    elif view == "transitions":
+                        plan = build_persisted_review_workspace_plan(
+                            runtime,
+                            run_id,
+                            baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                            config=plan_config,
+                        )
+                        transitions = build_review_workspace_execution_transitions(plan, execution)
+                        result = query_review_workspace_execution_transitions(
+                            transitions,
+                            ReviewWorkspaceExecutionTransitionsQuery.from_mapping(
+                                {
+                                    "action_id": self._query_value(query_values, "action_id"),
+                                    "kind": self._query_value(query_values, "kind"),
+                                    "disposition": self._query_value(query_values, "disposition"),
+                                    "status": self._query_value(query_values, "status"),
+                                    "lane": self._query_value(query_values, "lane"),
+                                    "action_kind": self._query_value(query_values, "action_kind"),
+                                    "priorities": [
+                                        int(value)
+                                        for value in query_values.get("priority", ())
+                                    ],
+                                    "executable": self._query_value(query_values, "executable"),
+                                    "permitted": self._query_value(query_values, "permitted"),
+                                    "text": self._query_value(query_values, "text"),
+                                    "offset": self._query_int(query_values, "offset", 0),
+                                    "limit": (
+                                        50
+                                        if self._query_optional_int(query_values, "limit") is None
+                                        else self._query_optional_int(query_values, "limit")
+                                    ),
+                                }
+                            ),
+                        )
                     elif view == "metrics":
                         plan = build_persisted_review_workspace_plan(
                             runtime,
@@ -2443,7 +2498,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                             ),
                         )
                     else:
-                        raise ValidationError("execution query view must be actions, events, metrics, or operations")
+                        raise ValidationError(
+                            "execution query view must be actions, events, metrics, operations, or transitions"
+                        )
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),
@@ -2512,6 +2569,40 @@ class ApiHandler(BaseHTTPRequestHandler):
                                 }
                             ),
                         )
+                    elif view == "transitions":
+                        plan = build_persisted_review_workspace_plan(
+                            runtime,
+                            run_id,
+                            baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                            config=plan_config,
+                        )
+                        transitions = build_review_workspace_execution_transitions(plan, execution)
+                        result = query_review_workspace_execution_transitions(
+                            transitions,
+                            ReviewWorkspaceExecutionTransitionsQuery.from_mapping(
+                                {
+                                    "action_id": self._query_value(query_values, "action_id"),
+                                    "kind": self._query_value(query_values, "kind"),
+                                    "disposition": self._query_value(query_values, "disposition"),
+                                    "status": self._query_value(query_values, "status"),
+                                    "lane": self._query_value(query_values, "lane"),
+                                    "action_kind": self._query_value(query_values, "action_kind"),
+                                    "priorities": [
+                                        int(value)
+                                        for value in query_values.get("priority", ())
+                                    ],
+                                    "executable": self._query_value(query_values, "executable"),
+                                    "permitted": self._query_value(query_values, "permitted"),
+                                    "text": self._query_value(query_values, "text"),
+                                    "offset": self._query_int(query_values, "offset", 0),
+                                    "limit": (
+                                        50
+                                        if self._query_optional_int(query_values, "limit") is None
+                                        else self._query_optional_int(query_values, "limit")
+                                    ),
+                                }
+                            ),
+                        )
                     elif view == "metrics":
                         plan = build_persisted_review_workspace_plan(
                             runtime,
@@ -2563,7 +2654,9 @@ class ApiHandler(BaseHTTPRequestHandler):
                             ),
                         )
                     else:
-                        raise ValidationError("execution release query view must be actions, events, metrics, or operations")
+                        raise ValidationError(
+                            "execution release query view must be actions, events, metrics, operations, or transitions"
+                        )
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),

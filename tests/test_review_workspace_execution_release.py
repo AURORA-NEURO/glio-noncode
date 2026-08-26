@@ -17,6 +17,7 @@ from glio_noncode.review_workspace_execution_release import (
     load_review_workspace_execution_release,
     query_review_workspace_execution_release,
     query_review_workspace_execution_release_operations,
+    query_review_workspace_execution_release_transitions_view,
     query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
@@ -47,8 +48,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             write_review_workspace_execution_release(bundle, destination)
             verification = verify_review_workspace_execution_release(destination)
             self.assertTrue(verification.accepted, verification.to_dict())
-            self.assertEqual(verification.artifact_count, 17)
-            self.assertEqual(verification.verified_artifact_count, 17)
+            self.assertEqual(verification.artifact_count, 20)
+            self.assertEqual(verification.verified_artifact_count, 20)
             loaded = load_review_workspace_execution_release(destination)
             self.assertEqual(loaded.execution_address, report.content_address)
             self.assertEqual(loaded.plan.content_address, plan.content_address)
@@ -56,11 +57,21 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             self.assertEqual(loaded.metrics.event_count, report.event_count)
             self.assertTrue(verification.metrics_valid)
             self.assertTrue(verification.operations_valid)
+            self.assertTrue(verification.transitions_valid)
             self.assertEqual(loaded.operations.queue_count, report.action_count)
             self.assertEqual(
                 query_review_workspace_execution_release_operations(loaded).to_dict(),
                 loaded.operations.to_dict(),
             )
+            transition_view = query_review_workspace_execution_release_transitions_view(loaded)
+            self.assertTrue(transition_view.accepted)
+            self.assertEqual(transition_view.total_count, loaded.transitions.option_count)
+            executable_view = query_review_workspace_execution_release_transitions_view(
+                loaded,
+                {"kind": "start", "executable": True, "limit": 3},
+            )
+            self.assertTrue(executable_view.accepted)
+            self.assertLessEqual(len(executable_view.rows), 3)
             self.assertEqual(loaded.report.to_dict(), report.to_dict())
             query = query_review_workspace_execution_release(
                 loaded,
@@ -77,6 +88,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             self.assertEqual(identity.metrics_diff.event_count_delta, 0)
             self.assertEqual(identity.operations_diff.queue_count_delta, 0)
             self.assertFalse(identity.operations_diff.recommendation_changed)
+            self.assertFalse(identity.transitions_diff.recommendation_changed)
+            self.assertEqual(identity.transitions_diff.changed_transition_ids, ())
             self.assertEqual(identity.operations_diff.changed_action_ids, ())
             self.assertEqual(identity.added_event_ids, ())
             self.assertEqual(identity.changed_artifact_ids, ())
@@ -151,16 +164,21 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         schema = review_workspace_execution_release_schema()
         capabilities = review_workspace_execution_release_capabilities()
         self.assertEqual(schema["version"], "review-workspace-execution-release-schema-v1")
-        self.assertEqual(len(schema["artifact_filenames"]), 17)
-        self.assertEqual(schema["query_views"], ["actions", "events", "metrics", "operations"])
+        self.assertEqual(len(schema["artifact_filenames"]), 20)
+        self.assertEqual(
+            schema["query_views"],
+            ["actions", "events", "metrics", "operations", "transitions"],
+        )
         self.assertEqual(
             schema["operations"]["query_version"],
             "review-workspace-execution-operations-query-v1",
         )
         self.assertTrue(schema["operations"]["complete_match_facets"])
+        self.assertTrue(schema["transitions"]["state_machine_preflight"])
         self.assertTrue(schema["event_timeline"]["replay_verified"])
         self.assertTrue(schema["diff"]["metrics_diff_version"])
         self.assertTrue(schema["diff"]["operations_diff_version"])
+        self.assertTrue(schema["diff"]["transitions_diff_version"])
         self.assertTrue(capabilities["independent_manifest_verification"])
         self.assertTrue(capabilities["event_timeline_query"])
         self.assertTrue(capabilities["execution_metrics"])
@@ -170,6 +188,8 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         self.assertTrue(capabilities["operations_verification"])
         self.assertTrue(capabilities["operations_query"])
         self.assertTrue(capabilities["operations_query_facets"])
+        self.assertTrue(capabilities["execution_transitions"])
+        self.assertTrue(capabilities["transition_verification"])
         self.assertTrue(capabilities["public_boundary_audit"])
 
     def test_metrics_artifact_tampering_is_rejected(self) -> None:
@@ -201,6 +221,25 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             self.assertFalse(verification.accepted)
             self.assertFalse(verification.operations_valid)
             self.assertIn("review-workspace-execution-operations.json", verification.tampered_files)
+
+    def test_transitions_artifact_tampering_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, plan, report = self._report(directory)
+            bundle = build_review_workspace_execution_release(report, plan)
+            destination = Path(directory) / "execution-release"
+            write_review_workspace_execution_release(bundle, destination)
+            transitions_path = destination / "review-workspace-execution-transitions.json"
+            payload = json.loads(transitions_path.read_text(encoding="utf-8"))
+            payload["executable_option_count"] = int(payload["executable_option_count"]) + 1
+            transitions_path.write_text(json.dumps(payload), encoding="utf-8")
+            verification = verify_review_workspace_execution_release(destination)
+            self.assertFalse(verification.accepted)
+            self.assertFalse(verification.transitions_valid)
+            self.assertIn(
+                "review-workspace-execution-transitions.json",
+                verification.tampered_files,
+            )
+
     def test_source_plan_hydration_rejects_graph_address_tampering(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             _, plan, _ = self._report(directory)
