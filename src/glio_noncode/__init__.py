@@ -11059,6 +11059,97 @@ from .module_certification_quality_policy_contracts import (
     ModuleCertificationQualityPolicy,
     ModuleCertificationQualityPolicyCheck,
 )
+from .module_workbench import (
+    build_module_workbench,
+    module_workbench_capabilities,
+    module_workbench_csv,
+    module_workbench_json,
+    module_workbench_schema,
+    query_module_workbench,
+    render_module_workbench_markdown,
+    verify_module_workbench,
+)
+from .module_workbench_contracts import (
+    ModuleWorkbenchAssessment,
+    ModuleWorkbenchDepthBand,
+    ModuleWorkbenchDimension,
+    ModuleWorkbenchFamilyRollup,
+    ModuleWorkbenchReport,
+    ModuleWorkbenchRisk,
+    ModuleWorkbenchTask,
+    ModuleWorkbenchTaskKind,
+)
+from .module_workbench_policy import (
+    build_module_workbench_policy,
+    default_module_workbench_policy,
+    evaluate_module_workbench_policy,
+    module_workbench_policy_capabilities,
+    module_workbench_policy_csv,
+    module_workbench_policy_json,
+    module_workbench_policy_schema,
+    module_workbench_policy_summary,
+    query_module_workbench_policy,
+    render_module_workbench_policy_markdown,
+    verify_module_workbench_gate,
+    verify_module_workbench_policy,
+)
+from .module_workbench_policy_contracts import (
+    ModuleWorkbenchGate,
+    ModuleWorkbenchPolicy,
+    ModuleWorkbenchPolicyCheck,
+)
+from .module_workbench_audit import (
+    audit_module_workbench,
+    module_workbench_audit_capabilities,
+    module_workbench_audit_csv,
+    module_workbench_audit_json,
+    module_workbench_audit_schema,
+    query_module_workbench_audit,
+    verify_module_workbench_audit,
+)
+from .module_workbench_audit_contracts import (
+    ModuleWorkbenchAudit,
+    ModuleWorkbenchAuditCheck,
+    ModuleWorkbenchAuditPlane,
+)
+from .module_workbench_diff import (
+    build_module_workbench_diff,
+    module_workbench_diff_capabilities,
+    module_workbench_diff_csv,
+    module_workbench_diff_json,
+    module_workbench_diff_schema,
+    query_module_workbench_diff,
+    verify_module_workbench_diff,
+)
+from .module_workbench_diff_contracts import (
+    ModuleWorkbenchChange,
+    ModuleWorkbenchChangeKind,
+    ModuleWorkbenchDiff,
+)
+from .module_workbench_runtime import (
+    module_workbench_runtime_capabilities,
+    module_workbench_runtime_csv,
+    module_workbench_runtime_json,
+    module_workbench_runtime_schema,
+    query_module_workbench_runtime,
+    run_module_workbench,
+    verify_module_workbench_runtime,
+)
+from .module_workbench_runtime_contracts import (
+    ModuleWorkbenchRuntime,
+    ModuleWorkbenchStage,
+    ModuleWorkbenchStageKind,
+    ModuleWorkbenchStageState,
+)
+from .module_workbench_portfolio import (
+    build_module_workbench_portfolio,
+    module_workbench_portfolio_capabilities,
+    module_workbench_portfolio_json,
+    module_workbench_portfolio_schema,
+    query_module_workbench_portfolio,
+    verify_module_workbench_portfolio,
+)
+from .module_workbench_portfolio_contracts import ModuleWorkbenchPortfolio
 from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema, verify_module_inventory
 from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
 from .module_inventory_contracts import (
@@ -11184,6 +11275,23 @@ __all__ += [
 __all__ += [
     "ModuleCertificationQualityGate", "ModuleCertificationQualityPolicy", "ModuleCertificationQualityPolicyCheck",
     "build_module_certification_quality_policy", "compare_module_certification_quality_gates", "compare_module_certification_quality_policies", "default_module_certification_quality_policy", "evaluate_module_certification_quality_policy", "module_certification_quality_policy_capabilities", "module_certification_quality_policy_csv", "module_certification_quality_policy_failures", "module_certification_quality_policy_json", "module_certification_quality_policy_schema", "module_certification_quality_policy_summary", "query_module_certification_quality_policy", "render_module_certification_quality_policy_markdown", "verify_module_certification_quality_gate", "verify_module_certification_quality_policy",
+]
+
+__all__ += [
+    "ModuleWorkbenchAssessment", "ModuleWorkbenchDepthBand", "ModuleWorkbenchDimension", "ModuleWorkbenchFamilyRollup", "ModuleWorkbenchReport", "ModuleWorkbenchRisk", "ModuleWorkbenchTask", "ModuleWorkbenchTaskKind",
+    "build_module_workbench", "module_workbench_capabilities", "module_workbench_csv", "module_workbench_json", "module_workbench_schema", "query_module_workbench", "render_module_workbench_markdown", "verify_module_workbench",
+]
+
+__all__ += [
+    "ModuleWorkbenchGate", "ModuleWorkbenchPolicy", "ModuleWorkbenchPolicyCheck",
+    "build_module_workbench_policy", "default_module_workbench_policy", "evaluate_module_workbench_policy", "module_workbench_policy_capabilities", "module_workbench_policy_csv", "module_workbench_policy_json", "module_workbench_policy_schema", "module_workbench_policy_summary", "query_module_workbench_policy", "render_module_workbench_policy_markdown", "verify_module_workbench_gate", "verify_module_workbench_policy",
+    "ModuleWorkbenchAudit", "ModuleWorkbenchAuditCheck", "ModuleWorkbenchAuditPlane",
+    "audit_module_workbench", "module_workbench_audit_capabilities", "module_workbench_audit_csv", "module_workbench_audit_json", "module_workbench_audit_schema", "query_module_workbench_audit", "verify_module_workbench_audit",
+    "ModuleWorkbenchChange", "ModuleWorkbenchChangeKind", "ModuleWorkbenchDiff",
+    "build_module_workbench_diff", "module_workbench_diff_capabilities", "module_workbench_diff_csv", "module_workbench_diff_json", "module_workbench_diff_schema", "query_module_workbench_diff", "verify_module_workbench_diff",
+    "ModuleWorkbenchRuntime", "ModuleWorkbenchStage", "ModuleWorkbenchStageKind", "ModuleWorkbenchStageState",
+    "module_workbench_runtime_capabilities", "module_workbench_runtime_csv", "module_workbench_runtime_json", "module_workbench_runtime_schema", "query_module_workbench_runtime", "run_module_workbench", "verify_module_workbench_runtime",
+    "ModuleWorkbenchPortfolio", "build_module_workbench_portfolio", "module_workbench_portfolio_capabilities", "module_workbench_portfolio_json", "module_workbench_portfolio_schema", "query_module_workbench_portfolio", "verify_module_workbench_portfolio",
 ]
 
 __all__ += [

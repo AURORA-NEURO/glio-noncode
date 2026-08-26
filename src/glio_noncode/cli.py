@@ -2121,6 +2121,12 @@ from .module_certification_quality import build_module_certification_quality, mo
 from .module_certification_lineage_audit import build_module_certification_lineage_audit, module_certification_lineage_audit_capabilities, module_certification_lineage_audit_csv, module_certification_lineage_audit_schema, query_module_certification_lineage_audit
 from .module_certification_release import build_module_certification_release, module_certification_release_capabilities, module_certification_release_checks_csv, module_certification_release_schema, query_module_certification_release, render_module_certification_release_markdown
 from .module_certification_quality_policy import build_module_certification_quality_policy, evaluate_module_certification_quality_policy, module_certification_quality_policy_capabilities, module_certification_quality_policy_csv, module_certification_quality_policy_failures, module_certification_quality_policy_schema, module_certification_quality_policy_summary, query_module_certification_quality_policy, render_module_certification_quality_policy_markdown
+from .module_workbench import build_module_workbench, module_workbench_capabilities, module_workbench_csv, module_workbench_json, module_workbench_schema, query_module_workbench, render_module_workbench_markdown
+from .module_workbench_audit import audit_module_workbench, module_workbench_audit_capabilities, module_workbench_audit_csv, module_workbench_audit_json, module_workbench_audit_schema, query_module_workbench_audit
+from .module_workbench_diff import module_workbench_diff_capabilities, module_workbench_diff_csv, module_workbench_diff_json, module_workbench_diff_schema, query_module_workbench_diff
+from .module_workbench_policy import build_module_workbench_policy, default_module_workbench_policy, evaluate_module_workbench_policy, module_workbench_policy_capabilities, module_workbench_policy_csv, module_workbench_policy_json, module_workbench_policy_schema, module_workbench_policy_summary, query_module_workbench_policy, render_module_workbench_policy_markdown
+from .module_workbench_runtime import module_workbench_runtime_capabilities, module_workbench_runtime_csv, module_workbench_runtime_json, module_workbench_runtime_schema, query_module_workbench_runtime, run_module_workbench
+from .module_workbench_portfolio import build_module_workbench_portfolio, module_workbench_portfolio_capabilities, module_workbench_portfolio_json, module_workbench_portfolio_schema, query_module_workbench_portfolio
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4473,6 +4479,110 @@ def build_parser() -> argparse.ArgumentParser:
     module_certification_release.add_argument("--output", default=None)
     subparsers.add_parser("module-certification-release-schema", help="print module certification release schema").add_argument("--output", default=None)
     subparsers.add_parser("module-certification-release-capabilities", help="print module certification release capabilities").add_argument("--output", default=None)
+
+    module_workbench = subparsers.add_parser("module-workbench", help="plan and query deep module-by-module implementation work")
+    module_workbench.add_argument("--source-root", default=None)
+    module_workbench.add_argument("--test-root", default=None)
+    module_workbench.add_argument("--docs-root", default=None)
+    module_workbench.add_argument("--resource", choices=("modules", "tasks", "families", "risks", "summary"), default="modules")
+    module_workbench.add_argument("--module-id", default=None)
+    module_workbench.add_argument("--family", default=None)
+    module_workbench.add_argument("--depth-band", default=None)
+    module_workbench.add_argument("--risk", default=None)
+    module_workbench.add_argument("--kind", default=None)
+    module_workbench.add_argument("--text", default=None)
+    module_workbench.add_argument("--offset", default=0, type=int)
+    module_workbench.add_argument("--limit", default=50, type=int)
+    module_workbench.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    module_workbench.add_argument("--compact", action="store_true")
+    module_workbench.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-schema", help="print module workbench schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-capabilities", help="print module workbench capabilities").add_argument("--output", default=None)
+    module_workbench_policy = subparsers.add_parser("module-workbench-policy", help="evaluate module workbench depth thresholds")
+    module_workbench_policy.add_argument("--source-root", default=None)
+    module_workbench_policy.add_argument("--test-root", default=None)
+    module_workbench_policy.add_argument("--docs-root", default=None)
+    module_workbench_policy.add_argument("--minimum-overall-score", default=0.70, type=float)
+    module_workbench_policy.add_argument("--minimum-depth-percent", default=70.0, type=float)
+    module_workbench_policy.add_argument("--maximum-blocked-count", default=0, type=int)
+    module_workbench_policy.add_argument("--maximum-high-risk-count", default=500, type=int)
+    module_workbench_policy.add_argument("--minimum-family-score", default=0.45, type=float)
+    module_workbench_policy.add_argument("--minimum-test-references", default=0, type=int)
+    module_workbench_policy.add_argument("--minimum-evidence-count", default=1, type=int)
+    module_workbench_policy.add_argument("--passed", action="store_true")
+    module_workbench_policy.add_argument("--text", default=None)
+    module_workbench_policy.add_argument("--offset", default=0, type=int)
+    module_workbench_policy.add_argument("--limit", default=50, type=int)
+    module_workbench_policy.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    module_workbench_policy.add_argument("--include-checks", action="store_true")
+    module_workbench_policy.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-policy-schema", help="print module workbench policy schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-policy-capabilities", help="print module workbench policy capabilities").add_argument("--output", default=None)
+    module_workbench_audit = subparsers.add_parser("module-workbench-audit", help="audit module workbench invariants")
+    module_workbench_audit.add_argument("--source-root", default=None)
+    module_workbench_audit.add_argument("--test-root", default=None)
+    module_workbench_audit.add_argument("--docs-root", default=None)
+    module_workbench_audit.add_argument("--plane", default=None)
+    module_workbench_audit.add_argument("--passed", action="store_true")
+    module_workbench_audit.add_argument("--text", default=None)
+    module_workbench_audit.add_argument("--offset", default=0, type=int)
+    module_workbench_audit.add_argument("--limit", default=50, type=int)
+    module_workbench_audit.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_audit.add_argument("--include-checks", action="store_true")
+    module_workbench_audit.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-audit-schema", help="print module workbench audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-audit-capabilities", help="print module workbench audit capabilities").add_argument("--output", default=None)
+    module_workbench_diff = subparsers.add_parser("module-workbench-diff", help="compare two module workbench snapshots")
+    module_workbench_diff.add_argument("--left-source-root", default=None)
+    module_workbench_diff.add_argument("--right-source-root", default=None)
+    module_workbench_diff.add_argument("--left-test-root", default=None)
+    module_workbench_diff.add_argument("--right-test-root", default=None)
+    module_workbench_diff.add_argument("--left-docs-root", default=None)
+    module_workbench_diff.add_argument("--right-docs-root", default=None)
+    module_workbench_diff.add_argument("--kind", default=None)
+    module_workbench_diff.add_argument("--module-id", default=None)
+    module_workbench_diff.add_argument("--text", default=None)
+    module_workbench_diff.add_argument("--offset", default=0, type=int)
+    module_workbench_diff.add_argument("--limit", default=50, type=int)
+    module_workbench_diff.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_diff.add_argument("--include-changes", action="store_true")
+    module_workbench_diff.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-diff-schema", help="print module workbench diff schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-diff-capabilities", help="print module workbench diff capabilities").add_argument("--output", default=None)
+    module_workbench_runtime = subparsers.add_parser("module-workbench-runtime", help="run the complete static module workbench chain")
+    module_workbench_runtime.add_argument("--source-root", default=None)
+    module_workbench_runtime.add_argument("--test-root", default=None)
+    module_workbench_runtime.add_argument("--docs-root", default=None)
+    module_workbench_runtime.add_argument("--resource", choices=("stages", "summary"), default="stages")
+    module_workbench_runtime.add_argument("--state", default=None)
+    module_workbench_runtime.add_argument("--accepted", action="store_true")
+    module_workbench_runtime.add_argument("--text", default=None)
+    module_workbench_runtime.add_argument("--offset", default=0, type=int)
+    module_workbench_runtime.add_argument("--limit", default=50, type=int)
+    module_workbench_runtime.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_runtime.add_argument("--include-stages", action="store_true")
+    module_workbench_runtime.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-runtime-schema", help="print module workbench runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-runtime-capabilities", help="print module workbench runtime capabilities").add_argument("--output", default=None)
+    module_workbench_portfolio = subparsers.add_parser("module-workbench-portfolio", help="select a bounded module workbench task portfolio")
+    module_workbench_portfolio.add_argument("--source-root", default=None)
+    module_workbench_portfolio.add_argument("--test-root", default=None)
+    module_workbench_portfolio.add_argument("--docs-root", default=None)
+    module_workbench_portfolio.add_argument("--capacity", default=100, type=int)
+    module_workbench_portfolio.add_argument("--max-tasks-per-module", default=2, type=int)
+    module_workbench_portfolio.add_argument("--minimum-priority", default=0, type=int)
+    module_workbench_portfolio.add_argument("--maximum-priority", default=100, type=int)
+    module_workbench_portfolio.add_argument("--risk", action="append", default=[])
+    module_workbench_portfolio.add_argument("--module-id", default=None)
+    module_workbench_portfolio.add_argument("--kind", default=None)
+    module_workbench_portfolio.add_argument("--text", default=None)
+    module_workbench_portfolio.add_argument("--offset", default=0, type=int)
+    module_workbench_portfolio.add_argument("--limit", default=50, type=int)
+    module_workbench_portfolio.add_argument("--format", choices=("json", "summary"), default="json")
+    module_workbench_portfolio.add_argument("--compact", action="store_true")
+    module_workbench_portfolio.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-portfolio-schema", help="print module workbench portfolio schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-portfolio-capabilities", help="print module workbench portfolio capabilities").add_argument("--output", default=None)
 
     module_inventory = subparsers.add_parser(
         "module-inventory",
@@ -25680,6 +25790,312 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(release.to_dict(include_checks=args.include_checks), args.output)
             return 0 if release.release_eligible else 2
+        if args.command == "module-workbench-schema":
+            _write_json(module_workbench_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-capabilities":
+            _write_json(module_workbench_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            if args.format == "csv":
+                _write_text(module_workbench_csv(workbench, args.resource), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_markdown(workbench), args.output)
+            elif args.format == "summary":
+                _write_json(workbench.to_dict(include_rows=False), args.output)
+            elif any(
+                value is not None
+                for value in (
+                    args.module_id,
+                    args.family,
+                    args.depth_band,
+                    args.risk,
+                    args.kind,
+                    args.text,
+                )
+            ) or args.offset or args.limit != 50 or args.resource != "modules":
+                _write_json(
+                    query_module_workbench(
+                        workbench,
+                        resource=args.resource,
+                        module_id=args.module_id,
+                        family=args.family,
+                        depth_band=args.depth_band,
+                        risk=args.risk,
+                        kind=args.kind,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                if args.compact:
+                    _write_json(workbench.to_dict(include_rows=False), args.output)
+                else:
+                    _write_text(module_workbench_json(workbench), args.output)
+            return 0 if workbench.accepted else 2
+        if args.command == "module-workbench-policy-schema":
+            _write_json(module_workbench_policy_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-policy-capabilities":
+            _write_json(module_workbench_policy_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-policy":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            policy = build_module_workbench_policy(
+                minimum_overall_score=args.minimum_overall_score,
+                minimum_depth_percent=args.minimum_depth_percent,
+                maximum_blocked_count=args.maximum_blocked_count,
+                maximum_high_risk_count=args.maximum_high_risk_count,
+                minimum_family_score=args.minimum_family_score,
+                minimum_test_references=args.minimum_test_references,
+                minimum_evidence_count=args.minimum_evidence_count,
+            )
+            gate = evaluate_module_workbench_policy(workbench, policy)
+            if args.format == "csv":
+                _write_text(module_workbench_policy_csv(gate), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_policy_markdown(gate), args.output)
+            elif args.format == "summary":
+                _write_json(module_workbench_policy_summary(gate), args.output)
+            elif args.passed or args.text is not None or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_policy(
+                        gate,
+                        passed=True if args.passed else None,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_policy_json(gate), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "module-workbench-audit-schema":
+            _write_json(module_workbench_audit_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-audit-capabilities":
+            _write_json(module_workbench_audit_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-audit":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            audit = audit_module_workbench(workbench)
+            if args.format == "csv":
+                _write_text(module_workbench_audit_csv(audit), args.output)
+            elif args.plane is not None or args.passed or args.text is not None or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_audit(
+                        audit,
+                        plane=args.plane,
+                        passed=True if args.passed else None,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_audit_json(audit), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "module-workbench-diff-schema":
+            _write_json(module_workbench_diff_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-diff-capabilities":
+            _write_json(module_workbench_diff_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-diff":
+            left_inventory = build_module_inventory(
+                args.left_source_root,
+                test_root=args.left_test_root,
+            )
+            right_inventory = build_module_inventory(
+                args.right_source_root,
+                test_root=args.right_test_root,
+            )
+            left_matrix = build_module_certification(
+                left_inventory,
+                source_root=args.left_source_root,
+                test_root=args.left_test_root,
+                docs_root=args.left_docs_root,
+            )
+            right_matrix = build_module_certification(
+                right_inventory,
+                source_root=args.right_source_root,
+                test_root=args.right_test_root,
+                docs_root=args.right_docs_root,
+            )
+            left_lineage = build_module_certification_lineage(
+                left_inventory,
+                matrix=left_matrix,
+                source_root=args.left_source_root,
+                test_root=args.left_test_root,
+                docs_root=args.left_docs_root,
+            )
+            right_lineage = build_module_certification_lineage(
+                right_inventory,
+                matrix=right_matrix,
+                source_root=args.right_source_root,
+                test_root=args.right_test_root,
+                docs_root=args.right_docs_root,
+            )
+            left_quality = build_module_certification_quality(left_matrix, left_lineage)
+            right_quality = build_module_certification_quality(right_matrix, right_lineage)
+            left_workbench = build_module_workbench(
+                left_inventory, left_matrix, left_lineage, left_quality
+            )
+            right_workbench = build_module_workbench(
+                right_inventory, right_matrix, right_lineage, right_quality
+            )
+            diff = build_module_workbench_diff(left_workbench, right_workbench)
+            if args.format == "csv":
+                _write_text(module_workbench_diff_csv(diff), args.output)
+            elif any(value is not None for value in (args.kind, args.module_id, args.text)) or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_diff(
+                        diff,
+                        kind=args.kind,
+                        module_id=args.module_id,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_diff_json(diff), args.output)
+            return 0 if diff.accepted else 2
+        if args.command == "module-workbench-runtime-schema":
+            _write_json(module_workbench_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-runtime-capabilities":
+            _write_json(module_workbench_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-runtime":
+            runtime = run_module_workbench(
+                args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_runtime_csv(runtime), args.output)
+            elif args.state is not None or args.accepted or args.text is not None or args.offset or args.limit != 50 or args.resource != "stages":
+                _write_json(
+                    query_module_workbench_runtime(
+                        runtime,
+                        resource=args.resource,
+                        state=args.state,
+                        accepted=True if args.accepted else None,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "module-workbench-portfolio-schema":
+            _write_json(module_workbench_portfolio_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-portfolio-capabilities":
+            _write_json(module_workbench_portfolio_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-portfolio":
+            inventory = build_module_inventory(
+                args.source_root,
+                test_root=args.test_root,
+            )
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            portfolio = build_module_workbench_portfolio(
+                workbench,
+                capacity=args.capacity,
+                max_tasks_per_module=args.max_tasks_per_module,
+                minimum_priority=args.minimum_priority,
+                maximum_priority=args.maximum_priority,
+                risks=tuple(sorted(set(args.risk))),
+            )
+            if args.format == "summary":
+                _write_json(portfolio.to_dict(include_tasks=False), args.output)
+            elif any(value is not None for value in (args.module_id, args.kind, args.text)) or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_portfolio(
+                        portfolio,
+                        module_id=args.module_id,
+                        kind=args.kind,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(
+                    module_workbench_portfolio_json(portfolio),
+                    args.output,
+                )
+            return 0 if portfolio.accepted else 2
         if args.command == "module-inventory":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             if args.format == "modules-csv":

@@ -184,7 +184,11 @@ def _relative_target(module_id: str, level: int, imported: str | None) -> str | 
     parts = module_id.split(".")
     if not parts or level < 1 or level > len(parts):
         return None
-    base = parts[:-level]
+    # The package initializer is represented by ``glio_noncode`` rather than
+    # a dotted module path.  A level-one import from that initializer still
+    # resolves inside the package; dropping the only package component makes
+    # every ``from .module`` edge appear external and blocks certification.
+    base = [parts[0]] if module_id == _PACKAGE_NAME and level == 1 else parts[:-level]
     if imported:
         base.extend(imported.split("."))
     return ".".join(base) if base else None

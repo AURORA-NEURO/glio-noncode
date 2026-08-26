@@ -195,9 +195,15 @@ from .module_certification_quality import module_certification_quality_capabilit
 from .module_certification_lineage_audit import module_certification_lineage_audit_capabilities, module_certification_lineage_audit_schema
 from .module_certification_release import module_certification_release_capabilities, module_certification_release_schema
 from .module_certification_quality_policy import module_certification_quality_policy_capabilities, module_certification_quality_policy_schema
+from .module_workbench import module_workbench_capabilities, module_workbench_schema
+from .module_workbench_audit import module_workbench_audit_capabilities, module_workbench_audit_schema
+from .module_workbench_diff import module_workbench_diff_capabilities, module_workbench_diff_schema
+from .module_workbench_policy import module_workbench_policy_capabilities, module_workbench_policy_schema
+from .module_workbench_runtime import module_workbench_runtime_capabilities, module_workbench_runtime_schema
+from .module_workbench_portfolio import module_workbench_portfolio_capabilities, module_workbench_portfolio_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 212
+PUBLIC_SURFACE_EXPECTED_COUNT = 224
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -611,6 +617,18 @@ def default_public_surface_inventory(
         "module-certification-release-capabilities": module_certification_release_capabilities(),
         "module-certification-quality-policy-schema": module_certification_quality_policy_schema(),
         "module-certification-quality-policy-capabilities": module_certification_quality_policy_capabilities(),
+        "module-workbench-schema": module_workbench_schema(),
+        "module-workbench-capabilities": module_workbench_capabilities(),
+        "module-workbench-policy-schema": module_workbench_policy_schema(),
+        "module-workbench-policy-capabilities": module_workbench_policy_capabilities(),
+        "module-workbench-audit-schema": module_workbench_audit_schema(),
+        "module-workbench-audit-capabilities": module_workbench_audit_capabilities(),
+        "module-workbench-diff-schema": module_workbench_diff_schema(),
+        "module-workbench-diff-capabilities": module_workbench_diff_capabilities(),
+        "module-workbench-runtime-schema": module_workbench_runtime_schema(),
+        "module-workbench-runtime-capabilities": module_workbench_runtime_capabilities(),
+        "module-workbench-portfolio-schema": module_workbench_portfolio_schema(),
+        "module-workbench-portfolio-capabilities": module_workbench_portfolio_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

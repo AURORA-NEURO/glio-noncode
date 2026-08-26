@@ -1194,3 +1194,28 @@ blocker, all-certified, and ready-state thresholds for CI release decisions.
 python -m glio_noncode module-certification-lineage --resource modules --limit 50
 python -m glio_noncode module-certification-quality --resource checks --limit 50
 ```
+
+## Module implementation workbench
+
+The module workbench turns the inventory, certification matrix, evidence
+lineage, and quality report into a detailed implementation view for every
+module. It measures seven explainable depth dimensions, resolved fan-in and
+fan-out, evidence kinds, depth bands, delivery risk, family rollups, and a
+stable task queue covering parse repair, dependency closure, tests,
+documentation, public contracts, decomposition, integration review, and
+certification closure.
+
+```powershell
+python -m glio_noncode module-workbench --format summary
+python -m glio_noncode module-workbench --resource tasks --format csv --output module-tasks.csv
+python -m glio_noncode module-workbench --resource modules --risk high --limit 50
+python -m glio_noncode module-workbench-policy --format summary
+python -m glio_noncode module-workbench-audit --format csv --output module-audit.csv
+```
+
+The workbench also provides immutable policy gates, independent conservation
+audits, and baseline-to-candidate snapshot diffs. Its public API is under
+`/v1/module-workbench` with bounded query, schema, capabilities, policy, and
+audit routes, plus a complete seven-stage runtime handoff. See
+[docs/MODULE_WORKBENCH.md](docs/MODULE_WORKBENCH.md) for the scoring model,
+task contract, verification rules, and full route matrix.

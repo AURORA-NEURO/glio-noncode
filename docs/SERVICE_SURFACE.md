@@ -92,6 +92,28 @@ report or runtime from which it was derived.
 | GET | `/v1/module-certification/quality/policy/query` | Query bounded quality policy decisions |
 | GET | `/v1/module-certification/quality/policy/schema` | Return quality policy schema |
 | GET | `/v1/module-certification/quality/policy/capabilities` | Return quality policy capabilities |
+| GET | `/v1/module-workbench` | Return module depth, risk, family, and task projections |
+| GET | `/v1/module-workbench/query` | Query modules, tasks, families, risks, or summary rows |
+| GET | `/v1/module-workbench/schema` | Return module workbench schema |
+| GET | `/v1/module-workbench/capabilities` | Return module workbench operations and guarantees |
+| GET | `/v1/module-workbench/policy` | Evaluate the default module workbench policy |
+| GET | `/v1/module-workbench/policy/query` | Query bounded module workbench policy checks |
+| GET | `/v1/module-workbench/policy/schema` | Return module workbench policy schema |
+| GET | `/v1/module-workbench/policy/capabilities` | Return module workbench policy capabilities |
+| GET | `/v1/module-workbench/audit` | Run independent workbench conservation and boundary audits |
+| GET | `/v1/module-workbench/audit/query` | Query bounded workbench audit checks |
+| GET | `/v1/module-workbench/audit/schema` | Return module workbench audit schema |
+| GET | `/v1/module-workbench/audit/capabilities` | Return module workbench audit capabilities |
+| GET | `/v1/module-workbench/diff/schema` | Return module workbench diff schema |
+| GET | `/v1/module-workbench/diff/capabilities` | Return module workbench diff capabilities |
+| GET | `/v1/module-workbench/runtime` | Run the complete seven-stage static workbench chain |
+| GET | `/v1/module-workbench/runtime/query` | Query bounded runtime stages or summary |
+| GET | `/v1/module-workbench/runtime/schema` | Return module workbench runtime schema |
+| GET | `/v1/module-workbench/runtime/capabilities` | Return module workbench runtime capabilities |
+| GET | `/v1/module-workbench/portfolio` | Select a bounded implementation task portfolio |
+| GET | `/v1/module-workbench/portfolio/query` | Query selected portfolio tasks |
+| GET | `/v1/module-workbench/portfolio/schema` | Return module workbench portfolio schema |
+| GET | `/v1/module-workbench/portfolio/capabilities` | Return module workbench portfolio capabilities |
 | GET | `/v1/cohort/benchmark/schema` | Return the aggregate cohort benchmark schema |
 | GET | `/v1/cohort/benchmark/capabilities` | Return split, leakage, calibration, selective-risk, and transport capabilities |
 | POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |

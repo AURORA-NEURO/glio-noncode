@@ -4594,6 +4594,33 @@ An unchanged gate produces an empty changed-decision tuple.
 Changed threshold values are kept beside their content addresses.
 Changed pass states are keyed by stable check IDs.
 
+## Module implementation workbench
+
+The module workbench is the detailed module-by-module implementation surface.
+It joins the static inventory, certification matrix, evidence lineage, and
+quality report into per-module assessments with seven explainable dimensions,
+resolved graph fan-in/fan-out, evidence-kind counts, depth bands, delivery
+risk, family rollups, and a stable task queue. The queue covers parsing,
+dependency closure, tests, documentation, public contract, decomposition,
+integration review, and certification closure.
+
+```powershell
+glio-noncode module-workbench --format summary
+glio-noncode module-workbench --resource tasks --format csv --output module-tasks.csv
+glio-noncode module-workbench --resource modules --depth-band blocked
+glio-noncode module-workbench-policy --format markdown --output module-policy.md
+glio-noncode module-workbench-audit --format csv --output module-audit.csv
+```
+
+The policy layer supports score, deep-module percentage, blocked-module,
+high-risk, family-score, dimension-registry, test-reference, and evidence
+thresholds. The independent audit recomputes nested addresses, public-key
+safety, depth and risk conservation, family conservation, module ordering, and
+task coverage. The snapshot diff classifies added, changed, removed, and
+unchanged modules and reports signed score and task deltas. All projections
+are deterministic, bounded, timestamp-free, and source-execution-free. See
+[the module workbench contract](MODULE_WORKBENCH.md).
+
 Release reconciliation adds a cross-artifact gate over the matrix, lineage,
 and quality addresses. It exposes independent conservation checks, blocker
 reconciliation, public-key review, readiness policy, bounded check queries,

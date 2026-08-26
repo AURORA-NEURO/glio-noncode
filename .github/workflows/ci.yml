@@ -48,8 +48,22 @@ jobs:
           python -m glio_noncode module-certification-release-capabilities --output /tmp/glio-module-certification-release-capabilities.json
           python -m glio_noncode module-certification-quality-policy-schema --output /tmp/glio-module-certification-quality-policy-schema.json
           python -m glio_noncode module-certification-quality-policy-capabilities --output /tmp/glio-module-certification-quality-policy-capabilities.json
+          python -m glio_noncode module-workbench-schema --output /tmp/glio-module-workbench-schema.json
+          python -m glio_noncode module-workbench-capabilities --output /tmp/glio-module-workbench-capabilities.json
+          python -m glio_noncode module-workbench-policy-schema --output /tmp/glio-module-workbench-policy-schema.json
+          python -m glio_noncode module-workbench-policy-capabilities --output /tmp/glio-module-workbench-policy-capabilities.json
+          python -m glio_noncode module-workbench-audit-schema --output /tmp/glio-module-workbench-audit-schema.json
+          python -m glio_noncode module-workbench-audit-capabilities --output /tmp/glio-module-workbench-audit-capabilities.json
+          python -m glio_noncode module-workbench-diff-schema --output /tmp/glio-module-workbench-diff-schema.json
+          python -m glio_noncode module-workbench-diff-capabilities --output /tmp/glio-module-workbench-diff-capabilities.json
+          python -m glio_noncode module-workbench-runtime-schema --output /tmp/glio-module-workbench-runtime-schema.json
+          python -m glio_noncode module-workbench-runtime-capabilities --output /tmp/glio-module-workbench-runtime-capabilities.json
+          python -m glio_noncode module-workbench-portfolio-schema --output /tmp/glio-module-workbench-portfolio-schema.json
+          python -m glio_noncode module-workbench-portfolio-capabilities --output /tmp/glio-module-workbench-portfolio-capabilities.json
       - name: Module certification focused tests
         run: python -m unittest tests.test_module_certification tests.test_module_certification_lineage_quality -v
+      - name: Module workbench focused tests
+        run: python -m unittest tests.test_module_workbench tests.test_module_inventory_root_imports -v
       - name: Unit tests
         run: python -m unittest discover -s tests -t . -v
       - name: Architecture program offline handoff tests
