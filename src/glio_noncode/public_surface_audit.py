@@ -164,7 +164,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 124
+PUBLIC_SURFACE_EXPECTED_COUNT = 132
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -348,6 +348,10 @@ def default_public_surface_inventory(
     from .release_assurance_attestation_registry_store_packet import release_assurance_attestation_registry_store_packet_capabilities, release_assurance_attestation_registry_store_packet_schema
     from .release_assurance_attestation_registry_store_gate import release_assurance_attestation_registry_store_gate_capabilities, release_assurance_attestation_registry_store_gate_schema
     from .release_assurance_attestation_registry_store_gate_packet import release_assurance_attestation_registry_store_gate_packet_capabilities, release_assurance_attestation_registry_store_gate_packet_schema
+    from .storage_maintenance import storage_maintenance_capabilities, storage_maintenance_schema
+    from .storage_maintenance_packet import storage_maintenance_packet_capabilities, storage_maintenance_packet_schema
+    from .storage_maintenance_observability import storage_maintenance_observability_capabilities, storage_maintenance_observability_schema
+    from .storage_maintenance_review import storage_maintenance_review_capabilities, storage_maintenance_review_schema
 
     selected = snapshot or build_service_surface_snapshot()
     capability_value = capability_bundle or build_capability_certification_bundle()
@@ -475,6 +479,14 @@ def default_public_surface_inventory(
         "release-assurance-attestation-registry-store-gate-capabilities": release_assurance_attestation_registry_store_gate_capabilities(),
         "release-assurance-attestation-registry-store-gate-packet-schema": release_assurance_attestation_registry_store_gate_packet_schema(),
         "release-assurance-attestation-registry-store-gate-packet-capabilities": release_assurance_attestation_registry_store_gate_packet_capabilities(),
+        "storage-maintenance-schema": storage_maintenance_schema(),
+        "storage-maintenance-capabilities": storage_maintenance_capabilities(),
+        "storage-maintenance-packet-schema": storage_maintenance_packet_schema(),
+        "storage-maintenance-packet-capabilities": storage_maintenance_packet_capabilities(),
+        "storage-maintenance-observability-schema": storage_maintenance_observability_schema(),
+        "storage-maintenance-observability-capabilities": storage_maintenance_observability_capabilities(),
+        "storage-maintenance-review-schema": storage_maintenance_review_schema(),
+        "storage-maintenance-review-capabilities": storage_maintenance_review_capabilities(),
         "mission-plan-conformance-schema": mission_plan_public_conformance_schema(),
         "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
         "mission-plan-replay-schema": mission_plan_public_replay_schema(),

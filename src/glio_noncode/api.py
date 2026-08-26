@@ -222,6 +222,34 @@ from .program_runtime_offline_runtime import run_program_runtime_offline_runtime
 from .program_runtime_offline_schema import program_runtime_offline_bundle_schema
 from .program_runtime_offline_summary import audit_program_runtime_offline_summary, build_program_runtime_offline_summary
 from .storage_audit import build_storage_audit
+from .storage_maintenance import (
+    build_storage_maintenance_plan,
+    diff_storage_maintenance,
+    query_storage_maintenance,
+    storage_maintenance_capabilities,
+    storage_maintenance_schema,
+)
+from .storage_maintenance_contracts import StorageMaintenancePlan
+from .storage_maintenance_packet import (
+    build_storage_maintenance_packet,
+    storage_maintenance_packet_capabilities,
+    storage_maintenance_packet_schema,
+    verify_storage_maintenance_packet,
+)
+from .storage_maintenance_observability import (
+    build_storage_maintenance_observability,
+    query_storage_maintenance_events,
+    storage_maintenance_events_csv,
+    storage_maintenance_metrics_csv,
+    storage_maintenance_observability_capabilities,
+    storage_maintenance_observability_schema,
+)
+from .storage_maintenance_review import (
+    build_storage_maintenance_review_queue,
+    query_storage_maintenance_review,
+    storage_maintenance_review_capabilities,
+    storage_maintenance_review_schema,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -1139,6 +1167,172 @@ class ApiHandler(BaseHTTPRequestHandler):
         if path == "/v1/storage/audit":
             try:
                 self._write(HTTPStatus.OK, build_storage_audit(self._runtime()).to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                plan = build_storage_maintenance_plan(
+                    self._runtime(),
+                    plan_id=self._query_value(query, "plan_id")
+                    or "glio-noncode-storage-maintenance",
+                )
+                result = query_storage_maintenance(
+                    plan,
+                    kind=self._query_value(query, "kind"),
+                    severity=self._query_value(query, "severity"),
+                    reversible_only=self._query_value(query, "reversible_only") == "true",
+                    text=self._query_value(query, "text") or self._query_value(query, "q"),
+                    offset=int(self._query_value(query, "offset") or 0),
+                    limit=int(self._query_value(query, "limit") or 50),
+                )
+                self._write(HTTPStatus.OK, {"plan": plan.to_dict(), "query": result.to_dict()})
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/schema":
+            self._write(HTTPStatus.OK, storage_maintenance_schema())
+            return
+        if path == "/v1/storage/maintenance/capabilities":
+            self._write(HTTPStatus.OK, storage_maintenance_capabilities())
+            return
+        if path == "/v1/storage/maintenance/packet/schema":
+            self._write(HTTPStatus.OK, storage_maintenance_packet_schema())
+            return
+        if path == "/v1/storage/maintenance/packet/capabilities":
+            self._write(HTTPStatus.OK, storage_maintenance_packet_capabilities())
+            return
+        if path == "/v1/storage/maintenance/observability":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                plan = build_storage_maintenance_plan(
+                    self._runtime(),
+                    plan_id=self._query_value(query, "plan_id")
+                    or "glio-noncode-storage-maintenance",
+                )
+                observability = build_storage_maintenance_observability(plan)
+                event_type = self._query_value(query, "event_type")
+                kind = self._query_value(query, "kind")
+                severity = self._query_value(query, "severity")
+                text = self._query_value(query, "text") or self._query_value(query, "q")
+                if any(value is not None for value in (event_type, kind, severity, text)):
+                    events = query_storage_maintenance_events(
+                        observability,
+                        event_type=event_type,
+                        kind=kind,
+                        severity=severity,
+                        text=text,
+                        offset=int(self._query_value(query, "offset") or 0),
+                        limit=int(self._query_value(query, "limit") or 50),
+                    )
+                    self._write(
+                        HTTPStatus.OK,
+                        {
+                            "plan_id": plan.plan_id,
+                            "observability_address": observability.content_address,
+                            "events": [item.to_dict() for item in events],
+                        },
+                    )
+                else:
+                    self._write(HTTPStatus.OK, observability.to_dict())
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/observability/schema":
+            self._write(HTTPStatus.OK, storage_maintenance_observability_schema())
+            return
+        if path == "/v1/storage/maintenance/observability/capabilities":
+            self._write(HTTPStatus.OK, storage_maintenance_observability_capabilities())
+            return
+        if path == "/v1/storage/maintenance/observability/events.csv":
+            try:
+                plan = build_storage_maintenance_plan(self._runtime())
+                projection = build_storage_maintenance_observability(plan)
+                self._write_bytes(
+                    HTTPStatus.OK,
+                    storage_maintenance_events_csv(projection).encode("utf-8"),
+                    content_type="text/csv; charset=utf-8",
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/observability/metrics.csv":
+            try:
+                plan = build_storage_maintenance_plan(self._runtime())
+                projection = build_storage_maintenance_observability(plan)
+                self._write_bytes(
+                    HTTPStatus.OK,
+                    storage_maintenance_metrics_csv(projection).encode("utf-8"),
+                    content_type="text/csv; charset=utf-8",
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/review":
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                plan = build_storage_maintenance_plan(
+                    self._runtime(),
+                    plan_id=self._query_value(query, "plan_id")
+                    or "glio-noncode-storage-maintenance",
+                )
+                queue = build_storage_maintenance_review_queue(plan)
+                result = query_storage_maintenance_review(
+                    queue,
+                    disposition=self._query_value(query, "disposition"),
+                    route=self._query_value(query, "route"),
+                    priority_min=int(self._query_value(query, "priority_min") or 0),
+                    text=self._query_value(query, "text") or self._query_value(query, "q"),
+                    offset=int(self._query_value(query, "offset") or 0),
+                    limit=int(self._query_value(query, "limit") or 50),
+                )
+                self._write(HTTPStatus.OK, {"queue": queue.to_dict(), "query": result.to_dict()})
+            except StoreError:
+                self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/review/schema":
+            self._write(HTTPStatus.OK, storage_maintenance_review_schema())
+            return
+        if path == "/v1/storage/maintenance/review/capabilities":
+            self._write(HTTPStatus.OK, storage_maintenance_review_capabilities())
+            return
+        if path == "/v1/storage/maintenance/packet":
+            try:
+                packet = build_storage_maintenance_packet(
+                    build_storage_maintenance_plan(
+                        self._runtime(),
+                        plan_id=self._query_value(
+                            parse_qs(parsed.query, keep_blank_values=False), "plan_id"
+                        )
+                        or "glio-noncode-storage-maintenance",
+                    )
+                )
+                self._write(HTTPStatus.OK, packet.to_dict())
             except StoreError:
                 self._write(HTTPStatus.NOT_FOUND, {"error": "not_found", "message": "storage root not found"})
             except GlioError as exc:
@@ -3718,6 +3912,84 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/storage/maintenance/verify":
+            try:
+                payload = self._read_json()
+                source = payload.get("plan", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("storage maintenance verification requires a plan object")
+                plan = StorageMaintenancePlan.from_mapping(source)
+                self._write(HTTPStatus.OK if plan.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, plan.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_maintenance_plan", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("plan")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("storage maintenance query requires plan and query objects")
+                result = query_storage_maintenance(source, **dict(query))
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_maintenance_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/diff":
+            try:
+                payload = self._read_json()
+                baseline = payload.get("baseline")
+                candidate = payload.get("candidate")
+                if not isinstance(baseline, Mapping) or not isinstance(candidate, Mapping):
+                    raise ValueError("storage maintenance diff requires baseline and candidate objects")
+                result = diff_storage_maintenance(baseline, candidate)
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_maintenance_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/packet/verify":
+            try:
+                payload = self._read_json()
+                directory = payload.get("directory")
+                if not directory:
+                    raise ValueError("directory is required for storage maintenance packet verification")
+                result = verify_storage_maintenance_packet(directory)
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_maintenance_packet", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/storage/maintenance/review/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("queue")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("storage maintenance review query requires queue and query objects")
+                result = query_storage_maintenance_review(source, **dict(query))
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_storage_maintenance_review_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         if path == "/v1/release-assurance/attestation/verify":
             try:

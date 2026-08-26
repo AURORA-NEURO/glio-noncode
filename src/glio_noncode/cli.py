@@ -1969,6 +1969,48 @@ from .portfolio_release_observability import (
 )
 from .portfolio_release_schema import portfolio_release_schema, validate_portfolio_release_manifest
 from .storage_audit import build_storage_audit
+from .storage_maintenance import (
+    build_storage_maintenance_plan,
+    diff_storage_maintenance,
+    query_storage_maintenance,
+    storage_maintenance_capabilities,
+    storage_maintenance_csv,
+    storage_maintenance_json,
+    storage_maintenance_markdown,
+    storage_maintenance_schema,
+)
+from .storage_maintenance_contracts import (
+    STORAGE_MAINTENANCE_ACTION_KINDS,
+    STORAGE_MAINTENANCE_SEVERITIES,
+    StorageMaintenancePlan,
+)
+from .storage_maintenance_packet import (
+    build_storage_maintenance_packet,
+    load_storage_maintenance_packet,
+    storage_maintenance_packet_capabilities,
+    storage_maintenance_packet_schema,
+    verify_storage_maintenance_packet,
+    write_storage_maintenance_packet,
+)
+from .storage_maintenance_observability import (
+    build_storage_maintenance_observability,
+    storage_maintenance_events_csv,
+    storage_maintenance_metrics_csv,
+    storage_maintenance_observability_capabilities,
+    storage_maintenance_observability_json,
+    storage_maintenance_observability_schema,
+)
+from .storage_maintenance_review import (
+    STORAGE_MAINTENANCE_REVIEW_DISPOSITIONS,
+    STORAGE_MAINTENANCE_REVIEW_ROUTES,
+    build_storage_maintenance_review_queue,
+    query_storage_maintenance_review,
+    storage_maintenance_review_capabilities,
+    storage_maintenance_review_csv,
+    storage_maintenance_review_json,
+    storage_maintenance_review_markdown,
+    storage_maintenance_review_schema,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3775,6 +3817,135 @@ def build_parser() -> argparse.ArgumentParser:
     )
     storage_audit.add_argument("--data-root", default=".glio")
     storage_audit.add_argument("--output", default=None)
+
+    storage_maintenance = subparsers.add_parser(
+        "storage-maintenance",
+        help="create a bounded, review-only maintenance plan from the local storage audit",
+    )
+    storage_maintenance.add_argument("--data-root", default=".glio")
+    storage_maintenance.add_argument("--plan-id", default="glio-noncode-storage-maintenance")
+    storage_maintenance.add_argument("--kind", choices=STORAGE_MAINTENANCE_ACTION_KINDS, default=None)
+    storage_maintenance.add_argument("--severity", choices=STORAGE_MAINTENANCE_SEVERITIES, default=None)
+    storage_maintenance.add_argument("--reversible-only", action="store_true")
+    storage_maintenance.add_argument("--text", default=None)
+    storage_maintenance.add_argument("--offset", default=0, type=int)
+    storage_maintenance.add_argument("--limit", default=50, type=int)
+    storage_maintenance.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    storage_maintenance.add_argument("--output", default=None)
+
+    storage_maintenance_schema_parser = subparsers.add_parser(
+        "storage-maintenance-schema",
+        help="print the storage maintenance plan schema",
+    )
+    storage_maintenance_schema_parser.add_argument("--output", default=None)
+
+    storage_maintenance_capabilities_parser = subparsers.add_parser(
+        "storage-maintenance-capabilities",
+        help="print storage maintenance capabilities",
+    )
+    storage_maintenance_capabilities_parser.add_argument("--output", default=None)
+
+    storage_maintenance_verify = subparsers.add_parser(
+        "storage-maintenance-verify",
+        help="validate a storage maintenance plan JSON file",
+    )
+    storage_maintenance_verify.add_argument("input", type=str)
+    storage_maintenance_verify.add_argument("--output", default=None)
+
+    storage_maintenance_diff = subparsers.add_parser(
+        "storage-maintenance-diff",
+        help="compare two storage maintenance plan JSON files",
+    )
+    storage_maintenance_diff.add_argument("left", type=str)
+    storage_maintenance_diff.add_argument("right", type=str)
+    storage_maintenance_diff.add_argument("--output", default=None)
+
+    storage_maintenance_packet = subparsers.add_parser(
+        "storage-maintenance-packet",
+        help="write a fixed exact-byte maintenance plan packet",
+    )
+    storage_maintenance_packet.add_argument("--data-root", default=".glio")
+    storage_maintenance_packet.add_argument("--plan-id", default="glio-noncode-storage-maintenance")
+    storage_maintenance_packet.add_argument("--packet-id", default="glio-noncode-storage-maintenance-packet")
+    storage_maintenance_packet.add_argument("--destination", required=True)
+    storage_maintenance_packet.add_argument("--allow-existing", action="store_true")
+    storage_maintenance_packet.add_argument("--output", default=None)
+
+    storage_maintenance_packet_verify = subparsers.add_parser(
+        "storage-maintenance-packet-verify",
+        help="verify a fixed storage maintenance packet directory",
+    )
+    storage_maintenance_packet_verify.add_argument("directory", type=str)
+    storage_maintenance_packet_verify.add_argument("--output", default=None)
+
+    storage_maintenance_packet_load = subparsers.add_parser(
+        "storage-maintenance-packet-load",
+        help="hydrate a verified storage maintenance packet offline",
+    )
+    storage_maintenance_packet_load.add_argument("directory", type=str)
+    storage_maintenance_packet_load.add_argument("--output", default=None)
+
+    storage_maintenance_packet_schema_parser = subparsers.add_parser(
+        "storage-maintenance-packet-schema",
+        help="print the storage maintenance packet schema",
+    )
+    storage_maintenance_packet_schema_parser.add_argument("--output", default=None)
+
+    storage_maintenance_packet_capabilities_parser = subparsers.add_parser(
+        "storage-maintenance-packet-capabilities",
+        help="print storage maintenance packet capabilities",
+    )
+    storage_maintenance_packet_capabilities_parser.add_argument("--output", default=None)
+
+    storage_maintenance_observability = subparsers.add_parser(
+        "storage-maintenance-observability",
+        help="emit deterministic maintenance events and metrics",
+    )
+    storage_maintenance_observability.add_argument("--data-root", default=".glio")
+    storage_maintenance_observability.add_argument("--plan-id", default="glio-noncode-storage-maintenance")
+    storage_maintenance_observability.add_argument(
+        "--format", choices=("json", "events-csv", "metrics-csv"), default="json"
+    )
+    storage_maintenance_observability.add_argument("--output", default=None)
+
+    storage_maintenance_observability_schema_parser = subparsers.add_parser(
+        "storage-maintenance-observability-schema",
+        help="print the maintenance observability schema",
+    )
+    storage_maintenance_observability_schema_parser.add_argument("--output", default=None)
+
+    storage_maintenance_observability_capabilities_parser = subparsers.add_parser(
+        "storage-maintenance-observability-capabilities",
+        help="print maintenance observability capabilities",
+    )
+    storage_maintenance_observability_capabilities_parser.add_argument("--output", default=None)
+
+    storage_maintenance_review = subparsers.add_parser(
+        "storage-maintenance-review",
+        help="emit a prioritized review queue from a maintenance plan",
+    )
+    storage_maintenance_review.add_argument("--data-root", default=".glio")
+    storage_maintenance_review.add_argument("--plan-id", default="glio-noncode-storage-maintenance")
+    storage_maintenance_review.add_argument("--disposition", choices=STORAGE_MAINTENANCE_REVIEW_DISPOSITIONS, default=None)
+    storage_maintenance_review.add_argument("--route", choices=STORAGE_MAINTENANCE_REVIEW_ROUTES, default=None)
+    storage_maintenance_review.add_argument("--priority-min", default=0, type=int)
+    storage_maintenance_review.add_argument("--text", default=None)
+    storage_maintenance_review.add_argument("--offset", default=0, type=int)
+    storage_maintenance_review.add_argument("--limit", default=50, type=int)
+    storage_maintenance_review.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    storage_maintenance_review.add_argument("--output", default=None)
+
+    storage_maintenance_review_schema_parser = subparsers.add_parser(
+        "storage-maintenance-review-schema",
+        help="print the maintenance review queue schema",
+    )
+    storage_maintenance_review_schema_parser.add_argument("--output", default=None)
+
+    storage_maintenance_review_capabilities_parser = subparsers.add_parser(
+        "storage-maintenance-review-capabilities",
+        help="print maintenance review queue capabilities",
+    )
+    storage_maintenance_review_capabilities_parser.add_argument("--output", default=None)
 
     run_inspect = subparsers.add_parser(
         "run-inspect",
@@ -24190,6 +24361,131 @@ def main(argv: list[str] | None = None) -> int:
             payload = build_storage_audit(CaseRuntime(args.data_root)).to_dict()
             _write_json(payload, args.output)
             return 0 if payload["accepted"] else 2
+        if args.command == "storage-maintenance":
+            plan = build_storage_maintenance_plan(
+                CaseRuntime(args.data_root),
+                plan_id=args.plan_id,
+            )
+            if any(
+                value is not None
+                for value in (args.kind, args.severity, args.text)
+            ) or args.reversible_only or args.offset or args.limit != 50:
+                payload = query_storage_maintenance(
+                    plan,
+                    kind=args.kind,
+                    severity=args.severity,
+                    reversible_only=args.reversible_only,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+                if args.format != "json":
+                    raise ValueError("filtered storage maintenance output supports JSON only")
+                _write_json(payload, args.output)
+            elif args.format == "csv":
+                _write_text(storage_maintenance_csv(plan), args.output)
+            elif args.format == "markdown":
+                _write_text(storage_maintenance_markdown(plan), args.output)
+            else:
+                _write_text(storage_maintenance_json(plan) + "\n", args.output)
+            return 0 if plan.accepted else 2
+        if args.command == "storage-maintenance-schema":
+            _write_json(storage_maintenance_schema(), args.output)
+            return 0
+        if args.command == "storage-maintenance-capabilities":
+            _write_json(storage_maintenance_capabilities(), args.output)
+            return 0
+        if args.command == "storage-maintenance-verify":
+            plan = StorageMaintenancePlan.from_mapping(_read_json(args.input))
+            _write_json(plan.to_dict(), args.output)
+            return 0 if plan.accepted else 2
+        if args.command == "storage-maintenance-diff":
+            result = diff_storage_maintenance(_read_json(args.left), _read_json(args.right))
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "storage-maintenance-packet":
+            plan = build_storage_maintenance_plan(
+                CaseRuntime(args.data_root),
+                plan_id=args.plan_id,
+            )
+            packet = build_storage_maintenance_packet(plan, packet_id=args.packet_id)
+            write_storage_maintenance_packet(
+                packet,
+                args.destination,
+                allow_existing=args.allow_existing,
+            )
+            payload = packet.to_dict()
+            payload["destination"] = str(args.destination)
+            _write_json(payload, args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "storage-maintenance-packet-verify":
+            result = verify_storage_maintenance_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "storage-maintenance-packet-load":
+            result = load_storage_maintenance_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.verification.accepted else 2
+        if args.command == "storage-maintenance-packet-schema":
+            _write_json(storage_maintenance_packet_schema(), args.output)
+            return 0
+        if args.command == "storage-maintenance-packet-capabilities":
+            _write_json(storage_maintenance_packet_capabilities(), args.output)
+            return 0
+        if args.command == "storage-maintenance-observability":
+            plan = build_storage_maintenance_plan(
+                CaseRuntime(args.data_root),
+                plan_id=args.plan_id,
+            )
+            observability = build_storage_maintenance_observability(plan)
+            if args.format == "events-csv":
+                _write_text(storage_maintenance_events_csv(observability), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(storage_maintenance_metrics_csv(observability), args.output)
+            else:
+                _write_text(storage_maintenance_observability_json(observability) + "\n", args.output)
+            return 0 if observability.accepted else 2
+        if args.command == "storage-maintenance-observability-schema":
+            _write_json(storage_maintenance_observability_schema(), args.output)
+            return 0
+        if args.command == "storage-maintenance-observability-capabilities":
+            _write_json(storage_maintenance_observability_capabilities(), args.output)
+            return 0
+        if args.command == "storage-maintenance-review":
+            plan = build_storage_maintenance_plan(
+                CaseRuntime(args.data_root),
+                plan_id=args.plan_id,
+            )
+            queue = build_storage_maintenance_review_queue(plan)
+            filtered = any(
+                value is not None for value in (args.disposition, args.route, args.text)
+            ) or args.priority_min or args.offset or args.limit != 50
+            if filtered:
+                if args.format != "json":
+                    raise ValueError("filtered storage maintenance review output supports JSON only")
+                result = query_storage_maintenance_review(
+                    queue,
+                    disposition=args.disposition,
+                    route=args.route,
+                    priority_min=args.priority_min,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json(result.to_dict(), args.output)
+            elif args.format == "csv":
+                _write_text(storage_maintenance_review_csv(queue), args.output)
+            elif args.format == "markdown":
+                _write_text(storage_maintenance_review_markdown(queue), args.output)
+            else:
+                _write_text(storage_maintenance_review_json(queue) + "\n", args.output)
+            return 0 if queue.accepted else 2
+        if args.command == "storage-maintenance-review-schema":
+            _write_json(storage_maintenance_review_schema(), args.output)
+            return 0
+        if args.command == "storage-maintenance-review-capabilities":
+            _write_json(storage_maintenance_review_capabilities(), args.output)
+            return 0
         if args.command == "run-inspect":
             inspection = inspect_run(CaseRuntime(args.data_root), args.run_id)
             _write_json(inspection.to_dict(), args.output)

@@ -45,6 +45,25 @@ report or runtime from which it was derived.
 | GET | `/v1/service-release/handoff/diff?left_directory=...&right_directory=...` | Compare handoff addresses |
 | GET | `/v1/service-release/handoff/replay?directory=...` | Replay handoff verification |
 | GET | `/v1/storage/audit` | Audit local object bytes, index pointers, reachability, and replay integrity |
+| GET | `/v1/storage/maintenance` | Build and page a bounded, review-only storage maintenance plan |
+| GET | `/v1/storage/maintenance/schema` | Return the storage maintenance plan schema |
+| GET | `/v1/storage/maintenance/capabilities` | Return storage maintenance capabilities |
+| POST | `/v1/storage/maintenance/verify` | Strictly verify a saved maintenance plan |
+| POST | `/v1/storage/maintenance/query` | Page actions from a supplied maintenance plan |
+| POST | `/v1/storage/maintenance/diff` | Compare two maintenance plans by addresses and action IDs |
+| GET | `/v1/storage/maintenance/packet` | Build the fixed exact-byte maintenance packet metadata |
+| GET | `/v1/storage/maintenance/packet/schema` | Return the maintenance packet schema |
+| GET | `/v1/storage/maintenance/packet/capabilities` | Return maintenance packet capabilities |
+| POST | `/v1/storage/maintenance/packet/verify` | Verify a written maintenance packet directory |
+| GET | `/v1/storage/maintenance/observability` | Return deterministic maintenance events and aggregate metrics |
+| GET | `/v1/storage/maintenance/observability/schema` | Return the maintenance observability schema |
+| GET | `/v1/storage/maintenance/observability/capabilities` | Return maintenance observability capabilities |
+| GET | `/v1/storage/maintenance/observability/events.csv` | Export deterministic maintenance event rows |
+| GET | `/v1/storage/maintenance/observability/metrics.csv` | Export deterministic maintenance metric rows |
+| GET | `/v1/storage/maintenance/review` | Build and page a prioritized review queue |
+| GET | `/v1/storage/maintenance/review/schema` | Return the maintenance review queue schema |
+| GET | `/v1/storage/maintenance/review/capabilities` | Return maintenance review queue capabilities |
+| POST | `/v1/storage/maintenance/review/query` | Page a supplied review queue with routing filters |
 | GET | `/v1/module-fabric/bundle` | Build the public 21-artifact module-fabric bundle projection |
 | GET | `/v1/module-fabric/bundle/query` | Query bundle artifacts or public aggregate records |
 | GET | `/v1/module-fabric/bundle/observability` | Return deterministic bundle events and metrics |

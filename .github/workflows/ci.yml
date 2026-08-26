@@ -1566,6 +1566,10 @@ jobs:
         run: python -m unittest tests.test_run_portfolio -v
       - name: Storage audit focused tests
         run: python -m unittest tests.test_storage_audit -v
+      - name: Storage maintenance focused tests
+        run: python -m unittest tests.test_storage_maintenance -v
+      - name: Storage maintenance public commands
+        run: python -m glio_noncode storage-maintenance-schema --output /tmp/glio-storage-maintenance-schema.json && python -m glio_noncode storage-maintenance-capabilities --output /tmp/glio-storage-maintenance-capabilities.json && python -m glio_noncode storage-maintenance-packet-schema --output /tmp/glio-storage-maintenance-packet-schema.json && python -m glio_noncode storage-maintenance-packet-capabilities --output /tmp/glio-storage-maintenance-packet-capabilities.json && python -m glio_noncode storage-maintenance-observability-schema --output /tmp/glio-storage-maintenance-observability-schema.json && python -m glio_noncode storage-maintenance-review-schema --output /tmp/glio-storage-maintenance-review-schema.json && python -m glio_noncode storage-maintenance --data-root /tmp/glio-empty-maintenance --output /tmp/glio-storage-maintenance.json && python -m glio_noncode storage-maintenance-observability --data-root /tmp/glio-empty-maintenance --format metrics-csv --output /tmp/glio-storage-maintenance-metrics.csv && python -m glio_noncode storage-maintenance-review --data-root /tmp/glio-empty-maintenance --format markdown --output /tmp/glio-storage-maintenance-review.md
       - name: Portfolio release focused tests
         run: python -m unittest tests.test_portfolio_release -v
       - name: Workspace history and release focused tests

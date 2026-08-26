@@ -90,6 +90,7 @@ glio-noncode portfolio-release-observability portfolio-release --format metrics-
 glio-noncode portfolio-release-schema --output portfolio-release-schema.json
 glio-noncode portfolio-release-runtime --data-root .glio --release-ready-only --output portfolio-runtime.json
 glio-noncode storage-audit --data-root .glio --output storage-audit.json
+glio-noncode storage-maintenance --data-root .glio --format markdown --output storage-maintenance.md
 glio-noncode run-search --data-root .glio --query enhancer --resource hypotheses --output search.json
 glio-noncode run-search --data-root .glio --resource evidence --state supported --closure --output evidence-search-closure.json
 glio-noncode run-review run-<run-id> review.json --data-root .glio --output reviewed-dossier.json
@@ -137,6 +138,21 @@ reproducible.
 canonical bytes, content-address drift, missing references, orphan objects,
 unexpected files, and replay failures. It is read-only and emits operational
 metadata rather than stored case payloads.
+
+`storage-maintenance` turns that audit into a bounded, deterministic,
+review-only action ledger. It can query actions by kind, severity, text, or
+reversibility and export JSON, CSV, or Markdown. It never deletes, quarantines,
+rewrites, restores, or replays anything; an external approval and execution
+boundary remains required. Use `storage-maintenance-verify` for strict plan
+validation, `storage-maintenance-diff` to compare two saved plans, and
+`storage-maintenance-packet` to create an independently verifiable offline
+handoff.
+
+For deeper operations, `storage-maintenance-observability` emits timestamp-free
+events and aggregate metrics, while `storage-maintenance-review` emits a
+priority-ordered queue with explicit recovery, repair, replay, reopen, and
+quarantine routes. These are read-only projections and are included in the
+exact-byte maintenance packet.
 
 `portfolio-release` is the repository-wide handoff boundary. It selects a
 bounded set of persisted runs, retains a namespaced dossier and workspace
