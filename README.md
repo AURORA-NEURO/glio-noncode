@@ -1051,6 +1051,29 @@ See [docs/WORKBENCH_RELEASE_FRONTIER_OPERATIONS.md](docs/WORKBENCH_RELEASE_FRONT
 [docs/WORKBENCH_RELEASE_FRONTIER_FAILURE_MODES.md](docs/WORKBENCH_RELEASE_FRONTIER_FAILURE_MODES.md),
 and [docs/WORKBENCH_RELEASE_FRONTIER_RUNBOOK.md](docs/WORKBENCH_RELEASE_FRONTIER_RUNBOOK.md).
 
+## Module inventory
+
+The repository includes a static module control plane for inspecting the full
+package without importing or executing discovered source files. It reports
+module, symbol, local-import, index, graph, test-reference, observability, and
+review rows, plus a module-by-module depth percentage that is explicitly a
+repository maturity signal rather than a scientific claim:
+
+```powershell
+glio-noncode module-inventory --format summary --output module-summary.json
+glio-noncode module-inventory-depth --format markdown --output module-depth.md
+glio-noncode module-inventory-review --format markdown --output module-review.md
+glio-noncode module-inventory-graph --format json --output module-graph.json
+glio-noncode module-inventory-packet --destination module-inventory-packet
+glio-noncode module-inventory-packet-verify module-inventory-packet
+```
+
+The fixed packet contains ten exact-byte artifacts for offline inspection.
+Queries are bounded and deterministic; unresolved imports, parse failures,
+cycles, large modules, isolated modules, and test-reference gaps remain
+visible as review work. See [docs/MODULE_INVENTORY.md](docs/MODULE_INVENTORY.md)
+for the contract, route matrix, depth dimensions, and verification rules.
+
 ## Design boundaries
 
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.

@@ -2081,6 +2081,18 @@ from .storage_catalog_packet import (
     verify_storage_catalog_packet,
     write_storage_catalog_packet,
 )
+from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema, verify_module_inventory
+from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
+from .module_inventory_depth import build_module_inventory_depth, module_inventory_depth_capabilities, module_inventory_depth_csv, module_inventory_depth_schema, query_module_inventory_depth
+from .module_inventory_exports import module_inventory_dependencies_csv, module_inventory_graph_csv, module_inventory_indexes_csv, module_inventory_modules_csv, module_inventory_summary, module_inventory_symbols_csv, render_module_inventory_depth_markdown, render_module_inventory_markdown
+from .module_inventory_graph import build_module_inventory_graph, module_inventory_graph_capabilities, module_inventory_graph_schema, query_module_inventory_graph
+from .module_inventory_observability import build_module_inventory_observability, module_inventory_observability_capabilities, module_inventory_observability_events_csv, module_inventory_observability_json, module_inventory_observability_metrics_csv, module_inventory_observability_schema, query_module_inventory_observability
+from .module_inventory_packet import build_module_inventory_packet, load_module_inventory_packet, module_inventory_packet_capabilities, module_inventory_packet_json, module_inventory_packet_schema, verify_module_inventory_packet, write_module_inventory_packet
+from .module_inventory_packet_query import diff_module_inventory_packets, module_inventory_packet_query_capabilities, module_inventory_packet_query_schema, query_module_inventory_packet, replay_module_inventory_packet
+from .module_inventory_query import diff_module_inventories, inventory_from_mapping, query_module_inventory
+from .module_inventory_review import build_module_inventory_review_queue, module_inventory_review_capabilities, module_inventory_review_markdown, module_inventory_review_schema, query_module_inventory_review
+from .module_inventory_runtime import module_inventory_runtime_capabilities, module_inventory_runtime_schema, run_module_inventory
+from .module_inventory_schema import default_module_inventory_schema, module_inventory_schema_capabilities
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4143,6 +4155,131 @@ def build_parser() -> argparse.ArgumentParser:
         help="print storage lineage packet capabilities",
     )
     storage_lineage_packet_capabilities_parser.add_argument("--output", default=None)
+
+    module_inventory = subparsers.add_parser(
+        "module-inventory",
+        help="inspect the static module, symbol, dependency, and depth inventory",
+    )
+    module_inventory.add_argument("--source-root", default=None)
+    module_inventory.add_argument("--test-root", default=None)
+    module_inventory.add_argument("--resource", choices=("modules", "symbols", "dependencies", "indexes"), default="modules")
+    module_inventory.add_argument("--module-id", default=None)
+    module_inventory.add_argument("--family", default=None)
+    module_inventory.add_argument("--role", default=None)
+    module_inventory.add_argument("--state", default=None)
+    module_inventory.add_argument("--symbol", default=None)
+    module_inventory.add_argument("--target-module", default=None)
+    module_inventory.add_argument("--text", default=None)
+    module_inventory.add_argument("--offset", default=0, type=int)
+    module_inventory.add_argument("--limit", default=50, type=int)
+    module_inventory.add_argument("--format", choices=("json", "modules-csv", "symbols-csv", "dependencies-csv", "indexes-csv", "summary", "markdown", "depth-markdown"), default="json")
+    module_inventory.add_argument("--include-rows", action="store_true")
+    module_inventory.add_argument("--output", default=None)
+
+    module_inventory_schema_parser = subparsers.add_parser("module-inventory-schema", help="print module inventory schema")
+    module_inventory_schema_parser.add_argument("--output", default=None)
+    module_inventory_capabilities_parser = subparsers.add_parser("module-inventory-capabilities", help="print module inventory capabilities")
+    module_inventory_capabilities_parser.add_argument("--output", default=None)
+    module_inventory_audit_parser = subparsers.add_parser("module-inventory-audit", help="audit the static module inventory")
+    module_inventory_audit_parser.add_argument("--source-root", default=None)
+    module_inventory_audit_parser.add_argument("--test-root", default=None)
+    module_inventory_audit_parser.add_argument("--output", default=None)
+    module_inventory_audit_schema_parser = subparsers.add_parser("module-inventory-audit-schema", help="print module inventory audit schema")
+    module_inventory_audit_schema_parser.add_argument("--output", default=None)
+    module_inventory_audit_capabilities_parser = subparsers.add_parser("module-inventory-audit-capabilities", help="print module inventory audit capabilities")
+    module_inventory_audit_capabilities_parser.add_argument("--output", default=None)
+    module_inventory_depth_parser = subparsers.add_parser("module-inventory-depth", help="score static depth module by module")
+    module_inventory_depth_parser.add_argument("--source-root", default=None)
+    module_inventory_depth_parser.add_argument("--test-root", default=None)
+    module_inventory_depth_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    module_inventory_depth_parser.add_argument("--family", default=None)
+    module_inventory_depth_parser.add_argument("--role", default=None)
+    module_inventory_depth_parser.add_argument("--tier", default=None)
+    module_inventory_depth_parser.add_argument("--offset", default=0, type=int)
+    module_inventory_depth_parser.add_argument("--limit", default=50, type=int)
+    module_inventory_depth_parser.add_argument("--output", default=None)
+    module_inventory_depth_schema_parser = subparsers.add_parser("module-inventory-depth-schema", help="print module depth schema")
+    module_inventory_depth_schema_parser.add_argument("--output", default=None)
+    module_inventory_depth_capabilities_parser = subparsers.add_parser("module-inventory-depth-capabilities", help="print module depth capabilities")
+    module_inventory_depth_capabilities_parser.add_argument("--output", default=None)
+    module_inventory_review_parser = subparsers.add_parser("module-inventory-review", help="build module depth review queue")
+    module_inventory_review_parser.add_argument("--source-root", default=None)
+    module_inventory_review_parser.add_argument("--test-root", default=None)
+    module_inventory_review_parser.add_argument("--format", choices=("json", "markdown"), default="json")
+    module_inventory_review_parser.add_argument("--severity", default=None)
+    module_inventory_review_parser.add_argument("--kind", default=None)
+    module_inventory_review_parser.add_argument("--offset", default=0, type=int)
+    module_inventory_review_parser.add_argument("--limit", default=50, type=int)
+    module_inventory_review_parser.add_argument("--output", default=None)
+    module_inventory_review_schema_parser = subparsers.add_parser("module-inventory-review-schema", help="print module review schema")
+    module_inventory_review_schema_parser.add_argument("--output", default=None)
+    module_inventory_review_capabilities_parser = subparsers.add_parser("module-inventory-review-capabilities", help="print module review capabilities")
+    module_inventory_review_capabilities_parser.add_argument("--output", default=None)
+    module_inventory_graph_parser = subparsers.add_parser("module-inventory-graph", help="build module dependency graph")
+    module_inventory_graph_parser.add_argument("--source-root", default=None)
+    module_inventory_graph_parser.add_argument("--test-root", default=None)
+    module_inventory_graph_parser.add_argument("--module-id", default=None)
+    module_inventory_graph_parser.add_argument("--family", default=None)
+    module_inventory_graph_parser.add_argument("--resolved", choices=("true", "false"), default=None)
+    module_inventory_graph_parser.add_argument("--offset", default=0, type=int)
+    module_inventory_graph_parser.add_argument("--limit", default=50, type=int)
+    module_inventory_graph_parser.add_argument("--format", choices=("json", "csv"), default="json")
+    module_inventory_graph_parser.add_argument("--output", default=None)
+    module_inventory_graph_schema_parser = subparsers.add_parser("module-inventory-graph-schema", help="print module graph schema")
+    module_inventory_graph_schema_parser.add_argument("--output", default=None)
+    module_inventory_graph_capabilities_parser = subparsers.add_parser("module-inventory-graph-capabilities", help="print module graph capabilities")
+    module_inventory_graph_capabilities_parser.add_argument("--output", default=None)
+    module_inventory_observability_parser = subparsers.add_parser("module-inventory-observability", help="emit module inventory events and metrics")
+    module_inventory_observability_parser.add_argument("--source-root", default=None)
+    module_inventory_observability_parser.add_argument("--test-root", default=None)
+    module_inventory_observability_parser.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    module_inventory_observability_parser.add_argument("--event-type", default=None)
+    module_inventory_observability_parser.add_argument("--state", default=None)
+    module_inventory_observability_parser.add_argument("--module-id", default=None)
+    module_inventory_observability_parser.add_argument("--offset", default=0, type=int)
+    module_inventory_observability_parser.add_argument("--limit", default=50, type=int)
+    module_inventory_observability_parser.add_argument("--output", default=None)
+    module_inventory_observability_schema_parser = subparsers.add_parser("module-inventory-observability-schema", help="print module observability schema")
+    module_inventory_observability_schema_parser.add_argument("--output", default=None)
+    module_inventory_observability_capabilities_parser = subparsers.add_parser("module-inventory-observability-capabilities", help="print module observability capabilities")
+    module_inventory_observability_capabilities_parser.add_argument("--output", default=None)
+    module_inventory_packet_parser = subparsers.add_parser("module-inventory-packet", help="write an exact-byte module inventory packet")
+    module_inventory_packet_parser.add_argument("--source-root", default=None)
+    module_inventory_packet_parser.add_argument("--test-root", default=None)
+    module_inventory_packet_parser.add_argument("--packet-id", default="glio-noncode-module-inventory-packet")
+    module_inventory_packet_parser.add_argument("--destination", required=True)
+    module_inventory_packet_parser.add_argument("--allow-existing", action="store_true")
+    module_inventory_packet_parser.add_argument("--output", default=None)
+    module_inventory_packet_verify_parser = subparsers.add_parser("module-inventory-packet-verify", help="verify a module inventory packet")
+    module_inventory_packet_verify_parser.add_argument("directory", type=str)
+    module_inventory_packet_verify_parser.add_argument("--output", default=None)
+    module_inventory_packet_load_parser = subparsers.add_parser("module-inventory-packet-load", help="load a verified module inventory packet")
+    module_inventory_packet_load_parser.add_argument("directory", type=str)
+    module_inventory_packet_load_parser.add_argument("--output", default=None)
+    module_inventory_packet_schema_parser = subparsers.add_parser("module-inventory-packet-schema", help="print module packet schema")
+    module_inventory_packet_schema_parser.add_argument("--output", default=None)
+    module_inventory_packet_capabilities_parser = subparsers.add_parser("module-inventory-packet-capabilities", help="print module packet capabilities")
+    module_inventory_packet_capabilities_parser.add_argument("--output", default=None)
+    module_inventory_packet_query_parser = subparsers.add_parser("module-inventory-packet-query", help="query a verified module packet")
+    module_inventory_packet_query_parser.add_argument("directory", type=str)
+    module_inventory_packet_query_parser.add_argument("--resource", default="artifacts")
+    module_inventory_packet_query_parser.add_argument("--module-id", default=None)
+    module_inventory_packet_query_parser.add_argument("--family", default=None)
+    module_inventory_packet_query_parser.add_argument("--role", default=None)
+    module_inventory_packet_query_parser.add_argument("--state", default=None)
+    module_inventory_packet_query_parser.add_argument("--symbol", default=None)
+    module_inventory_packet_query_parser.add_argument("--target-module", default=None)
+    module_inventory_packet_query_parser.add_argument("--text", default=None)
+    module_inventory_packet_query_parser.add_argument("--offset", default=0, type=int)
+    module_inventory_packet_query_parser.add_argument("--limit", default=50, type=int)
+    module_inventory_packet_query_parser.add_argument("--output", default=None)
+    module_inventory_packet_diff_parser = subparsers.add_parser("module-inventory-packet-diff", help="compare two module inventory packets")
+    module_inventory_packet_diff_parser.add_argument("left", type=str)
+    module_inventory_packet_diff_parser.add_argument("right", type=str)
+    module_inventory_packet_diff_parser.add_argument("--output", default=None)
+    module_inventory_packet_replay_parser = subparsers.add_parser("module-inventory-packet-replay", help="replay a verified module packet")
+    module_inventory_packet_replay_parser.add_argument("directory", type=str)
+    module_inventory_packet_replay_parser.add_argument("--output", default=None)
 
     storage_catalog = subparsers.add_parser(
         "storage-catalog",
@@ -24788,6 +24925,160 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "storage-maintenance-review-capabilities":
             _write_json(storage_maintenance_review_capabilities(), args.output)
             return 0
+        if args.command == "module-inventory":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            if args.format == "modules-csv":
+                _write_text(module_inventory_modules_csv(inventory), args.output)
+            elif args.format == "symbols-csv":
+                _write_text(module_inventory_symbols_csv(inventory), args.output)
+            elif args.format == "dependencies-csv":
+                _write_text(module_inventory_dependencies_csv(inventory), args.output)
+            elif args.format == "indexes-csv":
+                _write_text(module_inventory_indexes_csv(inventory), args.output)
+            elif args.format == "summary":
+                _write_json(module_inventory_summary(inventory), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_inventory_markdown(inventory), args.output)
+            elif args.format == "depth-markdown":
+                _write_text(render_module_inventory_depth_markdown(inventory), args.output)
+            elif any(value is not None for value in (args.module_id, args.family, args.role, args.state, args.symbol, args.target_module, args.text)) or args.offset or args.limit != 50:
+                result = query_module_inventory(
+                    inventory,
+                    resource=args.resource,
+                    module_id=args.module_id,
+                    family=args.family,
+                    role=args.role,
+                    state=args.state,
+                    symbol=args.symbol,
+                    target_module=args.target_module,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json(result.to_dict(), args.output)
+            else:
+                _write_json(inventory.to_dict(include_rows=args.include_rows), args.output)
+            return 0 if inventory.accepted else 2
+        if args.command == "module-inventory-schema":
+            _write_json(default_module_inventory_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-capabilities":
+            _write_json({"inventory": module_inventory_capabilities(), "audit": module_inventory_audit_capabilities(), "depth": module_inventory_depth_capabilities(), "graph": module_inventory_graph_capabilities(), "packet": module_inventory_packet_capabilities(), "query": module_inventory_packet_query_capabilities()}, args.output)
+            return 0
+        if args.command == "module-inventory-audit":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            result = audit_module_inventory(inventory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-inventory-audit-schema":
+            _write_json(module_inventory_audit_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-audit-capabilities":
+            _write_json(module_inventory_audit_capabilities(), args.output)
+            return 0
+        if args.command == "module-inventory-depth":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            depth = build_module_inventory_depth(inventory)
+            filtered = any(value is not None for value in (args.family, args.role, args.tier)) or args.offset or args.limit != 50
+            if filtered:
+                _write_json(query_module_inventory_depth(depth, family=args.family, role=args.role, tier=args.tier, offset=args.offset, limit=args.limit), args.output)
+            elif args.format == "csv":
+                _write_text(module_inventory_depth_csv(depth), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_inventory_depth_markdown(inventory), args.output)
+            else:
+                _write_json(depth.to_dict(), args.output)
+            return 0 if depth.accepted else 2
+        if args.command == "module-inventory-depth-schema":
+            _write_json(module_inventory_depth_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-depth-capabilities":
+            _write_json(module_inventory_depth_capabilities(), args.output)
+            return 0
+        if args.command == "module-inventory-review":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            queue = build_module_inventory_review_queue(inventory)
+            if args.severity or args.kind or args.offset or args.limit != 50:
+                _write_json(query_module_inventory_review(queue, severity=args.severity, kind=args.kind, offset=args.offset, limit=args.limit), args.output)
+            elif args.format == "markdown":
+                _write_text(module_inventory_review_markdown(queue), args.output)
+            else:
+                _write_json(queue.to_dict(), args.output)
+            return 0 if queue.accepted else 2
+        if args.command == "module-inventory-review-schema":
+            _write_json(module_inventory_review_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-review-capabilities":
+            _write_json(module_inventory_review_capabilities(), args.output)
+            return 0
+        if args.command == "module-inventory-graph":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            graph = build_module_inventory_graph(inventory)
+            if args.format == "csv":
+                _write_text(module_inventory_graph_csv(graph), args.output)
+            elif args.module_id or args.family or args.resolved is not None or args.offset or args.limit != 50:
+                resolved_filter = None if args.resolved is None else args.resolved == "true"
+                _write_json(query_module_inventory_graph(graph, module_id=args.module_id, family=args.family, resolved=resolved_filter, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(graph.to_dict(), args.output)
+            return 0 if graph.accepted else 2
+        if args.command == "module-inventory-graph-schema":
+            _write_json(module_inventory_graph_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-graph-capabilities":
+            _write_json(module_inventory_graph_capabilities(), args.output)
+            return 0
+        if args.command == "module-inventory-observability":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            observation = build_module_inventory_observability(inventory)
+            if args.format == "events-csv":
+                _write_text(module_inventory_observability_events_csv(observation), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(module_inventory_observability_metrics_csv(observation), args.output)
+            elif args.event_type or args.state or args.module_id or args.offset or args.limit != 50:
+                _write_json(query_module_inventory_observability(observation, event_type=args.event_type, state=args.state, module_id=args.module_id, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_text(module_inventory_observability_json(observation), args.output)
+            return 0 if observation.accepted else 2
+        if args.command == "module-inventory-observability-schema":
+            _write_json(module_inventory_observability_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-observability-capabilities":
+            _write_json(module_inventory_observability_capabilities(), args.output)
+            return 0
+        if args.command == "module-inventory-packet":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            runtime = run_module_inventory(inventory=inventory)
+            packet = build_module_inventory_packet(inventory, runtime, packet_id=args.packet_id)
+            write_module_inventory_packet(packet, args.destination, allow_existing=args.allow_existing)
+            _write_json(packet.to_dict(), args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "module-inventory-packet-verify":
+            result = verify_module_inventory_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-inventory-packet-load":
+            result = load_module_inventory_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-inventory-packet-schema":
+            _write_json(module_inventory_packet_schema(), args.output)
+            return 0
+        if args.command == "module-inventory-packet-capabilities":
+            _write_json(module_inventory_packet_capabilities(), args.output)
+            return 0
+        if args.command == "module-inventory-packet-query":
+            result = query_module_inventory_packet(args.directory, resource=args.resource, module_id=args.module_id, family=args.family, role=args.role, state=args.state, symbol=args.symbol, target_module=args.target_module, text=args.text, offset=args.offset, limit=args.limit)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-inventory-packet-diff":
+            result = diff_module_inventory_packets(args.left, args.right)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-inventory-packet-replay":
+            result = replay_module_inventory_packet(args.directory)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
         if args.command == "storage-lineage":
             graph = build_storage_lineage(CaseRuntime(args.data_root))
             filtered = any(

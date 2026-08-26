@@ -669,6 +669,18 @@ from .release_assurance_attestation_registry_store_gate_packet import (
     release_assurance_attestation_registry_store_gate_packet_schema,
     verify_release_assurance_attestation_registry_store_gate_packet,
 )
+from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema
+from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
+from .module_inventory_depth import build_module_inventory_depth, module_inventory_depth_capabilities, module_inventory_depth_schema, query_module_inventory_depth
+from .module_inventory_exports import module_inventory_dependencies_csv, module_inventory_modules_csv, module_inventory_summary, module_inventory_symbols_csv, render_module_inventory_depth_markdown, render_module_inventory_markdown
+from .module_inventory_graph import build_module_inventory_graph, module_inventory_graph_capabilities, module_inventory_graph_schema, query_module_inventory_graph
+from .module_inventory_observability import build_module_inventory_observability, module_inventory_observability_capabilities, module_inventory_observability_events_csv, module_inventory_observability_json, module_inventory_observability_metrics_csv, module_inventory_observability_schema, query_module_inventory_observability
+from .module_inventory_packet import build_module_inventory_packet, module_inventory_packet_capabilities, module_inventory_packet_json, module_inventory_packet_schema, verify_module_inventory_packet
+from .module_inventory_packet_query import diff_module_inventory_packets, module_inventory_packet_query_capabilities, module_inventory_packet_query_schema, query_module_inventory_packet, replay_module_inventory_packet
+from .module_inventory_query import diff_module_inventories, query_module_inventory
+from .module_inventory_review import build_module_inventory_review_queue, module_inventory_review_capabilities, module_inventory_review_markdown, module_inventory_review_schema, query_module_inventory_review
+from .module_inventory_runtime import module_inventory_runtime_capabilities, module_inventory_runtime_schema, run_module_inventory
+from .module_inventory_schema import default_module_inventory_schema, module_inventory_schema_capabilities
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1649,6 +1661,103 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/module-inventory",
+            "/v1/module-inventory/query",
+            "/v1/module-inventory/schema",
+            "/v1/module-inventory/capabilities",
+            "/v1/module-inventory/audit",
+            "/v1/module-inventory/depth",
+            "/v1/module-inventory/depth/query",
+            "/v1/module-inventory/graph",
+            "/v1/module-inventory/graph/query",
+            "/v1/module-inventory/observability",
+            "/v1/module-inventory/observability/schema",
+            "/v1/module-inventory/observability/capabilities",
+            "/v1/module-inventory/packet",
+            "/v1/module-inventory/packet/verify",
+            "/v1/module-inventory/packet/query",
+            "/v1/module-inventory/packet/diff",
+            "/v1/module-inventory/packet/replay",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path.endswith("/schema") and not path.endswith("/observability/schema"):
+                    payload = {"schema": default_module_inventory_schema(), "base_schema": module_inventory_schema()}
+                elif path.endswith("/capabilities") and not path.endswith("/observability/capabilities"):
+                    payload = {"inventory": module_inventory_capabilities(), "audit": module_inventory_audit_capabilities(), "graph": module_inventory_graph_capabilities(), "depth": module_inventory_depth_capabilities(), "packet": module_inventory_packet_capabilities(), "query": module_inventory_packet_query_capabilities()}
+                elif path.endswith("/observability/schema"):
+                    payload = module_inventory_observability_schema()
+                elif path.endswith("/observability/capabilities"):
+                    payload = module_inventory_observability_capabilities()
+                elif path.endswith("/audit"):
+                    inventory = build_module_inventory()
+                    payload = audit_module_inventory(inventory).to_dict()
+                elif path.endswith("/depth/query"):
+                    inventory = build_module_inventory()
+                    depth = build_module_inventory_depth(inventory)
+                    payload = query_module_inventory_depth(depth, family=self._query_value(query, "family"), role=self._query_value(query, "role"), tier=self._query_value(query, "tier"), min_score=self._query_float(query, "min_score"), max_score=self._query_float(query, "max_score"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                elif path.endswith("/depth"):
+                    inventory = build_module_inventory()
+                    payload = build_module_inventory_depth(inventory).to_dict(include_rows=self._query_bool(query, "include_rows") is not False)
+                elif path.endswith("/graph/query"):
+                    inventory = build_module_inventory()
+                    graph = build_module_inventory_graph(inventory)
+                    resolved_value = self._query_value(query, "resolved")
+                    resolved_filter = None if resolved_value is None else self._query_bool(query, "resolved")
+                    payload = query_module_inventory_graph(graph, module_id=self._query_value(query, "module_id"), family=self._query_value(query, "family"), resolved=resolved_filter, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                elif path.endswith("/graph"):
+                    inventory = build_module_inventory()
+                    payload = build_module_inventory_graph(inventory).to_dict(include_rows=self._query_bool(query, "include_rows") is not False)
+                elif path.endswith("/observability"):
+                    inventory = build_module_inventory()
+                    observation = build_module_inventory_observability(inventory)
+                    if self._query_value(query, "format") == "events-csv":
+                        self._write_bytes(HTTPStatus.OK, module_inventory_observability_events_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if self._query_value(query, "format") == "metrics-csv":
+                        self._write_bytes(HTTPStatus.OK, module_inventory_observability_metrics_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    payload = observation.to_dict()
+                elif path.endswith("/packet/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for module inventory packet verification")
+                    payload = verify_module_inventory_packet(directory).to_dict()
+                elif path.endswith("/packet/query"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for module inventory packet query")
+                    payload = query_module_inventory_packet(directory, resource=self._query_value(query, "resource") or "artifacts", module_id=self._query_value(query, "module_id"), family=self._query_value(query, "family"), role=self._query_value(query, "role"), state=self._query_value(query, "state"), symbol=self._query_value(query, "symbol"), target_module=self._query_value(query, "target_module"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                elif path.endswith("/packet/diff"):
+                    left = self._query_value(query, "left_directory")
+                    right = self._query_value(query, "right_directory")
+                    if not left or not right:
+                        raise ValueError("left_directory and right_directory are required for module inventory packet diff")
+                    payload = diff_module_inventory_packets(left, right)
+                elif path.endswith("/packet/replay"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for module inventory packet replay")
+                    payload = replay_module_inventory_packet(directory)
+                elif path.endswith("/packet"):
+                    inventory = build_module_inventory()
+                    packet = build_module_inventory_packet(inventory)
+                    payload = packet.to_dict(include_payloads=False)
+                elif path.endswith("/query"):
+                    inventory = build_module_inventory()
+                    payload = query_module_inventory(inventory, resource=self._query_value(query, "resource") or "modules", module_id=self._query_value(query, "module_id"), family=self._query_value(query, "family"), role=self._query_value(query, "role"), state=self._query_value(query, "state"), symbol=self._query_value(query, "symbol"), target_module=self._query_value(query, "target_module"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50)).to_dict()
+                else:
+                    inventory = build_module_inventory()
+                    payload = inventory.to_dict(include_rows=self._query_bool(query, "include_rows") is True)
+                self._write(HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_module_inventory_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

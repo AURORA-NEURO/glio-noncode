@@ -4275,6 +4275,41 @@ The HTTP equivalents are `/v1/architecture/offline/bundle`, `/query`,
 related requests with the same identifiers. `/observability` adds a
 timestamp-free stage event stream and twelve aggregate metrics.
 
+## Repository module inventory and depth control plane
+
+The repository now exposes an AST-only module inventory for the complete local
+package. It discovers modules without importing or executing them, counts
+physical/nonblank/comment lines, extracts class and function declarations,
+resolves local import edges, retains unresolved edges and syntax issues, and
+closes deterministic family, role, state, package, symbol, and dependency-target
+indexes. The inventory has no absolute machine paths and no source payload copy.
+
+The dependency graph reports incoming/outgoing degree, roots, leaves, strongly
+connected cycle components, and unresolved-edge counts. The depth plane gives
+each module an explainable score over parse state, test references, public
+surface, dependency resolution, and implementation scale, then aggregates those
+rows into an overall percentage. The percentage is an implementation-maturity
+signal only and is not a scientific or clinical claim.
+
+The review queue turns parse failures, unresolved imports, missing test
+references, large or isolated modules, low public surface, high fan-out, and
+cycles into explicit next actions. Timestamp-free events and metrics provide
+reproducible operational views. The fixed ten-artifact packet includes JSON,
+CSV, audit, runtime, and capability artifacts; its verifier checks exact bytes,
+safe paths, unexpected files, addresses, and the public boundary before load.
+
+```powershell
+glio-noncode module-inventory --format summary --output module-summary.json
+glio-noncode module-inventory-depth --format markdown --output module-depth.md
+glio-noncode module-inventory-review --format markdown --output module-review.md
+glio-noncode module-inventory-packet --destination module-inventory-packet
+glio-noncode module-inventory-packet-verify module-inventory-packet
+```
+
+The service equivalents are under `/v1/module-inventory`, including bounded
+queries, graph and depth views, observability, and packet verification. See
+[the module inventory contract](MODULE_INVENTORY.md).
+
 ## Domain 16 typed mission runtime
 
 The mission runtime combines the declared control-plane registry with workflow

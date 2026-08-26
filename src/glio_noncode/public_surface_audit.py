@@ -162,9 +162,18 @@ from .service_release_handoff import build_service_release_handoff
 from .service_release_query import query_service_release
 from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
+from .module_inventory import module_inventory_capabilities, module_inventory_schema
+from .module_inventory_audit import module_inventory_audit_capabilities, module_inventory_audit_schema
+from .module_inventory_depth import module_inventory_depth_capabilities, module_inventory_depth_schema
+from .module_inventory_graph import module_inventory_graph_capabilities, module_inventory_graph_schema
+from .module_inventory_observability import module_inventory_observability_capabilities, module_inventory_observability_schema
+from .module_inventory_packet import module_inventory_packet_capabilities, module_inventory_packet_schema
+from .module_inventory_packet_query import module_inventory_packet_query_capabilities, module_inventory_packet_query_schema
+from .module_inventory_review import module_inventory_review_capabilities, module_inventory_review_schema
+from .module_inventory_runtime import module_inventory_runtime_capabilities, module_inventory_runtime_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 146
+PUBLIC_SURFACE_EXPECTED_COUNT = 164
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -512,6 +521,24 @@ def default_public_surface_inventory(
         "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
         "mission-plan-replay-schema": mission_plan_public_replay_schema(),
         "mission-plan-replay-capabilities": mission_plan_public_replay_capabilities(),
+        "module-inventory-schema": module_inventory_schema(),
+        "module-inventory-capabilities": module_inventory_capabilities(),
+        "module-inventory-audit-schema": module_inventory_audit_schema(),
+        "module-inventory-audit-capabilities": module_inventory_audit_capabilities(),
+        "module-inventory-depth-schema": module_inventory_depth_schema(),
+        "module-inventory-depth-capabilities": module_inventory_depth_capabilities(),
+        "module-inventory-graph-schema": module_inventory_graph_schema(),
+        "module-inventory-graph-capabilities": module_inventory_graph_capabilities(),
+        "module-inventory-observability-schema": module_inventory_observability_schema(),
+        "module-inventory-observability-capabilities": module_inventory_observability_capabilities(),
+        "module-inventory-packet-schema": module_inventory_packet_schema(),
+        "module-inventory-packet-capabilities": module_inventory_packet_capabilities(),
+        "module-inventory-packet-query-schema": module_inventory_packet_query_schema(),
+        "module-inventory-packet-query-capabilities": module_inventory_packet_query_capabilities(),
+        "module-inventory-review-schema": module_inventory_review_schema(),
+        "module-inventory-review-capabilities": module_inventory_review_capabilities(),
+        "module-inventory-runtime-schema": module_inventory_runtime_schema(),
+        "module-inventory-runtime-capabilities": module_inventory_runtime_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

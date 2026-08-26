@@ -12,6 +12,23 @@ report or runtime from which it was derived.
 | GET | `/healthz` | Cheap process health response |
 | GET | `/v1/schema` | Existing case contract summary |
 | GET | `/v1/public-surface/audit` | Audit the complete repository-wide public service and bundle projection inventory |
+| GET | `/v1/module-inventory` | Return aggregate module, symbol, dependency, index, and source-depth counts |
+| GET | `/v1/module-inventory/query` | Page static module, symbol, dependency, or index rows |
+| GET | `/v1/module-inventory/schema` | Return module inventory field and boundary schema |
+| GET | `/v1/module-inventory/capabilities` | Return inventory, audit, graph, depth, packet, and query capabilities |
+| GET | `/v1/module-inventory/audit` | Run independent row, graph, count, and public-boundary checks |
+| GET | `/v1/module-inventory/depth` | Return module-by-module static depth scores and aggregate percentage |
+| GET | `/v1/module-inventory/depth/query` | Filter bounded depth assessments by family, role, tier, or score |
+| GET | `/v1/module-inventory/graph` | Return the static local-import graph summary or rows |
+| GET | `/v1/module-inventory/graph/query` | Page graph nodes and edges with resolution filters |
+| GET | `/v1/module-inventory/observability` | Return timestamp-free module events and aggregate metrics |
+| GET | `/v1/module-inventory/observability/schema` | Return module observability schema |
+| GET | `/v1/module-inventory/observability/capabilities` | Return module observability capabilities |
+| GET | `/v1/module-inventory/packet` | Build a ten-artifact exact-byte module inventory packet manifest |
+| GET | `/v1/module-inventory/packet/verify?directory=...` | Verify a module packet directory |
+| GET | `/v1/module-inventory/packet/query?directory=...` | Query a verified packet offline through the service |
+| GET | `/v1/module-inventory/packet/diff?left_directory=...&right_directory=...` | Compare packet artifact addresses |
+| GET | `/v1/module-inventory/packet/replay?directory=...` | Replay packet verification and resource closure |
 | GET | `/v1/cohort/benchmark/schema` | Return the aggregate cohort benchmark schema |
 | GET | `/v1/cohort/benchmark/capabilities` | Return split, leakage, calibration, selective-risk, and transport capabilities |
 | POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |
@@ -245,6 +262,17 @@ Capability queries accept `capability_id`, `domain_id`, `mvp_only`, `state`, and
 Boolean values accept `true`, `false`, `1`, `0`, `yes`, and `no`. Diff controls
 are `none`, `missing-fixture`, and `missing-runtime`. Invalid query values return
 HTTP 400 with the `invalid_query` error code.
+
+Module inventory queries accept `resource` (`modules`, `symbols`,
+`dependencies`, or `indexes`), `module_id`, `family`, `role`, `state`, `symbol`,
+`target_module`, `q` or `text`, `offset`, and `limit`. The inventory is static:
+it parses package source with the standard AST parser and does not import or
+execute discovered modules. The depth projection reports an explainable static
+percentage over parse state, test references, public surface, dependency
+resolution, and implementation scale. This percentage is repository maturity
+signal only; it is not scientific validity. Packet routes require safe local
+directories and verify exact UTF-8 bytes, declared paths, artifact identities,
+and the public boundary before exposing rows.
 
 Run catalog queries accept `case_id`, `status`, `text`, `offset`, and `limit`.
 The limit is bounded to 100 rows. Run identifiers are validated before they are

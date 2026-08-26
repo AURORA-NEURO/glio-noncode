@@ -10833,6 +10833,131 @@ __all__ += [
     "validate_cohort_foundation_frontier_schema",
 ]
 
+from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema, verify_module_inventory
+from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
+from .module_inventory_contracts import (
+    InventoryAuditCheck,
+    InventoryCheckPlane,
+    InventoryIndexRow,
+    InventoryIssue,
+    InventoryResource,
+    InventoryStageState,
+    ModuleDependency,
+    ModuleInventory,
+    ModuleInventoryAudit,
+    ModuleInventoryDiff,
+    ModuleInventoryQueryResult,
+    ModuleInventoryRuntime,
+    ModuleInventoryStage,
+    ModuleRecord,
+    ModuleRole,
+    ModuleState,
+    ModuleSymbol,
+)
+from .module_inventory_depth import (
+    ModuleDepthAssessment,
+    ModuleDepthReport,
+    build_module_inventory_depth,
+    module_inventory_depth_capabilities,
+    module_inventory_depth_csv,
+    module_inventory_depth_schema,
+    query_module_inventory_depth,
+)
+from .module_inventory_exports import (
+    module_inventory_dependencies_csv,
+    module_inventory_graph_csv,
+    module_inventory_indexes_csv,
+    module_inventory_json,
+    module_inventory_modules_csv,
+    module_inventory_summary,
+    module_inventory_symbols_csv,
+    render_module_inventory_depth_markdown,
+    render_module_inventory_markdown,
+)
+from .module_inventory_graph import (
+    ModuleGraphEdge,
+    ModuleGraphNode,
+    ModuleInventoryGraph,
+    build_module_inventory_graph,
+    module_inventory_graph_capabilities,
+    module_inventory_graph_schema,
+    query_module_inventory_graph,
+)
+from .module_inventory_observability import (
+    ModuleInventoryEvent,
+    ModuleInventoryMetrics,
+    ModuleInventoryObservability,
+    build_module_inventory_observability,
+    module_inventory_observability_capabilities,
+    module_inventory_observability_events_csv,
+    module_inventory_observability_json,
+    module_inventory_observability_metrics_csv,
+    module_inventory_observability_schema,
+    query_module_inventory_observability,
+)
+from .module_inventory_packet import (
+    build_module_inventory_packet,
+    load_module_inventory_packet,
+    module_inventory_packet_capabilities,
+    module_inventory_packet_json,
+    module_inventory_packet_schema,
+    verify_module_inventory_packet,
+    write_module_inventory_packet,
+)
+from .module_inventory_packet_contracts import (
+    MODULE_INVENTORY_PACKET_ARTIFACT_COUNT,
+    MODULE_INVENTORY_PACKET_ARTIFACT_PREFIX,
+    MODULE_INVENTORY_PACKET_BOUNDARY,
+    MODULE_INVENTORY_PACKET_MANIFEST,
+    MODULE_INVENTORY_PACKET_VERSION,
+    ModuleInventoryPacket,
+    ModuleInventoryPacketArtifact,
+    ModuleInventoryPacketArtifactKind,
+    ModuleInventoryPacketCheck,
+    ModuleInventoryPacketCheckPlane,
+    ModuleInventoryPacketState,
+    ModuleInventoryPacketVerification,
+)
+from .module_inventory_packet_query import (
+    diff_module_inventory_packets,
+    module_inventory_packet_query_capabilities,
+    module_inventory_packet_query_schema,
+    query_module_inventory_packet,
+    replay_module_inventory_packet,
+)
+from .module_inventory_query import diff_module_inventories, inventory_from_mapping, query_module_inventory
+from .module_inventory_review import (
+    ModuleInventoryReviewQueue,
+    ModuleReviewItem,
+    ModuleReviewKind,
+    ModuleReviewSeverity,
+    build_module_inventory_review_queue,
+    module_inventory_review_capabilities,
+    module_inventory_review_markdown,
+    module_inventory_review_schema,
+    query_module_inventory_review,
+)
+from .module_inventory_runtime import (
+    module_inventory_runtime_capabilities,
+    module_inventory_runtime_json,
+    module_inventory_runtime_schema,
+    run_module_inventory,
+)
+from .module_inventory_schema import (
+    ModuleInventorySchemaField,
+    ModuleInventorySchemaReport,
+    default_module_inventory_schema,
+    module_inventory_schema_capabilities,
+    validate_module_inventory_schema,
+)
+
+__all__ += [
+    "InventoryAuditCheck", "InventoryCheckPlane", "InventoryIndexRow", "InventoryIssue", "InventoryResource", "InventoryStageState",
+    "MODULE_INVENTORY_PACKET_ARTIFACT_COUNT", "MODULE_INVENTORY_PACKET_ARTIFACT_PREFIX", "MODULE_INVENTORY_PACKET_BOUNDARY", "MODULE_INVENTORY_PACKET_MANIFEST", "MODULE_INVENTORY_PACKET_VERSION",
+    "ModuleDependency", "ModuleDepthAssessment", "ModuleDepthReport", "ModuleGraphEdge", "ModuleGraphNode", "ModuleInventory", "ModuleInventoryAudit", "ModuleInventoryDiff", "ModuleInventoryEvent", "ModuleInventoryGraph", "ModuleInventoryMetrics", "ModuleInventoryObservability", "ModuleInventoryPacket", "ModuleInventoryPacketArtifact", "ModuleInventoryPacketArtifactKind", "ModuleInventoryPacketCheck", "ModuleInventoryPacketCheckPlane", "ModuleInventoryPacketState", "ModuleInventoryPacketVerification", "ModuleInventoryQueryResult", "ModuleInventoryReviewQueue", "ModuleInventoryRuntime", "ModuleInventorySchemaField", "ModuleInventorySchemaReport", "ModuleInventoryStage", "ModuleRecord", "ModuleReviewItem", "ModuleReviewKind", "ModuleReviewSeverity", "ModuleRole", "ModuleState", "ModuleSymbol",
+    "audit_module_inventory", "build_module_inventory", "build_module_inventory_depth", "build_module_inventory_graph", "build_module_inventory_observability", "build_module_inventory_packet", "build_module_inventory_review_queue", "default_module_inventory_schema", "diff_module_inventory_packets", "diff_module_inventories", "inventory_from_mapping", "load_module_inventory_packet", "module_inventory_audit_capabilities", "module_inventory_audit_schema", "module_inventory_capabilities", "module_inventory_dependencies_csv", "module_inventory_depth_capabilities", "module_inventory_depth_csv", "module_inventory_depth_schema", "module_inventory_graph_capabilities", "module_inventory_graph_csv", "module_inventory_graph_schema", "module_inventory_indexes_csv", "module_inventory_json", "module_inventory_modules_csv", "module_inventory_observability_capabilities", "module_inventory_observability_events_csv", "module_inventory_observability_json", "module_inventory_observability_metrics_csv", "module_inventory_observability_schema", "module_inventory_packet_capabilities", "module_inventory_packet_json", "module_inventory_packet_query_capabilities", "module_inventory_packet_query_schema", "module_inventory_packet_schema", "module_inventory_review_capabilities", "module_inventory_review_markdown", "module_inventory_review_schema", "module_inventory_runtime_capabilities", "module_inventory_runtime_json", "module_inventory_runtime_schema", "module_inventory_schema", "module_inventory_schema_capabilities", "module_inventory_summary", "module_inventory_symbols_csv", "query_module_inventory", "query_module_inventory_depth", "query_module_inventory_graph", "query_module_inventory_observability", "query_module_inventory_packet", "query_module_inventory_review", "replay_module_inventory_packet", "render_module_inventory_depth_markdown", "render_module_inventory_markdown", "run_module_inventory", "validate_module_inventory_schema", "verify_module_inventory", "verify_module_inventory_packet", "write_module_inventory_packet",
+]
+
 __all__ += [
     "BenchmarkState", "CalibrationBin", "CalibrationConfig", "CalibrationReport",
     "COHORT_BENCHMARK_MAX_BINS", "COHORT_BENCHMARK_MAX_DOMAINS", "COHORT_BENCHMARK_MAX_POINTS",
