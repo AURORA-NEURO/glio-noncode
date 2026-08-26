@@ -11150,6 +11150,139 @@ from .module_workbench_portfolio import (
     verify_module_workbench_portfolio,
 )
 from .module_workbench_portfolio_contracts import ModuleWorkbenchPortfolio
+from .module_workbench_execution import (
+    apply_module_workbench_execution_command,
+    apply_module_workbench_execution_commands,
+    build_module_workbench_execution,
+    execution_command,
+    module_workbench_execution_capabilities,
+    module_workbench_execution_csv,
+    module_workbench_execution_json,
+    module_workbench_execution_schema,
+    query_module_workbench_execution,
+    render_module_workbench_execution_markdown,
+    verify_module_workbench_execution,
+)
+from .module_workbench_execution_contracts import (
+    MODULE_WORKBENCH_EXECUTION_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_MAX_EVENTS,
+    MODULE_WORKBENCH_EXECUTION_MAX_EVIDENCE,
+    MODULE_WORKBENCH_EXECUTION_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_MAX_PREREQUISITES,
+    MODULE_WORKBENCH_EXECUTION_MAX_TASKS,
+    MODULE_WORKBENCH_EXECUTION_VERSION,
+    ModuleWorkbenchExecutionAction,
+    ModuleWorkbenchExecutionCommand,
+    ModuleWorkbenchExecutionEvent,
+    ModuleWorkbenchExecutionEventKind,
+    ModuleWorkbenchExecutionItem,
+    ModuleWorkbenchExecutionLedger,
+    ModuleWorkbenchExecutionRequirement,
+    ModuleWorkbenchExecutionState,
+)
+from .module_workbench_execution_audit import (
+    audit_module_workbench_execution,
+    module_workbench_execution_audit_capabilities,
+    module_workbench_execution_audit_csv,
+    module_workbench_execution_audit_json,
+    module_workbench_execution_audit_schema,
+    query_module_workbench_execution_audit,
+    verify_module_workbench_execution_audit,
+)
+from .module_workbench_execution_audit_contracts import (
+    MODULE_WORKBENCH_EXECUTION_AUDIT_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_AUDIT_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_AUDIT_MAX_CHECKS,
+    MODULE_WORKBENCH_EXECUTION_AUDIT_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_AUDIT_VERSION,
+    ModuleWorkbenchExecutionAudit,
+    ModuleWorkbenchExecutionAuditCheck,
+    ModuleWorkbenchExecutionAuditPlane,
+)
+from .module_workbench_execution_diff import (
+    build_module_workbench_execution_diff,
+    module_workbench_execution_diff_capabilities,
+    module_workbench_execution_diff_csv,
+    module_workbench_execution_diff_json,
+    module_workbench_execution_diff_schema,
+    query_module_workbench_execution_diff,
+    verify_module_workbench_execution_diff,
+)
+from .module_workbench_execution_diff_contracts import (
+    MODULE_WORKBENCH_EXECUTION_DIFF_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_DIFF_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_DIFF_MAX_CHANGES,
+    MODULE_WORKBENCH_EXECUTION_DIFF_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_DIFF_VERSION,
+    ModuleWorkbenchExecutionChange,
+    ModuleWorkbenchExecutionChangeKind,
+    ModuleWorkbenchExecutionDiff,
+)
+from .module_workbench_execution_policy import (
+    build_module_workbench_execution_policy,
+    default_module_workbench_execution_policy,
+    evaluate_module_workbench_execution_policy,
+    module_workbench_execution_policy_capabilities,
+    module_workbench_execution_policy_csv,
+    module_workbench_execution_policy_json,
+    module_workbench_execution_policy_schema,
+    module_workbench_execution_policy_summary,
+    query_module_workbench_execution_policy,
+    verify_module_workbench_execution_policy,
+    verify_module_workbench_execution_policy_gate,
+)
+from .module_workbench_execution_policy_contracts import (
+    MODULE_WORKBENCH_EXECUTION_POLICY_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_POLICY_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_POLICY_MAX_CHECKS,
+    MODULE_WORKBENCH_EXECUTION_POLICY_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_POLICY_VERSION,
+    ModuleWorkbenchExecutionPolicy,
+    ModuleWorkbenchExecutionPolicyCheck,
+    ModuleWorkbenchExecutionPolicyGate,
+)
+from .module_workbench_execution_runtime import (
+    module_workbench_execution_runtime_capabilities,
+    module_workbench_execution_runtime_csv,
+    module_workbench_execution_runtime_json,
+    module_workbench_execution_runtime_schema,
+    query_module_workbench_execution_runtime,
+    run_module_workbench_execution,
+    verify_module_workbench_execution_runtime,
+)
+from .module_workbench_execution_runtime_contracts import (
+    MODULE_WORKBENCH_EXECUTION_RUNTIME_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_RUNTIME_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_RUNTIME_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_RUNTIME_MAX_STAGES,
+    MODULE_WORKBENCH_EXECUTION_RUNTIME_VERSION,
+    ModuleWorkbenchExecutionRuntime,
+    ModuleWorkbenchExecutionRuntimeStage,
+    ModuleWorkbenchExecutionRuntimeStageKind,
+    ModuleWorkbenchExecutionRuntimeStageState,
+)
+from .module_workbench_execution_review import (
+    build_module_workbench_execution_review,
+    module_workbench_execution_review_capabilities,
+    module_workbench_execution_review_csv,
+    module_workbench_execution_review_json,
+    module_workbench_execution_review_schema,
+    query_module_workbench_execution_review,
+    render_module_workbench_execution_review_markdown,
+    verify_module_workbench_execution_review,
+)
+from .module_workbench_execution_review_contracts import (
+    MODULE_WORKBENCH_EXECUTION_REVIEW_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_REVIEW_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_MODULES,
+    MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_NEXT_TASKS,
+    MODULE_WORKBENCH_EXECUTION_REVIEW_VERSION,
+    ModuleWorkbenchExecutionReview,
+    ModuleWorkbenchExecutionReviewItem,
+    ModuleWorkbenchExecutionReviewState,
+)
 from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema, verify_module_inventory
 from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
 from .module_inventory_contracts import (
@@ -11292,6 +11425,20 @@ __all__ += [
     "ModuleWorkbenchRuntime", "ModuleWorkbenchStage", "ModuleWorkbenchStageKind", "ModuleWorkbenchStageState",
     "module_workbench_runtime_capabilities", "module_workbench_runtime_csv", "module_workbench_runtime_json", "module_workbench_runtime_schema", "query_module_workbench_runtime", "run_module_workbench", "verify_module_workbench_runtime",
     "ModuleWorkbenchPortfolio", "build_module_workbench_portfolio", "module_workbench_portfolio_capabilities", "module_workbench_portfolio_json", "module_workbench_portfolio_schema", "query_module_workbench_portfolio", "verify_module_workbench_portfolio",
+]
+
+__all__ += [
+    "MODULE_WORKBENCH_EXECUTION_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_MAX_EVENTS", "MODULE_WORKBENCH_EXECUTION_MAX_EVIDENCE", "MODULE_WORKBENCH_EXECUTION_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_MAX_PREREQUISITES", "MODULE_WORKBENCH_EXECUTION_MAX_TASKS", "MODULE_WORKBENCH_EXECUTION_VERSION",
+    "ModuleWorkbenchExecutionAction", "ModuleWorkbenchExecutionCommand", "ModuleWorkbenchExecutionEvent", "ModuleWorkbenchExecutionEventKind", "ModuleWorkbenchExecutionItem", "ModuleWorkbenchExecutionLedger", "ModuleWorkbenchExecutionRequirement", "ModuleWorkbenchExecutionState",
+    "apply_module_workbench_execution_command", "apply_module_workbench_execution_commands", "build_module_workbench_execution", "execution_command", "module_workbench_execution_capabilities", "module_workbench_execution_csv", "module_workbench_execution_json", "module_workbench_execution_schema", "query_module_workbench_execution", "render_module_workbench_execution_markdown", "verify_module_workbench_execution",
+    "MODULE_WORKBENCH_EXECUTION_AUDIT_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_AUDIT_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_AUDIT_MAX_CHECKS", "MODULE_WORKBENCH_EXECUTION_AUDIT_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_AUDIT_VERSION", "ModuleWorkbenchExecutionAudit", "ModuleWorkbenchExecutionAuditCheck", "ModuleWorkbenchExecutionAuditPlane", "audit_module_workbench_execution", "module_workbench_execution_audit_capabilities", "module_workbench_execution_audit_csv", "module_workbench_execution_audit_json", "module_workbench_execution_audit_schema", "query_module_workbench_execution_audit", "verify_module_workbench_execution_audit",
+    "MODULE_WORKBENCH_EXECUTION_DIFF_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_DIFF_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_DIFF_MAX_CHANGES", "MODULE_WORKBENCH_EXECUTION_DIFF_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_DIFF_VERSION", "ModuleWorkbenchExecutionChange", "ModuleWorkbenchExecutionChangeKind", "ModuleWorkbenchExecutionDiff", "build_module_workbench_execution_diff", "module_workbench_execution_diff_capabilities", "module_workbench_execution_diff_csv", "module_workbench_execution_diff_json", "module_workbench_execution_diff_schema", "query_module_workbench_execution_diff", "verify_module_workbench_execution_diff",
+    "MODULE_WORKBENCH_EXECUTION_POLICY_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_POLICY_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_POLICY_MAX_CHECKS", "MODULE_WORKBENCH_EXECUTION_POLICY_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_POLICY_VERSION", "ModuleWorkbenchExecutionPolicy", "ModuleWorkbenchExecutionPolicyCheck", "ModuleWorkbenchExecutionPolicyGate", "build_module_workbench_execution_policy", "default_module_workbench_execution_policy", "evaluate_module_workbench_execution_policy", "module_workbench_execution_policy_capabilities", "module_workbench_execution_policy_csv", "module_workbench_execution_policy_json", "module_workbench_execution_policy_schema", "module_workbench_execution_policy_summary", "query_module_workbench_execution_policy", "verify_module_workbench_execution_policy", "verify_module_workbench_execution_policy_gate",
+    "MODULE_WORKBENCH_EXECUTION_RUNTIME_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_RUNTIME_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_RUNTIME_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_RUNTIME_MAX_STAGES", "MODULE_WORKBENCH_EXECUTION_RUNTIME_VERSION", "ModuleWorkbenchExecutionRuntime", "ModuleWorkbenchExecutionRuntimeStage", "ModuleWorkbenchExecutionRuntimeStageKind", "ModuleWorkbenchExecutionRuntimeStageState", "module_workbench_execution_runtime_capabilities", "module_workbench_execution_runtime_csv", "module_workbench_execution_runtime_json", "module_workbench_execution_runtime_schema", "query_module_workbench_execution_runtime", "run_module_workbench_execution", "verify_module_workbench_execution_runtime",
+]
+
+__all__ += [
+    "MODULE_WORKBENCH_EXECUTION_REVIEW_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_REVIEW_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_MODULES", "MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_NEXT_TASKS", "MODULE_WORKBENCH_EXECUTION_REVIEW_VERSION", "ModuleWorkbenchExecutionReview", "ModuleWorkbenchExecutionReviewItem", "ModuleWorkbenchExecutionReviewState", "build_module_workbench_execution_review", "module_workbench_execution_review_capabilities", "module_workbench_execution_review_csv", "module_workbench_execution_review_json", "module_workbench_execution_review_schema", "query_module_workbench_execution_review", "render_module_workbench_execution_review_markdown", "verify_module_workbench_execution_review",
 ]
 
 __all__ += [

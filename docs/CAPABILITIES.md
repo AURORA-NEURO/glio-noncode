@@ -4631,3 +4631,37 @@ graph targets, support references, counters, relative paths, and limits.
 glio-noncode module-certification-lineage-audit --plane graph
 glio-noncode module-certification-release --format markdown
 ```
+
+## Module workbench execution depth
+
+The module workbench execution layer is the operational continuation of the
+module-by-module depth surface. It converts a bounded task portfolio into an
+addressed execution ledger with deterministic prerequisites, evidence
+requirements, immutable transition events, state-count conservation, and
+reviewable blockers. `start`, `complete`, `block`, `unblock`, `skip`, `reopen`,
+and `supersede` commands are validated against the task lifecycle; `complete`
+requires the declared evidence receipt count.
+
+Five public aggregate planes are exposed:
+
+| Plane | Function |
+| --- | --- |
+| Execution | Build, query, export, and evolve task state |
+| Audit | Reconstruct events and check addresses, prerequisites, evidence, counts, and boundaries |
+| Policy | Apply completion, evidence, exception, event-budget, and audit thresholds |
+| Runtime | Compose portfolio, plan, replay, policy, audit, and handoff stages |
+| Diff | Compare task identity, state, completion, evidence, and event deltas |
+
+The surfaces remain local-first, timestamp-free, path-free, and identity-free.
+They retain aggregate receipts and review explanations but do not assert that a
+completed implementation task is a scientific, diagnostic, treatment, or
+clinical conclusion. See [the execution contract](MODULE_WORKBENCH_EXECUTION.md).
+
+The execution review projection groups task state back into module-level rows.
+It routes blocked modules to attention, active modules to evidence follow-up,
+ready modules to the next-task queue, waiting modules to prerequisite review,
+and completed modules to verification or complete state. Each row conserves
+task counts, carries bounded blocker explanations and next-task IDs, and reports
+completion and evidence coverage. It is exposed through the
+`module_workbench_execution_review_*` functions and the
+`/v1/module-workbench/execution/review` API family.

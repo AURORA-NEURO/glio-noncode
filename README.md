@@ -1219,3 +1219,35 @@ audits, and baseline-to-candidate snapshot diffs. Its public API is under
 audit routes, plus a complete seven-stage runtime handoff. See
 [docs/MODULE_WORKBENCH.md](docs/MODULE_WORKBENCH.md) for the scoring model,
 task contract, verification rules, and full route matrix.
+
+## Module workbench execution
+
+The execution layer turns a selected workbench portfolio into a deterministic,
+evidence-gated task ledger. It derives prerequisites, supports immutable
+`planned`, `ready`, `in_progress`, `blocked`, `completed`, `skipped`, and
+`superseded` states, appends addressed transition events, and refuses
+completion without the declared evidence receipts. Independent audits
+reconstruct the event graph, check prerequisites and public keys, and conserve
+state and event counts. Progress policies, runtime handoff, and task-level
+snapshot diffs keep implementation progress reviewable without claiming that
+selection or completion proves scientific validity.
+
+```powershell
+python -m glio_noncode module-workbench-execution --format summary
+python -m glio_noncode module-workbench-execution --resource items --format csv --output execution-items.csv
+python -m glio_noncode module-workbench-execution-audit --format csv --output execution-audit.csv
+python -m glio_noncode module-workbench-execution-policy --format summary
+python -m glio_noncode module-workbench-execution-runtime --format json
+```
+
+See [docs/MODULE_WORKBENCH_EXECUTION.md](docs/MODULE_WORKBENCH_EXECUTION.md)
+for transition rules, evidence requirements, query resources, and API routes.
+
+The execution review view groups that ledger back by module and routes blocked,
+evidence-pending, ready, waiting, verification, complete, and superseded work
+with conserved progress/evidence rollups and bounded next-task queues:
+
+```powershell
+python -m glio_noncode module-workbench-execution-review --format summary
+python -m glio_noncode module-workbench-execution-review --review-state attention --format markdown
+```

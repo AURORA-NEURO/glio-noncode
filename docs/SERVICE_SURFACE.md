@@ -114,6 +114,28 @@ report or runtime from which it was derived.
 | GET | `/v1/module-workbench/portfolio/query` | Query selected portfolio tasks |
 | GET | `/v1/module-workbench/portfolio/schema` | Return module workbench portfolio schema |
 | GET | `/v1/module-workbench/portfolio/capabilities` | Return module workbench portfolio capabilities |
+| GET | `/v1/module-workbench/execution` | Return the bounded evidence-gated execution ledger |
+| GET | `/v1/module-workbench/execution/query` | Query execution items, events, blockers, or summary |
+| GET | `/v1/module-workbench/execution/schema` | Return module execution schema and transition rules |
+| GET | `/v1/module-workbench/execution/capabilities` | Return module execution operations and guarantees |
+| GET | `/v1/module-workbench/execution/audit` | Run independent execution-ledger invariant checks |
+| GET | `/v1/module-workbench/execution/audit/query` | Query bounded execution audit checks |
+| GET | `/v1/module-workbench/execution/audit/schema` | Return execution audit schema |
+| GET | `/v1/module-workbench/execution/audit/capabilities` | Return execution audit capabilities |
+| GET | `/v1/module-workbench/execution/policy` | Evaluate execution progress thresholds |
+| GET | `/v1/module-workbench/execution/policy/query` | Query bounded execution policy checks |
+| GET | `/v1/module-workbench/execution/policy/schema` | Return execution policy schema |
+| GET | `/v1/module-workbench/execution/policy/capabilities` | Return execution policy capabilities |
+| GET | `/v1/module-workbench/execution/diff/schema` | Return execution snapshot diff schema |
+| GET | `/v1/module-workbench/execution/diff/capabilities` | Return execution snapshot diff capabilities |
+| GET | `/v1/module-workbench/execution/runtime` | Run the ordered module execution handoff |
+| GET | `/v1/module-workbench/execution/runtime/query` | Query bounded execution runtime stages or summary |
+| GET | `/v1/module-workbench/execution/runtime/schema` | Return execution runtime schema |
+| GET | `/v1/module-workbench/execution/runtime/capabilities` | Return execution runtime capabilities |
+| GET | `/v1/module-workbench/execution/review` | Return module-level execution review routing |
+| GET | `/v1/module-workbench/execution/review/query` | Query modules, routed tasks, or review summary |
+| GET | `/v1/module-workbench/execution/review/schema` | Return execution review schema |
+| GET | `/v1/module-workbench/execution/review/capabilities` | Return execution review capabilities |
 | GET | `/v1/cohort/benchmark/schema` | Return the aggregate cohort benchmark schema |
 | GET | `/v1/cohort/benchmark/capabilities` | Return split, leakage, calibration, selective-risk, and transport capabilities |
 | POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |

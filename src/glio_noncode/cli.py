@@ -2127,6 +2127,12 @@ from .module_workbench_diff import module_workbench_diff_capabilities, module_wo
 from .module_workbench_policy import build_module_workbench_policy, default_module_workbench_policy, evaluate_module_workbench_policy, module_workbench_policy_capabilities, module_workbench_policy_csv, module_workbench_policy_json, module_workbench_policy_schema, module_workbench_policy_summary, query_module_workbench_policy, render_module_workbench_policy_markdown
 from .module_workbench_runtime import module_workbench_runtime_capabilities, module_workbench_runtime_csv, module_workbench_runtime_json, module_workbench_runtime_schema, query_module_workbench_runtime, run_module_workbench
 from .module_workbench_portfolio import build_module_workbench_portfolio, module_workbench_portfolio_capabilities, module_workbench_portfolio_json, module_workbench_portfolio_schema, query_module_workbench_portfolio
+from .module_workbench_execution import build_module_workbench_execution, module_workbench_execution_capabilities, module_workbench_execution_csv, module_workbench_execution_json, module_workbench_execution_schema, query_module_workbench_execution, render_module_workbench_execution_markdown
+from .module_workbench_execution_audit import audit_module_workbench_execution, module_workbench_execution_audit_capabilities, module_workbench_execution_audit_csv, module_workbench_execution_audit_json, module_workbench_execution_audit_schema, query_module_workbench_execution_audit
+from .module_workbench_execution_policy import build_module_workbench_execution_policy, default_module_workbench_execution_policy, evaluate_module_workbench_execution_policy, module_workbench_execution_policy_capabilities, module_workbench_execution_policy_csv, module_workbench_execution_policy_json, module_workbench_execution_policy_schema, module_workbench_execution_policy_summary, query_module_workbench_execution_policy
+from .module_workbench_execution_diff import module_workbench_execution_diff_capabilities, module_workbench_execution_diff_csv, module_workbench_execution_diff_json, module_workbench_execution_diff_schema, query_module_workbench_execution_diff
+from .module_workbench_execution_runtime import module_workbench_execution_runtime_capabilities, module_workbench_execution_runtime_csv, module_workbench_execution_runtime_json, module_workbench_execution_runtime_schema, query_module_workbench_execution_runtime, run_module_workbench_execution
+from .module_workbench_execution_review import build_module_workbench_execution_review, module_workbench_execution_review_capabilities, module_workbench_execution_review_csv, module_workbench_execution_review_json, module_workbench_execution_review_schema, query_module_workbench_execution_review, render_module_workbench_execution_review_markdown
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4583,6 +4589,108 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_portfolio.add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-portfolio-schema", help="print module workbench portfolio schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-portfolio-capabilities", help="print module workbench portfolio capabilities").add_argument("--output", default=None)
+
+    module_workbench_execution = subparsers.add_parser("module-workbench-execution", help="build and query the evidence-gated module execution ledger")
+    module_workbench_execution.add_argument("--source-root", default=None)
+    module_workbench_execution.add_argument("--test-root", default=None)
+    module_workbench_execution.add_argument("--docs-root", default=None)
+    module_workbench_execution.add_argument("--capacity", default=100, type=int)
+    module_workbench_execution.add_argument("--max-tasks-per-module", default=2, type=int)
+    module_workbench_execution.add_argument("--resource", choices=("items", "events", "blockers", "summary"), default="items")
+    module_workbench_execution.add_argument("--task-id", default=None)
+    module_workbench_execution.add_argument("--module-id", default=None)
+    module_workbench_execution.add_argument("--family", default=None)
+    module_workbench_execution.add_argument("--state", default=None)
+    module_workbench_execution.add_argument("--kind", default=None)
+    module_workbench_execution.add_argument("--text", default=None)
+    module_workbench_execution.add_argument("--offset", default=0, type=int)
+    module_workbench_execution.add_argument("--limit", default=50, type=int)
+    module_workbench_execution.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    module_workbench_execution.add_argument("--include-items", action="store_true")
+    module_workbench_execution.add_argument("--include-events", action="store_true")
+    module_workbench_execution.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-schema", help="print module workbench execution schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-capabilities", help="print module workbench execution capabilities").add_argument("--output", default=None)
+    module_workbench_execution_audit = subparsers.add_parser("module-workbench-execution-audit", help="audit module workbench execution invariants")
+    module_workbench_execution_audit.add_argument("--source-root", default=None)
+    module_workbench_execution_audit.add_argument("--test-root", default=None)
+    module_workbench_execution_audit.add_argument("--docs-root", default=None)
+    module_workbench_execution_audit.add_argument("--plane", default=None)
+    module_workbench_execution_audit.add_argument("--passed", action="store_true")
+    module_workbench_execution_audit.add_argument("--text", default=None)
+    module_workbench_execution_audit.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_audit.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_audit.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_execution_audit.add_argument("--include-checks", action="store_true")
+    module_workbench_execution_audit.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-audit-schema", help="print module workbench execution audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-audit-capabilities", help="print module workbench execution audit capabilities").add_argument("--output", default=None)
+    module_workbench_execution_policy = subparsers.add_parser("module-workbench-execution-policy", help="evaluate module workbench execution thresholds")
+    module_workbench_execution_policy.add_argument("--source-root", default=None)
+    module_workbench_execution_policy.add_argument("--test-root", default=None)
+    module_workbench_execution_policy.add_argument("--docs-root", default=None)
+    module_workbench_execution_policy.add_argument("--minimum-completion-percent", default=0.0, type=float)
+    module_workbench_execution_policy.add_argument("--minimum-evidence-coverage-percent", default=0.0, type=float)
+    module_workbench_execution_policy.add_argument("--maximum-blocked-count", default=0, type=int)
+    module_workbench_execution_policy.add_argument("--maximum-superseded-count", default=0, type=int)
+    module_workbench_execution_policy.add_argument("--maximum-event-count", default=400000, type=int)
+    module_workbench_execution_policy.add_argument("--passed", action="store_true")
+    module_workbench_execution_policy.add_argument("--text", default=None)
+    module_workbench_execution_policy.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_policy.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_policy.add_argument("--format", choices=("json", "csv", "summary"), default="json")
+    module_workbench_execution_policy.add_argument("--include-checks", action="store_true")
+    module_workbench_execution_policy.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-policy-schema", help="print module workbench execution policy schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-policy-capabilities", help="print module workbench execution policy capabilities").add_argument("--output", default=None)
+    module_workbench_execution_runtime = subparsers.add_parser("module-workbench-execution-runtime", help="run the module workbench execution handoff")
+    module_workbench_execution_runtime.add_argument("--source-root", default=None)
+    module_workbench_execution_runtime.add_argument("--test-root", default=None)
+    module_workbench_execution_runtime.add_argument("--docs-root", default=None)
+    module_workbench_execution_runtime.add_argument("--resource", choices=("stages", "summary"), default="stages")
+    module_workbench_execution_runtime.add_argument("--state", default=None)
+    module_workbench_execution_runtime.add_argument("--accepted", action="store_true")
+    module_workbench_execution_runtime.add_argument("--text", default=None)
+    module_workbench_execution_runtime.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_runtime.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_runtime.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_execution_runtime.add_argument("--include-stages", action="store_true")
+    module_workbench_execution_runtime.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-runtime-schema", help="print module workbench execution runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-runtime-capabilities", help="print module workbench execution runtime capabilities").add_argument("--output", default=None)
+    module_workbench_execution_diff = subparsers.add_parser("module-workbench-execution-diff", help="compare two module workbench execution snapshots")
+    module_workbench_execution_diff.add_argument("--left-source-root", default=None)
+    module_workbench_execution_diff.add_argument("--right-source-root", default=None)
+    module_workbench_execution_diff.add_argument("--left-test-root", default=None)
+    module_workbench_execution_diff.add_argument("--right-test-root", default=None)
+    module_workbench_execution_diff.add_argument("--left-docs-root", default=None)
+    module_workbench_execution_diff.add_argument("--right-docs-root", default=None)
+    module_workbench_execution_diff.add_argument("--kind", default=None)
+    module_workbench_execution_diff.add_argument("--task-id", default=None)
+    module_workbench_execution_diff.add_argument("--text", default=None)
+    module_workbench_execution_diff.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_diff.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_diff.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_execution_diff.add_argument("--include-changes", action="store_true")
+    module_workbench_execution_diff.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-diff-schema", help="print module workbench execution diff schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-diff-capabilities", help="print module workbench execution diff capabilities").add_argument("--output", default=None)
+    module_workbench_execution_review = subparsers.add_parser("module-workbench-execution-review", help="route module execution work into a bounded review queue")
+    module_workbench_execution_review.add_argument("--source-root", default=None)
+    module_workbench_execution_review.add_argument("--test-root", default=None)
+    module_workbench_execution_review.add_argument("--docs-root", default=None)
+    module_workbench_execution_review.add_argument("--resource", choices=("modules", "tasks", "summary"), default="modules")
+    module_workbench_execution_review.add_argument("--module-id", default=None)
+    module_workbench_execution_review.add_argument("--family", default=None)
+    module_workbench_execution_review.add_argument("--review-state", default=None)
+    module_workbench_execution_review.add_argument("--text", default=None)
+    module_workbench_execution_review.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_review.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_review.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    module_workbench_execution_review.add_argument("--include-items", action="store_true")
+    module_workbench_execution_review.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-review-schema", help="print module workbench execution review schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-review-capabilities", help="print module workbench execution review capabilities").add_argument("--output", default=None)
 
     module_inventory = subparsers.add_parser(
         "module-inventory",
@@ -26096,6 +26204,310 @@ def main(argv: list[str] | None = None) -> int:
                     args.output,
                 )
             return 0 if portfolio.accepted else 2
+        if args.command == "module-workbench-execution-schema":
+            _write_json(module_workbench_execution_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-capabilities":
+            _write_json(module_workbench_execution_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            portfolio = build_module_workbench_portfolio(
+                workbench,
+                capacity=args.capacity,
+                max_tasks_per_module=args.max_tasks_per_module,
+            )
+            ledger = build_module_workbench_execution(workbench, portfolio)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_csv(ledger, args.resource), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_markdown(ledger), args.output)
+            elif args.format == "summary":
+                _write_json(ledger.to_dict(include_items=False, include_events=False), args.output)
+            elif any(
+                value is not None
+                for value in (
+                    args.task_id,
+                    args.module_id,
+                    args.family,
+                    args.state,
+                    args.kind,
+                    args.text,
+                )
+            ) or args.offset or args.limit != 50 or args.resource != "items":
+                _write_json(
+                    query_module_workbench_execution(
+                        ledger,
+                        resource=args.resource,
+                        task_id=args.task_id,
+                        module_id=args.module_id,
+                        family=args.family,
+                        state=args.state,
+                        kind=args.kind,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_execution_json(ledger), args.output)
+            return 0 if ledger.accepted else 2
+        if args.command == "module-workbench-execution-audit-schema":
+            _write_json(module_workbench_execution_audit_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-audit-capabilities":
+            _write_json(module_workbench_execution_audit_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-audit":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            audit = audit_module_workbench_execution(build_module_workbench_execution(workbench))
+            if args.format == "csv":
+                _write_text(module_workbench_execution_audit_csv(audit), args.output)
+            elif args.plane is not None or args.passed or args.text is not None or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_execution_audit(
+                        audit,
+                        plane=args.plane,
+                        passed=True if args.passed else None,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_execution_audit_json(audit), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "module-workbench-execution-policy-schema":
+            _write_json(module_workbench_execution_policy_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-policy-capabilities":
+            _write_json(module_workbench_execution_policy_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-policy":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            ledger = build_module_workbench_execution(workbench)
+            policy = build_module_workbench_execution_policy(
+                minimum_completion_percent=args.minimum_completion_percent,
+                minimum_evidence_coverage_percent=args.minimum_evidence_coverage_percent,
+                maximum_blocked_count=args.maximum_blocked_count,
+                maximum_superseded_count=args.maximum_superseded_count,
+                maximum_event_count=args.maximum_event_count,
+            )
+            gate = evaluate_module_workbench_execution_policy(ledger, policy)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_policy_csv(gate), args.output)
+            elif args.format == "summary":
+                _write_json(module_workbench_execution_policy_summary(gate), args.output)
+            elif args.passed or args.text is not None or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_execution_policy(
+                        gate,
+                        passed=True if args.passed else None,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_execution_policy_json(gate), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "module-workbench-execution-runtime-schema":
+            _write_json(module_workbench_execution_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-runtime-capabilities":
+            _write_json(module_workbench_execution_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-runtime":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            runtime = run_module_workbench_execution(workbench)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_runtime_csv(runtime), args.output)
+            elif args.state is not None or args.accepted or args.text is not None or args.offset or args.limit != 50 or args.resource != "stages":
+                _write_json(
+                    query_module_workbench_execution_runtime(
+                        runtime,
+                        resource=args.resource,
+                        state=args.state,
+                        accepted=True if args.accepted else None,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_execution_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "module-workbench-execution-diff-schema":
+            _write_json(module_workbench_execution_diff_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-diff-capabilities":
+            _write_json(module_workbench_execution_diff_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-diff":
+            def _execution_snapshot(source_root, test_root, docs_root):
+                inventory = build_module_inventory(source_root, test_root=test_root)
+                matrix = build_module_certification(
+                    inventory,
+                    source_root=source_root,
+                    test_root=test_root,
+                    docs_root=docs_root,
+                )
+                lineage = build_module_certification_lineage(
+                    inventory,
+                    matrix=matrix,
+                    source_root=source_root,
+                    test_root=test_root,
+                    docs_root=docs_root,
+                )
+                quality = build_module_certification_quality(matrix, lineage)
+                return build_module_workbench_execution(
+                    build_module_workbench(inventory, matrix, lineage, quality)
+                )
+
+            previous = _execution_snapshot(
+                args.left_source_root,
+                args.left_test_root,
+                args.left_docs_root,
+            )
+            current = _execution_snapshot(
+                args.right_source_root,
+                args.right_test_root,
+                args.right_docs_root,
+            )
+            diff = build_module_workbench_execution_diff(previous, current)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_diff_csv(diff), args.output)
+            elif any(value is not None for value in (args.kind, args.task_id, args.text)) or args.offset or args.limit != 50:
+                _write_json(
+                    query_module_workbench_execution_diff(
+                        diff,
+                        kind=args.kind,
+                        task_id=args.task_id,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_execution_diff_json(diff), args.output)
+            return 0 if diff.accepted else 2
+        if args.command == "module-workbench-execution-review-schema":
+            _write_json(module_workbench_execution_review_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-review-capabilities":
+            _write_json(module_workbench_execution_review_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-review":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(
+                inventory,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            lineage = build_module_certification_lineage(
+                inventory,
+                matrix=matrix,
+                source_root=args.source_root,
+                test_root=args.test_root,
+                docs_root=args.docs_root,
+            )
+            quality = build_module_certification_quality(matrix, lineage)
+            workbench = build_module_workbench(inventory, matrix, lineage, quality)
+            review = build_module_workbench_execution_review(
+                build_module_workbench_execution(workbench)
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_review_csv(review), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_review_markdown(review), args.output)
+            elif args.format == "summary":
+                _write_json(review.to_dict(include_items=False), args.output)
+            elif any(
+                value is not None
+                for value in (args.module_id, args.family, args.review_state, args.text)
+            ) or args.offset or args.limit != 50 or args.resource != "modules":
+                _write_json(
+                    query_module_workbench_execution_review(
+                        review,
+                        resource=args.resource,
+                        module_id=args.module_id,
+                        family=args.family,
+                        review_state=args.review_state,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                    args.output,
+                )
+            else:
+                _write_text(module_workbench_execution_review_json(review), args.output)
+            return 0 if review.accepted else 2
         if args.command == "module-inventory":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             if args.format == "modules-csv":

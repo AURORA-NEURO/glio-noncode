@@ -712,6 +712,12 @@ from .module_workbench_diff import module_workbench_diff_capabilities, module_wo
 from .module_workbench_policy import default_module_workbench_policy, evaluate_module_workbench_policy, module_workbench_policy_capabilities, module_workbench_policy_csv, module_workbench_policy_schema, module_workbench_policy_summary, query_module_workbench_policy, render_module_workbench_policy_markdown
 from .module_workbench_runtime import module_workbench_runtime_capabilities, module_workbench_runtime_csv, module_workbench_runtime_schema, query_module_workbench_runtime, run_module_workbench
 from .module_workbench_portfolio import build_module_workbench_portfolio, module_workbench_portfolio_capabilities, module_workbench_portfolio_json, module_workbench_portfolio_schema, query_module_workbench_portfolio
+from .module_workbench_execution import build_module_workbench_execution, module_workbench_execution_capabilities, module_workbench_execution_csv, module_workbench_execution_json, module_workbench_execution_schema, query_module_workbench_execution, render_module_workbench_execution_markdown
+from .module_workbench_execution_audit import audit_module_workbench_execution, module_workbench_execution_audit_capabilities, module_workbench_execution_audit_csv, module_workbench_execution_audit_schema, query_module_workbench_execution_audit
+from .module_workbench_execution_diff import module_workbench_execution_diff_capabilities, module_workbench_execution_diff_schema
+from .module_workbench_execution_policy import default_module_workbench_execution_policy, evaluate_module_workbench_execution_policy, module_workbench_execution_policy_capabilities, module_workbench_execution_policy_csv, module_workbench_execution_policy_schema, module_workbench_execution_policy_summary, query_module_workbench_execution_policy
+from .module_workbench_execution_runtime import module_workbench_execution_runtime_capabilities, module_workbench_execution_runtime_csv, module_workbench_execution_runtime_schema, query_module_workbench_execution_runtime, run_module_workbench_execution
+from .module_workbench_execution_review import build_module_workbench_execution_review, module_workbench_execution_review_capabilities, module_workbench_execution_review_csv, module_workbench_execution_review_json, module_workbench_execution_review_schema, query_module_workbench_execution_review, render_module_workbench_execution_review_markdown
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1965,6 +1971,28 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/portfolio/query",
             "/v1/module-workbench/portfolio/schema",
             "/v1/module-workbench/portfolio/capabilities",
+            "/v1/module-workbench/execution",
+            "/v1/module-workbench/execution/query",
+            "/v1/module-workbench/execution/schema",
+            "/v1/module-workbench/execution/capabilities",
+            "/v1/module-workbench/execution/audit",
+            "/v1/module-workbench/execution/audit/query",
+            "/v1/module-workbench/execution/audit/schema",
+            "/v1/module-workbench/execution/audit/capabilities",
+            "/v1/module-workbench/execution/policy",
+            "/v1/module-workbench/execution/policy/query",
+            "/v1/module-workbench/execution/policy/schema",
+            "/v1/module-workbench/execution/policy/capabilities",
+            "/v1/module-workbench/execution/diff/schema",
+            "/v1/module-workbench/execution/diff/capabilities",
+            "/v1/module-workbench/execution/runtime",
+            "/v1/module-workbench/execution/runtime/query",
+            "/v1/module-workbench/execution/runtime/schema",
+            "/v1/module-workbench/execution/runtime/capabilities",
+            "/v1/module-workbench/execution/review",
+            "/v1/module-workbench/execution/review/query",
+            "/v1/module-workbench/execution/review/schema",
+            "/v1/module-workbench/execution/review/capabilities",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
@@ -1992,6 +2020,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/diff/schema": module_workbench_diff_schema,
                     "/v1/module-workbench/runtime/schema": module_workbench_runtime_schema,
                     "/v1/module-workbench/portfolio/schema": module_workbench_portfolio_schema,
+                    "/v1/module-workbench/execution/schema": module_workbench_execution_schema,
+                    "/v1/module-workbench/execution/audit/schema": module_workbench_execution_audit_schema,
+                    "/v1/module-workbench/execution/policy/schema": module_workbench_execution_policy_schema,
+                    "/v1/module-workbench/execution/diff/schema": module_workbench_execution_diff_schema,
+                    "/v1/module-workbench/execution/runtime/schema": module_workbench_execution_runtime_schema,
+                    "/v1/module-workbench/execution/review/schema": module_workbench_execution_review_schema,
                 }
                 if path in schema_routes:
                     self._write(HTTPStatus.OK, schema_routes[path]())
@@ -2014,6 +2048,12 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/diff/capabilities": module_workbench_diff_capabilities,
                     "/v1/module-workbench/runtime/capabilities": module_workbench_runtime_capabilities,
                     "/v1/module-workbench/portfolio/capabilities": module_workbench_portfolio_capabilities,
+                    "/v1/module-workbench/execution/capabilities": module_workbench_execution_capabilities,
+                    "/v1/module-workbench/execution/audit/capabilities": module_workbench_execution_audit_capabilities,
+                    "/v1/module-workbench/execution/policy/capabilities": module_workbench_execution_policy_capabilities,
+                    "/v1/module-workbench/execution/diff/capabilities": module_workbench_execution_diff_capabilities,
+                    "/v1/module-workbench/execution/runtime/capabilities": module_workbench_execution_runtime_capabilities,
+                    "/v1/module-workbench/execution/review/capabilities": module_workbench_execution_review_capabilities,
                 }
                 if path in capability_routes:
                     self._write(HTTPStatus.OK, capability_routes[path]())
@@ -2222,6 +2262,183 @@ class ApiHandler(BaseHTTPRequestHandler):
                         payload = query_module_workbench_portfolio(portfolio, module_id=self._query_value(query, "module_id"), kind=self._query_value(query, "kind"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
                     else:
                         payload = portfolio.to_dict(include_tasks=self._query_bool(query, "include_tasks") is not False)
+                elif path in {
+                    "/v1/module-workbench/execution",
+                    "/v1/module-workbench/execution/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    portfolio = build_module_workbench_portfolio(workbench)
+                    ledger = build_module_workbench_execution(workbench, portfolio)
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution(
+                            ledger,
+                            resource=self._query_value(query, "resource") or "items",
+                            task_id=self._query_value(query, "task_id"),
+                            module_id=self._query_value(query, "module_id"),
+                            family=self._query_value(query, "family"),
+                            state=self._query_value(query, "state"),
+                            kind=self._query_value(query, "kind"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format in {"items-csv", "events-csv"}:
+                            resource = output_format.removesuffix("-csv")
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_csv(ledger, resource).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                render_module_workbench_execution_markdown(ledger).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = ledger.to_dict(
+                            include_items=self._query_bool(query, "include_items") is not False,
+                            include_events=self._query_bool(query, "include_events") is not False,
+                        )
+                elif path in {
+                    "/v1/module-workbench/execution/audit",
+                    "/v1/module-workbench/execution/audit/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    ledger = build_module_workbench_execution(workbench)
+                    audit = audit_module_workbench_execution(ledger)
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_audit(
+                            audit,
+                            plane=self._query_value(query, "plane"),
+                            passed=self._query_bool(query, "passed"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_audit_csv(audit).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        payload = audit.to_dict(
+                            include_checks=self._query_bool(query, "include_checks") is not False
+                        )
+                elif path in {
+                    "/v1/module-workbench/execution/policy",
+                    "/v1/module-workbench/execution/policy/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    ledger = build_module_workbench_execution(workbench)
+                    gate = evaluate_module_workbench_execution_policy(
+                        ledger,
+                        default_module_workbench_execution_policy(),
+                    )
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_policy(
+                            gate,
+                            passed=self._query_bool(query, "passed"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_policy_csv(gate).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "summary":
+                            payload = gate.to_dict(include_checks=False)
+                        else:
+                            payload = gate.to_dict(
+                                include_checks=self._query_bool(query, "include_checks") is not False
+                            )
+                elif path in {
+                    "/v1/module-workbench/execution/review",
+                    "/v1/module-workbench/execution/review/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    review = build_module_workbench_execution_review(
+                        build_module_workbench_execution(workbench)
+                    )
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_review(
+                            review,
+                            resource=self._query_value(query, "resource") or "modules",
+                            module_id=self._query_value(query, "module_id"),
+                            family=self._query_value(query, "family"),
+                            review_state=self._query_value(query, "review_state"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_review_csv(review).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                render_module_workbench_execution_review_markdown(review).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = review.to_dict(
+                            include_items=self._query_bool(query, "include_items") is not False
+                        )
+                elif path in {
+                    "/v1/module-workbench/execution/runtime",
+                    "/v1/module-workbench/execution/runtime/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    runtime = run_module_workbench_execution(workbench)
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_runtime(
+                            runtime,
+                            resource=self._query_value(query, "resource") or "stages",
+                            state=self._query_value(query, "state"),
+                            accepted=self._query_bool(query, "accepted"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_runtime_csv(runtime).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        payload = runtime.to_dict(
+                            include_stages=self._query_bool(query, "include_stages") is not False
+                        )
                 elif path == "/v1/module-certification/policy":
                     payload = default_module_certification_policy().to_dict()
                 elif path == "/v1/module-certification/runtime":
