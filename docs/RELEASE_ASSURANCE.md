@@ -23,7 +23,7 @@ five evidence links, and five domain checks.
 | `capability-catalog` | capability certification | 256 capability rows | accepted certifications |
 | `architecture-program` | D01–D16 program release | 16 architecture domains | accepted domain receipts |
 | `service-release` | public service registry | 6 service surfaces | accepted registry surfaces |
-| `public-surface` | repository public-surface audit | 55 audited surfaces | passed public projections |
+| `public-surface` | repository public-surface audit | 57 audited surfaces | passed public projections |
 
 The row denominator is conserved from the source plane. Readiness is the
 accepted count divided by the denominator, rounded to two decimal places. The
@@ -45,7 +45,7 @@ Each domain receives five evidence roles:
 The twenty domain checks cover source addresses, denominator conservation,
 accepted partitions, evidence coverage, and readiness calculation. Eight
 cross-plane checks cover domain closure, source agreement, D01 program
-registration, the 55-surface audit, accepted totals, service acceptance, and
+registration, the 57-surface audit, accepted totals, service acceptance, and
 recursive public-boundary safety.
 
 All rows and checks use content addresses. Queries return address-only public

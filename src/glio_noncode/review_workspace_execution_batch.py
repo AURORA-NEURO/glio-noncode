@@ -446,7 +446,6 @@ def append_review_workspace_plan_execution_batch(
         (
             base_report.events[-1].content_address
             if expected_last_event_address is None
-            and expected_event_count is None
             and base_report.events
             else expected_last_event_address
         ),

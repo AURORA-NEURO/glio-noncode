@@ -10884,6 +10884,24 @@ from .review_workspace_execution_batch import (
     review_workspace_execution_batch_json,
     review_workspace_execution_batch_schema,
 )
+from .review_workspace_execution_audit import (
+    REVIEW_WORKSPACE_EXECUTION_AUDIT_MAX_FINDINGS,
+    REVIEW_WORKSPACE_EXECUTION_AUDIT_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_AUDIT_VERSION,
+    ReviewWorkspaceExecutionAudit,
+    ReviewWorkspaceExecutionAuditDomain,
+    ReviewWorkspaceExecutionAuditFinding,
+    ReviewWorkspaceExecutionAuditSeverity,
+    audit_persisted_review_workspace_plan_execution,
+    audit_review_workspace_plan_execution,
+    render_review_workspace_execution_audit_markdown,
+    review_workspace_execution_audit_capabilities,
+    review_workspace_execution_audit_csv,
+    review_workspace_execution_audit_export_payloads,
+    review_workspace_execution_audit_from_mapping,
+    review_workspace_execution_audit_json,
+    review_workspace_execution_audit_schema,
+)
 from .review_workspace_execution_release import (
     REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX,
     REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION,
@@ -11461,6 +11479,25 @@ __all__ += [
     "review_workspace_execution_batch_from_mapping",
     "review_workspace_execution_batch_json",
     "review_workspace_execution_batch_schema",
+]
+
+__all__ += [
+    "REVIEW_WORKSPACE_EXECUTION_AUDIT_MAX_FINDINGS",
+    "REVIEW_WORKSPACE_EXECUTION_AUDIT_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_AUDIT_VERSION",
+    "ReviewWorkspaceExecutionAudit",
+    "ReviewWorkspaceExecutionAuditDomain",
+    "ReviewWorkspaceExecutionAuditFinding",
+    "ReviewWorkspaceExecutionAuditSeverity",
+    "audit_persisted_review_workspace_plan_execution",
+    "audit_review_workspace_plan_execution",
+    "render_review_workspace_execution_audit_markdown",
+    "review_workspace_execution_audit_capabilities",
+    "review_workspace_execution_audit_csv",
+    "review_workspace_execution_audit_export_payloads",
+    "review_workspace_execution_audit_from_mapping",
+    "review_workspace_execution_audit_json",
+    "review_workspace_execution_audit_schema",
 ]
 
 __all__ += [

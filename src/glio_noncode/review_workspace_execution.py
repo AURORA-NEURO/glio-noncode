@@ -1029,6 +1029,11 @@ class ReviewPlanExecutionStore:
             directory / REVIEW_WORKSPACE_EXECUTION_MANIFEST_FILE,
         )
 
+    def paths(self, plan: ReviewWorkspacePlan) -> tuple[Path, Path, Path]:
+        """Return the validated ledger directory and its two files."""
+
+        return self._paths(plan)
+
     def read_events(self, plan: ReviewWorkspacePlan) -> tuple[ReviewPlanExecutionEvent, ...]:
         """Verify and reopen the ledger; a tampered or partial ledger fails closed."""
 

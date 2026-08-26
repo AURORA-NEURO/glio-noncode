@@ -163,6 +163,15 @@ class ReviewWorkspaceExecutionBatchTests(unittest.TestCase):
             self.assertTrue(stale.conflict)
             self.assertEqual(stale.failure_code, "stale_base")
             self.assertEqual(ReviewPlanExecutionStore(directory).read_events(plan), persisted)
+            count_only_noop = append_review_workspace_plan_execution_batch(
+                runtime,
+                dossier.run_id,
+                [],
+                expected_event_count=2,
+            )
+            self.assertTrue(count_only_noop.accepted)
+            self.assertFalse(count_only_noop.committed)
+            self.assertFalse(count_only_noop.conflict)
 
     def test_rejected_batch_is_simulation_receipted_without_partial_write(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

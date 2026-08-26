@@ -288,6 +288,11 @@ from .review_workspace_execution_batch import (
     review_workspace_execution_batch_capabilities,
     review_workspace_execution_batch_schema,
 )
+from .review_workspace_execution_audit import (
+    audit_persisted_review_workspace_plan_execution,
+    review_workspace_execution_audit_capabilities,
+    review_workspace_execution_audit_schema,
+)
 from .review_workspace_execution_release import (
     build_review_workspace_execution_release,
     review_workspace_execution_release_capabilities,
@@ -703,6 +708,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/plan/execution/batch/capabilities":
             self._write(HTTPStatus.OK, review_workspace_execution_batch_capabilities())
+            return
+        if path == "/v1/review-workspace/plan/execution/audit/schema":
+            self._write(HTTPStatus.OK, review_workspace_execution_audit_schema())
+            return
+        if path == "/v1/review-workspace/plan/execution/audit/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_execution_audit_capabilities())
             return
         if path == "/v1/review-workspace/plan/execution/transitions/schema":
             self._write(HTTPStatus.OK, review_workspace_execution_transitions_schema())
@@ -2227,6 +2238,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                     and segments[5] == "execution"
                     and segments[6] == "simulate"
                 )
+                is_review_workspace_plan_execution_audit = (
+                    len(segments) == 7
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "plan"
+                    and segments[5] == "execution"
+                    and segments[6] == "audit"
+                )
                 is_review_workspace_plan_execution_release = (
                     len(segments) == 6
                     and segments[3] == "review-workspace"
@@ -2569,6 +2587,23 @@ class ApiHandler(BaseHTTPRequestHandler):
                         simulation.to_dict(
                             include_report=self._query_bool(query_values, "include_report")
                         ),
+                    )
+                    return
+                if is_review_workspace_plan_execution_audit:
+                    query_values = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query_values, "config")
+                    plan_config = ReviewWorkspacePlanConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    audit = audit_persisted_review_workspace_plan_execution(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        plan_config=plan_config,
+                    )
+                    self._write(
+                        HTTPStatus.OK if audit.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        audit.to_dict(include_report=self._query_bool(query_values, "include_report")),
                     )
                     return
                 if is_review_workspace_plan_execution:

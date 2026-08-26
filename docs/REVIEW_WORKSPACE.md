@@ -221,6 +221,9 @@ glio-noncode review-workspace-plan-execution-simulation-capabilities --output si
 glio-noncode review-workspace-plan-execution-batch RUN_ID --data-root .glio --proposals proposals.json --include-simulation --output batch.json
 glio-noncode review-workspace-plan-execution-batch-schema --output batch-schema.json
 glio-noncode review-workspace-plan-execution-batch-capabilities --output batch-capabilities.json
+glio-noncode review-workspace-plan-execution-audit RUN_ID --data-root .glio --include-report --output audit.json
+glio-noncode review-workspace-plan-execution-audit-schema --output audit-schema.json
+glio-noncode review-workspace-plan-execution-audit-capabilities --output audit-capabilities.json
 ```
 
 The result includes the baseline and projected execution addresses, accepted
@@ -244,6 +247,25 @@ replay address. The CLI operation is the explicit write path. The HTTP write
 surface is `POST /v1/runs/RUN_ID/review-workspace/plan/execution/batch` with a
 JSON body containing `proposals` and optional expected-base fields; set
 `include_simulation` or `include_report` to request expanded receipts.
+
+## Independent execution-ledger audit
+
+`review-workspace-plan-execution-audit` is a read-only integrity inspection
+that opens the persisted ledger files directly and produces bounded findings.
+It verifies the safe ledger directory, allowed filenames, regular-file and
+UTF-8 requirements, JSONL parsing, canonical event bytes, manifest fields and
+manifest address, typed replay, and the public-key boundary. An absent ledger
+is reported as a valid empty replay with a warning; malformed or partial
+ledgers fail closed with the specific filesystem, event, manifest, replay, or
+boundary checks that failed. JSON, Markdown, and CSV output are deterministic,
+and the optional report is available only in JSON output.
+
+The same contract is exposed by
+`GET /v1/runs/RUN_ID/review-workspace/plan/execution/audit`, with
+`include_report=true`, `baseline_run_id`, and the same optional plan `config`
+query parameters. Schema and capability endpoints are available at
+`/v1/review-workspace/plan/execution/audit/schema` and
+`/v1/review-workspace/plan/execution/audit/capabilities`.
 
 ## Portable execution release
 

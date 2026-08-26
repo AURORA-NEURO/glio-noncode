@@ -1019,7 +1019,7 @@ from .control_plane import (
 )
 from .control_plane_app import ControlPlaneApplication
 from .data_sources import PublicReferenceRetriever, default_source_catalog
-from .errors import GlioError
+from .errors import GlioError, ValidationError
 from .evidence_lifecycle import (
     CitationResolver,
     EvidenceCitation,
@@ -1787,6 +1787,14 @@ from .review_workspace_execution_batch import (
     append_review_workspace_plan_execution_batch,
     review_workspace_execution_batch_capabilities,
     review_workspace_execution_batch_schema,
+)
+from .review_workspace_execution_audit import (
+    audit_persisted_review_workspace_plan_execution,
+    render_review_workspace_execution_audit_markdown,
+    review_workspace_execution_audit_capabilities,
+    review_workspace_execution_audit_csv,
+    review_workspace_execution_audit_json,
+    review_workspace_execution_audit_schema,
 )
 from .review_workspace_execution_metrics_diff import (
     review_workspace_execution_metrics_diff_capabilities,
@@ -3665,6 +3673,19 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_batch.add_argument("--include-simulation", action="store_true")
     review_workspace_plan_execution_batch.add_argument("--output", default=None)
 
+    review_workspace_plan_execution_audit = subparsers.add_parser(
+        "review-workspace-plan-execution-audit",
+        help="independently audit a persisted review-plan execution ledger",
+    )
+    review_workspace_plan_execution_audit.add_argument("run_id", type=str)
+    review_workspace_plan_execution_audit.add_argument("--data-root", default=".glio")
+    review_workspace_plan_execution_audit.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_execution_audit.add_argument(
+        "--format", choices=("json", "markdown", "csv"), default="json"
+    )
+    review_workspace_plan_execution_audit.add_argument("--include-report", action="store_true")
+    review_workspace_plan_execution_audit.add_argument("--output", default=None)
+
     review_workspace_plan_execution_query = subparsers.add_parser(
         "review-workspace-plan-execution-query",
         help="query replayed review-plan action execution state",
@@ -3821,6 +3842,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit atomic review-plan execution-batch capabilities",
     )
     review_workspace_execution_batch_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_audit_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-audit-schema",
+        help="emit the independent execution-ledger audit schema",
+    )
+    review_workspace_execution_audit_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_audit_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-audit-capabilities",
+        help="emit independent execution-ledger audit capabilities",
+    )
+    review_workspace_execution_audit_capabilities_parser.add_argument("--output", default=None)
 
     review_workspace_execution_timeline_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-timeline-schema",
@@ -22904,6 +22937,25 @@ def main(argv: list[str] | None = None) -> int:
                 args.output,
             )
             return 0 if result.accepted else 2
+        if args.command == "review-workspace-plan-execution-audit":
+            audit = audit_persisted_review_workspace_plan_execution(
+                CaseRuntime(args.data_root),
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            if args.format == "markdown":
+                _write_text(render_review_workspace_execution_audit_markdown(audit), args.output)
+            elif args.format == "csv":
+                _write_text(review_workspace_execution_audit_csv(audit), args.output)
+            else:
+                _write_text(
+                    review_workspace_execution_audit_json(
+                        audit,
+                        include_report=args.include_report,
+                    ),
+                    args.output,
+                )
+            return 0 if audit.accepted else 2
         if args.command == "review-workspace-plan-execution-query":
             execution = build_persisted_review_workspace_plan_execution(
                 CaseRuntime(args.data_root),
@@ -23161,6 +23213,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-batch-capabilities":
             _write_json(review_workspace_execution_batch_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-audit-schema":
+            _write_json(review_workspace_execution_audit_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-audit-capabilities":
+            _write_json(review_workspace_execution_audit_capabilities(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-timeline-schema":
             _write_json(review_workspace_execution_timeline_schema(), args.output)

@@ -3891,6 +3891,7 @@ glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --at
 glio-noncode review-workspace-plan-execution-query RUN_ID --view transitions --kind complete --disposition requires_checks --data-root .glio --output execution-transitions.json
 glio-noncode review-workspace-plan-execution-simulate RUN_ID --data-root .glio --proposals proposals.json --include-report --output execution-simulation.json
 glio-noncode review-workspace-plan-execution-batch RUN_ID --data-root .glio --proposals proposals.json --include-simulation --output execution-batch.json
+glio-noncode review-workspace-plan-execution-audit RUN_ID --data-root .glio --include-report --output execution-audit.json
 glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
 glio-noncode review-workspace-plan-execution-release RUN_ID --data-root .glio --output execution-release
 glio-noncode review-workspace-plan-execution-release-verify execution-release --output execution-release-verification.json
@@ -3911,6 +3912,8 @@ glio-noncode review-workspace-plan-execution-simulation-schema --output executio
 glio-noncode review-workspace-plan-execution-simulation-capabilities --output execution-simulation-capabilities.json
 glio-noncode review-workspace-plan-execution-batch-schema --output execution-batch-schema.json
 glio-noncode review-workspace-plan-execution-batch-capabilities --output execution-batch-capabilities.json
+glio-noncode review-workspace-plan-execution-audit-schema --output execution-audit-schema.json
+glio-noncode review-workspace-plan-execution-audit-capabilities --output execution-audit-capabilities.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
@@ -4176,7 +4179,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 55 named surfaces: service status, capabilities, program, operational,
+audits 57 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4199,7 +4202,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 55-surface inventory or any
+The command exits non-zero when the closed 57-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary
