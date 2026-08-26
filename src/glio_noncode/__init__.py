@@ -10789,6 +10789,22 @@ from .review_workspace_execution_metrics_diff import (
     review_workspace_execution_metrics_diff_capabilities,
     review_workspace_execution_metrics_diff_schema,
 )
+from .review_workspace_execution_operations import (
+    REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_ITEMS,
+    REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_RATIONALE,
+    REVIEW_WORKSPACE_EXECUTION_OPERATIONS_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_OPERATIONS_VERSION,
+    ReviewWorkspaceExecutionAttentionItem,
+    ReviewWorkspaceExecutionAttentionKind,
+    ReviewWorkspaceExecutionOperations,
+    build_review_workspace_execution_operations,
+    render_review_workspace_execution_operations_markdown,
+    review_workspace_execution_operations_capabilities,
+    review_workspace_execution_operations_csv,
+    review_workspace_execution_operations_export_payloads,
+    review_workspace_execution_operations_json,
+    review_workspace_execution_operations_schema,
+)
 from .review_workspace_execution_release import (
     REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX,
     REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION,
@@ -10808,6 +10824,7 @@ from .review_workspace_execution_release import (
     load_review_workspace_execution_release,
     query_review_workspace_execution_release,
     query_review_workspace_execution_release_metrics,
+    query_review_workspace_execution_release_operations,
     query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
@@ -11274,6 +11291,23 @@ __all__ += [
 ]
 
 __all__ += [
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_ITEMS",
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_MAX_RATIONALE",
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_OPERATIONS_VERSION",
+    "ReviewWorkspaceExecutionAttentionItem",
+    "ReviewWorkspaceExecutionAttentionKind",
+    "ReviewWorkspaceExecutionOperations",
+    "build_review_workspace_execution_operations",
+    "render_review_workspace_execution_operations_markdown",
+    "review_workspace_execution_operations_capabilities",
+    "review_workspace_execution_operations_csv",
+    "review_workspace_execution_operations_export_payloads",
+    "review_workspace_execution_operations_json",
+    "review_workspace_execution_operations_schema",
+]
+
+__all__ += [
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION",
     "REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST",
@@ -11292,6 +11326,7 @@ __all__ += [
     "load_review_workspace_execution_release",
     "query_review_workspace_execution_release",
     "query_review_workspace_execution_release_metrics",
+    "query_review_workspace_execution_release_operations",
     "query_review_workspace_execution_release_timeline",
     "review_workspace_execution_release_capabilities",
     "review_workspace_execution_release_schema",

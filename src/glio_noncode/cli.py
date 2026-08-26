@@ -1760,6 +1760,11 @@ from .review_workspace_execution_metrics import (
     review_workspace_execution_metrics_capabilities,
     review_workspace_execution_metrics_schema,
 )
+from .review_workspace_execution_operations import (
+    build_review_workspace_execution_operations,
+    review_workspace_execution_operations_capabilities,
+    review_workspace_execution_operations_schema,
+)
 from .review_workspace_execution_metrics_diff import (
     review_workspace_execution_metrics_diff_capabilities,
     review_workspace_execution_metrics_diff_schema,
@@ -1776,6 +1781,7 @@ from .review_workspace_execution_release import (
     load_review_workspace_execution_release,
     query_review_workspace_execution_release,
     query_review_workspace_execution_release_metrics,
+    query_review_workspace_execution_release_operations,
     query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
@@ -3617,7 +3623,7 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_query.add_argument("--data-root", default=".glio")
     review_workspace_plan_execution_query.add_argument("--baseline-run-id", default=None)
     review_workspace_plan_execution_query.add_argument(
-        "--view", choices=("actions", "events", "metrics"), default="actions"
+        "--view", choices=("actions", "events", "metrics", "operations"), default="actions"
     )
     review_workspace_plan_execution_query.add_argument("--status", default=None)
     review_workspace_plan_execution_query.add_argument("--lane", default=None)
@@ -3689,7 +3695,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     review_workspace_plan_execution_release_query.add_argument("input", type=str)
     review_workspace_plan_execution_release_query.add_argument(
-        "--view", choices=("actions", "events", "metrics"), default="actions"
+        "--view", choices=("actions", "events", "metrics", "operations"), default="actions"
     )
     review_workspace_plan_execution_release_query.add_argument("--status", default=None)
     review_workspace_plan_execution_release_query.add_argument("--lane", default=None)
@@ -3753,6 +3759,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-plan execution metrics capabilities",
     )
     review_workspace_execution_metrics_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_operations_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-operations-schema",
+        help="emit the review-plan execution operations schema",
+    )
+    review_workspace_execution_operations_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_operations_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-operations-capabilities",
+        help="emit review-plan execution operations capabilities",
+    )
+    review_workspace_execution_operations_capabilities_parser.add_argument("--output", default=None)
 
     review_workspace_execution_metrics_diff_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-metrics-diff-schema",
@@ -22724,7 +22742,15 @@ def main(argv: list[str] | None = None) -> int:
                 args.run_id,
                 baseline_run_id=args.baseline_run_id,
             )
-            if args.view == "metrics":
+            if args.view == "operations":
+                runtime = CaseRuntime(args.data_root)
+                plan = build_persisted_review_workspace_plan(
+                    runtime,
+                    args.run_id,
+                    baseline_run_id=args.baseline_run_id,
+                )
+                result = build_review_workspace_execution_operations(plan, execution)
+            elif args.view == "metrics":
                 runtime = CaseRuntime(args.data_root)
                 plan = build_persisted_review_workspace_plan(
                     runtime,
@@ -22825,7 +22851,9 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(loaded.to_dict(include_report=args.include_report), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-release-query":
-            if args.view == "metrics":
+            if args.view == "operations":
+                result = query_review_workspace_execution_release_operations(args.input)
+            elif args.view == "metrics":
                 result = query_review_workspace_execution_release_metrics(args.input)
             elif args.view == "events":
                 result = query_review_workspace_execution_release_timeline(
@@ -22883,6 +22911,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-metrics-capabilities":
             _write_json(review_workspace_execution_metrics_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-operations-schema":
+            _write_json(review_workspace_execution_operations_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-operations-capabilities":
+            _write_json(review_workspace_execution_operations_capabilities(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-metrics-diff-schema":
             _write_json(review_workspace_execution_metrics_diff_schema(), args.output)

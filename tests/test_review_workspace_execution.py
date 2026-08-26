@@ -44,6 +44,13 @@ from glio_noncode.review_workspace_execution_metrics_diff import (
     review_workspace_execution_metrics_diff_capabilities,
     review_workspace_execution_metrics_diff_schema,
 )
+from glio_noncode.review_workspace_execution_operations import (
+    ReviewWorkspaceExecutionAttentionKind,
+    build_review_workspace_execution_operations,
+    review_workspace_execution_operations_capabilities,
+    review_workspace_execution_operations_export_payloads,
+    review_workspace_execution_operations_schema,
+)
 from glio_noncode.review_workspace_plan import build_review_workspace_plan
 from glio_noncode.runtime import CaseRuntime
 
@@ -334,6 +341,117 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 "right minus left",
             )
 
+    def test_execution_operations_rank_attention_and_exclude_completed_actions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, _, plan = self._context(directory)
+            initial = replay_review_workspace_plan_execution(plan)
+            operations = build_review_workspace_execution_operations(plan, initial)
+            self.assertEqual(operations.operations_version, "review-workspace-execution-operations-v1")
+            self.assertEqual(operations.queue_count, len(plan.actions))
+            self.assertEqual(
+                operations.items[0].attention_kind,
+                ReviewWorkspaceExecutionAttentionKind.READY,
+            )
+            self.assertEqual(
+                operations.items[1].attention_kind,
+                ReviewWorkspaceExecutionAttentionKind.DEPENDENCY_WAIT,
+            )
+            self.assertEqual(operations.recommended_transition, "start")
+            self.assertEqual(
+                tuple(item.rank for item in operations.items),
+                tuple(range(operations.queue_count)),
+            )
+            self.assertEqual(
+                operations.ready_action_ids,
+                (plan.actions[0].action_id,),
+            )
+            self.assertTrue(operations.dependency_wait_action_ids)
+            self.assertTrue(review_workspace_execution_operations_capabilities()["deterministic_ranking"])
+            self.assertEqual(
+                review_workspace_execution_operations_schema()["ordering"],
+                ["attention_rank", "plan_priority", "plan_sequence", "action_id"],
+            )
+            payloads = review_workspace_execution_operations_export_payloads(operations)
+            self.assertEqual(
+                set(payloads),
+                {
+                    "review-workspace-execution-operations.json",
+                    "review-workspace-execution-operations.md",
+                    "review-workspace-execution-operations.csv",
+                },
+            )
+            self.assertNotIn("agent_id", _keys(operations.to_dict()))
+
+            start = self._event(
+                plan,
+                plan.actions[0],
+                "operations-start",
+                ReviewPlanExecutionEventKind.START,
+                "2026-08-25T12:00:00Z",
+            )
+            in_progress_report = replay_review_workspace_plan_execution(plan, (start,))
+            in_progress_operations = build_review_workspace_execution_operations(plan, in_progress_report)
+            self.assertEqual(
+                in_progress_operations.items[0].attention_kind,
+                ReviewWorkspaceExecutionAttentionKind.IN_PROGRESS,
+            )
+            self.assertEqual(
+                in_progress_operations.recommended_transition,
+                "complete_or_block_or_skip",
+            )
+            completed = self._event(
+                plan,
+                plan.actions[0],
+                "operations-complete",
+                ReviewPlanExecutionEventKind.COMPLETE,
+                "2026-08-25T12:01:00Z",
+                previous=start.content_address,
+                checks=plan.actions[0].required_checks,
+            )
+            progressed = replay_review_workspace_plan_execution(plan, (start, completed))
+            progressed_operations = build_review_workspace_execution_operations(plan, progressed)
+            self.assertNotIn(plan.actions[0].action_id, [item.action_id for item in progressed_operations.items])
+            self.assertEqual(progressed_operations.completed_action_count, 1)
+            self.assertEqual(progressed_operations.items[0].attention_kind, ReviewWorkspaceExecutionAttentionKind.READY)
+            self.assertEqual(progressed_operations.items[0].action_id, plan.actions[1].action_id)
+
+            blocked_event = self._event(
+                plan,
+                plan.actions[0],
+                "operations-block",
+                ReviewPlanExecutionEventKind.BLOCK,
+                "2026-08-25T12:02:00Z",
+                reason="blocked for explicit recovery review",
+            )
+            blocked_report = replay_review_workspace_plan_execution(plan, (blocked_event,))
+            blocked_operations = build_review_workspace_execution_operations(plan, blocked_report)
+            self.assertEqual(blocked_operations.blocked_action_ids, (plan.actions[0].action_id,))
+            self.assertEqual(blocked_operations.recommended_transition, "reopen_or_block")
+            self.assertEqual(
+                blocked_operations.items[0].attention_kind,
+                ReviewWorkspaceExecutionAttentionKind.BLOCKED,
+            )
+            skipped_event = self._event(
+                plan,
+                plan.actions[0],
+                "operations-skip",
+                ReviewPlanExecutionEventKind.SKIP,
+                "2026-08-25T12:03:00Z",
+                previous=start.content_address,
+                reason="deferred for later review",
+            )
+            skipped_report = replay_review_workspace_plan_execution(plan, (start, skipped_event))
+            skipped_operations = build_review_workspace_execution_operations(plan, skipped_report)
+            self.assertEqual(skipped_operations.skipped_action_ids, (plan.actions[0].action_id,))
+            skipped_item = next(
+                item for item in skipped_operations.items if item.action_id == plan.actions[0].action_id
+            )
+            self.assertEqual(
+                skipped_item.attention_kind,
+                ReviewWorkspaceExecutionAttentionKind.SKIPPED,
+            )
+            self.assertEqual(skipped_item.recommended_transition, "reopen")
+
     def test_cli_event_append_and_api_read_query_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime, dossier, plan = self._context(directory)
@@ -440,6 +558,24 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
             )
             metrics_payload = json.loads(release_metrics.read_text(encoding="utf-8"))
             self.assertEqual(metrics_payload["metrics_version"], "review-workspace-execution-metrics-v1")
+            release_operations = Path(directory) / "execution-release-operations.json"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release-query",
+                    str(release),
+                    "--view",
+                    "operations",
+                    "--output",
+                    str(release_operations),
+                ]),
+                0,
+            )
+            operations_payload = json.loads(release_operations.read_text(encoding="utf-8"))
+            self.assertEqual(
+                operations_payload["operations_version"],
+                "review-workspace-execution-operations-v1",
+            )
+            self.assertGreater(operations_payload["queue_count"], 0)
             server = create_server("127.0.0.1", 0, directory)
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -480,6 +616,18 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 self.assertEqual(response.status, 200)
                 live_metrics_payload = json.loads(response.read())
                 self.assertEqual(live_metrics_payload["metrics_version"], "review-workspace-execution-metrics-v1")
+                params = urlencode({"view": "operations"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                live_operations_payload = json.loads(response.read())
+                self.assertEqual(
+                    live_operations_payload["operations_version"],
+                    "review-workspace-execution-operations-v1",
+                )
                 connection.request("GET", "/v1/review-workspace/plan/execution-release/schema")
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
@@ -523,6 +671,18 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 self.assertEqual(
                     release_metrics_payload["metrics_version"],
                     "review-workspace-execution-metrics-v1",
+                )
+                params = urlencode({"view": "operations"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                release_operations_payload = json.loads(response.read())
+                self.assertEqual(
+                    release_operations_payload["operations_version"],
+                    "review-workspace-execution-operations-v1",
                 )
                 connection.close()
             finally:

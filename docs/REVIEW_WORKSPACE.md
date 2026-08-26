@@ -161,23 +161,42 @@ coverage, blocked work, and the estimated critical path. It can be rendered as
 canonical JSON, Markdown, or CSV through the portable release and never acts as
 a scientific score.
 
+## Execution operations
+
+`review-workspace-plan-execution-query --view operations` projects the replayed
+plan into a deterministic attention queue. Completed actions are excluded;
+remaining actions are ranked into blocked, ready, in-progress, dependency-wait,
+skipped, or queued classes using attention rank, plan priority, plan sequence,
+and action ID. Each row includes public action context, unresolved
+dependencies, event count, bounded rationale, recommended transition, and a
+content address. The projection is read-only and does not assign work, mutate
+the append-only ledger, infer identity, or make a scientific decision.
+
+The operations projection links to the metrics content address and exports
+deterministic JSON, Markdown, and CSV. Its schema and capability metadata are
+available from `review-workspace-plan-execution-operations-schema` and
+`review-workspace-plan-execution-operations-capabilities`.
+
 ## Portable execution release
 
-`review-workspace-plan-execution-release` packages fourteen exact-byte artifacts:
+`review-workspace-plan-execution-release` packages seventeen exact-byte artifacts:
 the typed execution report, human report, action CSV, event CSV, check CSV,
 canonical `events.jsonl`, and five source-plan artifacts covering the typed plan,
 plan Markdown, plan actions, plan lanes, and plan checks, plus metrics JSON,
-Markdown, and CSV. The manifest carries each artifact's byte count, line count,
-media type, and content address, plus execution, plan, and metrics addresses.
+Markdown, and CSV, plus operations JSON, Markdown, and CSV. The manifest carries
+each artifact's byte count, line count, media type, and content address, plus
+execution, plan, metrics, and operations addresses.
 `review-workspace-plan-execution-release-verify` independently validates safe
 paths, artifact closure, nested report/action/check addresses, event-stream
-reconciliation, manifest bytes, and the public boundary. A verified package can
+reconciliation, metrics and operations derivation, manifest bytes, and the
+public boundary. A verified package can
 be loaded, queried, and diffed without a local runtime or plan store.
 
 `review-workspace-plan-execution-release-query` applies the live bounded action
 filters to a verified package; pass `--view events` for the same offline event
 timeline and its sequence-aware facets, or `--view metrics` for the verified
-metrics projection. `review-workspace-plan-execution-release-diff`
+metrics projection, or `--view operations` for the verified attention queue.
+`review-workspace-plan-execution-release-diff`
 compares source-plan action, lane, and check changes in addition to event IDs,
 action status/address changes, execution checks, and artifact addresses between
 two verified packages. Its nested metrics diff reports right-minus-left
@@ -212,7 +231,8 @@ accepts `baseline_run_id` plus an optional JSON `config` object. The nested
 `GET /v1/review-workspace/plan/execution/capabilities` expose the append-only
 execution contract. `GET /v1/runs/{run_id}/review-workspace/plan/execution`
 replays the local ledger; `/execution/query` applies bounded action filters by
-default and accepts `view=events` for the ordered timeline. Timeline filters
+default and accepts `view=events`, `view=metrics`, or `view=operations`.
+Timeline filters
 include `kind`, `event_id`, `action_id`, `check_id`, `reference_address`,
 `occurred_from`, `occurred_to`, `sequence_start`, `sequence_end`, `text`,
 `offset`, and `limit`. Ledger writes remain an explicit CLI operation so the
@@ -224,9 +244,9 @@ portable handoff contract. `GET
 /v1/runs/{run_id}/review-workspace/plan/execution-release` returns the current
 release projection in memory, and `/execution-release/query` applies its
 bounded filters. Add `view=events` to query the verified event timeline with
-the same ordering and facets, or `view=metrics` for derived operational
-metrics. The HTTP release projection is read-only and does not write a
-filesystem package.
+the same ordering and facets, `view=metrics` for derived operational metrics,
+or `view=operations` for the verified attention queue. The HTTP release
+projection is read-only and does not write a filesystem package.
 
 ## Offline release operations
 

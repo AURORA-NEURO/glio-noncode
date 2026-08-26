@@ -3886,13 +3886,16 @@ glio-noncode review-workspace-plan-query RUN_ID --lane provenance --data-root .g
 glio-noncode review-workspace-release-plan review-release --output release-plan.json
 glio-noncode review-workspace-plan-execution RUN_ID --data-root .glio --output execution.json
 glio-noncode review-workspace-plan-execution-query RUN_ID --view events --kind start --data-root .glio --output execution-events.json
+glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --data-root .glio --output execution-operations.json
 glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
 glio-noncode review-workspace-plan-execution-release RUN_ID --data-root .glio --output execution-release
 glio-noncode review-workspace-plan-execution-release-verify execution-release --output execution-release-verification.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --status open --output execution-release-query.json
 glio-noncode review-workspace-plan-execution-release-query execution-release --view events --kind start --output execution-release-events.json
+glio-noncode review-workspace-plan-execution-release-query execution-release --view operations --output execution-release-operations.json
 glio-noncode review-workspace-plan-execution-release-diff execution-release-a execution-release-b --output execution-release-diff.json
 glio-noncode review-workspace-plan-execution-metrics-diff-schema --output execution-metrics-diff-schema.json
+glio-noncode review-workspace-plan-execution-operations-schema --output execution-operations-schema.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 
@@ -3917,15 +3920,16 @@ exact-byte manifest checks, and deterministic action/event/check exports. The
 HTTP execution surface is read-only; CLI event appends are the only write path.
 
 The execution-release layer packages the replay report, event stream, metrics,
-and deterministic JSON/Markdown/CSV projections into fourteen exact-byte
+attention operations, and deterministic JSON/Markdown/CSV projections into
+seventeen exact-byte
 artifacts, including the source plan, dependency graph, required-check
 declarations, plan-level exports, action timing, lane throughput, dependency
 wait, check-coverage, and critical-path metrics. Its independent verifier
 checks safe paths, manifest addresses, nested plan/report/action/check
 addresses, event-stream replay, metrics reconciliation, required artifact
 closure, and the public boundary before offline loading. Verified releases
-support bounded action and metrics views plus deterministic event/action/check
-and source-plan diffs without a live run store.
+support bounded action, metrics, and operations views plus deterministic
+event/action/check and source-plan diffs without a live run store.
 
 The C01–C04 workspace frontier adds a public aggregate verification package for
 these four surfaces. The fixture contains 16 records across five HTTPS source
