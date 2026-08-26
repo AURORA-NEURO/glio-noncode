@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 59-surface audit, including the
+schema fields. The result is a deterministic 73-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and portable execution-release contracts,
 suitable for local release checks and CI.
@@ -743,6 +743,27 @@ the contract and capability declarations with `mission-plan-schema` and
 `mission-plan-capabilities`, or use `POST /v1/mission/plan` and the matching
 schema/capabilities endpoints. JSON, Markdown, and step-level CSV exports are
 available for offline review.
+
+Public plans can also be materialized as portable release handoffs. The
+release contains five exact-byte artifacts, a content-addressed manifest,
+five reconciliation checks, independent verification, stable step queries,
+plan-to-plan structural diffs, and a timestamp-free staged runtime. These
+operations work without reopening the planner after a release is verified:
+
+```powershell
+glio-noncode mission-plan-release mission.json --destination mission-release --output mission-release.json
+glio-noncode mission-plan-release-verify mission-release --output mission-release-verification.json
+glio-noncode mission-plan-release-query mission-release --kind review --format markdown --output mission-review.md
+glio-noncode mission-plan-release-diff left-plan.json right-plan.json --format csv --output mission-diff.csv
+glio-noncode mission-plan-release-runtime mission.json --destination mission-release-runtime --output mission-runtime.json
+glio-noncode mission-plan-release-policy mission-release --policy release-policy.json --format markdown --output mission-policy.md
+```
+
+Release verifiers reject missing or unexpected files, unsafe paths, symlinks,
+byte drift, address drift, malformed checks, and restricted metadata. Release
+query, diff, and runtime projections remain read-only and research-use only.
+The policy evaluator adds explicit workflow-kind, determinism, resource,
+artifact, warning, and public-boundary gates without authorizing execution.
 
 The reference boundary is also available directly:
 

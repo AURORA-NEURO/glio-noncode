@@ -1468,6 +1468,12 @@ jobs:
         run: python -m unittest tests.test_review_workspace_execution_audit -v && python -m glio_noncode review-workspace-plan-execution-audit-schema --output /tmp/glio-review-execution-audit-schema.json && python -m glio_noncode review-workspace-plan-execution-audit-capabilities --output /tmp/glio-review-execution-audit-capabilities.json
       - name: Public mission plan contract
         run: python -m unittest tests.test_mission_runtime_public -v && python -m glio_noncode mission-plan-schema --output /tmp/glio-mission-plan-schema.json && python -m glio_noncode mission-plan-capabilities --output /tmp/glio-mission-plan-capabilities.json
+      - name: Public mission plan release contract
+        run: python -m unittest tests.test_mission_plan_release -v && python -m glio_noncode mission-plan-release-schema --output /tmp/glio-mission-plan-release-schema.json && python -m glio_noncode mission-plan-release-query-schema --output /tmp/glio-mission-plan-release-query-schema.json && python -m glio_noncode mission-plan-release-diff-schema --output /tmp/glio-mission-plan-release-diff-schema.json && python -m glio_noncode mission-plan-release-runtime-schema --output /tmp/glio-mission-plan-release-runtime-schema.json
+      - name: Public mission plan release observability and lineage
+        run: python -m glio_noncode mission-plan-release-observability-schema --output /tmp/glio-mission-plan-release-observability-schema.json && python -m glio_noncode mission-plan-release-lineage-schema --output /tmp/glio-mission-plan-release-lineage-schema.json
+      - name: Public mission plan release policy
+        run: python -m glio_noncode mission-plan-release-policy-schema --output /tmp/glio-mission-plan-release-policy-schema.json && python -m glio_noncode mission-plan-release-policy-capabilities --output /tmp/glio-mission-plan-release-policy-capabilities.json
       - name: Repository public surface audit
         run: python -m glio_noncode public-surface-audit --output /tmp/glio-public-surface-audit.json
       - name: Local service surface focused tests

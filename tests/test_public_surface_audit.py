@@ -116,6 +116,20 @@ class PublicSurfaceAuditTests(unittest.TestCase):
             "review-workspace-plan-execution-audit-capabilities",
             "mission-plan-schema",
             "mission-plan-capabilities",
+            "mission-plan-release-schema",
+            "mission-plan-release-capabilities",
+            "mission-plan-release-query-schema",
+            "mission-plan-release-query-capabilities",
+            "mission-plan-release-diff-schema",
+            "mission-plan-release-diff-capabilities",
+            "mission-plan-release-runtime-schema",
+            "mission-plan-release-runtime-capabilities",
+            "mission-plan-release-observability-schema",
+            "mission-plan-release-observability-capabilities",
+            "mission-plan-release-lineage-schema",
+            "mission-plan-release-lineage-capabilities",
+            "mission-plan-release-policy-schema",
+            "mission-plan-release-policy-capabilities",
         ):
             check = next(item for item in self.audit.checks if item.surface_id == surface_id)
             self.assertTrue(check.accepted, check.to_dict())

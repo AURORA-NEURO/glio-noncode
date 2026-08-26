@@ -1485,6 +1485,61 @@ from .mission_runtime_public import (
     mission_plan_public_schema,
     render_mission_plan_public_markdown,
 )
+from .mission_plan_release import (
+    build_mission_plan_release,
+    mission_plan_release_capabilities,
+    mission_plan_release_schema,
+    verify_mission_plan_release,
+    write_mission_plan_release,
+)
+from .mission_plan_release_query import (
+    MissionPlanReleaseQuery,
+    mission_plan_release_query_capabilities,
+    mission_plan_release_query_csv,
+    mission_plan_release_query_json,
+    mission_plan_release_query_markdown,
+    mission_plan_release_query_schema,
+    query_mission_plan_release,
+)
+from .mission_plan_release_diff import (
+    diff_mission_plan_releases,
+    mission_plan_release_diff_capabilities,
+    mission_plan_release_diff_csv,
+    mission_plan_release_diff_json,
+    mission_plan_release_diff_markdown,
+    mission_plan_release_diff_schema,
+)
+from .mission_plan_release_runtime import (
+    mission_plan_release_runtime_capabilities,
+    mission_plan_release_runtime_json,
+    mission_plan_release_runtime_schema,
+    run_mission_plan_release_runtime,
+)
+from .mission_plan_release_observability import (
+    build_mission_plan_release_observability,
+    mission_plan_release_observability_capabilities,
+    mission_plan_release_observability_csv,
+    mission_plan_release_observability_json,
+    mission_plan_release_observability_markdown,
+    mission_plan_release_observability_schema,
+)
+from .mission_plan_release_lineage import (
+    build_mission_plan_release_lineage,
+    mission_plan_release_lineage_capabilities,
+    mission_plan_release_lineage_edges_csv,
+    mission_plan_release_lineage_json,
+    mission_plan_release_lineage_markdown,
+    mission_plan_release_lineage_nodes_csv,
+    mission_plan_release_lineage_schema,
+)
+from .mission_plan_release_policy import (
+    evaluate_mission_plan_release_policy,
+    mission_plan_release_policy_capabilities,
+    mission_plan_release_policy_csv,
+    mission_plan_release_policy_json,
+    mission_plan_release_policy_markdown,
+    mission_plan_release_policy_schema,
+)
 from .models import CaseManifest, ReferenceContext, ReviewDecision, VariantIdentity
 from .molecular_atlas_bundle import MolecularAtlasBundleBuilder, MolecularAtlasBundleFormat
 from .molecular_atlas_contracts import default_molecular_atlas_contracts
@@ -6251,6 +6306,132 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "mission-plan-capabilities",
         help="emit public mission-plan capabilities",
+    ).add_argument("--output", default=None)
+
+    mission_release = subparsers.add_parser(
+        "mission-plan-release",
+        help="materialize a verified public mission-plan handoff",
+    )
+    mission_release.add_argument("input", type=str)
+    mission_release.add_argument("--destination", required=True)
+    mission_release.add_argument("--allow-existing", action="store_true")
+    mission_release.add_argument("--output", default=None)
+    mission_release_verify = subparsers.add_parser(
+        "mission-plan-release-verify",
+        help="verify a materialized public mission-plan handoff",
+    )
+    mission_release_verify.add_argument("input", type=str)
+    mission_release_verify.add_argument("--output", default=None)
+    mission_release_query = subparsers.add_parser(
+        "mission-plan-release-query",
+        help="query workflow steps in a verified mission-plan handoff",
+    )
+    mission_release_query.add_argument("input", type=str)
+    mission_release_query.add_argument("--kind", default=None)
+    mission_release_query.add_argument("--depends-on", default=None)
+    mission_release_query.add_argument("--optional", dest="optional", action="store_const", const=True, default=None)
+    mission_release_query.add_argument("--not-optional", dest="optional", action="store_const", const=False)
+    mission_release_query.add_argument("--deterministic", dest="deterministic", action="store_const", const=True, default=None)
+    mission_release_query.add_argument("--nondeterministic", dest="deterministic", action="store_const", const=False)
+    mission_release_query.add_argument("--offset", type=int, default=0)
+    mission_release_query.add_argument("--limit", type=int, default=100)
+    mission_release_query.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_query.add_argument("--output", default=None)
+    mission_release_diff = subparsers.add_parser(
+        "mission-plan-release-diff",
+        help="compare two public mission plans or verified handoffs",
+    )
+    mission_release_diff.add_argument("left", type=str)
+    mission_release_diff.add_argument("right", type=str)
+    mission_release_diff.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_diff.add_argument("--output", default=None)
+    mission_release_runtime = subparsers.add_parser(
+        "mission-plan-release-runtime",
+        help="run the staged public mission-plan release rehearsal",
+    )
+    mission_release_runtime.add_argument("input", type=str)
+    mission_release_runtime.add_argument("--destination", default=None)
+    mission_release_runtime.add_argument("--allow-existing", action="store_true")
+    mission_release_runtime.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-schema",
+        help="emit the mission-plan release schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-capabilities",
+        help="emit mission-plan release capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-query-schema",
+        help="emit the mission-plan release query schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-query-capabilities",
+        help="emit mission-plan release query capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-diff-schema",
+        help="emit the mission-plan release diff schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-diff-capabilities",
+        help="emit mission-plan release diff capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-runtime-schema",
+        help="emit the mission-plan release runtime schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-runtime-capabilities",
+        help="emit mission-plan release runtime capabilities",
+    ).add_argument("--output", default=None)
+    mission_release_observability = subparsers.add_parser(
+        "mission-plan-release-observability",
+        help="emit aggregate observability for a public mission-plan release",
+    )
+    mission_release_observability.add_argument("input", type=str)
+    mission_release_observability.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_observability.add_argument("--output", default=None)
+    mission_release_lineage = subparsers.add_parser(
+        "mission-plan-release-lineage",
+        help="emit the addressed lineage graph for a public mission-plan release",
+    )
+    mission_release_lineage.add_argument("input", type=str)
+    mission_release_lineage.add_argument(
+        "--format", choices=("json", "markdown", "nodes-csv", "edges-csv"), default="json"
+    )
+    mission_release_lineage.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-observability-schema",
+        help="emit the mission-plan release observability schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-observability-capabilities",
+        help="emit mission-plan release observability capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-lineage-schema",
+        help="emit the mission-plan release lineage schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-lineage-capabilities",
+        help="emit mission-plan release lineage capabilities",
+    ).add_argument("--output", default=None)
+    mission_release_policy = subparsers.add_parser(
+        "mission-plan-release-policy",
+        help="evaluate a public mission-plan release against bounded acceptance rules",
+    )
+    mission_release_policy.add_argument("input", type=str)
+    mission_release_policy.add_argument("--policy", default=None)
+    mission_release_policy.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_policy.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-policy-schema",
+        help="emit the mission-plan release policy schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-policy-capabilities",
+        help="emit mission-plan release policy capabilities",
     ).add_argument("--output", default=None)
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
@@ -14953,6 +15134,132 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "mission-plan-capabilities":
             _write_json(mission_plan_public_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release":
+            receipt = build_public_mission_plan(_read_json(args.input))
+            bundle = build_mission_plan_release(receipt)
+            write_mission_plan_release(
+                bundle,
+                args.destination,
+                allow_existing=args.allow_existing,
+            )
+            _write_json(bundle.to_dict(), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "mission-plan-release-verify":
+            verification = verify_mission_plan_release(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "mission-plan-release-query":
+            query = MissionPlanReleaseQuery(
+                kind=args.kind,
+                optional=args.optional,
+                deterministic=args.deterministic,
+                depends_on=args.depends_on,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            result = query_mission_plan_release(args.input, query)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_query_markdown(result), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_query_csv(result), args.output)
+            else:
+                _write_text(mission_plan_release_query_json(result), args.output)
+            return 0
+        if args.command == "mission-plan-release-diff":
+            left = args.left if Path(args.left).is_dir() else _read_json(args.left)
+            right = args.right if Path(args.right).is_dir() else _read_json(args.right)
+            diff = diff_mission_plan_releases(left, right)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_diff_markdown(diff), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_diff_csv(diff), args.output)
+            else:
+                _write_text(mission_plan_release_diff_json(diff), args.output)
+            return 0
+        if args.command == "mission-plan-release-runtime":
+            receipt = build_public_mission_plan(_read_json(args.input))
+            runtime = run_mission_plan_release_runtime(
+                receipt,
+                destination=args.destination,
+                allow_existing=args.allow_existing,
+            )
+            _write_text(mission_plan_release_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "mission-plan-release-schema":
+            _write_json(mission_plan_release_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-capabilities":
+            _write_json(mission_plan_release_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-query-schema":
+            _write_json(mission_plan_release_query_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-query-capabilities":
+            _write_json(mission_plan_release_query_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-diff-schema":
+            _write_json(mission_plan_release_diff_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-diff-capabilities":
+            _write_json(mission_plan_release_diff_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-runtime-schema":
+            _write_json(mission_plan_release_runtime_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-runtime-capabilities":
+            _write_json(mission_plan_release_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-observability":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            observability = build_mission_plan_release_observability(source)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_observability_markdown(observability), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_observability_csv(observability), args.output)
+            else:
+                _write_text(mission_plan_release_observability_json(observability), args.output)
+            return 0
+        if args.command == "mission-plan-release-lineage":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            lineage = build_mission_plan_release_lineage(source)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_lineage_markdown(lineage), args.output)
+            elif args.format == "nodes-csv":
+                _write_text(mission_plan_release_lineage_nodes_csv(lineage), args.output)
+            elif args.format == "edges-csv":
+                _write_text(mission_plan_release_lineage_edges_csv(lineage), args.output)
+            else:
+                _write_text(mission_plan_release_lineage_json(lineage), args.output)
+            return 0
+        if args.command == "mission-plan-release-observability-schema":
+            _write_json(mission_plan_release_observability_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-observability-capabilities":
+            _write_json(mission_plan_release_observability_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-lineage-schema":
+            _write_json(mission_plan_release_lineage_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-lineage-capabilities":
+            _write_json(mission_plan_release_lineage_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-policy":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            policy = None if args.policy is None else _read_json(args.policy)
+            evaluation = evaluate_mission_plan_release_policy(source, policy)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_policy_markdown(evaluation), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_policy_csv(evaluation), args.output)
+            else:
+                _write_text(mission_plan_release_policy_json(evaluation), args.output)
+            return 0 if evaluation.accepted else 2
+        if args.command == "mission-plan-release-policy-schema":
+            _write_json(mission_plan_release_policy_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-policy-capabilities":
+            _write_json(mission_plan_release_policy_capabilities(), args.output)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)
