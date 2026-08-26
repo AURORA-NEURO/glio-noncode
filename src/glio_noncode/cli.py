@@ -2093,6 +2093,17 @@ from .module_inventory_query import diff_module_inventories, inventory_from_mapp
 from .module_inventory_review import build_module_inventory_review_queue, module_inventory_review_capabilities, module_inventory_review_markdown, module_inventory_review_schema, query_module_inventory_review
 from .module_inventory_runtime import module_inventory_runtime_capabilities, module_inventory_runtime_schema, run_module_inventory
 from .module_inventory_schema import default_module_inventory_schema, module_inventory_schema_capabilities
+from .module_impact import build_module_impact_diff, build_module_impact_report
+from .module_impact_audit import audit_module_impact, module_impact_audit_capabilities, module_impact_audit_schema
+from .module_impact_exports import module_impact_assessments_csv, module_impact_changes_csv, module_impact_dependencies_csv, module_impact_diff_json, module_impact_gate_json, module_impact_report_json, module_impact_summary, module_impact_tasks_csv, render_module_impact_markdown
+from .module_impact_observability import build_module_impact_observability, module_impact_events_csv, module_impact_metrics_csv, module_impact_observability_capabilities, module_impact_observability_json, module_impact_observability_schema
+from .module_impact_packet import build_module_impact_packet, load_module_impact_packet, module_impact_packet_capabilities, module_impact_packet_json, module_impact_packet_schema, verify_module_impact_packet, write_module_impact_packet
+from .module_impact_packet_query import diff_module_impact_packets, module_impact_packet_query_capabilities, module_impact_packet_query_schema, query_module_impact_packet, replay_module_impact_packet
+from .module_impact_policy import default_module_impact_policy, evaluate_module_impact_gate, module_impact_policy_capabilities, module_impact_policy_schema
+from .module_impact_query import query_module_impact
+from .module_impact_runtime import module_impact_runtime_capabilities, module_impact_runtime_schema, run_module_impact
+from .module_impact_schema import default_module_impact_schema, module_impact_schema_capabilities
+from .module_impact_verification import build_module_impact_verification_plan, module_impact_verification_capabilities, module_impact_verification_schema, query_module_impact_tasks
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4156,6 +4167,94 @@ def build_parser() -> argparse.ArgumentParser:
     )
     storage_lineage_packet_capabilities_parser.add_argument("--output", default=None)
 
+    module_impact = subparsers.add_parser(
+        "module-impact", help="compare two static module inventories and propagate impact"
+    )
+    module_impact.add_argument("--left-source-root", default=None)
+    module_impact.add_argument("--right-source-root", default=None)
+    module_impact.add_argument("--left-test-root", default=None)
+    module_impact.add_argument("--right-test-root", default=None)
+    module_impact.add_argument("--resource", choices=("changes", "dependencies", "impacts", "tasks"), default="impacts")
+    module_impact.add_argument("--module-id", default=None)
+    module_impact.add_argument("--kind", default=None)
+    module_impact.add_argument("--severity", default=None)
+    module_impact.add_argument("--min-risk", default=None, type=float)
+    module_impact.add_argument("--text", default=None)
+    module_impact.add_argument("--offset", default=0, type=int)
+    module_impact.add_argument("--limit", default=50, type=int)
+    module_impact.add_argument("--format", choices=("summary", "diff", "report", "changes-csv", "dependencies-csv", "impacts-csv", "tasks-csv", "markdown"), default="summary")
+    module_impact.add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-schema", help="print module impact schemas").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-capabilities", help="print module impact capabilities").add_argument("--output", default=None)
+    module_impact_audit = subparsers.add_parser("module-impact-audit", help="audit a static module impact closure")
+    module_impact_audit.add_argument("--left-source-root", default=None)
+    module_impact_audit.add_argument("--right-source-root", default=None)
+    module_impact_audit.add_argument("--left-test-root", default=None)
+    module_impact_audit.add_argument("--right-test-root", default=None)
+    module_impact_audit.add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-audit-schema", help="print module impact audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-audit-capabilities", help="print module impact audit capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-policy", help="print the default module impact policy").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-policy-schema", help="print module impact policy schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-policy-capabilities", help="print module impact policy capabilities").add_argument("--output", default=None)
+    module_impact_verification = subparsers.add_parser("module-impact-verification", help="build module impact verification tasks")
+    module_impact_verification.add_argument("--left-source-root", default=None)
+    module_impact_verification.add_argument("--right-source-root", default=None)
+    module_impact_verification.add_argument("--left-test-root", default=None)
+    module_impact_verification.add_argument("--right-test-root", default=None)
+    module_impact_verification.add_argument("--format", choices=("json", "csv"), default="json")
+    module_impact_verification.add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-verification-schema", help="print module impact verification schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-verification-capabilities", help="print module impact verification capabilities").add_argument("--output", default=None)
+    module_impact_runtime = subparsers.add_parser("module-impact-runtime", help="run module impact runtime")
+    module_impact_runtime.add_argument("--left-source-root", default=None)
+    module_impact_runtime.add_argument("--right-source-root", default=None)
+    module_impact_runtime.add_argument("--left-test-root", default=None)
+    module_impact_runtime.add_argument("--right-test-root", default=None)
+    module_impact_runtime.add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-runtime-schema", help="print module impact runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-runtime-capabilities", help="print module impact runtime capabilities").add_argument("--output", default=None)
+    module_impact_observability = subparsers.add_parser("module-impact-observability", help="emit module impact observability")
+    module_impact_observability.add_argument("--left-source-root", default=None)
+    module_impact_observability.add_argument("--right-source-root", default=None)
+    module_impact_observability.add_argument("--left-test-root", default=None)
+    module_impact_observability.add_argument("--right-test-root", default=None)
+    module_impact_observability.add_argument("--format", choices=("json", "events-csv", "metrics-csv"), default="json")
+    module_impact_observability.add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-observability-schema", help="print module impact observability schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-observability-capabilities", help="print module impact observability capabilities").add_argument("--output", default=None)
+    module_impact_packet = subparsers.add_parser("module-impact-packet", help="write an exact-byte module impact packet")
+    module_impact_packet.add_argument("--left-source-root", default=None)
+    module_impact_packet.add_argument("--right-source-root", default=None)
+    module_impact_packet.add_argument("--left-test-root", default=None)
+    module_impact_packet.add_argument("--right-test-root", default=None)
+    module_impact_packet.add_argument("--packet-id", default="glio-noncode-module-impact-packet")
+    module_impact_packet.add_argument("--destination", required=True)
+    module_impact_packet.add_argument("--allow-existing", action="store_true")
+    module_impact_packet.add_argument("--output", default=None)
+    module_impact_packet_verify = subparsers.add_parser("module-impact-packet-verify", help="verify a module impact packet")
+    module_impact_packet_verify.add_argument("directory", type=str)
+    module_impact_packet_verify.add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-packet-schema", help="print module impact packet schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-impact-packet-capabilities", help="print module impact packet capabilities").add_argument("--output", default=None)
+    module_impact_packet_query = subparsers.add_parser("module-impact-packet-query", help="query a verified module impact packet")
+    module_impact_packet_query.add_argument("directory", type=str)
+    module_impact_packet_query.add_argument("--resource", default="impacts")
+    module_impact_packet_query.add_argument("--module-id", default=None)
+    module_impact_packet_query.add_argument("--kind", default=None)
+    module_impact_packet_query.add_argument("--severity", default=None)
+    module_impact_packet_query.add_argument("--min-risk", default=None, type=float)
+    module_impact_packet_query.add_argument("--text", default=None)
+    module_impact_packet_query.add_argument("--offset", default=0, type=int)
+    module_impact_packet_query.add_argument("--limit", default=50, type=int)
+    module_impact_packet_query.add_argument("--output", default=None)
+    module_impact_packet_diff = subparsers.add_parser("module-impact-packet-diff", help="diff two verified module impact packets")
+    module_impact_packet_diff.add_argument("left_directory", type=str)
+    module_impact_packet_diff.add_argument("right_directory", type=str)
+    module_impact_packet_diff.add_argument("--output", default=None)
+    module_impact_packet_replay = subparsers.add_parser("module-impact-packet-replay", help="replay a verified module impact packet")
+    module_impact_packet_replay.add_argument("directory", type=str)
+    module_impact_packet_replay.add_argument("--output", default=None)
     module_inventory = subparsers.add_parser(
         "module-inventory",
         help="inspect the static module, symbol, dependency, and depth inventory",
@@ -24925,6 +25024,159 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "storage-maintenance-review-capabilities":
             _write_json(storage_maintenance_review_capabilities(), args.output)
             return 0
+        if args.command == "module-impact-schema":
+            _write_json({
+                "impact": default_module_impact_schema(),
+                "policy": module_impact_policy_schema(),
+                "verification": module_impact_verification_schema(),
+                "runtime": module_impact_runtime_schema(),
+                "audit": module_impact_audit_schema(),
+                "packet": module_impact_packet_schema(),
+                "packet_query": module_impact_packet_query_schema(),
+            }, args.output)
+            return 0
+        if args.command == "module-impact-capabilities":
+            _write_json({
+                "impact": module_impact_schema_capabilities(),
+                "policy": module_impact_policy_capabilities(),
+                "verification": module_impact_verification_capabilities(),
+                "runtime": module_impact_runtime_capabilities(),
+                "audit": module_impact_audit_capabilities(),
+                "packet": module_impact_packet_capabilities(),
+                "packet_query": module_impact_packet_query_capabilities(),
+            }, args.output)
+            return 0
+        if args.command == "module-impact-policy":
+            _write_json(default_module_impact_policy().to_dict(), args.output)
+            return 0
+        if args.command == "module-impact-policy-schema":
+            _write_json(module_impact_policy_schema(), args.output)
+            return 0
+        if args.command == "module-impact-policy-capabilities":
+            _write_json(module_impact_policy_capabilities(), args.output)
+            return 0
+        if args.command == "module-impact-audit-schema":
+            _write_json(module_impact_audit_schema(), args.output)
+            return 0
+        if args.command == "module-impact-audit-capabilities":
+            _write_json(module_impact_audit_capabilities(), args.output)
+            return 0
+        if args.command == "module-impact-verification-schema":
+            _write_json(module_impact_verification_schema(), args.output)
+            return 0
+        if args.command == "module-impact-verification-capabilities":
+            _write_json(module_impact_verification_capabilities(), args.output)
+            return 0
+        if args.command == "module-impact-runtime-schema":
+            _write_json(module_impact_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-impact-runtime-capabilities":
+            _write_json(module_impact_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-impact-observability-schema":
+            _write_json(module_impact_observability_schema(), args.output)
+            return 0
+        if args.command == "module-impact-observability-capabilities":
+            _write_json(module_impact_observability_capabilities(), args.output)
+            return 0
+        if args.command == "module-impact-packet-schema":
+            _write_json(module_impact_packet_schema(), args.output)
+            return 0
+        if args.command == "module-impact-packet-capabilities":
+            _write_json(module_impact_packet_capabilities(), args.output)
+            return 0
+        if args.command == "module-impact":
+            left = build_module_inventory(args.left_source_root, test_root=args.left_test_root)
+            right = build_module_inventory(args.right_source_root, test_root=args.right_test_root)
+            diff = build_module_impact_diff(left, right)
+            report = build_module_impact_report(left, right, diff)
+            plan = build_module_impact_verification_plan(diff, report)
+            gate = evaluate_module_impact_gate(diff, report, plan)
+            if args.format == "changes-csv":
+                _write_text(module_impact_changes_csv(diff), args.output)
+            elif args.format == "dependencies-csv":
+                _write_text(module_impact_dependencies_csv(diff), args.output)
+            elif args.format == "impacts-csv":
+                _write_text(module_impact_assessments_csv(report), args.output)
+            elif args.format == "tasks-csv":
+                _write_text(module_impact_tasks_csv(plan), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_impact_markdown(diff, report, plan, gate), args.output)
+            elif args.format == "diff":
+                _write_text(module_impact_diff_json(diff), args.output)
+            elif args.format == "report":
+                _write_text(module_impact_report_json(report), args.output)
+            elif any(value is not None for value in (args.module_id, args.kind, args.severity, args.min_risk, args.text)) or args.offset or args.limit != 50 or args.resource != "impacts":
+                _write_json(query_module_impact(diff=diff, report=report, plan=plan, resource=args.resource, module_id=args.module_id, kind=args.kind, severity=args.severity, min_risk=args.min_risk, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(module_impact_summary(diff, report, plan, gate), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "module-impact-audit":
+            left = build_module_inventory(args.left_source_root, test_root=args.left_test_root)
+            right = build_module_inventory(args.right_source_root, test_root=args.right_test_root)
+            diff = build_module_impact_diff(left, right)
+            report = build_module_impact_report(left, right, diff)
+            plan = build_module_impact_verification_plan(diff, report)
+            gate = evaluate_module_impact_gate(diff, report, plan)
+            result = audit_module_impact(diff, report, plan, gate)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-impact-verification":
+            left = build_module_inventory(args.left_source_root, test_root=args.left_test_root)
+            right = build_module_inventory(args.right_source_root, test_root=args.right_test_root)
+            diff = build_module_impact_diff(left, right)
+            report = build_module_impact_report(left, right, diff)
+            plan = build_module_impact_verification_plan(diff, report)
+            if args.format == "csv":
+                _write_text(module_impact_tasks_csv(plan), args.output)
+            else:
+                _write_json(plan.to_dict(), args.output)
+            return 0 if plan.accepted else 2
+        if args.command == "module-impact-runtime":
+            left = build_module_inventory(args.left_source_root, test_root=args.left_test_root)
+            right = build_module_inventory(args.right_source_root, test_root=args.right_test_root)
+            runtime = run_module_impact(left, right)
+            _write_json(runtime.to_dict(), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "module-impact-observability":
+            left = build_module_inventory(args.left_source_root, test_root=args.left_test_root)
+            right = build_module_inventory(args.right_source_root, test_root=args.right_test_root)
+            diff = build_module_impact_diff(left, right)
+            report = build_module_impact_report(left, right, diff)
+            plan = build_module_impact_verification_plan(diff, report)
+            gate = evaluate_module_impact_gate(diff, report, plan)
+            observation = build_module_impact_observability(diff, report, plan, gate)
+            if args.format == "events-csv":
+                _write_text(module_impact_events_csv(observation), args.output)
+            elif args.format == "metrics-csv":
+                _write_text(module_impact_metrics_csv(observation), args.output)
+            else:
+                _write_text(module_impact_observability_json(observation), args.output)
+            return 0 if observation.accepted else 2
+        if args.command == "module-impact-packet":
+            left = build_module_inventory(args.left_source_root, test_root=args.left_test_root)
+            right = build_module_inventory(args.right_source_root, test_root=args.right_test_root)
+            packet = build_module_impact_packet(left, right, packet_id=args.packet_id)
+            write_module_impact_packet(packet, args.destination, allow_existing=args.allow_existing)
+            payload = packet.to_dict(include_payloads=False) | {"destination": str(args.destination)}
+            _write_json(payload, args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "module-impact-packet-verify":
+            result = verify_module_impact_packet(args.directory)
+            _write_json(result.to_dict(), args.output)
+            return 0 if result.accepted else 2
+        if args.command == "module-impact-packet-query":
+            result = query_module_impact_packet(args.directory, resource=args.resource, module_id=args.module_id, kind=args.kind, severity=args.severity, min_risk=args.min_risk, text=args.text, offset=args.offset, limit=args.limit)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-impact-packet-diff":
+            result = diff_module_impact_packets(args.left_directory, args.right_directory)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-impact-packet-replay":
+            result = replay_module_impact_packet(args.directory)
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
         if args.command == "module-inventory":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             if args.format == "modules-csv":

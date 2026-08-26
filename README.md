@@ -1074,6 +1074,28 @@ cycles, large modules, isolated modules, and test-reference gaps remain
 visible as review work. See [docs/MODULE_INVENTORY.md](docs/MODULE_INVENTORY.md)
 for the contract, route matrix, depth dimensions, and verification rules.
 
+## Module change impact and release gate
+
+The module inventory now feeds a second control plane for comparing an immutable
+baseline against a candidate snapshot. `module-impact` classifies added,
+removed, changed, and unchanged modules; compares symbol and import shape;
+propagates direct, dependent, and transitive impact through reverse edges; and
+turns the result into explicit verification tasks and policy checks:
+
+```powershell
+glio-noncode module-impact --left-source-root baseline --right-source-root candidate
+glio-noncode module-impact-verification --format csv --output impact-tasks.csv
+glio-noncode module-impact-audit --left-source-root baseline --right-source-root candidate
+glio-noncode module-impact-packet --left-source-root baseline --right-source-root candidate --destination module-impact-packet
+glio-noncode module-impact-packet-verify module-impact-packet
+glio-noncode module-impact-packet-replay module-impact-packet
+```
+
+The packet contains ten exact-byte artifacts for offline diff, impact, gate,
+audit, runtime, and observability review. See
+[docs/MODULE_IMPACT.md](docs/MODULE_IMPACT.md) for thresholds, API routes,
+limitations, and the verification model.
+
 ## Design boundaries
 
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.

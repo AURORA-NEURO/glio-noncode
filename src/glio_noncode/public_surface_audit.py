@@ -171,9 +171,17 @@ from .module_inventory_packet import module_inventory_packet_capabilities, modul
 from .module_inventory_packet_query import module_inventory_packet_query_capabilities, module_inventory_packet_query_schema
 from .module_inventory_review import module_inventory_review_capabilities, module_inventory_review_schema
 from .module_inventory_runtime import module_inventory_runtime_capabilities, module_inventory_runtime_schema
+from .module_impact_audit import module_impact_audit_capabilities, module_impact_audit_schema
+from .module_impact_observability import module_impact_observability_capabilities, module_impact_observability_schema
+from .module_impact_packet import module_impact_packet_capabilities, module_impact_packet_schema
+from .module_impact_packet_query import module_impact_packet_query_capabilities, module_impact_packet_query_schema
+from .module_impact_policy import module_impact_policy_capabilities, module_impact_policy_schema
+from .module_impact_runtime import module_impact_runtime_capabilities, module_impact_runtime_schema
+from .module_impact_schema import default_module_impact_schema, module_impact_schema_capabilities
+from .module_impact_verification import module_impact_verification_capabilities, module_impact_verification_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 164
+PUBLIC_SURFACE_EXPECTED_COUNT = 180
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -539,6 +547,22 @@ def default_public_surface_inventory(
         "module-inventory-review-capabilities": module_inventory_review_capabilities(),
         "module-inventory-runtime-schema": module_inventory_runtime_schema(),
         "module-inventory-runtime-capabilities": module_inventory_runtime_capabilities(),
+        "module-impact-schema": default_module_impact_schema(),
+        "module-impact-capabilities": module_impact_schema_capabilities(),
+        "module-impact-audit-schema": module_impact_audit_schema(),
+        "module-impact-audit-capabilities": module_impact_audit_capabilities(),
+        "module-impact-policy-schema": module_impact_policy_schema(),
+        "module-impact-policy-capabilities": module_impact_policy_capabilities(),
+        "module-impact-verification-schema": module_impact_verification_schema(),
+        "module-impact-verification-capabilities": module_impact_verification_capabilities(),
+        "module-impact-runtime-schema": module_impact_runtime_schema(),
+        "module-impact-runtime-capabilities": module_impact_runtime_capabilities(),
+        "module-impact-observability-schema": module_impact_observability_schema(),
+        "module-impact-observability-capabilities": module_impact_observability_capabilities(),
+        "module-impact-packet-schema": module_impact_packet_schema(),
+        "module-impact-packet-capabilities": module_impact_packet_capabilities(),
+        "module-impact-packet-query-schema": module_impact_packet_query_schema(),
+        "module-impact-packet-query-capabilities": module_impact_packet_query_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

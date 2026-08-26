@@ -29,6 +29,23 @@ report or runtime from which it was derived.
 | GET | `/v1/module-inventory/packet/query?directory=...` | Query a verified packet offline through the service |
 | GET | `/v1/module-inventory/packet/diff?left_directory=...&right_directory=...` | Compare packet artifact addresses |
 | GET | `/v1/module-inventory/packet/replay?directory=...` | Replay packet verification and resource closure |
+| GET | `/v1/module-impact` | Compare two static inventories and return impact summary, report, CSV, or Markdown |
+| GET | `/v1/module-impact/query` | Page changed modules, dependency changes, impact rows, or verification tasks |
+| GET | `/v1/module-impact/schema` | Return diff, impact, policy, verification, runtime, audit, and packet schemas |
+| GET | `/v1/module-impact/capabilities` | Return module-impact operation and boundary capabilities |
+| GET | `/v1/module-impact/audit` | Run independent cross-artifact impact closure checks |
+| GET | `/v1/module-impact/policy` | Return the default static impact policy |
+| GET | `/v1/module-impact/verification` | Build the ordered impact verification plan |
+| GET | `/v1/module-impact/verification/query` | Page verification tasks by module, kind, or priority |
+| GET | `/v1/module-impact/runtime` | Return the seven-stage impact runtime receipt |
+| GET | `/v1/module-impact/observability` | Return timestamp-free impact events and metrics |
+| GET | `/v1/module-impact/observability/schema` | Return impact observability schema |
+| GET | `/v1/module-impact/observability/capabilities` | Return impact observability capabilities |
+| GET | `/v1/module-impact/packet` | Build a ten-artifact exact-byte impact packet manifest |
+| GET | `/v1/module-impact/packet/verify?directory=...` | Verify an impact packet directory |
+| GET | `/v1/module-impact/packet/query?directory=...` | Query a verified impact packet offline |
+| GET | `/v1/module-impact/packet/diff?left_directory=...&right_directory=...` | Compare verified packet artifact addresses |
+| GET | `/v1/module-impact/packet/replay?directory=...` | Replay verified impact packet closure |
 | GET | `/v1/cohort/benchmark/schema` | Return the aggregate cohort benchmark schema |
 | GET | `/v1/cohort/benchmark/capabilities` | Return split, leakage, calibration, selective-risk, and transport capabilities |
 | POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |

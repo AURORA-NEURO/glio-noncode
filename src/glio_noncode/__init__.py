@@ -10950,12 +10950,137 @@ from .module_inventory_schema import (
     module_inventory_schema_capabilities,
     validate_module_inventory_schema,
 )
+from .module_impact import (
+    build_module_impact_diff,
+    build_module_impact_report,
+    module_impact_json,
+    verify_module_impact_diff,
+)
+from .module_impact_audit import audit_module_impact, module_impact_audit_capabilities, module_impact_audit_schema
+from .module_impact_contracts import (
+    ImpactChangeKind,
+    ImpactCheckPlane,
+    ImpactGateState,
+    ImpactPropagation,
+    ImpactResource,
+    ImpactSeverity,
+    ImpactStageState,
+    ImpactTaskKind,
+    ModuleDependencyChange,
+    ModuleImpactAssessment,
+    ModuleImpactAudit,
+    ModuleImpactAuditCheck,
+    ModuleImpactChange,
+    ModuleImpactDiff,
+    ModuleImpactEvent,
+    ModuleImpactGate,
+    ModuleImpactGateCheck,
+    ModuleImpactMetric,
+    ModuleImpactObservability,
+    ModuleImpactPolicy,
+    ModuleImpactReport,
+    ModuleImpactRuntime,
+    ModuleImpactStage,
+    ModuleImpactVerificationPlan,
+    ModuleVerificationTask,
+)
+from .module_impact_exports import (
+    module_impact_assessments_csv,
+    module_impact_changes_csv,
+    module_impact_dependencies_csv,
+    module_impact_diff_json,
+    module_impact_gate_json,
+    module_impact_report_json,
+    module_impact_summary,
+    module_impact_tasks_csv,
+    render_module_impact_markdown,
+)
+from .module_impact_observability import (
+    build_module_impact_observability,
+    module_impact_events_csv,
+    module_impact_metrics_csv,
+    module_impact_observability_capabilities,
+    module_impact_observability_json,
+    module_impact_observability_schema,
+    query_module_impact_observability,
+)
+from .module_impact_packet import (
+    build_module_impact_packet,
+    load_module_impact_packet,
+    module_impact_packet_capabilities,
+    module_impact_packet_json,
+    module_impact_packet_schema,
+    verify_module_impact_packet,
+    write_module_impact_packet,
+)
+from .module_impact_packet_contracts import (
+    MODULE_IMPACT_PACKET_ARTIFACT_COUNT,
+    MODULE_IMPACT_PACKET_ARTIFACT_PREFIX,
+    MODULE_IMPACT_PACKET_BOUNDARY,
+    MODULE_IMPACT_PACKET_MANIFEST,
+    MODULE_IMPACT_PACKET_VERSION,
+    ModuleImpactPacket,
+    ModuleImpactPacketArtifact,
+    ModuleImpactPacketArtifactKind,
+    ModuleImpactPacketCheck,
+    ModuleImpactPacketCheckPlane,
+    ModuleImpactPacketState,
+    ModuleImpactPacketVerification,
+)
+from .module_impact_packet_query import (
+    diff_module_impact_packets,
+    module_impact_packet_query_capabilities,
+    module_impact_packet_query_schema,
+    query_module_impact_packet,
+    replay_module_impact_packet,
+)
+from .module_impact_policy import (
+    build_module_impact_policy,
+    default_module_impact_policy,
+    evaluate_module_impact_gate,
+    module_impact_policy_capabilities,
+    module_impact_policy_schema,
+)
+from .module_impact_query import (
+    diff_module_impact_reports,
+    impact_diff_from_mapping,
+    impact_gate_from_mapping,
+    impact_plan_from_mapping,
+    impact_report_from_mapping,
+    query_module_impact,
+)
+from .module_impact_runtime import (
+    module_impact_runtime_capabilities,
+    module_impact_runtime_json,
+    module_impact_runtime_schema,
+    run_module_impact,
+)
+from .module_impact_schema import (
+    ModuleImpactSchemaField,
+    ModuleImpactSchemaReport,
+    default_module_impact_schema,
+    module_impact_schema_capabilities,
+    validate_module_impact_schema,
+)
+from .module_impact_verification import (
+    build_module_impact_verification_plan,
+    module_impact_verification_capabilities,
+    module_impact_verification_schema,
+    query_module_impact_tasks,
+)
 
 __all__ += [
     "InventoryAuditCheck", "InventoryCheckPlane", "InventoryIndexRow", "InventoryIssue", "InventoryResource", "InventoryStageState",
     "MODULE_INVENTORY_PACKET_ARTIFACT_COUNT", "MODULE_INVENTORY_PACKET_ARTIFACT_PREFIX", "MODULE_INVENTORY_PACKET_BOUNDARY", "MODULE_INVENTORY_PACKET_MANIFEST", "MODULE_INVENTORY_PACKET_VERSION",
     "ModuleDependency", "ModuleDepthAssessment", "ModuleDepthReport", "ModuleGraphEdge", "ModuleGraphNode", "ModuleInventory", "ModuleInventoryAudit", "ModuleInventoryDiff", "ModuleInventoryEvent", "ModuleInventoryGraph", "ModuleInventoryMetrics", "ModuleInventoryObservability", "ModuleInventoryPacket", "ModuleInventoryPacketArtifact", "ModuleInventoryPacketArtifactKind", "ModuleInventoryPacketCheck", "ModuleInventoryPacketCheckPlane", "ModuleInventoryPacketState", "ModuleInventoryPacketVerification", "ModuleInventoryQueryResult", "ModuleInventoryReviewQueue", "ModuleInventoryRuntime", "ModuleInventorySchemaField", "ModuleInventorySchemaReport", "ModuleInventoryStage", "ModuleRecord", "ModuleReviewItem", "ModuleReviewKind", "ModuleReviewSeverity", "ModuleRole", "ModuleState", "ModuleSymbol",
     "audit_module_inventory", "build_module_inventory", "build_module_inventory_depth", "build_module_inventory_graph", "build_module_inventory_observability", "build_module_inventory_packet", "build_module_inventory_review_queue", "default_module_inventory_schema", "diff_module_inventory_packets", "diff_module_inventories", "inventory_from_mapping", "load_module_inventory_packet", "module_inventory_audit_capabilities", "module_inventory_audit_schema", "module_inventory_capabilities", "module_inventory_dependencies_csv", "module_inventory_depth_capabilities", "module_inventory_depth_csv", "module_inventory_depth_schema", "module_inventory_graph_capabilities", "module_inventory_graph_csv", "module_inventory_graph_schema", "module_inventory_indexes_csv", "module_inventory_json", "module_inventory_modules_csv", "module_inventory_observability_capabilities", "module_inventory_observability_events_csv", "module_inventory_observability_json", "module_inventory_observability_metrics_csv", "module_inventory_observability_schema", "module_inventory_packet_capabilities", "module_inventory_packet_json", "module_inventory_packet_query_capabilities", "module_inventory_packet_query_schema", "module_inventory_packet_schema", "module_inventory_review_capabilities", "module_inventory_review_markdown", "module_inventory_review_schema", "module_inventory_runtime_capabilities", "module_inventory_runtime_json", "module_inventory_runtime_schema", "module_inventory_schema", "module_inventory_schema_capabilities", "module_inventory_summary", "module_inventory_symbols_csv", "query_module_inventory", "query_module_inventory_depth", "query_module_inventory_graph", "query_module_inventory_observability", "query_module_inventory_packet", "query_module_inventory_review", "replay_module_inventory_packet", "render_module_inventory_depth_markdown", "render_module_inventory_markdown", "run_module_inventory", "validate_module_inventory_schema", "verify_module_inventory", "verify_module_inventory_packet", "write_module_inventory_packet",
+]
+
+__all__ += [
+    "ImpactChangeKind", "ImpactCheckPlane", "ImpactGateState", "ImpactPropagation", "ImpactResource", "ImpactSeverity", "ImpactStageState", "ImpactTaskKind",
+    "MODULE_IMPACT_PACKET_ARTIFACT_COUNT", "MODULE_IMPACT_PACKET_ARTIFACT_PREFIX", "MODULE_IMPACT_PACKET_BOUNDARY", "MODULE_IMPACT_PACKET_MANIFEST", "MODULE_IMPACT_PACKET_VERSION",
+    "ModuleDependencyChange", "ModuleImpactAssessment", "ModuleImpactAudit", "ModuleImpactAuditCheck", "ModuleImpactChange", "ModuleImpactDiff", "ModuleImpactEvent", "ModuleImpactGate", "ModuleImpactGateCheck", "ModuleImpactMetric", "ModuleImpactObservability", "ModuleImpactPacket", "ModuleImpactPacketArtifact", "ModuleImpactPacketArtifactKind", "ModuleImpactPacketCheck", "ModuleImpactPacketCheckPlane", "ModuleImpactPacketState", "ModuleImpactPacketVerification", "ModuleImpactPolicy", "ModuleImpactReport", "ModuleImpactRuntime", "ModuleImpactSchemaField", "ModuleImpactSchemaReport", "ModuleImpactStage", "ModuleImpactVerificationPlan", "ModuleVerificationTask",
+    "audit_module_impact", "build_module_impact_diff", "build_module_impact_observability", "build_module_impact_packet", "build_module_impact_policy", "build_module_impact_report", "build_module_impact_verification_plan", "default_module_impact_policy", "default_module_impact_schema", "diff_module_impact_packets", "diff_module_impact_reports", "evaluate_module_impact_gate", "impact_diff_from_mapping", "impact_gate_from_mapping", "impact_plan_from_mapping", "impact_report_from_mapping", "load_module_impact_packet", "module_impact_assessments_csv", "module_impact_audit_capabilities", "module_impact_audit_schema", "module_impact_changes_csv", "module_impact_dependencies_csv", "module_impact_diff_json", "module_impact_events_csv", "module_impact_gate_json", "module_impact_json", "module_impact_metrics_csv", "module_impact_observability_capabilities", "module_impact_observability_json", "module_impact_observability_schema", "module_impact_packet_capabilities", "module_impact_packet_json", "module_impact_packet_query_capabilities", "module_impact_packet_query_schema", "module_impact_packet_schema", "module_impact_policy_capabilities", "module_impact_policy_schema", "module_impact_report_json", "module_impact_runtime_capabilities", "module_impact_runtime_json", "module_impact_runtime_schema", "module_impact_schema_capabilities", "module_impact_summary", "module_impact_tasks_csv", "module_impact_verification_capabilities", "module_impact_verification_schema", "query_module_impact", "query_module_impact_observability", "query_module_impact_packet", "query_module_impact_tasks", "render_module_impact_markdown", "replay_module_impact_packet", "run_module_impact", "validate_module_impact_schema", "verify_module_impact_diff", "verify_module_impact_packet", "write_module_impact_packet",
 ]
 
 __all__ += [

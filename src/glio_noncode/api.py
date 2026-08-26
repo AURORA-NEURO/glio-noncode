@@ -681,6 +681,17 @@ from .module_inventory_query import diff_module_inventories, query_module_invent
 from .module_inventory_review import build_module_inventory_review_queue, module_inventory_review_capabilities, module_inventory_review_markdown, module_inventory_review_schema, query_module_inventory_review
 from .module_inventory_runtime import module_inventory_runtime_capabilities, module_inventory_runtime_schema, run_module_inventory
 from .module_inventory_schema import default_module_inventory_schema, module_inventory_schema_capabilities
+from .module_impact import build_module_impact_diff, build_module_impact_report
+from .module_impact_audit import audit_module_impact, module_impact_audit_capabilities, module_impact_audit_schema
+from .module_impact_exports import module_impact_assessments_csv, module_impact_changes_csv, module_impact_dependencies_csv, module_impact_diff_json, module_impact_gate_json, module_impact_report_json, module_impact_summary, module_impact_tasks_csv, render_module_impact_markdown
+from .module_impact_observability import build_module_impact_observability, module_impact_events_csv, module_impact_metrics_csv, module_impact_observability_capabilities, module_impact_observability_schema, query_module_impact_observability
+from .module_impact_packet import build_module_impact_packet, module_impact_packet_capabilities, module_impact_packet_json, module_impact_packet_schema, verify_module_impact_packet
+from .module_impact_packet_query import diff_module_impact_packets, module_impact_packet_query_capabilities, module_impact_packet_query_schema, query_module_impact_packet, replay_module_impact_packet
+from .module_impact_policy import default_module_impact_policy, evaluate_module_impact_gate, module_impact_policy_capabilities, module_impact_policy_schema
+from .module_impact_query import query_module_impact
+from .module_impact_runtime import module_impact_runtime_capabilities, module_impact_runtime_schema, run_module_impact
+from .module_impact_schema import default_module_impact_schema, module_impact_schema_capabilities, validate_module_impact_schema
+from .module_impact_verification import build_module_impact_verification_plan, module_impact_verification_capabilities, module_impact_verification_schema, query_module_impact_tasks
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1661,6 +1672,207 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/module-impact",
+            "/v1/module-impact/query",
+            "/v1/module-impact/schema",
+            "/v1/module-impact/capabilities",
+            "/v1/module-impact/audit",
+            "/v1/module-impact/policy",
+            "/v1/module-impact/verification",
+            "/v1/module-impact/verification/query",
+            "/v1/module-impact/runtime",
+            "/v1/module-impact/observability",
+            "/v1/module-impact/observability/schema",
+            "/v1/module-impact/observability/capabilities",
+            "/v1/module-impact/packet",
+            "/v1/module-impact/packet/verify",
+            "/v1/module-impact/packet/query",
+            "/v1/module-impact/packet/diff",
+            "/v1/module-impact/packet/replay",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                if path.endswith("/schema") and not path.endswith("/observability/schema"):
+                    payload = {
+                        "schema": default_module_impact_schema(),
+                        "policy": module_impact_policy_schema(),
+                        "verification": module_impact_verification_schema(),
+                        "runtime": module_impact_runtime_schema(),
+                        "audit": module_impact_audit_schema(),
+                        "packet": module_impact_packet_schema(),
+                        "packet_query": module_impact_packet_query_schema(),
+                    }
+                elif path.endswith("/capabilities") and not path.endswith("/observability/capabilities"):
+                    payload = {
+                        "impact": module_impact_schema_capabilities(),
+                        "policy": module_impact_policy_capabilities(),
+                        "verification": module_impact_verification_capabilities(),
+                        "runtime": module_impact_runtime_capabilities(),
+                        "audit": module_impact_audit_capabilities(),
+                        "packet": module_impact_packet_capabilities(),
+                        "packet_query": module_impact_packet_query_capabilities(),
+                    }
+                elif path.endswith("/observability/schema"):
+                    payload = module_impact_observability_schema()
+                elif path.endswith("/observability/capabilities"):
+                    payload = module_impact_observability_capabilities()
+                elif path.endswith("/packet/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for impact packet verification")
+                    payload = verify_module_impact_packet(directory).to_dict()
+                elif path.endswith("/packet/query"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for impact packet query")
+                    payload = query_module_impact_packet(
+                        directory,
+                        resource=self._query_value(query, "resource") or "impacts",
+                        module_id=self._query_value(query, "module_id"),
+                        kind=self._query_value(query, "kind"),
+                        severity=self._query_value(query, "severity"),
+                        min_risk=self._query_float(query, "min_risk"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                elif path.endswith("/packet/diff"):
+                    left_directory = self._query_value(query, "left_directory")
+                    right_directory = self._query_value(query, "right_directory")
+                    if not left_directory or not right_directory:
+                        raise ValueError("left_directory and right_directory are required for impact packet diff")
+                    payload = diff_module_impact_packets(left_directory, right_directory)
+                elif path.endswith("/packet/replay"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for impact packet replay")
+                    payload = replay_module_impact_packet(directory)
+                elif path.endswith("/observability"):
+                    left = build_module_inventory(
+                        self._query_value(query, "left_source_root"),
+                        test_root=self._query_value(query, "left_test_root"),
+                    )
+                    right = build_module_inventory(
+                        self._query_value(query, "right_source_root"),
+                        test_root=self._query_value(query, "right_test_root"),
+                    )
+                    diff = build_module_impact_diff(left, right)
+                    report = build_module_impact_report(left, right, diff)
+                    plan = build_module_impact_verification_plan(diff, report)
+                    gate = evaluate_module_impact_gate(diff, report, plan)
+                    observation = build_module_impact_observability(diff, report, plan, gate)
+                    output_format = self._query_value(query, "format")
+                    if output_format == "events-csv":
+                        self._write_bytes(HTTPStatus.OK, module_impact_events_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "metrics-csv":
+                        self._write_bytes(HTTPStatus.OK, module_impact_metrics_csv(observation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    payload = observation.to_dict()
+                elif path.endswith("/verification/query"):
+                    left = build_module_inventory(
+                        self._query_value(query, "left_source_root"),
+                        test_root=self._query_value(query, "left_test_root"),
+                    )
+                    right = build_module_inventory(
+                        self._query_value(query, "right_source_root"),
+                        test_root=self._query_value(query, "right_test_root"),
+                    )
+                    diff = build_module_impact_diff(left, right)
+                    report = build_module_impact_report(left, right, diff)
+                    plan = build_module_impact_verification_plan(diff, report)
+                    payload = query_module_impact_tasks(
+                        plan,
+                        module_id=self._query_value(query, "module_id"),
+                        kind=self._query_value(query, "kind"),
+                        min_priority=self._query_int(query, "min_priority", 0),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                elif path.endswith("/verification"):
+                    left = build_module_inventory(
+                        self._query_value(query, "left_source_root"),
+                        test_root=self._query_value(query, "left_test_root"),
+                    )
+                    right = build_module_inventory(
+                        self._query_value(query, "right_source_root"),
+                        test_root=self._query_value(query, "right_test_root"),
+                    )
+                    diff = build_module_impact_diff(left, right)
+                    report = build_module_impact_report(left, right, diff)
+                    plan = build_module_impact_verification_plan(diff, report)
+                    if self._query_value(query, "format") == "csv":
+                        self._write_bytes(HTTPStatus.OK, module_impact_tasks_csv(plan).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    payload = plan.to_dict()
+                elif path.endswith("/policy"):
+                    payload = default_module_impact_policy().to_dict()
+                else:
+                    left = build_module_inventory(
+                        self._query_value(query, "left_source_root"),
+                        test_root=self._query_value(query, "left_test_root"),
+                    )
+                    right = build_module_inventory(
+                        self._query_value(query, "right_source_root"),
+                        test_root=self._query_value(query, "right_test_root"),
+                    )
+                    diff = build_module_impact_diff(left, right)
+                    report = build_module_impact_report(left, right, diff)
+                    plan = build_module_impact_verification_plan(diff, report)
+                    gate = evaluate_module_impact_gate(diff, report, plan)
+                    if path.endswith("/runtime"):
+                        payload = run_module_impact(left, right).to_dict()
+                    elif path.endswith("/audit"):
+                        payload = audit_module_impact(diff, report, plan, gate).to_dict()
+                    elif path.endswith("/packet"):
+                        payload = build_module_impact_packet(left, right).to_dict(include_payloads=False)
+                    elif path.endswith("/query"):
+                        payload = query_module_impact(
+                            diff=diff,
+                            report=report,
+                            plan=plan,
+                            resource=self._query_value(query, "resource") or "impacts",
+                            module_id=self._query_value(query, "module_id"),
+                            kind=self._query_value(query, "kind"),
+                            severity=self._query_value(query, "severity"),
+                            min_risk=self._query_float(query, "min_risk"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "summary"
+                        if output_format == "changes-csv":
+                            self._write_bytes(HTTPStatus.OK, module_impact_changes_csv(diff).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "dependencies-csv":
+                            self._write_bytes(HTTPStatus.OK, module_impact_dependencies_csv(diff).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "impacts-csv":
+                            self._write_bytes(HTTPStatus.OK, module_impact_assessments_csv(report).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "tasks-csv":
+                            self._write_bytes(HTTPStatus.OK, module_impact_tasks_csv(plan).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_impact_markdown(diff, report, plan, gate).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        if output_format == "diff":
+                            payload = diff.to_dict()
+                        elif output_format == "report":
+                            payload = report.to_dict()
+                        else:
+                            payload = module_impact_summary(diff, report, plan, gate)
+                self._write(HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except ValueError as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_module_impact_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

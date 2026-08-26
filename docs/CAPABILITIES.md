@@ -4310,6 +4310,41 @@ The service equivalents are under `/v1/module-inventory`, including bounded
 queries, graph and depth views, observability, and packet verification. See
 [the module inventory contract](MODULE_INVENTORY.md).
 
+## Module change impact and release gate
+
+The module inventory now has a baseline-to-candidate change-control plane. It
+compares immutable module rows, symbol shape, line and test-reference deltas,
+and local import edges. A reverse graph over both snapshots propagates impact
+from direct changes to direct dependents and transitive dependents. Each row
+retains source IDs, shortest paths, reasons, severity, and a bounded risk value.
+
+The verification layer converts the closure into ordered review, public-surface,
+removed-module, unresolved-edge, and dependent-replay tasks. The policy layer
+applies explicit thresholds for critical and high impact, removals, unresolved
+direct edges, clean inputs, test-reference changes, and minimum task coverage.
+The independent audit checks address references, row ordering, path termination,
+counter conservation, task closure, gate references, and the public boundary.
+
+The runtime has seven stages—input, diff, impact, verification, policy, replay,
+and public—and observability emits timestamp-free events and metrics. The
+ten-artifact packet includes both inventories, the diff, impact report,
+verification plan, gate, audit, runtime, observability, and bounded Markdown
+summary. Its verifier rejects unsafe paths, symlinks, extra or missing files,
+byte drift, address drift, and forbidden public keys before offline query or
+replay is allowed.
+
+```text
+glio-noncode module-impact --left-source-root baseline --right-source-root candidate
+glio-noncode module-impact-verification --format csv
+glio-noncode module-impact-packet --left-source-root baseline --right-source-root candidate --destination impact-packet
+glio-noncode module-impact-packet-query impact-packet --resource impacts --severity high
+glio-noncode module-impact-packet-replay impact-packet
+```
+
+The service equivalents are under `/v1/module-impact`, including bounded
+queries, policy, verification, runtime, observability, packet verification,
+packet diff, and packet replay. See [the module impact contract](MODULE_IMPACT.md).
+
 ## Domain 16 typed mission runtime
 
 The mission runtime combines the declared control-plane registry with workflow

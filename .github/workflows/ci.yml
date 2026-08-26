@@ -26,6 +26,13 @@ jobs:
         run: python -m pip install --no-deps -e .
       - name: Compile
         run: python -m compileall -q src tests
+      - name: Module impact contract commands
+        run: |
+          python -m glio_noncode module-impact-schema --output /tmp/glio-module-impact-schema.json
+          python -m glio_noncode module-impact-capabilities --output /tmp/glio-module-impact-capabilities.json
+          python -m glio_noncode module-impact-policy --output /tmp/glio-module-impact-policy.json
+      - name: Module impact focused tests
+        run: python -m unittest tests.test_module_impact -v
       - name: Unit tests
         run: python -m unittest discover -s tests -t . -v
       - name: Architecture program offline handoff tests
