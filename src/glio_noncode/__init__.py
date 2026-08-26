@@ -10850,6 +10850,24 @@ from .review_workspace_execution_transitions import (
     review_workspace_execution_transitions_json,
     review_workspace_execution_transitions_schema,
 )
+from .review_workspace_execution_simulation import (
+    REVIEW_WORKSPACE_EXECUTION_SIMULATION_MAX_EVENT_ID,
+    REVIEW_WORKSPACE_EXECUTION_SIMULATION_MAX_MESSAGE,
+    REVIEW_WORKSPACE_EXECUTION_SIMULATION_MAX_PROPOSALS,
+    REVIEW_WORKSPACE_EXECUTION_SIMULATION_SCHEMA_VERSION,
+    REVIEW_WORKSPACE_EXECUTION_SIMULATION_VERSION,
+    ReviewWorkspaceExecutionSimulation,
+    ReviewWorkspaceExecutionSimulationProposal,
+    ReviewWorkspaceExecutionSimulationResult,
+    review_workspace_execution_simulation_capabilities,
+    review_workspace_execution_simulation_csv,
+    review_workspace_execution_simulation_export_payloads,
+    review_workspace_execution_simulation_from_mapping,
+    review_workspace_execution_simulation_json,
+    review_workspace_execution_simulation_schema,
+    render_review_workspace_execution_simulation_markdown,
+    simulate_review_workspace_plan_execution,
+)
 from .review_workspace_execution_release import (
     REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX,
     REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION,
@@ -11397,6 +11415,22 @@ __all__ += [
     "review_workspace_execution_transitions_from_mapping",
     "review_workspace_execution_transitions_json",
     "review_workspace_execution_transitions_schema",
+    "REVIEW_WORKSPACE_EXECUTION_SIMULATION_MAX_EVENT_ID",
+    "REVIEW_WORKSPACE_EXECUTION_SIMULATION_MAX_MESSAGE",
+    "REVIEW_WORKSPACE_EXECUTION_SIMULATION_MAX_PROPOSALS",
+    "REVIEW_WORKSPACE_EXECUTION_SIMULATION_SCHEMA_VERSION",
+    "REVIEW_WORKSPACE_EXECUTION_SIMULATION_VERSION",
+    "ReviewWorkspaceExecutionSimulation",
+    "ReviewWorkspaceExecutionSimulationProposal",
+    "ReviewWorkspaceExecutionSimulationResult",
+    "review_workspace_execution_simulation_capabilities",
+    "review_workspace_execution_simulation_csv",
+    "review_workspace_execution_simulation_export_payloads",
+    "review_workspace_execution_simulation_from_mapping",
+    "review_workspace_execution_simulation_json",
+    "review_workspace_execution_simulation_schema",
+    "render_review_workspace_execution_simulation_markdown",
+    "simulate_review_workspace_plan_execution",
 ]
 
 __all__ += [

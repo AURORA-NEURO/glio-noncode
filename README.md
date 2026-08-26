@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 47-surface audit, including the
+schema fields. The result is a deterministic 53-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and portable execution-release contracts,
 suitable for local release checks and CI.
@@ -780,6 +780,7 @@ glio-noncode review-workspace-plan-execution-query RUN_ID --view metrics --data-
 glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --data-root .glio --output execution-operations.json
 glio-noncode review-workspace-plan-execution-query RUN_ID --view operations --attention-kind blocked --limit 25 --data-root .glio --output blocked-operations.json
 glio-noncode review-workspace-plan-execution-query RUN_ID --view transitions --kind complete --disposition requires_checks --data-root .glio --output execution-transitions.json
+glio-noncode review-workspace-plan-execution-simulate RUN_ID --data-root .glio --proposals proposals.json --include-report --output execution-simulation.json
 glio-noncode review-workspace-plan-event RUN_ID --action-id ACTION_ID --kind start --event-id EVENT_ID --occurred-at 2026-09-01T12:00:00Z --data-root .glio --output execution.json
 glio-noncode review-workspace-plan-execution-release RUN_ID --data-root .glio --output execution-release
 glio-noncode review-workspace-plan-execution-release-verify execution-release --output execution-release-verification.json
@@ -797,6 +798,8 @@ glio-noncode review-workspace-plan-execution-transitions-schema --output executi
 glio-noncode review-workspace-plan-execution-transitions-capabilities --output execution-transitions-capabilities.json
 glio-noncode review-workspace-plan-execution-transitions-diff-schema --output execution-transitions-diff-schema.json
 glio-noncode review-workspace-plan-execution-transitions-diff-capabilities --output execution-transitions-diff-capabilities.json
+glio-noncode review-workspace-plan-execution-simulation-schema --output execution-simulation-schema.json
+glio-noncode review-workspace-plan-execution-simulation-capabilities --output execution-simulation-capabilities.json
 glio-noncode review-workspace-release-diff release-a release-b --output release-diff.json
 ```
 

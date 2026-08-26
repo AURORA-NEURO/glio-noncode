@@ -203,6 +203,31 @@ capabilities are available from
 `review-workspace-plan-execution-transitions-capabilities`; the transition-diff
 schema and capabilities expose deterministic cross-snapshot changes.
 
+## Execution simulation
+
+`review-workspace-plan-execution-simulate` evaluates a bounded JSON array of
+proposed transitions entirely in memory. Proposals use `action_id`, `kind`,
+`event_id`, and `occurred_at`, with optional `reason`, `check_ids`,
+`reference_addresses`, and `expected_previous_event_address`. The simulator
+automatically links accepted proposals to the current hypothetical predecessor,
+replays each proposal through the same state machine and completion gates as the
+ledger, and stops at the first failure. Later proposals are returned as
+`not_evaluated`; the persisted `events.jsonl` file is not opened for writing.
+
+```text
+glio-noncode review-workspace-plan-execution-simulate RUN_ID --data-root .glio --proposals proposals.json --include-report --output simulation.json
+glio-noncode review-workspace-plan-execution-simulation-schema --output simulation-schema.json
+glio-noncode review-workspace-plan-execution-simulation-capabilities --output simulation-capabilities.json
+```
+
+The result includes the baseline and projected execution addresses, accepted
+event IDs, per-proposal preflight dispositions, projected metrics, operations,
+and transition-frontier addresses. The same read-only operation is available as
+`GET /v1/runs/RUN_ID/review-workspace/plan/execution/simulate?proposals=<url-encoded-json-array>`;
+add `include_report=true` when the projected replay report is needed. Simulation
+reports export deterministic JSON, Markdown, and CSV from the Python API and
+remain ephemeral rather than becoming release artifacts.
+
 ## Portable execution release
 
 `review-workspace-plan-execution-release` packages twenty exact-byte artifacts:

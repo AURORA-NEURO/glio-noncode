@@ -278,6 +278,11 @@ from .review_workspace_execution_transitions import (
     review_workspace_execution_transitions_diff_schema,
     review_workspace_execution_transitions_schema,
 )
+from .review_workspace_execution_simulation import (
+    review_workspace_execution_simulation_capabilities,
+    review_workspace_execution_simulation_schema,
+    simulate_review_workspace_plan_execution,
+)
 from .review_workspace_execution_release import (
     build_review_workspace_execution_release,
     review_workspace_execution_release_capabilities,
@@ -681,6 +686,12 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/review-workspace/plan/execution/capabilities":
             self._write(HTTPStatus.OK, review_workspace_execution_capabilities())
+            return
+        if path == "/v1/review-workspace/plan/execution/simulation/schema":
+            self._write(HTTPStatus.OK, review_workspace_execution_simulation_schema())
+            return
+        if path == "/v1/review-workspace/plan/execution/simulation/capabilities":
+            self._write(HTTPStatus.OK, review_workspace_execution_simulation_capabilities())
             return
         if path == "/v1/review-workspace/plan/execution/transitions/schema":
             self._write(HTTPStatus.OK, review_workspace_execution_transitions_schema())
@@ -2198,6 +2209,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                     and segments[5] == "execution"
                     and segments[6] == "query"
                 )
+                is_review_workspace_plan_execution_simulation = (
+                    len(segments) == 7
+                    and segments[3] == "review-workspace"
+                    and segments[4] == "plan"
+                    and segments[5] == "execution"
+                    and segments[6] == "simulate"
+                )
                 is_review_workspace_plan_execution_release = (
                     len(segments) == 6
                     and segments[3] == "review-workspace"
@@ -2504,6 +2522,42 @@ class ApiHandler(BaseHTTPRequestHandler):
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),
+                    )
+                    return
+                if is_review_workspace_plan_execution_simulation:
+                    query_values = parse_qs(parsed.query, keep_blank_values=False)
+                    config_raw = self._query_value(query_values, "config")
+                    plan_config = ReviewWorkspacePlanConfig.from_mapping(
+                        json.loads(config_raw) if config_raw else None
+                    )
+                    plan = build_persisted_review_workspace_plan(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        config=plan_config,
+                    )
+                    execution = build_persisted_review_workspace_plan_execution(
+                        runtime,
+                        run_id,
+                        baseline_run_id=self._query_value(query_values, "baseline_run_id"),
+                        plan_config=plan_config,
+                    )
+                    proposals_raw = self._query_value(query_values, "proposals")
+                    if not proposals_raw:
+                        raise ValidationError("execution simulation requires proposals JSON")
+                    proposals = json.loads(proposals_raw)
+                    if not isinstance(proposals, list):
+                        raise ValidationError("execution simulation proposals must be an array")
+                    simulation = simulate_review_workspace_plan_execution(
+                        plan,
+                        execution,
+                        proposals,
+                    )
+                    self._write(
+                        HTTPStatus.OK if simulation.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        simulation.to_dict(
+                            include_report=self._query_bool(query_values, "include_report")
+                        ),
                     )
                     return
                 if is_review_workspace_plan_execution:

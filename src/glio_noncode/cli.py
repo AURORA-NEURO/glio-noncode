@@ -1778,6 +1778,11 @@ from .review_workspace_execution_transitions import (
     review_workspace_execution_transitions_diff_schema,
     review_workspace_execution_transitions_schema,
 )
+from .review_workspace_execution_simulation import (
+    review_workspace_execution_simulation_capabilities,
+    review_workspace_execution_simulation_schema,
+    simulate_review_workspace_plan_execution,
+)
 from .review_workspace_execution_metrics_diff import (
     review_workspace_execution_metrics_diff_capabilities,
     review_workspace_execution_metrics_diff_schema,
@@ -3629,6 +3634,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     review_workspace_plan_execution.add_argument("--output", default=None)
 
+    review_workspace_plan_execution_simulate = subparsers.add_parser(
+        "review-workspace-plan-execution-simulate",
+        help="simulate proposed review-plan execution transitions without writing the ledger",
+    )
+    review_workspace_plan_execution_simulate.add_argument("run_id", type=str)
+    review_workspace_plan_execution_simulate.add_argument("--proposals", required=True)
+    review_workspace_plan_execution_simulate.add_argument("--data-root", default=".glio")
+    review_workspace_plan_execution_simulate.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_execution_simulate.add_argument("--include-report", action="store_true")
+    review_workspace_plan_execution_simulate.add_argument("--output", default=None)
+
     review_workspace_plan_execution_query = subparsers.add_parser(
         "review-workspace-plan-execution-query",
         help="query replayed review-plan action execution state",
@@ -3761,6 +3777,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-plan execution capabilities",
     )
     review_workspace_execution_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_simulation_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-simulation-schema",
+        help="emit the review-plan execution simulation schema",
+    )
+    review_workspace_execution_simulation_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_simulation_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-simulation-capabilities",
+        help="emit review-plan execution simulation capabilities",
+    )
+    review_workspace_execution_simulation_capabilities_parser.add_argument("--output", default=None)
 
     review_workspace_execution_timeline_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-timeline-schema",
@@ -22798,6 +22826,31 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(execution.to_dict(), args.output)
             return 0 if execution.accepted else 2
+        if args.command == "review-workspace-plan-execution-simulate":
+            runtime = CaseRuntime(args.data_root)
+            plan = build_persisted_review_workspace_plan(
+                runtime,
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            execution = build_persisted_review_workspace_plan_execution(
+                runtime,
+                args.run_id,
+                baseline_run_id=args.baseline_run_id,
+            )
+            raw_proposals = _read_json_document(args.proposals)
+            if not isinstance(raw_proposals, list):
+                raise ValidationError("simulation proposals input must be an array")
+            simulation = simulate_review_workspace_plan_execution(
+                plan,
+                execution,
+                raw_proposals,
+            )
+            _write_json(
+                simulation.to_dict(include_report=args.include_report),
+                args.output,
+            )
+            return 0 if simulation.accepted else 2
         if args.command == "review-workspace-plan-execution-query":
             execution = build_persisted_review_workspace_plan_execution(
                 CaseRuntime(args.data_root),
@@ -23043,6 +23096,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-capabilities":
             _write_json(review_workspace_execution_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-simulation-schema":
+            _write_json(review_workspace_execution_simulation_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-simulation-capabilities":
+            _write_json(review_workspace_execution_simulation_capabilities(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-timeline-schema":
             _write_json(review_workspace_execution_timeline_schema(), args.output)
