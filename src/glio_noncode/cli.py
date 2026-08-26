@@ -2116,6 +2116,11 @@ from .module_certification_tasks import build_module_certification_task_plan, mo
 from .module_certification_diff import build_module_certification_diff, module_certification_diff_capabilities, module_certification_diff_schema, query_module_certification_diff
 from .module_certification_review import build_module_certification_review_queue, module_certification_review_capabilities, module_certification_review_schema, query_module_certification_review, render_module_certification_review_markdown
 from .module_certification_schema import module_certification_schema_capabilities, module_certification_schema_report_schema, validate_module_certification_schema
+from .module_certification_lineage import build_module_certification_lineage, module_certification_evidence_csv, module_certification_lineage_capabilities, module_certification_lineage_edges_csv, module_certification_lineage_schema, query_module_certification_lineage, render_module_certification_lineage_markdown
+from .module_certification_quality import build_module_certification_quality, module_certification_family_csv, module_certification_quality_capabilities, module_certification_quality_csv, module_certification_quality_schema, query_module_certification_quality, render_module_certification_quality_markdown
+from .module_certification_lineage_audit import build_module_certification_lineage_audit, module_certification_lineage_audit_capabilities, module_certification_lineage_audit_csv, module_certification_lineage_audit_schema, query_module_certification_lineage_audit
+from .module_certification_release import build_module_certification_release, module_certification_release_capabilities, module_certification_release_checks_csv, module_certification_release_schema, query_module_certification_release, render_module_certification_release_markdown
+from .module_certification_quality_policy import build_module_certification_quality_policy, evaluate_module_certification_quality_policy, module_certification_quality_policy_capabilities, module_certification_quality_policy_csv, module_certification_quality_policy_failures, module_certification_quality_policy_schema, module_certification_quality_policy_summary, query_module_certification_quality_policy, render_module_certification_quality_policy_markdown
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4389,6 +4394,85 @@ def build_parser() -> argparse.ArgumentParser:
     module_certification_schema_report.add_argument("--output", default=None)
     subparsers.add_parser("module-certification-schema-report-schema", help="print module certification schema report schema").add_argument("--output", default=None)
     subparsers.add_parser("module-certification-schema-capabilities", help="print module certification schema capabilities").add_argument("--output", default=None)
+
+    module_certification_lineage = subparsers.add_parser("module-certification-lineage", help="build or query module certification evidence lineage")
+    module_certification_lineage.add_argument("--source-root", default=None)
+    module_certification_lineage.add_argument("--test-root", default=None)
+    module_certification_lineage.add_argument("--docs-root", default=None)
+    module_certification_lineage.add_argument("--resource", choices=("evidence", "edges", "modules"), default="evidence")
+    module_certification_lineage.add_argument("--module-id", default=None)
+    module_certification_lineage.add_argument("--kind", default=None)
+    module_certification_lineage.add_argument("--relation", default=None)
+    module_certification_lineage.add_argument("--resolved", action="store_true")
+    module_certification_lineage.add_argument("--text", default=None)
+    module_certification_lineage.add_argument("--offset", default=0, type=int)
+    module_certification_lineage.add_argument("--limit", default=50, type=int)
+    module_certification_lineage.add_argument("--format", choices=("json", "evidence-csv", "edges-csv", "markdown"), default="json")
+    module_certification_lineage.add_argument("--include-rows", action="store_true")
+    module_certification_lineage.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-lineage-schema", help="print module certification lineage schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-lineage-capabilities", help="print module certification lineage capabilities").add_argument("--output", default=None)
+    module_certification_lineage_audit = subparsers.add_parser("module-certification-lineage-audit", help="audit module certification evidence lineage")
+    module_certification_lineage_audit.add_argument("--source-root", default=None)
+    module_certification_lineage_audit.add_argument("--test-root", default=None)
+    module_certification_lineage_audit.add_argument("--docs-root", default=None)
+    module_certification_lineage_audit.add_argument("--plane", default=None)
+    module_certification_lineage_audit.add_argument("--passed", action="store_true")
+    module_certification_lineage_audit.add_argument("--offset", default=0, type=int)
+    module_certification_lineage_audit.add_argument("--limit", default=50, type=int)
+    module_certification_lineage_audit.add_argument("--format", choices=("json", "csv"), default="json")
+    module_certification_lineage_audit.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-lineage-audit-schema", help="print module certification lineage audit schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-lineage-audit-capabilities", help="print module certification lineage audit capabilities").add_argument("--output", default=None)
+
+    module_certification_quality = subparsers.add_parser("module-certification-quality", help="build or query module certification quality and readiness")
+    module_certification_quality.add_argument("--source-root", default=None)
+    module_certification_quality.add_argument("--test-root", default=None)
+    module_certification_quality.add_argument("--docs-root", default=None)
+    module_certification_quality.add_argument("--resource", choices=("checks", "families", "blockers", "gaps", "summary"), default="checks")
+    module_certification_quality.add_argument("--family", default=None)
+    module_certification_quality.add_argument("--kind", default=None)
+    module_certification_quality.add_argument("--text", default=None)
+    module_certification_quality.add_argument("--offset", default=0, type=int)
+    module_certification_quality.add_argument("--limit", default=50, type=int)
+    module_certification_quality.add_argument("--format", choices=("json", "checks-csv", "families-csv", "markdown"), default="json")
+    module_certification_quality.add_argument("--include-measures", action="store_true")
+    module_certification_quality.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-quality-schema", help="print module certification quality schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-quality-capabilities", help="print module certification quality capabilities").add_argument("--output", default=None)
+    module_certification_quality_policy = subparsers.add_parser("module-certification-quality-policy", help="evaluate configurable module certification quality thresholds")
+    module_certification_quality_policy.add_argument("--source-root", default=None)
+    module_certification_quality_policy.add_argument("--test-root", default=None)
+    module_certification_quality_policy.add_argument("--docs-root", default=None)
+    module_certification_quality_policy.add_argument("--minimum-evidence-coverage-percent", default=100.0, type=float)
+    module_certification_quality_policy.add_argument("--minimum-check-pass-percent", default=100.0, type=float)
+    module_certification_quality_policy.add_argument("--minimum-family-score", default=0.8, type=float)
+    module_certification_quality_policy.add_argument("--allow-blockers", action="store_false", dest="require_no_blockers")
+    module_certification_quality_policy.add_argument("--allow-review", action="store_false", dest="require_all_modules_certified")
+    module_certification_quality_policy.add_argument("--allow-warning", action="store_false", dest="require_ready")
+    module_certification_quality_policy.add_argument("--passed", action="store_true")
+    module_certification_quality_policy.add_argument("--text", default=None)
+    module_certification_quality_policy.add_argument("--offset", default=0, type=int)
+    module_certification_quality_policy.add_argument("--limit", default=50, type=int)
+    module_certification_quality_policy.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    module_certification_quality_policy.add_argument("--include-checks", action="store_true")
+    module_certification_quality_policy.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-quality-policy-schema", help="print module certification quality policy schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-quality-policy-capabilities", help="print module certification quality policy capabilities").add_argument("--output", default=None)
+    module_certification_release = subparsers.add_parser("module-certification-release", help="reconcile module certification artifacts for release")
+    module_certification_release.add_argument("--source-root", default=None)
+    module_certification_release.add_argument("--test-root", default=None)
+    module_certification_release.add_argument("--docs-root", default=None)
+    module_certification_release.add_argument("--plane", default=None)
+    module_certification_release.add_argument("--passed", action="store_true")
+    module_certification_release.add_argument("--text", default=None)
+    module_certification_release.add_argument("--offset", default=0, type=int)
+    module_certification_release.add_argument("--limit", default=50, type=int)
+    module_certification_release.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    module_certification_release.add_argument("--include-checks", action="store_true")
+    module_certification_release.add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-release-schema", help="print module certification release schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-certification-release-capabilities", help="print module certification release capabilities").add_argument("--output", default=None)
 
     module_inventory = subparsers.add_parser(
         "module-inventory",
@@ -25490,6 +25574,112 @@ def main(argv: list[str] | None = None) -> int:
             result = validate_module_certification_schema(matrix)
             _write_json(result.to_dict(), args.output)
             return 0 if result.accepted else 2
+        if args.command == "module-certification-lineage-schema":
+            _write_json(module_certification_lineage_schema(), args.output)
+            return 0
+        if args.command == "module-certification-lineage-capabilities":
+            _write_json(module_certification_lineage_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-lineage":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            lineage = build_module_certification_lineage(inventory, matrix=matrix, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            if args.format == "evidence-csv":
+                _write_text(module_certification_evidence_csv(lineage), args.output)
+            elif args.format == "edges-csv":
+                _write_text(module_certification_lineage_edges_csv(lineage), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_certification_lineage_markdown(lineage), args.output)
+            elif any(value is not None for value in (args.module_id, args.kind, args.relation, args.text)) or args.resolved or args.offset or args.limit != 50 or args.resource != "evidence":
+                _write_json(query_module_certification_lineage(lineage, resource=args.resource, module_id=args.module_id, kind=args.kind, relation=args.relation, resolved=True if args.resolved else None, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(lineage.to_dict(include_rows=args.include_rows), args.output)
+            return 0 if lineage.accepted else 2
+        if args.command == "module-certification-lineage-audit-schema":
+            _write_json(module_certification_lineage_audit_schema(), args.output)
+            return 0
+        if args.command == "module-certification-lineage-audit-capabilities":
+            _write_json(module_certification_lineage_audit_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-lineage-audit":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            lineage = build_module_certification_lineage(inventory, matrix=matrix, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            audit = build_module_certification_lineage_audit(lineage)
+            if args.format == "csv":
+                _write_text(module_certification_lineage_audit_csv(audit), args.output)
+            elif args.plane is not None or args.passed or args.offset or args.limit != 50:
+                _write_json(query_module_certification_lineage_audit(audit, plane=args.plane, passed=True if args.passed else None, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(audit.to_dict(), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "module-certification-quality-schema":
+            _write_json(module_certification_quality_schema(), args.output)
+            return 0
+        if args.command == "module-certification-quality-capabilities":
+            _write_json(module_certification_quality_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-quality":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            lineage = build_module_certification_lineage(inventory, matrix=matrix, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            quality = build_module_certification_quality(matrix, lineage)
+            if args.format == "checks-csv":
+                _write_text(module_certification_quality_csv(quality), args.output)
+            elif args.format == "families-csv":
+                _write_text(module_certification_family_csv(quality), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_certification_quality_markdown(quality), args.output)
+            elif any(value is not None for value in (args.family, args.kind, args.text)) or args.offset or args.limit != 50 or args.resource != "checks":
+                _write_json(query_module_certification_quality(quality, resource=args.resource, family=args.family, kind=args.kind, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(quality.to_dict(include_measures=args.include_measures), args.output)
+            return 0 if quality.accepted else 2
+        if args.command == "module-certification-quality-policy-schema":
+            _write_json(module_certification_quality_policy_schema(), args.output)
+            return 0
+        if args.command == "module-certification-quality-policy-capabilities":
+            _write_json(module_certification_quality_policy_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-quality-policy":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            lineage = build_module_certification_lineage(inventory, matrix=matrix, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            quality = build_module_certification_quality(matrix, lineage)
+            policy = build_module_certification_quality_policy(minimum_evidence_coverage_percent=args.minimum_evidence_coverage_percent, minimum_check_pass_percent=args.minimum_check_pass_percent, minimum_family_score=args.minimum_family_score, require_no_blockers=args.require_no_blockers, require_all_modules_certified=args.require_all_modules_certified, require_ready=args.require_ready)
+            gate = evaluate_module_certification_quality_policy(quality, policy)
+            if args.format == "csv":
+                _write_text(module_certification_quality_policy_csv(gate), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_certification_quality_policy_markdown(gate), args.output)
+            elif args.format == "summary":
+                _write_json(module_certification_quality_policy_summary(gate), args.output)
+            elif args.passed or args.text is not None or args.offset or args.limit != 50:
+                _write_json(query_module_certification_quality_policy(gate, passed=True if args.passed else None, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(gate.to_dict(include_checks=args.include_checks), args.output)
+            return 0 if gate.accepted else 2
+        if args.command == "module-certification-release-schema":
+            _write_json(module_certification_release_schema(), args.output)
+            return 0
+        if args.command == "module-certification-release-capabilities":
+            _write_json(module_certification_release_capabilities(), args.output)
+            return 0
+        if args.command == "module-certification-release":
+            inventory = build_module_inventory(args.source_root, test_root=args.test_root)
+            matrix = build_module_certification(inventory, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            lineage = build_module_certification_lineage(inventory, matrix=matrix, source_root=args.source_root, test_root=args.test_root, docs_root=args.docs_root)
+            quality = build_module_certification_quality(matrix, lineage)
+            release = build_module_certification_release(matrix, lineage, quality)
+            if args.format == "csv":
+                _write_text(module_certification_release_checks_csv(release), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_certification_release_markdown(release), args.output)
+            elif args.plane is not None or args.passed or args.text is not None or args.offset or args.limit != 50:
+                _write_json(query_module_certification_release(release, plane=args.plane, passed=True if args.passed else None, text=args.text, offset=args.offset, limit=args.limit), args.output)
+            else:
+                _write_json(release.to_dict(include_checks=args.include_checks), args.output)
+            return 0 if release.release_eligible else 2
         if args.command == "module-inventory":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             if args.format == "modules-csv":

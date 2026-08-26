@@ -701,6 +701,11 @@ from .module_certification_packet_query import diff_module_certification_packets
 from .module_certification_policy import default_module_certification_policy, evaluate_module_certification_gate, module_certification_policy_capabilities, module_certification_policy_schema
 from .module_certification_runtime import module_certification_runtime_capabilities, module_certification_runtime_schema, run_module_certification
 from .module_certification_tasks import build_module_certification_task_plan, module_certification_gaps_csv, module_certification_tasks_capabilities, module_certification_tasks_csv, module_certification_tasks_schema, query_module_certification
+from .module_certification_lineage import build_module_certification_lineage, module_certification_evidence_csv, module_certification_lineage_capabilities, module_certification_lineage_edges_csv, module_certification_lineage_json, module_certification_lineage_schema, query_module_certification_lineage, render_module_certification_lineage_markdown
+from .module_certification_quality import build_module_certification_quality, module_certification_family_csv, module_certification_quality_capabilities, module_certification_quality_csv, module_certification_quality_json, module_certification_quality_schema, query_module_certification_quality, render_module_certification_quality_markdown
+from .module_certification_lineage_audit import build_module_certification_lineage_audit, module_certification_lineage_audit_capabilities, module_certification_lineage_audit_csv, module_certification_lineage_audit_schema, query_module_certification_lineage_audit
+from .module_certification_release import build_module_certification_release, module_certification_release_capabilities, module_certification_release_checks_csv, module_certification_release_schema, query_module_certification_release, render_module_certification_release_markdown
+from .module_certification_quality_policy import default_module_certification_quality_policy, evaluate_module_certification_quality_policy, module_certification_quality_policy_capabilities, module_certification_quality_policy_csv, module_certification_quality_policy_schema, query_module_certification_quality_policy, render_module_certification_quality_policy_markdown, module_certification_quality_policy_summary
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1912,14 +1917,34 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-certification/packet/replay",
             "/v1/module-certification/packet/schema",
             "/v1/module-certification/packet/capabilities",
+            "/v1/module-certification/lineage",
+            "/v1/module-certification/lineage/query",
+            "/v1/module-certification/lineage/schema",
+            "/v1/module-certification/lineage/capabilities",
+            "/v1/module-certification/lineage/audit",
+            "/v1/module-certification/lineage/audit/query",
+            "/v1/module-certification/lineage/audit/schema",
+            "/v1/module-certification/lineage/audit/capabilities",
+            "/v1/module-certification/quality",
+            "/v1/module-certification/quality/query",
+            "/v1/module-certification/quality/schema",
+            "/v1/module-certification/quality/capabilities",
+            "/v1/module-certification/quality/policy",
+            "/v1/module-certification/quality/policy/query",
+            "/v1/module-certification/quality/policy/schema",
+            "/v1/module-certification/quality/policy/capabilities",
+            "/v1/module-certification/release",
+            "/v1/module-certification/release/query",
+            "/v1/module-certification/release/schema",
+            "/v1/module-certification/release/capabilities",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 if path == "/v1/module-certification/schema":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema(), "lineage": module_certification_lineage_schema(), "lineage_audit": module_certification_lineage_audit_schema(), "quality": module_certification_quality_schema(), "quality_policy": module_certification_quality_policy_schema(), "release": module_certification_release_schema()})
                     return
                 if path == "/v1/module-certification/capabilities":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities(), "lineage": module_certification_lineage_capabilities(), "lineage_audit": module_certification_lineage_audit_capabilities(), "quality": module_certification_quality_capabilities(), "quality_policy": module_certification_quality_policy_capabilities(), "release": module_certification_release_capabilities()})
                     return
                 schema_routes = {
                     "/v1/module-certification/audit/schema": module_certification_audit_schema,
@@ -1928,6 +1953,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-certification/runtime/schema": module_certification_runtime_schema,
                     "/v1/module-certification/observability/schema": module_certification_observability_schema,
                     "/v1/module-certification/packet/schema": module_certification_packet_schema,
+                    "/v1/module-certification/lineage/schema": module_certification_lineage_schema,
+                    "/v1/module-certification/quality/schema": module_certification_quality_schema,
+                    "/v1/module-certification/quality/policy/schema": module_certification_quality_policy_schema,
+                    "/v1/module-certification/lineage/audit/schema": module_certification_lineage_audit_schema,
+                    "/v1/module-certification/release/schema": module_certification_release_schema,
                 }
                 if path in schema_routes:
                     self._write(HTTPStatus.OK, schema_routes[path]())
@@ -1939,6 +1969,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-certification/runtime/capabilities": module_certification_runtime_capabilities,
                     "/v1/module-certification/observability/capabilities": module_certification_observability_capabilities,
                     "/v1/module-certification/packet/capabilities": module_certification_packet_capabilities,
+                    "/v1/module-certification/lineage/capabilities": module_certification_lineage_capabilities,
+                    "/v1/module-certification/quality/capabilities": module_certification_quality_capabilities,
+                    "/v1/module-certification/quality/policy/capabilities": module_certification_quality_policy_capabilities,
+                    "/v1/module-certification/lineage/audit/capabilities": module_certification_lineage_audit_capabilities,
+                    "/v1/module-certification/release/capabilities": module_certification_release_capabilities,
                 }
                 if path in capability_routes:
                     self._write(HTTPStatus.OK, capability_routes[path]())
@@ -1974,7 +2009,92 @@ class ApiHandler(BaseHTTPRequestHandler):
                 plan = build_module_certification_task_plan(matrix)
                 gate = evaluate_module_certification_gate(matrix, plan)
                 runtime = run_module_certification(inventory=inventory)
-                if path == "/v1/module-certification/policy":
+                if path in {
+                    "/v1/module-certification/lineage",
+                    "/v1/module-certification/lineage/query",
+                    "/v1/module-certification/lineage/audit",
+                    "/v1/module-certification/lineage/audit/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    if path == "/v1/module-certification/lineage/audit":
+                        payload = build_module_certification_lineage_audit(lineage).to_dict()
+                    elif path == "/v1/module-certification/lineage/audit/query":
+                        audit = build_module_certification_lineage_audit(lineage)
+                        payload = query_module_certification_lineage_audit(audit, plane=self._query_value(query, "plane"), passed=self._query_bool(query, "passed"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    elif path.endswith("/query"):
+                        payload = query_module_certification_lineage(lineage, resource=self._query_value(query, "resource") or "evidence", module_id=self._query_value(query, "module_id"), kind=self._query_value(query, "kind"), relation=self._query_value(query, "relation"), resolved=self._query_bool(query, "resolved"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "evidence-csv":
+                            self._write_bytes(HTTPStatus.OK, module_certification_evidence_csv(lineage).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "edges-csv":
+                            self._write_bytes(HTTPStatus.OK, module_certification_lineage_edges_csv(lineage).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_certification_lineage_markdown(lineage).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        payload = lineage.to_dict(include_rows=self._query_bool(query, "include_rows") is True)
+                elif path in {
+                    "/v1/module-certification/quality",
+                    "/v1/module-certification/quality/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    if path.endswith("/query"):
+                        payload = query_module_certification_quality(quality, resource=self._query_value(query, "resource") or "checks", family=self._query_value(query, "family"), kind=self._query_value(query, "kind"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "checks-csv":
+                            self._write_bytes(HTTPStatus.OK, module_certification_quality_csv(quality).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "families-csv":
+                            self._write_bytes(HTTPStatus.OK, module_certification_family_csv(quality).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_certification_quality_markdown(quality).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        payload = quality.to_dict(include_measures=self._query_bool(query, "include_measures") is not False)
+                elif path in {
+                    "/v1/module-certification/release",
+                    "/v1/module-certification/release/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    release = build_module_certification_release(matrix, lineage, quality)
+                    if path.endswith("/query"):
+                        payload = query_module_certification_release(release, plane=self._query_value(query, "plane"), passed=self._query_bool(query, "passed"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "checks-csv":
+                            self._write_bytes(HTTPStatus.OK, module_certification_release_checks_csv(release).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_certification_release_markdown(release).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        payload = release.to_dict(include_checks=self._query_bool(query, "include_checks") is not False)
+                elif path in {
+                    "/v1/module-certification/quality/policy",
+                    "/v1/module-certification/quality/policy/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    gate = evaluate_module_certification_quality_policy(quality)
+                    if path.endswith("/query"):
+                        payload = query_module_certification_quality_policy(gate, passed=self._query_bool(query, "passed"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, module_certification_quality_policy_csv(gate).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_certification_quality_policy_markdown(gate).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        if output_format == "summary":
+                            payload = module_certification_quality_policy_summary(gate)
+                        else:
+                            payload = gate.to_dict(include_checks=self._query_bool(query, "include_checks") is not False)
+                elif path == "/v1/module-certification/policy":
                     payload = default_module_certification_policy().to_dict()
                 elif path == "/v1/module-certification/runtime":
                     payload = runtime.to_dict()

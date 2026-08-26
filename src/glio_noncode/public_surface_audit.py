@@ -190,9 +190,14 @@ from .module_certification_tasks import module_certification_tasks_capabilities,
 from .module_certification_diff import module_certification_diff_capabilities, module_certification_diff_schema
 from .module_certification_review import module_certification_review_capabilities, module_certification_review_schema
 from .module_certification_schema import module_certification_schema_capabilities, module_certification_schema_report_schema
+from .module_certification_lineage import module_certification_lineage_capabilities, module_certification_lineage_schema
+from .module_certification_quality import module_certification_quality_capabilities, module_certification_quality_schema
+from .module_certification_lineage_audit import module_certification_lineage_audit_capabilities, module_certification_lineage_audit_schema
+from .module_certification_release import module_certification_release_capabilities, module_certification_release_schema
+from .module_certification_quality_policy import module_certification_quality_policy_capabilities, module_certification_quality_policy_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 202
+PUBLIC_SURFACE_EXPECTED_COUNT = 212
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -596,6 +601,16 @@ def default_public_surface_inventory(
         "module-certification-review-capabilities": module_certification_review_capabilities(),
         "module-certification-schema-capabilities": module_certification_schema_capabilities(),
         "module-certification-schema-report-schema": module_certification_schema_report_schema(),
+        "module-certification-lineage-schema": module_certification_lineage_schema(),
+        "module-certification-lineage-capabilities": module_certification_lineage_capabilities(),
+        "module-certification-quality-schema": module_certification_quality_schema(),
+        "module-certification-quality-capabilities": module_certification_quality_capabilities(),
+        "module-certification-lineage-audit-schema": module_certification_lineage_audit_schema(),
+        "module-certification-lineage-audit-capabilities": module_certification_lineage_audit_capabilities(),
+        "module-certification-release-schema": module_certification_release_schema(),
+        "module-certification-release-capabilities": module_certification_release_capabilities(),
+        "module-certification-quality-policy-schema": module_certification_quality_policy_schema(),
+        "module-certification-quality-policy-capabilities": module_certification_quality_policy_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

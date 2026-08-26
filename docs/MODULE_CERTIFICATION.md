@@ -247,3 +247,85 @@ optional dependencies. The scale bound identifies a review need; it does not
 prove poor design. These limitations are retained in the evidence and should be
 addressed with focused implementation work and tests, not silently converted
 into acceptance.
+
+## Evidence lineage and quality
+
+The follow-on lineage projection explains the origin of each matrix signal.
+Every module receives a source row; explicit references found in Python tests
+and Markdown documentation become digest-addressed evidence rows; package
+initializer AST inspection produces export rows; and inventory dependencies
+become resolved or unresolved module edges. The graph retains relative paths,
+line counts, and content digests only. It does not embed source contents,
+absolute paths, or execution results.
+
+```powershell
+glio-noncode module-certification-lineage --format markdown --output lineage.md
+glio-noncode module-certification-lineage --resource evidence --kind test --include-rows
+glio-noncode module-certification-lineage --resource edges --relation depends_on
+glio-noncode module-certification-lineage --format evidence-csv --output evidence.csv
+glio-noncode module-certification-lineage-schema
+glio-noncode module-certification-lineage-capabilities
+```
+
+The quality report conserves every check state by kind and every module state
+by family. It reports check coverage, pass rate, family score, blocker module
+IDs, top gap IDs, non-source evidence coverage, and one of `ready`, `warning`,
+or `blocked`. `accepted` means the report is structurally valid; `readiness`
+is the release-facing interpretation and may be `warning` for a valid report.
+
+```powershell
+glio-noncode module-certification-quality --format markdown --output quality.md
+glio-noncode module-certification-quality --resource checks --kind test
+glio-noncode module-certification-quality --resource families --format families-csv
+glio-noncode module-certification-quality-schema
+glio-noncode module-certification-quality-capabilities
+```
+
+The HTTP additions are `/v1/module-certification/lineage` and
+`/v1/module-certification/quality`, each with bounded `/query`, `/schema`, and
+`/capabilities` routes. Both layers are static, deterministic, read-only, and
+independently verifiable.
+
+## Release reconciliation
+
+The release projection reconciles the exact matrix, lineage, and quality
+addresses across boundary, graph, coverage, and readiness planes. Its checks
+verify module and evidence conservation, dependency explicitness, check-kind
+and family partitioning, blocker agreement, public-key safety, and the
+release-readiness policy. `accepted` indicates the reconciliation artifact is
+structurally usable; `release_eligible` is stricter and requires every check
+to pass with `readiness=ready`.
+
+```powershell
+glio-noncode module-certification-lineage-audit --format csv --output lineage-audit.csv
+glio-noncode module-certification-release --format markdown --output release.md
+glio-noncode module-certification-release --plane quality --passed
+glio-noncode module-certification-release-schema
+glio-noncode module-certification-release-capabilities
+```
+
+The lineage audit is independently recomputed from graph rows. It checks
+identities, source coverage, target and support references, relation counters,
+relative paths, public keys, and record limits without reading source files.
+
+## Configurable quality policy
+
+The quality-policy layer lets CI choose explicit thresholds without mutating
+the underlying evidence. A policy can require minimum non-source evidence
+coverage, per-check pass rate, family score, no blockers, all modules
+certified, and `ready` quality status. The default is strict and
+release-oriented; custom policies are content addressed and their individual
+decisions remain queryable.
+
+```powershell
+glio-noncode module-certification-quality-policy-schema
+glio-noncode module-certification-quality-policy-capabilities
+glio-noncode module-certification-quality-policy
+```
+
+The API exposes `/v1/module-certification/quality/policy` and its bounded
+`/query`, `/schema`, and `/capabilities` variants. Policy acceptance is a
+separate result from matrix acceptance, so a structurally valid report can be
+reviewed under multiple thresholds.
+Policy diffs report changed threshold fields, while gate diffs report changed
+decision IDs and acceptance transitions with no source access.

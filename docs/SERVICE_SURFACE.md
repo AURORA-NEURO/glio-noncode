@@ -72,6 +72,26 @@ report or runtime from which it was derived.
 | GET | `/v1/module-certification/packet/replay?directory=...` | Replay certification packet verification and resource closure |
 | GET | `/v1/module-certification/packet/schema` | Return certification packet schema |
 | GET | `/v1/module-certification/packet/capabilities` | Return certification packet capabilities |
+| GET | `/v1/module-certification/lineage` | Return source, test, documentation, export, and dependency lineage |
+| GET | `/v1/module-certification/lineage/query` | Query bounded lineage evidence, edges, or module coverage |
+| GET | `/v1/module-certification/lineage/schema` | Return the lineage graph schema |
+| GET | `/v1/module-certification/lineage/capabilities` | Return lineage operations and static-boundary guarantees |
+| GET | `/v1/module-certification/quality` | Return check-kind and family quality/readiness measures |
+| GET | `/v1/module-certification/quality/query` | Query bounded quality checks, families, blockers, or gaps |
+| GET | `/v1/module-certification/quality/schema` | Return quality and readiness schema |
+| GET | `/v1/module-certification/quality/capabilities` | Return quality measurement and readiness capabilities |
+| GET | `/v1/module-certification/lineage/audit` | Independently audit lineage identities, graph, coverage, paths, and limits |
+| GET | `/v1/module-certification/lineage/audit/query` | Query bounded lineage audit checks by plane or pass state |
+| GET | `/v1/module-certification/lineage/audit/schema` | Return lineage audit schema |
+| GET | `/v1/module-certification/lineage/audit/capabilities` | Return independent lineage audit capabilities |
+| GET | `/v1/module-certification/release` | Reconcile matrix, lineage, quality, and release-readiness checks |
+| GET | `/v1/module-certification/release/query` | Query bounded release reconciliation checks |
+| GET | `/v1/module-certification/release/schema` | Return release reconciliation schema |
+| GET | `/v1/module-certification/release/capabilities` | Return release reconciliation capabilities |
+| GET | `/v1/module-certification/quality/policy` | Evaluate the default configurable quality policy |
+| GET | `/v1/module-certification/quality/policy/query` | Query bounded quality policy decisions |
+| GET | `/v1/module-certification/quality/policy/schema` | Return quality policy schema |
+| GET | `/v1/module-certification/quality/policy/capabilities` | Return quality policy capabilities |
 | GET | `/v1/cohort/benchmark/schema` | Return the aggregate cohort benchmark schema |
 | GET | `/v1/cohort/benchmark/capabilities` | Return split, leakage, calibration, selective-risk, and transport capabilities |
 | POST | `/v1/cohort/benchmark` | Run a bounded aggregate cohort benchmark report from declared records and configuration |

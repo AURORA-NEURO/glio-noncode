@@ -38,8 +38,18 @@ jobs:
           python -m glio_noncode module-certification-schema --output /tmp/glio-module-certification-schema.json
           python -m glio_noncode module-certification-capabilities --output /tmp/glio-module-certification-capabilities.json
           python -m glio_noncode module-certification-policy --output /tmp/glio-module-certification-policy.json
+          python -m glio_noncode module-certification-lineage-schema --output /tmp/glio-module-certification-lineage-schema.json
+          python -m glio_noncode module-certification-lineage-capabilities --output /tmp/glio-module-certification-lineage-capabilities.json
+          python -m glio_noncode module-certification-quality-schema --output /tmp/glio-module-certification-quality-schema.json
+          python -m glio_noncode module-certification-quality-capabilities --output /tmp/glio-module-certification-quality-capabilities.json
+          python -m glio_noncode module-certification-lineage-audit-schema --output /tmp/glio-module-certification-lineage-audit-schema.json
+          python -m glio_noncode module-certification-lineage-audit-capabilities --output /tmp/glio-module-certification-lineage-audit-capabilities.json
+          python -m glio_noncode module-certification-release-schema --output /tmp/glio-module-certification-release-schema.json
+          python -m glio_noncode module-certification-release-capabilities --output /tmp/glio-module-certification-release-capabilities.json
+          python -m glio_noncode module-certification-quality-policy-schema --output /tmp/glio-module-certification-quality-policy-schema.json
+          python -m glio_noncode module-certification-quality-policy-capabilities --output /tmp/glio-module-certification-quality-policy-capabilities.json
       - name: Module certification focused tests
-        run: python -m unittest tests.test_module_certification -v
+        run: python -m unittest tests.test_module_certification tests.test_module_certification_lineage_quality -v
       - name: Unit tests
         run: python -m unittest discover -s tests -t . -v
       - name: Architecture program offline handoff tests

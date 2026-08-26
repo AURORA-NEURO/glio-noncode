@@ -10972,6 +10972,93 @@ from .module_certification_tasks import (
     query_module_certification,
     verify_module_certification_tasks,
 )
+from .module_certification_lineage import (
+    build_module_certification_lineage,
+    module_certification_evidence_csv,
+    module_certification_lineage_capabilities,
+    module_certification_lineage_edges_csv,
+    module_certification_lineage_json,
+    module_certification_lineage_schema,
+    query_module_certification_lineage,
+    render_module_certification_lineage_markdown,
+    verify_module_certification_lineage,
+)
+from .module_certification_lineage_contracts import (
+    CertificationEvidenceKind,
+    CertificationLineageRelation,
+    CertificationLineageTargetKind,
+    ModuleCertificationEvidence,
+    ModuleCertificationLineage,
+    ModuleCertificationLineageEdge,
+)
+from .module_certification_quality import (
+    build_module_certification_quality,
+    module_certification_family_csv,
+    module_certification_quality_capabilities,
+    module_certification_quality_csv,
+    module_certification_quality_json,
+    module_certification_quality_schema,
+    query_module_certification_quality,
+    render_module_certification_quality_markdown,
+    verify_module_certification_quality,
+)
+from .module_certification_quality_contracts import (
+    CertificationReadiness,
+    ModuleCertificationCoverageMeasure,
+    ModuleCertificationFamilyMeasure,
+    ModuleCertificationQualityReport,
+)
+from .module_certification_release import (
+    build_module_certification_release,
+    module_certification_release_capabilities,
+    module_certification_release_checks_csv,
+    module_certification_release_json,
+    module_certification_release_schema,
+    query_module_certification_release,
+    render_module_certification_release_markdown,
+    verify_module_certification_release,
+)
+from .module_certification_release_contracts import (
+    CertificationReleasePlane,
+    ModuleCertificationReleaseCheck,
+    ModuleCertificationReleaseReport,
+)
+from .module_certification_lineage_audit import (
+    build_module_certification_lineage_audit,
+    module_certification_lineage_audit_capabilities,
+    module_certification_lineage_audit_csv,
+    module_certification_lineage_audit_json,
+    module_certification_lineage_audit_schema,
+    query_module_certification_lineage_audit,
+    verify_module_certification_lineage_audit,
+)
+from .module_certification_lineage_audit_contracts import (
+    CertificationLineageAuditPlane,
+    ModuleCertificationLineageAudit,
+    ModuleCertificationLineageAuditCheck,
+)
+from .module_certification_quality_policy import (
+    build_module_certification_quality_policy,
+    compare_module_certification_quality_gates,
+    compare_module_certification_quality_policies,
+    default_module_certification_quality_policy,
+    evaluate_module_certification_quality_policy,
+    module_certification_quality_policy_capabilities,
+    module_certification_quality_policy_csv,
+    module_certification_quality_policy_failures,
+    module_certification_quality_policy_json,
+    module_certification_quality_policy_schema,
+    module_certification_quality_policy_summary,
+    query_module_certification_quality_policy,
+    render_module_certification_quality_policy_markdown,
+    verify_module_certification_quality_gate,
+    verify_module_certification_quality_policy,
+)
+from .module_certification_quality_policy_contracts import (
+    ModuleCertificationQualityGate,
+    ModuleCertificationQualityPolicy,
+    ModuleCertificationQualityPolicyCheck,
+)
 from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema, verify_module_inventory
 from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
 from .module_inventory_contracts import (
@@ -11092,6 +11179,21 @@ from .module_inventory_schema import (
 __all__ += [
     "CertificationReviewSeverity", "ModuleCertificationDiff", "ModuleCertificationReviewItem", "ModuleCertificationReviewQueue", "ModuleCertificationRowDiff", "ModuleCertificationSchemaCheck", "ModuleCertificationSchemaField", "ModuleCertificationSchemaReport",
     "build_module_certification_diff", "build_module_certification_review_queue", "default_module_certification_fields", "module_certification_diff_capabilities", "module_certification_diff_json", "module_certification_diff_schema", "module_certification_review_capabilities", "module_certification_review_schema", "module_certification_schema_capabilities", "module_certification_schema_report_schema", "query_module_certification_diff", "query_module_certification_review", "render_module_certification_review_markdown", "validate_module_certification_schema",
+]
+
+__all__ += [
+    "ModuleCertificationQualityGate", "ModuleCertificationQualityPolicy", "ModuleCertificationQualityPolicyCheck",
+    "build_module_certification_quality_policy", "compare_module_certification_quality_gates", "compare_module_certification_quality_policies", "default_module_certification_quality_policy", "evaluate_module_certification_quality_policy", "module_certification_quality_policy_capabilities", "module_certification_quality_policy_csv", "module_certification_quality_policy_failures", "module_certification_quality_policy_json", "module_certification_quality_policy_schema", "module_certification_quality_policy_summary", "query_module_certification_quality_policy", "render_module_certification_quality_policy_markdown", "verify_module_certification_quality_gate", "verify_module_certification_quality_policy",
+]
+
+__all__ += [
+    "CertificationLineageAuditPlane", "CertificationReleasePlane", "ModuleCertificationLineageAudit", "ModuleCertificationLineageAuditCheck", "ModuleCertificationReleaseCheck", "ModuleCertificationReleaseReport",
+    "build_module_certification_lineage_audit", "build_module_certification_release", "module_certification_lineage_audit_capabilities", "module_certification_lineage_audit_csv", "module_certification_lineage_audit_json", "module_certification_lineage_audit_schema", "module_certification_release_capabilities", "module_certification_release_checks_csv", "module_certification_release_json", "module_certification_release_schema", "query_module_certification_lineage_audit", "query_module_certification_release", "render_module_certification_release_markdown", "verify_module_certification_lineage_audit", "verify_module_certification_release",
+]
+
+__all__ += [
+    "CertificationEvidenceKind", "CertificationLineageRelation", "CertificationLineageTargetKind", "CertificationReadiness", "ModuleCertificationCoverageMeasure", "ModuleCertificationEvidence", "ModuleCertificationFamilyMeasure", "ModuleCertificationLineage", "ModuleCertificationLineageEdge", "ModuleCertificationQualityReport",
+    "build_module_certification_lineage", "build_module_certification_quality", "module_certification_evidence_csv", "module_certification_family_csv", "module_certification_lineage_capabilities", "module_certification_lineage_edges_csv", "module_certification_lineage_json", "module_certification_lineage_schema", "module_certification_quality_capabilities", "module_certification_quality_csv", "module_certification_quality_json", "module_certification_quality_schema", "query_module_certification_lineage", "query_module_certification_quality", "render_module_certification_lineage_markdown", "render_module_certification_quality_markdown", "verify_module_certification_lineage", "verify_module_certification_quality",
 ]
 
 __all__ += [

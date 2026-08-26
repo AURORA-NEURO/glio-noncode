@@ -4552,3 +4552,55 @@ modules, checks, gaps, and tasks plus policy, runtime, observability, audit,
 packet verification, packet query, packet diff, and packet replay. Continuous
 integration materializes the schemas and capabilities and runs the focused
 31-test certification contract suite.
+
+## Certification evidence lineage and quality
+
+The certification control plane also exposes an evidence graph and a
+quality/readiness report. Lineage records connect module IDs to source rows,
+test references, Markdown references, package-export AST observations, and
+dependency targets. Each record keeps a relative path, digest, line count,
+relation, and content address; unresolved dependencies remain visible. The
+quality report aggregates check-kind conservation and family conservation,
+identifies blocker modules and top gap IDs, measures non-source evidence
+coverage, and classifies readiness as `ready`, `warning`, or `blocked`.
+
+```powershell
+glio-noncode module-certification-lineage --resource modules --limit 50
+glio-noncode module-certification-lineage --resource edges --resolved
+glio-noncode module-certification-quality --resource checks --limit 50
+glio-noncode module-certification-quality --resource families --format markdown
+```
+
+The corresponding API routes are `/v1/module-certification/lineage` and
+`/v1/module-certification/quality`, with query, schema, and capabilities
+variants. These projections are aggregate-only, deterministic, bounded, and
+source-execution-free.
+
+Quality policy evaluation provides strict or customized threshold gates over
+evidence coverage, check pass rates, family scores, blocker counts, all-module
+certification, and readiness. Every policy and decision is immutable and
+content addressed; the API and CLI expose bounded decision queries and CSV
+output.
+
+Policy comparison views make threshold changes auditable: they retain both
+policy addresses, changed field names, changed check IDs, failed-count deltas,
+and acceptance transitions. This keeps a relaxed local review visibly
+different from a strict release decision while preserving deterministic
+replay.
+The comparison output is a public aggregate and contains no source payload.
+It is suitable for pull-request review, offline archival, and CI annotations.
+An unchanged policy produces an empty changed-field tuple.
+An unchanged gate produces an empty changed-decision tuple.
+Changed threshold values are kept beside their content addresses.
+Changed pass states are keyed by stable check IDs.
+
+Release reconciliation adds a cross-artifact gate over the matrix, lineage,
+and quality addresses. It exposes independent conservation checks, blocker
+reconciliation, public-key review, readiness policy, bounded check queries,
+and a release-eligibility result. The lineage audit separately recomputes
+graph targets, support references, counters, relative paths, and limits.
+
+```powershell
+glio-noncode module-certification-lineage-audit --plane graph
+glio-noncode module-certification-release --format markdown
+```

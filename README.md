@@ -1173,3 +1173,24 @@ python -m compileall -q src tests
 ```
 
 The project uses only the Python standard library at runtime. Optional development tools may be added later behind explicit lockfiles and reproducibility checks.
+
+## Certification evidence depth
+
+Per-module certification is backed by two additional static projections. The
+lineage graph ties source modules to test, documentation, export, and
+dependency evidence with relative paths, digests, line counts, and resolved
+edges. The quality report conserves check-kind and family states, surfaces
+blockers and top gaps, measures non-source evidence coverage, and classifies
+release readiness. Both projections support bounded queries, CSV/Markdown
+exports, schemas, capabilities, and independent content-address verification.
+An independent lineage audit and release reconciliation report additionally
+check graph targets, conservation, public keys, and whether the quality state
+is eligible for release.
+
+Quality policy evaluation adds configurable evidence, pass-rate, family-score,
+blocker, all-certified, and ready-state thresholds for CI release decisions.
+
+```powershell
+python -m glio_noncode module-certification-lineage --resource modules --limit 50
+python -m glio_noncode module-certification-quality --resource checks --limit 50
+```
