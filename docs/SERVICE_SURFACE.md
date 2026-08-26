@@ -358,7 +358,7 @@ Run the repository-wide public-boundary audit:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The audit covers 99 named projections across the service, capability
+The audit covers 110 named projections across the service, capability
 certification bundle, module-fabric bundle, schemas, service-release registry,
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and closures. Runtime
@@ -566,3 +566,35 @@ The CLI mirrors these projections with `release-assurance --plane snapshot`,
 `failures`, `plan`, `views`, `runtime`, and `export`. An export directory can
 be checked with `release-assurance-export-verify`. The full contract is in
 [RELEASE_ASSURANCE.md](RELEASE_ASSURANCE.md).
+
+The final cross-plane attestation adds a public aggregate over the accepted
+release-assurance runtime, D01-D16 program-release closure, and mission-plan
+release catalog gate:
+
+```text
+GET /v1/release-assurance/attestation
+GET /v1/release-assurance/attestation/runtime
+GET /v1/release-assurance/attestation/packet
+GET /v1/release-assurance/attestation/packet/verify?directory=...
+GET /v1/release-assurance/attestation/schema
+GET /v1/release-assurance/attestation/capabilities
+GET /v1/release-assurance/attestation/query?resource=checks&passed_only=true
+GET /v1/release-assurance/attestation/diff?compare_bundle_id=...
+GET /v1/release-assurance/attestation/observability
+POST /v1/release-assurance/attestation/verify
+POST /v1/release-assurance/attestation/query
+POST /v1/release-assurance/attestation/diff
+GET /v1/release-assurance/attestation/review
+GET /v1/release-assurance/attestation/review/query?component_id=program-release-closure&action_state=closed
+POST /v1/release-assurance/attestation/review
+POST /v1/release-assurance/attestation/review/query
+```
+
+This boundary is address-only and timestamp-free. It closes three component
+rows and 26 checks, runs eight replay stages, and exposes exact-byte packet,
+bounded query, structural diff, and aggregate metric contracts.
+
+The review endpoints create one deterministic public action row per retained
+check. They expose severity, priority, disposition, and open/closed action
+state without source payloads. The review query supports component, category,
+action-state, severity, failed-only, text, offset, and bounded limit filters.

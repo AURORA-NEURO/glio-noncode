@@ -484,6 +484,46 @@ from .release_assurance_schema import release_assurance_schema, validate_release
 from .release_assurance_summary import audit_release_assurance_summary, build_release_assurance_summary, release_assurance_status
 from .release_assurance_thresholds import evaluate_release_assurance_thresholds, release_assurance_threshold_status
 from .release_assurance_views import audit_release_assurance_views, build_release_assurance_views
+from .release_assurance_attestation import (
+    build_release_assurance_attestation,
+    release_assurance_attestation_capabilities,
+    release_assurance_attestation_schema,
+    validate_release_assurance_attestation_schema,
+)
+from .release_assurance_attestation_contracts import ReleaseAssuranceAttestation
+from .release_assurance_attestation_runtime import (
+    release_assurance_attestation_runtime_capabilities,
+    run_release_assurance_attestation,
+)
+from .release_assurance_attestation_packet import (
+    build_release_assurance_attestation_packet,
+    release_assurance_attestation_packet_capabilities,
+    release_assurance_attestation_packet_schema,
+    verify_release_assurance_attestation_packet,
+)
+from .release_assurance_attestation_query import (
+    query_release_assurance_attestation,
+    release_assurance_attestation_query_capabilities,
+    release_assurance_attestation_query_schema,
+)
+from .release_assurance_attestation_diff import (
+    diff_release_assurance_attestations,
+    release_assurance_attestation_diff_capabilities,
+    release_assurance_attestation_diff_schema,
+)
+from .release_assurance_attestation_observability import (
+    build_release_assurance_attestation_observability,
+    release_assurance_attestation_observability_capabilities,
+    release_assurance_attestation_observability_schema,
+)
+from .release_assurance_attestation_review import (
+    audit_release_assurance_attestation_review,
+    build_release_assurance_attestation_review,
+    query_release_assurance_attestation_review,
+    release_assurance_attestation_review_capabilities,
+    release_assurance_attestation_review_schema,
+    ReleaseAssuranceAttestationReview,
+)
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -608,6 +648,21 @@ class ApiHandler(BaseHTTPRequestHandler):
             )
             cache[key] = snapshot
         return snapshot
+
+    def _release_assurance_attestation(self, bundle_id: str, run_id: str):
+        """Cache one final cross-plane attestation per request identity."""
+
+        cache = getattr(self.server, "glio_release_assurance_attestations", None)
+        if cache is None:
+            cache = {}
+            setattr(self.server, "glio_release_assurance_attestations", cache)  # noqa: B010 - server-local immutable cache
+        key = (bundle_id, run_id)
+        attestation = cache.get(key)
+        if attestation is None:
+            runtime = run_release_assurance(self._service_surface(), bundle_id=bundle_id, run_id=run_id)
+            attestation = build_release_assurance_attestation(runtime, bundle_id=bundle_id, run_id=run_id)
+            cache[key] = attestation
+        return attestation
 
     @staticmethod
     def _query_value(query: dict[str, list[str]], name: str) -> str | None:
@@ -1034,6 +1089,109 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except ValueError as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/release-assurance/attestation",
+            "/v1/release-assurance/attestation/runtime",
+            "/v1/release-assurance/attestation/packet",
+            "/v1/release-assurance/attestation/packet/verify",
+            "/v1/release-assurance/attestation/schema",
+            "/v1/release-assurance/attestation/capabilities",
+            "/v1/release-assurance/attestation/query",
+            "/v1/release-assurance/attestation/diff",
+            "/v1/release-assurance/attestation/observability",
+            "/v1/release-assurance/attestation/review",
+            "/v1/release-assurance/attestation/review/query",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "glio-noncode-release-assurance-attestation"
+                run_id = self._query_value(query, "run_id") or "glio-noncode-release-assurance-attestation-run"
+                if path.endswith("/capabilities"):
+                    payload = {
+                        "attestation": release_assurance_attestation_capabilities(),
+                        "runtime": release_assurance_attestation_runtime_capabilities(),
+                        "packet": release_assurance_attestation_packet_capabilities(),
+                        "query": release_assurance_attestation_query_capabilities(),
+                        "diff": release_assurance_attestation_diff_capabilities(),
+                        "observability": release_assurance_attestation_observability_capabilities(),
+                        "review": release_assurance_attestation_review_capabilities(),
+                    }
+                    self._write(HTTPStatus.OK, payload)
+                    return
+                if path.endswith("/packet/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for attestation packet verification")
+                    self._write(HTTPStatus.OK, verify_release_assurance_attestation_packet(directory).to_dict())
+                    return
+                attestation = self._release_assurance_attestation(bundle_id, run_id)
+                if path.endswith("/schema"):
+                    schema = release_assurance_attestation_schema()
+                    payload = {
+                        "schema": schema,
+                        "audit": [item.to_dict() for item in validate_release_assurance_attestation_schema(attestation, schema)],
+                        "packet_schema": release_assurance_attestation_packet_schema(),
+                        "query_schema": release_assurance_attestation_query_schema(),
+                        "diff_schema": release_assurance_attestation_diff_schema(),
+                        "observability_schema": release_assurance_attestation_observability_schema(),
+                        "review_schema": release_assurance_attestation_review_schema(),
+                    }
+                elif path.endswith("/runtime"):
+                    payload = run_release_assurance_attestation(
+                        run_id=run_id,
+                        bundle_id=bundle_id,
+                    ).to_dict()
+                elif path.endswith("/packet"):
+                    runtime = run_release_assurance_attestation(run_id=run_id, bundle_id=bundle_id)
+                    payload = build_release_assurance_attestation_packet(runtime).to_dict()
+                elif path.endswith("/query") and not path.endswith("/review/query"):
+                    payload = query_release_assurance_attestation(
+                        attestation,
+                        resource=self._query_value(query, "resource") or "components",
+                        component_id=self._query_value(query, "component_id"),
+                        category=self._query_value(query, "category"),
+                        passed_only=self._query_bool(query, "passed_only"),
+                        accepted_only=self._query_bool(query, "accepted_only"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/diff"):
+                    compare_bundle_id = self._query_value(query, "compare_bundle_id") or f"{bundle_id}-comparison"
+                    compare_run_id = self._query_value(query, "compare_run_id") or f"{run_id}-comparison"
+                    comparison = self._release_assurance_attestation(compare_bundle_id, compare_run_id)
+                    payload = diff_release_assurance_attestations(attestation, comparison).to_dict()
+                elif path.endswith("/observability"):
+                    runtime = run_release_assurance_attestation(run_id=run_id, bundle_id=bundle_id)
+                    payload = build_release_assurance_attestation_observability(attestation, runtime).to_dict()
+                elif path.endswith("/review/query"):
+                    review = build_release_assurance_attestation_review(attestation)
+                    payload = query_release_assurance_attestation_review(
+                        review,
+                        component_id=self._query_value(query, "component_id"),
+                        category=self._query_value(query, "category"),
+                        action_state=self._query_value(query, "action_state"),
+                        severity=self._query_value(query, "severity"),
+                        failed_only=self._query_bool(query, "failed_only"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                elif path.endswith("/review"):
+                    review = build_release_assurance_attestation_review(attestation)
+                    payload = review.to_dict() | {
+                        "audit": list(audit_release_assurance_attestation_review(review, attestation))
+                    }
+                else:
+                    payload = attestation.to_dict()
+                self._write(HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
@@ -3228,6 +3386,147 @@ class ApiHandler(BaseHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path = parsed.path
         if not self._authorize_request():
+            return
+        if path == "/v1/release-assurance/attestation/verify":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError("release-assurance attestation verification requires an attestation object")
+                source = payload.get("attestation", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("release-assurance attestation must be an object")
+                attestation = ReleaseAssuranceAttestation.from_mapping(source)
+                schema = release_assurance_attestation_schema()
+                checks = validate_release_assurance_attestation_schema(attestation, schema)
+                result = attestation.to_dict() | {
+                    "schema": schema,
+                    "schema_audit": [item.to_dict() for item in checks],
+                    "accepted": attestation.accepted and all(item.passed for item in checks),
+                }
+                self._write(HTTPStatus.OK if result["accepted"] else HTTPStatus.UNPROCESSABLE_ENTITY, result)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/query":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("attestation"), Mapping):
+                    raise ValueError("release-assurance attestation query requires an attestation object")
+                query = payload.get("query", {})
+                if not isinstance(query, Mapping):
+                    raise ValueError("release-assurance attestation query filters must be an object")
+                attestation = ReleaseAssuranceAttestation.from_mapping(payload["attestation"])
+                result = query_release_assurance_attestation(
+                    attestation,
+                    resource=str(query.get("resource", "components")),
+                    component_id=None if query.get("component_id") is None else str(query["component_id"]),
+                    category=None if query.get("category") is None else str(query["category"]),
+                    passed_only=bool(query.get("passed_only", False)),
+                    accepted_only=bool(query.get("accepted_only", False)),
+                    text=None if query.get("text") is None else str(query["text"]),
+                    offset=int(query.get("offset", 0)),
+                    limit=int(query.get("limit", 50)),
+                )
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/diff":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("left"), Mapping) or not isinstance(payload.get("right"), Mapping):
+                    raise ValueError("release-assurance attestation diff requires left and right objects")
+                result = diff_release_assurance_attestations(payload["left"], payload["right"])
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/review":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError(
+                        "release-assurance attestation review requires an attestation object"
+                    )
+                source = payload.get("attestation", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("release-assurance attestation must be an object")
+                attestation = ReleaseAssuranceAttestation.from_mapping(source)
+                review = build_release_assurance_attestation_review(attestation)
+                result = review.to_dict() | {
+                    "audit": list(audit_release_assurance_attestation_review(review, attestation))
+                }
+                self._write(
+                    HTTPStatus.OK if result["accepted"] else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    result,
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_release_assurance_attestation_review", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/release-assurance/attestation/review/query":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError("release-assurance review query requires a review object")
+                source = payload.get("review")
+                if not isinstance(source, Mapping):
+                    raise ValueError("release-assurance review query requires a review object")
+                review = ReleaseAssuranceAttestationReview.from_mapping(source)
+                query = payload.get("query", {})
+                if not isinstance(query, Mapping):
+                    raise ValueError("release-assurance review query filters must be an object")
+                result = query_release_assurance_attestation_review(
+                    review,
+                    component_id=None if query.get("component_id") is None else str(query["component_id"]),
+                    category=None if query.get("category") is None else str(query["category"]),
+                    action_state=None if query.get("action_state") is None else str(query["action_state"]),
+                    severity=None if query.get("severity") is None else str(query["severity"]),
+                    failed_only=bool(query.get("failed_only", False)),
+                    text=None if query.get("text") is None else str(query["text"]),
+                    offset=int(query.get("offset", 0)),
+                    limit=int(query.get("limit", 50)),
+                )
+                self._write(HTTPStatus.OK, result)
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_release_assurance_attestation_review_query", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
             return
         segments = [unquote(item) for item in path.split("/") if item]
         if (

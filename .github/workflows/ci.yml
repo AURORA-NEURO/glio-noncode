@@ -1502,6 +1502,16 @@ jobs:
         run: python -m unittest tests.test_release_assurance
       - name: Durable release assurance handoff focused tests
         run: python -m unittest tests.test_release_assurance_handoff
+      - name: Final release assurance attestation focused tests
+        run: python -m unittest tests.test_release_assurance_attestation
+      - name: Final release assurance attestation capabilities
+        run: python -m glio_noncode release-assurance-attestation --plane capabilities --output /tmp/glio-release-assurance-attestation-capabilities.json
+      - name: Final release assurance attestation runtime
+        run: python -m glio_noncode release-assurance-attestation --plane runtime --output /tmp/glio-release-assurance-attestation-runtime.json
+      - name: Final release assurance attestation packet verification
+        run: python -m glio_noncode release-assurance-attestation --plane packet --destination /tmp/glio-release-assurance-attestation-packet --output /tmp/glio-release-assurance-attestation-packet.json && python -m glio_noncode release-assurance-attestation-packet-verify /tmp/glio-release-assurance-attestation-packet --output /tmp/glio-release-assurance-attestation-packet-verification.json
+      - name: Final release assurance attestation review
+        run: python -m glio_noncode release-assurance-attestation --plane review --format markdown --output /tmp/glio-release-assurance-attestation-review.md && python -m glio_noncode release-assurance-attestation --plane review-query --failed-only --output /tmp/glio-release-assurance-attestation-review-query.json
       - name: Whole-product release assurance runtime command
         run: python -m glio_noncode release-assurance --plane runtime --output /tmp/glio-release-assurance-runtime.json
       - name: Whole-product release assurance schema command

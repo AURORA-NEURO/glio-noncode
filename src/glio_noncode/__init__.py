@@ -10873,6 +10873,14 @@ from .release_assurance_summary import *
 from .release_assurance_support import *
 from .release_assurance_thresholds import *
 from .release_assurance_views import *
+from .release_assurance_attestation import *
+from .release_assurance_attestation_contracts import *
+from .release_assurance_attestation_runtime import *
+from .release_assurance_attestation_packet import *
+from .release_assurance_attestation_query import *
+from .release_assurance_attestation_diff import *
+from .release_assurance_attestation_observability import *
+from .release_assurance_attestation_review import *
 
 __all__ += sorted(
     {

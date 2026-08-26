@@ -280,6 +280,28 @@ glio-noncode release-assurance-handoff-verify release-assurance-handoff
 See [docs/RELEASE_ASSURANCE.md](docs/RELEASE_ASSURANCE.md) for the manifest,
 atomic write, query, diff, replay, and tamper-verification contract.
 
+The final cross-plane release attestation binds the accepted whole-product
+release-assurance runtime, the D01-D16 program-release closure, and the
+mission-plan release catalog gate by immutable addresses. It retains three
+component rows and 26 acceptance checks, runs an eight-stage deterministic
+replay, exports a seven-payload plus manifest packet, and supports bounded
+queries, address-only diffs, aggregate observability, strict hydration, and
+fail-closed exact-byte verification:
+
+```text
+glio-noncode release-assurance-attestation --plane attestation --format markdown --output attestation.md
+glio-noncode release-assurance-attestation --plane runtime --output attestation-runtime.json
+glio-noncode release-assurance-attestation --plane query --resource checks --passed-only
+glio-noncode release-assurance-attestation --plane packet --destination release-assurance-attestation-packet
+glio-noncode release-assurance-attestation-packet-verify release-assurance-attestation-packet
+glio-noncode release-assurance-attestation --plane capabilities
+```
+
+The read-only API is rooted at `/v1/release-assurance/attestation` and adds
+runtime, packet metadata, schema, capabilities, query, diff, observability,
+and packet-verification routes. POST verification, query, and diff routes
+rehydrate only public aggregate projections and never execute handlers.
+
 The matching read-only API starts at `GET /v1/release-assurance` and includes
 status, bounded queries, schema, indexes, summaries, observability, graph,
 negative controls, plan, views, runtime, and export routes. See
@@ -729,7 +751,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 99-surface audit, including the
+schema fields. The result is a deterministic 110-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and portable execution-release contracts,
 suitable for local release checks and CI.
@@ -957,6 +979,24 @@ and [docs/WORKBENCH_RELEASE_FRONTIER_RUNBOOK.md](docs/WORKBENCH_RELEASE_FRONTIER
 The system treats a scalar score as a view, not as the ontology. Evidence is append-only, source dependence is grouped before aggregation, context transport is visible, and missing evidence is never silently converted to a negative result. Structural variation is represented as a first-class input kind even though the initial fixture focuses on a point variant.
 
 Scientific quantities in this slice are deterministic transformations of supplied observations. The runtime does not invent measurements, claim that a generic annotation proves a glioma mechanism, or hide unsupported inputs behind a narrative.
+
+The release-assurance attestation provides the final public cross-plane gate
+over the accepted runtime, D01-D16 program-release closure, and mission-plan
+release catalog gate. It closes three component rows and 26 checks, runs eight
+replay stages, and exposes exact-byte packet, bounded query, structural diff,
+aggregate metrics, and a 26-row reviewer disposition plane:
+
+```text
+python -m glio_noncode release-assurance-attestation --plane attestation
+python -m glio_noncode release-assurance-attestation --plane packet --destination release-packet
+python -m glio_noncode release-assurance-attestation --plane review --format markdown
+python -m glio_noncode release-assurance-attestation --plane review-query --failed-only
+```
+
+The review output is timestamp-free and address-only. Accepted checks are
+closed with a `retain` disposition; failed checks remain open with a
+`block-release` disposition. Source payloads, private identifiers, and runtime
+attribution are excluded from the public projection.
 
 ## Repository layout
 

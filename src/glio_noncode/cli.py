@@ -100,6 +100,52 @@ from .release_assurance_schema import release_assurance_schema, validate_release
 from .release_assurance_summary import audit_release_assurance_summary, build_release_assurance_summary, release_assurance_status
 from .release_assurance_thresholds import evaluate_release_assurance_thresholds, release_assurance_threshold_status
 from .release_assurance_views import audit_release_assurance_views, build_release_assurance_views
+from .release_assurance_attestation import (
+    release_assurance_attestation_capabilities,
+    release_assurance_attestation_csv,
+    release_assurance_attestation_markdown,
+    release_assurance_attestation_schema,
+    validate_release_assurance_attestation_schema,
+)
+from .release_assurance_attestation_runtime import (
+    release_assurance_attestation_runtime_capabilities,
+    release_assurance_attestation_runtime_csv,
+    release_assurance_attestation_runtime_markdown,
+    run_release_assurance_attestation,
+)
+from .release_assurance_attestation_packet import (
+    build_release_assurance_attestation_packet,
+    release_assurance_attestation_packet_capabilities,
+    release_assurance_attestation_packet_schema,
+    verify_release_assurance_attestation_packet,
+    write_release_assurance_attestation_packet,
+)
+from .release_assurance_attestation_query import (
+    query_release_assurance_attestation,
+    release_assurance_attestation_query_capabilities,
+    release_assurance_attestation_query_schema,
+)
+from .release_assurance_attestation_diff import (
+    diff_release_assurance_attestations,
+    release_assurance_attestation_diff_capabilities,
+    release_assurance_attestation_diff_schema,
+)
+from .release_assurance_attestation_observability import (
+    build_release_assurance_attestation_observability,
+    release_assurance_attestation_observability_capabilities,
+    release_assurance_attestation_observability_csv,
+    release_assurance_attestation_observability_markdown,
+    release_assurance_attestation_observability_schema,
+)
+from .release_assurance_attestation_review import (
+    audit_release_assurance_attestation_review,
+    build_release_assurance_attestation_review,
+    query_release_assurance_attestation_review,
+    release_assurance_attestation_review_capabilities,
+    release_assurance_attestation_review_csv,
+    release_assurance_attestation_review_markdown,
+    release_assurance_attestation_review_schema,
+)
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
     MethylationTrackHarmonizer,
@@ -3418,6 +3464,52 @@ def build_parser() -> argparse.ArgumentParser:
     )
     release_assurance_handoff_verify.add_argument("directory")
     release_assurance_handoff_verify.add_argument("--output", default=None)
+    release_assurance_attestation = subparsers.add_parser(
+        "release-assurance-attestation",
+        help="build, inspect, query, compare, replay, or export the final cross-plane release attestation",
+    )
+    release_assurance_attestation.add_argument(
+        "--plane",
+        choices=(
+            "attestation",
+            "schema",
+            "capabilities",
+            "runtime",
+            "packet",
+            "query",
+            "diff",
+            "observability",
+            "review",
+            "review-query",
+        ),
+        default="attestation",
+    )
+    release_assurance_attestation.add_argument("--attestation-id", default="glio-noncode-release-assurance-attestation")
+    release_assurance_attestation.add_argument("--bundle-id", default="glio-noncode-release-assurance-attestation")
+    release_assurance_attestation.add_argument("--run-id", default="glio-noncode-release-assurance-attestation-run")
+    release_assurance_attestation.add_argument("--compare-bundle-id", default=None)
+    release_assurance_attestation.add_argument("--compare-run-id", default=None)
+    release_assurance_attestation.add_argument("--resource", default="components")
+    release_assurance_attestation.add_argument("--component-id", default=None)
+    release_assurance_attestation.add_argument("--category", default=None)
+    release_assurance_attestation.add_argument("--action-state", default=None)
+    release_assurance_attestation.add_argument("--severity", default=None)
+    release_assurance_attestation.add_argument("--failed-only", action="store_true")
+    release_assurance_attestation.add_argument("--passed-only", action="store_true")
+    release_assurance_attestation.add_argument("--accepted-only", action="store_true")
+    release_assurance_attestation.add_argument("--text", default=None)
+    release_assurance_attestation.add_argument("--offset", default=0, type=int)
+    release_assurance_attestation.add_argument("--limit", default=50, type=int)
+    release_assurance_attestation.add_argument("--destination", default=None)
+    release_assurance_attestation.add_argument("--allow-existing", action="store_true")
+    release_assurance_attestation.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    release_assurance_attestation.add_argument("--output", default=None)
+    release_assurance_attestation_verify = subparsers.add_parser(
+        "release-assurance-attestation-packet-verify",
+        help="verify an on-disk final release-assurance attestation packet",
+    )
+    release_assurance_attestation_verify.add_argument("directory")
+    release_assurance_attestation_verify.add_argument("--output", default=None)
     public_surface_audit = subparsers.add_parser(
         "public-surface-audit",
         help="audit repository-wide service, bundle, schema, and closure projections",
@@ -23427,6 +23519,122 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if payload.get("accepted", False) else 2
         if args.command == "release-assurance-handoff-verify":
             verification = verify_release_assurance_handoff(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "release-assurance-attestation":
+            if args.plane == "capabilities":
+                payload = {
+                    "attestation": release_assurance_attestation_capabilities(),
+                    "runtime": release_assurance_attestation_runtime_capabilities(),
+                    "packet": release_assurance_attestation_packet_capabilities(),
+                    "query": release_assurance_attestation_query_capabilities(),
+                    "diff": release_assurance_attestation_diff_capabilities(),
+                    "observability": release_assurance_attestation_observability_capabilities(),
+                    "review": release_assurance_attestation_review_capabilities(),
+                }
+                _write_json(payload, args.output)
+                return 0
+            runtime = run_release_assurance_attestation(
+                attestation_id=args.attestation_id,
+                bundle_id=args.bundle_id,
+                run_id=args.run_id,
+            )
+            attestation = runtime.attestation
+            if args.plane == "attestation":
+                if args.format == "markdown":
+                    _write_text(release_assurance_attestation_markdown(attestation), args.output)
+                    return 0 if attestation.accepted else 2
+                if args.format == "csv":
+                    _write_text(release_assurance_attestation_csv(attestation), args.output)
+                    return 0 if attestation.accepted else 2
+                payload = attestation.to_dict()
+            elif args.plane == "schema":
+                schema = release_assurance_attestation_schema()
+                payload = {
+                    "schema": schema,
+                    "audit": [item.to_dict() for item in validate_release_assurance_attestation_schema(attestation, schema)],
+                    "packet_schema": release_assurance_attestation_packet_schema(),
+                    "query_schema": release_assurance_attestation_query_schema(),
+                    "diff_schema": release_assurance_attestation_diff_schema(),
+                    "observability_schema": release_assurance_attestation_observability_schema(),
+                    "review_schema": release_assurance_attestation_review_schema(),
+                }
+            elif args.plane == "runtime":
+                if args.format == "markdown":
+                    _write_text(release_assurance_attestation_runtime_markdown(runtime), args.output)
+                    return 0 if runtime.accepted else 2
+                if args.format == "csv":
+                    _write_text(release_assurance_attestation_runtime_csv(runtime), args.output)
+                    return 0 if runtime.accepted else 2
+                payload = runtime.to_dict()
+            elif args.plane == "packet":
+                packet = build_release_assurance_attestation_packet(runtime)
+                if args.destination:
+                    write_release_assurance_attestation_packet(packet, args.destination, allow_existing=args.allow_existing)
+                payload = packet.to_dict()
+            elif args.plane == "query":
+                payload = query_release_assurance_attestation(
+                    attestation,
+                    resource=args.resource,
+                    component_id=args.component_id,
+                    category=args.category,
+                    passed_only=args.passed_only,
+                    accepted_only=args.accepted_only,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            elif args.plane == "diff":
+                comparison = run_release_assurance_attestation(
+                    attestation_id=args.attestation_id,
+                    bundle_id=args.compare_bundle_id or f"{args.bundle_id}-comparison",
+                    run_id=args.compare_run_id or f"{args.run_id}-comparison",
+                ).attestation
+                payload = diff_release_assurance_attestations(attestation, comparison).to_dict()
+            elif args.plane == "review-query":
+                review = build_release_assurance_attestation_review(attestation, runtime=runtime)
+                payload = query_release_assurance_attestation_review(
+                    review,
+                    component_id=args.component_id,
+                    category=args.category,
+                    action_state=args.action_state,
+                    severity=args.severity,
+                    failed_only=args.failed_only,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+            elif args.plane == "review":
+                review = build_release_assurance_attestation_review(attestation, runtime=runtime)
+                if args.format == "markdown":
+                    _write_text(release_assurance_attestation_review_markdown(review), args.output)
+                    return 0 if review.accepted else 2
+                if args.format == "csv":
+                    _write_text(release_assurance_attestation_review_csv(review), args.output)
+                    return 0 if review.accepted else 2
+                payload = review.to_dict() | {
+                    "audit": list(
+                        audit_release_assurance_attestation_review(
+                            review, attestation, runtime=runtime
+                        )
+                    )
+                }
+            else:
+                observability = build_release_assurance_attestation_observability(attestation, runtime)
+                if args.format == "markdown":
+                    _write_text(release_assurance_attestation_observability_markdown(observability), args.output)
+                    return 0 if observability.accepted else 2
+                if args.format == "csv":
+                    _write_text(release_assurance_attestation_observability_csv(observability), args.output)
+                    return 0 if observability.accepted else 2
+                payload = observability.to_dict()
+            if "accepted" not in payload:
+                audit = payload.get("audit")
+                payload["accepted"] = bool(payload.get("accepted", False)) if audit is None else all(bool(item.get("passed", False)) for item in audit if isinstance(item, dict))
+            _write_json(payload, args.output)
+            return 0 if payload.get("accepted", False) else 2
+        if args.command == "release-assurance-attestation-packet-verify":
+            verification = verify_release_assurance_attestation_packet(args.directory)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
         if args.command == "public-surface-audit":

@@ -164,7 +164,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 99
+PUBLIC_SURFACE_EXPECTED_COUNT = 112
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -335,6 +335,14 @@ def default_public_surface_inventory(
 ) -> dict[str, Any]:
     """Build the stable inventory of service, bundle, schema, and closure views."""
 
+    from .release_assurance_attestation import release_assurance_attestation_capabilities, release_assurance_attestation_schema
+    from .release_assurance_attestation_runtime import release_assurance_attestation_runtime_capabilities
+    from .release_assurance_attestation_packet import release_assurance_attestation_packet_capabilities, release_assurance_attestation_packet_schema
+    from .release_assurance_attestation_query import release_assurance_attestation_query_capabilities, release_assurance_attestation_query_schema
+    from .release_assurance_attestation_diff import release_assurance_attestation_diff_capabilities, release_assurance_attestation_diff_schema
+    from .release_assurance_attestation_observability import release_assurance_attestation_observability_capabilities, release_assurance_attestation_observability_schema
+    from .release_assurance_attestation_review import release_assurance_attestation_review_capabilities, release_assurance_attestation_review_schema
+
     selected = snapshot or build_service_surface_snapshot()
     capability_value = capability_bundle or build_capability_certification_bundle()
     module_value = module_fabric_bundle or build_module_fabric_bundle()
@@ -436,6 +444,19 @@ def default_public_surface_inventory(
         "mission-plan-release-catalog-gate-diff-capabilities": mission_plan_release_catalog_gate_diff_capabilities(),
         "mission-plan-release-catalog-gate-observability-schema": mission_plan_release_catalog_gate_observability_schema(),
         "mission-plan-release-catalog-gate-observability-capabilities": mission_plan_release_catalog_gate_observability_capabilities(),
+        "release-assurance-attestation-schema": release_assurance_attestation_schema(),
+        "release-assurance-attestation-capabilities": release_assurance_attestation_capabilities(),
+        "release-assurance-attestation-runtime-capabilities": release_assurance_attestation_runtime_capabilities(),
+        "release-assurance-attestation-packet-schema": release_assurance_attestation_packet_schema(),
+        "release-assurance-attestation-packet-capabilities": release_assurance_attestation_packet_capabilities(),
+        "release-assurance-attestation-query-schema": release_assurance_attestation_query_schema(),
+        "release-assurance-attestation-query-capabilities": release_assurance_attestation_query_capabilities(),
+        "release-assurance-attestation-diff-schema": release_assurance_attestation_diff_schema(),
+        "release-assurance-attestation-diff-capabilities": release_assurance_attestation_diff_capabilities(),
+        "release-assurance-attestation-observability-schema": release_assurance_attestation_observability_schema(),
+        "release-assurance-attestation-observability-capabilities": release_assurance_attestation_observability_capabilities(),
+        "release-assurance-attestation-review-schema": release_assurance_attestation_review_schema(),
+        "release-assurance-attestation-review-capabilities": release_assurance_attestation_review_capabilities(),
         "mission-plan-conformance-schema": mission_plan_public_conformance_schema(),
         "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
         "mission-plan-replay-schema": mission_plan_public_replay_schema(),

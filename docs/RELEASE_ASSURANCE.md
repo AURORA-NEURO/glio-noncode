@@ -23,7 +23,7 @@ five evidence links, and five domain checks.
 | `capability-catalog` | capability certification | 256 capability rows | accepted certifications |
 | `architecture-program` | D01–D16 program release | 16 architecture domains | accepted domain receipts |
 | `service-release` | public service registry | 6 service surfaces | accepted registry surfaces |
-| `public-surface` | repository public-surface audit | 99 audited surfaces | passed public projections |
+| `public-surface` | repository public-surface audit | 110 audited surfaces | passed public projections |
 
 The row denominator is conserved from the source plane. Readiness is the
 accepted count divided by the denominator, rounded to two decimal places. The
@@ -45,7 +45,7 @@ Each domain receives five evidence roles:
 The twenty domain checks cover source addresses, denominator conservation,
 accepted partitions, evidence coverage, and readiness calculation. Eight
 cross-plane checks cover domain closure, source agreement, D01 program
-registration, the 99-surface audit, accepted totals, service acceptance, and
+registration, the 110-surface audit, accepted totals, service acceptance, and
 recursive public-boundary safety.
 
 All rows and checks use content addresses. Queries return address-only public
@@ -161,6 +161,79 @@ The command exits zero only for an accepted projection. The export verifier
 also checks the manifest, exact byte counts, content addresses, safe relative
 paths, missing files, unexpected files, duplicate entries, tampering, and
 public-boundary violations.
+
+## Final cross-plane attestation
+
+`release-assurance-attestation` is the final public aggregate above the
+existing release-assurance runtime. It binds three independent source planes:
+
+| Component | Source | Minimum evidence |
+| --- | --- | ---: |
+| `release-assurance` | twelve-stage whole-product runtime | eight runtime stages |
+| `program-release-closure` | D01-D16 program release snapshot | sixteen domains |
+| `mission-plan-release-catalog-gate` | policy-gated mission release catalog | one catalog entry and one gate check |
+
+The attestation has three component rows, six component checks per row, and
+eight cross-plane checks, for a closed 26-check denominator. It preserves
+dependency order and source content addresses, verifies acceptance and public
+boundary state, and reports readiness without copying source records. The
+default policy requires every source plane and every retained check to pass,
+unique component addresses, eight runtime stages, sixteen program domains,
+and a non-empty catalog gate.
+
+The runtime executes eight deterministic stages: source resolution, runtime
+acceptance, program closure, catalog gate, cross-plane checks, deterministic
+replay, aggregate observability, and public state. It never invokes a handler
+or upgrades the release into clinical authorization. The packet contains
+seven exact UTF-8 payloads plus `manifest.json`:
+
+1. `attestation/attestation.json`
+2. `runtime/runtime.json`
+3. `attestation/components.csv`
+4. `attestation/checks.csv`
+5. `attestation/summary.json`
+6. `attestation/policy.json`
+7. `attestation/schema.json`
+8. `manifest.json`
+
+The packet writer uses atomic sibling replacement and refuses a non-empty
+destination unless overwrite is explicitly enabled. The verifier checks safe
+relative paths, symlinks, exact byte and line counts, content addresses,
+manifest denominator drift, missing and unexpected paths, malformed JSON, and
+restricted public metadata. Offline hydration is permitted only after a
+successful verification. Queries are bounded to components or checks; diffs
+compare component IDs, check IDs, policy fields, and content addresses; and
+observability contains only aggregate component, category, check, and runtime
+metrics.
+
+CLI examples:
+
+```text
+glio-noncode release-assurance-attestation --plane attestation --format markdown --output attestation.md
+glio-noncode release-assurance-attestation --plane runtime --output attestation-runtime.json
+glio-noncode release-assurance-attestation --plane query --resource checks --component-id program-release-closure
+glio-noncode release-assurance-attestation --plane packet --destination release-assurance-attestation-packet
+glio-noncode release-assurance-attestation-packet-verify release-assurance-attestation-packet
+```
+
+The API mirrors this contract:
+
+| Endpoint | Output |
+| --- | --- |
+| `/v1/release-assurance/attestation` | addressed three-plane attestation |
+| `/v1/release-assurance/attestation/runtime` | eight-stage runtime and replay |
+| `/v1/release-assurance/attestation/packet` | exact-byte packet metadata |
+| `/v1/release-assurance/attestation/packet/verify?directory=...` | filesystem verification |
+| `/v1/release-assurance/attestation/schema` | attestation and child schemas |
+| `/v1/release-assurance/attestation/capabilities` | operation and boundary capabilities |
+| `/v1/release-assurance/attestation/query` | bounded component/check page |
+| `/v1/release-assurance/attestation/diff` | address-only structural comparison |
+| `/v1/release-assurance/attestation/observability` | aggregate deterministic metrics |
+
+POST `/v1/release-assurance/attestation/verify` rehydrates and schema-audits
+one public attestation. POST query and diff accept only public attestation
+objects and preserve validation failures rather than silently repairing or
+rebuilding submitted projections.
 
 ## Observability, graph, and plan
 
@@ -407,6 +480,34 @@ handoff.
 
 The verifier should preserve the original byte artifacts beside these
 addresses for later audit.
+
+## Final attestation review
+
+The final cross-plane attestation has a dedicated review projection. It creates
+one row for every retained check, preserving check order and source/content
+addresses while adding only deterministic reviewer controls:
+
+- `priority`: 0 for accepted evidence, 60 for ordinary failures, 80 for
+  conservation/completeness failures, and 100 for boundary/acceptance failures;
+- `severity`: `none`, `moderate`, `high`, or `critical`;
+- `disposition`: `retain` for accepted evidence or `block-release` for a
+  failed check; and
+- `action_state`: `closed` for accepted evidence or `open` for a failed check.
+
+The review is accepted only when all 26 expected rows exist, the source
+attestation is accepted, no action is open, and the public metadata boundary
+passes. The review query is bounded and deterministic:
+
+```text
+glio-noncode release-assurance-attestation --plane review --format markdown
+glio-noncode release-assurance-attestation --plane review-query --failed-only
+glio-noncode release-assurance-attestation --plane review-query --severity critical
+```
+
+The HTTP surface is available at `/review` and `/review/query`, with both GET
+and POST forms. All review JSON, CSV, and Markdown exports are timestamp-free;
+no source payload, private identifier, or runtime attribution is copied into
+the projection.
 
 This keeps the final handoff reproducible.
 
