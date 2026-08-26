@@ -588,11 +588,51 @@ GET /v1/release-assurance/attestation/review
 GET /v1/release-assurance/attestation/review/query?component_id=program-release-closure&action_state=closed
 POST /v1/release-assurance/attestation/review
 POST /v1/release-assurance/attestation/review/query
+GET /v1/release-assurance/attestation/registry
+GET /v1/release-assurance/attestation/registry/query?resource=entries&limit=50
+GET /v1/release-assurance/attestation/registry/diff?compare_bundle_id=...
+GET /v1/release-assurance/attestation/registry/replay
+GET /v1/release-assurance/attestation/registry/packet
+GET /v1/release-assurance/attestation/registry/packet/verify?directory=...
+GET /v1/release-assurance/attestation/registry/schema
+GET /v1/release-assurance/attestation/registry/capabilities
+POST /v1/release-assurance/attestation/registry/verify
+POST /v1/release-assurance/attestation/registry/query
+POST /v1/release-assurance/attestation/registry/diff
+POST /v1/release-assurance/attestation/registry/replay
+GET /v1/release-assurance/attestation/registry/store
+GET /v1/release-assurance/attestation/registry/store/query?disposition=appended&limit=50
+GET /v1/release-assurance/attestation/registry/store/audit
+GET /v1/release-assurance/attestation/registry/store/replay
+GET /v1/release-assurance/attestation/registry/store/diff?compare_bundle_id=...
+GET /v1/release-assurance/attestation/registry/store/schema
+GET /v1/release-assurance/attestation/registry/store/capabilities
+POST /v1/release-assurance/attestation/registry/store/verify
+POST /v1/release-assurance/attestation/registry/store/query
+POST /v1/release-assurance/attestation/registry/store/append
+POST /v1/release-assurance/attestation/registry/store/append-batch
+POST /v1/release-assurance/attestation/registry/store/replay
+POST /v1/release-assurance/attestation/registry/store/diff
 ```
 
 This boundary is address-only and timestamp-free. It closes three component
 rows and 26 checks, runs eight replay stages, and exposes exact-byte packet,
-bounded query, structural diff, and aggregate metric contracts.
+bounded query, structural diff, and aggregate metric contracts. The registry
+adds a bounded append-only history of attestation summaries. Each entry links
+to the previous entry by content address; each transition records whether the
+sequence is initial, advancing, repeated, or blocked. Registry packets carry
+six exact UTF-8 payloads plus a manifest and are accepted only after exact-byte
+verification.
+
+The registry store is the operational write boundary around that sequence. It
+does not mutate a shared database: append and batch calls return a new
+addressed store plus a public operation decision. Policies bound the sequence
+and operation ledger, require accepted attestations by default, reject duplicate
+attestation IDs, and support idempotent retries by content address. Callers can
+provide the current head address for optimistic concurrency; stale heads are
+rejected without changing the registry. Store audits reconcile policy, head,
+operation ordinals, operation decision state, and the public boundary. Store
+replay rebuilds from ordered attestations and compares the registry address.
 
 The review endpoints create one deterministic public action row per retained
 check. They expose severity, priority, disposition, and open/closed action

@@ -1504,6 +1504,10 @@ jobs:
         run: python -m unittest tests.test_release_assurance_handoff
       - name: Final release assurance attestation focused tests
         run: python -m unittest tests.test_release_assurance_attestation
+      - name: Longitudinal release assurance attestation registry focused tests
+        run: python -m unittest tests.test_release_assurance_attestation_registry
+      - name: Longitudinal release assurance attestation registry store focused tests
+        run: python -m unittest tests.test_release_assurance_attestation_registry_store
       - name: Final release assurance attestation capabilities
         run: python -m glio_noncode release-assurance-attestation --plane capabilities --output /tmp/glio-release-assurance-attestation-capabilities.json
       - name: Final release assurance attestation runtime
@@ -1512,6 +1516,10 @@ jobs:
         run: python -m glio_noncode release-assurance-attestation --plane packet --destination /tmp/glio-release-assurance-attestation-packet --output /tmp/glio-release-assurance-attestation-packet.json && python -m glio_noncode release-assurance-attestation-packet-verify /tmp/glio-release-assurance-attestation-packet --output /tmp/glio-release-assurance-attestation-packet-verification.json
       - name: Final release assurance attestation review
         run: python -m glio_noncode release-assurance-attestation --plane review --format markdown --output /tmp/glio-release-assurance-attestation-review.md && python -m glio_noncode release-assurance-attestation --plane review-query --failed-only --output /tmp/glio-release-assurance-attestation-review-query.json
+      - name: Longitudinal release assurance attestation registry projections
+        run: python -m glio_noncode release-assurance-attestation --plane registry --registry-id ci-release-history --output /tmp/glio-release-assurance-attestation-registry.json && python -m glio_noncode release-assurance-attestation --plane registry-query --registry-resource transitions --output /tmp/glio-release-assurance-attestation-registry-query.json && python -m glio_noncode release-assurance-attestation --plane registry-packet --registry-id ci-release-history --destination /tmp/glio-release-assurance-attestation-registry-packet --output /tmp/glio-release-assurance-attestation-registry-packet.json && python -m glio_noncode release-assurance-attestation-registry-packet-verify /tmp/glio-release-assurance-attestation-registry-packet --output /tmp/glio-release-assurance-attestation-registry-packet-verification.json
+      - name: Longitudinal release assurance attestation registry store projections
+        run: python -m glio_noncode release-assurance-attestation --plane registry-store --registry-id ci-release-history --store-id ci-release-history-store --output /tmp/glio-release-assurance-attestation-registry-store.json && python -m glio_noncode release-assurance-attestation --plane registry-store-append --registry-id ci-release-history --store-id ci-release-history-store --output /tmp/glio-release-assurance-attestation-registry-store-append.json && python -m glio_noncode release-assurance-attestation --plane registry-store-audit --registry-id ci-release-history --store-id ci-release-history-store --output /tmp/glio-release-assurance-attestation-registry-store-audit.json
       - name: Whole-product release assurance runtime command
         run: python -m glio_noncode release-assurance --plane runtime --output /tmp/glio-release-assurance-runtime.json
       - name: Whole-product release assurance schema command

@@ -164,7 +164,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 112
+PUBLIC_SURFACE_EXPECTED_COUNT = 118
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -342,6 +342,9 @@ def default_public_surface_inventory(
     from .release_assurance_attestation_diff import release_assurance_attestation_diff_capabilities, release_assurance_attestation_diff_schema
     from .release_assurance_attestation_observability import release_assurance_attestation_observability_capabilities, release_assurance_attestation_observability_schema
     from .release_assurance_attestation_review import release_assurance_attestation_review_capabilities, release_assurance_attestation_review_schema
+    from .release_assurance_attestation_registry import release_assurance_attestation_registry_capabilities, release_assurance_attestation_registry_schema
+    from .release_assurance_attestation_registry_packet import release_assurance_attestation_registry_packet_capabilities, release_assurance_attestation_registry_packet_schema
+    from .release_assurance_attestation_registry_store import release_assurance_attestation_registry_store_capabilities, release_assurance_attestation_registry_store_schema
 
     selected = snapshot or build_service_surface_snapshot()
     capability_value = capability_bundle or build_capability_certification_bundle()
@@ -457,6 +460,12 @@ def default_public_surface_inventory(
         "release-assurance-attestation-observability-capabilities": release_assurance_attestation_observability_capabilities(),
         "release-assurance-attestation-review-schema": release_assurance_attestation_review_schema(),
         "release-assurance-attestation-review-capabilities": release_assurance_attestation_review_capabilities(),
+        "release-assurance-attestation-registry-schema": release_assurance_attestation_registry_schema(),
+        "release-assurance-attestation-registry-capabilities": release_assurance_attestation_registry_capabilities(),
+        "release-assurance-attestation-registry-packet-schema": release_assurance_attestation_registry_packet_schema(),
+        "release-assurance-attestation-registry-packet-capabilities": release_assurance_attestation_registry_packet_capabilities(),
+        "release-assurance-attestation-registry-store-schema": release_assurance_attestation_registry_store_schema(),
+        "release-assurance-attestation-registry-store-capabilities": release_assurance_attestation_registry_store_capabilities(),
         "mission-plan-conformance-schema": mission_plan_public_conformance_schema(),
         "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
         "mission-plan-replay-schema": mission_plan_public_replay_schema(),

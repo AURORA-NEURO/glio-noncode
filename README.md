@@ -286,7 +286,10 @@ mission-plan release catalog gate by immutable addresses. It retains three
 component rows and 26 acceptance checks, runs an eight-stage deterministic
 replay, exports a seven-payload plus manifest packet, and supports bounded
 queries, address-only diffs, aggregate observability, strict hydration, and
-fail-closed exact-byte verification:
+fail-closed exact-byte verification. A longitudinal registry now chains
+accepted attestation summaries into a bounded, address-only history with
+initial, advance, repeat, and blocked transition states. The registry can be
+replayed, queried, compared, exported, and verified offline:
 
 ```text
 glio-noncode release-assurance-attestation --plane attestation --format markdown --output attestation.md
@@ -295,12 +298,26 @@ glio-noncode release-assurance-attestation --plane query --resource checks --pas
 glio-noncode release-assurance-attestation --plane packet --destination release-assurance-attestation-packet
 glio-noncode release-assurance-attestation-packet-verify release-assurance-attestation-packet
 glio-noncode release-assurance-attestation --plane capabilities
+glio-noncode release-assurance-attestation --plane registry --registry-id release-history
+glio-noncode release-assurance-attestation --plane registry-query --registry-resource transitions --transition-state advance
+glio-noncode release-assurance-attestation --plane registry-diff --format markdown
+glio-noncode release-assurance-attestation --plane registry-packet --registry-id release-history --destination release-history-packet
+glio-noncode release-assurance-attestation-registry-packet-verify release-history-packet
+glio-noncode release-assurance-attestation --plane registry-store --store-id release-history-store
+glio-noncode release-assurance-attestation --plane registry-store-append --store-id release-history-store
+glio-noncode release-assurance-attestation --plane registry-store-audit --store-id release-history-store
 ```
 
 The read-only API is rooted at `/v1/release-assurance/attestation` and adds
 runtime, packet metadata, schema, capabilities, query, diff, observability,
-and packet-verification routes. POST verification, query, and diff routes
+and packet-verification routes, including the longitudinal registry under
+`/registry`. POST verification, query, diff, replay, and registry routes
 rehydrate only public aggregate projections and never execute handlers.
+
+The operational registry store adds policy-checked append, optimistic head
+checks, duplicate rejection, idempotent retry handling, bounded batch append,
+operation history, audit, replay, and store diffs. Its public JSON, CSV, and
+Markdown projections contain only decisions and addresses.
 
 The matching read-only API starts at `GET /v1/release-assurance` and includes
 status, bounded queries, schema, indexes, summaries, observability, graph,

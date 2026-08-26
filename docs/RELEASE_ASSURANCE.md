@@ -509,6 +509,57 @@ and POST forms. All review JSON, CSV, and Markdown exports are timestamp-free;
 no source payload, private identifier, or runtime attribution is copied into
 the projection.
 
+## Longitudinal attestation registry
+
+The registry preserves a bounded public sequence of attestation summaries. It
+is intentionally address-only: each entry retains the attestation address,
+bundle and run labels, acceptance counts, summary address, previous-entry
+address, and its own content address. It never stores source payloads. The
+first entry points to `root`; every later entry points to the immediately prior
+entry. A registry may contain at most 256 entries, and all queries are bounded
+by the same safe pagination rules used by the other release surfaces.
+
+Each adjacent pair produces one transition row:
+
+| State | Meaning |
+| --- | --- |
+| `initial` | The first entry establishes the registry root. |
+| `advance` | The next attestation is linked and its public summary changed. |
+| `repeat` | The next attestation repeats the preceding public summary. |
+| `blocked` | The linked attestation is not accepted, so the sequence cannot advance. |
+
+The builder preserves input order and derives every entry and transition
+deterministically. The audit checks entry ordinals, unique IDs, attestation and
+summary linkage, previous-address chaining, transition linkage, head address,
+acceptance propagation, replayed addresses, and the public boundary. Replay
+materializes the supplied attestations once, rebuilds the registry, and reports
+whether the rebuilt sequence is byte-identical and accepted.
+
+The registry supports `entries` and `transitions` resources with bundle,
+acceptance, transition-state, text, offset, and limit filters. Structural diffs
+report added, removed, changed, and unchanged entry IDs plus transition
+changes, without copying source records. JSON, CSV, and Markdown exports are
+timestamp-free and suitable for release review or audit logs.
+
+CLI examples:
+
+```text
+glio-noncode release-assurance-attestation --plane registry --registry-id release-history
+glio-noncode release-assurance-attestation --plane registry-query --registry-resource entries --limit 25
+glio-noncode release-assurance-attestation --plane registry-diff --format markdown
+glio-noncode release-assurance-attestation --plane registry-replay
+glio-noncode release-assurance-attestation --plane registry-packet --destination release-history-packet
+glio-noncode release-assurance-attestation-registry-packet-verify release-history-packet
+```
+
+The API mirrors the same contract under
+`/v1/release-assurance/attestation/registry`. GET routes build the current
+public attestation into a one-entry registry for inspection; POST routes accept
+strict public registry projections for verification, query, diff, and replay.
+Registry packet verification checks safe paths, symlinks, exact byte counts,
+content addresses, manifest drift, missing or unexpected files, tampering, and
+restricted public metadata before offline hydration is allowed.
+
 This keeps the final handoff reproducible.
 
 It is deterministic.

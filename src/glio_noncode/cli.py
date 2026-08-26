@@ -146,6 +146,37 @@ from .release_assurance_attestation_review import (
     release_assurance_attestation_review_markdown,
     release_assurance_attestation_review_schema,
 )
+from .release_assurance_attestation_registry import (
+    build_release_assurance_attestation_registry,
+    diff_release_assurance_attestation_registries,
+    query_release_assurance_attestation_registry,
+    replay_release_assurance_attestation_registry,
+    release_assurance_attestation_registry_capabilities,
+    release_assurance_attestation_registry_csv,
+    release_assurance_attestation_registry_json,
+    release_assurance_attestation_registry_markdown,
+    release_assurance_attestation_registry_schema,
+)
+from .release_assurance_attestation_registry_packet import (
+    build_release_assurance_attestation_registry_packet,
+    release_assurance_attestation_registry_packet_capabilities,
+    release_assurance_attestation_registry_packet_schema,
+    verify_release_assurance_attestation_registry_packet,
+    write_release_assurance_attestation_registry_packet,
+)
+from .release_assurance_attestation_registry_store import (
+    append_release_assurance_attestation_registry_store,
+    append_release_assurance_attestation_registry_store_batch,
+    audit_release_assurance_attestation_registry_store,
+    build_release_assurance_attestation_registry_store,
+    diff_release_assurance_attestation_registry_stores,
+    query_release_assurance_attestation_registry_store_operations,
+    release_assurance_attestation_registry_store_capabilities,
+    release_assurance_attestation_registry_store_csv,
+    release_assurance_attestation_registry_store_markdown,
+    release_assurance_attestation_registry_store_schema,
+    replay_release_assurance_attestation_registry_store,
+)
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
     MethylationTrackHarmonizer,
@@ -3481,6 +3512,18 @@ def build_parser() -> argparse.ArgumentParser:
             "observability",
             "review",
             "review-query",
+            "registry",
+            "registry-query",
+            "registry-diff",
+            "registry-replay",
+            "registry-packet",
+            "registry-store",
+            "registry-store-append",
+            "registry-store-batch",
+            "registry-store-audit",
+            "registry-store-query",
+            "registry-store-replay",
+            "registry-store-diff",
         ),
         default="attestation",
     )
@@ -3489,6 +3532,30 @@ def build_parser() -> argparse.ArgumentParser:
     release_assurance_attestation.add_argument("--run-id", default="glio-noncode-release-assurance-attestation-run")
     release_assurance_attestation.add_argument("--compare-bundle-id", default=None)
     release_assurance_attestation.add_argument("--compare-run-id", default=None)
+    release_assurance_attestation.add_argument(
+        "--registry-id",
+        default="glio-noncode-release-assurance-attestation-registry",
+    )
+    release_assurance_attestation.add_argument("--filter-bundle-id", default=None)
+    release_assurance_attestation.add_argument("--transition-state", default=None)
+    release_assurance_attestation.add_argument("--disposition", default=None)
+    release_assurance_attestation.add_argument("--state", default=None)
+    release_assurance_attestation.add_argument("--anomaly-code", default=None)
+    release_assurance_attestation.add_argument("--kind", default=None)
+    release_assurance_attestation.add_argument("--filter-attestation-id", default=None)
+    release_assurance_attestation.add_argument(
+        "--registry-resource",
+        choices=("entries", "transitions"),
+        default="entries",
+    )
+    release_assurance_attestation.add_argument(
+        "--store-id",
+        default="glio-noncode-release-assurance-attestation-store",
+    )
+    release_assurance_attestation.add_argument("--expected-head-address", default=None)
+    release_assurance_attestation.add_argument("--store-max-entries", default=256, type=int)
+    release_assurance_attestation.add_argument("--store-max-operations", default=1024, type=int)
+    release_assurance_attestation.add_argument("--fail-fast", action="store_true")
     release_assurance_attestation.add_argument("--resource", default="components")
     release_assurance_attestation.add_argument("--component-id", default=None)
     release_assurance_attestation.add_argument("--category", default=None)
@@ -3510,6 +3577,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     release_assurance_attestation_verify.add_argument("directory")
     release_assurance_attestation_verify.add_argument("--output", default=None)
+    release_assurance_attestation_registry_verify = subparsers.add_parser(
+        "release-assurance-attestation-registry-packet-verify",
+        help="verify an on-disk longitudinal release-attestation registry packet",
+    )
+    release_assurance_attestation_registry_verify.add_argument("directory")
+    release_assurance_attestation_registry_verify.add_argument("--output", default=None)
     public_surface_audit = subparsers.add_parser(
         "public-surface-audit",
         help="audit repository-wide service, bundle, schema, and closure projections",
@@ -23531,6 +23604,9 @@ def main(argv: list[str] | None = None) -> int:
                     "diff": release_assurance_attestation_diff_capabilities(),
                     "observability": release_assurance_attestation_observability_capabilities(),
                     "review": release_assurance_attestation_review_capabilities(),
+                    "registry": release_assurance_attestation_registry_capabilities(),
+                    "registry_packet": release_assurance_attestation_registry_packet_capabilities(),
+                    "registry_store": release_assurance_attestation_registry_store_capabilities(),
                 }
                 _write_json(payload, args.output)
                 return 0
@@ -23558,6 +23634,9 @@ def main(argv: list[str] | None = None) -> int:
                     "diff_schema": release_assurance_attestation_diff_schema(),
                     "observability_schema": release_assurance_attestation_observability_schema(),
                     "review_schema": release_assurance_attestation_review_schema(),
+                    "registry_schema": release_assurance_attestation_registry_schema(),
+                    "registry_packet_schema": release_assurance_attestation_registry_packet_schema(),
+                    "registry_store_schema": release_assurance_attestation_registry_store_schema(),
                 }
             elif args.plane == "runtime":
                 if args.format == "markdown":
@@ -23591,6 +23670,152 @@ def main(argv: list[str] | None = None) -> int:
                     run_id=args.compare_run_id or f"{args.run_id}-comparison",
                 ).attestation
                 payload = diff_release_assurance_attestations(attestation, comparison).to_dict()
+            elif args.plane == "registry":
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                if args.format == "markdown":
+                    _write_text(release_assurance_attestation_registry_markdown(registry), args.output)
+                    return 0 if registry.accepted else 2
+                if args.format == "csv":
+                    _write_text(release_assurance_attestation_registry_csv(registry), args.output)
+                    return 0 if registry.accepted else 2
+                payload = registry.to_dict()
+            elif args.plane == "registry-query":
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                payload = query_release_assurance_attestation_registry(
+                    registry,
+                    resource=args.registry_resource,
+                    bundle_id=args.filter_bundle_id,
+                    accepted_only=args.accepted_only,
+                    transition_state=args.transition_state,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                ).to_dict()
+            elif args.plane == "registry-diff":
+                comparison = run_release_assurance_attestation(
+                    attestation_id=f"{args.attestation_id}-comparison",
+                    bundle_id=args.compare_bundle_id or f"{args.bundle_id}-comparison",
+                    run_id=args.compare_run_id or f"{args.run_id}-comparison",
+                ).attestation
+                left = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                right = build_release_assurance_attestation_registry(
+                    [comparison], registry_id=args.registry_id
+                )
+                payload = diff_release_assurance_attestation_registries(left, right).to_dict()
+            elif args.plane == "registry-replay":
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                payload = replay_release_assurance_attestation_registry(registry, [attestation])
+            elif args.plane == "registry-packet":
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                packet = build_release_assurance_attestation_registry_packet(registry)
+                if args.destination:
+                    write_release_assurance_attestation_registry_packet(
+                        packet,
+                        args.destination,
+                        allow_existing=args.allow_existing,
+                    )
+                payload = packet.to_dict()
+            elif args.plane == "registry-store":
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                store = build_release_assurance_attestation_registry_store(
+                    registry,
+                    store_id=args.store_id,
+                )
+                if args.format == "markdown":
+                    _write_text(
+                        release_assurance_attestation_registry_store_markdown(store).decode("utf-8"),
+                        args.output,
+                    )
+                    return 0 if store.accepted else 2
+                if args.format == "csv":
+                    _write_text(
+                        release_assurance_attestation_registry_store_csv(store).decode("utf-8"),
+                        args.output,
+                    )
+                    return 0 if store.accepted else 2
+                payload = store.to_dict()
+            elif args.plane in {
+                "registry-store-append",
+                "registry-store-batch",
+                "registry-store-audit",
+                "registry-store-query",
+                "registry-store-replay",
+                "registry-store-diff",
+            }:
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                store = build_release_assurance_attestation_registry_store(
+                    registry,
+                    store_id=args.store_id,
+                )
+                comparison = run_release_assurance_attestation(
+                    attestation_id=f"{args.attestation_id}-comparison",
+                    bundle_id=args.compare_bundle_id or f"{args.bundle_id}-comparison",
+                    run_id=args.compare_run_id or f"{args.run_id}-comparison",
+                ).attestation
+                if args.plane == "registry-store-append":
+                    payload = append_release_assurance_attestation_registry_store(
+                        store,
+                        comparison,
+                        expected_head_address=args.expected_head_address,
+                    ).to_dict()
+                elif args.plane == "registry-store-batch":
+                    result = append_release_assurance_attestation_registry_store_batch(
+                        store,
+                        [comparison, attestation],
+                        expected_head_address=args.expected_head_address,
+                        fail_fast=args.fail_fast,
+                    )
+                    payload = result.to_dict()
+                else:
+                    appended = append_release_assurance_attestation_registry_store(
+                        store,
+                        comparison,
+                    ).store
+                    if args.plane == "registry-store-audit":
+                        payload = audit_release_assurance_attestation_registry_store(appended).to_dict()
+                    elif args.plane == "registry-store-query":
+                        payload = query_release_assurance_attestation_registry_store_operations(
+                            appended,
+                            disposition=args.disposition,
+                            state=args.state,
+                            anomaly_code=args.anomaly_code,
+                            kind=args.kind,
+                            attestation_id=args.filter_attestation_id,
+                            text=args.text,
+                            offset=args.offset,
+                            limit=args.limit,
+                        )
+                    elif args.plane == "registry-store-replay":
+                        payload = replay_release_assurance_attestation_registry_store(
+                            appended,
+                            [attestation, comparison],
+                        ).to_dict()
+                    else:
+                        comparison_registry = build_release_assurance_attestation_registry(
+                            [attestation, comparison], registry_id=args.registry_id
+                        )
+                        comparison_store = build_release_assurance_attestation_registry_store(
+                            comparison_registry,
+                            store_id=args.store_id,
+                        )
+                        payload = diff_release_assurance_attestation_registry_stores(
+                            store,
+                            comparison_store,
+                        )
             elif args.plane == "review-query":
                 review = build_release_assurance_attestation_review(attestation, runtime=runtime)
                 payload = query_release_assurance_attestation_review(
@@ -23635,6 +23860,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if payload.get("accepted", False) else 2
         if args.command == "release-assurance-attestation-packet-verify":
             verification = verify_release_assurance_attestation_packet(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "release-assurance-attestation-registry-packet-verify":
+            verification = verify_release_assurance_attestation_registry_packet(args.directory)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
         if args.command == "public-surface-audit":

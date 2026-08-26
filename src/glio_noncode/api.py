@@ -524,6 +524,39 @@ from .release_assurance_attestation_review import (
     release_assurance_attestation_review_schema,
     ReleaseAssuranceAttestationReview,
 )
+from .release_assurance_attestation_registry import (
+    audit_release_assurance_attestation_registry,
+    build_release_assurance_attestation_registry,
+    diff_release_assurance_attestation_registries,
+    query_release_assurance_attestation_registry,
+    replay_release_assurance_attestation_registry,
+    release_assurance_attestation_registry_capabilities,
+    release_assurance_attestation_registry_schema,
+)
+from .release_assurance_attestation_registry_contracts import (
+    ReleaseAssuranceAttestationRegistry,
+)
+from .release_assurance_attestation_registry_packet import (
+    build_release_assurance_attestation_registry_packet,
+    release_assurance_attestation_registry_packet_capabilities,
+    release_assurance_attestation_registry_packet_schema,
+    verify_release_assurance_attestation_registry_packet,
+)
+from .release_assurance_attestation_registry_store import (
+    append_release_assurance_attestation_registry_store,
+    append_release_assurance_attestation_registry_store_batch,
+    audit_release_assurance_attestation_registry_store,
+    build_release_assurance_attestation_registry_store,
+    diff_release_assurance_attestation_registry_stores,
+    query_release_assurance_attestation_registry_store_operations,
+    release_assurance_attestation_registry_store_capabilities,
+    release_assurance_attestation_registry_store_schema,
+    replay_release_assurance_attestation_registry_store,
+    verify_release_assurance_attestation_registry_store,
+)
+from .release_assurance_attestation_registry_store_contracts import (
+    ReleaseAssuranceAttestationRegistryStore,
+)
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1091,6 +1124,173 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_query", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/release-assurance/attestation/registry/store",
+            "/v1/release-assurance/attestation/registry/store/query",
+            "/v1/release-assurance/attestation/registry/store/audit",
+            "/v1/release-assurance/attestation/registry/store/replay",
+            "/v1/release-assurance/attestation/registry/store/diff",
+            "/v1/release-assurance/attestation/registry/store/schema",
+            "/v1/release-assurance/attestation/registry/store/capabilities",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "glio-noncode-release-assurance-attestation"
+                run_id = self._query_value(query, "run_id") or "glio-noncode-release-assurance-attestation-run"
+                store_id = self._query_value(query, "store_id") or "glio-noncode-release-assurance-attestation-store"
+                if path.endswith("/capabilities"):
+                    self._write(HTTPStatus.OK, release_assurance_attestation_registry_store_capabilities())
+                    return
+                if path.endswith("/schema"):
+                    self._write(HTTPStatus.OK, release_assurance_attestation_registry_store_schema())
+                    return
+                attestation = self._release_assurance_attestation(bundle_id, run_id)
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=self._query_value(query, "registry_id") or "glio-noncode-release-assurance-attestation-registry"
+                )
+                store = build_release_assurance_attestation_registry_store(
+                    registry, store_id=store_id
+                )
+                if path.endswith("/audit"):
+                    payload = audit_release_assurance_attestation_registry_store(store).to_dict()
+                elif path.endswith("/query"):
+                    payload = query_release_assurance_attestation_registry_store_operations(
+                        store,
+                        disposition=self._query_value(query, "disposition"),
+                        state=self._query_value(query, "state"),
+                        anomaly_code=self._query_value(query, "anomaly_code"),
+                        kind=self._query_value(query, "kind"),
+                        attestation_id=self._query_value(query, "attestation_id"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                elif path.endswith("/replay"):
+                    payload = replay_release_assurance_attestation_registry_store(
+                        store, [attestation]
+                    ).to_dict()
+                elif path.endswith("/diff"):
+                    comparison_bundle_id = self._query_value(query, "compare_bundle_id") or f"{bundle_id}-comparison"
+                    comparison_run_id = self._query_value(query, "compare_run_id") or f"{run_id}-comparison"
+                    comparison = self._release_assurance_attestation(
+                        comparison_bundle_id, comparison_run_id
+                    )
+                    comparison_registry = build_release_assurance_attestation_registry(
+                        [comparison], registry_id=registry.registry_id
+                    )
+                    comparison_store = build_release_assurance_attestation_registry_store(
+                        comparison_registry, store_id=store_id
+                    )
+                    payload = diff_release_assurance_attestation_registry_stores(
+                        store, comparison_store
+                    )
+                else:
+                    payload = store.to_dict()
+                self._write(
+                    HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    payload,
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path in {
+            "/v1/release-assurance/attestation/registry",
+            "/v1/release-assurance/attestation/registry/query",
+            "/v1/release-assurance/attestation/registry/diff",
+            "/v1/release-assurance/attestation/registry/replay",
+            "/v1/release-assurance/attestation/registry/packet",
+            "/v1/release-assurance/attestation/registry/packet/verify",
+            "/v1/release-assurance/attestation/registry/schema",
+            "/v1/release-assurance/attestation/registry/capabilities",
+        }:
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                bundle_id = self._query_value(query, "bundle_id") or "glio-noncode-release-assurance-attestation"
+                run_id = self._query_value(query, "run_id") or "glio-noncode-release-assurance-attestation-run"
+                registry_id = self._query_value(query, "registry_id") or "glio-noncode-release-assurance-attestation-registry"
+                if path.endswith("/capabilities"):
+                    self._write(
+                        HTTPStatus.OK,
+                        {
+                            "registry": release_assurance_attestation_registry_capabilities(),
+                            "packet": release_assurance_attestation_registry_packet_capabilities(),
+                        },
+                    )
+                    return
+                if path.endswith("/packet/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for registry packet verification")
+                    self._write(
+                        HTTPStatus.OK,
+                        verify_release_assurance_attestation_registry_packet(directory).to_dict(),
+                    )
+                    return
+                attestation = self._release_assurance_attestation(bundle_id, run_id)
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=registry_id
+                )
+                if path.endswith("/schema"):
+                    payload = {
+                        "schema": release_assurance_attestation_registry_schema(),
+                        "packet_schema": release_assurance_attestation_registry_packet_schema(),
+                    }
+                elif path.endswith("/packet"):
+                    payload = build_release_assurance_attestation_registry_packet(registry).to_dict()
+                elif path.endswith("/query"):
+                    payload = query_release_assurance_attestation_registry(
+                        registry,
+                        resource=self._query_value(query, "resource") or "entries",
+                        bundle_id=self._query_value(query, "filter_bundle_id"),
+                        accepted_only=self._query_bool(query, "accepted_only"),
+                        transition_state=self._query_value(query, "transition_state"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    ).to_dict()
+                elif path.endswith("/diff"):
+                    comparison_bundle_id = self._query_value(query, "compare_bundle_id") or f"{bundle_id}-comparison"
+                    comparison_run_id = self._query_value(query, "compare_run_id") or f"{run_id}-comparison"
+                    comparison = self._release_assurance_attestation(
+                        comparison_bundle_id, comparison_run_id
+                    )
+                    left = build_release_assurance_attestation_registry(
+                        [attestation], registry_id=registry_id
+                    )
+                    right = build_release_assurance_attestation_registry(
+                        [comparison], registry_id=registry_id
+                    )
+                    payload = diff_release_assurance_attestation_registries(left, right).to_dict()
+                elif path.endswith("/replay"):
+                    payload = replay_release_assurance_attestation_registry(
+                        registry, [attestation]
+                    )
+                else:
+                    payload = registry.to_dict()
+                self._write(
+                    HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    payload,
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_release_assurance_attestation_registry_query", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
             return
         if path in {
             "/v1/release-assurance/attestation",
@@ -3527,6 +3727,238 @@ class ApiHandler(BaseHTTPRequestHandler):
                     HTTPStatus.INTERNAL_SERVER_ERROR,
                     {"error": "internal_error", "message": str(exc)},
                 )
+            return
+        if path == "/v1/release-assurance/attestation/registry/verify":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError("registry verification requires a registry object")
+                source = payload.get("registry", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("registry must be an object")
+                registry = ReleaseAssuranceAttestationRegistry.from_mapping(source)
+                result = registry.to_dict() | {
+                    "schema": release_assurance_attestation_registry_schema(),
+                    "accepted": registry.accepted,
+                }
+                self._write(
+                    HTTPStatus.OK if result["accepted"] else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    result,
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_release_assurance_attestation_registry", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/release-assurance/attestation/registry/query":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("registry"), Mapping):
+                    raise ValueError("registry query requires a registry object")
+                query = payload.get("query", {})
+                if not isinstance(query, Mapping):
+                    raise ValueError("registry query filters must be an object")
+                registry = ReleaseAssuranceAttestationRegistry.from_mapping(payload["registry"])
+                result = query_release_assurance_attestation_registry(
+                    registry,
+                    resource=str(query.get("resource", "entries")),
+                    bundle_id=None if query.get("bundle_id") is None else str(query["bundle_id"]),
+                    accepted_only=bool(query.get("accepted_only", False)),
+                    transition_state=None if query.get("transition_state") is None else str(query["transition_state"]),
+                    text=None if query.get("text") is None else str(query["text"]),
+                    offset=int(query.get("offset", 0)),
+                    limit=int(query.get("limit", 50)),
+                )
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_release_assurance_attestation_registry_query", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/release-assurance/attestation/registry/diff":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("left"), Mapping) or not isinstance(payload.get("right"), Mapping):
+                    raise ValueError("registry diff requires left and right registry objects")
+                result = diff_release_assurance_attestation_registries(payload["left"], payload["right"])
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_release_assurance_attestation_registry_diff", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/release-assurance/attestation/registry/replay":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("registry"), Mapping):
+                    raise ValueError("registry replay requires a registry object")
+                raw_attestations = payload.get("attestations")
+                if not isinstance(raw_attestations, list):
+                    raise ValueError("registry replay attestations must be an array")
+                registry = ReleaseAssuranceAttestationRegistry.from_mapping(payload["registry"])
+                result = replay_release_assurance_attestation_registry(registry, raw_attestations)
+                self._write(
+                    HTTPStatus.OK if result["accepted"] else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    result,
+                )
+            except GlioError as exc:
+                self._write(
+                    HTTPStatus.UNPROCESSABLE_ENTITY,
+                    {"error": exc.code, "message": str(exc)},
+                )
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_release_assurance_attestation_registry_replay", "message": str(exc)},
+                )
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(
+                    HTTPStatus.INTERNAL_SERVER_ERROR,
+                    {"error": "internal_error", "message": str(exc)},
+                )
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/verify":
+            try:
+                payload = self._read_json()
+                source = payload.get("store", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("store verification requires a store object")
+                audit = verify_release_assurance_attestation_registry_store(source)
+                self._write(HTTPStatus.OK if audit.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, audit.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/query":
+            try:
+                payload = self._read_json()
+                source = payload.get("store")
+                query = payload.get("query", {})
+                if not isinstance(source, Mapping) or not isinstance(query, Mapping):
+                    raise ValueError("store query requires store and query objects")
+                store = ReleaseAssuranceAttestationRegistryStore.from_mapping(source)
+                result = query_release_assurance_attestation_registry_store_operations(
+                    store,
+                    disposition=query.get("disposition"),
+                    state=query.get("state"),
+                    anomaly_code=query.get("anomaly_code"),
+                    kind=query.get("kind"),
+                    attestation_id=query.get("attestation_id"),
+                    text=query.get("text"),
+                    offset=int(query.get("offset", 0)),
+                    limit=int(query.get("limit", 50)),
+                )
+                self._write(HTTPStatus.OK, result)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/append":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("store"), Mapping) or not isinstance(payload.get("attestation"), Mapping):
+                    raise ValueError("store append requires store and attestation objects")
+                store = ReleaseAssuranceAttestationRegistryStore.from_mapping(payload["store"])
+                result = append_release_assurance_attestation_registry_store(
+                    store,
+                    payload["attestation"],
+                    expected_head_address=payload.get("expected_head_address"),
+                )
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_append", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/append-batch":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("store"), Mapping) or not isinstance(payload.get("attestations"), list):
+                    raise ValueError("store batch requires a store object and attestations array")
+                store = ReleaseAssuranceAttestationRegistryStore.from_mapping(payload["store"])
+                result = append_release_assurance_attestation_registry_store_batch(
+                    store,
+                    payload["attestations"],
+                    expected_head_address=payload.get("expected_head_address"),
+                    fail_fast=bool(payload.get("fail_fast", False)),
+                )
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_batch", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/replay":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("store"), Mapping) or not isinstance(payload.get("attestations"), list):
+                    raise ValueError("store replay requires a store object and attestations array")
+                store = ReleaseAssuranceAttestationRegistryStore.from_mapping(payload["store"])
+                result = replay_release_assurance_attestation_registry_store(store, payload["attestations"])
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_replay", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/diff":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("left"), Mapping) or not isinstance(payload.get("right"), Mapping):
+                    raise ValueError("store diff requires left and right objects")
+                result = diff_release_assurance_attestation_registry_stores(payload["left"], payload["right"])
+                self._write(HTTPStatus.OK, result)
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return
         segments = [unquote(item) for item in path.split("/") if item]
         if (

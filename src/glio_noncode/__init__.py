@@ -10881,6 +10881,11 @@ from .release_assurance_attestation_query import *
 from .release_assurance_attestation_diff import *
 from .release_assurance_attestation_observability import *
 from .release_assurance_attestation_review import *
+from .release_assurance_attestation_registry_contracts import *
+from .release_assurance_attestation_registry import *
+from .release_assurance_attestation_registry_packet import *
+from .release_assurance_attestation_registry_store_contracts import *
+from .release_assurance_attestation_registry_store import *
 
 __all__ += sorted(
     {
