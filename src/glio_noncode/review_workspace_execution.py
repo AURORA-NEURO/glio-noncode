@@ -1299,6 +1299,14 @@ def review_workspace_execution_schema() -> dict[str, Any]:
             "max_reason": REVIEW_WORKSPACE_EXECUTION_MAX_REASON,
             "max_references": REVIEW_WORKSPACE_EXECUTION_MAX_REFERENCES,
         },
+        "query_views": ["actions", "events"],
+        "event_timeline": {
+            "schema_version": "review-workspace-execution-timeline-schema-v1",
+            "query_version": "review-workspace-execution-timeline-query-v1",
+            "ordering": "ascending zero-based ledger sequence",
+            "facets": ["kinds", "action_ids", "check_ids", "reference_addresses"],
+            "replay_projection_only": True,
+        },
     }
 
 
@@ -1314,6 +1322,9 @@ def review_workspace_execution_capabilities() -> dict[str, Any]:
         "reopen_and_recovery": True,
         "exact_byte_manifest_verification": True,
         "bounded_queries_and_facets": True,
+        "event_timeline_query": True,
+        "sequence_aware_pagination": True,
+        "event_check_and_reference_facets": True,
         "deterministic_exports": True,
         "cli_write_surface": True,
         "api_read_surface": True,

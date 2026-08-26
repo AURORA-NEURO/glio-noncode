@@ -259,6 +259,10 @@ from .review_workspace_execution import (
     review_workspace_execution_capabilities,
     review_workspace_execution_schema,
 )
+from .review_workspace_execution_timeline import (
+    ReviewWorkspaceExecutionTimelineQuery,
+    query_review_workspace_execution_timeline,
+)
 from .review_workspace_execution_release import (
     build_review_workspace_execution_release,
     review_workspace_execution_release_capabilities,
@@ -2342,28 +2346,57 @@ class ApiHandler(BaseHTTPRequestHandler):
                     plan_config = ReviewWorkspacePlanConfig.from_mapping(
                         json.loads(config_raw) if config_raw else None
                     )
-                    execution_query = ReviewWorkspaceExecutionQuery(
-                        status=self._query_value(query_values, "status"),
-                        lane=self._query_value(query_values, "lane"),
-                        action_kind=self._query_value(query_values, "action_kind"),
-                        action_id=self._query_value(query_values, "action_id"),
-                        event_kind=self._query_value(query_values, "event_kind"),
-                        priority=self._query_optional_int(query_values, "priority"),
-                        text=self._query_value(query_values, "text"),
-                        offset=self._query_int(query_values, "offset", 0),
-                        limit=(
-                            50
-                            if self._query_optional_int(query_values, "limit") is None
-                            else self._query_optional_int(query_values, "limit")
-                        ),
-                    )
                     execution = build_persisted_review_workspace_plan_execution(
                         runtime,
                         run_id,
                         baseline_run_id=self._query_value(query_values, "baseline_run_id"),
                         plan_config=plan_config,
                     )
-                    result = query_review_workspace_execution(execution, execution_query)
+                    view = (self._query_value(query_values, "view") or "actions").casefold()
+                    if view == "events":
+                        result = query_review_workspace_execution_timeline(
+                            execution,
+                            ReviewWorkspaceExecutionTimelineQuery(
+                                kind=self._query_value(query_values, "kind")
+                                or self._query_value(query_values, "event_kind"),
+                                action_id=self._query_value(query_values, "action_id"),
+                                event_id=self._query_value(query_values, "event_id"),
+                                check_id=self._query_value(query_values, "check_id"),
+                                reference_address=self._query_value(query_values, "reference_address"),
+                                text=self._query_value(query_values, "text"),
+                                occurred_from=self._query_value(query_values, "occurred_from"),
+                                occurred_to=self._query_value(query_values, "occurred_to"),
+                                sequence_start=self._query_int(query_values, "sequence_start", 0),
+                                sequence_end=self._query_optional_int(query_values, "sequence_end"),
+                                offset=self._query_int(query_values, "offset", 0),
+                                limit=(
+                                    50
+                                    if self._query_optional_int(query_values, "limit") is None
+                                    else self._query_optional_int(query_values, "limit")
+                                ),
+                            ),
+                        )
+                    elif view == "actions":
+                        result = query_review_workspace_execution(
+                            execution,
+                            ReviewWorkspaceExecutionQuery(
+                                status=self._query_value(query_values, "status"),
+                                lane=self._query_value(query_values, "lane"),
+                                action_kind=self._query_value(query_values, "action_kind"),
+                                action_id=self._query_value(query_values, "action_id"),
+                                event_kind=self._query_value(query_values, "event_kind"),
+                                priority=self._query_optional_int(query_values, "priority"),
+                                text=self._query_value(query_values, "text"),
+                                offset=self._query_int(query_values, "offset", 0),
+                                limit=(
+                                    50
+                                    if self._query_optional_int(query_values, "limit") is None
+                                    else self._query_optional_int(query_values, "limit")
+                                ),
+                            ),
+                        )
+                    else:
+                        raise ValidationError("execution query view must be actions or events")
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),
@@ -2392,28 +2425,57 @@ class ApiHandler(BaseHTTPRequestHandler):
                     plan_config = ReviewWorkspacePlanConfig.from_mapping(
                         json.loads(config_raw) if config_raw else None
                     )
-                    execution_query = ReviewWorkspaceExecutionQuery(
-                        status=self._query_value(query_values, "status"),
-                        lane=self._query_value(query_values, "lane"),
-                        action_kind=self._query_value(query_values, "action_kind"),
-                        action_id=self._query_value(query_values, "action_id"),
-                        event_kind=self._query_value(query_values, "event_kind"),
-                        priority=self._query_optional_int(query_values, "priority"),
-                        text=self._query_value(query_values, "text"),
-                        offset=self._query_int(query_values, "offset", 0),
-                        limit=(
-                            50
-                            if self._query_optional_int(query_values, "limit") is None
-                            else self._query_optional_int(query_values, "limit")
-                        ),
-                    )
                     execution = build_persisted_review_workspace_plan_execution(
                         runtime,
                         run_id,
                         baseline_run_id=self._query_value(query_values, "baseline_run_id"),
                         plan_config=plan_config,
                     )
-                    result = query_review_workspace_execution(execution, execution_query)
+                    view = (self._query_value(query_values, "view") or "actions").casefold()
+                    if view == "events":
+                        result = query_review_workspace_execution_timeline(
+                            execution,
+                            ReviewWorkspaceExecutionTimelineQuery(
+                                kind=self._query_value(query_values, "kind")
+                                or self._query_value(query_values, "event_kind"),
+                                action_id=self._query_value(query_values, "action_id"),
+                                event_id=self._query_value(query_values, "event_id"),
+                                check_id=self._query_value(query_values, "check_id"),
+                                reference_address=self._query_value(query_values, "reference_address"),
+                                text=self._query_value(query_values, "text"),
+                                occurred_from=self._query_value(query_values, "occurred_from"),
+                                occurred_to=self._query_value(query_values, "occurred_to"),
+                                sequence_start=self._query_int(query_values, "sequence_start", 0),
+                                sequence_end=self._query_optional_int(query_values, "sequence_end"),
+                                offset=self._query_int(query_values, "offset", 0),
+                                limit=(
+                                    50
+                                    if self._query_optional_int(query_values, "limit") is None
+                                    else self._query_optional_int(query_values, "limit")
+                                ),
+                            ),
+                        )
+                    elif view == "actions":
+                        result = query_review_workspace_execution(
+                            execution,
+                            ReviewWorkspaceExecutionQuery(
+                                status=self._query_value(query_values, "status"),
+                                lane=self._query_value(query_values, "lane"),
+                                action_kind=self._query_value(query_values, "action_kind"),
+                                action_id=self._query_value(query_values, "action_id"),
+                                event_kind=self._query_value(query_values, "event_kind"),
+                                priority=self._query_optional_int(query_values, "priority"),
+                                text=self._query_value(query_values, "text"),
+                                offset=self._query_int(query_values, "offset", 0),
+                                limit=(
+                                    50
+                                    if self._query_optional_int(query_values, "limit") is None
+                                    else self._query_optional_int(query_values, "limit")
+                                ),
+                            ),
+                        )
+                    else:
+                        raise ValidationError("execution release query view must be actions or events")
                     self._write(
                         HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
                         result.to_dict(),

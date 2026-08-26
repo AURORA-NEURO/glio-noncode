@@ -1749,6 +1749,12 @@ from .review_workspace_execution import (
     review_workspace_execution_capabilities,
     review_workspace_execution_schema,
 )
+from .review_workspace_execution_timeline import (
+    ReviewWorkspaceExecutionTimelineQuery,
+    query_review_workspace_execution_timeline,
+    review_workspace_execution_timeline_capabilities,
+    review_workspace_execution_timeline_schema,
+)
 from .review_workspace_execution_exports import (
     render_review_workspace_execution_markdown,
     review_workspace_execution_actions_csv,
@@ -1760,6 +1766,7 @@ from .review_workspace_execution_release import (
     diff_review_workspace_execution_releases,
     load_review_workspace_execution_release,
     query_review_workspace_execution_release,
+    query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
     verify_review_workspace_execution_release,
@@ -3599,6 +3606,9 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_query.add_argument("run_id", type=str)
     review_workspace_plan_execution_query.add_argument("--data-root", default=".glio")
     review_workspace_plan_execution_query.add_argument("--baseline-run-id", default=None)
+    review_workspace_plan_execution_query.add_argument(
+        "--view", choices=("actions", "events"), default="actions"
+    )
     review_workspace_plan_execution_query.add_argument("--status", default=None)
     review_workspace_plan_execution_query.add_argument("--lane", default=None)
     review_workspace_plan_execution_query.add_argument("--action-kind", default=None)
@@ -3608,6 +3618,14 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_query.add_argument("--text", default=None)
     review_workspace_plan_execution_query.add_argument("--offset", type=int, default=0)
     review_workspace_plan_execution_query.add_argument("--limit", type=int, default=50)
+    review_workspace_plan_execution_query.add_argument("--kind", default=None)
+    review_workspace_plan_execution_query.add_argument("--event-id", default=None)
+    review_workspace_plan_execution_query.add_argument("--check-id", default=None)
+    review_workspace_plan_execution_query.add_argument("--reference-address", default=None)
+    review_workspace_plan_execution_query.add_argument("--occurred-from", default=None)
+    review_workspace_plan_execution_query.add_argument("--occurred-to", default=None)
+    review_workspace_plan_execution_query.add_argument("--sequence-start", type=int, default=0)
+    review_workspace_plan_execution_query.add_argument("--sequence-end", type=int, default=None)
     review_workspace_plan_execution_query.add_argument("--output", default=None)
 
     review_workspace_plan_event = subparsers.add_parser(
@@ -3660,6 +3678,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="query a portable review-plan execution handoff",
     )
     review_workspace_plan_execution_release_query.add_argument("input", type=str)
+    review_workspace_plan_execution_release_query.add_argument(
+        "--view", choices=("actions", "events"), default="actions"
+    )
     review_workspace_plan_execution_release_query.add_argument("--status", default=None)
     review_workspace_plan_execution_release_query.add_argument("--lane", default=None)
     review_workspace_plan_execution_release_query.add_argument("--action-kind", default=None)
@@ -3669,6 +3690,14 @@ def build_parser() -> argparse.ArgumentParser:
     review_workspace_plan_execution_release_query.add_argument("--text", default=None)
     review_workspace_plan_execution_release_query.add_argument("--offset", type=int, default=0)
     review_workspace_plan_execution_release_query.add_argument("--limit", type=int, default=50)
+    review_workspace_plan_execution_release_query.add_argument("--kind", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--event-id", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--check-id", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--reference-address", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--occurred-from", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--occurred-to", default=None)
+    review_workspace_plan_execution_release_query.add_argument("--sequence-start", type=int, default=0)
+    review_workspace_plan_execution_release_query.add_argument("--sequence-end", type=int, default=None)
     review_workspace_plan_execution_release_query.add_argument("--output", default=None)
 
     review_workspace_plan_execution_release_diff = subparsers.add_parser(
@@ -3690,6 +3719,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="emit review-plan execution capabilities",
     )
     review_workspace_execution_capabilities_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_timeline_schema_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-timeline-schema",
+        help="emit the review-plan execution event-timeline schema",
+    )
+    review_workspace_execution_timeline_schema_parser.add_argument("--output", default=None)
+
+    review_workspace_execution_timeline_capabilities_parser = subparsers.add_parser(
+        "review-workspace-plan-execution-timeline-capabilities",
+        help="emit review-plan execution event-timeline capabilities",
+    )
+    review_workspace_execution_timeline_capabilities_parser.add_argument("--output", default=None)
 
     review_workspace_execution_release_schema_parser = subparsers.add_parser(
         "review-workspace-plan-execution-release-schema",
@@ -22649,20 +22690,39 @@ def main(argv: list[str] | None = None) -> int:
                 args.run_id,
                 baseline_run_id=args.baseline_run_id,
             )
-            result = query_review_workspace_execution(
-                execution,
-                ReviewWorkspaceExecutionQuery(
-                    status=args.status,
-                    lane=args.lane,
-                    action_kind=args.action_kind,
-                    action_id=args.action_id,
-                    event_kind=args.event_kind,
-                    priority=args.priority,
-                    text=args.text,
-                    offset=args.offset,
-                    limit=args.limit,
-                ),
-            )
+            if args.view == "events":
+                result = query_review_workspace_execution_timeline(
+                    execution,
+                    ReviewWorkspaceExecutionTimelineQuery(
+                        kind=args.kind or args.event_kind,
+                        action_id=args.action_id,
+                        event_id=args.event_id,
+                        check_id=args.check_id,
+                        reference_address=args.reference_address,
+                        text=args.text,
+                        occurred_from=args.occurred_from,
+                        occurred_to=args.occurred_to,
+                        sequence_start=args.sequence_start,
+                        sequence_end=args.sequence_end,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                )
+            else:
+                result = query_review_workspace_execution(
+                    execution,
+                    ReviewWorkspaceExecutionQuery(
+                        status=args.status,
+                        lane=args.lane,
+                        action_kind=args.action_kind,
+                        action_id=args.action_id,
+                        event_kind=args.event_kind,
+                        priority=args.priority,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                )
             _write_json(result.to_dict(), args.output)
             return 0 if result.accepted else 2
         if args.command == "review-workspace-plan-event":
@@ -22723,20 +22783,39 @@ def main(argv: list[str] | None = None) -> int:
             _write_json(loaded.to_dict(include_report=args.include_report), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-release-query":
-            result = query_review_workspace_execution_release(
-                args.input,
-                ReviewWorkspaceExecutionQuery(
-                    status=args.status,
-                    lane=args.lane,
-                    action_kind=args.action_kind,
-                    action_id=args.action_id,
-                    event_kind=args.event_kind,
-                    priority=args.priority,
-                    text=args.text,
-                    offset=args.offset,
-                    limit=args.limit,
-                ),
-            )
+            if args.view == "events":
+                result = query_review_workspace_execution_release_timeline(
+                    args.input,
+                    ReviewWorkspaceExecutionTimelineQuery(
+                        kind=args.kind or args.event_kind,
+                        action_id=args.action_id,
+                        event_id=args.event_id,
+                        check_id=args.check_id,
+                        reference_address=args.reference_address,
+                        text=args.text,
+                        occurred_from=args.occurred_from,
+                        occurred_to=args.occurred_to,
+                        sequence_start=args.sequence_start,
+                        sequence_end=args.sequence_end,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                )
+            else:
+                result = query_review_workspace_execution_release(
+                    args.input,
+                    ReviewWorkspaceExecutionQuery(
+                        status=args.status,
+                        lane=args.lane,
+                        action_kind=args.action_kind,
+                        action_id=args.action_id,
+                        event_kind=args.event_kind,
+                        priority=args.priority,
+                        text=args.text,
+                        offset=args.offset,
+                        limit=args.limit,
+                    ),
+                )
             _write_json(result.to_dict(), args.output)
             return 0 if result.accepted else 2
         if args.command == "review-workspace-plan-execution-release-diff":
@@ -22748,6 +22827,12 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "review-workspace-plan-execution-capabilities":
             _write_json(review_workspace_execution_capabilities(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-timeline-schema":
+            _write_json(review_workspace_execution_timeline_schema(), args.output)
+            return 0
+        if args.command == "review-workspace-plan-execution-timeline-capabilities":
+            _write_json(review_workspace_execution_timeline_capabilities(), args.output)
             return 0
         if args.command == "review-workspace-plan-execution-release-schema":
             _write_json(review_workspace_execution_release_schema(), args.output)

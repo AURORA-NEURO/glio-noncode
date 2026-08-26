@@ -33,6 +33,11 @@ from .review_workspace_execution_exports import review_workspace_execution_expor
 from .review_workspace_plan import ReviewWorkspacePlan, review_workspace_plan_from_mapping
 from .review_workspace_plan_exports import review_workspace_plan_export_payloads
 from .review_workspace_execution import replay_review_workspace_plan_execution
+from .review_workspace_execution_timeline import (
+    ReviewWorkspaceExecutionTimelineQuery,
+    ReviewWorkspaceExecutionTimelineResult,
+    query_review_workspace_execution_timeline,
+)
 from .serialization import canonical_json, content_hash, hash_bytes, jsonable
 
 
@@ -40,7 +45,7 @@ REVIEW_WORKSPACE_EXECUTION_RELEASE_VERSION = "review-workspace-execution-release
 REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST = "manifest.json"
 REVIEW_WORKSPACE_EXECUTION_RELEASE_ARTIFACT_PREFIX = "review-workspace-execution-release-artifact"
 REVIEW_WORKSPACE_EXECUTION_RELEASE_MANIFEST_PREFIX = "review-workspace-execution-release-manifest"
-REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION = "review-workspace-execution-release-diff-v1"
+REVIEW_WORKSPACE_EXECUTION_RELEASE_DIFF_VERSION = "review-workspace-execution-release-diff-v2"
 REVIEW_WORKSPACE_EXECUTION_RELEASE_SCHEMA_VERSION = "review-workspace-execution-release-schema-v1"
 REVIEW_WORKSPACE_EXECUTION_RELEASE_QUERY_VERSION = "review-workspace-execution-release-query-v1"
 
@@ -314,12 +319,24 @@ class ReviewWorkspaceExecutionActionDiff:
 
 @dataclass(frozen=True, slots=True)
 class ReviewWorkspaceExecutionReleaseDiff:
-    """Deterministic event, action, check, and artifact comparison."""
+    """Deterministic plan, event, action, check, and artifact comparison."""
 
     left_release_id: str
     right_release_id: str
     left_execution_address: str
     right_execution_address: str
+    left_plan_address: str
+    right_plan_address: str
+    plan_changed: bool
+    added_plan_action_ids: tuple[str, ...]
+    removed_plan_action_ids: tuple[str, ...]
+    changed_plan_action_ids: tuple[str, ...]
+    added_plan_lane_ids: tuple[str, ...]
+    removed_plan_lane_ids: tuple[str, ...]
+    changed_plan_lane_ids: tuple[str, ...]
+    added_plan_check_ids: tuple[str, ...]
+    removed_plan_check_ids: tuple[str, ...]
+    changed_plan_check_ids: tuple[str, ...]
     added_event_ids: tuple[str, ...]
     removed_event_ids: tuple[str, ...]
     changed_event_ids: tuple[str, ...]
@@ -342,6 +359,18 @@ class ReviewWorkspaceExecutionReleaseDiff:
             "right_release_id": self.right_release_id,
             "left_execution_address": self.left_execution_address,
             "right_execution_address": self.right_execution_address,
+            "left_plan_address": self.left_plan_address,
+            "right_plan_address": self.right_plan_address,
+            "plan_changed": self.plan_changed,
+            "added_plan_action_ids": list(self.added_plan_action_ids),
+            "removed_plan_action_ids": list(self.removed_plan_action_ids),
+            "changed_plan_action_ids": list(self.changed_plan_action_ids),
+            "added_plan_lane_ids": list(self.added_plan_lane_ids),
+            "removed_plan_lane_ids": list(self.removed_plan_lane_ids),
+            "changed_plan_lane_ids": list(self.changed_plan_lane_ids),
+            "added_plan_check_ids": list(self.added_plan_check_ids),
+            "removed_plan_check_ids": list(self.removed_plan_check_ids),
+            "changed_plan_check_ids": list(self.changed_plan_check_ids),
             "added_event_ids": list(self.added_event_ids),
             "removed_event_ids": list(self.removed_event_ids),
             "changed_event_ids": list(self.changed_event_ids),
@@ -837,6 +866,16 @@ def query_review_workspace_execution_release(
     return query_review_workspace_execution(value.report, query)
 
 
+def query_review_workspace_execution_release_timeline(
+    release: ReviewWorkspaceOfflineExecutionRelease | str | Path,
+    query: ReviewWorkspaceExecutionTimelineQuery | Mapping[str, Any] | None = None,
+) -> ReviewWorkspaceExecutionTimelineResult:
+    """Apply the verified release's event-timeline contract offline."""
+
+    value = _as_release(release)
+    return query_review_workspace_execution_timeline(value.report, query)
+
+
 def _address_map(items: Iterable[Any], identifier: str) -> dict[str, str]:
     result: dict[str, str] = {}
     for item in items:
@@ -908,6 +947,31 @@ def diff_review_workspace_execution_releases(
     added_checks = tuple(sorted(check_right - check_left))
     removed_checks = tuple(sorted(check_left - check_right))
     changed_checks = tuple(sorted(item for item in check_left & check_right if left_checks[item] != right_checks[item]))
+    left_plan_actions = _address_map(left_value.plan.actions, "action_id")
+    right_plan_actions = _address_map(right_value.plan.actions, "action_id")
+    left_plan_lanes = _address_map(left_value.plan.lanes, "lane")
+    right_plan_lanes = _address_map(right_value.plan.lanes, "lane")
+    left_plan_checks = _address_map(left_value.plan.checks, "check_id")
+    right_plan_checks = _address_map(right_value.plan.checks, "check_id")
+
+    def _changed_ids(left: Mapping[str, str], right: Mapping[str, str]) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+        left_ids = set(left)
+        right_ids = set(right)
+        return (
+            tuple(sorted(right_ids - left_ids)),
+            tuple(sorted(left_ids - right_ids)),
+            tuple(sorted(item for item in left_ids & right_ids if left[item] != right[item])),
+        )
+
+    added_plan_actions, removed_plan_actions, changed_plan_actions = _changed_ids(
+        left_plan_actions, right_plan_actions
+    )
+    added_plan_lanes, removed_plan_lanes, changed_plan_lanes = _changed_ids(
+        left_plan_lanes, right_plan_lanes
+    )
+    added_plan_checks, removed_plan_checks, changed_plan_checks = _changed_ids(
+        left_plan_checks, right_plan_checks
+    )
     left_artifacts = {
         _text(item.get("artifact_id"), "artifact_id"): _text(item.get("content_address"), "artifact.content_address")
         for item in left_value.manifest.get("artifacts", ())
@@ -930,6 +994,18 @@ def diff_review_workspace_execution_releases(
         "right_release_id": right_value.release_id,
         "left_execution_address": left_value.execution_address,
         "right_execution_address": right_value.execution_address,
+        "left_plan_address": left_value.plan_address,
+        "right_plan_address": right_value.plan_address,
+        "plan_changed": left_value.plan_address != right_value.plan_address,
+        "added_plan_action_ids": added_plan_actions,
+        "removed_plan_action_ids": removed_plan_actions,
+        "changed_plan_action_ids": changed_plan_actions,
+        "added_plan_lane_ids": added_plan_lanes,
+        "removed_plan_lane_ids": removed_plan_lanes,
+        "changed_plan_lane_ids": changed_plan_lanes,
+        "added_plan_check_ids": added_plan_checks,
+        "removed_plan_check_ids": removed_plan_checks,
+        "changed_plan_check_ids": changed_plan_checks,
         "added_event_ids": added_events,
         "removed_event_ids": removed_events,
         "changed_event_ids": changed_events,
@@ -991,6 +1067,13 @@ def review_workspace_execution_release_schema() -> dict[str, Any]:
             "manifest": {"type": "object"},
             "content_address": {"type": "string"},
         },
+        "query_views": ["actions", "events"],
+        "event_timeline": {
+            "query_version": "review-workspace-execution-timeline-query-v1",
+            "ordering": "ascending ledger sequence",
+            "facets": ["kinds", "action_ids", "check_ids", "reference_addresses"],
+            "replay_verified": True,
+        },
         "artifact_filenames": sorted(_REQUIRED_ARTIFACTS),
         "source_plan": {
             "required": True,
@@ -1025,6 +1108,8 @@ def review_workspace_execution_release_capabilities() -> dict[str, Any]:
         "event_stream_reconciliation": True,
         "offline_typed_loading": True,
         "bounded_offline_query": True,
+        "event_timeline_query": True,
+        "sequence_pagination": True,
         "release_diff": True,
         "symlink_and_path_safety": True,
         "public_boundary_audit": True,
@@ -1051,6 +1136,7 @@ __all__ = [
     "diff_review_workspace_execution_releases",
     "load_review_workspace_execution_release",
     "query_review_workspace_execution_release",
+    "query_review_workspace_execution_release_timeline",
     "review_workspace_execution_release_capabilities",
     "review_workspace_execution_release_schema",
     "verify_and_load_review_workspace_execution_release",

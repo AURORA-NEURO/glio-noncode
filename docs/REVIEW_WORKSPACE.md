@@ -142,6 +142,15 @@ kind, action ID, event kind, priority, or text, and exports deterministic JSON,
 Markdown, action CSV, event CSV, and check CSV. The ledger is operational only:
 it does not alter the dossier, evidence, plan, or scientific conclusion.
 
+The same execution query surface accepts `view=events` (or the CLI
+`--view events`) for a first-class ordered event timeline. Timeline rows carry
+their zero-based ledger sequence, typed transition, predecessor address,
+occurrence instant, check and reference addresses, and a row content address.
+They support exact kind, action, event, check, and reference filters; bounded
+text and occurrence-range filters; sequence windows; pagination; and complete-
+match facets for kinds, actions, checks, and references. Timeline results are
+derived only from the replay-verified report and never create a second ledger.
+
 ## Portable execution release
 
 `review-workspace-plan-execution-release` packages eleven exact-byte artifacts:
@@ -156,10 +165,12 @@ reconciliation, manifest bytes, and the public boundary. A verified package can
 be loaded, queried, and diffed without a local runtime or plan store.
 
 `review-workspace-plan-execution-release-query` applies the live bounded action
-filters to a verified package. `review-workspace-plan-execution-release-diff`
-compares event IDs, action status/address changes, check changes, and artifact
-addresses between two verified packages. Release operations are read-only at
-the API boundary; filesystem materialization remains an explicit CLI action.
+filters to a verified package; pass `--view events` for the same offline event
+timeline and its sequence-aware facets. `review-workspace-plan-execution-release-diff`
+compares source-plan action, lane, and check changes in addition to event IDs,
+action status/address changes, execution checks, and artifact addresses between
+two verified packages. Release operations are read-only at the API boundary;
+filesystem materialization remains an explicit CLI action.
 
 ## API
 
@@ -187,17 +198,21 @@ accepts `baseline_run_id` plus an optional JSON `config` object. The nested
 `GET /v1/review-workspace/plan/execution/schema` and
 `GET /v1/review-workspace/plan/execution/capabilities` expose the append-only
 execution contract. `GET /v1/runs/{run_id}/review-workspace/plan/execution`
-replays the local ledger; `/execution/query` applies bounded action filters.
-Ledger writes remain an explicit CLI operation so the HTTP service stays
-read-only.
+replays the local ledger; `/execution/query` applies bounded action filters by
+default and accepts `view=events` for the ordered timeline. Timeline filters
+include `kind`, `event_id`, `action_id`, `check_id`, `reference_address`,
+`occurred_from`, `occurred_to`, `sequence_start`, `sequence_end`, `text`,
+`offset`, and `limit`. Ledger writes remain an explicit CLI operation so the
+HTTP service stays read-only.
 
 `GET /v1/review-workspace/plan/execution-release/schema` and
 `GET /v1/review-workspace/plan/execution-release/capabilities` expose the
 portable handoff contract. `GET
 /v1/runs/{run_id}/review-workspace/plan/execution-release` returns the current
 release projection in memory, and `/execution-release/query` applies its
-bounded filters. The HTTP release projection is read-only and does not write a
-filesystem package.
+bounded filters. Add `view=events` to query the verified event timeline with
+the same ordering and facets. The HTTP release projection is read-only and does
+not write a filesystem package.
 
 ## Offline release operations
 

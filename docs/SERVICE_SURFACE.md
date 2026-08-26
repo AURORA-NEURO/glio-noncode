@@ -157,6 +157,7 @@ report or runtime from which it was derived.
 | GET | `/v1/runs/{run_id}/review-workspace/plan/query` | Filter and page plan actions with complete-match facets |
 | GET | `/v1/runs/{run_id}/review-workspace/plan/execution` | Replay the local review-plan execution ledger |
 | GET | `/v1/runs/{run_id}/review-workspace/plan/execution/query` | Filter replayed execution actions with complete-match facets |
+| GET | `/v1/runs/{run_id}/review-workspace/plan/execution/query?view=events` | Return the ordered replay-verified execution event timeline with sequence, filters, and facets |
 | GET | `/v1/runs/{run_id}/workspace/closure` | Return the complete content-addressed run workspace closure |
 | GET | `/v1/runs/{run_id}/workspace/history` | Rebuild every verified dossier snapshot as a workspace timeline |
 | GET | `/v1/runs/{run_id}/workspace/compare` | Compare two historical workspace snapshots by public record identity |

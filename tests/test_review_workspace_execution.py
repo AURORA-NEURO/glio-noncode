@@ -26,6 +26,12 @@ from glio_noncode.review_workspace_execution_exports import (
     render_review_workspace_execution_markdown,
     review_workspace_execution_export_payloads,
 )
+from glio_noncode.review_workspace_execution_timeline import (
+    ReviewWorkspaceExecutionTimelineQuery,
+    query_review_workspace_execution_timeline,
+    review_workspace_execution_timeline_capabilities,
+    review_workspace_execution_timeline_schema,
+)
 from glio_noncode.review_workspace_plan import build_review_workspace_plan
 from glio_noncode.runtime import CaseRuntime
 
@@ -197,6 +203,58 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
             self.assertNotIn("subject_id", _keys(report.to_dict()))
             self.assertNotIn("agent_id", _keys(report.to_dict()))
 
+    def test_event_timeline_is_sequence_aware_faceted_and_bounded(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            _, _, plan = self._context(directory)
+            action = plan.actions[0]
+            start = self._event(
+                plan,
+                action,
+                "timeline-start",
+                ReviewPlanExecutionEventKind.START,
+                "2026-08-25T12:00:00Z",
+                reason="open public review step",
+            )
+            complete = self._event(
+                plan,
+                action,
+                "timeline-complete",
+                ReviewPlanExecutionEventKind.COMPLETE,
+                "2026-08-25T12:01:00Z",
+                previous=start.content_address,
+                checks=action.required_checks,
+                reason="required checks observed",
+            )
+            report = replay_review_workspace_plan_execution(plan, (start, complete))
+            result = query_review_workspace_execution_timeline(
+                report,
+                ReviewWorkspaceExecutionTimelineQuery(
+                    kind="complete",
+                    check_id=action.required_checks[0],
+                    occurred_from="2026-08-25T12:00:30Z",
+                    sequence_start=1,
+                    limit=1,
+                ),
+            )
+            self.assertTrue(result.accepted)
+            self.assertEqual(result.total_count, 1)
+            self.assertEqual(result.rows[0].sequence, 1)
+            self.assertEqual(result.rows[0].event.event_id, "timeline-complete")
+            self.assertEqual(result.first_sequence, 1)
+            self.assertEqual(result.last_sequence, 1)
+            self.assertEqual(result.facets["kinds"], {"complete": 1})
+            self.assertEqual(result, query_review_workspace_execution_timeline(report, result.query))
+            self.assertTrue(review_workspace_execution_timeline_capabilities()["sequence_pagination"])
+            self.assertEqual(
+                review_workspace_execution_timeline_schema()["ordering"]["field"],
+                "sequence",
+            )
+            with self.assertRaises(ValidationError):
+                ReviewWorkspaceExecutionTimelineQuery(
+                    occurred_from="2026-08-25T13:00:00Z",
+                    occurred_to="2026-08-25T12:00:00Z",
+                )
+
     def test_cli_event_append_and_api_read_query_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             runtime, dossier, plan = self._context(directory)
@@ -272,6 +330,23 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 0,
             )
             self.assertEqual(json.loads(release_query.read_text(encoding="utf-8"))["total_count"], 1)
+            release_events = Path(directory) / "execution-release-events.json"
+            self.assertEqual(
+                main([
+                    "review-workspace-plan-execution-release-query",
+                    str(release),
+                    "--view",
+                    "events",
+                    "--kind",
+                    "start",
+                    "--output",
+                    str(release_events),
+                ]),
+                0,
+            )
+            event_payload = json.loads(release_events.read_text(encoding="utf-8"))
+            self.assertEqual(event_payload["total_count"], 1)
+            self.assertEqual(event_payload["rows"][0]["sequence"], 0)
             server = create_server("127.0.0.1", 0, directory)
             thread = Thread(target=server.serve_forever, daemon=True)
             thread.start()
@@ -292,6 +367,17 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 payload = json.loads(response.read())
                 self.assertEqual(payload["total_count"], 1)
                 self.assertEqual(payload["rows"][0]["action_id"], action.action_id)
+                params = urlencode({"view": "events", "kind": "start", "limit": "2"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                timeline_payload = json.loads(response.read())
+                self.assertEqual(timeline_payload["total_count"], 1)
+                self.assertEqual(timeline_payload["rows"][0]["sequence"], 0)
+                self.assertEqual(timeline_payload["rows"][0]["event"]["event_id"], "cli-start")
                 connection.request("GET", "/v1/review-workspace/plan/execution-release/schema")
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
@@ -313,6 +399,16 @@ class ReviewWorkspaceExecutionTests(unittest.TestCase):
                 response = connection.getresponse()
                 self.assertEqual(response.status, 200)
                 self.assertEqual(json.loads(response.read())["total_count"], 1)
+                params = urlencode({"view": "events", "kind": "start", "limit": "2"})
+                connection.request(
+                    "GET",
+                    f"/v1/runs/{dossier.run_id}/review-workspace/plan/execution-release/query?{params}",
+                )
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                release_timeline_payload = json.loads(response.read())
+                self.assertEqual(release_timeline_payload["total_count"], 1)
+                self.assertEqual(release_timeline_payload["rows"][0]["sequence"], 0)
                 connection.close()
             finally:
                 server.shutdown()

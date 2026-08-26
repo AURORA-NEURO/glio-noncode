@@ -16,11 +16,13 @@ from glio_noncode.review_workspace_execution_release import (
     diff_review_workspace_execution_releases,
     load_review_workspace_execution_release,
     query_review_workspace_execution_release,
+    query_review_workspace_execution_release_timeline,
     review_workspace_execution_release_capabilities,
     review_workspace_execution_release_schema,
     verify_review_workspace_execution_release,
     write_review_workspace_execution_release,
 )
+from glio_noncode.review_workspace_execution_timeline import ReviewWorkspaceExecutionTimelineQuery
 from glio_noncode.review_workspace_plan import build_review_workspace_plan, review_workspace_plan_from_mapping
 from glio_noncode.runtime import CaseRuntime
 from glio_noncode.serialization import canonical_json, content_hash, hash_bytes
@@ -58,9 +60,18 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
             self.assertEqual(query.total_count, 1)
             identity = diff_review_workspace_execution_releases(destination, destination)
             self.assertTrue(identity.accepted)
+            self.assertFalse(identity.plan_changed)
+            self.assertEqual(identity.left_plan_address, plan.content_address)
+            self.assertEqual(identity.added_plan_action_ids, ())
             self.assertEqual(identity.added_event_ids, ())
             self.assertEqual(identity.changed_artifact_ids, ())
             self.assertEqual(identity.content_address, diff_review_workspace_execution_releases(loaded, loaded).content_address)
+            timeline = query_review_workspace_execution_release_timeline(
+                loaded,
+                ReviewWorkspaceExecutionTimelineQuery(limit=3),
+            )
+            self.assertTrue(timeline.accepted)
+            self.assertEqual(timeline.total_count, report.event_count)
             self.assertTrue(dossier.run_id)
 
     def test_report_hydration_rejects_derived_address_tampering(self) -> None:
@@ -126,7 +137,10 @@ class ReviewWorkspaceExecutionReleaseTests(unittest.TestCase):
         capabilities = review_workspace_execution_release_capabilities()
         self.assertEqual(schema["version"], "review-workspace-execution-release-schema-v1")
         self.assertEqual(len(schema["artifact_filenames"]), 11)
+        self.assertEqual(schema["query_views"], ["actions", "events"])
+        self.assertTrue(schema["event_timeline"]["replay_verified"])
         self.assertTrue(capabilities["independent_manifest_verification"])
+        self.assertTrue(capabilities["event_timeline_query"])
         self.assertTrue(capabilities["public_boundary_audit"])
 
     def test_source_plan_hydration_rejects_graph_address_tampering(self) -> None:
