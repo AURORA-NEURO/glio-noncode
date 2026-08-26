@@ -177,6 +177,31 @@ from .release_assurance_attestation_registry_store import (
     release_assurance_attestation_registry_store_schema,
     replay_release_assurance_attestation_registry_store,
 )
+from .release_assurance_attestation_registry_store_packet import (
+    build_release_assurance_attestation_registry_store_packet,
+    release_assurance_attestation_registry_store_packet_capabilities,
+    release_assurance_attestation_registry_store_packet_schema,
+    verify_release_assurance_attestation_registry_store_packet,
+    write_release_assurance_attestation_registry_store_packet,
+)
+from .release_assurance_attestation_registry_store_gate import (
+    build_release_assurance_attestation_registry_store_gate_policy,
+    build_release_assurance_attestation_registry_store_gate_plan,
+    diff_release_assurance_attestation_registry_store_gate_state,
+    evaluate_release_assurance_attestation_registry_store_gate,
+    query_release_assurance_attestation_registry_store_gate,
+    release_assurance_attestation_registry_store_gate_capabilities,
+    release_assurance_attestation_registry_store_gate_csv,
+    release_assurance_attestation_registry_store_gate_markdown,
+    release_assurance_attestation_registry_store_gate_schema,
+)
+from .release_assurance_attestation_registry_store_gate_packet import (
+    build_release_assurance_attestation_registry_store_gate_packet,
+    release_assurance_attestation_registry_store_gate_packet_capabilities,
+    release_assurance_attestation_registry_store_gate_packet_schema,
+    verify_release_assurance_attestation_registry_store_gate_packet,
+    write_release_assurance_attestation_registry_store_gate_packet,
+)
 from .atlas_alpha import (
     EnhancerPromoterSilencerClassifier,
     MethylationTrackHarmonizer,
@@ -3524,6 +3549,12 @@ def build_parser() -> argparse.ArgumentParser:
             "registry-store-query",
             "registry-store-replay",
             "registry-store-diff",
+            "registry-store-packet",
+            "registry-store-gate",
+            "registry-store-gate-query",
+            "registry-store-gate-plan",
+            "registry-store-gate-diff",
+            "registry-store-gate-packet",
         ),
         default="attestation",
     )
@@ -3556,6 +3587,11 @@ def build_parser() -> argparse.ArgumentParser:
     release_assurance_attestation.add_argument("--store-max-entries", default=256, type=int)
     release_assurance_attestation.add_argument("--store-max-operations", default=1024, type=int)
     release_assurance_attestation.add_argument("--fail-fast", action="store_true")
+    release_assurance_attestation.add_argument("--gate-id", default=None)
+    release_assurance_attestation.add_argument("--gate-packet-directory", default=None)
+    release_assurance_attestation.add_argument("--gate-no-packet", action="store_true")
+    release_assurance_attestation.add_argument("--gate-allow-rejections", action="store_true")
+    release_assurance_attestation.add_argument("--gate-no-baseline", action="store_true")
     release_assurance_attestation.add_argument("--resource", default="components")
     release_assurance_attestation.add_argument("--component-id", default=None)
     release_assurance_attestation.add_argument("--category", default=None)
@@ -3583,6 +3619,18 @@ def build_parser() -> argparse.ArgumentParser:
     )
     release_assurance_attestation_registry_verify.add_argument("directory")
     release_assurance_attestation_registry_verify.add_argument("--output", default=None)
+    release_assurance_attestation_registry_store_verify = subparsers.add_parser(
+        "release-assurance-attestation-registry-store-packet-verify",
+        help="verify an on-disk longitudinal attestation-registry store packet",
+    )
+    release_assurance_attestation_registry_store_verify.add_argument("directory")
+    release_assurance_attestation_registry_store_verify.add_argument("--output", default=None)
+    release_assurance_attestation_registry_store_gate_verify = subparsers.add_parser(
+        "release-assurance-attestation-registry-store-gate-packet-verify",
+        help="verify an on-disk longitudinal attestation-registry store gate packet",
+    )
+    release_assurance_attestation_registry_store_gate_verify.add_argument("directory")
+    release_assurance_attestation_registry_store_gate_verify.add_argument("--output", default=None)
     public_surface_audit = subparsers.add_parser(
         "public-surface-audit",
         help="audit repository-wide service, bundle, schema, and closure projections",
@@ -23607,6 +23655,9 @@ def main(argv: list[str] | None = None) -> int:
                     "registry": release_assurance_attestation_registry_capabilities(),
                     "registry_packet": release_assurance_attestation_registry_packet_capabilities(),
                     "registry_store": release_assurance_attestation_registry_store_capabilities(),
+                    "registry_store_packet": release_assurance_attestation_registry_store_packet_capabilities(),
+                    "registry_store_gate": release_assurance_attestation_registry_store_gate_capabilities(),
+                    "registry_store_gate_packet": release_assurance_attestation_registry_store_gate_packet_capabilities(),
                 }
                 _write_json(payload, args.output)
                 return 0
@@ -23637,6 +23688,9 @@ def main(argv: list[str] | None = None) -> int:
                     "registry_schema": release_assurance_attestation_registry_schema(),
                     "registry_packet_schema": release_assurance_attestation_registry_packet_schema(),
                     "registry_store_schema": release_assurance_attestation_registry_store_schema(),
+                    "registry_store_packet_schema": release_assurance_attestation_registry_store_packet_schema(),
+                    "registry_store_gate_schema": release_assurance_attestation_registry_store_gate_schema(),
+                    "registry_store_gate_packet_schema": release_assurance_attestation_registry_store_gate_packet_schema(),
                 }
             elif args.plane == "runtime":
                 if args.format == "markdown":
@@ -23746,6 +23800,145 @@ def main(argv: list[str] | None = None) -> int:
                     )
                     return 0 if store.accepted else 2
                 payload = store.to_dict()
+            elif args.plane == "registry-store-packet":
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                store = build_release_assurance_attestation_registry_store(
+                    registry,
+                    store_id=args.store_id,
+                )
+                packet = build_release_assurance_attestation_registry_store_packet(store)
+                if args.destination:
+                    write_release_assurance_attestation_registry_store_packet(
+                        packet,
+                        args.destination,
+                        allow_existing=args.allow_existing,
+                    )
+                payload = packet.to_dict()
+            elif args.plane == "registry-store-gate-packet":
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                store = build_release_assurance_attestation_registry_store(
+                    registry,
+                    store_id=args.store_id,
+                )
+                policy = build_release_assurance_attestation_registry_store_gate_policy(
+                    gate_id=args.gate_id or f"{args.store_id}-gate",
+                    store_id=args.store_id,
+                    registry_id=args.registry_id,
+                    require_packet=not args.gate_no_packet,
+                    require_no_rejections=not args.gate_allow_rejections,
+                    require_baseline_continuity=not args.gate_no_baseline,
+                )
+                packet_verification = (
+                    None
+                    if not args.gate_packet_directory
+                    else verify_release_assurance_attestation_registry_store_packet(
+                        args.gate_packet_directory
+                    )
+                )
+                gate = evaluate_release_assurance_attestation_registry_store_gate(
+                    store,
+                    policy=policy,
+                    packet_verification=packet_verification,
+                )
+                packet = build_release_assurance_attestation_registry_store_gate_packet(gate)
+                if args.destination:
+                    write_release_assurance_attestation_registry_store_gate_packet(
+                        packet,
+                        args.destination,
+                        allow_existing=args.allow_existing,
+                    )
+                payload = packet.to_dict()
+            elif args.plane in {
+                "registry-store-gate",
+                "registry-store-gate-query",
+                "registry-store-gate-plan",
+                "registry-store-gate-diff",
+            }:
+                registry = build_release_assurance_attestation_registry(
+                    [attestation], registry_id=args.registry_id
+                )
+                store = build_release_assurance_attestation_registry_store(
+                    registry,
+                    store_id=args.store_id,
+                )
+                policy = build_release_assurance_attestation_registry_store_gate_policy(
+                    gate_id=args.gate_id or f"{args.store_id}-gate",
+                    store_id=args.store_id,
+                    registry_id=args.registry_id,
+                    require_packet=not args.gate_no_packet,
+                    require_no_rejections=not args.gate_allow_rejections,
+                    require_baseline_continuity=not args.gate_no_baseline,
+                )
+                packet_verification = (
+                    None
+                    if not args.gate_packet_directory
+                    else verify_release_assurance_attestation_registry_store_packet(
+                        args.gate_packet_directory
+                    )
+                )
+                if args.plane in {"registry-store-gate", "registry-store-gate-query"}:
+                    gate = evaluate_release_assurance_attestation_registry_store_gate(
+                        store,
+                        policy=policy,
+                        packet_verification=packet_verification,
+                    )
+                    if args.plane == "registry-store-gate-query":
+                        payload = query_release_assurance_attestation_registry_store_gate(
+                            gate,
+                            category=args.category,
+                            severity=args.severity,
+                            failed_only=args.failed_only,
+                            text=args.text,
+                            offset=args.offset,
+                            limit=args.limit,
+                        ).to_dict()
+                    elif args.format == "markdown":
+                        _write_text(
+                            release_assurance_attestation_registry_store_gate_markdown(gate).decode("utf-8"),
+                            args.output,
+                        )
+                        return 0 if gate.accepted else 2
+                    elif args.format == "csv":
+                        _write_text(
+                            release_assurance_attestation_registry_store_gate_csv(gate).decode("utf-8"),
+                            args.output,
+                        )
+                        return 0 if gate.accepted else 2
+                    else:
+                        payload = gate.to_dict()
+                elif args.plane == "registry-store-gate-plan":
+                    comparison = run_release_assurance_attestation(
+                        attestation_id=f"{args.attestation_id}-comparison",
+                        bundle_id=args.compare_bundle_id or f"{args.bundle_id}-comparison",
+                        run_id=args.compare_run_id or f"{args.run_id}-comparison",
+                    ).attestation
+                    payload = build_release_assurance_attestation_registry_store_gate_plan(
+                        store,
+                        comparison,
+                        policy=policy,
+                        expected_head_address=args.expected_head_address,
+                    ).to_dict()
+                else:
+                    comparison = run_release_assurance_attestation(
+                        attestation_id=f"{args.attestation_id}-comparison",
+                        bundle_id=args.compare_bundle_id or f"{args.bundle_id}-comparison",
+                        run_id=args.compare_run_id or f"{args.run_id}-comparison",
+                    ).attestation
+                    comparison_registry = build_release_assurance_attestation_registry(
+                        [attestation, comparison], registry_id=args.registry_id
+                    )
+                    comparison_store = build_release_assurance_attestation_registry_store(
+                        comparison_registry,
+                        store_id=args.store_id,
+                    )
+                    payload = diff_release_assurance_attestation_registry_store_gate_state(
+                        store,
+                        comparison_store,
+                    ).to_dict()
             elif args.plane in {
                 "registry-store-append",
                 "registry-store-batch",
@@ -23864,6 +24057,14 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if verification.accepted else 2
         if args.command == "release-assurance-attestation-registry-packet-verify":
             verification = verify_release_assurance_attestation_registry_packet(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "release-assurance-attestation-registry-store-packet-verify":
+            verification = verify_release_assurance_attestation_registry_store_packet(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "release-assurance-attestation-registry-store-gate-packet-verify":
+            verification = verify_release_assurance_attestation_registry_store_gate_packet(args.directory)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
         if args.command == "public-surface-audit":

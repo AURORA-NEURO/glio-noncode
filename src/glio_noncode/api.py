@@ -557,6 +557,29 @@ from .release_assurance_attestation_registry_store import (
 from .release_assurance_attestation_registry_store_contracts import (
     ReleaseAssuranceAttestationRegistryStore,
 )
+from .release_assurance_attestation_registry_store_packet import (
+    build_release_assurance_attestation_registry_store_packet,
+    release_assurance_attestation_registry_store_packet_capabilities,
+    release_assurance_attestation_registry_store_packet_schema,
+    verify_release_assurance_attestation_registry_store_packet,
+)
+from .release_assurance_attestation_registry_store_gate import (
+    build_release_assurance_attestation_registry_store_gate_plan,
+    diff_release_assurance_attestation_registry_store_gate_state,
+    evaluate_release_assurance_attestation_registry_store_gate,
+    query_release_assurance_attestation_registry_store_gate,
+    release_assurance_attestation_registry_store_gate_capabilities,
+    release_assurance_attestation_registry_store_gate_schema,
+)
+from .release_assurance_attestation_registry_store_gate_contracts import (
+    ReleaseAssuranceAttestationRegistryStoreGate,
+)
+from .release_assurance_attestation_registry_store_gate_packet import (
+    build_release_assurance_attestation_registry_store_gate_packet,
+    release_assurance_attestation_registry_store_gate_packet_capabilities,
+    release_assurance_attestation_registry_store_gate_packet_schema,
+    verify_release_assurance_attestation_registry_store_gate_packet,
+)
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1133,17 +1156,85 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/release-assurance/attestation/registry/store/diff",
             "/v1/release-assurance/attestation/registry/store/schema",
             "/v1/release-assurance/attestation/registry/store/capabilities",
+            "/v1/release-assurance/attestation/registry/store/packet",
+            "/v1/release-assurance/attestation/registry/store/packet/verify",
+            "/v1/release-assurance/attestation/registry/store/packet/schema",
+            "/v1/release-assurance/attestation/registry/store/packet/capabilities",
+            "/v1/release-assurance/attestation/registry/store/gate",
+            "/v1/release-assurance/attestation/registry/store/gate/query",
+            "/v1/release-assurance/attestation/registry/store/gate/schema",
+            "/v1/release-assurance/attestation/registry/store/gate/capabilities",
+            "/v1/release-assurance/attestation/registry/store/gate/packet",
+            "/v1/release-assurance/attestation/registry/store/gate/packet/verify",
+            "/v1/release-assurance/attestation/registry/store/gate/packet/schema",
+            "/v1/release-assurance/attestation/registry/store/gate/packet/capabilities",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 bundle_id = self._query_value(query, "bundle_id") or "glio-noncode-release-assurance-attestation"
                 run_id = self._query_value(query, "run_id") or "glio-noncode-release-assurance-attestation-run"
                 store_id = self._query_value(query, "store_id") or "glio-noncode-release-assurance-attestation-store"
+                if path.endswith("/gate/packet/capabilities"):
+                    self._write(
+                        HTTPStatus.OK,
+                        release_assurance_attestation_registry_store_gate_packet_capabilities(),
+                    )
+                    return
+                if path.endswith("/gate/packet/schema"):
+                    self._write(
+                        HTTPStatus.OK,
+                        release_assurance_attestation_registry_store_gate_packet_schema(),
+                    )
+                    return
+                if path.endswith("/gate/capabilities"):
+                    self._write(
+                        HTTPStatus.OK,
+                        release_assurance_attestation_registry_store_gate_capabilities(),
+                    )
+                    return
+                if path.endswith("/gate/schema"):
+                    self._write(
+                        HTTPStatus.OK,
+                        release_assurance_attestation_registry_store_gate_schema(),
+                    )
+                    return
+                if path.endswith("/packet/capabilities"):
+                    self._write(
+                        HTTPStatus.OK,
+                        release_assurance_attestation_registry_store_packet_capabilities(),
+                    )
+                    return
+                if path.endswith("/packet/schema"):
+                    self._write(
+                        HTTPStatus.OK,
+                        release_assurance_attestation_registry_store_packet_schema(),
+                    )
+                    return
                 if path.endswith("/capabilities"):
                     self._write(HTTPStatus.OK, release_assurance_attestation_registry_store_capabilities())
                     return
                 if path.endswith("/schema"):
                     self._write(HTTPStatus.OK, release_assurance_attestation_registry_store_schema())
+                    return
+                if path.endswith("/gate/packet/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for gate packet verification")
+                    self._write(
+                        HTTPStatus.OK,
+                        verify_release_assurance_attestation_registry_store_gate_packet(
+                            directory
+                        ).to_dict(),
+                    )
+                    return
+                if path.endswith("/packet/verify"):
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for store packet verification")
+                    self._write(
+                        HTTPStatus.OK,
+                        verify_release_assurance_attestation_registry_store_packet(directory).to_dict(),
+                    )
                     return
                 attestation = self._release_assurance_attestation(bundle_id, run_id)
                 registry = build_release_assurance_attestation_registry(
@@ -1152,7 +1243,44 @@ class ApiHandler(BaseHTTPRequestHandler):
                 store = build_release_assurance_attestation_registry_store(
                     registry, store_id=store_id
                 )
-                if path.endswith("/audit"):
+                if path.endswith("/gate/packet"):
+                    packet_directory = self._query_value(query, "packet_directory")
+                    packet_verification = (
+                        None
+                        if not packet_directory
+                        else verify_release_assurance_attestation_registry_store_packet(packet_directory)
+                    )
+                    gate = evaluate_release_assurance_attestation_registry_store_gate(
+                        store,
+                        packet_verification=packet_verification,
+                    )
+                    payload = build_release_assurance_attestation_registry_store_gate_packet(
+                        gate
+                    ).to_dict()
+                elif path.endswith("/gate") or path.endswith("/gate/query"):
+                    packet_directory = self._query_value(query, "packet_directory")
+                    packet_verification = (
+                        None
+                        if not packet_directory
+                        else verify_release_assurance_attestation_registry_store_packet(packet_directory)
+                    )
+                    gate = evaluate_release_assurance_attestation_registry_store_gate(
+                        store,
+                        packet_verification=packet_verification,
+                    )
+                    if path.endswith("/gate/query"):
+                        payload = query_release_assurance_attestation_registry_store_gate(
+                            gate,
+                            category=self._query_value(query, "category"),
+                            severity=self._query_value(query, "severity"),
+                            failed_only=self._query_bool(query, "failed_only"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        ).to_dict()
+                    else:
+                        payload = gate.to_dict()
+                elif path.endswith("/audit"):
                     payload = audit_release_assurance_attestation_registry_store(store).to_dict()
                 elif path.endswith("/query"):
                     payload = query_release_assurance_attestation_registry_store_operations(
@@ -1185,6 +1313,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                     payload = diff_release_assurance_attestation_registry_stores(
                         store, comparison_store
                     )
+                elif path.endswith("/packet"):
+                    payload = build_release_assurance_attestation_registry_store_packet(
+                        store
+                    ).to_dict()
                 else:
                     payload = store.to_dict()
                 self._write(
@@ -3957,6 +4089,115 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except (TypeError, ValueError, json.JSONDecodeError) as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/gate/verify":
+            try:
+                payload = self._read_json()
+                source = payload.get("gate", payload)
+                if not isinstance(source, Mapping):
+                    raise ValueError("store gate verification requires a gate object")
+                gate = ReleaseAssuranceAttestationRegistryStoreGate.from_mapping(source)
+                self._write(HTTPStatus.OK if gate.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, gate.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_gate", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/gate/evaluate":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("store"), Mapping):
+                    raise ValueError("store gate evaluation requires a store object")
+                result = evaluate_release_assurance_attestation_registry_store_gate(
+                    payload["store"],
+                    policy=payload.get("policy"),
+                    packet_verification=payload.get("packet_verification"),
+                    baseline=payload.get("baseline"),
+                )
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_gate_evaluation", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/gate/plan":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("store"), Mapping) or not isinstance(payload.get("attestation"), Mapping):
+                    raise ValueError("store gate plan requires store and attestation objects")
+                result = build_release_assurance_attestation_registry_store_gate_plan(
+                    payload["store"],
+                    payload["attestation"],
+                    policy=payload.get("policy"),
+                    expected_head_address=payload.get("expected_head_address"),
+                )
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_gate_plan", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/gate/query":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("gate"), Mapping):
+                    raise ValueError("store gate query requires a gate object")
+                query = payload.get("query", {})
+                if not isinstance(query, Mapping):
+                    raise ValueError("store gate query filters must be an object")
+                result = query_release_assurance_attestation_registry_store_gate(
+                    payload["gate"],
+                    category=query.get("category"),
+                    severity=query.get("severity"),
+                    failed_only=bool(query.get("failed_only", False)),
+                    text=query.get("text"),
+                    offset=int(query.get("offset", 0)),
+                    limit=int(query.get("limit", 50)),
+                )
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_gate_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/gate/diff":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload.get("baseline"), Mapping) or not isinstance(payload.get("candidate"), Mapping):
+                    raise ValueError("store gate diff requires baseline and candidate objects")
+                result = diff_release_assurance_attestation_registry_store_gate_state(
+                    payload["baseline"], payload["candidate"]
+                )
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_gate_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/release-assurance/attestation/registry/store/gate/packet/verify":
+            try:
+                payload = self._read_json()
+                directory = payload.get("directory")
+                if not directory:
+                    raise ValueError("directory is required for gate packet verification")
+                result = verify_release_assurance_attestation_registry_store_gate_packet(directory)
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_release_assurance_attestation_registry_store_gate_packet", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

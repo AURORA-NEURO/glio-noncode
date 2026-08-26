@@ -613,6 +613,24 @@ POST /v1/release-assurance/attestation/registry/store/append
 POST /v1/release-assurance/attestation/registry/store/append-batch
 POST /v1/release-assurance/attestation/registry/store/replay
 POST /v1/release-assurance/attestation/registry/store/diff
+GET /v1/release-assurance/attestation/registry/store/packet
+GET /v1/release-assurance/attestation/registry/store/packet/verify?directory=...
+GET /v1/release-assurance/attestation/registry/store/packet/schema
+GET /v1/release-assurance/attestation/registry/store/packet/capabilities
+GET /v1/release-assurance/attestation/registry/store/gate
+GET /v1/release-assurance/attestation/registry/store/gate/query
+GET /v1/release-assurance/attestation/registry/store/gate/schema
+GET /v1/release-assurance/attestation/registry/store/gate/capabilities
+POST /v1/release-assurance/attestation/registry/store/gate/verify
+POST /v1/release-assurance/attestation/registry/store/gate/evaluate
+POST /v1/release-assurance/attestation/registry/store/gate/plan
+POST /v1/release-assurance/attestation/registry/store/gate/query
+POST /v1/release-assurance/attestation/registry/store/gate/diff
+GET /v1/release-assurance/attestation/registry/store/gate/packet
+GET /v1/release-assurance/attestation/registry/store/gate/packet/verify?directory=...
+GET /v1/release-assurance/attestation/registry/store/gate/packet/schema
+GET /v1/release-assurance/attestation/registry/store/gate/packet/capabilities
+POST /v1/release-assurance/attestation/registry/store/gate/packet/verify
 ```
 
 This boundary is address-only and timestamp-free. It closes three component
@@ -633,6 +651,16 @@ provide the current head address for optimistic concurrency; stale heads are
 rejected without changing the registry. Store audits reconcile policy, head,
 operation ordinals, operation decision state, and the public boundary. Store
 replay rebuilds from ordered attestations and compares the registry address.
+
+Store packets provide eight exact UTF-8 payloads plus a manifest for atomic,
+offline, fail-closed hydration. The store promotion gate evaluates a fixed
+20-check public denominator and returns a deterministic `ready`, `hold`, or
+`blocked` decision. It supports verified packet requirements, optimistic-head
+preflight plans, baseline continuity, bounded check queries, and addressed store
+diffs; gate routes never expose source attestation payloads.
+The gate packet is a separate six-payload exact-byte handoff for the decision
+and check ledger, with atomic writes, manifest reconciliation, and accepted-only
+offline hydration.
 
 The review endpoints create one deterministic public action row per retained
 check. They expose severity, priority, disposition, and open/closed action

@@ -306,6 +306,13 @@ glio-noncode release-assurance-attestation-registry-packet-verify release-histor
 glio-noncode release-assurance-attestation --plane registry-store --store-id release-history-store
 glio-noncode release-assurance-attestation --plane registry-store-append --store-id release-history-store
 glio-noncode release-assurance-attestation --plane registry-store-audit --store-id release-history-store
+glio-noncode release-assurance-attestation --plane registry-store-packet --store-id release-history-store --destination release-history-store-packet
+glio-noncode release-assurance-attestation-registry-store-packet-verify release-history-store-packet
+glio-noncode release-assurance-attestation --plane registry-store-gate --store-id release-history-store --gate-no-packet
+glio-noncode release-assurance-attestation --plane registry-store-gate-query --store-id release-history-store --gate-no-packet --failed-only
+glio-noncode release-assurance-attestation --plane registry-store-gate-plan --store-id release-history-store --gate-no-packet
+glio-noncode release-assurance-attestation --plane registry-store-gate-packet --store-id release-history-store --gate-no-packet --destination release-history-store-gate-packet
+glio-noncode release-assurance-attestation-registry-store-gate-packet-verify release-history-store-gate-packet
 ```
 
 The read-only API is rooted at `/v1/release-assurance/attestation` and adds
@@ -318,6 +325,19 @@ The operational registry store adds policy-checked append, optimistic head
 checks, duplicate rejection, idempotent retry handling, bounded batch append,
 operation history, audit, replay, and store diffs. Its public JSON, CSV, and
 Markdown projections contain only decisions and addresses.
+Store packets make the same state portable through eight exact UTF-8 payloads
+plus a manifest, atomic writes, exact-byte verification, and offline hydration
+after acceptance.
+
+The store promotion gate evaluates a fixed 20-check denominator across identity,
+acceptance, capacity, audit integrity, operation history, packet verification,
+baseline continuity, and public-boundary safety. It emits `ready/promote`,
+`hold/retain`, or `blocked/block-release`, supports bounded failed-check queries,
+and provides an append preflight plan and state diff. Release policy requires an
+accepted exact-byte packet by default; `--gate-no-packet` is intended only for
+local structural checks.
+The gate packet serializes the accepted or held decision into six exact UTF-8
+payloads plus its manifest for offline review and archiving.
 
 The matching read-only API starts at `GET /v1/release-assurance` and includes
 status, bounded queries, schema, indexes, summaries, observability, graph,

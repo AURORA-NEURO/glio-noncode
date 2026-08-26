@@ -10886,6 +10886,12 @@ from .release_assurance_attestation_registry import *
 from .release_assurance_attestation_registry_packet import *
 from .release_assurance_attestation_registry_store_contracts import *
 from .release_assurance_attestation_registry_store import *
+from .release_assurance_attestation_registry_store_packet_contracts import *
+from .release_assurance_attestation_registry_store_packet import *
+from .release_assurance_attestation_registry_store_gate_contracts import *
+from .release_assurance_attestation_registry_store_gate import *
+from .release_assurance_attestation_registry_store_gate_packet_contracts import *
+from .release_assurance_attestation_registry_store_gate_packet import *
 
 __all__ += sorted(
     {

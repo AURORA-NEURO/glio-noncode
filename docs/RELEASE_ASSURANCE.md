@@ -560,7 +560,97 @@ Registry packet verification checks safe paths, symlinks, exact byte counts,
 content addresses, manifest drift, missing or unexpected files, tampering, and
 restricted public metadata before offline hydration is allowed.
 
+The operational store has its own durable packet boundary. It contains these
+fixed payloads followed by `manifest.json`:
+
+1. `store/store.json`
+2. `store/operations.csv`
+3. `store/policy.json`
+4. `store/head.json`
+5. `store/audit.json`
+6. `store/summary.json`
+7. `store/schema.json`
+8. `store/capabilities.json`
+
+The manifest binds the store, registry, and head addresses. The verifier
+rejects missing, unexpected, duplicate, unsafe, or symlinked paths; reconciles
+byte counts, line counts, and payload addresses; checks manifest denominators
+and fixed payload IDs; scans JSON and text for restricted metadata; and refuses
+offline hydration until every check passes. The destination must be empty
+unless overwrite is explicitly enabled, and each payload is written through an
+atomic sibling replacement:
+
+```text
+glio-noncode release-assurance-attestation --plane registry-store-packet --destination release-history-store-packet
+glio-noncode release-assurance-attestation-registry-store-packet-verify release-history-store-packet
+glio-noncode release-assurance-attestation --plane registry-store-gate --store-id release-history-store --gate-no-packet
+glio-noncode release-assurance-attestation --plane registry-store-gate-query --store-id release-history-store --gate-no-packet --failed-only
+glio-noncode release-assurance-attestation --plane registry-store-gate-plan --store-id release-history-store --gate-no-packet
+glio-noncode release-assurance-attestation --plane registry-store-gate-packet --store-id release-history-store --gate-no-packet --destination release-history-store-gate-packet
+glio-noncode release-assurance-attestation-registry-store-gate-packet-verify release-history-store-gate-packet
+```
+
 This keeps the final handoff reproducible.
+
+### Registry-store promotion gate
+
+The store gate is the release decision boundary over one addressed store state.
+It runs a fixed 20-check denominator covering store and registry identity,
+accepted state, entry and operation capacity, audit integrity, operation
+ordinals and addresses, rejection history, head reconciliation, public metadata
+boundary, exact-byte packet verification, and baseline continuity. Every check
+has a category, severity, observed value, expected value, detail, and content
+address. A gate is `ready` and `promote` only when every check passes. A
+non-critical failure yields `hold` and `retain`; identity, acceptance, boundary,
+or other critical failures yield `blocked` and `block-release`.
+
+The gate does not copy attestation payloads. It binds only the store, registry,
+baseline, policy, packet-verification result, and check addresses. The policy
+requires an accepted packet by default, so a release evaluation without a
+verified packet remains on hold. The explicit `--gate-no-packet` option disables
+that one requirement for local structural checks; production promotion should
+provide `--gate-packet-directory` or the verified packet object through the API.
+The preflight plan applies optimistic head checking before evaluating the
+candidate append, and the diff reports sequence-prefix continuity, entry and
+operation additions/removals, head changes, and content addresses.
+
+The API exposes:
+
+```text
+GET  /v1/release-assurance/attestation/registry/store/gate
+GET  /v1/release-assurance/attestation/registry/store/gate/query
+GET  /v1/release-assurance/attestation/registry/store/gate/schema
+GET  /v1/release-assurance/attestation/registry/store/gate/capabilities
+POST /v1/release-assurance/attestation/registry/store/gate/verify
+POST /v1/release-assurance/attestation/registry/store/gate/evaluate
+POST /v1/release-assurance/attestation/registry/store/gate/plan
+POST /v1/release-assurance/attestation/registry/store/gate/query
+POST /v1/release-assurance/attestation/registry/store/gate/diff
+```
+
+All gate outputs are public-safe, timestamp-free, bounded, and content-addressed.
+
+### Gate decision packet
+
+The gate decision has a separate portable handoff so reviewers can archive the
+decision without copying the operational store. It contains six fixed payloads:
+`gate/gate.json`, `gate/checks.csv`, `gate/policy.json`,
+`gate/summary.json`, `gate/schema.json`, and `gate/capabilities.json`, plus
+`manifest.json`. The manifest binds the gate address, candidate store address,
+identities, exact byte and line counts, and each payload address. Verification
+rejects path traversal, symlinks, duplicates, unexpected files, byte drift,
+invalid gate contracts, manifest drift, and restricted public metadata. Offline
+hydration returns the typed gate only after all checks pass.
+
+The gate packet is exposed at:
+
+```text
+GET  /v1/release-assurance/attestation/registry/store/gate/packet
+GET  /v1/release-assurance/attestation/registry/store/gate/packet/verify?directory=...
+GET  /v1/release-assurance/attestation/registry/store/gate/packet/schema
+GET  /v1/release-assurance/attestation/registry/store/gate/packet/capabilities
+POST /v1/release-assurance/attestation/registry/store/gate/packet/verify
+```
 
 It is deterministic.
 It is bounded.
