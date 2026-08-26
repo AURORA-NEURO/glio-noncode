@@ -729,7 +729,7 @@ schemas, the D01-D16 program-release snapshot, the service-release registry,
 and the service snapshot projections. It rejects attribution,
 language, and direct-private-key paths in runtime projections while allowing
 subject/sample field names only where they are explicitly declared as input
-schema fields. The result is a deterministic 73-surface audit, including the
+schema fields. The result is a deterministic 87-surface audit, including the
 durable service-release handoff, authenticated deployment profile/schema,
 versioned reference manifest/schema, and portable execution-release contracts,
 suitable for local release checks and CI.
@@ -757,6 +757,13 @@ glio-noncode mission-plan-release-query mission-release --kind review --format m
 glio-noncode mission-plan-release-diff left-plan.json right-plan.json --format csv --output mission-diff.csv
 glio-noncode mission-plan-release-runtime mission.json --destination mission-release-runtime --output mission-runtime.json
 glio-noncode mission-plan-release-policy mission-release --policy release-policy.json --format markdown --output mission-policy.md
+glio-noncode mission-plan-release-catalog mission-release left-release --destination release-catalog --output release-catalog.json
+glio-noncode mission-plan-release-catalog-query release-catalog --workflow-kind review --format csv --output review-releases.csv
+glio-noncode mission-plan-release-catalog-diff old-catalog new-catalog --format markdown --output catalog-diff.md
+glio-noncode mission-plan-release-catalog-audit release-catalog --output catalog-audit.json
+glio-noncode mission-plan-release-catalog-report release-catalog --format markdown --output catalog-report.md
+glio-noncode mission-plan-conformance mission-plan.json --output conformance.json
+glio-noncode mission-plan-replay mission-plan.json --format markdown --output replay.md
 ```
 
 Release verifiers reject missing or unexpected files, unsafe paths, symlinks,
@@ -764,6 +771,11 @@ byte drift, address drift, malformed checks, and restricted metadata. Release
 query, diff, and runtime projections remain read-only and research-use only.
 The policy evaluator adds explicit workflow-kind, determinism, resource,
 artifact, warning, and public-boundary gates without authorizing execution.
+Catalogs inventory multiple releases with exact-byte verification and bounded
+queries, semantic audits, and aggregate reports; conformance and replay
+independently reconcile public receipts without executing handlers. Reports
+conserve release counts and expose state, decision, and workflow distributions
+with integer basis-point shares.
 
 The reference boundary is also available directly:
 

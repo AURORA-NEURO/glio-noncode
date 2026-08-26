@@ -1540,6 +1540,68 @@ from .mission_plan_release_policy import (
     mission_plan_release_policy_markdown,
     mission_plan_release_policy_schema,
 )
+from .mission_plan_release_catalog import (
+    build_mission_plan_release_catalog,
+    mission_plan_release_catalog_capabilities,
+    mission_plan_release_catalog_csv,
+    mission_plan_release_catalog_export_payloads,
+    mission_plan_release_catalog_json,
+    mission_plan_release_catalog_markdown,
+    mission_plan_release_catalog_schema,
+    verify_mission_plan_release_catalog,
+    write_mission_plan_release_catalog,
+)
+from .mission_plan_release_catalog_query import (
+    mission_plan_release_catalog_query_capabilities,
+    mission_plan_release_catalog_query_csv,
+    mission_plan_release_catalog_query_export_payloads,
+    mission_plan_release_catalog_query_json,
+    mission_plan_release_catalog_query_markdown,
+    mission_plan_release_catalog_query_schema,
+    query_mission_plan_release_catalog,
+)
+from .mission_plan_release_catalog_diff import (
+    diff_mission_plan_release_catalogs,
+    mission_plan_release_catalog_diff_capabilities,
+    mission_plan_release_catalog_diff_csv,
+    mission_plan_release_catalog_diff_export_payloads,
+    mission_plan_release_catalog_diff_json,
+    mission_plan_release_catalog_diff_markdown,
+    mission_plan_release_catalog_diff_schema,
+)
+from .mission_plan_release_catalog_audit import (
+    build_mission_plan_release_catalog_audit,
+    mission_plan_release_catalog_audit_capabilities,
+    mission_plan_release_catalog_audit_csv,
+    mission_plan_release_catalog_audit_export_payloads,
+    mission_plan_release_catalog_audit_json,
+    mission_plan_release_catalog_audit_markdown,
+    mission_plan_release_catalog_audit_schema,
+)
+from .mission_plan_release_catalog_report import (
+    build_mission_plan_release_catalog_report,
+    mission_plan_release_catalog_report_capabilities,
+    mission_plan_release_catalog_report_csv,
+    mission_plan_release_catalog_report_json,
+    mission_plan_release_catalog_report_markdown,
+    mission_plan_release_catalog_report_schema,
+)
+from .mission_plan_public_conformance import (
+    conform_mission_plan_public,
+    mission_plan_public_conformance_capabilities,
+    mission_plan_public_conformance_csv,
+    mission_plan_public_conformance_export_payloads,
+    mission_plan_public_conformance_json,
+    mission_plan_public_conformance_markdown,
+    mission_plan_public_conformance_schema,
+    mission_plan_public_replay_capabilities,
+    mission_plan_public_replay_csv,
+    mission_plan_public_replay_export_payloads,
+    mission_plan_public_replay_json,
+    mission_plan_public_replay_markdown,
+    mission_plan_public_replay_schema,
+    replay_mission_plan_public,
+)
 from .models import CaseManifest, ReferenceContext, ReviewDecision, VariantIdentity
 from .molecular_atlas_bundle import MolecularAtlasBundleBuilder, MolecularAtlasBundleFormat
 from .molecular_atlas_contracts import default_molecular_atlas_contracts
@@ -6433,6 +6495,124 @@ def build_parser() -> argparse.ArgumentParser:
         "mission-plan-release-policy-capabilities",
         help="emit mission-plan release policy capabilities",
     ).add_argument("--output", default=None)
+    mission_release_catalog = subparsers.add_parser(
+        "mission-plan-release-catalog",
+        help="build a deterministic catalog from public mission-plan releases",
+    )
+    mission_release_catalog.add_argument("inputs", nargs="+", type=str)
+    mission_release_catalog.add_argument("--catalog-id", default="mission-plan-release-catalog")
+    mission_release_catalog.add_argument("--destination", default=None)
+    mission_release_catalog.add_argument("--allow-existing", action="store_true")
+    mission_release_catalog.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog.add_argument("--output", default=None)
+    mission_release_catalog_verify = subparsers.add_parser(
+        "mission-plan-release-catalog-verify",
+        help="verify a materialized mission-plan release catalog",
+    )
+    mission_release_catalog_verify.add_argument("input", type=str)
+    mission_release_catalog_verify.add_argument("--output", default=None)
+    mission_release_catalog_query = subparsers.add_parser(
+        "mission-plan-release-catalog-query",
+        help="query a deterministic mission-plan release catalog",
+    )
+    mission_release_catalog_query.add_argument("input", type=str)
+    mission_release_catalog_query.add_argument("--release-id", default=None)
+    mission_release_catalog_query.add_argument("--plan-id", default=None)
+    mission_release_catalog_query.add_argument("--state", default=None)
+    mission_release_catalog_query.add_argument("--accepted", action="store_true", default=None)
+    mission_release_catalog_query.add_argument("--rejected", action="store_true")
+    mission_release_catalog_query.add_argument("--workflow-kind", default=None)
+    mission_release_catalog_query.add_argument("--min-step-count", type=int, default=None)
+    mission_release_catalog_query.add_argument("--max-step-count", type=int, default=None)
+    mission_release_catalog_query.add_argument("--offset", type=int, default=0)
+    mission_release_catalog_query.add_argument("--limit", type=int, default=50)
+    mission_release_catalog_query.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_query.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-schema",
+        help="emit the mission-plan release catalog schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-capabilities",
+        help="emit mission-plan release catalog capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-query-schema",
+        help="emit the mission-plan release catalog query schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-query-capabilities",
+        help="emit mission-plan release catalog query capabilities",
+    ).add_argument("--output", default=None)
+    mission_release_catalog_diff = subparsers.add_parser(
+        "mission-plan-release-catalog-diff",
+        help="compare two public mission-plan release catalogs",
+    )
+    mission_release_catalog_diff.add_argument("left", type=str)
+    mission_release_catalog_diff.add_argument("right", type=str)
+    mission_release_catalog_diff.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_diff.add_argument("--output", default=None)
+    mission_release_catalog_audit = subparsers.add_parser(
+        "mission-plan-release-catalog-audit",
+        help="audit the semantic integrity of a public mission-plan release catalog",
+    )
+    mission_release_catalog_audit.add_argument("input", type=str)
+    mission_release_catalog_audit.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_audit.add_argument("--output", default=None)
+    mission_release_catalog_report = subparsers.add_parser(
+        "mission-plan-release-catalog-report",
+        help="summarize a public mission-plan release catalog",
+    )
+    mission_release_catalog_report.add_argument("input", type=str)
+    mission_release_catalog_report.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_release_catalog_report.add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-diff-schema",
+        help="emit the mission-plan release catalog diff schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-diff-capabilities",
+        help="emit mission-plan release catalog diff capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-audit-schema",
+        help="emit the mission-plan release catalog audit schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-audit-capabilities",
+        help="emit mission-plan release catalog audit capabilities",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-report-schema",
+        help="emit the mission-plan release catalog report schema",
+    ).add_argument("--output", default=None)
+    subparsers.add_parser(
+        "mission-plan-release-catalog-report-capabilities",
+        help="emit mission-plan release catalog report capabilities",
+    ).add_argument("--output", default=None)
+    mission_conformance = subparsers.add_parser(
+        "mission-plan-conformance",
+        help="independently validate a public mission-plan receipt",
+    )
+    mission_conformance.add_argument("input", type=str)
+    mission_conformance.add_argument("--expected-plan-address", default=None)
+    mission_conformance.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_conformance.add_argument("--output", default=None)
+    mission_replay = subparsers.add_parser(
+        "mission-plan-replay",
+        help="replay public mission-plan conformance without handler execution",
+    )
+    mission_replay.add_argument("input", type=str)
+    mission_replay.add_argument("--expected-plan-address", default=None)
+    mission_replay.add_argument("--format", choices=("json", "markdown", "csv"), default="json")
+    mission_replay.add_argument("--output", default=None)
+    for command, help_text in (
+        ("mission-plan-conformance-schema", "emit the public mission-plan conformance schema"),
+        ("mission-plan-conformance-capabilities", "emit public mission-plan conformance capabilities"),
+        ("mission-plan-replay-schema", "emit the public mission-plan replay schema"),
+        ("mission-plan-replay-capabilities", "emit public mission-plan replay capabilities"),
+    ):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
 
     intake = subparsers.add_parser("intake", help="canonicalize a VCF, TSV, or JSON variant source")
     intake.add_argument("input", type=str)
@@ -15260,6 +15440,138 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "mission-plan-release-policy-capabilities":
             _write_json(mission_plan_release_policy_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog":
+            sources = [path if Path(path).is_dir() else _read_json(path) for path in args.inputs]
+            bundle = build_mission_plan_release_catalog(sources, catalog_id=args.catalog_id)
+            if args.destination is not None:
+                write_mission_plan_release_catalog(bundle, args.destination, allow_existing=args.allow_existing)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_markdown(bundle.catalog), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_csv(bundle.catalog), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_json(bundle.catalog), args.output)
+            return 0 if bundle.accepted else 2
+        if args.command == "mission-plan-release-catalog-verify":
+            verification = verify_mission_plan_release_catalog(args.input)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "mission-plan-release-catalog-query":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            accepted = True if args.accepted else False if args.rejected else None
+            result = query_mission_plan_release_catalog(
+                source,
+                {
+                    "release_id": args.release_id,
+                    "plan_id": args.plan_id,
+                    "state": args.state,
+                    "accepted": accepted,
+                    "workflow_kind": args.workflow_kind,
+                    "min_step_count": args.min_step_count,
+                    "max_step_count": args.max_step_count,
+                    "offset": args.offset,
+                    "limit": args.limit,
+                },
+            )
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_query_markdown(result), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_query_csv(result), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_query_json(result), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-schema":
+            _write_json(mission_plan_release_catalog_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-capabilities":
+            _write_json(mission_plan_release_catalog_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-query-schema":
+            _write_json(mission_plan_release_catalog_query_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-query-capabilities":
+            _write_json(mission_plan_release_catalog_query_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-diff":
+            left = args.left if Path(args.left).is_dir() else _read_json(args.left)
+            right = args.right if Path(args.right).is_dir() else _read_json(args.right)
+            diff = diff_mission_plan_release_catalogs(left, right)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_diff_markdown(diff), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_diff_csv(diff), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_diff_json(diff), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-audit":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            audit = build_mission_plan_release_catalog_audit(source)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_audit_markdown(audit), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_audit_csv(audit), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_audit_json(audit), args.output)
+            return 0 if audit.accepted else 2
+        if args.command == "mission-plan-release-catalog-report":
+            source = args.input if Path(args.input).is_dir() else _read_json(args.input)
+            report = build_mission_plan_release_catalog_report(source)
+            if args.format == "markdown":
+                _write_text(mission_plan_release_catalog_report_markdown(report), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_release_catalog_report_csv(report), args.output)
+            else:
+                _write_text(mission_plan_release_catalog_report_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "mission-plan-release-catalog-diff-schema":
+            _write_json(mission_plan_release_catalog_diff_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-diff-capabilities":
+            _write_json(mission_plan_release_catalog_diff_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-audit-schema":
+            _write_json(mission_plan_release_catalog_audit_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-audit-capabilities":
+            _write_json(mission_plan_release_catalog_audit_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-report-schema":
+            _write_json(mission_plan_release_catalog_report_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-release-catalog-report-capabilities":
+            _write_json(mission_plan_release_catalog_report_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-conformance":
+            source = _read_json(args.input)
+            report = conform_mission_plan_public(source, expected_plan_address=args.expected_plan_address)
+            if args.format == "markdown":
+                _write_text(mission_plan_public_conformance_markdown(report), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_public_conformance_csv(report), args.output)
+            else:
+                _write_text(mission_plan_public_conformance_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "mission-plan-replay":
+            replay = replay_mission_plan_public(_read_json(args.input), expected_plan_address=args.expected_plan_address)
+            if args.format == "markdown":
+                _write_text(mission_plan_public_replay_markdown(replay), args.output)
+            elif args.format == "csv":
+                _write_text(mission_plan_public_replay_csv(replay), args.output)
+            else:
+                _write_text(mission_plan_public_replay_json(replay), args.output)
+            return 0 if replay.accepted else 2
+        if args.command == "mission-plan-conformance-schema":
+            _write_json(mission_plan_public_conformance_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-conformance-capabilities":
+            _write_json(mission_plan_public_conformance_capabilities(), args.output)
+            return 0
+        if args.command == "mission-plan-replay-schema":
+            _write_json(mission_plan_public_replay_schema(), args.output)
+            return 0
+        if args.command == "mission-plan-replay-capabilities":
+            _write_json(mission_plan_public_replay_capabilities(), args.output)
             return 0
         if args.command == "intake":
             input_path = Path(args.input)

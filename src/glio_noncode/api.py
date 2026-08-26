@@ -340,6 +340,39 @@ from .mission_plan_release_policy import (
     mission_plan_release_policy_capabilities,
     mission_plan_release_policy_schema,
 )
+from .mission_plan_release_catalog import (
+    build_mission_plan_release_catalog,
+    mission_plan_release_catalog_capabilities,
+    mission_plan_release_catalog_schema,
+)
+from .mission_plan_release_catalog_query import (
+    mission_plan_release_catalog_query_capabilities,
+    mission_plan_release_catalog_query_schema,
+    query_mission_plan_release_catalog,
+)
+from .mission_plan_release_catalog_diff import (
+    diff_mission_plan_release_catalogs,
+    mission_plan_release_catalog_diff_capabilities,
+    mission_plan_release_catalog_diff_schema,
+)
+from .mission_plan_release_catalog_audit import (
+    build_mission_plan_release_catalog_audit,
+    mission_plan_release_catalog_audit_capabilities,
+    mission_plan_release_catalog_audit_schema,
+)
+from .mission_plan_release_catalog_report import (
+    build_mission_plan_release_catalog_report,
+    mission_plan_release_catalog_report_capabilities,
+    mission_plan_release_catalog_report_schema,
+)
+from .mission_plan_public_conformance import (
+    conform_mission_plan_public,
+    mission_plan_public_conformance_capabilities,
+    mission_plan_public_conformance_schema,
+    mission_plan_public_replay_capabilities,
+    mission_plan_public_replay_schema,
+    replay_mission_plan_public,
+)
 from .workspace_history import (
     WORKSPACE_HISTORY_MAX_CHANGES,
     build_persisted_workspace_history,
@@ -762,6 +795,48 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         if path == "/v1/mission/plan/release/policy/capabilities":
             self._write(HTTPStatus.OK, mission_plan_release_policy_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/query/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_query_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/query/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_query_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/diff/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_diff_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/diff/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_diff_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/audit/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_audit_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/audit/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_audit_capabilities())
+            return
+        if path == "/v1/mission/plan/release/catalog/report/schema":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_report_schema())
+            return
+        if path == "/v1/mission/plan/release/catalog/report/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_release_catalog_report_capabilities())
+            return
+        if path == "/v1/mission/plan/conformance/schema":
+            self._write(HTTPStatus.OK, mission_plan_public_conformance_schema())
+            return
+        if path == "/v1/mission/plan/conformance/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_public_conformance_capabilities())
+            return
+        if path == "/v1/mission/plan/replay/schema":
+            self._write(HTTPStatus.OK, mission_plan_public_replay_schema())
+            return
+        if path == "/v1/mission/plan/replay/capabilities":
+            self._write(HTTPStatus.OK, mission_plan_public_replay_capabilities())
             return
         if path == "/v1/review-workspace/schema":
             self._write(HTTPStatus.OK, review_workspace_schema())
@@ -3491,6 +3566,122 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except (TypeError, ValueError, json.JSONDecodeError) as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_policy", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("releases"), list):
+                    raise ValueError("mission plan release catalog requires a releases array")
+                catalog = build_mission_plan_release_catalog(
+                    payload["releases"],
+                    catalog_id=str(payload.get("catalog_id", "mission-plan-release-catalog")),
+                )
+                self._write(
+                    HTTPStatus.OK if catalog.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    catalog.to_dict(include_payloads=True),
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/query":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("catalog"), Mapping):
+                    raise ValueError("mission plan release catalog query requires a catalog object")
+                result = query_mission_plan_release_catalog(payload["catalog"], payload.get("query"))
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_query", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/diff":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("left"), Mapping) or not isinstance(payload.get("right"), Mapping):
+                    raise ValueError("mission plan release catalog diff requires left and right catalog objects")
+                result = diff_mission_plan_release_catalogs(payload["left"], payload["right"])
+                self._write(HTTPStatus.OK, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_diff", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/audit":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("catalog"), Mapping):
+                    raise ValueError("mission plan release catalog audit requires a catalog object")
+                result = build_mission_plan_release_catalog_audit(payload["catalog"])
+                self._write(HTTPStatus.OK if result.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, result.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_audit", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/release/catalog/report":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping) or not isinstance(payload.get("catalog"), Mapping):
+                    raise ValueError("mission plan release catalog report requires a catalog object")
+                report = build_mission_plan_release_catalog_report(payload["catalog"])
+                self._write(HTTPStatus.OK, report.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_catalog_report", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/conformance":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError("mission plan conformance request must be an object")
+                source = payload.get("receipt", payload)
+                report = conform_mission_plan_public(
+                    source,
+                    expected_plan_address=None
+                    if payload.get("expected_plan_address") is None
+                    else str(payload["expected_plan_address"]),
+                )
+                self._write(HTTPStatus.OK if report.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, report.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_conformance", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path == "/v1/mission/plan/replay":
+            try:
+                payload = self._read_json()
+                if not isinstance(payload, Mapping):
+                    raise ValueError("mission plan replay request must be an object")
+                source = payload.get("receipt", payload)
+                replay = replay_mission_plan_public(
+                    source,
+                    expected_plan_address=None
+                    if payload.get("expected_plan_address") is None
+                    else str(payload["expected_plan_address"]),
+                )
+                self._write(HTTPStatus.OK if replay.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, replay.to_dict())
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_mission_plan_replay", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

@@ -4179,7 +4179,7 @@ truth, or convert reference resolution into a clinical or deployment decision.
 
 `public-surface-audit` is the repository-wide boundary check for the projections
 that can be consumed by local service clients or offline handoff tooling. It
-audits 71 named surfaces: service status, capabilities, program, operational,
+audits 87 named surfaces: service status, capabilities, program, operational,
 D01-D16 program-release, and service-release projections, both service
 closures, the service schema and snapshot, and the capability-certification,
 module-fabric, validation-design, evidence-lifecycle, workbench-release, and
@@ -4202,7 +4202,7 @@ The audit is exposed by both `GET /v1/public-surface/audit` and:
 glio-noncode public-surface-audit --output public-surface-audit.json
 ```
 
-The command exits non-zero when the closed 73-surface inventory or any
+The command exits non-zero when the closed 87-surface inventory or any
 projection boundary check fails, making it suitable for release automation.
 
 ### Cross-run portfolio release boundary
@@ -4353,7 +4353,7 @@ addressed plan-to-plan diffs with structural and resource deltas; a
 timestamp-free six-stage runtime rehearsal; and configurable policy gates for
 workflow, resource, artifact, boundary, and warning acceptance. The release,
 query, diff, runtime, and policy schema/capability projections are included
-in the repository's 73-surface audit.
+in the repository's 87-surface audit.
 
 ```powershell
 glio-noncode mission-plan-release mission.json --destination mission-release --output mission-release.json
@@ -4362,12 +4362,32 @@ glio-noncode mission-plan-release-query mission-release --kind review --format m
 glio-noncode mission-plan-release-diff left-plan.json right-plan.json --format csv --output mission-diff.csv
 glio-noncode mission-plan-release-runtime mission.json --destination mission-release-runtime --output mission-runtime.json
 glio-noncode mission-plan-release-policy mission-release --policy release-policy.json --format markdown --output mission-policy.md
+glio-noncode mission-plan-release-catalog mission-release left-release --destination release-catalog --output release-catalog.json
+glio-noncode mission-plan-release-catalog-query release-catalog --workflow-kind review --format csv --output review-releases.csv
+glio-noncode mission-plan-release-catalog-diff old-catalog new-catalog --format markdown --output catalog-diff.md
+glio-noncode mission-plan-release-catalog-audit release-catalog --output catalog-audit.json
+glio-noncode mission-plan-release-catalog-report release-catalog --format markdown --output catalog-report.md
+glio-noncode mission-plan-conformance mission-plan.json --output conformance.json
+glio-noncode mission-plan-replay mission-plan.json --format markdown --output replay.md
 glio-noncode mission-plan-release-schema --output mission-plan-release-schema.json
 glio-noncode mission-plan-release-query-schema --output mission-plan-release-query-schema.json
 glio-noncode mission-plan-release-diff-schema --output mission-plan-release-diff-schema.json
 glio-noncode mission-plan-release-runtime-schema --output mission-plan-release-runtime-schema.json
 glio-noncode mission-plan-release-policy-schema --output mission-plan-release-policy-schema.json
+glio-noncode mission-plan-release-catalog-schema --output mission-plan-release-catalog-schema.json
+glio-noncode mission-plan-release-catalog-query-schema --output mission-plan-release-catalog-query-schema.json
+glio-noncode mission-plan-conformance-schema --output mission-plan-conformance-schema.json
+glio-noncode mission-plan-replay-schema --output mission-plan-replay-schema.json
 ```
+
+The release catalog inventories multiple verified public handoffs with stable
+release and plan addresses, collision checks, exact-byte materialization,
+offline hydration, and bounded filters. Public conformance independently
+reconciles receipt addresses, workflow order, aggregate resources, and
+boundary fields. Public replay records the same checks as a timestamp-free
+six-stage ledger and never executes a workflow handler. Catalog reports add
+conserved aggregate totals plus state, decision, and workflow distributions;
+shares use integer basis points so the output is stable across runtimes.
 
 The Domain 16 external-alpha runtime controls add four inspectable registry
 and quality surfaces:

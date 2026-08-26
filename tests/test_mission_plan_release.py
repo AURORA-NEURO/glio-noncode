@@ -76,6 +76,74 @@ from glio_noncode.mission_plan_release_policy import (
     mission_plan_release_policy_markdown,
     mission_plan_release_policy_schema,
 )
+from glio_noncode.mission_plan_release_catalog import (
+    MISSION_PLAN_RELEASE_CATALOG_REQUIRED_ARTIFACTS,
+    build_mission_plan_release_catalog,
+    load_mission_plan_release_catalog,
+    mission_plan_release_catalog_capabilities,
+    mission_plan_release_catalog_csv,
+    mission_plan_release_catalog_export_payloads,
+    mission_plan_release_catalog_json,
+    mission_plan_release_catalog_markdown,
+    mission_plan_release_catalog_schema,
+    verify_mission_plan_release_catalog,
+    write_mission_plan_release_catalog,
+)
+from glio_noncode.mission_plan_release_catalog_query import (
+    MissionPlanReleaseCatalogQuery,
+    mission_plan_release_catalog_query_capabilities,
+    mission_plan_release_catalog_query_csv,
+    mission_plan_release_catalog_query_export_payloads,
+    mission_plan_release_catalog_query_json,
+    mission_plan_release_catalog_query_markdown,
+    mission_plan_release_catalog_query_schema,
+    query_mission_plan_release_catalog,
+)
+from glio_noncode.mission_plan_release_catalog_diff import (
+    MissionPlanReleaseCatalogDiffStatus,
+    diff_mission_plan_release_catalogs,
+    mission_plan_release_catalog_diff_capabilities,
+    mission_plan_release_catalog_diff_csv,
+    mission_plan_release_catalog_diff_export_payloads,
+    mission_plan_release_catalog_diff_json,
+    mission_plan_release_catalog_diff_markdown,
+    mission_plan_release_catalog_diff_schema,
+)
+from glio_noncode.mission_plan_release_catalog_audit import (
+    build_mission_plan_release_catalog_audit,
+    mission_plan_release_catalog_audit_capabilities,
+    mission_plan_release_catalog_audit_csv,
+    mission_plan_release_catalog_audit_export_payloads,
+    mission_plan_release_catalog_audit_json,
+    mission_plan_release_catalog_audit_markdown,
+    mission_plan_release_catalog_audit_schema,
+)
+from glio_noncode.mission_plan_release_catalog_report import (
+    MissionPlanReleaseCatalogReport,
+    build_mission_plan_release_catalog_report,
+    mission_plan_release_catalog_report_capabilities,
+    mission_plan_release_catalog_report_csv,
+    mission_plan_release_catalog_report_export_payloads,
+    mission_plan_release_catalog_report_json,
+    mission_plan_release_catalog_report_markdown,
+    mission_plan_release_catalog_report_schema,
+)
+from glio_noncode.mission_plan_public_conformance import (
+    conform_mission_plan_public,
+    mission_plan_public_conformance_capabilities,
+    mission_plan_public_conformance_csv,
+    mission_plan_public_conformance_export_payloads,
+    mission_plan_public_conformance_json,
+    mission_plan_public_conformance_markdown,
+    mission_plan_public_conformance_schema,
+    mission_plan_public_replay_capabilities,
+    mission_plan_public_replay_csv,
+    mission_plan_public_replay_export_payloads,
+    mission_plan_public_replay_json,
+    mission_plan_public_replay_markdown,
+    mission_plan_public_replay_schema,
+    replay_mission_plan_public,
+)
 from glio_noncode.mission_runtime_public import build_public_mission_plan
 
 
@@ -118,6 +186,17 @@ class MissionPlanReleaseTests(unittest.TestCase):
                         "output_contract": "reviewable_dossier",
                     },
                 ]
+            }
+        )
+
+    @classmethod
+    def _second_receipt(cls):
+        return build_public_mission_plan(
+            cls._payload()
+            | {
+                "mission": cls._payload()["mission"]
+                | {"mission_id": "second-release-mission"},
+                "workflow_id": "second-release-workflow",
             }
         )
 
@@ -405,6 +484,252 @@ class MissionPlanReleaseTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             MissionPlanReleasePolicy.from_mapping({"max_seconds": -1})
 
+    def test_catalog_diff_classifies_release_evolution_and_aggregates_deltas(self) -> None:
+        left = build_mission_plan_release(self._receipt(), release_id="release-left")
+        unchanged = build_mission_plan_release(self._second_receipt(), release_id="release-right")
+        changed = build_mission_plan_release(self._changed_receipt(), release_id="release-left")
+        left_catalog = build_mission_plan_release_catalog([left, unchanged], catalog_id="catalog-left")
+        right_catalog = build_mission_plan_release_catalog([changed], catalog_id="catalog-right")
+        diff = diff_mission_plan_release_catalogs(left_catalog, right_catalog)
+        repeated = diff_mission_plan_release_catalogs(left_catalog, right_catalog)
+        self.assertEqual(diff.to_dict(), repeated.to_dict())
+        self.assertTrue(diff.accepted)
+        self.assertEqual(diff.added_release_ids, ())
+        self.assertEqual(diff.removed_release_ids, ("release-right",))
+        self.assertEqual(diff.changed_release_ids, ("release-left",))
+        self.assertEqual(diff.unchanged_release_ids, ())
+        self.assertEqual(
+            {item.release_id: item.status for item in diff.entry_diffs},
+            {
+                "release-left": MissionPlanReleaseCatalogDiffStatus.CHANGED,
+                "release-right": MissionPlanReleaseCatalogDiffStatus.REMOVED,
+            },
+        )
+        self.assertEqual(diff.aggregate_delta["entry_count"], -1)
+        self.assertEqual(diff.aggregate_delta["step_count"], -14)
+        changed_item = next(item for item in diff.entry_diffs if item.release_id == "release-left")
+        self.assertEqual(changed_item.step_count_delta, -6)
+        self.assertEqual(json.loads(mission_plan_release_catalog_diff_json(diff)), diff.to_dict())
+        self.assertIn("# Mission plan release catalog diff", mission_plan_release_catalog_diff_markdown(diff))
+        self.assertIn("release_id", mission_plan_release_catalog_diff_csv(diff))
+        payloads = mission_plan_release_catalog_diff_export_payloads(diff)
+        self.assertEqual(payloads["mission-plan-release-catalog-diff.json"], mission_plan_release_catalog_diff_json(diff))
+        self.assertEqual(mission_plan_release_catalog_diff_schema()["diff_version"], diff.diff_version)
+        self.assertTrue(mission_plan_release_catalog_diff_capabilities()["aggregate_deltas"])
+
+    def test_catalog_semantic_audit_reconciles_address_counts_and_boundary(self) -> None:
+        bundle = build_mission_plan_release_catalog(
+            [
+                build_mission_plan_release(self._receipt(), release_id="release-left"),
+                build_mission_plan_release(self._second_receipt(), release_id="release-right"),
+            ]
+        )
+        audit = build_mission_plan_release_catalog_audit(bundle)
+        repeated = build_mission_plan_release_catalog_audit(bundle.catalog)
+        self.assertEqual(audit.to_dict(), repeated.to_dict())
+        self.assertTrue(audit.accepted, audit.to_dict())
+        self.assertEqual(audit.passed_check_count, len(audit.checks))
+        self.assertEqual(audit.failed_check_count, 0)
+        self.assertEqual(json.loads(mission_plan_release_catalog_audit_json(audit)), audit.to_dict())
+        self.assertIn("check_id", mission_plan_release_catalog_audit_csv(audit))
+        self.assertIn("# Mission plan release catalog audit", mission_plan_release_catalog_audit_markdown(audit))
+        payloads = mission_plan_release_catalog_audit_export_payloads(audit)
+        self.assertEqual(payloads["mission-plan-release-catalog-audit.json"], mission_plan_release_catalog_audit_json(audit))
+        self.assertTrue(mission_plan_release_catalog_audit_capabilities()["entry_address_reconstruction"])
+        self.assertEqual(mission_plan_release_catalog_audit_schema()["audit_version"], audit.audit_version)
+
+    def test_catalog_builds_stably_from_multiple_public_releases(self) -> None:
+        left = build_mission_plan_release(self._receipt(), release_id="release-left")
+        right = build_mission_plan_release(self._second_receipt(), release_id="release-right")
+        first = build_mission_plan_release_catalog([right, left], catalog_id="research-catalog")
+        second = build_mission_plan_release_catalog([left, right], catalog_id="research-catalog")
+        self.assertEqual(first.to_dict(), second.to_dict())
+        self.assertTrue(first.accepted, first.to_dict())
+        self.assertEqual(first.catalog.entry_count, 2)
+        self.assertEqual(first.catalog.accepted_entry_count, 2)
+        self.assertEqual(
+            [item.release_id for item in first.catalog.entries],
+            ["release-left", "release-right"],
+        )
+        self.assertEqual(
+            {item.filename for item in first.artifacts},
+            set(MISSION_PLAN_RELEASE_CATALOG_REQUIRED_ARTIFACTS),
+        )
+        self.assertEqual(first.manifest["artifact_count"], 6)
+        self.assertEqual(len(first.checks), 5)
+        self.assertEqual(
+            json.loads(mission_plan_release_catalog_json(first.catalog)),
+            first.catalog.to_dict(),
+        )
+        payloads = mission_plan_release_catalog_export_payloads(first.catalog)
+        self.assertEqual(payloads["mission-plan-release-catalog.json"], mission_plan_release_catalog_json(first.catalog))
+        self.assertEqual(payloads["mission-plan-release-catalog.csv"], mission_plan_release_catalog_csv(first.catalog))
+        self.assertEqual(payloads["mission-plan-release-catalog.md"], mission_plan_release_catalog_markdown(first.catalog))
+        self.assertIn("release_id", payloads["mission-plan-release-catalog.csv"])
+        self.assertIn("# Mission plan release catalog", payloads["mission-plan-release-catalog.md"])
+        self.assertEqual(mission_plan_release_catalog_schema()["catalog_version"], first.catalog.catalog_version)
+        self.assertTrue(mission_plan_release_catalog_capabilities()["multi_release_inventory"])
+
+    def test_catalog_materialization_verification_and_offline_hydration(self) -> None:
+        left = build_mission_plan_release(self._receipt(), release_id="release-left")
+        right = build_mission_plan_release(self._second_receipt(), release_id="release-right")
+        bundle = build_mission_plan_release_catalog([left, right])
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "catalog"
+            self.assertEqual(write_mission_plan_release_catalog(bundle, destination), destination)
+            verification = verify_mission_plan_release_catalog(destination)
+            self.assertTrue(verification.accepted, verification.to_dict())
+            self.assertTrue(verification.manifest_address_valid)
+            self.assertTrue(verification.catalog_address_valid)
+            self.assertTrue(verification.checks_address_valid)
+            self.assertTrue(verification.summary_address_valid)
+            self.assertTrue(verification.exact_bytes)
+            self.assertEqual(verification.artifact_count, 6)
+            self.assertEqual(verification.verified_artifact_count, 5)
+            offline = load_mission_plan_release_catalog(destination)
+            self.assertEqual(offline.catalog_id, bundle.catalog_id)
+            self.assertEqual(offline.catalog.to_dict(), bundle.catalog.to_dict())
+            self.assertEqual(len(offline.checks), 5)
+            self.assertTrue(offline.accepted)
+
+    def test_catalog_verifier_rejects_tamper_missing_extra_and_duplicates(self) -> None:
+        left = build_mission_plan_release(self._receipt(), release_id="release-left")
+        right = build_mission_plan_release(self._second_receipt(), release_id="release-right")
+        bundle = build_mission_plan_release_catalog([left, right])
+        with tempfile.TemporaryDirectory() as directory:
+            destination = write_mission_plan_release_catalog(bundle, Path(directory) / "catalog")
+            (destination / "mission-plan-release-catalog.csv").write_text("tampered\n", encoding="utf-8")
+            verification = verify_mission_plan_release_catalog(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("mission-plan-release-catalog.csv", verification.tampered_files)
+            (destination / "mission-plan-release-catalog.csv").write_bytes(
+                next(item.payload for item in bundle.artifacts if item.filename == "mission-plan-release-catalog.csv")
+            )
+            (destination / "extra.json").write_text("{}", encoding="utf-8")
+            verification = verify_mission_plan_release_catalog(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("extra.json", verification.unexpected_files)
+            (destination / "extra.json").unlink()
+            (destination / "catalog-summary.json").unlink()
+            verification = verify_mission_plan_release_catalog(destination)
+            self.assertFalse(verification.accepted)
+            self.assertIn("catalog-summary.json", verification.missing_files)
+        with self.assertRaises(ValidationError):
+            build_mission_plan_release_catalog([left, left])
+
+    def test_catalog_query_filters_pagination_and_exports_are_stable(self) -> None:
+        left = build_mission_plan_release(self._receipt(), release_id="release-left")
+        right = build_mission_plan_release(self._second_receipt(), release_id="release-right")
+        bundle = build_mission_plan_release_catalog([left, right])
+        all_entries = query_mission_plan_release_catalog(bundle, {"limit": 10})
+        self.assertEqual(all_entries.total_matches, 2)
+        self.assertEqual([item.release_id for item in all_entries.entries], ["release-left", "release-right"])
+        selected = query_mission_plan_release_catalog(
+            bundle,
+            {"release_id": "release-right", "workflow_kind": "review", "limit": 1},
+        )
+        self.assertEqual(selected.total_matches, 1)
+        self.assertEqual(selected.entries[0].release_id, "release-right")
+        page = query_mission_plan_release_catalog(bundle, {"offset": 1, "limit": 1})
+        self.assertEqual(page.entries[0].release_id, "release-right")
+        self.assertFalse(page.has_more)
+        payloads = mission_plan_release_catalog_query_export_payloads(page)
+        self.assertEqual(payloads["mission-plan-release-catalog-query.json"], mission_plan_release_catalog_query_json(page))
+        self.assertEqual(payloads["mission-plan-release-catalog-query.csv"], mission_plan_release_catalog_query_csv(page))
+        self.assertEqual(payloads["mission-plan-release-catalog-query.md"], mission_plan_release_catalog_query_markdown(page))
+        self.assertEqual(json.loads(payloads["mission-plan-release-catalog-query.json"]), page.to_dict())
+        self.assertEqual(mission_plan_release_catalog_query_schema()["query_version"], page.query_version)
+        self.assertTrue(mission_plan_release_catalog_query_capabilities()["workflow_kind_filter"])
+        with self.assertRaises(ValidationError):
+            MissionPlanReleaseCatalogQuery.from_mapping({"limit": 0})
+        with self.assertRaises(ValidationError):
+            MissionPlanReleaseCatalogQuery.from_mapping({"unknown": True})
+
+    def test_public_conformance_reconciles_address_shape_workflow_and_resources(self) -> None:
+        receipt = self._receipt()
+        report = conform_mission_plan_public(receipt)
+        repeated = conform_mission_plan_public(receipt)
+        self.assertEqual(report.to_dict(), repeated.to_dict())
+        self.assertTrue(report.accepted, report.to_dict())
+        self.assertEqual(report.passed_check_count, len(report.checks))
+        self.assertEqual(report.failed_check_count, 0)
+        payloads = mission_plan_public_conformance_export_payloads(report)
+        self.assertEqual(payloads["mission-plan-public-conformance.json"], mission_plan_public_conformance_json(report))
+        self.assertEqual(payloads["mission-plan-public-conformance.csv"], mission_plan_public_conformance_csv(report))
+        self.assertEqual(payloads["mission-plan-public-conformance.md"], mission_plan_public_conformance_markdown(report))
+        self.assertEqual(json.loads(payloads["mission-plan-public-conformance.json"]), report.to_dict())
+        self.assertEqual(mission_plan_public_conformance_schema()["conformance_version"], report.conformance_version)
+        self.assertTrue(mission_plan_public_conformance_capabilities()["resource_reconciliation"])
+        self.assertNotIn("agent", report.to_dict())
+        self.assertNotIn("language", report.to_dict())
+
+    def test_public_conformance_rejects_wrong_expected_address_and_replay_is_deterministic(self) -> None:
+        receipt = self._receipt()
+        wrong = conform_mission_plan_public(receipt, expected_plan_address="mission-plan-public:wrong")
+        self.assertFalse(wrong.accepted)
+        self.assertIn("receipt.address", {item.check_id for item in wrong.checks if not item.accepted})
+        replay = replay_mission_plan_public(receipt)
+        repeated = replay_mission_plan_public(receipt)
+        self.assertEqual(replay.to_dict(), repeated.to_dict())
+        self.assertTrue(replay.accepted, replay.to_dict())
+        self.assertEqual([item.ordinal for item in replay.stages], [1, 2, 3, 4, 5, 6])
+        self.assertEqual(replay.completed_stage_count, 6)
+        self.assertEqual(replay.failed_stage_count, 0)
+        self.assertTrue(all(item.state.value == "completed" for item in replay.stages))
+        payloads = mission_plan_public_replay_export_payloads(replay)
+        self.assertEqual(payloads["mission-plan-public-replay.json"], mission_plan_public_replay_json(replay))
+        self.assertEqual(payloads["mission-plan-public-replay.csv"], mission_plan_public_replay_csv(replay))
+        self.assertEqual(payloads["mission-plan-public-replay.md"], mission_plan_public_replay_markdown(replay))
+        self.assertEqual(json.loads(payloads["mission-plan-public-replay.json"]), replay.to_dict())
+        self.assertEqual(mission_plan_public_replay_schema()["replay_version"], replay.replay_version)
+        self.assertTrue(mission_plan_public_replay_capabilities()["stage_addressing"])
+
+    def test_catalog_report_conserves_distributions_and_exports(self) -> None:
+        left = build_mission_plan_release(self._receipt(), release_id="release-left")
+        right = build_mission_plan_release(self._second_receipt(), release_id="release-right")
+        bundle = build_mission_plan_release_catalog([left, right], catalog_id="report-catalog")
+        report = build_mission_plan_release_catalog_report(bundle)
+        repeated = build_mission_plan_release_catalog_report(bundle.catalog.to_dict())
+        self.assertEqual(report.to_dict(), repeated.to_dict())
+        self.assertTrue(report.accepted, report.to_dict())
+        self.assertEqual(report.entry_count, 2)
+        self.assertEqual(report.accepted_entry_count + report.rejected_entry_count, report.entry_count)
+        self.assertEqual(sum(report.state_counts.values()), report.entry_count)
+        self.assertEqual(sum(report.decision_counts.values()), report.entry_count)
+        self.assertEqual(sum(report.workflow_counts.values()), report.workflow_kind_count)
+        self.assertGreaterEqual(report.total_step_count, report.total_optional_step_count)
+        self.assertGreaterEqual(report.total_step_count, report.total_deterministic_step_count)
+        self.assertGreaterEqual(report.total_step_count, report.total_network_step_count)
+        self.assertTrue(report.content_address.startswith("mission-plan-release-catalog-report:"))
+        self.assertTrue(
+            all(item.content_address.startswith("mission-plan-release-catalog-report-bucket:") for item in report.state_buckets)
+        )
+        payloads = mission_plan_release_catalog_report_export_payloads(report)
+        self.assertEqual(json.loads(payloads["mission-plan-release-catalog-report.json"]), report.to_dict())
+        self.assertEqual(payloads["mission-plan-release-catalog-report.json"], mission_plan_release_catalog_report_json(report))
+        self.assertIn("bucket_kind", mission_plan_release_catalog_report_csv(report))
+        self.assertIn("# Mission plan release catalog report", mission_plan_release_catalog_report_markdown(report))
+        hydrated = MissionPlanReleaseCatalogReport.from_mapping(json.loads(payloads["mission-plan-release-catalog-report.json"]))
+        self.assertEqual(hydrated.to_dict(), report.to_dict())
+        self.assertEqual(mission_plan_release_catalog_report_schema()["share_unit"], "basis_points")
+        self.assertTrue(mission_plan_release_catalog_report_capabilities()["address_reconstruction"])
+        self.assertFalse(mission_plan_release_catalog_report_capabilities()["handler_execution"])
+
+    def test_catalog_report_accepts_verified_offline_catalog_and_rejects_tamper(self) -> None:
+        bundle = build_mission_plan_release_catalog(
+            [build_mission_plan_release(self._receipt(), release_id="release-left")]
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            destination = write_mission_plan_release_catalog(bundle, Path(directory) / "catalog")
+            report = build_mission_plan_release_catalog_report(destination)
+            self.assertEqual(report.catalog_address, bundle.catalog.content_address)
+            payload = report.to_dict()
+            payload["total_step_count"] = report.total_step_count + 1
+            with self.assertRaises(ValidationError):
+                MissionPlanReleaseCatalogReport.from_mapping(payload)
+        with self.assertRaises(ValidationError):
+            MissionPlanReleaseCatalogReport.from_mapping(report.to_dict() | {"unexpected": True})
+
     def test_cli_materializes_verifies_queries_diffs_and_runs_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -472,6 +797,20 @@ class MissionPlanReleaseTests(unittest.TestCase):
                 0,
             )
             self.assertIn("# Mission plan release diff", diff.read_text(encoding="utf-8"))
+            right_release = root / "right-release"
+            self.assertEqual(
+                main(
+                    [
+                        "mission-plan-release",
+                        str(right_source),
+                        "--destination",
+                        str(right_release),
+                        "--output",
+                        str(root / "right-release.json"),
+                    ]
+                ),
+                0,
+            )
             runtime = root / "runtime.json"
             runtime_release = root / "runtime-release"
             self.assertEqual(
@@ -503,6 +842,16 @@ class MissionPlanReleaseTests(unittest.TestCase):
                 "mission-plan-release-lineage-capabilities",
                 "mission-plan-release-policy-schema",
                 "mission-plan-release-policy-capabilities",
+                "mission-plan-release-catalog-schema",
+                "mission-plan-release-catalog-capabilities",
+                "mission-plan-release-catalog-query-schema",
+                "mission-plan-release-catalog-query-capabilities",
+                "mission-plan-release-catalog-report-schema",
+                "mission-plan-release-catalog-report-capabilities",
+                "mission-plan-conformance-schema",
+                "mission-plan-conformance-capabilities",
+                "mission-plan-replay-schema",
+                "mission-plan-replay-capabilities",
             ):
                 self.assertEqual(main([command]), 0)
             policy = root / "policy.json"
@@ -525,7 +874,103 @@ class MissionPlanReleaseTests(unittest.TestCase):
                 0,
             )
             self.assertTrue(json.loads(policy_output.read_text(encoding="utf-8"))["accepted"])
-
+            catalog = root / "catalog"
+            catalog_json = root / "catalog.json"
+            self.assertEqual(
+                main(
+                    [
+                        "mission-plan-release-catalog",
+                        str(release),
+                        str(right_release),
+                        "--catalog-id",
+                        "cli-catalog",
+                        "--destination",
+                        str(catalog),
+                        "--output",
+                        str(catalog_json),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(json.loads(catalog_json.read_text(encoding="utf-8"))["entry_count"], 2)
+            catalog_verification = root / "catalog-verification.json"
+            self.assertEqual(
+                main(
+                    [
+                        "mission-plan-release-catalog-verify",
+                        str(catalog),
+                        "--output",
+                        str(catalog_verification),
+                    ]
+                ),
+                0,
+            )
+            self.assertTrue(json.loads(catalog_verification.read_text(encoding="utf-8"))["accepted"])
+            catalog_query = root / "catalog-query.json"
+            self.assertEqual(
+                main(
+                    [
+                        "mission-plan-release-catalog-query",
+                        str(catalog),
+                        "--workflow-kind",
+                        "review",
+                        "--output",
+                        str(catalog_query),
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(json.loads(catalog_query.read_text(encoding="utf-8"))["total_matches"], 2)
+            catalog_diff = root / "catalog-diff.md"
+            self.assertEqual(
+                main(
+                    [
+                        "mission-plan-release-catalog-diff",
+                        str(catalog),
+                        str(catalog),
+                        "--format",
+                        "markdown",
+                        "--output",
+                        str(catalog_diff),
+                    ]
+                ),
+                0,
+            )
+            self.assertIn("# Mission plan release catalog diff", catalog_diff.read_text(encoding="utf-8"))
+            catalog_audit = root / "catalog-audit.json"
+            self.assertEqual(
+                main(
+                    [
+                        "mission-plan-release-catalog-audit",
+                        str(catalog),
+                        "--output",
+                        str(catalog_audit),
+                    ]
+                ),
+                0,
+            )
+            self.assertTrue(json.loads(catalog_audit.read_text(encoding="utf-8"))["accepted"])
+            catalog_report = root / "catalog-report.md"
+            self.assertEqual(
+                main(
+                    [
+                        "mission-plan-release-catalog-report",
+                        str(catalog),
+                        "--format",
+                        "markdown",
+                        "--output",
+                        str(catalog_report),
+                    ]
+                ),
+                0,
+            )
+            self.assertIn("# Mission plan release catalog report", catalog_report.read_text(encoding="utf-8"))
+            conformance = root / "conformance.json"
+            self.assertEqual(main(["mission-plan-conformance", str(left), "--output", str(conformance)]), 0)
+            self.assertTrue(json.loads(conformance.read_text(encoding="utf-8"))["accepted"])
+            replay_output = root / "replay.json"
+            self.assertEqual(main(["mission-plan-replay", str(left), "--output", str(replay_output)]), 0)
+            self.assertTrue(json.loads(replay_output.read_text(encoding="utf-8"))["accepted"])
     def test_api_exposes_release_query_diff_runtime_and_contract_surfaces(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             server = create_server("127.0.0.1", 0, directory)
@@ -583,6 +1028,47 @@ class MissionPlanReleaseTests(unittest.TestCase):
                 )
                 self.assertEqual(status, 200)
                 self.assertTrue(policy["accepted"])
+                status, catalog = post(
+                    "/v1/mission/plan/release/catalog",
+                    {"catalog_id": "api-catalog", "releases": [bundle["receipt"]]},
+                )
+                self.assertEqual(status, 200)
+                self.assertTrue(catalog["accepted"])
+                self.assertEqual(catalog["catalog"]["entry_count"], 1)
+                status, catalog_query = post(
+                    "/v1/mission/plan/release/catalog/query",
+                    {"catalog": catalog["catalog"], "query": {"workflow_kind": "review"}},
+                )
+                self.assertEqual(status, 200)
+                self.assertEqual(catalog_query["total_matches"], 1)
+                status, catalog_diff = post(
+                    "/v1/mission/plan/release/catalog/diff",
+                    {"left": catalog["catalog"], "right": catalog["catalog"]},
+                )
+                self.assertEqual(status, 200)
+                self.assertEqual(
+                    catalog_diff["unchanged_release_ids"],
+                    [catalog["catalog"]["entries"][0]["release_id"]],
+                )
+                status, catalog_audit = post(
+                    "/v1/mission/plan/release/catalog/audit",
+                    {"catalog": catalog["catalog"]},
+                )
+                self.assertEqual(status, 200)
+                self.assertTrue(catalog_audit["accepted"])
+                status, catalog_report = post(
+                    "/v1/mission/plan/release/catalog/report",
+                    {"catalog": catalog["catalog"]},
+                )
+                self.assertEqual(status, 200)
+                self.assertEqual(catalog_report["entry_count"], 1)
+                self.assertTrue(catalog_report["accepted"])
+                status, conformance = post("/v1/mission/plan/conformance", {"receipt": bundle["receipt"]})
+                self.assertEqual(status, 200)
+                self.assertTrue(conformance["accepted"])
+                status, replay = post("/v1/mission/plan/replay", {"receipt": bundle["receipt"]})
+                self.assertEqual(status, 200)
+                self.assertTrue(replay["accepted"])
                 for suffix in (
                     "schema",
                     "capabilities",
@@ -600,6 +1086,26 @@ class MissionPlanReleaseTests(unittest.TestCase):
                     "policy/capabilities",
                 ):
                     connection.request("GET", f"/v1/mission/plan/release/{suffix}")
+                    response = connection.getresponse()
+                    self.assertEqual(response.status, 200)
+                    self.assertIsInstance(json.loads(response.read()), dict)
+                for path in (
+                    "/v1/mission/plan/release/catalog/schema",
+                    "/v1/mission/plan/release/catalog/capabilities",
+                    "/v1/mission/plan/release/catalog/query/schema",
+                    "/v1/mission/plan/release/catalog/query/capabilities",
+                    "/v1/mission/plan/release/catalog/diff/schema",
+                    "/v1/mission/plan/release/catalog/diff/capabilities",
+                    "/v1/mission/plan/release/catalog/audit/schema",
+                    "/v1/mission/plan/release/catalog/audit/capabilities",
+                    "/v1/mission/plan/release/catalog/report/schema",
+                    "/v1/mission/plan/release/catalog/report/capabilities",
+                    "/v1/mission/plan/conformance/schema",
+                    "/v1/mission/plan/conformance/capabilities",
+                    "/v1/mission/plan/replay/schema",
+                    "/v1/mission/plan/replay/capabilities",
+                ):
+                    connection.request("GET", path)
                     response = connection.getresponse()
                     self.assertEqual(response.status, 200)
                     self.assertIsInstance(json.loads(response.read()), dict)

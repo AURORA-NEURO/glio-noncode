@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum
+from functools import lru_cache
 from typing import Any
 
 from .capability_certification_bundle import build_capability_certification_bundle
@@ -101,6 +102,32 @@ from .mission_plan_release_policy import (
     mission_plan_release_policy_capabilities,
     mission_plan_release_policy_schema,
 )
+from .mission_plan_release_catalog import (
+    mission_plan_release_catalog_capabilities,
+    mission_plan_release_catalog_schema,
+)
+from .mission_plan_release_catalog_query import (
+    mission_plan_release_catalog_query_capabilities,
+    mission_plan_release_catalog_query_schema,
+)
+from .mission_plan_release_catalog_diff import (
+    mission_plan_release_catalog_diff_capabilities,
+    mission_plan_release_catalog_diff_schema,
+)
+from .mission_plan_release_catalog_audit import (
+    mission_plan_release_catalog_audit_capabilities,
+    mission_plan_release_catalog_audit_schema,
+)
+from .mission_plan_release_catalog_report import (
+    mission_plan_release_catalog_report_capabilities,
+    mission_plan_release_catalog_report_schema,
+)
+from .mission_plan_public_conformance import (
+    mission_plan_public_conformance_capabilities,
+    mission_plan_public_conformance_schema,
+    mission_plan_public_replay_capabilities,
+    mission_plan_public_replay_schema,
+)
 from .variant_stream import (
     breakend_normalization_schema,
     streaming_intake_capabilities,
@@ -113,7 +140,7 @@ from .service_release_runtime import run_service_release
 from .service_release_schema import service_release_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 73
+PUBLIC_SURFACE_EXPECTED_COUNT = 87
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -363,6 +390,20 @@ def default_public_surface_inventory(
         "mission-plan-release-lineage-capabilities": mission_plan_release_lineage_capabilities(),
         "mission-plan-release-policy-schema": mission_plan_release_policy_schema(),
         "mission-plan-release-policy-capabilities": mission_plan_release_policy_capabilities(),
+        "mission-plan-release-catalog-schema": mission_plan_release_catalog_schema(),
+        "mission-plan-release-catalog-capabilities": mission_plan_release_catalog_capabilities(),
+        "mission-plan-release-catalog-query-schema": mission_plan_release_catalog_query_schema(),
+        "mission-plan-release-catalog-query-capabilities": mission_plan_release_catalog_query_capabilities(),
+        "mission-plan-release-catalog-diff-schema": mission_plan_release_catalog_diff_schema(),
+        "mission-plan-release-catalog-diff-capabilities": mission_plan_release_catalog_diff_capabilities(),
+        "mission-plan-release-catalog-audit-schema": mission_plan_release_catalog_audit_schema(),
+        "mission-plan-release-catalog-audit-capabilities": mission_plan_release_catalog_audit_capabilities(),
+        "mission-plan-release-catalog-report-schema": mission_plan_release_catalog_report_schema(),
+        "mission-plan-release-catalog-report-capabilities": mission_plan_release_catalog_report_capabilities(),
+        "mission-plan-conformance-schema": mission_plan_public_conformance_schema(),
+        "mission-plan-conformance-capabilities": mission_plan_public_conformance_capabilities(),
+        "mission-plan-replay-schema": mission_plan_public_replay_schema(),
+        "mission-plan-replay-capabilities": mission_plan_public_replay_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),
@@ -394,6 +435,21 @@ def build_default_public_surface_audit(
 ) -> PublicSurfaceAudit:
     """Execute and audit all default public service and handoff projections."""
 
+    if all(
+        value is None
+        for value in (
+            snapshot,
+            capability_bundle,
+            module_fabric_bundle,
+            validation_design_bundle,
+            evidence_lifecycle_bundle,
+            workbench_release_bundle,
+            deployment_frontier_bundle,
+            deployment_profile,
+            service_release_handoff,
+        )
+    ):
+        return _cached_default_public_surface_audit()
     return build_public_surface_audit(
         default_public_surface_inventory(
             snapshot=snapshot,
@@ -407,6 +463,13 @@ def build_default_public_surface_audit(
             service_release_handoff=service_release_handoff,
         )
     )
+
+
+@lru_cache(maxsize=1)
+def _cached_default_public_surface_audit() -> PublicSurfaceAudit:
+    """Reuse the immutable default projection for repeated local/API reads."""
+
+    return build_public_surface_audit(default_public_surface_inventory())
 
 
 __all__ = [

@@ -1474,6 +1474,12 @@ jobs:
         run: python -m glio_noncode mission-plan-release-observability-schema --output /tmp/glio-mission-plan-release-observability-schema.json && python -m glio_noncode mission-plan-release-lineage-schema --output /tmp/glio-mission-plan-release-lineage-schema.json
       - name: Public mission plan release policy
         run: python -m glio_noncode mission-plan-release-policy-schema --output /tmp/glio-mission-plan-release-policy-schema.json && python -m glio_noncode mission-plan-release-policy-capabilities --output /tmp/glio-mission-plan-release-policy-capabilities.json
+      - name: Public mission plan catalog and replay contracts
+        run: python -m glio_noncode mission-plan-release-catalog-schema --output /tmp/glio-mission-plan-release-catalog-schema.json && python -m glio_noncode mission-plan-release-catalog-query-schema --output /tmp/glio-mission-plan-release-catalog-query-schema.json && python -m glio_noncode mission-plan-conformance-schema --output /tmp/glio-mission-plan-conformance-schema.json && python -m glio_noncode mission-plan-replay-schema --output /tmp/glio-mission-plan-replay-schema.json
+      - name: Public mission plan catalog diff and audit contracts
+        run: python -m glio_noncode mission-plan-release-catalog-diff-schema --output /tmp/glio-mission-plan-release-catalog-diff-schema.json && python -m glio_noncode mission-plan-release-catalog-audit-schema --output /tmp/glio-mission-plan-release-catalog-audit-schema.json
+      - name: Public mission plan catalog report contracts
+        run: python -m glio_noncode mission-plan-release-catalog-report-schema --output /tmp/glio-mission-plan-release-catalog-report-schema.json && python -m glio_noncode mission-plan-release-catalog-report-capabilities --output /tmp/glio-mission-plan-release-catalog-report-capabilities.json
       - name: Repository public surface audit
         run: python -m glio_noncode public-surface-audit --output /tmp/glio-public-surface-audit.json
       - name: Local service surface focused tests
