@@ -900,3 +900,33 @@ directory. Query filters include artifact ID/kind, check plane/result, link
 name, free text, offset, and bounded limit. The release endpoint evaluates
 artifact and verification thresholds. The runtime endpoint exposes the
 ordered build/write/verify/load/query/replay/release handoff.
+
+Archive transport extends the packet family with fixed-metadata binary
+handoff, addressed chunk transfer, resumable reassembly, safe unpacking, and
+an ordered nine-stage runtime:
+
+```text
+GET /v1/module-workbench/execution/packet/archive
+GET /v1/module-workbench/execution/packet/archive/query
+GET /v1/module-workbench/execution/packet/archive/chunks
+GET /v1/module-workbench/execution/packet/archive/transfer/schema
+GET /v1/module-workbench/execution/packet/archive/transfer/capabilities
+GET /v1/module-workbench/execution/packet/archive/runtime
+GET /v1/module-workbench/execution/packet/archive/runtime/query
+GET /v1/module-workbench/execution/packet/archive/runtime/schema
+GET /v1/module-workbench/execution/packet/archive/runtime/capabilities
+GET /v1/module-workbench/execution/packet/archive/diff
+GET /v1/module-workbench/execution/packet/archive/diff/query
+GET /v1/module-workbench/execution/packet/archive/diff/schema
+GET /v1/module-workbench/execution/packet/archive/diff/capabilities
+GET /v1/module-workbench/execution/packet/archive/index/schema
+GET /v1/module-workbench/execution/packet/archive/index/capabilities
+```
+
+The archive endpoint builds the current public aggregate in memory. Query
+filters are bounded before archive work begins, and CSV/Markdown projections
+are returned only as read-only bytes. The diff route compares two deterministic
+current projections and accepts optional `left_id` and `right_id` query values;
+the local CLI and Python surfaces compare persisted archive files and build
+multi-archive indexes. None of these routes write a directory or expose source
+paths, raw payloads, credentials, or mutable process details.

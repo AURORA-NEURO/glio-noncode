@@ -411,6 +411,14 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
                 ("/v1/module-workbench/execution/packet/runtime/capabilities", "operations"),
                 ("/v1/module-workbench/execution/packet/inspection/schema", "severities"),
                 ("/v1/module-workbench/execution/packet/inspection/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/archive/schema", "entry_kinds"),
+                ("/v1/module-workbench/execution/packet/archive/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/archive/transfer/schema", "transfer_states"),
+                ("/v1/module-workbench/execution/packet/archive/transfer/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/archive/runtime/schema", "stage_order"),
+                ("/v1/module-workbench/execution/packet/archive/runtime/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/archive/diff/schema", "change_kinds"),
+                ("/v1/module-workbench/execution/packet/archive/diff/capabilities", "operations"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

@@ -723,6 +723,11 @@ from .module_workbench_execution_packet_query import diff_module_workbench_execu
 from .module_workbench_execution_packet_release import build_module_workbench_execution_packet_release, module_workbench_execution_packet_release_capabilities, module_workbench_execution_packet_release_csv, module_workbench_execution_packet_release_json, module_workbench_execution_packet_release_schema, query_module_workbench_execution_packet_release, render_module_workbench_execution_packet_release_markdown
 from .module_workbench_execution_packet_runtime import module_workbench_execution_packet_runtime_capabilities, module_workbench_execution_packet_runtime_csv, module_workbench_execution_packet_runtime_json, module_workbench_execution_packet_runtime_schema, query_module_workbench_execution_packet_runtime, run_module_workbench_execution_packet_runtime
 from .module_workbench_execution_packet_inspection import build_module_workbench_execution_packet_inspection, module_workbench_execution_packet_inspection_capabilities, module_workbench_execution_packet_inspection_csv, module_workbench_execution_packet_inspection_json, module_workbench_execution_packet_inspection_schema, query_module_workbench_execution_packet_inspection, render_module_workbench_execution_packet_inspection_markdown
+from .module_workbench_execution_packet_archive import build_module_workbench_execution_packet_archive, module_workbench_execution_packet_archive_capabilities, module_workbench_execution_packet_archive_csv, module_workbench_execution_packet_archive_json, module_workbench_execution_packet_archive_schema, query_module_workbench_execution_packet_archive, render_module_workbench_execution_packet_archive_markdown
+from .module_workbench_execution_packet_archive_query import module_workbench_execution_packet_archive_transfer_capabilities, module_workbench_execution_packet_archive_transfer_json, module_workbench_execution_packet_archive_transfer_schema, query_module_workbench_execution_packet_archive_chunks
+from .module_workbench_execution_packet_archive_runtime import module_workbench_execution_packet_archive_runtime_capabilities, module_workbench_execution_packet_archive_runtime_csv, module_workbench_execution_packet_archive_runtime_json, module_workbench_execution_packet_archive_runtime_schema, query_module_workbench_execution_packet_archive_runtime, run_module_workbench_execution_packet_archive_runtime
+from .module_workbench_execution_packet_archive_diff import diff_module_workbench_execution_packet_archives, module_workbench_execution_packet_archive_diff_capabilities, module_workbench_execution_packet_archive_diff_csv, module_workbench_execution_packet_archive_diff_json, module_workbench_execution_packet_archive_diff_schema, query_module_workbench_execution_packet_archive_diff, render_module_workbench_execution_packet_archive_diff_markdown
+from .module_workbench_execution_packet_archive_index import module_workbench_execution_packet_archive_index_capabilities, module_workbench_execution_packet_archive_index_schema
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -2017,14 +2022,31 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/execution/packet/inspection/query",
             "/v1/module-workbench/execution/packet/inspection/schema",
             "/v1/module-workbench/execution/packet/inspection/capabilities",
+            "/v1/module-workbench/execution/packet/archive",
+            "/v1/module-workbench/execution/packet/archive/query",
+            "/v1/module-workbench/execution/packet/archive/chunks",
+            "/v1/module-workbench/execution/packet/archive/transfer/schema",
+            "/v1/module-workbench/execution/packet/archive/transfer/capabilities",
+            "/v1/module-workbench/execution/packet/archive/runtime",
+            "/v1/module-workbench/execution/packet/archive/runtime/query",
+            "/v1/module-workbench/execution/packet/archive/runtime/schema",
+            "/v1/module-workbench/execution/packet/archive/runtime/capabilities",
+            "/v1/module-workbench/execution/packet/archive/schema",
+            "/v1/module-workbench/execution/packet/archive/capabilities",
+            "/v1/module-workbench/execution/packet/archive/diff",
+            "/v1/module-workbench/execution/packet/archive/diff/query",
+            "/v1/module-workbench/execution/packet/archive/diff/schema",
+            "/v1/module-workbench/execution/packet/archive/diff/capabilities",
+            "/v1/module-workbench/execution/packet/archive/index/schema",
+            "/v1/module-workbench/execution/packet/archive/index/capabilities",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
                 if path == "/v1/module-certification/schema":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema(), "lineage": module_certification_lineage_schema(), "lineage_audit": module_certification_lineage_audit_schema(), "quality": module_certification_quality_schema(), "quality_policy": module_certification_quality_policy_schema(), "release": module_certification_release_schema(), "workbench": module_workbench_schema(), "workbench_policy": module_workbench_policy_schema(), "workbench_audit": module_workbench_audit_schema(), "workbench_diff": module_workbench_diff_schema(), "workbench_runtime": module_workbench_runtime_schema(), "workbench_portfolio": module_workbench_portfolio_schema(), "workbench_execution_packet": module_workbench_execution_packet_schema(), "workbench_execution_packet_query": module_workbench_execution_packet_query_schema(), "workbench_execution_packet_release": module_workbench_execution_packet_release_schema(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_schema(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_schema()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_schema(), "policy": module_certification_policy_schema(), "tasks": module_certification_tasks_schema(), "runtime": module_certification_runtime_schema(), "audit": module_certification_audit_schema(), "observability": module_certification_observability_schema(), "packet": module_certification_packet_schema(), "packet_query": module_certification_packet_query_schema(), "lineage": module_certification_lineage_schema(), "lineage_audit": module_certification_lineage_audit_schema(), "quality": module_certification_quality_schema(), "quality_policy": module_certification_quality_policy_schema(), "release": module_certification_release_schema(), "workbench": module_workbench_schema(), "workbench_policy": module_workbench_policy_schema(), "workbench_audit": module_workbench_audit_schema(), "workbench_diff": module_workbench_diff_schema(), "workbench_runtime": module_workbench_runtime_schema(), "workbench_portfolio": module_workbench_portfolio_schema(), "workbench_execution_packet": module_workbench_execution_packet_schema(), "workbench_execution_packet_query": module_workbench_execution_packet_query_schema(), "workbench_execution_packet_release": module_workbench_execution_packet_release_schema(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_schema(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_schema(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_schema(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_schema(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_schema()})
                     return
                 if path == "/v1/module-certification/capabilities":
-                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities(), "lineage": module_certification_lineage_capabilities(), "lineage_audit": module_certification_lineage_audit_capabilities(), "quality": module_certification_quality_capabilities(), "quality_policy": module_certification_quality_policy_capabilities(), "release": module_certification_release_capabilities(), "workbench": module_workbench_capabilities(), "workbench_policy": module_workbench_policy_capabilities(), "workbench_audit": module_workbench_audit_capabilities(), "workbench_diff": module_workbench_diff_capabilities(), "workbench_runtime": module_workbench_runtime_capabilities(), "workbench_portfolio": module_workbench_portfolio_capabilities(), "workbench_execution_packet": module_workbench_execution_packet_capabilities(), "workbench_execution_packet_query": module_workbench_execution_packet_query_capabilities(), "workbench_execution_packet_release": module_workbench_execution_packet_release_capabilities(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_capabilities(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_capabilities()})
+                    self._write(HTTPStatus.OK, {"certification": module_certification_capabilities(), "policy": module_certification_policy_capabilities(), "tasks": module_certification_tasks_capabilities(), "runtime": module_certification_runtime_capabilities(), "audit": module_certification_audit_capabilities(), "observability": module_certification_observability_capabilities(), "packet": module_certification_packet_capabilities(), "packet_query": module_certification_packet_query_capabilities(), "lineage": module_certification_lineage_capabilities(), "lineage_audit": module_certification_lineage_audit_capabilities(), "quality": module_certification_quality_capabilities(), "quality_policy": module_certification_quality_policy_capabilities(), "release": module_certification_release_capabilities(), "workbench": module_workbench_capabilities(), "workbench_policy": module_workbench_policy_capabilities(), "workbench_audit": module_workbench_audit_capabilities(), "workbench_diff": module_workbench_diff_capabilities(), "workbench_runtime": module_workbench_runtime_capabilities(), "workbench_portfolio": module_workbench_portfolio_capabilities(), "workbench_execution_packet": module_workbench_execution_packet_capabilities(), "workbench_execution_packet_query": module_workbench_execution_packet_query_capabilities(), "workbench_execution_packet_release": module_workbench_execution_packet_release_capabilities(), "workbench_execution_packet_runtime": module_workbench_execution_packet_runtime_capabilities(), "workbench_execution_packet_inspection": module_workbench_execution_packet_inspection_capabilities(), "workbench_execution_packet_archive": module_workbench_execution_packet_archive_capabilities(), "workbench_execution_packet_archive_transfer": module_workbench_execution_packet_archive_transfer_capabilities(), "workbench_execution_packet_archive_runtime": module_workbench_execution_packet_archive_runtime_capabilities()})
                     return
                 schema_routes = {
                     "/v1/module-certification/audit/schema": module_certification_audit_schema,
@@ -2055,6 +2077,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/release/schema": module_workbench_execution_packet_release_schema,
                     "/v1/module-workbench/execution/packet/runtime/schema": module_workbench_execution_packet_runtime_schema,
                     "/v1/module-workbench/execution/packet/inspection/schema": module_workbench_execution_packet_inspection_schema,
+                    "/v1/module-workbench/execution/packet/archive/schema": module_workbench_execution_packet_archive_schema,
+                    "/v1/module-workbench/execution/packet/archive/transfer/schema": module_workbench_execution_packet_archive_transfer_schema,
+                    "/v1/module-workbench/execution/packet/archive/runtime/schema": module_workbench_execution_packet_archive_runtime_schema,
+                    "/v1/module-workbench/execution/packet/archive/diff/schema": module_workbench_execution_packet_archive_diff_schema,
+                    "/v1/module-workbench/execution/packet/archive/index/schema": module_workbench_execution_packet_archive_index_schema,
                 }
                 if path in schema_routes:
                     self._write(HTTPStatus.OK, schema_routes[path]())
@@ -2088,6 +2115,11 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/release/capabilities": module_workbench_execution_packet_release_capabilities,
                     "/v1/module-workbench/execution/packet/runtime/capabilities": module_workbench_execution_packet_runtime_capabilities,
                     "/v1/module-workbench/execution/packet/inspection/capabilities": module_workbench_execution_packet_inspection_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/capabilities": module_workbench_execution_packet_archive_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/transfer/capabilities": module_workbench_execution_packet_archive_transfer_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/runtime/capabilities": module_workbench_execution_packet_archive_runtime_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/diff/capabilities": module_workbench_execution_packet_archive_diff_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/index/capabilities": module_workbench_execution_packet_archive_index_capabilities,
                 }
                 if path in capability_routes:
                     self._write(HTTPStatus.OK, capability_routes[path]())
@@ -2626,6 +2658,142 @@ class ApiHandler(BaseHTTPRequestHandler):
                             if output_format == "summary"
                             else inspection.to_dict()
                         )
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive",
+                    "/v1/module-workbench/execution/packet/archive/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    packet = build_module_workbench_execution_packet(workbench)
+                    archive = build_module_workbench_execution_packet_archive(packet)
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive(
+                            archive,
+                            resource=self._query_value(query, "resource") or "entries",
+                            entry_id=self._query_value(query, "entry_id"),
+                            kind=self._query_value(query, "kind"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_csv(archive).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                render_module_workbench_execution_packet_archive_markdown(archive).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = (
+                            archive.to_dict(include_entries=False)
+                            if output_format == "summary"
+                            else archive.to_dict()
+                        )
+                elif path == "/v1/module-workbench/execution/packet/archive/chunks":
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    packet = build_module_workbench_execution_packet(workbench)
+                    archive = build_module_workbench_execution_packet_archive(packet)
+                    payload = query_module_workbench_execution_packet_archive_chunks(
+                        archive,
+                        chunk_size=self._query_int(query, "chunk_size", 65536),
+                        ordinal=self._query_int(query, "ordinal", -1)
+                        if self._query_value(query, "ordinal") is not None
+                        else None,
+                        include_payloads=self._query_bool(query, "include_payloads") is True,
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive/runtime",
+                    "/v1/module-workbench/execution/packet/archive/runtime/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    runtime = run_module_workbench_execution_packet_archive_runtime(workbench)
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive_runtime(
+                            runtime,
+                            resource=self._query_value(query, "resource") or "stages",
+                            state=self._query_value(query, "state"),
+                            accepted=self._query_bool(query, "accepted"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_runtime_csv(runtime).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        payload = runtime.to_dict(
+                            include_stages=self._query_bool(query, "include_stages") is not False
+                        )
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive/diff",
+                    "/v1/module-workbench/execution/packet/archive/diff/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    packet = build_module_workbench_execution_packet(workbench)
+                    left_archive = build_module_workbench_execution_packet_archive(
+                        packet,
+                        archive_id=self._query_value(query, "left_id")
+                        or "glio-noncode-left-archive",
+                    )
+                    right_archive = build_module_workbench_execution_packet_archive(
+                        packet,
+                        archive_id=self._query_value(query, "right_id")
+                        or "glio-noncode-right-archive",
+                    )
+                    report = diff_module_workbench_execution_packet_archives(
+                        left_archive,
+                        right_archive,
+                    )
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive_diff(
+                            report,
+                            resource=self._query_value(query, "resource") or "changes",
+                            change=self._query_value(query, "change"),
+                            relative_path=self._query_value(query, "relative_path"),
+                            kind=self._query_value(query, "kind"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_diff_csv(report).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                render_module_workbench_execution_packet_archive_diff_markdown(report).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = report.to_dict(include_changes=False if output_format == "summary" else True)
                 elif path == "/v1/module-certification/policy":
                     payload = default_module_certification_policy().to_dict()
                 elif path == "/v1/module-certification/runtime":

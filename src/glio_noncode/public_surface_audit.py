@@ -212,9 +212,14 @@ from .module_workbench_execution_packet_query import module_workbench_execution_
 from .module_workbench_execution_packet_release import module_workbench_execution_packet_release_capabilities, module_workbench_execution_packet_release_schema
 from .module_workbench_execution_packet_runtime import module_workbench_execution_packet_runtime_capabilities, module_workbench_execution_packet_runtime_schema
 from .module_workbench_execution_packet_inspection import module_workbench_execution_packet_inspection_capabilities, module_workbench_execution_packet_inspection_schema
+from .module_workbench_execution_packet_archive import module_workbench_execution_packet_archive_capabilities, module_workbench_execution_packet_archive_schema
+from .module_workbench_execution_packet_archive_query import module_workbench_execution_packet_archive_transfer_capabilities, module_workbench_execution_packet_archive_transfer_schema
+from .module_workbench_execution_packet_archive_runtime import module_workbench_execution_packet_archive_runtime_capabilities, module_workbench_execution_packet_archive_runtime_schema
+from .module_workbench_execution_packet_archive_diff import module_workbench_execution_packet_archive_diff_capabilities, module_workbench_execution_packet_archive_diff_schema
+from .module_workbench_execution_packet_archive_index import module_workbench_execution_packet_archive_index_capabilities, module_workbench_execution_packet_archive_index_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 246
+PUBLIC_SURFACE_EXPECTED_COUNT = 256
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -662,6 +667,16 @@ def default_public_surface_inventory(
         "module-workbench-execution-packet-runtime-capabilities": module_workbench_execution_packet_runtime_capabilities(),
         "module-workbench-execution-packet-inspection-schema": module_workbench_execution_packet_inspection_schema(),
         "module-workbench-execution-packet-inspection-capabilities": module_workbench_execution_packet_inspection_capabilities(),
+        "module-workbench-execution-packet-archive-schema": module_workbench_execution_packet_archive_schema(),
+        "module-workbench-execution-packet-archive-capabilities": module_workbench_execution_packet_archive_capabilities(),
+        "module-workbench-execution-packet-archive-transfer-schema": module_workbench_execution_packet_archive_transfer_schema(),
+        "module-workbench-execution-packet-archive-transfer-capabilities": module_workbench_execution_packet_archive_transfer_capabilities(),
+        "module-workbench-execution-packet-archive-runtime-schema": module_workbench_execution_packet_archive_runtime_schema(),
+        "module-workbench-execution-packet-archive-runtime-capabilities": module_workbench_execution_packet_archive_runtime_capabilities(),
+        "module-workbench-execution-packet-archive-diff-schema": module_workbench_execution_packet_archive_diff_schema(),
+        "module-workbench-execution-packet-archive-diff-capabilities": module_workbench_execution_packet_archive_diff_capabilities(),
+        "module-workbench-execution-packet-archive-index-schema": module_workbench_execution_packet_archive_index_schema(),
+        "module-workbench-execution-packet-archive-index-capabilities": module_workbench_execution_packet_archive_index_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

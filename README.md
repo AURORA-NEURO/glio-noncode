@@ -1266,6 +1266,13 @@ python -m glio_noncode module-workbench-execution-packet-release .\out\execution
 python -m glio_noncode module-workbench-execution-packet-runtime --destination .\out\packet-runtime
 python -m glio_noncode module-workbench-execution-packet-inspection .\out\execution-packet --format markdown
 python -m glio_noncode module-workbench-execution-packet-inspection-query .\out\execution-packet --plane bytes --passed
+python -m glio_noncode module-workbench-execution-packet-archive .\out\execution-packet --destination .\out\execution-packet.zip
+python -m glio_noncode module-workbench-execution-packet-archive-verify .\out\execution-packet.zip
+python -m glio_noncode module-workbench-execution-packet-archive-query .\out\execution-packet.zip --resource entries --kind artifact
+python -m glio_noncode module-workbench-execution-packet-archive-chunk .\out\execution-packet.zip --chunk-size 65536
+python -m glio_noncode module-workbench-execution-packet-archive-runtime .\out\execution-packet --destination .\out\execution-packet.zip --unpack-destination .\out\unpacked-packet
+python -m glio_noncode module-workbench-execution-packet-archive-diff .\out\left.zip .\out\right.zip --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-index .\out\left.zip .\out\right.zip --format markdown
 ```
 
 The packet writer addresses exact UTF-8 bytes and rejects unsafe paths, missing

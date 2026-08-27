@@ -481,3 +481,127 @@ The packet is a durable review and handoff artifact. It does not upgrade a
 task to `completed`, certify a scientific result, or authorize a production
 deployment. Those meanings remain in the execution ledger, independent audit,
 and explicit release policy.
+
+## Deterministic archive transport
+
+The packet directory is convenient for local inspection; the archive transport
+is the portable boundary for moving the same packet as one exact byte stream.
+`build_module_workbench_execution_packet_archive` accepts a typed packet or a
+verified packet directory and emits a fixed-metadata `ZIP_STORED` container.
+The default archive contains fourteen members: `manifest.json` followed by the
+thirteen packet artifacts. Every member is UTF-8 JSON or CSV already addressed
+by the packet contract. Compression is deliberately not used, because the
+transport address must be stable across machines and runtimes.
+
+Archive construction fixes ZIP timestamps, creator fields, version fields,
+comments, and extra data. It rejects missing, unlisted, unsafe, non-regular,
+symlink, or non-canonical members before accepting the container. Archive
+descriptors retain the archive ID, packet ID, packet address, member ordinals,
+member paths, member kinds, exact byte counts, content addresses, and the
+binary archive address. The raw bytes are available to a transport caller but
+are intentionally omitted from descriptor JSON and all public aggregate
+projections.
+
+Verification is multi-plane and fail-closed:
+
+| Plane | Verification |
+| --- | --- |
+| ZIP | Readability, duplicate member names, regular member attributes, and bounded member count |
+| Path | Relative UTF-8 paths only; no absolute paths, parent traversal, drive prefixes, or empty segments |
+| Manifest | Canonical manifest bytes, required artifact set, ordinal conservation, and descriptor alignment |
+| Bytes | Exact member bytes, content addresses, line counts, and total payload conservation |
+| Packet | Hydrated packet verification, packet address, packet state, and public boundary |
+| Storage | Atomic archive write, destination policy, and safe staging replacement |
+
+The verifier returns an addressed receipt even when a container is blocked.
+The loader raises on a blocked archive and only hydrates a typed packet after
+all checks pass. The writer uses a sibling temporary file and an atomic replace;
+it does not silently overwrite an existing destination. Unpacking uses a
+staging directory, creates only validated relative paths, and atomically
+replaces the requested destination. Existing extraction trees require the
+explicit `allow_existing` option.
+
+The archive can be queried without unpacking. `entries` returns bounded member
+rows, `summary` returns the aggregate descriptor, and entry ID, entry kind,
+free-text, offset, and limit filters are available. JSON, CSV, and Markdown
+exports preserve the same member ordering and stable addresses. No query
+returns a source path, local username, credential, downloaded subject value, or
+mutable process detail.
+
+## Chunk transfer and runtime
+
+The transfer module divides exact archive bytes into addressed contiguous
+chunks. Each chunk carries its ordinal, offset, byte count, archive address,
+payload-derived address, and optional payload bytes. Chunk descriptors are
+sorted, bounded, and independently verifiable. The transfer receipt conserves
+the archive byte count and total chunk count while distinguishing `ready`,
+`partial`, and `completed` states. Resuming a transfer merges completed
+ordinals idempotently, rejects out-of-range ordinals, and gives the new receipt
+its own content address. Reassembly refuses missing, duplicate, foreign, or
+misordered chunks and verifies the final archive address before returning
+bytes.
+
+The archive runtime composes the transport lifecycle into nine ordered stages:
+
+1. build the archive;
+2. write or retain its exact bytes;
+3. verify the container;
+4. load the packet from bytes;
+5. create addressed chunks;
+6. establish a partial transfer;
+7. resume and complete the transfer;
+8. reassemble and optionally unpack; and
+9. query the resulting chunk set.
+
+Every stage has a stable artifact address and an accepted or blocked state.
+Runtime verification recomputes stage addresses, conserves completed and
+blocked counts, checks stage order, and verifies the final runtime address.
+The runtime can therefore be used as a local rehearsal, CI contract command,
+or a handoff receipt without accessing a network service.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive .\out\execution-packet --destination .\out\execution-packet.zip --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-verify .\out\execution-packet.zip
+python -m glio_noncode module-workbench-execution-packet-archive-load .\out\execution-packet.zip
+python -m glio_noncode module-workbench-execution-packet-archive-chunk .\out\execution-packet.zip --chunk-size 4096 --limit 5
+python -m glio_noncode module-workbench-execution-packet-archive-runtime .\out\execution-packet --chunk-size 4096 --unpack-destination .\out\unpacked
+```
+
+## Archive reconciliation and indexing
+
+`diff_module_workbench_execution_packet_archives` compares two verified
+containers without source access. It classifies every member as `added`,
+`removed`, `modified`, or `unchanged`, retains left and right descriptors,
+calculates archive/payload/entry deltas, and reports exact-byte identity,
+packet compatibility, and format compatibility. The diff itself is addressed
+and conserves both member sets. It can be queried by resource, change kind,
+relative member path, entry kind, free text, offset, and bounded limit.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-diff .\out\left.zip .\out\right.zip
+python -m glio_noncode module-workbench-execution-packet-archive-diff .\out\left.zip .\out\right.zip --resource modified
+python -m glio_noncode module-workbench-execution-packet-archive-diff .\out\left.zip .\out\right.zip --format csv --output archive-diff.csv
+```
+
+The archive index is a path-free catalog of already verified archives. It
+retains no binary payloads and no source locations. Each record carries its
+archive and packet addresses, byte totals, member counts, acceptance state,
+and nested content address. The index conserves record counts and bytes,
+groups records by packet address, identifies duplicate archive addresses, and
+supports address resolution when a group is unambiguous. Archive, packet,
+duplicate, and summary resources have bounded filters and stable exports.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-index .\out\left.zip .\out\right.zip --resource duplicates
+python -m glio_noncode module-workbench-execution-packet-archive-index .\out\left.zip .\out\right.zip --resource packets --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-index-schema
+python -m glio_noncode module-workbench-execution-packet-archive-index-capabilities
+```
+
+Archive transport, diff, and index schemas expose their version, boundary,
+resources, filters, limits, output types, deterministic/offline guarantees,
+and identity-free status. Capabilities enumerate each operation rather than
+implying that a broad endpoint is supported. The direct HTTP routes build the
+current public aggregate in memory and expose archive, transfer, runtime, and
+diff contracts as read-only projections; filesystem archive comparison and
+multi-archive indexing remain explicit CLI or Python operations.

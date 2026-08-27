@@ -4665,6 +4665,50 @@ task counts, carries bounded blocker explanations and next-task IDs, and reports
 completion and evidence coverage. It is exposed through the
 `module_workbench_execution_review_*` functions and the
 `/v1/module-workbench/execution/review` API family.
+
+### Portable archive transport, reconciliation, and indexing
+
+The execution packet has a deterministic binary transport boundary in addition
+to its exact-byte directory form. Archive construction uses fixed ZIP metadata,
+stores the manifest before thirteen packet artifacts, and preserves packet
+addresses and exact member bytes. Verification covers ZIP structure, safe
+relative paths, canonical manifest bytes, exact member content, hydrated packet
+state, public-boundary keys, and atomic storage policy. Loading and unpacking
+are fail-closed and never silently replace an existing destination.
+
+The transfer surface chunks archive bytes into addressed ranges, verifies each
+payload independently, and supports idempotent partial-to-completed resumption.
+Reassembly checks ordinals, offsets, archive ownership, byte conservation, and
+the final archive address. The nine-stage archive runtime composes build,
+write, verify, load, chunk, resume, assemble, unpack, and query with stable
+stage addresses.
+
+Archive reconciliation compares two verified containers member by member. It
+reports added, removed, modified, and unchanged paths, archive/payload/entry
+byte deltas, exact-byte identity, packet compatibility, and format
+compatibility. The archive index catalogs multiple verified archives without
+retaining their binary payloads or source paths; it conserves records and byte
+totals, groups packet addresses, detects duplicate archive addresses, and
+supports unambiguous address resolution.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-schema
+glio-noncode module-workbench-execution-packet-archive-transfer-schema
+glio-noncode module-workbench-execution-packet-archive-runtime-schema
+glio-noncode module-workbench-execution-packet-archive-diff-schema
+glio-noncode module-workbench-execution-packet-archive-index-schema
+glio-noncode module-workbench-execution-packet-archive packet --destination packet.zip
+glio-noncode module-workbench-execution-packet-archive-verify packet.zip
+glio-noncode module-workbench-execution-packet-archive-diff left.zip right.zip --format markdown
+glio-noncode module-workbench-execution-packet-archive-index left.zip right.zip --resource duplicates
+```
+
+The matching HTTP family is read-only and builds the current public aggregate
+in memory. Archive diff routes compare deterministic current projections with
+query-selectable left and right archive IDs; direct multi-archive catalogs and
+filesystem comparison remain explicit local operations. Every schema and
+capability projection declares deterministic, offline, bounded, path-free,
+timestamp-free, and identity-free behavior.
 ### Portable module execution handoff
 
 The module workbench execution packet packages the report, bounded portfolio,
