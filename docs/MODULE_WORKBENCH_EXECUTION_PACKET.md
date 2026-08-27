@@ -605,3 +605,89 @@ implying that a broad endpoint is supported. The direct HTTP routes build the
 current public aggregate in memory and expose archive, transfer, runtime, and
 diff contracts as read-only projections; filesystem archive comparison and
 multi-archive indexing remain explicit CLI or Python operations.
+
+## Durable archive object store
+
+The archive store is the next persistence boundary above individual packet
+archives. It separates a canonical `manifest.json` from an `objects/`
+directory containing exact ZIP bytes. The public manifest retains only typed
+archive descriptors and deterministic object keys; binary payloads stay in the
+object directory and are never embedded in JSON, query rows, or capability
+projections.
+
+Store construction sorts archive inputs by address, stores each exact byte
+stream once, and records every registration in an addressed append-only
+journal. A repeated byte-identical archive creates a `deduplicate` operation
+without another object. Each operation links to the previous head, so the
+store head is a compact journal commitment. Appends accept an optional
+expected-head address and reject stale writers. Store addresses include the
+full manifest descriptor, while object addresses include exact archive bytes.
+
+The writer stages a sibling directory, writes canonical UTF-8 manifest bytes,
+flushes the manifest, and atomically replaces the destination. Existing
+destinations require an explicit replacement flag. The loader refuses symlinked
+directories, symlinked objects, unsafe object tokens, missing objects, extra
+objects, non-regular files, malformed JSON, and any failed verification.
+
+Verification covers manifest shape, entry and operation addresses, journal
+continuity, exact object hashes, store address, public-boundary keys, count
+conservation, and storage policy. A replay receipt reloads every stored ZIP,
+rehydrates its packet, and proves its archive and packet addresses against the
+manifest. Store queries are bounded and support summary, entry, and operation
+resources; store diffs compare catalog entries, journal operations, heads, and
+byte totals without unpacking binaries.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store .\out\left.zip .\out\right.zip --destination .\out\archive-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-verify .\out\archive-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-load .\out\archive-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-replay .\out\archive-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-query .\out\archive-store --resource operations --limit 10
+python -m glio_noncode module-workbench-execution-packet-archive-store-diff .\out\left-store .\out\right-store --format csv
+python -m glio_noncode module-workbench-execution-packet-archive-store-runtime .\out\left.zip .\out\right.zip
+```
+
+## Archive-store checkpoints
+
+An archive-store checkpoint captures the store ID, addressed manifest, head,
+conserved counts, operation-address sequence, and entry-address sequence. It
+contains no binary data and no filesystem path. A current store can be
+compared with an exported checkpoint to produce one of four explicit states:
+`matched`, `extended`, `diverged`, or `blocked`. `extended` is accepted only
+when the current operation and entry sequences retain the checkpoint as an
+exact prefix. The comparison reports added and missing operation or entry
+addresses, making a stale or forked journal inspectable instead of silently
+merging it.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-checkpoint .\out\archive-store --output .\out\archive-checkpoint.json
+python -m glio_noncode module-workbench-execution-packet-archive-store-checkpoint-compare .\out\archive-store .\out\archive-checkpoint.json
+python -m glio_noncode module-workbench-execution-packet-archive-store-checkpoint-query .\out\archive-store .\out\archive-checkpoint.json --resource added_operations
+python -m glio_noncode module-workbench-execution-packet-archive-store-checkpoint-schema
+python -m glio_noncode module-workbench-execution-packet-archive-store-checkpoint-capabilities
+```
+
+## Archive-store recovery diagnostics
+
+Recovery inspection is a read-only storage diagnostic for directories that may
+be too damaged to load as typed stores. It never mutates the target and never
+returns the inspected path. It checks the directory boundary, manifest
+readability and canonical bytes, entry shape, safe object tokens, object
+directory presence, regular non-symlink objects, exact object-byte addresses,
+declared/actual object-set conservation, and the identity-free public key
+boundary. Each check is an addressed finding; the report conserves passed and
+blocked counts and remains exportable even when the store is blocked.
+
+This distinction is useful operationally: the normal store loader answers
+“can this store be trusted and hydrated?”, while recovery inspection answers
+“which storage invariant prevented hydration?” Missing and extra objects,
+symlinks, malformed manifests, non-canonical bytes, and byte tampering are
+reported without attempting repair or silently rewriting data.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-recovery .\out\archive-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-recovery .\out\archive-store --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-recovery-query .\out\archive-store --plane objects --limit 20
+python -m glio_noncode module-workbench-execution-packet-archive-store-recovery-schema
+python -m glio_noncode module-workbench-execution-packet-archive-store-recovery-capabilities
+```

@@ -921,6 +921,26 @@ GET /v1/module-workbench/execution/packet/archive/diff/schema
 GET /v1/module-workbench/execution/packet/archive/diff/capabilities
 GET /v1/module-workbench/execution/packet/archive/index/schema
 GET /v1/module-workbench/execution/packet/archive/index/capabilities
+GET /v1/module-workbench/execution/packet/archive/store
+GET /v1/module-workbench/execution/packet/archive/store/query
+GET /v1/module-workbench/execution/packet/archive/store/verify
+GET /v1/module-workbench/execution/packet/archive/store/replay
+GET /v1/module-workbench/execution/packet/archive/store/diff
+GET /v1/module-workbench/execution/packet/archive/store/schema
+GET /v1/module-workbench/execution/packet/archive/store/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/runtime
+GET /v1/module-workbench/execution/packet/archive/store/runtime/query
+GET /v1/module-workbench/execution/packet/archive/store/runtime/schema
+GET /v1/module-workbench/execution/packet/archive/store/runtime/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/checkpoint
+GET /v1/module-workbench/execution/packet/archive/store/checkpoint/query
+GET /v1/module-workbench/execution/packet/archive/store/checkpoint/compare
+GET /v1/module-workbench/execution/packet/archive/store/checkpoint/schema
+GET /v1/module-workbench/execution/packet/archive/store/checkpoint/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/recovery
+GET /v1/module-workbench/execution/packet/archive/store/recovery/query
+GET /v1/module-workbench/execution/packet/archive/store/recovery/schema
+GET /v1/module-workbench/execution/packet/archive/store/recovery/capabilities
 ```
 
 The archive endpoint builds the current public aggregate in memory. Query
@@ -930,3 +950,20 @@ current projections and accepts optional `left_id` and `right_id` query values;
 the local CLI and Python surfaces compare persisted archive files and build
 multi-archive indexes. None of these routes write a directory or expose source
 paths, raw payloads, credentials, or mutable process details.
+
+The store routes construct a current public aggregate, register its archive
+bytes in a deduplicated manifest/object catalog, and expose verify, replay,
+query, diff, and ordered-runtime receipts. Store checkpoint routes capture and
+compare an immutable journal boundary, including bounded added/missing
+operation and entry resources. Recovery routes inspect a supplied store
+directory without loading or changing it and return addressed findings for
+missing/extra objects, symlinks, canonical-byte drift, byte-address mismatch,
+and public-boundary violations. All are read-only HTTP projections; they do not
+write a directory, return raw object bytes, or expose local paths.
+
+The store routes construct a current public aggregate, register its archive
+bytes in a deduplicated manifest/object catalog, and expose verify, replay,
+query, diff, and ordered-runtime receipts. Store checkpoint routes capture and
+compare an immutable journal boundary, including bounded added/missing
+operation and entry resources. All are read-only HTTP projections; they do not
+write a directory, return raw object bytes, or expose local paths.

@@ -217,9 +217,13 @@ from .module_workbench_execution_packet_archive_query import module_workbench_ex
 from .module_workbench_execution_packet_archive_runtime import module_workbench_execution_packet_archive_runtime_capabilities, module_workbench_execution_packet_archive_runtime_schema
 from .module_workbench_execution_packet_archive_diff import module_workbench_execution_packet_archive_diff_capabilities, module_workbench_execution_packet_archive_diff_schema
 from .module_workbench_execution_packet_archive_index import module_workbench_execution_packet_archive_index_capabilities, module_workbench_execution_packet_archive_index_schema
+from .module_workbench_execution_packet_archive_store_query import module_workbench_execution_packet_archive_store_capabilities, module_workbench_execution_packet_archive_store_schema
+from .module_workbench_execution_packet_archive_store_runtime import module_workbench_execution_packet_archive_store_runtime_capabilities, module_workbench_execution_packet_archive_store_runtime_schema
+from .module_workbench_execution_packet_archive_store_checkpoint import module_workbench_execution_packet_archive_store_checkpoint_capabilities, module_workbench_execution_packet_archive_store_checkpoint_schema
+from .module_workbench_execution_packet_archive_store_recovery import module_workbench_execution_packet_archive_store_recovery_capabilities, module_workbench_execution_packet_archive_store_recovery_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 256
+PUBLIC_SURFACE_EXPECTED_COUNT = 264
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -677,6 +681,14 @@ def default_public_surface_inventory(
         "module-workbench-execution-packet-archive-diff-capabilities": module_workbench_execution_packet_archive_diff_capabilities(),
         "module-workbench-execution-packet-archive-index-schema": module_workbench_execution_packet_archive_index_schema(),
         "module-workbench-execution-packet-archive-index-capabilities": module_workbench_execution_packet_archive_index_capabilities(),
+        "module-workbench-execution-packet-archive-store-schema": module_workbench_execution_packet_archive_store_schema(),
+        "module-workbench-execution-packet-archive-store-capabilities": module_workbench_execution_packet_archive_store_capabilities(),
+        "module-workbench-execution-packet-archive-store-runtime-schema": module_workbench_execution_packet_archive_store_runtime_schema(),
+        "module-workbench-execution-packet-archive-store-runtime-capabilities": module_workbench_execution_packet_archive_store_runtime_capabilities(),
+        "module-workbench-execution-packet-archive-store-checkpoint-schema": module_workbench_execution_packet_archive_store_checkpoint_schema(),
+        "module-workbench-execution-packet-archive-store-checkpoint-capabilities": module_workbench_execution_packet_archive_store_checkpoint_capabilities(),
+        "module-workbench-execution-packet-archive-store-recovery-schema": module_workbench_execution_packet_archive_store_recovery_schema(),
+        "module-workbench-execution-packet-archive-store-recovery-capabilities": module_workbench_execution_packet_archive_store_recovery_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

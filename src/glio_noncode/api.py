@@ -728,6 +728,11 @@ from .module_workbench_execution_packet_archive_query import module_workbench_ex
 from .module_workbench_execution_packet_archive_runtime import module_workbench_execution_packet_archive_runtime_capabilities, module_workbench_execution_packet_archive_runtime_csv, module_workbench_execution_packet_archive_runtime_json, module_workbench_execution_packet_archive_runtime_schema, query_module_workbench_execution_packet_archive_runtime, run_module_workbench_execution_packet_archive_runtime
 from .module_workbench_execution_packet_archive_diff import diff_module_workbench_execution_packet_archives, module_workbench_execution_packet_archive_diff_capabilities, module_workbench_execution_packet_archive_diff_csv, module_workbench_execution_packet_archive_diff_json, module_workbench_execution_packet_archive_diff_schema, query_module_workbench_execution_packet_archive_diff, render_module_workbench_execution_packet_archive_diff_markdown
 from .module_workbench_execution_packet_archive_index import module_workbench_execution_packet_archive_index_capabilities, module_workbench_execution_packet_archive_index_schema
+from .module_workbench_execution_packet_archive_store import build_module_workbench_execution_packet_archive_store, replay_module_workbench_execution_packet_archive_store, verify_module_workbench_execution_packet_archive_store
+from .module_workbench_execution_packet_archive_store_query import diff_module_workbench_execution_packet_archive_stores, module_workbench_execution_packet_archive_store_capabilities, module_workbench_execution_packet_archive_store_csv, module_workbench_execution_packet_archive_store_diff_csv, module_workbench_execution_packet_archive_store_json, module_workbench_execution_packet_archive_store_schema, query_module_workbench_execution_packet_archive_store, render_module_workbench_execution_packet_archive_store_markdown
+from .module_workbench_execution_packet_archive_store_runtime import module_workbench_execution_packet_archive_store_runtime_capabilities, module_workbench_execution_packet_archive_store_runtime_csv, module_workbench_execution_packet_archive_store_runtime_json, module_workbench_execution_packet_archive_store_runtime_schema, query_module_workbench_execution_packet_archive_store_runtime, run_module_workbench_execution_packet_archive_store_runtime
+from .module_workbench_execution_packet_archive_store_checkpoint import build_module_workbench_execution_packet_archive_store_checkpoint, compare_module_workbench_execution_packet_archive_store_to_checkpoint, module_workbench_execution_packet_archive_store_checkpoint_capabilities, module_workbench_execution_packet_archive_store_checkpoint_csv, module_workbench_execution_packet_archive_store_checkpoint_schema, module_workbench_execution_packet_archive_store_comparison_csv, query_module_workbench_execution_packet_archive_store_checkpoint, render_module_workbench_execution_packet_archive_store_checkpoint_markdown
+from .module_workbench_execution_packet_archive_store_recovery import inspect_module_workbench_execution_packet_archive_store, module_workbench_execution_packet_archive_store_recovery_capabilities, module_workbench_execution_packet_archive_store_recovery_csv, module_workbench_execution_packet_archive_store_recovery_schema, query_module_workbench_execution_packet_archive_store_recovery, render_module_workbench_execution_packet_archive_store_recovery_markdown
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -747,6 +752,29 @@ class ApiHandler(BaseHTTPRequestHandler):
             runtime = factory()
             setattr(self.server, "glio_runtime", runtime)  # noqa: B010 - the HTTP server is intentionally extended
         return runtime
+
+    def _module_certification_context(
+        self, *, include_certification: bool = True
+    ) -> tuple[Any, Any, Any, Any, Any]:
+        """Cache the immutable repository aggregate for related read routes."""
+
+        context = getattr(self.server, "glio_module_certification_context", None)
+        if context is None:
+            inventory = build_module_inventory()
+            matrix = build_module_certification(inventory)
+            plan = build_module_certification_task_plan(matrix) if include_certification else None
+            gate = evaluate_module_certification_gate(matrix, plan) if plan is not None else None
+            runtime = run_module_certification(inventory=inventory) if include_certification else None
+            context = (inventory, matrix, plan, gate, runtime)
+            setattr(self.server, "glio_module_certification_context", context)  # noqa: B010 - server-local cache
+        elif include_certification and context[2] is None:
+            inventory, matrix, _, _, _ = context
+            plan = build_module_certification_task_plan(matrix)
+            gate = evaluate_module_certification_gate(matrix, plan)
+            runtime = run_module_certification(inventory=inventory)
+            context = (inventory, matrix, plan, gate, runtime)
+            setattr(self.server, "glio_module_certification_context", context)  # noqa: B010 - server-local cache
+        return context
 
     def _deployment_guard(self) -> DeploymentGuard:
         guard = getattr(self.server, "glio_deployment_guard", None)
@@ -2039,6 +2067,26 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/execution/packet/archive/diff/capabilities",
             "/v1/module-workbench/execution/packet/archive/index/schema",
             "/v1/module-workbench/execution/packet/archive/index/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store",
+            "/v1/module-workbench/execution/packet/archive/store/query",
+            "/v1/module-workbench/execution/packet/archive/store/verify",
+            "/v1/module-workbench/execution/packet/archive/store/replay",
+            "/v1/module-workbench/execution/packet/archive/store/diff",
+            "/v1/module-workbench/execution/packet/archive/store/schema",
+            "/v1/module-workbench/execution/packet/archive/store/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/runtime",
+            "/v1/module-workbench/execution/packet/archive/store/runtime/query",
+            "/v1/module-workbench/execution/packet/archive/store/runtime/schema",
+            "/v1/module-workbench/execution/packet/archive/store/runtime/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/checkpoint",
+            "/v1/module-workbench/execution/packet/archive/store/checkpoint/query",
+            "/v1/module-workbench/execution/packet/archive/store/checkpoint/compare",
+            "/v1/module-workbench/execution/packet/archive/store/checkpoint/schema",
+            "/v1/module-workbench/execution/packet/archive/store/checkpoint/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/recovery",
+            "/v1/module-workbench/execution/packet/archive/store/recovery/query",
+            "/v1/module-workbench/execution/packet/archive/store/recovery/schema",
+            "/v1/module-workbench/execution/packet/archive/store/recovery/capabilities",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
@@ -2082,6 +2130,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/runtime/schema": module_workbench_execution_packet_archive_runtime_schema,
                     "/v1/module-workbench/execution/packet/archive/diff/schema": module_workbench_execution_packet_archive_diff_schema,
                     "/v1/module-workbench/execution/packet/archive/index/schema": module_workbench_execution_packet_archive_index_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/schema": module_workbench_execution_packet_archive_store_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/runtime/schema": module_workbench_execution_packet_archive_store_runtime_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/checkpoint/schema": module_workbench_execution_packet_archive_store_checkpoint_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/recovery/schema": module_workbench_execution_packet_archive_store_recovery_schema,
                 }
                 if path in schema_routes:
                     self._write(HTTPStatus.OK, schema_routes[path]())
@@ -2120,6 +2172,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/runtime/capabilities": module_workbench_execution_packet_archive_runtime_capabilities,
                     "/v1/module-workbench/execution/packet/archive/diff/capabilities": module_workbench_execution_packet_archive_diff_capabilities,
                     "/v1/module-workbench/execution/packet/archive/index/capabilities": module_workbench_execution_packet_archive_index_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/capabilities": module_workbench_execution_packet_archive_store_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/runtime/capabilities": module_workbench_execution_packet_archive_store_runtime_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/checkpoint/capabilities": module_workbench_execution_packet_archive_store_checkpoint_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/recovery/capabilities": module_workbench_execution_packet_archive_store_recovery_capabilities,
                 }
                 if path in capability_routes:
                     self._write(HTTPStatus.OK, capability_routes[path]())
@@ -2150,11 +2206,15 @@ class ApiHandler(BaseHTTPRequestHandler):
                         raise ValueError("directory is required for certification packet replay")
                     self._write(HTTPStatus.OK, replay_module_certification_packet(directory))
                     return
-                inventory = build_module_inventory()
-                matrix = build_module_certification(inventory)
-                plan = build_module_certification_task_plan(matrix)
-                gate = evaluate_module_certification_gate(matrix, plan)
-                runtime = run_module_certification(inventory=inventory)
+                if path in {
+                    "/v1/module-workbench/execution/packet/archive/store/recovery",
+                    "/v1/module-workbench/execution/packet/archive/store/recovery/query",
+                }:
+                    inventory = matrix = plan = gate = runtime = None
+                else:
+                    inventory, matrix, plan, gate, runtime = self._module_certification_context(
+                        include_certification=path.startswith("/v1/module-certification/")
+                    )
                 if path in {
                     "/v1/module-certification/lineage",
                     "/v1/module-certification/lineage/query",
@@ -2181,6 +2241,44 @@ class ApiHandler(BaseHTTPRequestHandler):
                             self._write_bytes(HTTPStatus.OK, render_module_certification_lineage_markdown(lineage).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                             return
                         payload = lineage.to_dict(include_rows=self._query_bool(query, "include_rows") is True)
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive/store/recovery",
+                    "/v1/module-workbench/execution/packet/archive/store/recovery/query",
+                }:
+                    directory = self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("directory is required for archive store recovery")
+                    report = inspect_module_workbench_execution_packet_archive_store(directory)
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive_store_recovery(
+                            report,
+                            plane=self._query_value(query, "plane"),
+                            accepted=self._query_bool(query, "accepted"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_store_recovery_csv(
+                                    report
+                                ).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                render_module_workbench_execution_packet_archive_store_recovery_markdown(
+                                    report
+                                ).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = report.to_dict()
                 elif path in {
                     "/v1/module-certification/quality",
                     "/v1/module-certification/quality/query",
@@ -2714,6 +2812,187 @@ class ApiHandler(BaseHTTPRequestHandler):
                         offset=self._query_int(query, "offset", 0),
                         limit=self._query_int(query, "limit", 50),
                     )
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive/store",
+                    "/v1/module-workbench/execution/packet/archive/store/query",
+                    "/v1/module-workbench/execution/packet/archive/store/verify",
+                    "/v1/module-workbench/execution/packet/archive/store/replay",
+                    "/v1/module-workbench/execution/packet/archive/store/diff",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    packet = build_module_workbench_execution_packet(workbench)
+                    archive = build_module_workbench_execution_packet_archive(
+                        packet,
+                        archive_id=self._query_value(query, "archive_id")
+                        or "glio-noncode-live-archive",
+                    )
+                    store = build_module_workbench_execution_packet_archive_store(
+                        (archive, archive),
+                        store_id=self._query_value(query, "store_id")
+                        or "glio-noncode-live-archive-store",
+                    )
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive_store(
+                            store,
+                            resource=self._query_value(query, "resource") or "entries",
+                            archive_address=self._query_value(query, "archive_address"),
+                            operation_id=self._query_value(query, "operation_id"),
+                            kind=self._query_value(query, "kind"),
+                            accepted=self._query_bool(query, "accepted"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    elif path.endswith("/verify"):
+                        payload = verify_module_workbench_execution_packet_archive_store(store).to_dict()
+                    elif path.endswith("/replay"):
+                        payload = replay_module_workbench_execution_packet_archive_store(store).to_dict()
+                    elif path.endswith("/diff"):
+                        left = build_module_workbench_execution_packet_archive_store(
+                            (archive,),
+                            store_id=(
+                                self._query_value(query, "left_store_id")
+                                or "glio-noncode-live-left-store"
+                            ),
+                        )
+                        report = diff_module_workbench_execution_packet_archive_stores(left, store)
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_store_diff_csv(report).encode(
+                                    "utf-8"
+                                ),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        payload = report
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_store_csv(store).encode(
+                                    "utf-8"
+                                ),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                render_module_workbench_execution_packet_archive_store_markdown(
+                                    store
+                                ).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = store.summary() if output_format == "summary" else store.to_dict()
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive/store/checkpoint",
+                    "/v1/module-workbench/execution/packet/archive/store/checkpoint/query",
+                    "/v1/module-workbench/execution/packet/archive/store/checkpoint/compare",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    packet = build_module_workbench_execution_packet(workbench)
+                    archive = build_module_workbench_execution_packet_archive(packet)
+                    store_id = self._query_value(query, "store_id") or "glio-noncode-live-checkpoint-store"
+                    checkpoint_store = build_module_workbench_execution_packet_archive_store(
+                        (archive,), store_id=store_id
+                    )
+                    checkpoint = build_module_workbench_execution_packet_archive_store_checkpoint(
+                        checkpoint_store,
+                        checkpoint_id=self._query_value(query, "checkpoint_id")
+                        or "glio-noncode-live-checkpoint",
+                    )
+                    if path.endswith("/query") or path.endswith("/compare"):
+                        current_store = build_module_workbench_execution_packet_archive_store(
+                            (archive, archive), store_id=store_id
+                        )
+                        comparison = compare_module_workbench_execution_packet_archive_store_to_checkpoint(
+                            current_store, checkpoint
+                        )
+                        if path.endswith("/query"):
+                            payload = query_module_workbench_execution_packet_archive_store_checkpoint(
+                                comparison,
+                                resource=self._query_value(query, "resource") or "summary",
+                                text=self._query_value(query, "q") or self._query_value(query, "text"),
+                                offset=self._query_int(query, "offset", 0),
+                                limit=self._query_int(query, "limit", 50),
+                            )
+                        else:
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(
+                                    HTTPStatus.OK,
+                                    module_workbench_execution_packet_archive_store_comparison_csv(
+                                        comparison
+                                    ).encode("utf-8"),
+                                    content_type="text/csv; charset=utf-8",
+                                )
+                                return
+                            payload = comparison.to_dict()
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_store_checkpoint_csv(
+                                    checkpoint
+                                ).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                render_module_workbench_execution_packet_archive_store_checkpoint_markdown(
+                                    checkpoint
+                                ).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = checkpoint.summary() if output_format == "summary" else checkpoint.to_dict()
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive/store/runtime",
+                    "/v1/module-workbench/execution/packet/archive/store/runtime/query",
+                }:
+                    lineage = build_module_certification_lineage(inventory, matrix=matrix)
+                    quality = build_module_certification_quality(matrix, lineage)
+                    workbench = build_module_workbench(inventory, matrix, lineage, quality)
+                    packet = build_module_workbench_execution_packet(workbench)
+                    archive = build_module_workbench_execution_packet_archive(packet)
+                    store_runtime = run_module_workbench_execution_packet_archive_store_runtime(
+                        (archive, archive),
+                        store_id=self._query_value(query, "store_id")
+                        or "glio-noncode-live-archive-store-runtime",
+                    )
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive_store_runtime(
+                            store_runtime,
+                            resource=self._query_value(query, "resource") or "stages",
+                            state=self._query_value(query, "state"),
+                            accepted=self._query_bool(query, "accepted"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_store_runtime_csv(
+                                    store_runtime
+                                ).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        payload = store_runtime.to_dict()
                 elif path in {
                     "/v1/module-workbench/execution/packet/archive/runtime",
                     "/v1/module-workbench/execution/packet/archive/runtime/query",

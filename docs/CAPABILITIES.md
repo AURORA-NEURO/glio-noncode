@@ -4709,6 +4709,56 @@ query-selectable left and right archive IDs; direct multi-archive catalogs and
 filesystem comparison remain explicit local operations. Every schema and
 capability projection declares deterministic, offline, bounded, path-free,
 timestamp-free, and identity-free behavior.
+
+### Durable archive object stores and checkpoints
+
+Archive stores persist many verified packet archives as one deterministic
+content-addressed catalog. They keep canonical manifest metadata separate from
+exact ZIP objects, deduplicate identical bytes, record registration operations
+in a hash-linked journal, enforce optimistic expected-head appends, and write
+through an atomic directory replacement. Load and verify are fail-closed;
+verification covers manifest, object bytes, addresses, journal continuity,
+public keys, count conservation, and storage policy. Replay rehydrates every
+object and proves its packet and archive addresses. Queries and diffs expose
+bounded summary, entry, operation, head, and byte-total views without raw
+payloads or paths.
+
+Checkpoints capture a complete addressed store boundary without binary data.
+Comparisons prove exact matches and append-only extensions, or classify journal
+forks, missing addresses, foreign store IDs, and other blocked states. Added
+and missing operation/entry resources are queryable and exportable.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store left.zip right.zip --destination archive-store
+glio-noncode module-workbench-execution-packet-archive-store-verify archive-store
+glio-noncode module-workbench-execution-packet-archive-store-query archive-store --resource operations
+glio-noncode module-workbench-execution-packet-archive-store-runtime left.zip right.zip
+glio-noncode module-workbench-execution-packet-archive-store-checkpoint archive-store --output checkpoint.json
+glio-noncode module-workbench-execution-packet-archive-store-checkpoint-compare archive-store checkpoint.json
+glio-noncode module-workbench-execution-packet-archive-store-checkpoint-schema
+glio-noncode module-workbench-execution-packet-archive-store-checkpoint-capabilities
+```
+
+The HTTP family is read-only and builds the current public aggregate in
+memory. Store checkpoint comparisons are also read-only projections; local
+directory persistence and exported checkpoint files remain explicit CLI or
+Python operations.
+
+Archive-store recovery diagnostics inspect a possibly blocked directory
+without hydrating or changing it. Findings cover directory safety, manifest
+readability and canonical bytes, entry shape, safe object tokens, regular-file
+and symlink policy, exact object-byte addresses, missing or extra objects,
+object-set conservation, and the identity-free public boundary. The report is
+addressed and conserves passed/blocked finding counts, so it is still useful
+when normal fail-closed loading cannot proceed.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-recovery archive-store --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-recovery-query archive-store --plane objects
+glio-noncode module-workbench-execution-packet-archive-store-recovery-schema
+glio-noncode module-workbench-execution-packet-archive-store-recovery-capabilities
+```
+
 ### Portable module execution handoff
 
 The module workbench execution packet packages the report, bounded portfolio,

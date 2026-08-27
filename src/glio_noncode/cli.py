@@ -2143,6 +2143,12 @@ from .module_workbench_execution_packet_archive_query import assemble_module_wor
 from .module_workbench_execution_packet_archive_runtime import module_workbench_execution_packet_archive_runtime_capabilities, module_workbench_execution_packet_archive_runtime_csv, module_workbench_execution_packet_archive_runtime_json, module_workbench_execution_packet_archive_runtime_schema, query_module_workbench_execution_packet_archive_runtime, run_module_workbench_execution_packet_archive_runtime, verify_module_workbench_execution_packet_archive_runtime
 from .module_workbench_execution_packet_archive_diff import diff_module_workbench_execution_packet_archives, module_workbench_execution_packet_archive_diff_capabilities, module_workbench_execution_packet_archive_diff_csv, module_workbench_execution_packet_archive_diff_json, module_workbench_execution_packet_archive_diff_schema, query_module_workbench_execution_packet_archive_diff, render_module_workbench_execution_packet_archive_diff_markdown, verify_module_workbench_execution_packet_archive_diff
 from .module_workbench_execution_packet_archive_index import build_module_workbench_execution_packet_archive_index, module_workbench_execution_packet_archive_index_capabilities, module_workbench_execution_packet_archive_index_csv, module_workbench_execution_packet_archive_index_json, module_workbench_execution_packet_archive_index_schema, query_module_workbench_execution_packet_archive_index, render_module_workbench_execution_packet_archive_index_markdown, verify_module_workbench_execution_packet_archive_index
+from .module_workbench_execution_packet_archive_store import build_module_workbench_execution_packet_archive_store, load_module_workbench_execution_packet_archive_store, replay_module_workbench_execution_packet_archive_store, verify_module_workbench_execution_packet_archive_store, write_module_workbench_execution_packet_archive_store
+from .module_workbench_execution_packet_archive_store_query import diff_module_workbench_execution_packet_archive_stores, module_workbench_execution_packet_archive_store_capabilities, module_workbench_execution_packet_archive_store_csv, module_workbench_execution_packet_archive_store_diff_csv, module_workbench_execution_packet_archive_store_json, module_workbench_execution_packet_archive_store_schema, query_module_workbench_execution_packet_archive_store, render_module_workbench_execution_packet_archive_store_markdown, verify_module_workbench_execution_packet_archive_store_diff
+from .module_workbench_execution_packet_archive_store_runtime import module_workbench_execution_packet_archive_store_runtime_capabilities, module_workbench_execution_packet_archive_store_runtime_csv, module_workbench_execution_packet_archive_store_runtime_json, module_workbench_execution_packet_archive_store_runtime_schema, query_module_workbench_execution_packet_archive_store_runtime, run_module_workbench_execution_packet_archive_store_runtime
+from .module_workbench_execution_packet_archive_store_runtime import verify_module_workbench_execution_packet_archive_store_runtime
+from .module_workbench_execution_packet_archive_store_checkpoint import build_module_workbench_execution_packet_archive_store_checkpoint, checkpoint_module_workbench_execution_packet_archive_store_from_mapping, compare_module_workbench_execution_packet_archive_store_to_checkpoint, module_workbench_execution_packet_archive_store_checkpoint_capabilities, module_workbench_execution_packet_archive_store_checkpoint_csv, module_workbench_execution_packet_archive_store_checkpoint_json, module_workbench_execution_packet_archive_store_checkpoint_schema, module_workbench_execution_packet_archive_store_comparison_csv, module_workbench_execution_packet_archive_store_comparison_json, query_module_workbench_execution_packet_archive_store_checkpoint, render_module_workbench_execution_packet_archive_store_checkpoint_markdown, verify_module_workbench_execution_packet_archive_store_checkpoint, verify_module_workbench_execution_packet_archive_store_comparison
+from .module_workbench_execution_packet_archive_store_recovery import inspect_module_workbench_execution_packet_archive_store, module_workbench_execution_packet_archive_store_recovery_capabilities, module_workbench_execution_packet_archive_store_recovery_csv, module_workbench_execution_packet_archive_store_recovery_json, module_workbench_execution_packet_archive_store_recovery_schema, query_module_workbench_execution_packet_archive_store_recovery, render_module_workbench_execution_packet_archive_store_recovery_markdown, verify_module_workbench_execution_packet_archive_store_recovery
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4880,6 +4886,92 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_packet_archive_index.add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-index-schema", help="print packet archive index schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-index-capabilities", help="print packet archive index capabilities").add_argument("--output", default=None)
+
+    module_workbench_execution_packet_archive_store = subparsers.add_parser("module-workbench-execution-packet-archive-store", help="build and inspect a durable packet archive store")
+    module_workbench_execution_packet_archive_store.add_argument("archives", nargs="+", type=str)
+    module_workbench_execution_packet_archive_store.add_argument("--store-id", default="glio-noncode-module-workbench-execution-archive-store")
+    module_workbench_execution_packet_archive_store.add_argument("--destination", default=None)
+    module_workbench_execution_packet_archive_store.add_argument("--allow-existing", action="store_true")
+    module_workbench_execution_packet_archive_store.add_argument("--resource", choices=("summary", "entries", "operations"), default=None)
+    module_workbench_execution_packet_archive_store.add_argument("--archive-address", default=None)
+    module_workbench_execution_packet_archive_store.add_argument("--operation-id", default=None)
+    module_workbench_execution_packet_archive_store.add_argument("--kind", default=None)
+    module_workbench_execution_packet_archive_store.add_argument("--accepted", action="store_true")
+    module_workbench_execution_packet_archive_store.add_argument("--text", default=None)
+    module_workbench_execution_packet_archive_store.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_packet_archive_store.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_packet_archive_store.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    module_workbench_execution_packet_archive_store.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_verify = subparsers.add_parser("module-workbench-execution-packet-archive-store-verify", help="verify a durable packet archive store")
+    module_workbench_execution_packet_archive_store_verify.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_verify.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_load = subparsers.add_parser("module-workbench-execution-packet-archive-store-load", help="load a verified durable packet archive store")
+    module_workbench_execution_packet_archive_store_load.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_load.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_replay = subparsers.add_parser("module-workbench-execution-packet-archive-store-replay", help="replay a durable packet archive store")
+    module_workbench_execution_packet_archive_store_replay.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_replay.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-query", help="query a durable packet archive store")
+    module_workbench_execution_packet_archive_store_query.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_query.add_argument("--resource", choices=("summary", "entries", "operations"), default="entries")
+    module_workbench_execution_packet_archive_store_query.add_argument("--archive-address", default=None)
+    module_workbench_execution_packet_archive_store_query.add_argument("--operation-id", default=None)
+    module_workbench_execution_packet_archive_store_query.add_argument("--kind", default=None)
+    module_workbench_execution_packet_archive_store_query.add_argument("--accepted", action="store_true")
+    module_workbench_execution_packet_archive_store_query.add_argument("--text", default=None)
+    module_workbench_execution_packet_archive_store_query.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_packet_archive_store_query.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_packet_archive_store_query.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_diff = subparsers.add_parser("module-workbench-execution-packet-archive-store-diff", help="compare two durable packet archive stores")
+    module_workbench_execution_packet_archive_store_diff.add_argument("left", type=str)
+    module_workbench_execution_packet_archive_store_diff.add_argument("right", type=str)
+    module_workbench_execution_packet_archive_store_diff.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_execution_packet_archive_store_diff.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-schema", help="print packet archive store schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-capabilities", help="print packet archive store capabilities").add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-runtime", help="run the durable packet archive store lifecycle")
+    module_workbench_execution_packet_archive_store_runtime.add_argument("archives", nargs="+", type=str)
+    module_workbench_execution_packet_archive_store_runtime.add_argument("--store-id", default="glio-noncode-module-workbench-execution-archive-store-runtime")
+    module_workbench_execution_packet_archive_store_runtime.add_argument("--destination", default=None)
+    module_workbench_execution_packet_archive_store_runtime.add_argument("--allow-existing", action="store_true")
+    module_workbench_execution_packet_archive_store_runtime.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_execution_packet_archive_store_runtime.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-runtime-schema", help="print packet archive store runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-runtime-capabilities", help="print packet archive store runtime capabilities").add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_checkpoint = subparsers.add_parser("module-workbench-execution-packet-archive-store-checkpoint", help="capture an immutable packet archive store checkpoint")
+    module_workbench_execution_packet_archive_store_checkpoint.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_checkpoint.add_argument("--checkpoint-id", default="glio-noncode-module-workbench-execution-archive-store-checkpoint")
+    module_workbench_execution_packet_archive_store_checkpoint.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    module_workbench_execution_packet_archive_store_checkpoint.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_checkpoint_compare = subparsers.add_parser("module-workbench-execution-packet-archive-store-checkpoint-compare", help="compare a packet archive store with an exported checkpoint")
+    module_workbench_execution_packet_archive_store_checkpoint_compare.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_checkpoint_compare.add_argument("checkpoint", type=str)
+    module_workbench_execution_packet_archive_store_checkpoint_compare.add_argument("--format", choices=("json", "csv"), default="json")
+    module_workbench_execution_packet_archive_store_checkpoint_compare.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_checkpoint_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-checkpoint-query", help="query checkpoint reconciliation rows")
+    module_workbench_execution_packet_archive_store_checkpoint_query.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_checkpoint_query.add_argument("checkpoint", type=str)
+    module_workbench_execution_packet_archive_store_checkpoint_query.add_argument("--resource", choices=("summary", "added_operations", "missing_operations", "added_entries", "missing_entries"), default="summary")
+    module_workbench_execution_packet_archive_store_checkpoint_query.add_argument("--text", default=None)
+    module_workbench_execution_packet_archive_store_checkpoint_query.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_packet_archive_store_checkpoint_query.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_packet_archive_store_checkpoint_query.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-checkpoint-schema", help="print packet archive store checkpoint schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-checkpoint-capabilities", help="print packet archive store checkpoint capabilities").add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_recovery = subparsers.add_parser("module-workbench-execution-packet-archive-store-recovery", help="inspect a persisted packet archive store without mutating it")
+    module_workbench_execution_packet_archive_store_recovery.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_recovery.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    module_workbench_execution_packet_archive_store_recovery.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_recovery_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-recovery-query", help="query packet archive store recovery findings")
+    module_workbench_execution_packet_archive_store_recovery_query.add_argument("directory", type=str)
+    module_workbench_execution_packet_archive_store_recovery_query.add_argument("--plane", default=None)
+    module_workbench_execution_packet_archive_store_recovery_query.add_argument("--accepted", action="store_true")
+    module_workbench_execution_packet_archive_store_recovery_query.add_argument("--text", default=None)
+    module_workbench_execution_packet_archive_store_recovery_query.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_packet_archive_store_recovery_query.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_packet_archive_store_recovery_query.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-recovery-schema", help="print packet archive store recovery schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-recovery-capabilities", help="print packet archive store recovery capabilities").add_argument("--output", default=None)
 
     module_inventory = subparsers.add_parser(
         "module-inventory",
@@ -27027,6 +27119,176 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_text(module_workbench_execution_packet_archive_index_json(index), args.output)
             return 0 if index.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-schema":
+            _write_json(module_workbench_execution_packet_archive_store_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-runtime-schema":
+            _write_json(module_workbench_execution_packet_archive_store_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-runtime-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store":
+            store = build_module_workbench_execution_packet_archive_store(
+                args.archives,
+                store_id=args.store_id,
+            )
+            verify_module_workbench_execution_packet_archive_store(store)
+            if args.destination:
+                write_module_workbench_execution_packet_archive_store(
+                    store,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.resource:
+                result = query_module_workbench_execution_packet_archive_store(
+                    store,
+                    resource=args.resource,
+                    archive_address=args.archive_address,
+                    operation_id=args.operation_id,
+                    kind=args.kind,
+                    accepted=True if args.accepted else None,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json(result, args.output)
+                return 0 if result.get("accepted", False) else 2
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_csv(store), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_markdown(store), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_json(store), args.output)
+            return 0 if store.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-verify":
+            receipt = verify_module_workbench_execution_packet_archive_store(args.directory)
+            _write_json(receipt.to_dict(), args.output)
+            return 0 if receipt.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-load":
+            store = load_module_workbench_execution_packet_archive_store(args.directory)
+            _write_json(store.to_dict(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replay":
+            store = load_module_workbench_execution_packet_archive_store(args.directory)
+            replay = replay_module_workbench_execution_packet_archive_store(store)
+            _write_json(replay.to_dict(), args.output)
+            return 0 if replay.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-query":
+            store = load_module_workbench_execution_packet_archive_store(args.directory)
+            result = query_module_workbench_execution_packet_archive_store(
+                store,
+                resource=args.resource,
+                archive_address=args.archive_address,
+                operation_id=args.operation_id,
+                kind=args.kind,
+                accepted=True if args.accepted else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-diff":
+            left = load_module_workbench_execution_packet_archive_store(args.left)
+            right = load_module_workbench_execution_packet_archive_store(args.right)
+            report = diff_module_workbench_execution_packet_archive_stores(left, right)
+            verify_module_workbench_execution_packet_archive_store_diff(report)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_diff_csv(report), args.output)
+            else:
+                _write_json(report, args.output)
+            return 0 if report.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-runtime":
+            runtime = run_module_workbench_execution_packet_archive_store_runtime(
+                args.archives,
+                store_id=args.store_id,
+                destination=args.destination,
+                allow_existing=args.allow_existing,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_runtime_csv(runtime), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-checkpoint-schema":
+            _write_json(module_workbench_execution_packet_archive_store_checkpoint_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-checkpoint-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_checkpoint_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-checkpoint":
+            store = load_module_workbench_execution_packet_archive_store(args.directory)
+            checkpoint = build_module_workbench_execution_packet_archive_store_checkpoint(
+                store,
+                checkpoint_id=args.checkpoint_id,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_checkpoint_csv(checkpoint), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_checkpoint_markdown(checkpoint), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_checkpoint_json(checkpoint), args.output)
+            return 0 if checkpoint.accepted else 2
+        if args.command in {
+            "module-workbench-execution-packet-archive-store-checkpoint-compare",
+            "module-workbench-execution-packet-archive-store-checkpoint-query",
+        }:
+            store = load_module_workbench_execution_packet_archive_store(args.directory)
+            checkpoint = checkpoint_module_workbench_execution_packet_archive_store_from_mapping(
+                _read_json(args.checkpoint)
+            )
+            comparison = compare_module_workbench_execution_packet_archive_store_to_checkpoint(
+                store,
+                checkpoint,
+            )
+            if args.command.endswith("-query"):
+                result = query_module_workbench_execution_packet_archive_store_checkpoint(
+                    comparison,
+                    resource=args.resource,
+                    text=args.text,
+                    offset=args.offset,
+                    limit=args.limit,
+                )
+                _write_json(result, args.output)
+                return 0 if result.get("accepted", False) else 2
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_comparison_csv(comparison), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_comparison_json(comparison), args.output)
+            return 0 if comparison.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-recovery-schema":
+            _write_json(module_workbench_execution_packet_archive_store_recovery_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-recovery-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_recovery_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-recovery":
+            report = inspect_module_workbench_execution_packet_archive_store(args.directory)
+            verify_module_workbench_execution_packet_archive_store_recovery(report)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_recovery_csv(report), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_recovery_markdown(report), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_recovery_json(report), args.output)
+            return 0 if report.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-recovery-query":
+            report = inspect_module_workbench_execution_packet_archive_store(args.directory)
+            verify_module_workbench_execution_packet_archive_store_recovery(report)
+            result = query_module_workbench_execution_packet_archive_store_recovery(
+                report,
+                plane=args.plane,
+                accepted=True if args.accepted else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
         if args.command == "module-workbench-execution-packet-runtime":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             matrix = build_module_certification(

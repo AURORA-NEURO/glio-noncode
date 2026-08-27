@@ -1273,6 +1273,14 @@ python -m glio_noncode module-workbench-execution-packet-archive-chunk .\out\exe
 python -m glio_noncode module-workbench-execution-packet-archive-runtime .\out\execution-packet --destination .\out\execution-packet.zip --unpack-destination .\out\unpacked-packet
 python -m glio_noncode module-workbench-execution-packet-archive-diff .\out\left.zip .\out\right.zip --format markdown
 python -m glio_noncode module-workbench-execution-packet-archive-index .\out\left.zip .\out\right.zip --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store .\out\left.zip .\out\right.zip --destination .\out\archive-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-verify .\out\archive-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-query .\out\archive-store --resource operations
+python -m glio_noncode module-workbench-execution-packet-archive-store-runtime .\out\left.zip .\out\right.zip --format csv
+python -m glio_noncode module-workbench-execution-packet-archive-store-checkpoint .\out\archive-store --output .\out\archive-checkpoint.json
+python -m glio_noncode module-workbench-execution-packet-archive-store-checkpoint-compare .\out\archive-store .\out\archive-checkpoint.json
+python -m glio_noncode module-workbench-execution-packet-archive-store-recovery .\out\archive-store --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-recovery-query .\out\archive-store --plane objects
 ```
 
 The packet writer addresses exact UTF-8 bytes and rejects unsafe paths, missing
