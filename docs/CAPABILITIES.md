@@ -4938,6 +4938,37 @@ The CLI and HTTP API use repeatable `scenario` values in the form
 explicit and outputs are deterministic, path-free, timestamp-free, and
 identity-free.
 
+### Release-window decision ledger
+
+The decision ledger turns verified release-window evidence into an explicit,
+append-only review history. It supports promote, hold, block, and supersede
+decisions; preserves the window and assurance addresses; requires actions for
+non-promote outcomes; and rejects promotion unless the underlying window and
+packet assurance are already release-ready. Empty or tampered ledgers fail
+closed. No reviewer, operator, or agent identity is part of the public model.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review `
+  --pair "matched=left-packet=left-packet" `
+  --decision "promote=promote=verified evidence is ready" --format summary
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-query `
+  --pair "matched=left-packet=left-packet" `
+  --decision "promote=promote=verified evidence is ready" --resource entries --limit 20
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-runtime `
+  --pair "matched=left-packet=left-packet" `
+  --decision "promote=promote=verified evidence is ready" --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-assurance-query `
+  --pair "matched=left-packet=left-packet" --resource findings --severity blocker
+```
+
+The HTTP review family is available beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review`.
+It includes bounded ledger, runtime, assurance, and revision-diff routes,
+query routes, JSON/CSV/Markdown exports, schemas, and capability projections.
+Revision diffs classify exact, append-only, and divergent histories while
+retaining the evidence scope. Every projection is deterministic, bounded,
+path-free, timestamp-free, and identity-free.
+
 ### Portable module execution handoff
 
 The module workbench execution packet packages the report, bounded portfolio,

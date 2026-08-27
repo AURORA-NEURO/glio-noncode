@@ -872,3 +872,38 @@ Operational requests accept repeatable `pair` and `scenario` values;
 `scenario=SCENARIO_ID=MINIMUM_SCORE=MAXIMUM_HOLD_COUNT` keeps policy variation
 explicit while shared bounds remain visible. Scenario pages are bounded and
 support state, readiness, acceptance, and text filters.
+
+## Release-window decision ledger
+
+The review layer records an explicit human-readable decision against the
+verified release window and independent packet assurance. Entries support
+`promote`, `hold`, `block`, and `supersede`. Every entry is content-addressed,
+ordered, linked to the previous entry, and retained in an append-only ledger.
+Promotion is fail-closed: the window and packet assurance must already be
+release-ready, the entry must have no required actions, and the current head
+must be an explicit promote decision. Holds, blocks, and supersessions retain
+bounded required actions so the next review step is visible without storing
+reviewer identity or private metadata.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review `
+  --pair "matched=.outase-packet=.outase-packet" `
+  --decision "promote=promote=verified evidence is ready for handoff" --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-runtime `
+  --pair "matched=.outase-packet=.outase-packet" `
+  --decision "promote=promote=verified evidence is ready for handoff" --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-assurance `
+  --pair "matched=.outase-packet=.outase-packet" `
+  --decision "promote=promote=verified evidence is ready for handoff" --format markdown
+```
+
+The review query returns bounded ledger summaries or entries with decision,
+state, readiness, acceptance, action, and text filters. The runtime exposes
+seven fail-closed stages; independent review assurance checks evidence links,
+chain continuity, decision semantics, action accounting, head closure, and
+runtime linkage. The review diff compares two revisions and classifies them
+as exact, append-only, or divergent, with one bounded action per entry.
+Operational routes are beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review`.
+All review projections are deterministic, path-free, timestamp-free, and
+identity-free.
