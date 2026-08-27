@@ -998,3 +998,75 @@ timestamp-free, identity-free, and safe to run against downloaded public data.
 The same contracts are available through the HTTP family under
 `/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog`,
 including query, runtime, federation, diff, schema, and capability routes.
+
+## Catalog assurance and release gate
+
+Catalog verification proves the typed collection is structurally valid. The
+independent assurance command recomputes the collection relationships again
+and records one addressed finding for each assurance plane. It checks the
+aggregate address, version and boundary, entry and journal conservation,
+predecessor links, evidence windows, optional hydrated members, acceptance,
+readiness, and the public projection. A valid held catalog produces a warning
+and remains accepted; a rejected member or broken relationship produces a
+blocker.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-assurance `
+  --catalog-directory .\out\review-store-catalog --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-assurance-query `
+  --catalog-directory .\out\review-store-catalog --plane readiness --limit 20
+```
+
+The release gate combines the catalog, its eight-stage runtime, the selected
+federation, and independent assurance. Structural checks are required and
+block the gate when they fail. Readiness checks are non-required warnings, so
+the gate can report a valid held collection without treating it as release
+ready. Release closure requires a ready catalog, a completed runtime, a ready
+federation, and assurance without warnings.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-gate `
+  --catalog-directory .\out\review-store-catalog `
+  --require-same-window --require-unique-ledger --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-gate-query `
+  --catalog-directory .\out\review-store-catalog --plane linkage --passed --limit 20
+```
+
+The gate and assurance projections are deterministic, bounded, path-free,
+timestamp-free, and identity-free. Their schema and capability commands are
+also exercised by GitHub Actions, and the HTTP equivalents live below
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/assurance`
+and `/gate`.
+
+## Portable catalog release packet
+
+The packet closes the handoff boundary above catalog, runtime, federation,
+assurance, and gate. It builds one deterministic manifest plus five canonical
+component artifacts:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet `
+  --catalog-directory .\out\review-store-catalog --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-query `
+  --catalog-directory .\out\review-store-catalog --kind gate --limit 10
+```
+
+The persisted packet contains exactly `manifest.json`, `catalog.json`,
+`runtime.json`, `federation.json`, `assurance.json`, and `gate.json`. The
+manifest conserves artifact order, component addresses, exact byte counts, and
+byte hashes. Writes are atomic and refuse an existing destination unless the
+caller explicitly opts into overwrite. Loading rejects symlinks, extra or
+missing files, non-canonical JSON, manifest mutations, kind/file mismatches,
+byte tampering, and nested component address divergence. Successful loads
+rehydrate all five typed objects and rerun their component verifiers.
+
+Ready packets are accepted and release-ready. Held packets are accepted but
+not release-ready. Blocked packets are preserved as valid rejected transport
+records so the failure evidence can be moved and inspected without being
+mistaken for release approval. JSON, CSV, and Markdown renderings are
+deterministic, and packet queries return bounded, addressed receipts. HTTP
+routes mirror the CLI under
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet`;
+base/query schema and capability routes are included. The public packet is
+path-free, timestamp-free, and free of attribution, agent/model/language, and
+other identity-bearing fields.

@@ -4994,6 +4994,65 @@ rehydration, tampering, missing and extra artifacts, append guards, readiness
 holds, blocked members, mixed windows, unknown selections, query receipts,
 diff states, and downloaded review-store data.
 
+### Independent catalog assurance and release gate
+
+Catalog verification is complemented by a separate assurance computation that
+rechecks aggregate addresses, version and boundary, entry count and ordinals,
+member and entry addresses, genesis and registration conservation, journal
+predecessor links, evidence-window references, optional hydrated-store
+addresses, catalog verification, acceptance conservation, readiness, and the
+public boundary. Findings are individually addressed and classified as pass,
+warning, or blocker. A valid held catalog is accepted with a readiness warning;
+rejected members, broken links, or malformed evidence create blockers.
+
+The release gate combines four independently addressed projections: the
+catalog, its eight-stage runtime, the selected federation, and catalog
+assurance. It checks cross-projection catalog linkage, runtime reconciliation,
+federation acceptance, assurance acceptance, member conservation, and public
+boundary safety. Release readiness requires every check to pass, while a
+structurally valid held collection remains accepted and is reported as held.
+Unknown selections, rejected catalogs, structural runtime failures, and
+assurance blockers fail closed.
+
+Both planes expose bounded finding/check queries with receipt addresses and
+deterministic JSON, CSV, and Markdown projections. CLI and HTTP routes are
+available beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/assurance`
+and `/gate`, with schema and capability routes for each base and query
+surface. Public projections carry no paths, timestamps, attribution,
+reviewer/operator data, agent or model fields, language metadata, or identity
+fields.
+
+### Portable catalog release packet
+
+The catalog release packet is the durable handoff above the five independently
+addressed projections: catalog, runtime, federation, assurance, and release
+gate. It writes an exact six-file directory containing one canonical manifest
+and `catalog.json`, `runtime.json`, `federation.json`, `assurance.json`, and
+`gate.json`. Every component has a byte count, byte address, and component
+address in the manifest. Writes are staged in a sibling temporary directory
+and published atomically; existing destinations require an explicit overwrite
+flag.
+
+Loading is fail-closed. The loader rejects symlinks, directories, missing or
+extra files, non-canonical JSON, manifest mutations, wrong kind-to-file
+bindings, byte mismatches, and component addresses that do not match the
+packet summary. It then rehydrates the typed component objects and reruns each
+component verifier before returning the packet. A blocked release remains a
+valid, transportable blocked packet, while a held packet remains accepted but
+not release-ready.
+
+The packet exposes deterministic JSON, CSV, and Markdown projections plus a
+bounded artifact query with an addressed query receipt. CLI commands are
+available under
+`module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet`
+and `-query`; HTTP routes are available under
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet`.
+Both base and query schema/capability projections are part of the public
+surface and GitHub Actions checks. The packet boundary contains no paths,
+timestamps, attribution, agent/model/language metadata, or identity-bearing
+fields.
+
 ### Release-window decision ledger
 
 The decision ledger turns verified release-window evidence into an explicit,

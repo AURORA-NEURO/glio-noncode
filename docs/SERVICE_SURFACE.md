@@ -967,3 +967,40 @@ query, diff, and ordered-runtime receipts. Store checkpoint routes capture and
 compare an immutable journal boundary, including bounded added/missing
 operation and entry resources. All are read-only HTTP projections; they do not
 write a directory, return raw object bytes, or expose local paths.
+
+The durable review-store catalog family indexes persisted review stores and
+closes the collection-level release boundary:
+
+```text
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/runtime
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/runtime/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/federation
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/federation/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/diff
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/diff/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/assurance
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/assurance/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/gate
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/gate/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/query/capabilities
+```
+
+Each family also exposes schema and capability routes. Catalog assurance
+recomputes collection integrity independently; the gate combines catalog,
+runtime, federation, and assurance addresses. Held evidence is accepted but
+not release-ready, while structural failures are blocked. All routes are
+bounded, deterministic, read-only, path-free, timestamp-free, and
+identity-free.
+
+The packet routes expose the portable six-file handoff and bounded artifact
+queries. Packet responses preserve the combined ready, held, or blocked state;
+they never write a directory or expose local paths. Exact-byte persistence and
+rehydration are available through the Python and CLI surfaces, while HTTP
+remains a deterministic read-only projection.
