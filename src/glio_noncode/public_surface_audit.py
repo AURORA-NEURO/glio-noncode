@@ -225,9 +225,13 @@ from .module_workbench_execution_packet_archive_store_replication_contracts impo
 from .module_workbench_execution_packet_archive_store_replication_query import module_workbench_execution_packet_archive_store_replication_query_capabilities, module_workbench_execution_packet_archive_store_replication_query_schema
 from .module_workbench_execution_packet_archive_store_replication_runtime_contracts import module_workbench_execution_packet_archive_store_replication_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_runtime_schema
 from .module_workbench_execution_packet_archive_store_replication_packet import module_workbench_execution_packet_archive_store_replication_packet_capabilities, module_workbench_execution_packet_archive_store_replication_packet_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_query_schema, module_workbench_execution_packet_archive_store_replication_packet_schema
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_contracts import module_workbench_execution_packet_archive_store_replication_packet_diff_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_schema
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_query import module_workbench_execution_packet_archive_store_replication_packet_diff_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_query_schema
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_assurance import module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_schema
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_batch import module_workbench_execution_packet_archive_store_replication_packet_diff_batch_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 274
+PUBLIC_SURFACE_EXPECTED_COUNT = 288
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -703,6 +707,20 @@ def default_public_surface_inventory(
         "module-workbench-execution-packet-archive-store-replication-packet-capabilities": module_workbench_execution_packet_archive_store_replication_packet_capabilities(),
         "module-workbench-execution-packet-archive-store-replication-packet-query-schema": module_workbench_execution_packet_archive_store_replication_packet_query_schema(),
         "module-workbench-execution-packet-archive-store-replication-packet-query-capabilities": module_workbench_execution_packet_archive_store_replication_packet_query_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-runtime-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-runtime-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-query-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_query_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-query-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_query_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_batch_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_batch_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-schema": module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

@@ -2155,6 +2155,12 @@ from .module_workbench_execution_packet_archive_store_replication_query import m
 from .module_workbench_execution_packet_archive_store_replication_runtime_contracts import module_workbench_execution_packet_archive_store_replication_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_runtime_schema
 from .module_workbench_execution_packet_archive_store_replication_runtime import module_workbench_execution_packet_archive_store_replication_runtime_csv, module_workbench_execution_packet_archive_store_replication_runtime_json, query_module_workbench_execution_packet_archive_store_replication_runtime, run_module_workbench_execution_packet_archive_store_replication_runtime
 from .module_workbench_execution_packet_archive_store_replication_packet import build_module_workbench_execution_packet_archive_store_replication_packet, load_module_workbench_execution_packet_archive_store_replication_packet, module_workbench_execution_packet_archive_store_replication_packet_capabilities, module_workbench_execution_packet_archive_store_replication_packet_csv, module_workbench_execution_packet_archive_store_replication_packet_json, module_workbench_execution_packet_archive_store_replication_packet_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_query_csv, module_workbench_execution_packet_archive_store_replication_packet_query_json, module_workbench_execution_packet_archive_store_replication_packet_query_schema, module_workbench_execution_packet_archive_store_replication_packet_schema, query_module_workbench_execution_packet_archive_store_replication_packet, render_module_workbench_execution_packet_archive_store_replication_packet_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_query_markdown, replay_module_workbench_execution_packet_archive_store_replication_packet, write_module_workbench_execution_packet_archive_store_replication_packet
+from .module_workbench_execution_packet_archive_store_replication_packet_diff import build_module_workbench_execution_packet_archive_store_replication_packet_diff, build_module_workbench_execution_packet_archive_store_replication_packet_diff_release, load_module_workbench_execution_packet_archive_store_replication_packet_diff_inputs, module_workbench_execution_packet_archive_store_replication_packet_diff_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_json, render_module_workbench_execution_packet_archive_store_replication_packet_diff_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_contracts import module_workbench_execution_packet_archive_store_replication_packet_diff_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_schema
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_runtime import module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_json, run_module_workbench_execution_packet_archive_store_replication_packet_diff_runtime
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_query import module_workbench_execution_packet_archive_store_replication_packet_diff_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_query_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release, query_module_workbench_execution_packet_archive_store_replication_packet_diff_runtime, render_module_workbench_execution_packet_archive_store_replication_packet_diff_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_assurance import build_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_json, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance, render_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_batch import build_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_json, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_batch, render_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_markdown
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -2786,6 +2792,18 @@ def _write_text(text: str, output: str | None) -> None:
         Path(output).write_text(text, encoding="utf-8")
     else:
         sys.stdout.write(text)
+
+
+def _packet_diff_batch_pairs(values: list[str]) -> tuple[tuple[str, str, str], ...]:
+    """Parse repeatable ``PAIR_ID=LEFT=RIGHT`` matrix arguments."""
+
+    pairs = []
+    for value in values:
+        parts = value.split("=", 2)
+        if len(parts) != 3 or not all(parts):
+            raise ValidationError("packet diff batch pairs must use PAIR_ID=LEFT=RIGHT")
+        pairs.append((parts[0], parts[1], parts[2]))
+    return tuple(pairs)
 
 
 def _module_fabric_fixture(input_path: str | None):
@@ -5039,6 +5057,86 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-capabilities", help="print replication packet capabilities").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-query-schema", help="print replication packet query schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-query-capabilities", help="print replication packet query capabilities").add_argument("--output", default=None)
+    replication_packet_diff = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff", help="compare two persisted replication packets")
+    replication_packet_diff.add_argument("left_directory", type=str)
+    replication_packet_diff.add_argument("right_directory", type=str)
+    replication_packet_diff.add_argument("--diff-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff")
+    replication_packet_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet_diff.add_argument("--output", default=None)
+    replication_packet_diff_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-query", help="query a packet diff")
+    replication_packet_diff_query.add_argument("left_directory", type=str)
+    replication_packet_diff_query.add_argument("right_directory", type=str)
+    replication_packet_diff_query.add_argument("--diff-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff")
+    replication_packet_diff_query.add_argument("--resource", choices=("summary", "artifacts", "checks"), default="summary")
+    replication_packet_diff_query.add_argument("--action", default=None)
+    replication_packet_diff_query.add_argument("--accepted", action="store_true")
+    replication_packet_diff_query.add_argument("--text", default=None)
+    replication_packet_diff_query.add_argument("--offset", default=0, type=int)
+    replication_packet_diff_query.add_argument("--limit", default=50, type=int)
+    replication_packet_diff_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    replication_packet_diff_query.add_argument("--output", default=None)
+    replication_packet_diff_release = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release", help="evaluate a packet diff release gate")
+    replication_packet_diff_release.add_argument("left_directory", type=str)
+    replication_packet_diff_release.add_argument("right_directory", type=str)
+    replication_packet_diff_release.add_argument("--diff-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff")
+    replication_packet_diff_release.add_argument("--format", choices=("json", "summary"), default="json")
+    replication_packet_diff_release.add_argument("--output", default=None)
+    replication_packet_diff_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-runtime", help="run the ordered packet diff runtime")
+    replication_packet_diff_runtime.add_argument("left_directory", type=str)
+    replication_packet_diff_runtime.add_argument("right_directory", type=str)
+    replication_packet_diff_runtime.add_argument("--diff-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-runtime")
+    replication_packet_diff_runtime.add_argument("--format", choices=("json", "csv", "summary"), default="json")
+    replication_packet_diff_runtime.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-schema", help="print packet diff schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-capabilities", help="print packet diff capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-runtime-schema", help="print packet diff runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-runtime-capabilities", help="print packet diff runtime capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-query-schema", help="print packet diff query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-query-capabilities", help="print packet diff query capabilities").add_argument("--output", default=None)
+    replication_packet_diff_assurance = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-assurance", help="audit a packet diff for release readiness")
+    replication_packet_diff_assurance.add_argument("left_directory", type=str)
+    replication_packet_diff_assurance.add_argument("right_directory", type=str)
+    replication_packet_diff_assurance.add_argument("--diff-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff")
+    replication_packet_diff_assurance.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet_diff_assurance.add_argument("--output", default=None)
+    replication_packet_diff_assurance_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query", help="query packet diff assurance findings")
+    replication_packet_diff_assurance_query.add_argument("left_directory", type=str)
+    replication_packet_diff_assurance_query.add_argument("right_directory", type=str)
+    replication_packet_diff_assurance_query.add_argument("--diff-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff")
+    replication_packet_diff_assurance_query.add_argument("--resource", choices=("summary", "findings"), default="summary")
+    replication_packet_diff_assurance_query.add_argument("--severity", default=None)
+    replication_packet_diff_assurance_query.add_argument("--passed", action="store_true")
+    replication_packet_diff_assurance_query.add_argument("--text", default=None)
+    replication_packet_diff_assurance_query.add_argument("--offset", default=0, type=int)
+    replication_packet_diff_assurance_query.add_argument("--limit", default=50, type=int)
+    replication_packet_diff_assurance_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    replication_packet_diff_assurance_query.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-schema", help="print packet diff assurance schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-capabilities", help="print packet diff assurance capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query-schema", help="print packet diff assurance query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query-capabilities", help="print packet diff assurance query capabilities").add_argument("--output", default=None)
+    replication_packet_diff_batch = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch", help="build a bounded matrix across packet pairs")
+    replication_packet_diff_batch.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_batch.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_batch.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet_diff_batch.add_argument("--output", default=None)
+    replication_packet_diff_batch_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query", help="query a packet diff matrix")
+    replication_packet_diff_batch_query.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_batch_query.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_batch_query.add_argument("--resource", choices=("summary", "items"), default="summary")
+    replication_packet_diff_batch_query.add_argument("--state", default=None)
+    replication_packet_diff_batch_query.add_argument("--release-state", default=None)
+    replication_packet_diff_batch_query.add_argument("--accepted", action="store_true")
+    replication_packet_diff_batch_query.add_argument("--release-ready", action="store_true")
+    replication_packet_diff_batch_query.add_argument("--text", default=None)
+    replication_packet_diff_batch_query.add_argument("--offset", default=0, type=int)
+    replication_packet_diff_batch_query.add_argument("--limit", default=50, type=int)
+    replication_packet_diff_batch_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    replication_packet_diff_batch_query.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-schema", help="print packet diff batch schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-capabilities", help="print packet diff batch capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-schema", help="print packet diff batch query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-capabilities", help="print packet diff batch query capabilities").add_argument("--output", default=None)
 
     module_inventory = subparsers.add_parser(
         "module-inventory",
@@ -27486,6 +27584,185 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_text(module_workbench_execution_packet_archive_store_replication_runtime_json(runtime), args.output)
             return 0 if runtime.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-runtime-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-runtime-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff":
+            diff = load_module_workbench_execution_packet_archive_store_replication_packet_diff_inputs(
+                args.left_directory,
+                args.right_directory,
+                diff_id=args.diff_id,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_csv(diff), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_markdown(diff), args.output)
+            elif args.format == "summary":
+                _write_json(diff.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_json(diff), args.output)
+            return 0 if diff.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-query":
+            diff = load_module_workbench_execution_packet_archive_store_replication_packet_diff_inputs(
+                args.left_directory,
+                args.right_directory,
+                diff_id=args.diff_id,
+            )
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff(
+                diff,
+                resource=args.resource,
+                action=args.action,
+                accepted=True if args.accepted else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_query_json(result), args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release":
+            diff = load_module_workbench_execution_packet_archive_store_replication_packet_diff_inputs(
+                args.left_directory,
+                args.right_directory,
+                diff_id=args.diff_id,
+            )
+            release = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release(diff)
+            _write_json(release.summary() if args.format == "summary" else release.to_dict(), args.output)
+            return 0 if release.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-runtime":
+            diff_runtime = run_module_workbench_execution_packet_archive_store_replication_packet_diff_runtime(
+                args.left_directory,
+                args.right_directory,
+                diff_id=args.diff_id,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_csv(diff_runtime), args.output)
+            elif args.format == "summary":
+                _write_json(diff_runtime.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_runtime_json(diff_runtime), args.output)
+            return 0 if diff_runtime.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance":
+            diff = load_module_workbench_execution_packet_archive_store_replication_packet_diff_inputs(
+                args.left_directory,
+                args.right_directory,
+                diff_id=args.diff_id,
+            )
+            release = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release(diff)
+            assurance = build_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance(diff, release)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_csv(assurance), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_markdown(assurance), args.output)
+            elif args.format == "summary":
+                _write_json(assurance.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_json(assurance), args.output)
+            return 0 if assurance.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query":
+            diff = load_module_workbench_execution_packet_archive_store_replication_packet_diff_inputs(
+                args.left_directory,
+                args.right_directory,
+                diff_id=args.diff_id,
+            )
+            release = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release(diff)
+            assurance = build_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance(diff, release)
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance(
+                assurance,
+                resource=args.resource,
+                severity=args.severity,
+                passed=True if args.passed else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_json(result), args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-batch":
+            batch = build_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_from_directories(
+                _packet_diff_batch_pairs(args.pair),
+                batch_id=args.batch_id,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_csv(batch), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_markdown(batch), args.output)
+            elif args.format == "summary":
+                _write_json(batch.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_json(batch), args.output)
+            return 0 if batch.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query":
+            batch = build_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_from_directories(
+                _packet_diff_batch_pairs(args.pair),
+                batch_id=args.batch_id,
+            )
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_batch(
+                batch,
+                resource=args.resource,
+                state=args.state,
+                release_state=args.release_state,
+                accepted=True if args.accepted else None,
+                release_ready=True if args.release_ready else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_json(result), args.output)
+            return 0 if result.get("accepted", False) else 2
         if args.command == "module-workbench-execution-packet-runtime":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             matrix = build_module_certification(

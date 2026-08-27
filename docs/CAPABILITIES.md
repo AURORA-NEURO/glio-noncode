@@ -4816,6 +4816,65 @@ for identical verified inputs. API routes mirror the CLI beneath
 `/v1/module-workbench/execution/packet/archive/store/replication/packet`,
 including build, bounded query, replay, schema, and capabilities routes.
 
+### Replication packet diffs and release assurance
+
+Two persisted replication packets can be loaded and verified before any
+comparison is emitted. The diff classifies every fixed-vocabulary artifact as
+`added`, `removed`, `unchanged`, or `changed`, retains left/right byte counts
+and addresses, and separately checks packet format, references, artifact
+conservation, release eligibility, and the identity-free boundary. Matching
+packets are accepted noops; append-only extensions can be promotable; changed
+or divergent content is accepted for inspection but held from promotion.
+
+The release projection turns those checks into an explicit `promotable`,
+`hold`, or `blocked` decision. The ordered runtime records packet loading,
+left/right verification, comparison, release evaluation, and closure with
+addressed stages. Independent assurance adds severity-bearing findings:
+integrity, candidate acceptance, boundary state, required removals, content
+changes, release decision, public boundary, and optional runtime closure.
+Warnings create a review hold; blockers fail closed. All projections are
+bounded, deterministic, timestamp-free, path-free, and identity-free.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff left-packet right-packet --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-query left-packet right-packet --resource artifacts --action changed
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release left-packet right-packet --format summary
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-runtime left-packet right-packet --format summary
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-assurance left-packet right-packet --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query left-packet right-packet --resource findings --severity blocker
+```
+
+The HTTP family mirrors these operations under
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff`.
+Operational requests provide `left_directory` and `right_directory`; schema
+and capability routes do not read the filesystem. Query responses carry an
+independent content address, so a review consumer can verify pagination and
+filters without trusting transport metadata.
+
+### Multi-packet diff matrices
+
+Release windows can compare several persisted packet pairs in one bounded,
+path-free matrix. Each pair is independently loaded, verified, diffed, and
+assigned a release decision. The matrix conserves item count, accepted and
+release-ready counts, every diff state, every release state, and the aggregate
+score. A single divergent pair can therefore hold the window without hiding
+which pair caused the hold. Matrix rows retain only pair identifiers,
+addresses, states, release outcomes, scores, and bounded detail; filesystem
+paths, timestamps, private fields, and attribution metadata are excluded.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-batch `
+  --pair "baseline=left-packet=left-packet" `
+  --pair "candidate=left-packet=right-packet" --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query `
+  --pair "baseline=left-packet=left-packet" --release-state hold --limit 20
+```
+
+The matrix API uses repeatable `pair` query values beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/batch`.
+Schema and capability projections are filesystem-independent, while matrix
+build and query requests verify each supplied pair before emitting output.
+
 ### Portable module execution handoff
 
 The module workbench execution packet packages the report, bounded portfolio,

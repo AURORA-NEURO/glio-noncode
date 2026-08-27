@@ -749,3 +749,73 @@ repeated builds produce the same manifest and artifact addresses. Persistence
 uses an atomic directory replacement and requires an explicit existing-target
 override, while replay is read-only. API routes mirror the CLI under
 `/v1/module-workbench/execution/packet/archive/store/replication/packet`.
+
+## Packet-to-packet diff and assurance
+
+The packet diff layer compares two already persisted packet directories. It
+loads both manifests through the same fail-closed packet verifier, then emits
+one addressed artifact row per artifact ID. Rows preserve both content
+addresses and byte counts, and classify the action as added, removed,
+unchanged, or changed. Required removals, rejected candidate packets,
+non-canonical boundaries, and public-key violations are explicit checks; no
+binary payload is embedded in the diff.
+
+The aggregate state is `matched` when packet addresses agree, `extended` when
+the candidate adds only accepted artifacts, `changed` when existing artifact
+bytes differ, `diverged` for other incompatible boundaries, and `blocked` when
+verification or required conservation fails. A release object turns this
+into `promotable`, `hold`, or `blocked`. Only matched and accepted extension
+boundaries with no changed or removed artifacts can be promotable.
+
+The diff runtime is a six-stage typed handoff: load, verify-left,
+verify-right, compare, release, and complete. Each stage carries a source or
+result address and is independently verified. Bounded query projections cover
+summary, artifacts, checks, release checks, and runtime stages with action,
+acceptance, kind, state, text, offset, and limit filters.
+
+Independent assurance is a separate addressed aggregate rather than a
+relabeling of the diff. It conserves finding counts and score, classifies
+findings by info/warning/blocker severity, and evaluates release readiness.
+Warnings produce a review hold; blockers produce a blocked report. JSON, CSV,
+Markdown, query, schema, and capabilities projections exclude paths,
+timestamps, private fields, and attribution metadata.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff .\out\left-packet .\out\right-packet --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-query .\out\left-packet .\out\right-packet --resource artifacts --action changed
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release .\out\left-packet .\out\right-packet --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-runtime .\out\left-packet .\out\right-packet --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-assurance .\out\left-packet .\out\right-packet --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-assurance-query .\out\left-packet .\out\right-packet --resource findings --severity blocker
+```
+
+The HTTP routes use the same contract beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff`.
+Schema and capability routes are filesystem-independent; diff, release,
+runtime, assurance, and query routes require URL-encoded left and right
+packet directories. A consumer can verify every returned aggregate or query
+address offline.
+
+## Multi-packet diff matrices
+
+For a release window, the batch layer evaluates multiple packet pairs with
+the same fail-closed comparison contract. Pair specifications are supplied as
+`PAIR_ID=LEFT_DIRECTORY=RIGHT_DIRECTORY`; the pair identifier is the only
+caller-provided label retained in the public projection. Every row includes
+the diff address, release address, state, release state, acceptance, release
+readiness, score, and bounded detail. The aggregate conserves item counts,
+state counts, release counts, and score, making partial or reordered matrix
+results detectable.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-batch `
+  --pair "matched=.\out\base-packet=.\out\base-packet" `
+  --pair "review=.\out\base-packet=.\out\candidate-packet" --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query `
+  --pair "review=.\out\base-packet=.\out\candidate-packet" --state diverged --limit 20
+```
+
+The batch API accepts repeatable URL query values named `pair` beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/batch`.
+It returns an addressed matrix or bounded query response; schema and
+capability routes do not inspect packet directories.
