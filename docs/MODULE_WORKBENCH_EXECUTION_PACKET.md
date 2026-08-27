@@ -1070,3 +1070,43 @@ routes mirror the CLI under
 base/query schema and capability routes are included. The public packet is
 path-free, timestamp-free, and free of attribution, agent/model/language, and
 other identity-bearing fields.
+
+## Catalog packet diff and review
+
+Two persisted catalog packets can be compared without reopening the source
+catalogs. The diff loader verifies both exact six-file packets, aligns the
+five fixed artifact kinds, and emits one addressed action per kind. Actions
+carry left/right component and byte addresses, byte counts, and changed
+fields; the aggregate conserves unchanged, changed, added, and removed counts.
+The diff also records whether the packet addresses are exact and whether the
+right-hand release is unchanged, promoted, held, blocked, recovered, or
+regressed. Its six checks independently verify packet boundaries, artifact
+conservation, action addresses, state classification, transition vocabulary,
+and the public boundary.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-diff `
+  --left-packet-directory .\out\packet-a `
+  --right-packet-directory .\out\packet-b --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-diff-query `
+  --left-packet-directory .\out\packet-a `
+  --right-packet-directory .\out\packet-b --resource actions --action changed
+```
+
+The review object is an append-only decision chain over these diffs. Its
+default decision promotes a fully accepted, release-ready right packet,
+holds accepted but not-ready evidence, and blocks failed or blocked evidence.
+Callers can explicitly hold, block, supersede, or promote when the typed
+constraints permit it. Each entry retains the prior head address and the
+review head becomes the entry address. An expected-head argument rejects
+stale concurrent appends, while a non-contiguous left packet rejects a
+skipped transition.
+
+Review persistence contains exactly `manifest.json` and `review.json`. Both
+files are canonical and byte-addressed; writes are atomic, overwrite is
+explicit, and loads reject symlinks, extra or missing files, noncanonical
+JSON, manifest/document mismatches, and tampered nested entries. Diff and
+review base/query schema and capability projections are exposed through the
+CLI and HTTP API, with deterministic JSON, CSV, Markdown, and addressed query
+receipts. These public projections remain path-free, timestamp-free, and
+free of attribution, agent/model/language, and identity-bearing fields.

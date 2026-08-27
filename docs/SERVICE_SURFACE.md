@@ -990,6 +990,18 @@ GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/capabilities
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/query/schema
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/query/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/diff
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/diff/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/diff/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/diff/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/diff/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/diff/query/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/query/capabilities
 ```
 
 Each family also exposes schema and capability routes. Catalog assurance
@@ -1004,3 +1016,11 @@ queries. Packet responses preserve the combined ready, held, or blocked state;
 they never write a directory or expose local paths. Exact-byte persistence and
 rehydration are available through the Python and CLI surfaces, while HTTP
 remains a deterministic read-only projection.
+
+Packet diff routes compare two supplied packet directories through their
+public addresses and return bounded artifact actions or checks. Packet review
+routes build promote, hold, block, or supersede decisions over that transition
+without mutating either packet. Both families return addressed receipts and
+support JSON, CSV, and Markdown projections plus independent schema and
+capability resources. Query inputs are directory locations supplied by the
+caller; those locations are never echoed in the response.

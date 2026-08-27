@@ -5053,6 +5053,36 @@ surface and GitHub Actions checks. The packet boundary contains no paths,
 timestamps, attribution, agent/model/language metadata, or identity-bearing
 fields.
 
+### Catalog packet transitions and review decisions
+
+The packet transition layer compares two verified six-file catalog packets by
+the fixed catalog, runtime, federation, assurance, and gate artifact kinds. It
+records unchanged, changed, added, and removed actions with both content and
+byte addresses, conserves action counts, classifies exact versus changed
+packets, and maps release state transitions such as promotion, hold, block,
+recovery, and regression. Every diff has independent addressed checks and
+bounded summary/action/check queries.
+
+The review layer turns one verified packet diff into an append-only decision
+record. Promote is accepted only for an accepted, release-ready transition;
+hold preserves accepted evidence that is not ready; block preserves failure
+evidence; and supersede records an explicit replacement decision. Follow-up
+decisions must continue from the current head packet and can use an expected
+head address for optimistic concurrency. Review persistence is an exact,
+atomic two-file `manifest.json` plus `review.json` transport with canonical
+bytes, fail-closed rehydration, bounded queries, JSON/CSV/Markdown exports,
+and tamper detection. Public outputs contain no paths, timestamps,
+attribution, agent/model/language metadata, or identity-bearing fields.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-diff `
+  --left-packet-directory .\out\packet-a `
+  --right-packet-directory .\out\packet-b --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review `
+  --left-packet-directory .\out\packet-a `
+  --right-packet-directory .\out\packet-b --format summary
+```
+
 ### Release-window decision ledger
 
 The decision ledger turns verified release-window evidence into an explicit,
