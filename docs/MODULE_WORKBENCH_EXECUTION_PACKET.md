@@ -907,3 +907,38 @@ Operational routes are beneath
 `/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review`.
 All review projections are deterministic, path-free, timestamp-free, and
 identity-free.
+
+## Durable release-window review stores
+
+The review-store layer persists the decision ledger without creating a second
+approval authority. A store is a deterministic index over one addressed
+ledger and its public checks. Its exact directory contains a manifest, the
+canonical ledger projection, and a canonical operation journal. The journal
+starts with a genesis record and can grow only through addressed append
+operations. Writes are staged beside the destination and atomically replaced;
+existing destinations require an explicit overwrite flag.
+
+Loading rechecks the exact artifact set, regular-file boundary, UTF-8
+canonical JSON, manifest byte counts and byte addresses, operation equality,
+ledger address, aggregate address, and hydrated head. Replay compares the
+persisted head and entry count to the rehydrated ledger. An expected-head
+guard makes concurrent append attempts fail closed. Bounded queries expose
+summary, operations, checks, and ledger entries, with deterministic JSON, CSV,
+and Markdown renderings.
+
+The durable runtime emits eight content-addressed stages. Independent
+assurance recomputes linkage, head conservation, operation continuity,
+replay, public boundary, readiness, and acceptance, classifying an empty
+store as blocked and a held store as a warning. Store diffs compare ledger
+entry IDs and addresses and prove exact, append-only, or divergent history.
+All public output is path-free, timestamp-free, and identity-free.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store `
+  --pair "matched=.\out\base-packet=.\out\base-packet" `
+  --decision "promote=promote=verified evidence is ready" `
+  --destination .\out\review-store --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-runtime `
+  --pair "matched=.\out\base-packet=.\out\base-packet" `
+  --decision "promote=promote=verified evidence is ready" --format markdown
+```

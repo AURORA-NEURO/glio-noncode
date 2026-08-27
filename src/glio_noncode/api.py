@@ -755,6 +755,11 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_query_markdown, run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_runtime_from_directories
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_query_markdown
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_from_directories, load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_schema, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_markdown, run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime, run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_from_directory
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance, build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_from_directory, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_markdown
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -2248,6 +2253,30 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/capabilities",
             "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/query/schema",
             "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/query/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/query",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/query",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/query",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/query",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/query/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/query/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/query/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/query/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/query/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/query/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/query/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/query/capabilities",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
@@ -2321,6 +2350,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/assurance/query/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_query_schema,
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_schema,
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/query/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_query_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/query/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/query/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/query/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/query/schema": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_schema,
                 }
                 if path in schema_routes:
                     self._write(HTTPStatus.OK, schema_routes[path]())
@@ -2389,6 +2426,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/assurance/query/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_assurance_query_capabilities,
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_capabilities,
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/query/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_diff_query_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/query/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/query/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/query/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/query/capabilities": module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_capabilities,
                 }
                 if path in capability_routes:
                     self._write(HTTPStatus.OK, capability_routes[path]())
@@ -2452,6 +2497,14 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/assurance/query",
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff",
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/diff/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/query",
                 }:
                     inventory = matrix = plan = gate = runtime = None
                 else:
@@ -2484,6 +2537,106 @@ class ApiHandler(BaseHTTPRequestHandler):
                             self._write_bytes(HTTPStatus.OK, render_module_certification_lineage_markdown(lineage).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                             return
                         payload = lineage.to_dict(include_rows=self._query_bool(query, "include_rows") is True)
+                if path in {
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/runtime/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/assurance/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/diff/query",
+                }:
+                    if path.endswith("/diff") or path.endswith("/diff/query"):
+                        left_directory = self._query_value(query, "left_directory") or self._query_value(query, "left_store_directory")
+                        right_directory = self._query_value(query, "right_directory") or self._query_value(query, "right_store_directory")
+                        if not left_directory or not right_directory:
+                            raise ValueError("left_directory and right_directory are required for review-store diff")
+                        store_diff = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_from_directories(left_directory, right_directory, diff_id=self._query_value(query, "diff_id") or "glio-noncode-review-store-diff")
+                        if path.endswith("/query"):
+                            payload = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff(store_diff, action=self._query_value(query, "action"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_csv(payload).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                return
+                            if output_format == "markdown":
+                                self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_query_markdown(payload).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                return
+                        else:
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_csv(store_diff).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                return
+                            if output_format == "markdown":
+                                self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_diff_markdown(store_diff).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                return
+                            payload = store_diff.summary() if output_format == "summary" else store_diff.to_dict()
+                    else:
+                        directory = self._query_value(query, "directory")
+                        if directory:
+                            store = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store(directory)
+                        else:
+                            pairs = _parse_replication_pairs(query)
+                            decisions = _parse_review_decisions(query)
+                            store = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_from_directories(pairs, decisions=decisions, store_id=self._query_value(query, "store_id") or "glio-noncode-review-store")
+                        if path.endswith("/runtime") or path.endswith("/runtime/query"):
+                            runtime_value = run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_from_directory(directory) if directory else run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime(store)
+                            if path.endswith("/query"):
+                                payload = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime(runtime_value, state=self._query_value(query, "state"), accepted=self._query_bool(query, "accepted") if self._query_value(query, "accepted") is not None else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                                output_format = self._query_value(query, "format") or "json"
+                                if output_format == "csv":
+                                    self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_csv(payload).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                    return
+                                if output_format == "markdown":
+                                    self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_query_markdown(payload).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                    return
+                            else:
+                                output_format = self._query_value(query, "format") or "json"
+                                if output_format == "csv":
+                                    self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_csv(runtime_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                    return
+                                if output_format == "markdown":
+                                    self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_runtime_markdown(runtime_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                    return
+                                payload = runtime_value.summary() if output_format == "summary" else runtime_value.to_dict()
+                        elif path.endswith("/assurance") or path.endswith("/assurance/query"):
+                            assurance_value = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_from_directory(directory) if directory else build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance(store)
+                            if path.endswith("/query"):
+                                payload = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance(assurance_value, severity=self._query_value(query, "severity"), passed=self._query_bool(query, "passed") if self._query_value(query, "passed") is not None else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                                output_format = self._query_value(query, "format") or "json"
+                                if output_format == "csv":
+                                    self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_csv(payload).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                    return
+                                if output_format == "markdown":
+                                    self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_query_markdown(payload).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                    return
+                            else:
+                                output_format = self._query_value(query, "format") or "json"
+                                if output_format == "csv":
+                                    self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_csv(assurance_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                    return
+                                if output_format == "markdown":
+                                    self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_assurance_markdown(assurance_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                    return
+                                payload = assurance_value.summary() if output_format == "summary" else assurance_value.to_dict()
+                        elif path.endswith("/query"):
+                            payload = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store(store, resource=self._query_value(query, "resource") or "summary", kind=self._query_value(query, "kind"), state=self._query_value(query, "state"), accepted=self._query_bool(query, "accepted") if self._query_value(query, "accepted") is not None else None, passed=self._query_bool(query, "passed") if self._query_value(query, "passed") is not None else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_csv(payload).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                return
+                            if output_format == "markdown":
+                                self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_query_markdown(payload).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                return
+                        else:
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_csv(store).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                return
+                            if output_format == "markdown":
+                                self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_markdown(store).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                return
+                            payload = store.summary() if output_format == "summary" else store.to_dict()
                 elif path in {
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review",
                     "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review/query",

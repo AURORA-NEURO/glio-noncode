@@ -4938,6 +4938,27 @@ The CLI and HTTP API use repeatable `scenario` values in the form
 explicit and outputs are deterministic, path-free, timestamp-free, and
 identity-free.
 
+### Durable release-window review stores
+
+The durable review-store plane turns one verified decision ledger into an
+exact three-artifact handoff: `review-store.json`, `review-ledger.json`, and
+`review-operations.json`. The writer uses a temporary sibling directory and
+an atomic replacement; the loader rejects missing, extra, symlinked,
+non-regular, non-canonical, byte-mismatched, or content-address-mismatched
+artifacts. A genesis operation records the ledger address, append operations
+retain the predecessor address, and callers can require an expected head
+before appending a new review decision.
+
+The store can be queried by summary, operations, checks, or hydrated ledger
+entries. Runtime emits eight addressed stages for load, store verification,
+ledger verification, operation verification, replay, head resolution,
+readiness evaluation, and completion. Independent assurance recomputes the
+store/link/head/chain/replay/public-boundary findings and separates warnings
+from blockers. Store diffs classify exact, append-only, and divergent
+revisions. JSON, CSV, Markdown, CLI, HTTP, schema, capability, and Actions
+surfaces are available; public projections exclude paths, timestamps,
+attribution, private fields, and identity metadata.
+
 ### Release-window decision ledger
 
 The decision ledger turns verified release-window evidence into an explicit,
