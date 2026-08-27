@@ -875,3 +875,28 @@ The review endpoints create one deterministic public action row per retained
 check. They expose severity, priority, disposition, and open/closed action
 state without source payloads. The review query supports component, category,
 action-state, severity, failed-only, text, offset, and bounded limit filters.
+### Module workbench execution packet
+
+The portable execution handoff is available through read-only routes:
+
+```text
+GET /v1/module-workbench/execution/packet
+GET /v1/module-workbench/execution/packet/query
+GET /v1/module-workbench/execution/packet/replay
+GET /v1/module-workbench/execution/packet/schema
+GET /v1/module-workbench/execution/packet/capabilities
+GET /v1/module-workbench/execution/packet/release
+GET /v1/module-workbench/execution/packet/release/query
+GET /v1/module-workbench/execution/packet/release/schema
+GET /v1/module-workbench/execution/packet/release/capabilities
+GET /v1/module-workbench/execution/packet/runtime
+GET /v1/module-workbench/execution/packet/runtime/query
+GET /v1/module-workbench/execution/packet/runtime/schema
+GET /v1/module-workbench/execution/packet/runtime/capabilities
+```
+
+The packet endpoint builds the public aggregate in memory. It does not write a
+directory. Query filters include artifact ID/kind, check plane/result, link
+name, free text, offset, and bounded limit. The release endpoint evaluates
+artifact and verification thresholds. The runtime endpoint exposes the
+ordered build/write/verify/load/query/replay/release handoff.

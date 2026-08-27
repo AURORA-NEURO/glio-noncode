@@ -4665,3 +4665,14 @@ task counts, carries bounded blocker explanations and next-task IDs, and reports
 completion and evidence coverage. It is exposed through the
 `module_workbench_execution_review_*` functions and the
 `/v1/module-workbench/execution/review` API family.
+### Portable module execution handoff
+
+The module workbench execution packet packages the report, bounded portfolio,
+initial and current ledgers, review projection, independent audit, policy gate,
+runtime, schema, and capabilities into thirteen exact-byte artifacts. It
+supports atomic local writes, safe-path and canonical-JSON verification,
+address-chain checks, offline queries, replay receipts, packet diffs, explicit
+release gates, a seven-stage runtime, and normalized inspection findings across
+verification and release planes. The default public projection is timestamp-
+free, path-free, and identity-free. See
+[docs/MODULE_WORKBENCH_EXECUTION_PACKET.md](MODULE_WORKBENCH_EXECUTION_PACKET.md).

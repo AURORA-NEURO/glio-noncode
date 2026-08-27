@@ -1,0 +1,483 @@
+# Module Workbench Execution Packets
+
+The execution packet is the portable handoff for the module-by-module
+implementation workbench. The in-memory execution ledger is useful while a
+run is being assembled, but an offline reviewer needs a directory that can be
+moved, archived, verified, queried, replayed, and released without access to
+the original source tree. This layer provides that boundary.
+
+The packet is intentionally local-first. It does not fetch source data, open a
+database, or authorize code changes. It packages the deterministic workbench
+report, a bounded portfolio, the initial and current execution ledgers, the
+module review projection, independent audit, policy result, runtime handoff,
+and the contract declarations needed by an offline reader.
+
+## Public boundary
+
+The packet boundary is:
+
+```text
+public_aggregate_module_workbench_execution_packet
+```
+
+Every packet manifest and artifact is timestamp-free, path-free in its public
+projection, and free of personal or private workflow fields. Files on disk
+have safe POSIX-style relative names. A local destination is an operational
+input to the writer, not a value retained in the manifest.
+
+The packet has a second decision boundary for release:
+
+```text
+public_aggregate_module_workbench_execution_packet_release
+```
+
+The release decision does not alter the packet. It records whether the packet
+passed the minimum artifact, verification, replay, and public-boundary checks.
+This keeps storage integrity separate from a release policy decision.
+
+## Artifact contract
+
+Version `module-workbench-execution-packet-v1` contains thirteen artifacts.
+The manifest records each artifact's ID, relative path, media type, kind,
+UTF-8 byte count, line count, and exact byte content address.
+
+| Artifact | Path | Format | Purpose |
+| --- | --- | --- | --- |
+| `audit` | `audit.json` | JSON | Independent execution-ledger checks |
+| `blockers` | `blockers.csv` | CSV | Flat rows for explicit blockers |
+| `capabilities` | `capabilities.json` | JSON | Offline operation declaration |
+| `events` | `events.csv` | CSV | Ordered transition history |
+| `initial-ledger` | `initial-ledger.json` | JSON | Pre-replay plan snapshot |
+| `items` | `items.csv` | CSV | Current task rows |
+| `ledger` | `ledger.json` | JSON | Current evidence-gated state |
+| `policy` | `policy.json` | JSON | Policy thresholds and gate result |
+| `portfolio` | `portfolio.json` | JSON | Bounded task selection |
+| `review` | `review.json` | JSON | Per-module review routing |
+| `runtime` | `runtime.json` | JSON | Six-stage execution handoff |
+| `schema` | `schema.json` | JSON | Packet contract and limits |
+| `workbench-summary` | `workbench-summary.json` | JSON | Source workbench aggregate |
+
+The artifact IDs and paths are sorted and unique. The fixed count prevents a
+writer from silently omitting a required view. Future versions can add a new
+version and a new declared artifact contract without changing the meaning of
+an existing packet.
+
+## Address domains
+
+There are deliberately separate address domains:
+
+1. The ledger, review, audit, policy, gate, runtime, and report each retain
+   their own existing typed content address.
+2. An artifact address is a hash over the exact UTF-8 bytes written to disk.
+3. The packet address is a hash over the canonical manifest descriptor with
+   artifact payloads omitted.
+4. A verification receipt and release decision have independent addresses.
+
+The byte address is the important storage guarantee. Reformatting a JSON
+artifact, changing a newline, or changing a CSV delimiter changes its byte
+address and fails verification. The packet does not infer equivalence from a
+parsed object after the bytes have been written.
+
+## Build flow
+
+`build_module_workbench_execution_packet` accepts a typed workbench report and
+an optional portfolio, command sequence, policy, and packet ID. The normal
+flow is:
+
+```text
+workbench report
+      |
+      v
+bounded portfolio
+      |
+      v
+initial execution ledger -- command replay --> current ledger
+      |                         |                 |
+      |                         +--> audit       |
+      |                         +--> policy      |
+      |                         +--> runtime     |
+      +------------------------------------------+
+                           |
+                           v
+                    module review projection
+                           |
+                           v
+                    thirteen packet artifacts
+                           |
+                           v
+                    packet checks and address
+```
+
+The command sequence is normalized to a tuple before it is replayed. That is
+important for callers that provide a generator: the same commands must be
+used for both the packet ledger and the retained runtime handoff.
+
+The builder recalculates each downstream artifact from the same current
+ledger. A packet cannot accidentally combine one review projection with a
+different ledger address. Linkage checks cover report, portfolio, initial
+ledger, current ledger, review, audit, policy, and runtime references.
+
+## Atomic writer
+
+`write_module_workbench_execution_packet` creates a dedicated destination and
+writes the manifest and each artifact with a temporary sibling file followed
+by an atomic replacement. The file is flushed and synchronized before the
+replacement is made visible. A pre-existing destination is rejected unless
+`allow_existing=True` is explicit.
+
+The writer never deletes an existing file. When replacement is enabled, the
+verifier's `no-unlisted-files` check makes stale or manually added files
+visible as a blocked packet. This makes an accidental mixture of two packet
+versions detectable instead of silently publishing the newer manifest with
+older artifacts.
+
+Example:
+
+```python
+from glio_noncode import (
+    build_module_workbench_execution_packet,
+    write_module_workbench_execution_packet,
+)
+
+packet = build_module_workbench_execution_packet(workbench_report)
+write_module_workbench_execution_packet(
+    packet,
+    "out/execution-packet",
+)
+```
+
+The directory contains `manifest.json` plus the thirteen declared files. The
+manifest does not embed payloads. A typed packet can include payloads in an
+explicit JSON export for local diagnostics, but the default public manifest
+and query projections retain descriptors only.
+
+## Independent verification
+
+`verify_module_workbench_execution_packet` reconstructs a verification receipt
+from the directory. It does not trust the packet builder. Its check planes
+are:
+
+| Check | What it proves |
+| --- | --- |
+| `manifest-readable` | The manifest is a UTF-8 JSON object |
+| `manifest-shape` | The artifact collection is an array |
+| `manifest-version-boundary` | The version and boundary are recognized |
+| `safe-paths` | No absolute or traversal path is accepted |
+| `artifact-count` | The fixed thirteen-artifact contract is present |
+| `unique-artifacts` | IDs and paths are unique and sorted |
+| `artifact-presence` | Every declared file is readable |
+| `artifact-byte-addresses` | Bytes, counts, and descriptor fields agree |
+| `no-unlisted-files` | No extra file is present in the packet directory |
+| `canonical-json` | JSON bytes round-trip to canonical JSON |
+| `public-boundary` | Manifest and payload keys stay public |
+| `manifest-address` | The exact descriptor has the retained packet address |
+
+The verifier returns all findings even when the packet is blocked. It does
+not stop at the first failure. This is useful for offline repair because a
+reviewer can see whether a failure is missing storage, a byte mismatch, a
+path violation, or a manifest-address mismatch.
+
+`load_module_workbench_execution_packet` only hydrates a directory after the
+verification receipt is accepted. It restores the exact payload strings in
+the typed artifact objects and checks that the loaded packet address matches
+the manifest address. A blocked directory raises `ValidationError` rather
+than producing a partially trusted packet.
+
+For an in-memory packet, `verify_module_workbench_execution_packet_value`
+checks the packet address, every artifact byte address, packet acceptance, and
+the public boundary without creating a directory.
+
+## Offline query resources
+
+`query_module_workbench_execution_packet` accepts a typed packet or a verified
+directory. It provides bounded pages over five resources:
+
+| Resource | Rows | Index |
+| --- | --- | --- |
+| `manifest` | One packet descriptor | `packet_id` |
+| `artifacts` | One descriptor per file | `artifact_id` |
+| `checks` | One build check per result | `check_id` |
+| `links` | Nine stage-to-address links | `name` |
+| `summary` | One compact aggregate | `packet_id` |
+
+Artifact filters include ID and kind. Check filters include plane and pass
+state. Link filters include the link name. All resources support free-text
+matching, offset, and a maximum limit of 512. The query body includes the
+packet address, selected resource, filters, page, index used, and an address
+for the result itself.
+
+Example:
+
+```python
+from glio_noncode import query_module_workbench_execution_packet
+
+ready = query_module_workbench_execution_packet(
+    "out/execution-packet",
+    resource="checks",
+    plane="linkage",
+    passed=True,
+    limit=32,
+)
+```
+
+No query uses the source tree. Once a packet is verified, it is a self-
+contained review surface.
+
+## Replay and packet diffs
+
+`replay_module_workbench_execution_packet` returns a compact receipt listing
+the packet address, verification address when a directory was used, artifact
+count, JSON artifact IDs, and all replayed artifact IDs. It is a verification
+and readability operation; it does not execute source code or transition the
+ledger.
+
+`diff_module_workbench_execution_packets` compares two typed packets or two
+verified directories. It reports:
+
+- added and removed artifact IDs;
+- changed and unchanged byte-addressed artifacts;
+- changed address-chain link names;
+- state and acceptance changes; and
+- separate left and right packet IDs and addresses.
+
+A diff of a packet with itself is a useful invariant: every artifact is
+unchanged, no link changes, and the result remains accepted. A command replay
+that changes the current ledger changes the ledger, review, runtime, and
+possibly audit/policy artifacts while unchanged contract declarations remain
+stable.
+
+## Release decision
+
+`build_module_workbench_execution_packet_release` accepts a typed packet or a
+verified packet directory. It evaluates six explicit checks:
+
+1. artifact threshold;
+2. passed-check threshold;
+3. packet acceptance;
+4. public boundary;
+5. replay acceptance; and
+6. retained verification address.
+
+The default minimum artifact count is thirteen and the default minimum passed
+check count is one. A caller can require more passed checks or intentionally
+set an impossible threshold to rehearse a blocked release:
+
+```python
+strict = build_module_workbench_execution_packet_release(
+    "out/execution-packet",
+    minimum_artifact_count=13,
+    minimum_passed_check_count=14,
+)
+```
+
+The release state is `accepted` only when every check passes. Otherwise it is
+`blocked`; the failed checks remain visible through JSON, CSV, Markdown, and
+the bounded `checks` query. Release verification recomputes each check
+address, the aggregate release address, and acceptance conservation.
+
+## Seven-stage packet runtime
+
+`run_module_workbench_execution_packet_runtime` exposes one ordered runtime:
+
+```text
+build -> write -> verify -> load -> query -> replay -> release
+```
+
+When no destination is given, the write stage is an explicitly accepted
+in-memory handoff and typed verification is used. When a destination is given,
+the writer and filesystem verifier are used. The public runtime retains no
+local path; it retains the packet, verification, replay, release, and stage
+addresses.
+
+Every stage is either `completed` and accepted or `blocked` and unaccepted.
+The runtime contract conserves stage count, completed count, and blocked count,
+requires the exact declared order, and recomputes every stage address. The
+runtime's acceptance is the conjunction of the stage acceptances.
+
+This runtime is a handoff coordinator, not a source executor. It does not
+pretend that writing a packet performed the implementation tasks represented
+by the ledger.
+
+## CLI
+
+Build and write a packet:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet `
+  --capacity 25 `
+  --max-tasks-per-module 2 `
+  --destination .\out\execution-packet `
+  --output .\out\execution-packet-result.json
+```
+
+Build a JSON or Markdown projection without writing a directory:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet --format json
+python -m glio_noncode module-workbench-execution-packet --format markdown
+python -m glio_noncode module-workbench-execution-packet --resource links
+```
+
+Verify, load, query, diff, and replay a persisted packet:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-verify .\out\execution-packet
+python -m glio_noncode module-workbench-execution-packet-load .\out\execution-packet
+python -m glio_noncode module-workbench-execution-packet-query .\out\execution-packet --resource checks --plane linkage
+python -m glio_noncode module-workbench-execution-packet-diff .\out\left .\out\right
+python -m glio_noncode module-workbench-execution-packet-replay .\out\execution-packet
+```
+
+Evaluate a release and inspect the ordered packet runtime:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-release .\out\execution-packet --format summary
+python -m glio_noncode module-workbench-execution-packet-release-query .\out\execution-packet --resource checks --passed
+python -m glio_noncode module-workbench-execution-packet-runtime --destination .\out\runtime-packet
+python -m glio_noncode module-workbench-execution-packet-runtime --resource summary
+```
+
+Schemas and capabilities are separate commands so an offline client can
+discover limits without building a workbench:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-schema
+python -m glio_noncode module-workbench-execution-packet-capabilities
+python -m glio_noncode module-workbench-execution-packet-release-schema
+python -m glio_noncode module-workbench-execution-packet-runtime-schema
+python -m glio_noncode module-workbench-execution-packet-inspection-schema
+python -m glio_noncode module-workbench-execution-packet-inspection-capabilities
+```
+
+## Inspection findings
+
+Packet verification and release decisions are intentionally separate typed
+objects. The inspection projection joins them into one bounded review surface
+without hiding which plane produced a result. Each finding retains its stable
+identifier, plane, severity, code, observed value, required value, detail, and
+content address.
+
+The inspection builder accepts either a typed packet or a persisted packet
+directory. For a directory it runs the independent filesystem verifier, loads
+the packet only when verification accepts, replays the declared artifacts, and
+evaluates the release gate. A malformed directory therefore becomes a blocked
+inspection with findings rather than being silently treated as trusted input.
+
+Severity is deterministic: passing findings are `info`; failed byte, path,
+storage, or public-boundary checks are `critical`; other failed semantic,
+replay, linkage, or release checks are `warning`. Severity is a review aid and
+does not override the packet or release state.
+
+The command-line review and query surfaces are:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-inspection .\out\execution-packet --format markdown
+python -m glio_noncode module-workbench-execution-packet-inspection .\out\execution-packet --format csv
+python -m glio_noncode module-workbench-execution-packet-inspection-query .\out\execution-packet --resource summary
+python -m glio_noncode module-workbench-execution-packet-inspection-query .\out\execution-packet --plane release --passed
+python -m glio_noncode module-workbench-execution-packet-inspection-query .\out\execution-packet --severity critical
+```
+
+The two query resources are `summary` and `findings`. Finding queries support
+severity, plane, exact code, result, text, offset, and bounded limit filters.
+JSON is canonical and includes every finding; CSV serializes observed and
+required values as canonical JSON cells; Markdown provides a human-readable
+table while preserving all finding IDs and addresses.
+
+The read-only HTTP routes mirror the typed module:
+
+```text
+GET /v1/module-workbench/execution/packet/inspection
+GET /v1/module-workbench/execution/packet/inspection/query
+GET /v1/module-workbench/execution/packet/inspection/schema
+GET /v1/module-workbench/execution/packet/inspection/capabilities
+```
+
+The inspection boundary is public aggregate, path-free, timestamp-free, and
+identity-free. It does not include source paths, credentials, downloaded
+payloads, private workflow fields, or mutable runtime state. It is a review
+projection only: accepting an inspection does not claim a scientific result,
+complete an implementation task, or authorize deployment.
+
+## API
+
+The read-only HTTP service exposes:
+
+```text
+GET /v1/module-workbench/execution/packet
+GET /v1/module-workbench/execution/packet/query
+GET /v1/module-workbench/execution/packet/replay
+GET /v1/module-workbench/execution/packet/schema
+GET /v1/module-workbench/execution/packet/capabilities
+GET /v1/module-workbench/execution/packet/release
+GET /v1/module-workbench/execution/packet/release/query
+GET /v1/module-workbench/execution/packet/release/schema
+GET /v1/module-workbench/execution/packet/release/capabilities
+GET /v1/module-workbench/execution/packet/runtime
+GET /v1/module-workbench/execution/packet/runtime/query
+GET /v1/module-workbench/execution/packet/runtime/schema
+GET /v1/module-workbench/execution/packet/runtime/capabilities
+```
+
+The API builds a read-only packet in memory. Filesystem writes and persisted
+packet verification remain explicit Python and CLI operations so an HTTP GET
+cannot mutate a local directory. Format parameters provide JSON, CSV, and
+Markdown where the route supports them. Query parameters mirror the typed
+query functions and are bounded before work is performed.
+
+## Failure matrix
+
+| Failure | Build | Verify | Load | Release |
+| --- | --- | --- | --- | --- |
+| Unknown workbench type | error | not applicable | not applicable | not applicable |
+| Missing artifact | not applicable | blocked receipt | error | blocked |
+| Changed artifact byte | not applicable | blocked receipt | error | blocked |
+| Extra directory file | not applicable | blocked receipt | error | blocked |
+| Unsafe manifest path | not applicable | blocked receipt | error | blocked |
+| Non-canonical JSON | not applicable | blocked receipt | error | blocked |
+| Packet address mismatch | not applicable | blocked receipt | error | blocked |
+| Impossible release threshold | not applicable | not applicable | allowed if packet valid | blocked |
+| Tampered release check | not applicable | not applicable | not applicable | verification error |
+
+The distinction between a blocked receipt and an exception is intentional. A
+filesystem verifier can explain a bad directory. A loader must not return
+that directory as trusted typed state. A release can retain a blocked decision
+for an operator without turning it into an accepted handoff.
+
+## Data and privacy boundary
+
+The packet operates on module workbench aggregates: module IDs, task IDs,
+families, evidence receipt addresses, state transitions, and contract checks.
+It does not embed downloaded payloads, subject-level values, credentials, or
+private workflow fields. The packet's payloads are derived public aggregate
+JSON and CSV projections. The `public-boundary` check walks the manifest and
+all artifact payloads before the packet can be accepted.
+
+A source registry or public reference dataset can be used upstream to produce
+an aggregate report, but the packet itself records only the addressed report
+and downstream aggregates. The packet writer does not download any external
+source and does not treat a source declaration as scientific validation.
+
+## Verification checklist
+
+The packet regression suite covers:
+
+- fixed artifact set and address-chain conservation;
+- typed byte verification;
+- atomic write, filesystem verify, and exact reload;
+- canonical manifest shape and payload exclusion;
+- every query resource and filter family;
+- bounded paging failures;
+- typed and filesystem replay receipts;
+- byte tampering, missing files, and unlisted files;
+- same-packet and changed-packet diffs;
+- accepted and threshold-blocked release decisions;
+- release exports and address verification;
+- in-memory and filesystem-backed seven-stage runtimes;
+- runtime stage-address tampering; and
+- schema and capability count conservation.
+
+The packet is a durable review and handoff artifact. It does not upgrade a
+task to `completed`, certify a scientific result, or authorize a production
+deployment. Those meanings remain in the execution ledger, independent audit,
+and explicit release policy.

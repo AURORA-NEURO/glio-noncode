@@ -401,6 +401,16 @@ class ModuleWorkbenchExecutionFixture(unittest.TestCase):
                 ("/v1/module-workbench/execution/runtime/schema", "stage_order"),
                 ("/v1/module-workbench/execution/review/schema", "review_states"),
                 ("/v1/module-workbench/execution/review/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/schema", "artifact_count"),
+                ("/v1/module-workbench/execution/packet/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/query/schema", "resources"),
+                ("/v1/module-workbench/execution/packet/query/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/release/schema", "planes"),
+                ("/v1/module-workbench/execution/packet/release/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/runtime/schema", "stage_order"),
+                ("/v1/module-workbench/execution/packet/runtime/capabilities", "operations"),
+                ("/v1/module-workbench/execution/packet/inspection/schema", "severities"),
+                ("/v1/module-workbench/execution/packet/inspection/capabilities", "operations"),
             ):
                 connection.request("GET", route)
                 response = connection.getresponse()

@@ -72,10 +72,18 @@ jobs:
           python -m glio_noncode module-workbench-execution-runtime-capabilities --output /tmp/glio-module-workbench-execution-runtime-capabilities.json
           python -m glio_noncode module-workbench-execution-review-schema --output /tmp/glio-module-workbench-execution-review-schema.json
           python -m glio_noncode module-workbench-execution-review-capabilities --output /tmp/glio-module-workbench-execution-review-capabilities.json
+          python -m glio_noncode module-workbench-execution-packet-schema --output /tmp/glio-module-workbench-execution-packet-schema.json
+          python -m glio_noncode module-workbench-execution-packet-capabilities --output /tmp/glio-module-workbench-execution-packet-capabilities.json
+          python -m glio_noncode module-workbench-execution-packet-query-schema --output /tmp/glio-module-workbench-execution-packet-query-schema.json
+          python -m glio_noncode module-workbench-execution-packet-query-capabilities --output /tmp/glio-module-workbench-execution-packet-query-capabilities.json
+          python -m glio_noncode module-workbench-execution-packet-release-schema --output /tmp/glio-module-workbench-execution-packet-release-schema.json
+          python -m glio_noncode module-workbench-execution-packet-release-capabilities --output /tmp/glio-module-workbench-execution-packet-release-capabilities.json
+          python -m glio_noncode module-workbench-execution-packet-runtime-schema --output /tmp/glio-module-workbench-execution-packet-runtime-schema.json
+          python -m glio_noncode module-workbench-execution-packet-runtime-capabilities --output /tmp/glio-module-workbench-execution-packet-runtime-capabilities.json
       - name: Module certification focused tests
         run: python -m unittest tests.test_module_certification tests.test_module_certification_lineage_quality -v
       - name: Module workbench focused tests
-        run: python -m unittest tests.test_module_workbench tests.test_module_inventory_root_imports tests.test_module_workbench_execution tests.test_module_workbench_execution_review -v
+        run: python -m unittest tests.test_module_workbench tests.test_module_inventory_root_imports tests.test_module_workbench_execution tests.test_module_workbench_execution_review tests.test_module_workbench_execution_packet -v
       - name: Unit tests
         run: python -m unittest discover -s tests -t . -v
       - name: Architecture program offline handoff tests

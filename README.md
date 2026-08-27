@@ -1251,3 +1251,26 @@ with conserved progress/evidence rollups and bounded next-task queues:
 python -m glio_noncode module-workbench-execution-review --format summary
 python -m glio_noncode module-workbench-execution-review --review-state attention --format markdown
 ```
+
+The execution system also has a portable exact-byte handoff packet. It
+packages the bounded portfolio, initial and current ledgers, review projection,
+independent audit, policy gate, runtime, schema, and capabilities into a
+thirteen-artifact directory that can be verified and queried offline:
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet --destination .\out\execution-packet
+python -m glio_noncode module-workbench-execution-packet-verify .\out\execution-packet
+python -m glio_noncode module-workbench-execution-packet-query .\out\execution-packet --resource links
+python -m glio_noncode module-workbench-execution-packet-replay .\out\execution-packet
+python -m glio_noncode module-workbench-execution-packet-release .\out\execution-packet --format summary
+python -m glio_noncode module-workbench-execution-packet-runtime --destination .\out\packet-runtime
+python -m glio_noncode module-workbench-execution-packet-inspection .\out\execution-packet --format markdown
+python -m glio_noncode module-workbench-execution-packet-inspection-query .\out\execution-packet --plane bytes --passed
+```
+
+The packet writer addresses exact UTF-8 bytes and rejects unsafe paths, missing
+or unlisted files, non-canonical JSON, and broken address links. The release
+gate remains separate from the packet and returns inspectable failed checks.
+See [docs/MODULE_WORKBENCH_EXECUTION_PACKET.md](docs/MODULE_WORKBENCH_EXECUTION_PACKET.md)
+for the artifact contract, offline query resources, replay and diff behavior,
+inspection findings, API routes, and failure matrix.

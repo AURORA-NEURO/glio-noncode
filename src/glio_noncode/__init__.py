@@ -11283,6 +11283,104 @@ from .module_workbench_execution_review_contracts import (
     ModuleWorkbenchExecutionReviewItem,
     ModuleWorkbenchExecutionReviewState,
 )
+from .module_workbench_execution_packet import (
+    build_module_workbench_execution_packet,
+    load_module_workbench_execution_packet,
+    module_workbench_execution_packet_capabilities,
+    module_workbench_execution_packet_csv,
+    module_workbench_execution_packet_json,
+    module_workbench_execution_packet_schema,
+    render_module_workbench_execution_packet_markdown,
+    verify_module_workbench_execution_packet,
+    verify_module_workbench_execution_packet_value,
+    write_module_workbench_execution_packet,
+)
+from .module_workbench_execution_packet_contracts import (
+    MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_COUNT,
+    MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_PREFIX,
+    MODULE_WORKBENCH_EXECUTION_PACKET_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_PACKET_CHECK_PREFIX,
+    MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST,
+    MODULE_WORKBENCH_EXECUTION_PACKET_MAX_ARTIFACTS,
+    MODULE_WORKBENCH_EXECUTION_PACKET_MAX_CHECKS,
+    MODULE_WORKBENCH_EXECUTION_PACKET_VERSION,
+    ModuleWorkbenchExecutionPacket,
+    ModuleWorkbenchExecutionPacketArtifact,
+    ModuleWorkbenchExecutionPacketArtifactKind,
+    ModuleWorkbenchExecutionPacketCheck,
+    ModuleWorkbenchExecutionPacketCheckPlane,
+    ModuleWorkbenchExecutionPacketState,
+    ModuleWorkbenchExecutionPacketVerification,
+)
+from .module_workbench_execution_packet_query import (
+    diff_module_workbench_execution_packets,
+    module_workbench_execution_packet_query_capabilities,
+    module_workbench_execution_packet_query_schema,
+    query_module_workbench_execution_packet,
+    replay_module_workbench_execution_packet,
+)
+from .module_workbench_execution_packet_release import (
+    build_module_workbench_execution_packet_release,
+    module_workbench_execution_packet_release_capabilities,
+    module_workbench_execution_packet_release_csv,
+    module_workbench_execution_packet_release_json,
+    module_workbench_execution_packet_release_schema,
+    query_module_workbench_execution_packet_release,
+    render_module_workbench_execution_packet_release_markdown,
+    verify_module_workbench_execution_packet_release,
+)
+from .module_workbench_execution_packet_release_contracts import (
+    MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_MAX_CHECKS,
+    MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_VERSION,
+    ModuleWorkbenchExecutionPacketRelease,
+    ModuleWorkbenchExecutionPacketReleaseCheck,
+    ModuleWorkbenchExecutionPacketReleasePlane,
+    ModuleWorkbenchExecutionPacketReleaseState,
+)
+from .module_workbench_execution_packet_runtime import (
+    module_workbench_execution_packet_runtime_capabilities,
+    module_workbench_execution_packet_runtime_csv,
+    module_workbench_execution_packet_runtime_json,
+    module_workbench_execution_packet_runtime_schema,
+    query_module_workbench_execution_packet_runtime,
+    run_module_workbench_execution_packet_runtime,
+    verify_module_workbench_execution_packet_runtime,
+)
+from .module_workbench_execution_packet_runtime_contracts import (
+    MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_VERSION,
+    ModuleWorkbenchExecutionPacketRuntime,
+    ModuleWorkbenchExecutionPacketRuntimeStage,
+    ModuleWorkbenchExecutionPacketRuntimeStageKind,
+    ModuleWorkbenchExecutionPacketRuntimeStageState,
+)
+from .module_workbench_execution_packet_inspection import (
+    build_module_workbench_execution_packet_inspection,
+    module_workbench_execution_packet_inspection_capabilities,
+    module_workbench_execution_packet_inspection_csv,
+    module_workbench_execution_packet_inspection_json,
+    module_workbench_execution_packet_inspection_schema,
+    query_module_workbench_execution_packet_inspection,
+    render_module_workbench_execution_packet_inspection_markdown,
+    verify_module_workbench_execution_packet_inspection,
+)
+from .module_workbench_execution_packet_inspection_contracts import (
+    MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_BOUNDARY,
+    MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_DEFAULT_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_MAX_FINDINGS,
+    MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_MAX_LIMIT,
+    MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_VERSION,
+    ModuleWorkbenchExecutionPacketInspection,
+    ModuleWorkbenchExecutionPacketInspectionFinding,
+    ModuleWorkbenchExecutionPacketInspectionPlane,
+    ModuleWorkbenchExecutionPacketInspectionSeverity,
+    ModuleWorkbenchExecutionPacketInspectionState,
+)
 from .module_inventory import build_module_inventory, module_inventory_capabilities, module_inventory_schema, verify_module_inventory
 from .module_inventory_audit import audit_module_inventory, module_inventory_audit_capabilities, module_inventory_audit_schema
 from .module_inventory_contracts import (
@@ -11439,6 +11537,15 @@ __all__ += [
 
 __all__ += [
     "MODULE_WORKBENCH_EXECUTION_REVIEW_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_REVIEW_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_MODULES", "MODULE_WORKBENCH_EXECUTION_REVIEW_MAX_NEXT_TASKS", "MODULE_WORKBENCH_EXECUTION_REVIEW_VERSION", "ModuleWorkbenchExecutionReview", "ModuleWorkbenchExecutionReviewItem", "ModuleWorkbenchExecutionReviewState", "build_module_workbench_execution_review", "module_workbench_execution_review_capabilities", "module_workbench_execution_review_csv", "module_workbench_execution_review_json", "module_workbench_execution_review_schema", "query_module_workbench_execution_review", "render_module_workbench_execution_review_markdown", "verify_module_workbench_execution_review",
+]
+
+__all__ += [
+    "MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_COUNT", "MODULE_WORKBENCH_EXECUTION_PACKET_ARTIFACT_PREFIX", "MODULE_WORKBENCH_EXECUTION_PACKET_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_PACKET_CHECK_PREFIX", "MODULE_WORKBENCH_EXECUTION_PACKET_MANIFEST", "MODULE_WORKBENCH_EXECUTION_PACKET_MAX_ARTIFACTS", "MODULE_WORKBENCH_EXECUTION_PACKET_MAX_CHECKS", "MODULE_WORKBENCH_EXECUTION_PACKET_VERSION", "ModuleWorkbenchExecutionPacket", "ModuleWorkbenchExecutionPacketArtifact", "ModuleWorkbenchExecutionPacketArtifactKind", "ModuleWorkbenchExecutionPacketCheck", "ModuleWorkbenchExecutionPacketCheckPlane", "ModuleWorkbenchExecutionPacketState", "ModuleWorkbenchExecutionPacketVerification",
+    "build_module_workbench_execution_packet", "load_module_workbench_execution_packet", "module_workbench_execution_packet_capabilities", "module_workbench_execution_packet_csv", "module_workbench_execution_packet_json", "module_workbench_execution_packet_schema", "render_module_workbench_execution_packet_markdown", "verify_module_workbench_execution_packet", "verify_module_workbench_execution_packet_value", "write_module_workbench_execution_packet",
+    "diff_module_workbench_execution_packets", "module_workbench_execution_packet_query_capabilities", "module_workbench_execution_packet_query_schema", "query_module_workbench_execution_packet", "replay_module_workbench_execution_packet",
+    "MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_MAX_CHECKS", "MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_PACKET_RELEASE_VERSION", "ModuleWorkbenchExecutionPacketRelease", "ModuleWorkbenchExecutionPacketReleaseCheck", "ModuleWorkbenchExecutionPacketReleasePlane", "ModuleWorkbenchExecutionPacketReleaseState", "build_module_workbench_execution_packet_release", "module_workbench_execution_packet_release_capabilities", "module_workbench_execution_packet_release_csv", "module_workbench_execution_packet_release_json", "module_workbench_execution_packet_release_schema", "query_module_workbench_execution_packet_release", "render_module_workbench_execution_packet_release_markdown", "verify_module_workbench_execution_packet_release",
+    "MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_PACKET_RUNTIME_VERSION", "ModuleWorkbenchExecutionPacketRuntime", "ModuleWorkbenchExecutionPacketRuntimeStage", "ModuleWorkbenchExecutionPacketRuntimeStageKind", "ModuleWorkbenchExecutionPacketRuntimeStageState", "module_workbench_execution_packet_runtime_capabilities", "module_workbench_execution_packet_runtime_csv", "module_workbench_execution_packet_runtime_json", "module_workbench_execution_packet_runtime_schema", "query_module_workbench_execution_packet_runtime", "run_module_workbench_execution_packet_runtime", "verify_module_workbench_execution_packet_runtime",
+    "MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_BOUNDARY", "MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_DEFAULT_LIMIT", "MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_MAX_FINDINGS", "MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_MAX_LIMIT", "MODULE_WORKBENCH_EXECUTION_PACKET_INSPECTION_VERSION", "ModuleWorkbenchExecutionPacketInspection", "ModuleWorkbenchExecutionPacketInspectionFinding", "ModuleWorkbenchExecutionPacketInspectionPlane", "ModuleWorkbenchExecutionPacketInspectionSeverity", "ModuleWorkbenchExecutionPacketInspectionState", "build_module_workbench_execution_packet_inspection", "module_workbench_execution_packet_inspection_capabilities", "module_workbench_execution_packet_inspection_csv", "module_workbench_execution_packet_inspection_json", "module_workbench_execution_packet_inspection_schema", "query_module_workbench_execution_packet_inspection", "render_module_workbench_execution_packet_inspection_markdown", "verify_module_workbench_execution_packet_inspection",
 ]
 
 __all__ += [
