@@ -1024,3 +1024,28 @@ without mutating either packet. Both families return addressed receipts and
 support JSON, CSV, and Markdown projections plus independent schema and
 capability resources. Query inputs are directory locations supplied by the
 caller; those locations are never echoed in the response.
+
+Independent assurance and the aggregate release gate extend the packet-review
+surface:
+
+```text
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/assurance
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/assurance/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/assurance/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/assurance/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/assurance/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/assurance/query/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/query/capabilities
+```
+
+Assurance independently recomputes review and diff evidence into addressed
+findings. The gate combines the diff, review, and assurance addresses and
+classifies accepted non-ready decisions as held and failed release checks as
+blocked. All projections are bounded, deterministic, read-only, path-free,
+timestamp-free, and identity-free. The source directory parameters are used
+only to load caller-provided packets and are not returned.

@@ -1110,3 +1110,52 @@ review base/query schema and capability projections are exposed through the
 CLI and HTTP API, with deterministic JSON, CSV, Markdown, and addressed query
 receipts. These public projections remain path-free, timestamp-free, and
 free of attribution, agent/model/language, and identity-bearing fields.
+
+## Independent packet-review assurance and release gate
+
+The packet review boundary records the typed decision, but a release system
+also needs a second computation that can challenge the decision builder. The
+packet-review assurance module performs that computation. It verifies the
+review chain and entry addresses, recomputes the promote/hold/block/supersede
+policy, checks the review head and readiness classification, and audits the
+public projection. When a packet diff is supplied, it additionally verifies
+the diff and the review head's diff address, packet endpoints, acceptance, and
+readiness. These checks become ordered findings with warning-versus-blocker
+severity, expected and observed values, explicit pass state, and addressed
+receipts.
+
+Assurance acceptance means every finding passed. Assurance release readiness
+also requires a ready review whose own evidence is release-ready. Consequently
+hold and supersede decisions can be preserved as accepted, reviewable
+evidence without being mistaken for a promotion. Failed findings remain
+inspectable and can be persisted as rejected evidence only through a verified
+record, allowing operators to audit why a candidate did not advance.
+
+The release gate consumes the diff, review, and assurance projections. It
+recomputes component links, component acceptance, decision closure, readiness,
+and state. The only ready gate is an accepted promote decision over ready
+evidence and independent assurance. Accepted non-ready decisions are `held`;
+failed gate checks are `blocked`. The gate has its own ordered checks and
+verification receipt so a caller can verify the aggregate without rehydrating
+the source packet directories.
+
+Assurance persistence publishes exactly `manifest.json` plus `assurance.json`.
+Gate persistence publishes exactly `manifest.json` plus `gate.json`. Both
+writers stage a sibling directory and atomically publish it. Both loaders
+enforce canonical JSON, exact file sets, regular files, manifest addresses,
+document byte counts, document byte addresses, nested content addresses, and
+independent verification. Their query planes are bounded, content-addressed,
+and available as summary, finding/check rows, JSON, CSV, and Markdown.
+
+The corresponding CLI commands are:
+
+```text
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-assurance
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-assurance-query
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-query
+```
+
+Each family also provides base and query schema/capability commands and HTTP
+resources beneath the packet-review route. Responses remain path-free,
+timestamp-free, and identity-free.

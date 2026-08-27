@@ -770,6 +770,8 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet, build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_from_directory, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_query_markdown
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_diff_query_markdown
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_markdown
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -1323,6 +1325,122 @@ class ApiHandler(BaseHTTPRequestHandler):
                             self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_markdown(review_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                             return
                         payload = review_value.summary()
+                    self._write(HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+                    return
+
+                packet_review_assurance_prefix = packet_review_prefix + "/assurance"
+                if path == packet_review_assurance_prefix + "/schema":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_schema())
+                    return
+                if path == packet_review_assurance_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_capabilities())
+                    return
+                if path == packet_review_assurance_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_schema())
+                    return
+                if path == packet_review_assurance_prefix + "/query/capabilities":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_capabilities())
+                    return
+                if path == packet_review_assurance_prefix or path == packet_review_assurance_prefix + "/query":
+                    left_directory = self._query_value(query, "left_packet_directory") or self._query_value(query, "left_directory")
+                    right_directory = self._query_value(query, "right_packet_directory") or self._query_value(query, "right_directory")
+                    if not left_directory or not right_directory:
+                        raise ValueError("left_packet_directory and right_packet_directory are required")
+                    assurance_value = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_from_directories(
+                        left_directory,
+                        right_directory,
+                        diff_id=self._query_value(query, "diff_id") or "glio-noncode-review-store-catalog-packet-diff",
+                        review_id=self._query_value(query, "review_id") or "glio-noncode-review-store-catalog-packet-review",
+                        assurance_id=self._query_value(query, "assurance_id") or "glio-noncode-review-store-catalog-packet-review-assurance",
+                        decision=self._query_value(query, "decision"),
+                        decision_id=self._query_value(query, "decision_id") or "glio-noncode-review-store-catalog-packet-decision-0",
+                        detail=self._query_value(query, "detail"),
+                    )
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance(
+                            assurance_value,
+                            resource=self._query_value(query, "resource") or "findings",
+                            severity=self._query_value(query, "severity"),
+                            passed=self._query_bool(query, "passed") if "passed" in query else None,
+                            kind=self._query_value(query, "kind"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_csv(payload).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_query_markdown(payload).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_csv(assurance_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_assurance_markdown(assurance_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        payload = assurance_value.summary()
+                    self._write(HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+                    return
+
+                packet_review_gate_prefix = packet_review_prefix + "/gate"
+                if path == packet_review_gate_prefix + "/schema":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_schema())
+                    return
+                if path == packet_review_gate_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_capabilities())
+                    return
+                if path == packet_review_gate_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_schema())
+                    return
+                if path == packet_review_gate_prefix + "/query/capabilities":
+                    self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_capabilities())
+                    return
+                if path == packet_review_gate_prefix or path == packet_review_gate_prefix + "/query":
+                    left_directory = self._query_value(query, "left_packet_directory") or self._query_value(query, "left_directory")
+                    right_directory = self._query_value(query, "right_packet_directory") or self._query_value(query, "right_directory")
+                    if not left_directory or not right_directory:
+                        raise ValueError("left_packet_directory and right_packet_directory are required")
+                    gate_value = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_from_directories(
+                        left_directory,
+                        right_directory,
+                        diff_id=self._query_value(query, "diff_id") or "glio-noncode-review-store-catalog-packet-diff",
+                        review_id=self._query_value(query, "review_id") or "glio-noncode-review-store-catalog-packet-review",
+                        assurance_id=self._query_value(query, "assurance_id") or "glio-noncode-review-store-catalog-packet-review-assurance",
+                        gate_id=self._query_value(query, "gate_id") or "glio-noncode-review-store-catalog-packet-review-gate",
+                        decision=self._query_value(query, "decision"),
+                        decision_id=self._query_value(query, "decision_id") or "glio-noncode-review-store-catalog-packet-decision-0",
+                        detail=self._query_value(query, "detail"),
+                    )
+                    if path.endswith("/query"):
+                        payload = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate(
+                            gate_value,
+                            resource=self._query_value(query, "resource") or "checks",
+                            kind=self._query_value(query, "kind"),
+                            passed=self._query_bool(query, "passed") if "passed" in query else None,
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_csv(payload).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_query_markdown(payload).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_csv(gate_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_markdown(gate_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        payload = gate_value.summary()
                     self._write(HTTPStatus.OK if payload.get("accepted", True) else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
                     return
 

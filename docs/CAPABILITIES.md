@@ -5125,3 +5125,46 @@ release gates, a seven-stage runtime, and normalized inspection findings across
 verification and release planes. The default public projection is timestamp-
 free, path-free, and identity-free. See
 [docs/MODULE_WORKBENCH_EXECUTION_PACKET.md](MODULE_WORKBENCH_EXECUTION_PACKET.md).
+
+### Independent packet-review assurance and release gates
+
+Packet review decisions are now followed by an independent assurance pass. The
+assurance builder recomputes the review chain, decision policy, head
+conservation, readiness classification, public projection, and—when supplied—
+the packet-diff structure and linkage. Its findings retain expected and
+observed values, a warning or blocker severity, an explicit pass state, and a
+content address. The assurance result separates structural acceptance from
+release readiness: a held or superseded review can be accepted evidence while
+remaining non-ready, whereas failed findings are not accepted.
+
+The release gate then combines the typed diff, review, and assurance. It
+requires all component links and acceptance checks, closes the decision table,
+classifies ready versus held versus blocked state, and only returns
+`release_ready=true` for an accepted promote decision over ready evidence. A
+blocked result remains persistable as an auditable rejection; persistence
+verifies the record itself rather than silently discarding failed release
+evidence.
+
+Both boundaries use canonical, path-free, timestamp-free JSON. Each durable
+record is an exact two-file directory: `manifest.json` plus `assurance.json`
+or `gate.json`. The loader rejects noncanonical bytes, manifest divergence,
+unknown files, symlinks, byte-address mismatches, and invalid nested addresses.
+Queries are bounded and addressed, with summary, findings/checks, severity,
+pass-state, kind, text, offset, and limit controls. JSON, CSV, and Markdown
+projections are deterministic.
+
+The CLI exposes the full packet-review assurance and gate families:
+
+```text
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-assurance --left-packet-directory LEFT --right-packet-directory RIGHT --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-assurance-query --left-packet-directory LEFT --right-packet-directory RIGHT --kind diff-linkage
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate --left-packet-directory LEFT --right-packet-directory RIGHT --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-query --left-packet-directory LEFT --right-packet-directory RIGHT --kind diff-link
+```
+
+The loopback API mirrors those commands under `/packet/review/assurance` and
+`/packet/review/gate`, including `/query`, `/schema`, `/capabilities`, and
+query schema/capability resources. Directory arguments are caller inputs only;
+they are never echoed in public responses. The public-surface audit counts the
+four assurance and four gate schema/capability projections and rejects
+attribution, agent, model, language, user, path, and timestamp fields.
