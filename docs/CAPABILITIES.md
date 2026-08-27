@@ -5168,3 +5168,93 @@ query schema/capability resources. Directory arguments are caller inputs only;
 they are never echoed in public responses. The public-surface audit counts the
 four assurance and four gate schema/capability projections and rejects
 attribution, agent, model, language, user, path, and timestamp fields.
+
+### Longitudinal packet-review gate history
+
+The gate-history boundary turns one packet-review gate into a durable
+append-only decision history. The first event records the current gate head;
+later events append a new verified gate projection, point to the exact prior
+head address, receive the next contiguous ordinal, and update conserved
+promote, hold, block, and supersede counters. An optional expected-head value
+provides an optimistic concurrency guard: a caller with a stale head cannot
+silently fork the published history. A gate address may occur only once.
+
+Each decision is closed into a public state projection:
+
+| Decision | State | Accepted | Release ready |
+|---|---|---:|---:|
+| `promote` | `ready` | true | true |
+| `hold` | `held` | true | false |
+| `supersede` | `held` | true | false |
+| `block` | `blocked` | false | false |
+
+The history verifier independently recomputes aggregate and entry addresses,
+entry conservation, ordinal and previous-head continuity, decision closure,
+decision counters, head projection, gate uniqueness, and the public boundary.
+Accepted blocked histories remain useful rejection evidence; history transport
+validity is separate from whether the current head is release-ready.
+
+History persistence is an atomic exact two-file directory containing
+`manifest.json` and `history.json`. The manifest embeds the public history,
+the canonical document byte count, a document byte address, and its own
+content address. Load rejects extra or missing files, symlinks, noncanonical
+JSON, manifest divergence, byte mismatches, malformed entries, and failed
+verification. There are no paths, timestamps, personal identities, or runtime
+metadata in the published projection.
+
+The history query plane supports `summary`, `entries`, and `checks` resources.
+Entries can be filtered by decision, state, acceptance, release readiness, or
+case-insensitive text and paged with bounded offset/limit controls. Every query
+is content-addressed and can be rendered as deterministic JSON, CSV, or
+Markdown.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history `
+  --left-packet-directory LEFT --right-packet-directory RIGHT --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-query `
+  --left-packet-directory LEFT --right-packet-directory RIGHT --resource entries --decision-filter promote
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-schema
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-capabilities
+```
+
+The loopback API mirrors the history family beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history`.
+It exposes the history, query, schema, capability, query-schema, and
+query-capability resources. A valid blocked history returns a successful
+transport response with `state=blocked`; callers inspect the public readiness
+fields for release policy.
+
+### Deterministic gate-history replay
+
+The replay boundary reconstructs the complete state timeline from a verified
+gate history. It begins at `start`, retains each gate and entry head address,
+checks the before/after state chain, preserves the decision and readiness
+flags, and projects the terminal state independently. This gives a release
+consumer a compact explanation of how a current head was reached without
+re-reading all packet directories.
+
+Replay produces eight ordered checks: source-history verification,
+event-conservation, event-address verification, transition-chain continuity,
+history-head linkage, decision/state closure, terminal projection, and the
+public boundary. A replay report is accepted only when every check passes.
+Tampered histories produce an inspectable rejected report but cannot be
+exported as an accepted replay receipt.
+
+The replay query plane provides `summary`, `events`, and `checks` resources,
+with decision, before-state, after-state, acceptance, readiness, text, and
+bounded paging filters. Replay events and query receipts are independently
+content-addressed and available as JSON, CSV, and Markdown.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay `
+  --left-packet-directory LEFT --right-packet-directory RIGHT --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-query `
+  --left-packet-directory LEFT --right-packet-directory RIGHT --resource events --after-state ready
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-schema
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-capabilities
+```
+
+The replay API is available below the history route at `/replay`, including
+the same six read-only resources and format negotiation. Both history planes
+are covered by focused regression tests, public-surface checks, continuous
+integration commands, and the persisted downloaded-packet fixture.

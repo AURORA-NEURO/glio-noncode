@@ -1049,3 +1049,42 @@ classifies accepted non-ready decisions as held and failed release checks as
 blocked. All projections are bounded, deterministic, read-only, path-free,
 timestamp-free, and identity-free. The source directory parameters are used
 only to load caller-provided packets and are not returned.
+
+Longitudinal gate history and replay extend the packet-review service with
+durable, inspectable decision timelines. The history endpoint records
+append-only promote, hold, block, and supersede heads, verifies contiguous
+previous-head links, enforces an optional optimistic expected-head guard, and
+preserves accepted non-ready or blocked release evidence. It is deterministic,
+path-free, timestamp-free, and identity-free.
+
+```text
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/query/capabilities
+```
+
+The history query resource supports summary, entries, and checks with bounded
+decision, state, acceptance, readiness, text, offset, and limit filters.
+History archives are exact `manifest.json` plus `history.json` directories;
+the service consumes caller-provided packet directories but does not echo
+those locations in responses.
+
+Replay reconstructs the history from `start` to its terminal state and emits
+independently addressed transition events, state-chain checks, gate/head
+linkage, and terminal release projections. It is available below `/replay`:
+
+```text
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/replay
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/replay/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/replay/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/replay/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/replay/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/replay/query/capabilities
+```
+
+Replay query resources are summary, events, and checks. JSON, CSV, and
+Markdown formats are deterministic, while malformed or unaccepted replay
+receipts fail closed.

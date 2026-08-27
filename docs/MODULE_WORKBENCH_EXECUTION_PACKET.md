@@ -1159,3 +1159,73 @@ module-workbench-execution-packet-archive-store-replication-packet-diff-release-
 Each family also provides base and query schema/capability commands and HTTP
 resources beneath the packet-review route. Responses remain path-free,
 timestamp-free, and identity-free.
+
+## Longitudinal packet-review gate history and replay
+
+The packet-review gate history extends the single gate receipt into a durable
+sequence of release decisions. Its first entry records the gate head and each
+later entry is an immutable projection of a newly verified gate. Entries carry
+contiguous ordinals, their gate content address, the prior history head
+address, decision closure, state, acceptance, release readiness, explanation,
+and their own content address. The history head always projects the last
+entry, while promote/hold/block/supersede counters are conserved across the
+whole sequence.
+
+The public decision table is explicit:
+
+| Decision | State | Accepted | Release ready |
+|---|---|---:|---:|
+| promote | ready | true | true |
+| hold | held | true | false |
+| supersede | held | true | false |
+| block | blocked | false | false |
+
+An expected-head argument provides a bounded optimistic concurrency guard for
+append callers. A stale expected head or repeated gate address is rejected;
+no merge or implicit fork is attempted. Accepted blocked history remains
+valid audit evidence even though the current release decision is not ready.
+
+History storage is canonical and atomic. The exact directory contains only
+`manifest.json` and `history.json`; the manifest binds the embedded public
+document to its byte count, byte address, and manifest address. The loader
+rejects unknown files, symlinks, noncanonical bytes, mismatched manifests,
+tampered nested entries, invalid addresses, and failed structural checks.
+All history JSON, CSV, Markdown, and bounded query outputs are deterministic,
+path-free, timestamp-free, and free of attribution fields.
+
+The history CLI family is:
+
+```text
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-query
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-schema
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-capabilities
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-query-schema
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-query-capabilities
+```
+
+The HTTP family is nested at
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history`.
+It provides the history, query, schema, capability, query-schema, and
+query-capability resources. Directory locations are input-only and never
+appear in a response.
+
+The replay module reconstructs the `start`-to-terminal state sequence without
+re-reading source directories. It retains gate and entry head addresses,
+recomputes decision/state closure, checks transition continuity, independently
+projects the terminal state, and emits an addressed replay report. Its query
+plane exposes summary, events, and checks with bounded decision, before-state,
+after-state, acceptance, readiness, text, and paging filters. Replay exports
+are available as JSON, CSV, and Markdown and reject reports whose source
+history or replay receipt is not accepted.
+
+Replay commands are:
+
+```text
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-query
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-schema
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-capabilities
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-query-schema
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-query-capabilities
+```
