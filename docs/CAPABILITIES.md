@@ -30,6 +30,36 @@ source receipts, uncertainty, policy checks, and
 review states rather than converting missing evidence into a scientific or
 clinical conclusion.
 
+## Longitudinal packet-review observatory
+
+The packet-review history observatory turns a sequence of independently
+verified history archives into a deterministic, path-free timeline. Each
+observation retains its history address, terminal gate address, decision,
+state, acceptance, and release-readiness projection. Adjacent observations
+are classified as stable, promoted, recovered, regressed, held, blocked,
+superseded, or changed. Rollups conserve observation and transition counts and
+the observatory carries its own independent structural checks.
+
+The observatory loads exact-byte `manifest.json` plus `history.json` archives,
+exports summary/observation/transition/check views as JSON, CSV, or Markdown,
+and answers bounded queries with state, transition, acceptance, readiness, text,
+and pagination filters. Directory locations are input-only and never appear in
+public projections.
+
+## Observatory runtime policy
+
+The runtime evaluates an observatory against a bounded release policy. The
+default policy requires observations, accepted histories, a ready latest
+observation, and zero regressions, blocked observations, changed transitions,
+or mixed-state ambiguity. The policy is explicit and replaceable; every
+threshold and result is content-addressed.
+
+Runtime closure emits five ordered stages: load, verify, policy, project, and
+complete. A policy failure is preserved as a held or blocked state with
+addressed checks rather than being discarded. Accepted ready runtimes can be
+persisted as exact `manifest.json` plus `runtime.json` archives and queried by
+stage or policy-check result.
+
 ## Cross-domain frontier release closure
 
 The D13-D16 closure layer is a verified composition surface over the four

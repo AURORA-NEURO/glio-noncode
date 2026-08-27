@@ -1160,6 +1160,43 @@ Each family also provides base and query schema/capability commands and HTTP
 resources beneath the packet-review route. Responses remain path-free,
 timestamp-free, and identity-free.
 
+## Longitudinal observatory and runtime
+
+The history observatory consumes one or more persisted history archives rather
+than source packet directories. It sorts observations by their explicit
+ordinal, keeps history and terminal-gate addresses, and classifies every
+adjacent pair. This makes repeated downloads, identical reruns, promotions,
+recoveries, regressions, holds, blocks, and supersessions inspectable without
+timestamps or local paths. Its rollup checks prove conservation across
+observations, transitions, decisions, and states.
+
+The observatory commands are:
+
+```text
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-query
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-verify
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-query
+```
+
+The build commands accept repeatable `--history-directory` arguments and can
+write exact-byte archives. Query commands support summary, observations,
+transitions, checks, verification, stages, and policy checks. The runtime
+applies a bounded policy to the conserved observatory and emits load, verify,
+policy, project, and complete stages. A failed policy remains an explicit
+held/blocked result and never becomes a ready release by omission.
+
+The HTTP family is rooted at:
+
+```text
+/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory
+```
+
+It exposes base/query/schema/capability/verification resources and a nested
+`/runtime` family with policy schema and capability resources. All response
+projections are deterministic, path-free, timestamp-free, and identity-free.
+
 ## Longitudinal packet-review gate history and replay
 
 The packet-review gate history extends the single gate receipt into a durable

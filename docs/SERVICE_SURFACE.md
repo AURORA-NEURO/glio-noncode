@@ -1050,6 +1050,31 @@ blocked. All projections are bounded, deterministic, read-only, path-free,
 timestamp-free, and identity-free. The source directory parameters are used
 only to load caller-provided packets and are not returned.
 
+Longitudinal observatory and policy runtime extend the packet-review service
+with deterministic timeline and release-policy resources:
+
+```text
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/verification/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/verification/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/policy/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/policy/capabilities
+```
+
+Build and query requests accept repeatable `history_directory` values and
+optional observation IDs. Query responses support bounded state, transition,
+stage, policy-check, acceptance, readiness, text, and paging filters. The
+service only reads caller-supplied archives and never returns those paths.
+Ready/held/blocked semantics are retained in the response status and payload;
+policy failures are not silently promoted.
+
 Longitudinal gate history and replay extend the packet-review service with
 durable, inspectable decision timelines. The history endpoint records
 append-only promote, hold, block, and supersede heads, verifies contiguous
