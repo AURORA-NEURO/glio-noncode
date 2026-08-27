@@ -4959,6 +4959,41 @@ revisions. JSON, CSV, Markdown, CLI, HTTP, schema, capability, and Actions
 surfaces are available; public projections exclude paths, timestamps,
 attribution, private fields, and identity metadata.
 
+### Durable review-store catalogs and federation
+
+The catalog layer indexes multiple independently persisted review stores into a
+single deterministic, content-addressed collection. Each catalog records
+ordered store entries, a genesis operation, append-only registration
+operations, and explicit format, entry, operation, storage, and public-boundary
+checks. Catalog writes are an exact three-artifact transport with canonical
+JSON, regular-file enforcement, byte counts, atomic replacement, and
+optimistic expected-catalog-address guards. Loading a catalog is path-free in
+the public model and rehydrates only the declared store artifacts.
+
+Catalog queries are bounded and address their receipts. Summary, entries,
+operations, and checks can be filtered by store state, acceptance, readiness,
+evidence window, text, offset, and limit. The catalog runtime has eight
+content-addressed stages: load, catalog verification, entry verification,
+operation verification, window reconciliation, release-set resolution,
+readiness evaluation, and completion. A structurally valid held catalog is
+accepted but not release-ready; blocked or divergent collections fail closed.
+
+Federation applies an explicit collection policy over selected stores. It
+checks catalog acceptance, minimum member and ready thresholds, selected-window
+coherence, ledger uniqueness, blocked-member exclusion, known-store selection,
+and the public boundary. It distinguishes ready, held, mixed, blocked, and
+empty collections, preserving the difference between a valid held collection
+and a structurally invalid one. Catalog diffs classify exact, append-only, and
+divergent revisions with one bounded action per store.
+
+The full plane is available through deterministic JSON, CSV, Markdown, CLI,
+HTTP, schema, capability, and GitHub Actions surfaces. No path, timestamp,
+reviewer, operator, agent, model, language, patient, or other identity-bearing
+field crosses the public boundary. Regression tests cover ordering,
+rehydration, tampering, missing and extra artifacts, append guards, readiness
+holds, blocked members, mixed windows, unknown selections, query receipts,
+diff states, and downloaded review-store data.
+
 ### Release-window decision ledger
 
 The decision ledger turns verified release-window evidence into an explicit,

@@ -942,3 +942,59 @@ python -m glio_noncode module-workbench-execution-packet-archive-store-replicati
   --pair "matched=.\out\base-packet=.\out\base-packet" `
   --decision "promote=promote=verified evidence is ready" --format markdown
 ```
+
+## Durable review-store catalogs and federation
+
+The catalog continuation indexes multiple durable review-store directories
+without merging their ledgers or creating a second approval authority. Build
+requires one or more `--store-directory` values. Stores are sorted by their
+public store ID, then represented by addressed catalog entries containing the
+store, ledger, head, evidence-window, state, acceptance, and readiness links.
+The catalog retains a genesis operation plus one registration operation per
+member, so the registration history is deterministic and append-only.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog `
+  --store-directory .\out\review-store-a `
+  --store-directory .\out\review-store-b `
+  --catalog-id release-window-catalog `
+  --destination .\out\review-store-catalog --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-query `
+  --catalog-directory .\out\review-store-catalog --resource entries --release-ready --limit 20
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-runtime `
+  --catalog-directory .\out\review-store-catalog --format markdown
+```
+
+The catalog directory contains exactly `review-store-catalog.json`,
+`review-store-catalog-entries.json`, and
+`review-store-catalog-operations.json`. The loader verifies canonical bytes,
+manifest addresses, artifact counts, the registration chain, and the catalog
+address. Query receipts expose summary, entries, operations, and checks with
+bounded filters and deterministic addresses. The eight-stage runtime then
+reconciles evidence windows, resolves the release set, and distinguishes a
+completed ready catalog from an accepted held catalog or a blocked catalog.
+
+Federation selects a bounded release collection from a loaded catalog. It can
+require one evidence window and unique ledgers, select explicit store IDs,
+enforce minimum member and ready counts, and report ready, held, mixed, blocked,
+or empty state. A held member is accepted as valid evidence that is not yet
+release-ready; a blocked member or unknown selection fails closed.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-federation `
+  --catalog-directory .\out\review-store-catalog `
+  --require-same-window --require-unique-ledger --minimum-members 2 `
+  --minimum-ready 2 --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-federation-query `
+  --catalog-directory .\out\review-store-catalog --resource checks --passed-only
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-diff `
+  .\out\review-store-catalog-base .\out\review-store-catalog-current --format markdown
+```
+
+Catalog diffs compare store IDs and entry addresses, classifying exact,
+append-only, or divergent revisions with added, removed, unchanged, and
+changed actions. All catalog and federation projections are path-free,
+timestamp-free, identity-free, and safe to run against downloaded public data.
+The same contracts are available through the HTTP family under
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog`,
+including query, runtime, federation, diff, schema, and capability routes.
