@@ -4759,6 +4759,63 @@ glio-noncode module-workbench-execution-packet-archive-store-recovery-schema
 glio-noncode module-workbench-execution-packet-archive-store-recovery-capabilities
 ```
 
+### Archive-store replication and promotion
+
+The replication boundary turns two verified persisted stores into a
+deterministic, reviewable transfer plan. It proves that both stores represent
+the same logical store, that target journal and entry sequences are exact
+prefixes of the source, and that every object and journal operation is either
+reused, copied, or explicitly marked as a conflict. Object counts, operation
+counts, required bytes, and the transfer ratio are conserved in the addressed
+plan. Divergence, identity mismatch, verification failure, and stale expected
+heads fail closed.
+
+Apply is an explicit filesystem operation separate from the plan. It rebuilds
+the plan, re-verifies both inputs, checks the expected target head, atomically
+writes the source boundary, reloads the destination, and returns a receipt
+containing only store addresses, counts, and outcomes. A promotion decision
+holds an accepted extension until the receipt proves the target address equals
+the source address. Exact matches are safe noops. Query and runtime outputs
+are bounded, deterministic, path-free, timestamp-free, and identity-free.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-replication source-store target-store --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-query source-store target-store --resource entries --action copy
+glio-noncode module-workbench-execution-packet-archive-store-replication-runtime source-store target-store --apply --destination promoted-store
+glio-noncode module-workbench-execution-packet-archive-store-replication-schema
+glio-noncode module-workbench-execution-packet-archive-store-replication-runtime-capabilities
+```
+
+The public plan has summary, entries, operations, and checks resources.
+Runtime stages cover planning, source verification, target verification,
+reconciliation, optional apply, promotion evaluation, and lifecycle closure.
+Every nested row and final receipt has a deterministic content address, so a
+downloaded packet store can be reviewed offline and compared across runs.
+
+### Portable replication packet
+
+The replication packet materializes a fixed, path-free review bundle from a
+verified plan. Its canonical manifest records plan, promotion, optional
+receipt/runtime references, artifact byte counts, per-file content addresses,
+and packet checks. The default packet includes plan JSON, CSV, and Markdown,
+a bounded summary query, and promotion JSON. Runtime artifacts can be added
+when a runtime receipt is available. The writer uses an atomic directory
+replacement; the loader rejects non-canonical manifests, missing or extra
+artifacts, symlinks, byte-address mismatches, and forbidden identity fields.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet source-store target-store --destination replication-packet --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-query source-store target-store --resource artifacts --role plan
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-replay replication-packet
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-schema
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-query-capabilities
+```
+
+Packet manifests and query responses are content-addressed and deterministic
+for identical verified inputs. API routes mirror the CLI beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet`,
+including build, bounded query, replay, schema, and capabilities routes.
+
 ### Portable module execution handoff
 
 The module workbench execution packet packages the report, bounded portfolio,

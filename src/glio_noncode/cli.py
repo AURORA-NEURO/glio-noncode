@@ -2149,6 +2149,12 @@ from .module_workbench_execution_packet_archive_store_runtime import module_work
 from .module_workbench_execution_packet_archive_store_runtime import verify_module_workbench_execution_packet_archive_store_runtime
 from .module_workbench_execution_packet_archive_store_checkpoint import build_module_workbench_execution_packet_archive_store_checkpoint, checkpoint_module_workbench_execution_packet_archive_store_from_mapping, compare_module_workbench_execution_packet_archive_store_to_checkpoint, module_workbench_execution_packet_archive_store_checkpoint_capabilities, module_workbench_execution_packet_archive_store_checkpoint_csv, module_workbench_execution_packet_archive_store_checkpoint_json, module_workbench_execution_packet_archive_store_checkpoint_schema, module_workbench_execution_packet_archive_store_comparison_csv, module_workbench_execution_packet_archive_store_comparison_json, query_module_workbench_execution_packet_archive_store_checkpoint, render_module_workbench_execution_packet_archive_store_checkpoint_markdown, verify_module_workbench_execution_packet_archive_store_checkpoint, verify_module_workbench_execution_packet_archive_store_comparison
 from .module_workbench_execution_packet_archive_store_recovery import inspect_module_workbench_execution_packet_archive_store, module_workbench_execution_packet_archive_store_recovery_capabilities, module_workbench_execution_packet_archive_store_recovery_csv, module_workbench_execution_packet_archive_store_recovery_json, module_workbench_execution_packet_archive_store_recovery_schema, query_module_workbench_execution_packet_archive_store_recovery, render_module_workbench_execution_packet_archive_store_recovery_markdown, verify_module_workbench_execution_packet_archive_store_recovery
+from .module_workbench_execution_packet_archive_store_replication import build_module_workbench_execution_packet_archive_store_promotion, load_module_workbench_execution_packet_archive_store_replication_inputs, module_workbench_execution_packet_archive_store_replication_csv, module_workbench_execution_packet_archive_store_replication_json, render_module_workbench_execution_packet_archive_store_replication_markdown
+from .module_workbench_execution_packet_archive_store_replication_contracts import module_workbench_execution_packet_archive_store_replication_capabilities, module_workbench_execution_packet_archive_store_replication_schema
+from .module_workbench_execution_packet_archive_store_replication_query import module_workbench_execution_packet_archive_store_replication_query_capabilities, module_workbench_execution_packet_archive_store_replication_query_schema, query_module_workbench_execution_packet_archive_store_replication
+from .module_workbench_execution_packet_archive_store_replication_runtime_contracts import module_workbench_execution_packet_archive_store_replication_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_runtime_schema
+from .module_workbench_execution_packet_archive_store_replication_runtime import module_workbench_execution_packet_archive_store_replication_runtime_csv, module_workbench_execution_packet_archive_store_replication_runtime_json, query_module_workbench_execution_packet_archive_store_replication_runtime, run_module_workbench_execution_packet_archive_store_replication_runtime
+from .module_workbench_execution_packet_archive_store_replication_packet import build_module_workbench_execution_packet_archive_store_replication_packet, load_module_workbench_execution_packet_archive_store_replication_packet, module_workbench_execution_packet_archive_store_replication_packet_capabilities, module_workbench_execution_packet_archive_store_replication_packet_csv, module_workbench_execution_packet_archive_store_replication_packet_json, module_workbench_execution_packet_archive_store_replication_packet_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_query_csv, module_workbench_execution_packet_archive_store_replication_packet_query_json, module_workbench_execution_packet_archive_store_replication_packet_query_schema, module_workbench_execution_packet_archive_store_replication_packet_schema, query_module_workbench_execution_packet_archive_store_replication_packet, render_module_workbench_execution_packet_archive_store_replication_packet_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_query_markdown, replay_module_workbench_execution_packet_archive_store_replication_packet, write_module_workbench_execution_packet_archive_store_replication_packet
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -4972,6 +4978,67 @@ def build_parser() -> argparse.ArgumentParser:
     module_workbench_execution_packet_archive_store_recovery_query.add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-recovery-schema", help="print packet archive store recovery schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-recovery-capabilities", help="print packet archive store recovery capabilities").add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_replication = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication", help="plan replication between two persisted packet archive stores")
+    module_workbench_execution_packet_archive_store_replication.add_argument("source_directory", type=str)
+    module_workbench_execution_packet_archive_store_replication.add_argument("target_directory", type=str)
+    module_workbench_execution_packet_archive_store_replication.add_argument("--replication-id", default="glio-noncode-module-workbench-execution-archive-store-replication")
+    module_workbench_execution_packet_archive_store_replication.add_argument("--expected-target-head-address", default=None)
+    module_workbench_execution_packet_archive_store_replication.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    module_workbench_execution_packet_archive_store_replication.add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_replication_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-query", help="query a packet archive store replication plan")
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("source_directory", type=str)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("target_directory", type=str)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--replication-id", default="glio-noncode-module-workbench-execution-archive-store-replication")
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--expected-target-head-address", default=None)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--resource", choices=("summary", "entries", "operations", "checks"), default="summary")
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--action", default=None)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--plane", default=None)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--accepted", action="store_true")
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--text", default=None)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--offset", default=0, type=int)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--limit", default=50, type=int)
+    module_workbench_execution_packet_archive_store_replication_query.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-schema", help="print packet archive store replication schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-capabilities", help="print packet archive store replication capabilities").add_argument("--output", default=None)
+    module_workbench_execution_packet_archive_store_replication_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-runtime", help="run packet archive store replication planning and optional apply")
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("source_directory", type=str)
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("target_directory", type=str)
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("--replication-id", default="glio-noncode-module-workbench-execution-archive-store-replication-runtime")
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("--expected-target-head-address", default=None)
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("--destination", default=None)
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("--apply", action="store_true")
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("--allow-existing", action="store_true")
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("--format", choices=("json", "csv", "summary"), default="json")
+    module_workbench_execution_packet_archive_store_replication_runtime.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-runtime-schema", help="print packet archive store replication runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-runtime-capabilities", help="print packet archive store replication runtime capabilities").add_argument("--output", default=None)
+    replication_packet = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet", help="build and optionally persist a portable packet for archive store replication")
+    replication_packet.add_argument("source_directory", type=str)
+    replication_packet.add_argument("target_directory", type=str)
+    replication_packet.add_argument("--packet-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet")
+    replication_packet.add_argument("--destination", default=None)
+    replication_packet.add_argument("--allow-existing", action="store_true")
+    replication_packet.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet.add_argument("--output", default=None)
+    replication_packet_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-query", help="query a portable archive store replication packet")
+    replication_packet_query.add_argument("source_directory", type=str)
+    replication_packet_query.add_argument("target_directory", type=str)
+    replication_packet_query.add_argument("--packet-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet")
+    replication_packet_query.add_argument("--resource", choices=("summary", "artifacts", "checks"), default="summary")
+    replication_packet_query.add_argument("--role", default=None)
+    replication_packet_query.add_argument("--accepted", action="store_true")
+    replication_packet_query.add_argument("--text", default=None)
+    replication_packet_query.add_argument("--offset", default=0, type=int)
+    replication_packet_query.add_argument("--limit", default=50, type=int)
+    replication_packet_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    replication_packet_query.add_argument("--output", default=None)
+    replication_packet_replay = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-replay", help="verify a persisted archive store replication packet")
+    replication_packet_replay.add_argument("directory", type=str)
+    replication_packet_replay.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-schema", help="print replication packet schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-capabilities", help="print replication packet capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-query-schema", help="print replication packet query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-query-capabilities", help="print replication packet query capabilities").add_argument("--output", default=None)
 
     module_inventory = subparsers.add_parser(
         "module-inventory",
@@ -27289,6 +27356,136 @@ def main(argv: list[str] | None = None) -> int:
             )
             _write_json(result, args.output)
             return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-runtime-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-runtime-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-replay":
+            verification = replay_module_workbench_execution_packet_archive_store_replication_packet(args.directory)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet":
+            plan = load_module_workbench_execution_packet_archive_store_replication_inputs(
+                args.source_directory,
+                args.target_directory,
+            )
+            packet, payloads = build_module_workbench_execution_packet_archive_store_replication_packet(
+                plan,
+                packet_id=args.packet_id,
+            )
+            if args.destination:
+                write_module_workbench_execution_packet_archive_store_replication_packet(
+                    packet,
+                    payloads,
+                    args.destination,
+                    allow_existing=args.allow_existing,
+                )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_csv(packet), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_markdown(packet), args.output)
+            elif args.format == "summary":
+                _write_json(packet.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_json(packet), args.output)
+            return 0 if packet.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-query":
+            plan = load_module_workbench_execution_packet_archive_store_replication_inputs(
+                args.source_directory,
+                args.target_directory,
+            )
+            packet, _ = build_module_workbench_execution_packet_archive_store_replication_packet(
+                plan,
+                packet_id=args.packet_id,
+            )
+            result = query_module_workbench_execution_packet_archive_store_replication_packet(
+                packet,
+                resource=args.resource,
+                role=args.role,
+                accepted=True if args.accepted else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_query_json(result), args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication":
+            plan = load_module_workbench_execution_packet_archive_store_replication_inputs(
+                args.source_directory,
+                args.target_directory,
+                replication_id=args.replication_id,
+                expected_target_head_address=args.expected_target_head_address,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_csv(plan), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_markdown(plan), args.output)
+            elif args.format == "summary":
+                _write_json(plan.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_json(plan), args.output)
+            return 0 if plan.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-query":
+            plan = load_module_workbench_execution_packet_archive_store_replication_inputs(
+                args.source_directory,
+                args.target_directory,
+                replication_id=args.replication_id,
+                expected_target_head_address=args.expected_target_head_address,
+            )
+            result = query_module_workbench_execution_packet_archive_store_replication(
+                plan,
+                resource=args.resource,
+                action=args.action,
+                accepted=True if args.accepted else None,
+                plane=args.plane,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _write_json(result, args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-runtime":
+            runtime = run_module_workbench_execution_packet_archive_store_replication_runtime(
+                args.source_directory,
+                args.target_directory,
+                replication_id=args.replication_id,
+                expected_target_head_address=args.expected_target_head_address,
+                destination=args.destination,
+                apply=args.apply,
+                allow_existing=args.allow_existing,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_runtime_csv(runtime), args.output)
+            elif args.format == "summary":
+                _write_json(runtime.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_runtime_json(runtime), args.output)
+            return 0 if runtime.accepted else 2
         if args.command == "module-workbench-execution-packet-runtime":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)
             matrix = build_module_certification(

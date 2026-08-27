@@ -221,9 +221,13 @@ from .module_workbench_execution_packet_archive_store_query import module_workbe
 from .module_workbench_execution_packet_archive_store_runtime import module_workbench_execution_packet_archive_store_runtime_capabilities, module_workbench_execution_packet_archive_store_runtime_schema
 from .module_workbench_execution_packet_archive_store_checkpoint import module_workbench_execution_packet_archive_store_checkpoint_capabilities, module_workbench_execution_packet_archive_store_checkpoint_schema
 from .module_workbench_execution_packet_archive_store_recovery import module_workbench_execution_packet_archive_store_recovery_capabilities, module_workbench_execution_packet_archive_store_recovery_schema
+from .module_workbench_execution_packet_archive_store_replication_contracts import module_workbench_execution_packet_archive_store_replication_capabilities, module_workbench_execution_packet_archive_store_replication_schema
+from .module_workbench_execution_packet_archive_store_replication_query import module_workbench_execution_packet_archive_store_replication_query_capabilities, module_workbench_execution_packet_archive_store_replication_query_schema
+from .module_workbench_execution_packet_archive_store_replication_runtime_contracts import module_workbench_execution_packet_archive_store_replication_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_runtime_schema
+from .module_workbench_execution_packet_archive_store_replication_packet import module_workbench_execution_packet_archive_store_replication_packet_capabilities, module_workbench_execution_packet_archive_store_replication_packet_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_query_schema, module_workbench_execution_packet_archive_store_replication_packet_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 264
+PUBLIC_SURFACE_EXPECTED_COUNT = 274
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -689,6 +693,16 @@ def default_public_surface_inventory(
         "module-workbench-execution-packet-archive-store-checkpoint-capabilities": module_workbench_execution_packet_archive_store_checkpoint_capabilities(),
         "module-workbench-execution-packet-archive-store-recovery-schema": module_workbench_execution_packet_archive_store_recovery_schema(),
         "module-workbench-execution-packet-archive-store-recovery-capabilities": module_workbench_execution_packet_archive_store_recovery_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-schema": module_workbench_execution_packet_archive_store_replication_schema(),
+        "module-workbench-execution-packet-archive-store-replication-capabilities": module_workbench_execution_packet_archive_store_replication_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-query-schema": module_workbench_execution_packet_archive_store_replication_query_schema(),
+        "module-workbench-execution-packet-archive-store-replication-query-capabilities": module_workbench_execution_packet_archive_store_replication_query_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-runtime-schema": module_workbench_execution_packet_archive_store_replication_runtime_schema(),
+        "module-workbench-execution-packet-archive-store-replication-runtime-capabilities": module_workbench_execution_packet_archive_store_replication_runtime_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-schema": module_workbench_execution_packet_archive_store_replication_packet_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-capabilities": module_workbench_execution_packet_archive_store_replication_packet_capabilities(),
+        "module-workbench-execution-packet-archive-store-replication-packet-query-schema": module_workbench_execution_packet_archive_store_replication_packet_query_schema(),
+        "module-workbench-execution-packet-archive-store-replication-packet-query-capabilities": module_workbench_execution_packet_archive_store_replication_packet_query_capabilities(),
         "service-capabilities": service_capability_projection(selected),
         "service-closure": build_service_surface_closure(selected),
         "service-diff-none": service_diff_projection(selected, "none"),

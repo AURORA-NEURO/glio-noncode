@@ -733,6 +733,12 @@ from .module_workbench_execution_packet_archive_store_query import diff_module_w
 from .module_workbench_execution_packet_archive_store_runtime import module_workbench_execution_packet_archive_store_runtime_capabilities, module_workbench_execution_packet_archive_store_runtime_csv, module_workbench_execution_packet_archive_store_runtime_json, module_workbench_execution_packet_archive_store_runtime_schema, query_module_workbench_execution_packet_archive_store_runtime, run_module_workbench_execution_packet_archive_store_runtime
 from .module_workbench_execution_packet_archive_store_checkpoint import build_module_workbench_execution_packet_archive_store_checkpoint, compare_module_workbench_execution_packet_archive_store_to_checkpoint, module_workbench_execution_packet_archive_store_checkpoint_capabilities, module_workbench_execution_packet_archive_store_checkpoint_csv, module_workbench_execution_packet_archive_store_checkpoint_schema, module_workbench_execution_packet_archive_store_comparison_csv, query_module_workbench_execution_packet_archive_store_checkpoint, render_module_workbench_execution_packet_archive_store_checkpoint_markdown
 from .module_workbench_execution_packet_archive_store_recovery import inspect_module_workbench_execution_packet_archive_store, module_workbench_execution_packet_archive_store_recovery_capabilities, module_workbench_execution_packet_archive_store_recovery_csv, module_workbench_execution_packet_archive_store_recovery_schema, query_module_workbench_execution_packet_archive_store_recovery, render_module_workbench_execution_packet_archive_store_recovery_markdown
+from .module_workbench_execution_packet_archive_store_replication import build_module_workbench_execution_packet_archive_store_promotion, load_module_workbench_execution_packet_archive_store_replication_inputs, module_workbench_execution_packet_archive_store_replication_csv, module_workbench_execution_packet_archive_store_replication_json, render_module_workbench_execution_packet_archive_store_replication_markdown
+from .module_workbench_execution_packet_archive_store_replication_contracts import module_workbench_execution_packet_archive_store_replication_capabilities, module_workbench_execution_packet_archive_store_replication_schema
+from .module_workbench_execution_packet_archive_store_replication_query import module_workbench_execution_packet_archive_store_replication_query_capabilities, module_workbench_execution_packet_archive_store_replication_query_schema, query_module_workbench_execution_packet_archive_store_replication
+from .module_workbench_execution_packet_archive_store_replication_runtime_contracts import module_workbench_execution_packet_archive_store_replication_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_runtime_schema
+from .module_workbench_execution_packet_archive_store_replication_runtime import module_workbench_execution_packet_archive_store_replication_runtime_csv, module_workbench_execution_packet_archive_store_replication_runtime_json, query_module_workbench_execution_packet_archive_store_replication_runtime, run_module_workbench_execution_packet_archive_store_replication_runtime
+from .module_workbench_execution_packet_archive_store_replication_packet import build_module_workbench_execution_packet_archive_store_replication_packet, load_module_workbench_execution_packet_archive_store_replication_packet, module_workbench_execution_packet_archive_store_replication_packet_capabilities, module_workbench_execution_packet_archive_store_replication_packet_csv, module_workbench_execution_packet_archive_store_replication_packet_json, module_workbench_execution_packet_archive_store_replication_packet_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_query_csv, module_workbench_execution_packet_archive_store_replication_packet_query_json, module_workbench_execution_packet_archive_store_replication_packet_query_schema, module_workbench_execution_packet_archive_store_replication_packet_schema, query_module_workbench_execution_packet_archive_store_replication_packet, render_module_workbench_execution_packet_archive_store_replication_packet_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_query_markdown, replay_module_workbench_execution_packet_archive_store_replication_packet, write_module_workbench_execution_packet_archive_store_replication_packet
 
 
 def _json_bytes(value: Any) -> bytes:
@@ -2087,6 +2093,21 @@ class ApiHandler(BaseHTTPRequestHandler):
             "/v1/module-workbench/execution/packet/archive/store/recovery/query",
             "/v1/module-workbench/execution/packet/archive/store/recovery/schema",
             "/v1/module-workbench/execution/packet/archive/store/recovery/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication",
+            "/v1/module-workbench/execution/packet/archive/store/replication/query",
+            "/v1/module-workbench/execution/packet/archive/store/replication/promotion",
+            "/v1/module-workbench/execution/packet/archive/store/replication/runtime",
+            "/v1/module-workbench/execution/packet/archive/store/replication/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/runtime/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/runtime/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/query",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/replay",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/capabilities",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/query/schema",
+            "/v1/module-workbench/execution/packet/archive/store/replication/packet/query/capabilities",
         }:
             try:
                 query = parse_qs(parsed.query, keep_blank_values=False)
@@ -2134,6 +2155,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/runtime/schema": module_workbench_execution_packet_archive_store_runtime_schema,
                     "/v1/module-workbench/execution/packet/archive/store/checkpoint/schema": module_workbench_execution_packet_archive_store_checkpoint_schema,
                     "/v1/module-workbench/execution/packet/archive/store/recovery/schema": module_workbench_execution_packet_archive_store_recovery_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/schema": module_workbench_execution_packet_archive_store_replication_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/runtime/schema": module_workbench_execution_packet_archive_store_replication_runtime_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/schema": module_workbench_execution_packet_archive_store_replication_packet_schema,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/query/schema": module_workbench_execution_packet_archive_store_replication_packet_query_schema,
                 }
                 if path in schema_routes:
                     self._write(HTTPStatus.OK, schema_routes[path]())
@@ -2176,6 +2201,10 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/v1/module-workbench/execution/packet/archive/store/runtime/capabilities": module_workbench_execution_packet_archive_store_runtime_capabilities,
                     "/v1/module-workbench/execution/packet/archive/store/checkpoint/capabilities": module_workbench_execution_packet_archive_store_checkpoint_capabilities,
                     "/v1/module-workbench/execution/packet/archive/store/recovery/capabilities": module_workbench_execution_packet_archive_store_recovery_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/capabilities": module_workbench_execution_packet_archive_store_replication_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/runtime/capabilities": module_workbench_execution_packet_archive_store_replication_runtime_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/capabilities": module_workbench_execution_packet_archive_store_replication_packet_capabilities,
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/query/capabilities": module_workbench_execution_packet_archive_store_replication_packet_query_capabilities,
                 }
                 if path in capability_routes:
                     self._write(HTTPStatus.OK, capability_routes[path]())
@@ -2209,6 +2238,13 @@ class ApiHandler(BaseHTTPRequestHandler):
                 if path in {
                     "/v1/module-workbench/execution/packet/archive/store/recovery",
                     "/v1/module-workbench/execution/packet/archive/store/recovery/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/promotion",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/runtime",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/replay",
                 }:
                     inventory = matrix = plan = gate = runtime = None
                 else:
@@ -2279,6 +2315,138 @@ class ApiHandler(BaseHTTPRequestHandler):
                             )
                             return
                         payload = report.to_dict()
+                elif path in {
+                    "/v1/module-workbench/execution/packet/archive/store/replication",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/promotion",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/runtime",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/query",
+                    "/v1/module-workbench/execution/packet/archive/store/replication/packet/replay",
+                }:
+                    source_directory = self._query_value(query, "source_directory")
+                    target_directory = self._query_value(query, "target_directory")
+                    replication_id = self._query_value(query, "replication_id") or "glio-noncode-module-workbench-execution-archive-store-replication"
+                    expected_head = self._query_value(query, "expected_target_head_address")
+                    if path.endswith("/packet/replay"):
+                        directory = self._query_value(query, "directory")
+                        if not directory:
+                            raise ValueError("directory is required for replication packet replay")
+                        payload = replay_module_workbench_execution_packet_archive_store_replication_packet(
+                            directory
+                        ).to_dict()
+                        self._write(HTTPStatus.OK, payload)
+                        return
+                    if not source_directory or not target_directory:
+                        raise ValueError("source_directory and target_directory are required for archive store replication")
+                    if path.endswith("/packet/query"):
+                        plan = load_module_workbench_execution_packet_archive_store_replication_inputs(
+                            source_directory,
+                            target_directory,
+                            replication_id=replication_id,
+                            expected_target_head_address=expected_head,
+                        )
+                        packet, _ = build_module_workbench_execution_packet_archive_store_replication_packet(
+                            plan,
+                            packet_id=self._query_value(query, "packet_id")
+                            or "glio-noncode-module-workbench-execution-archive-store-replication-packet",
+                        )
+                        payload = query_module_workbench_execution_packet_archive_store_replication_packet(
+                            packet,
+                            resource=self._query_value(query, "resource") or "summary",
+                            role=self._query_value(query, "role"),
+                            accepted=self._query_bool(query, "accepted")
+                            if self._query_value(query, "accepted") is not None
+                            else None,
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                    elif path.endswith("/packet"):
+                        plan = load_module_workbench_execution_packet_archive_store_replication_inputs(
+                            source_directory,
+                            target_directory,
+                            replication_id=replication_id,
+                            expected_target_head_address=expected_head,
+                        )
+                        packet, payloads = build_module_workbench_execution_packet_archive_store_replication_packet(
+                            plan,
+                            packet_id=self._query_value(query, "packet_id")
+                            or "glio-noncode-module-workbench-execution-archive-store-replication-packet",
+                        )
+                        destination = self._query_value(query, "destination")
+                        if destination:
+                            write_module_workbench_execution_packet_archive_store_replication_packet(
+                                packet,
+                                payloads,
+                                destination,
+                                allow_existing=self._query_bool(query, "allow_existing"),
+                            )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                module_workbench_execution_packet_archive_store_replication_packet_csv(
+                                    packet
+                                ).encode("utf-8"),
+                                content_type="text/csv; charset=utf-8",
+                            )
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(
+                                HTTPStatus.OK,
+                                render_module_workbench_execution_packet_archive_store_replication_packet_markdown(
+                                    packet
+                                ).encode("utf-8"),
+                                content_type="text/markdown; charset=utf-8",
+                            )
+                            return
+                        payload = packet.summary() if output_format == "summary" else packet.to_dict()
+                    elif path.endswith("/runtime"):
+                        output = run_module_workbench_execution_packet_archive_store_replication_runtime(
+                            source_directory,
+                            target_directory,
+                            replication_id=replication_id + "-runtime",
+                            expected_target_head_address=expected_head,
+                            destination=self._query_value(query, "destination"),
+                            apply=self._query_bool(query, "apply"),
+                            allow_existing=self._query_bool(query, "allow_existing"),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_runtime_csv(output).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        payload = output.summary() if output_format == "summary" else output.to_dict()
+                    else:
+                        plan = load_module_workbench_execution_packet_archive_store_replication_inputs(
+                            source_directory,
+                            target_directory,
+                            replication_id=replication_id,
+                            expected_target_head_address=expected_head,
+                        )
+                        if path.endswith("/query"):
+                            accepted_filter = self._query_bool(query, "accepted") if self._query_value(query, "accepted") is not None else None
+                            payload = query_module_workbench_execution_packet_archive_store_replication(
+                                plan,
+                                resource=self._query_value(query, "resource") or "summary",
+                                action=self._query_value(query, "action"),
+                                accepted=accepted_filter,
+                                plane=self._query_value(query, "plane"),
+                                text=self._query_value(query, "q") or self._query_value(query, "text"),
+                                offset=self._query_int(query, "offset", 0),
+                                limit=self._query_int(query, "limit", 50),
+                            )
+                        elif path.endswith("/promotion"):
+                            payload = build_module_workbench_execution_packet_archive_store_promotion(plan).to_dict()
+                        else:
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_csv(plan).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                return
+                            if output_format == "markdown":
+                                self._write_bytes(HTTPStatus.OK, render_module_workbench_execution_packet_archive_store_replication_markdown(plan).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                return
+                            payload = plan.summary() if output_format == "summary" else plan.to_dict()
                 elif path in {
                     "/v1/module-certification/quality",
                     "/v1/module-certification/quality/query",

@@ -691,3 +691,61 @@ python -m glio_noncode module-workbench-execution-packet-archive-store-recovery-
 python -m glio_noncode module-workbench-execution-packet-archive-store-recovery-schema
 python -m glio_noncode module-workbench-execution-packet-archive-store-recovery-capabilities
 ```
+
+## Archive-store replication and promotion
+
+Replication compares two verified archive-store directories as one logical
+append-only lineage. The plan proves source and target identity, checks that
+the target operation and entry sequences are exact prefixes of the source,
+accounts for every source object as `reuse`, `copy`, or `conflict`, and
+accounts for every journal operation with the same explicit action set. A
+diverged journal, foreign store ID, stale expected head, failed object check,
+or operation-ID conflict is represented as blocked and cannot be applied.
+
+The plan is read-only and path-free. It contains addresses, counts, bounded
+actions, required byte totals, and independent safety checks; it never embeds
+ZIP bytes, filesystem locations, timestamps, or identity metadata. A matching
+boundary is an accepted noop. An accepted append-only extension is applyable
+only through an explicit destination operation. Apply re-verifies both stores,
+rebuilds the plan to reject stale callers, atomically writes the source
+boundary, reloads it, and returns a path-free receipt. Promotion remains held
+until that receipt proves that the target address equals the source address.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication .\out\source-store .\out\target-store --expected-target-head-address module-workbench-execution-packet-archive-store-operation:... --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-query .\out\source-store .\out\target-store --resource entries --action copy
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-runtime .\out\source-store .\out\target-store --apply --destination .\out\promoted-store
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-schema
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-runtime-capabilities
+```
+
+The apply operation is deliberately separate from planning so offline review,
+CI validation, and transport scheduling can inspect the exact transfer before
+any destination replacement. Re-running an identical plan produces the same
+addresses, while a changed target head produces a different plan and is
+rejected before writing.
+
+### Portable replication packets
+
+The replication packet is a portable review bundle for the plan and promotion
+decision. It writes a canonical `packet.json` manifest plus a fixed artifact
+set under `artifacts/`: plan JSON/CSV/Markdown, a bounded summary query, and
+the promotion decision. Runtime JSON/CSV and an apply receipt are added when
+those typed values are supplied by a caller. Each file has its own byte count
+and content address; the manifest has its own address. Packet loading rejects
+missing or extra files, non-canonical manifests, symlinks, byte tampering, and
+public fields that would identify a private runtime or operator.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet .\out\source-store .\out\target-store --destination .\out\replication-packet --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-query .\out\source-store .\out\target-store --resource artifacts --role plan
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-replay .\out\replication-packet
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-schema
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-query-capabilities
+```
+
+The packet command is deterministic for the same verified source and target:
+repeated builds produce the same manifest and artifact addresses. Persistence
+uses an atomic directory replacement and requires an explicit existing-target
+override, while replay is read-only. API routes mirror the CLI under
+`/v1/module-workbench/execution/packet/archive/store/replication/packet`.
