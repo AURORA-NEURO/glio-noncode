@@ -819,3 +819,56 @@ The batch API accepts repeatable URL query values named `pair` beneath
 `/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/batch`.
 It returns an addressed matrix or bounded query response; schema and
 capability routes do not inspect packet directories.
+
+## Policy-governed release-window handoffs
+
+The release-window layer turns a matrix into a policy-bound handoff. The
+default policy requires at least one pair, a score of one, no held or blocked
+pairs, no changed artifacts, no required removals, and all pairs accepted and
+release-ready. Every threshold can be changed explicitly. The decision retains
+eleven checks with observed values, expected values, severity, detail, and
+remediation so a hold or block is reviewable rather than a bare boolean.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window `
+  --pair "matched=.\out\base-packet=.\out\base-packet" `
+  --minimum-score 1.0 --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime `
+  --pair "matched=.\out\base-packet=.\out\base-packet" --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance `
+  --pair "matched=.\out\base-packet=.\out\base-packet" --format markdown
+```
+
+The seven-stage runtime is load, verify-matrix, resolve-policy, evaluate,
+audit, release, and complete. If policy checks block the window, audit is
+blocked and release/complete are skipped. Independent assurance has its own
+addressed findings and can be queried by severity and pass state. All window,
+runtime, assurance, and query projections are bounded, deterministic,
+path-free, timestamp-free, and identity-free.
+
+## Release-window policy sensitivity
+
+Sensitivity analysis compares several explicit policies over one verified
+packet-diff matrix. It preserves each scenario's policy and window addresses,
+conserves promotable, hold, blocked, and accepted counts, and selects a stable
+best-promotable reference for review. That reference is only an analysis
+pointer: sensitivity output is always marked analysis-only and never grants
+approval or mutates a packet store.
+
+```powershell
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity `
+  --pair "matched=.\out\base-packet=.\out\base-packet" `
+  --scenario "strict=1.0=0" `
+  --scenario "review=0.0=1" `
+  --allow-held --format markdown
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query `
+  --pair "matched=.\out\base-packet=.\out\base-packet" `
+  --scenario "strict=1.0=0" --resource scenarios --state promotable
+```
+
+The HTTP sensitivity family is available beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/sensitivity`.
+Operational requests accept repeatable `pair` and `scenario` values;
+`scenario=SCENARIO_ID=MINIMUM_SCORE=MAXIMUM_HOLD_COUNT` keeps policy variation
+explicit while shared bounds remain visible. Scenario pages are bounded and
+support state, readiness, acceptance, and text filters.

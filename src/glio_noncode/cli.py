@@ -2161,6 +2161,11 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_ru
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_query import module_workbench_execution_packet_archive_store_replication_packet_diff_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_query_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release, query_module_workbench_execution_packet_archive_store_replication_packet_diff_runtime, render_module_workbench_execution_packet_archive_store_replication_packet_diff_query_markdown
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_assurance import build_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_json, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance, render_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_assurance_query_markdown
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_batch import build_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_json, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_batch_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_batch, render_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_from_directories, build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_policy, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_schema, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime import module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_query_markdown, run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_from_directories
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_markdown
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity import build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_from_directories, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_capabilities, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_csv, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_json, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_schema, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_schema, query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_markdown, render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_markdown
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -2804,6 +2809,79 @@ def _packet_diff_batch_pairs(values: list[str]) -> tuple[tuple[str, str, str], .
             raise ValidationError("packet diff batch pairs must use PAIR_ID=LEFT=RIGHT")
         pairs.append((parts[0], parts[1], parts[2]))
     return tuple(pairs)
+
+
+def _release_window_policy_from_args(args):
+    """Build the explicit policy shared by release-window commands."""
+
+    return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_policy(
+        policy_id=args.policy_id,
+        minimum_items=args.minimum_items,
+        minimum_score=args.minimum_score,
+        maximum_hold_count=args.maximum_hold_count,
+        maximum_blocked_count=args.maximum_blocked_count,
+        maximum_changed_artifact_count=args.maximum_changed_artifact_count,
+        maximum_removed_required_count=args.maximum_removed_required_count,
+        require_all_accepted=not args.allow_rejected,
+        require_all_release_ready=not args.allow_held,
+    )
+
+
+def _release_window_from_args(args):
+    """Load packet pairs and evaluate one release-window policy."""
+
+    return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_from_directories(
+        _packet_diff_batch_pairs(args.pair),
+        policy=_release_window_policy_from_args(args),
+        batch_id=args.batch_id,
+        window_id=args.window_id,
+    )
+
+
+def _release_window_sensitivity_scenarios_from_args(args):
+    """Build explicit policy scenarios from ``ID=MIN_SCORE=MAX_HOLD`` values."""
+
+    scenarios = []
+    seen = set()
+    for value in args.scenario:
+        parts = value.split("=", 2)
+        if len(parts) != 3 or not all(parts):
+            raise ValidationError(
+                "sensitivity scenarios must use SCENARIO_ID=MINIMUM_SCORE=MAXIMUM_HOLD_COUNT"
+            )
+        scenario_id, minimum_score, maximum_hold_count = parts
+        if scenario_id in seen:
+            raise ValidationError("sensitivity scenario IDs must be unique")
+        seen.add(scenario_id)
+        try:
+            minimum_score_value = float(minimum_score)
+            maximum_hold_count_value = int(maximum_hold_count)
+        except ValueError as exc:
+            raise ValidationError("sensitivity scenario thresholds must be numeric") from exc
+        policy = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_policy(
+            policy_id=f"{args.sensitivity_id}:{scenario_id}",
+            minimum_items=args.minimum_items,
+            minimum_score=minimum_score_value,
+            maximum_hold_count=maximum_hold_count_value,
+            maximum_blocked_count=args.maximum_blocked_count,
+            maximum_changed_artifact_count=args.maximum_changed_artifact_count,
+            maximum_removed_required_count=args.maximum_removed_required_count,
+            require_all_accepted=not args.allow_rejected,
+            require_all_release_ready=not args.allow_held,
+        )
+        scenarios.append((scenario_id, policy))
+    return tuple(scenarios)
+
+
+def _release_window_sensitivity_from_args(args):
+    """Load one persisted packet matrix and compare its declared policies."""
+
+    return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_from_directories(
+        _packet_diff_batch_pairs(args.pair),
+        _release_window_sensitivity_scenarios_from_args(args),
+        batch_id=args.batch_id,
+        sensitivity_id=args.sensitivity_id,
+    )
 
 
 def _module_fabric_fixture(input_path: str | None):
@@ -5137,6 +5215,143 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-capabilities", help="print packet diff batch capabilities").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-schema", help="print packet diff batch query schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-batch-query-capabilities", help="print packet diff batch query capabilities").add_argument("--output", default=None)
+
+    replication_packet_diff_release_window = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window", help="evaluate a release-window policy over packet diff pairs")
+    replication_packet_diff_release_window.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_release_window.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_release_window.add_argument("--window-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window")
+    replication_packet_diff_release_window.add_argument("--policy-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-policy")
+    replication_packet_diff_release_window.add_argument("--minimum-items", type=int, default=1)
+    replication_packet_diff_release_window.add_argument("--minimum-score", type=float, default=1.0)
+    replication_packet_diff_release_window.add_argument("--maximum-hold-count", type=int, default=0)
+    replication_packet_diff_release_window.add_argument("--maximum-blocked-count", type=int, default=0)
+    replication_packet_diff_release_window.add_argument("--maximum-changed-artifact-count", type=int, default=0)
+    replication_packet_diff_release_window.add_argument("--maximum-removed-required-count", type=int, default=0)
+    replication_packet_diff_release_window.add_argument("--allow-rejected", action="store_true")
+    replication_packet_diff_release_window.add_argument("--allow-held", action="store_true")
+    replication_packet_diff_release_window.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet_diff_release_window.add_argument("--output", default=None)
+    replication_packet_diff_release_window_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-query", help="query a release-window decision")
+    replication_packet_diff_release_window_query.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_release_window_query.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_release_window_query.add_argument("--window-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window")
+    replication_packet_diff_release_window_query.add_argument("--policy-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-policy")
+    replication_packet_diff_release_window_query.add_argument("--minimum-items", type=int, default=1)
+    replication_packet_diff_release_window_query.add_argument("--minimum-score", type=float, default=1.0)
+    replication_packet_diff_release_window_query.add_argument("--maximum-hold-count", type=int, default=0)
+    replication_packet_diff_release_window_query.add_argument("--maximum-blocked-count", type=int, default=0)
+    replication_packet_diff_release_window_query.add_argument("--maximum-changed-artifact-count", type=int, default=0)
+    replication_packet_diff_release_window_query.add_argument("--maximum-removed-required-count", type=int, default=0)
+    replication_packet_diff_release_window_query.add_argument("--allow-rejected", action="store_true")
+    replication_packet_diff_release_window_query.add_argument("--allow-held", action="store_true")
+    replication_packet_diff_release_window_query.add_argument("--resource", choices=("summary", "checks"), default="summary")
+    replication_packet_diff_release_window_query.add_argument("--kind", default=None)
+    replication_packet_diff_release_window_query.add_argument("--severity", default=None)
+    replication_packet_diff_release_window_query.add_argument("--passed", action="store_true")
+    replication_packet_diff_release_window_query.add_argument("--text", default=None)
+    replication_packet_diff_release_window_query.add_argument("--offset", type=int, default=0)
+    replication_packet_diff_release_window_query.add_argument("--limit", type=int, default=50)
+    replication_packet_diff_release_window_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    replication_packet_diff_release_window_query.add_argument("--output", default=None)
+    replication_packet_diff_release_window_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime", help="run a release-window policy runtime")
+    replication_packet_diff_release_window_runtime.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_release_window_runtime.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_release_window_runtime.add_argument("--window-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window")
+    replication_packet_diff_release_window_runtime.add_argument("--runtime-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-runtime")
+    replication_packet_diff_release_window_runtime.add_argument("--policy-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-policy")
+    replication_packet_diff_release_window_runtime.add_argument("--minimum-items", type=int, default=1)
+    replication_packet_diff_release_window_runtime.add_argument("--minimum-score", type=float, default=1.0)
+    replication_packet_diff_release_window_runtime.add_argument("--maximum-hold-count", type=int, default=0)
+    replication_packet_diff_release_window_runtime.add_argument("--maximum-blocked-count", type=int, default=0)
+    replication_packet_diff_release_window_runtime.add_argument("--maximum-changed-artifact-count", type=int, default=0)
+    replication_packet_diff_release_window_runtime.add_argument("--maximum-removed-required-count", type=int, default=0)
+    replication_packet_diff_release_window_runtime.add_argument("--allow-rejected", action="store_true")
+    replication_packet_diff_release_window_runtime.add_argument("--allow-held", action="store_true")
+    replication_packet_diff_release_window_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet_diff_release_window_runtime.add_argument("--output", default=None)
+    replication_packet_diff_release_window_assurance = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance", help="audit a release-window decision")
+    replication_packet_diff_release_window_assurance.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_release_window_assurance.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_release_window_assurance.add_argument("--window-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window")
+    replication_packet_diff_release_window_assurance.add_argument("--policy-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-policy")
+    replication_packet_diff_release_window_assurance.add_argument("--minimum-items", type=int, default=1)
+    replication_packet_diff_release_window_assurance.add_argument("--minimum-score", type=float, default=1.0)
+    replication_packet_diff_release_window_assurance.add_argument("--maximum-hold-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance.add_argument("--maximum-blocked-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance.add_argument("--maximum-changed-artifact-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance.add_argument("--maximum-removed-required-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance.add_argument("--allow-rejected", action="store_true")
+    replication_packet_diff_release_window_assurance.add_argument("--allow-held", action="store_true")
+    replication_packet_diff_release_window_assurance.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet_diff_release_window_assurance.add_argument("--output", default=None)
+    replication_packet_diff_release_window_assurance_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-query", help="query release-window assurance findings")
+    replication_packet_diff_release_window_assurance_query.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_release_window_assurance_query.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_release_window_assurance_query.add_argument("--window-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window")
+    replication_packet_diff_release_window_assurance_query.add_argument("--policy-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-policy")
+    replication_packet_diff_release_window_assurance_query.add_argument("--minimum-items", type=int, default=1)
+    replication_packet_diff_release_window_assurance_query.add_argument("--minimum-score", type=float, default=1.0)
+    replication_packet_diff_release_window_assurance_query.add_argument("--maximum-hold-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance_query.add_argument("--maximum-blocked-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance_query.add_argument("--maximum-changed-artifact-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance_query.add_argument("--maximum-removed-required-count", type=int, default=0)
+    replication_packet_diff_release_window_assurance_query.add_argument("--allow-rejected", action="store_true")
+    replication_packet_diff_release_window_assurance_query.add_argument("--allow-held", action="store_true")
+    replication_packet_diff_release_window_assurance_query.add_argument("--resource", choices=("summary", "findings"), default="summary")
+    replication_packet_diff_release_window_assurance_query.add_argument("--severity", default=None)
+    replication_packet_diff_release_window_assurance_query.add_argument("--passed", action="store_true")
+    replication_packet_diff_release_window_assurance_query.add_argument("--text", default=None)
+    replication_packet_diff_release_window_assurance_query.add_argument("--offset", type=int, default=0)
+    replication_packet_diff_release_window_assurance_query.add_argument("--limit", type=int, default=50)
+    replication_packet_diff_release_window_assurance_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    replication_packet_diff_release_window_assurance_query.add_argument("--output", default=None)
+    replication_packet_diff_release_window_sensitivity = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity", help="compare explicit release-window policies")
+    replication_packet_diff_release_window_sensitivity.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_release_window_sensitivity.add_argument("--scenario", action="append", required=True, metavar="SCENARIO_ID=MINIMUM_SCORE=MAXIMUM_HOLD_COUNT")
+    replication_packet_diff_release_window_sensitivity.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_release_window_sensitivity.add_argument("--sensitivity-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-sensitivity")
+    replication_packet_diff_release_window_sensitivity.add_argument("--minimum-items", type=int, default=1)
+    replication_packet_diff_release_window_sensitivity.add_argument("--maximum-blocked-count", type=int, default=0)
+    replication_packet_diff_release_window_sensitivity.add_argument("--maximum-changed-artifact-count", type=int, default=0)
+    replication_packet_diff_release_window_sensitivity.add_argument("--maximum-removed-required-count", type=int, default=0)
+    replication_packet_diff_release_window_sensitivity.add_argument("--allow-rejected", action="store_true")
+    replication_packet_diff_release_window_sensitivity.add_argument("--allow-held", action="store_true")
+    replication_packet_diff_release_window_sensitivity.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    replication_packet_diff_release_window_sensitivity.add_argument("--output", default=None)
+    replication_packet_diff_release_window_sensitivity_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query", help="query policy sensitivity scenarios")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--pair", action="append", required=True, metavar="PAIR_ID=LEFT=RIGHT")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--scenario", action="append", required=True, metavar="SCENARIO_ID=MINIMUM_SCORE=MAXIMUM_HOLD_COUNT")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--batch-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-batch")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--sensitivity-id", default="glio-noncode-module-workbench-execution-archive-store-replication-packet-diff-release-window-sensitivity")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--minimum-items", type=int, default=1)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--maximum-blocked-count", type=int, default=0)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--maximum-changed-artifact-count", type=int, default=0)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--maximum-removed-required-count", type=int, default=0)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--allow-rejected", action="store_true")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--allow-held", action="store_true")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--resource", choices=("summary", "scenarios"), default="summary")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--state", default=None)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--release-ready", dest="release_ready", action="store_const", const=True, default=None)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--accepted", action="store_const", const=True, default=None)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--text", default=None)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--offset", type=int, default=0)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--limit", type=int, default=50)
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    replication_packet_diff_release_window_sensitivity_query.add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-schema", help="print release-window schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-capabilities", help="print release-window capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-query-schema", help="print release-window query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-query-capabilities", help="print release-window query capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime-schema", help="print release-window runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime-capabilities", help="print release-window runtime capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-schema", help="print release-window assurance schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-capabilities", help="print release-window assurance capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-query-schema", help="print release-window assurance query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-query-capabilities", help="print release-window assurance query capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-schema", help="print release-window sensitivity schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-capabilities", help="print release-window sensitivity capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query-schema", help="print release-window sensitivity query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query-capabilities", help="print release-window sensitivity query capabilities").add_argument("--output", default=None)
 
     module_inventory = subparsers.add_parser(
         "module-inventory",
@@ -27762,6 +27977,168 @@ def main(argv: list[str] | None = None) -> int:
                 _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_markdown(result), args.output)
             else:
                 _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_batch_query_json(result), args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window":
+            window = _release_window_from_args(args)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_csv(window), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_markdown(window), args.output)
+            elif args.format == "summary":
+                _write_json(window.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_json(window), args.output)
+            return 0 if window.release_ready else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-query":
+            window = _release_window_from_args(args)
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window(
+                window,
+                resource=args.resource,
+                kind=args.kind,
+                severity=args.severity,
+                passed=True if args.passed else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_query_json(result), args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime":
+            runtime = run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_from_directories(
+                _packet_diff_batch_pairs(args.pair),
+                policy=_release_window_policy_from_args(args),
+                batch_id=args.batch_id,
+                window_id=args.window_id,
+                runtime_id=args.runtime_id,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_csv(runtime), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_markdown(runtime), args.output)
+            elif args.format == "summary":
+                _write_json(runtime.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_json(runtime), args.output)
+            return 0 if runtime.release_ready else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance":
+            window = _release_window_from_args(args)
+            runtime = run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_from_directories(
+                _packet_diff_batch_pairs(args.pair),
+                policy=_release_window_policy_from_args(args),
+                batch_id=args.batch_id,
+                window_id=args.window_id,
+            )
+            assurance = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance(window, runtime)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_csv(assurance), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_markdown(assurance), args.output)
+            elif args.format == "summary":
+                _write_json(assurance.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_json(assurance), args.output)
+            return 0 if assurance.release_ready else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-query":
+            window = _release_window_from_args(args)
+            runtime = run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_runtime_from_directories(
+                _packet_diff_batch_pairs(args.pair),
+                policy=_release_window_policy_from_args(args),
+                batch_id=args.batch_id,
+                window_id=args.window_id,
+            )
+            assurance = build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance(window, runtime)
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance(
+                assurance,
+                resource=args.resource,
+                severity=args.severity,
+                passed=True if args.passed else None,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_assurance_query_json(result), args.output)
+            return 0 if result.get("accepted", False) else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity":
+            sensitivity = _release_window_sensitivity_from_args(args)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_csv(sensitivity), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_markdown(sensitivity), args.output)
+            elif args.format == "summary":
+                _write_json(sensitivity.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_json(sensitivity), args.output)
+            return 0 if sensitivity.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query":
+            sensitivity = _release_window_sensitivity_from_args(args)
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity(
+                sensitivity,
+                resource=args.resource,
+                state=args.state,
+                release_ready=args.release_ready,
+                accepted=args.accepted,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_sensitivity_query_json(result), args.output)
             return 0 if result.get("accepted", False) else 2
         if args.command == "module-workbench-execution-packet-runtime":
             inventory = build_module_inventory(args.source_root, test_root=args.test_root)

@@ -4875,6 +4875,69 @@ The matrix API uses repeatable `pair` query values beneath
 Schema and capability projections are filesystem-independent, while matrix
 build and query requests verify each supplied pair before emitting output.
 
+### Policy-governed release-window handoffs
+
+A release window applies an explicit policy to a verified matrix instead of
+relying on the matrix score alone. Policies bound minimum pair count, minimum
+release-ready score, held and blocked pair counts, changed artifacts, required
+removals, and whether all pairs must be accepted or release-ready. Eleven
+ordered checks retain observed values, expected thresholds, severity, detail,
+and remediation. Policy failures produce `promotable`, `hold`, or `blocked`
+states; a warning can require review, while a blocker fails closed.
+
+The release-window runtime records seven addressed stages: load, verify the
+matrix, resolve policy, evaluate, audit, release, and complete. A blocking
+policy result marks audit blocked and skips release/closure stages. Independent
+assurance rechecks linkage, conservation, decision semantics, score bounds,
+held-pair review, optional runtime closure, window admissibility, and the
+identity-free public boundary. JSON, CSV, Markdown, bounded query, schema, and
+capabilities outputs remain path-free, timestamp-free, and identity-free.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window `
+  --pair "baseline=left-packet=left-packet" `
+  --pair "candidate=left-packet=right-packet" `
+  --minimum-score 1.0 --maximum-hold-count 0 --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-runtime `
+  --pair "baseline=left-packet=left-packet" --format summary
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-assurance-query `
+  --pair "candidate=left-packet=right-packet" --resource findings --severity blocker --passed
+```
+
+The HTTP family is available beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window`.
+Operational routes accept repeatable `pair=PAIR_ID=LEFT=RIGHT` values and
+bounded policy query parameters; schema and capability routes do not inspect
+the filesystem.
+
+### Release-window policy sensitivity
+
+The sensitivity plane compares explicit release-window policies on one
+verified packet matrix. Each scenario records its policy address, window
+address, state, readiness, acceptance, score, and check counts. The aggregate
+conserves scenario state totals and can expose a deterministic
+best-promotable reference, but it remains analysis-only and cannot grant a
+release or mutate packet storage.
+
+```powershell
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity `
+  --pair "matched=left-packet=left-packet" `
+  --scenario "strict=1.0=0" `
+  --scenario "review=0.0=1" `
+  --allow-held --format markdown
+glio-noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-sensitivity-query `
+  --pair "matched=left-packet=left-packet" `
+  --scenario "strict=1.0=0" --resource scenarios --state promotable
+```
+
+Sensitivity JSON, CSV, Markdown, bounded scenario queries, schemas, and
+capabilities are exposed beneath
+`/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/sensitivity`.
+The CLI and HTTP API use repeatable `scenario` values in the form
+`SCENARIO_ID=MINIMUM_SCORE=MAXIMUM_HOLD_COUNT`; all shared limits remain
+explicit and outputs are deterministic, path-free, timestamp-free, and
+identity-free.
+
 ### Portable module execution handoff
 
 The module workbench execution packet packages the report, bounded portfolio,
