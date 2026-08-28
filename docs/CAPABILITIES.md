@@ -5763,3 +5763,155 @@ continues to report its original release decision. This preserves the audit
 distinction between “an operator recorded handling” and “the source evidence
 changed.” A new source gate and a new queue snapshot are required to change
 the authoritative release result.
+
+## Independent assurance of the review decision ledger
+
+The release-registry federation review decision ledger now has an independent
+assurance boundary. The boundary treats the persisted ledger as an untrusted
+snapshot and recomputes its operational invariants. It is intentionally
+separate from the source federation gate and from the ledger's own constructor
+validation.
+
+The assurance boundary consumes the current four-file ledger package and emits
+an addressed assurance report plus an independent release gate. It does not
+silently convert older observatory or federation artifacts. A downloaded
+artifact is usable only when its exact version, boundary, files, canonical
+bytes, and fields match the current review-ledger contract.
+
+The independent report contains fourteen findings:
+
+| # | Finding | Plane | Required | Purpose |
+| ---: | --- | --- | :---: | --- |
+| 0 | `ledger-address` | ledger | yes | recompute the ledger content address |
+| 1 | `ledger-contract` | ledger | yes | enforce current version, boundary, and entry count |
+| 2 | `queue-linkage` | queue | yes | retain queue, gate, assurance, and replay links |
+| 3 | `item-addresses` | queue | yes | recompute unique frozen item addresses |
+| 4 | `entry-chain` | entries | yes | verify ordinals, predecessor heads, and terminal head |
+| 5 | `entry-item-linkage` | entries | yes | match every decision to exactly one frozen item |
+| 6 | `action-counters` | ledger | yes | conserve counts across all five action types |
+| 7 | `evidence-policy` | policy | yes | enforce evidence only for remediation and waiver |
+| 8 | `transition-policy` | policy | yes | replay the action state machine independently |
+| 9 | `replay-projection` | replay | yes | reproduce item states, counts, and readiness |
+| 10 | `source-authority` | source | yes | prevent local handling from overriding source readiness |
+| 11 | `closure-readiness` | policy | no | explain a valid but not-yet-promotable ledger |
+| 12 | `public-boundary` | public | yes | reject forbidden nested keys and private metadata |
+| 13 | `replay-addresses` | replay | yes | recompute replay-item and replay-snapshot addresses |
+
+The assurance report distinguishes a blocker from a warning. Required failures
+produce `blocked` and `accepted=false`. Optional failures produce `warning`
+and `accepted=true`, but `release_ready=false`. No warning-free assertion is
+made when an optional closure condition is false.
+
+The independent release gate contains ten checks:
+
+| # | Check | Required | Failed result |
+| ---: | --- | :---: | --- |
+| 0 | `assurance-accepted` | yes | block |
+| 1 | `assurance-release-ready` | yes | block |
+| 2 | `source-accepted` | yes | block |
+| 3 | `source-release-ready` | no | hold |
+| 4 | `ledger-clear` | no | hold |
+| 5 | `no-open-items` | no | hold |
+| 6 | `no-blocked-items` | yes | block |
+| 7 | `no-escalated-items` | no | hold |
+| 8 | `head-continuity` | yes | block |
+| 9 | `public-boundary` | yes | block |
+
+The gate states are deterministic:
+
+| Required failures | Optional failures | Gate state | Release-ready |
+| ---: | ---: | --- | :---: |
+| 0 | 0 | `promote` | yes |
+| 0 | 1 or more | `hold` | no |
+| 1 or more | any | `block` | no |
+
+This creates an important distinction between an accepted review record and a
+promotable source decision. For example, a held source with a structurally
+perfect ledger produces fourteen passing assurance findings, but the source
+readiness gate check fails as an optional check and the independent gate stays
+on hold. Recording remediation does not rewrite the source gate.
+
+### Public data shape
+
+The assurance projection contains only:
+
+1. bounded identifiers;
+2. fixed-vocabulary state, severity, plane, and action values;
+3. content addresses;
+4. bounded explanatory text;
+5. counters and boolean outcomes; and
+6. deterministic nested reports.
+
+The public projection excludes local paths, user names, contact data, agent,
+assistant, author, model, and language attributes, private metadata, secrets,
+tokens, and runtime credentials. The public-surface audit closes ten new
+schema/capability records and raises the expected closed inventory from 513 to
+523.
+
+### Durable package shape
+
+The assurance package is exactly:
+
+```text
+manifest.json
+assurance.json
+gate.json
+```
+
+The manifest contains version, boundary, ledger linkage, assurance linkage,
+gate linkage, the exact file list, byte counts, byte addresses, file addresses,
+and a manifest address. Loaders reject missing files, extra files, symlinks,
+non-canonical JSON, changed bytes, and split-document linkage.
+
+The assurance diff package is exactly:
+
+```text
+manifest.json
+diff.json
+```
+
+Diff records join findings and checks by their plane and kind. They retain
+both snapshot addresses and classify records as added, removed, unchanged, or
+changed. Outcome direction is independently reported as improved or regressed
+when the pass/severity score changes.
+
+### Query and export behavior
+
+Assurance queries expose `summary`, `findings`, `blockers`, `warnings`,
+`checks`, and `failed`. Filters cover severity, pass state, requiredness,
+plane, text, offset, and limit. Diff queries expose `summary`, `actions`,
+`added`, `removed`, `changed`, `unchanged`, `improved`, and `regressed`, with
+action, plane, and text filters.
+
+The same projections are available as canonical JSON, fixed-column CSV, and
+deterministic Markdown. Query windows are bounded to prevent accidental
+unbounded export from a malformed or adversarial package.
+
+### CLI and HTTP behavior
+
+The long-form CLI command family supports assurance build, verify, query,
+schemas, capabilities, diff, diff verify, and diff query operations. Build and
+verify return zero only for a promoted gate. A held or blocked gate returns
+status 2 while still emitting the structured result, allowing CI to preserve a
+review artifact without treating a hold as an input parse failure.
+
+The HTTP family mirrors those operations under the current review decision
+ledger route. Build and verify return 200 for promotion and 422 for a held or
+blocked gate. Structural errors remain client errors and never become a
+promotable empty report.
+
+### Verification behavior
+
+The focused tests cover ready, held, and blocked source ledgers; deterministic
+addresses; custom IDs; mapping round trips; every finding and check address;
+tampered ledger, item, entry, counter, evidence, replay, source, and public
+projections; independent transition replay; every query resource and filter;
+exact three-file assurance persistence; exact two-file diff persistence;
+canonical-byte and manifest tamper rejection; symlink and extra-file
+rejection; CLI operations; HTTP operations; public-surface audit; and Actions
+registration.
+
+The existing preserved downloaded artifact from the prior observatory boundary
+continues to demonstrate strict incompatibility. The current loader rejects it
+as the wrong package shape rather than silently converting old fields. That
+behavior is part of the public compatibility contract.

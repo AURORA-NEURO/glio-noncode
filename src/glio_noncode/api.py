@@ -325,6 +325,7 @@ from .assurance_history_series_release_registry import (
 from . import assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model
 from . import assurance_history_series_release_registry_federation_gate as assurance_history_series_release_registry_federation_gate_model
 from . import assurance_history_series_release_registry_federation_gate_review as assurance_history_series_release_registry_federation_gate_review_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance as assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -2670,6 +2671,116 @@ class ApiHandler(BaseHTTPRequestHandler):
                         return
                     elif output_format == "markdown":
                         self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                    self._write(HTTPStatus.OK, payload)
+                    return
+                ledger_assurance_prefix = ledger_prefix + "/assurance"
+                assurance_schema_routes = {
+                    "/schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.assurance_gate_schema,
+                    "/assurance-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.assurance_schema,
+                    "/finding-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.finding_schema,
+                    "/gate-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.gate_schema,
+                    "/check-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.check_schema,
+                    "/query-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.query_schema,
+                    "/diff-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_schema,
+                    "/diff-item-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_item_schema,
+                    "/diff-query-schema": assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_query_schema,
+                }
+                for suffix, schema_builder in assurance_schema_routes.items():
+                    if path == ledger_assurance_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == ledger_assurance_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.capabilities())
+                    return
+                if path == ledger_assurance_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.load_assurance_gate(directory)
+                    self._write(HTTPStatus.OK if value.gate.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, value.to_dict())
+                    return
+                if path == ledger_assurance_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.load_assurance_gate(directory)
+                    result = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.query_assurance(value, resource=self._query_value(query, "resource") or "summary", severity=self._query_value(query, "severity"), passed=self._query_bool(query, "passed") if "passed" in query else None, required=self._query_bool(query, "required") if "required" in query else None, plane=self._query_value(query, "plane"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == ledger_assurance_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "ledger_directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_directory", None)
+                    if not directory:
+                        raise ValueError("input or ledger_directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.build_assurance_gate_from_directory(directory, assurance_id=self._query_value(query, "assurance_id") or assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.DEFAULT_ASSURANCE_ID, gate_id=self._query_value(query, "gate_id") or assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.DEFAULT_GATE_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        payload = {"assurance": value.assurance.summary(), "gate": value.gate.summary(), "content_address": value.content_address}
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.render_assurance_gate_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                    self._write(HTTPStatus.OK if value.gate.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+                    return
+                assurance_diff_prefix = ledger_assurance_prefix + "/diff"
+                if path == assurance_diff_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.load_diff(directory)
+                    self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == assurance_diff_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.load_diff(directory)
+                    result = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.query_diff(value, resource=self._query_value(query, "resource") or "summary", action=self._query_value(query, "action"), plane=self._query_value(query, "plane"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.render_diff_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == assurance_diff_prefix + "/schema":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_schema())
+                    return
+                if path == assurance_diff_prefix + "/item-schema":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_item_schema())
+                    return
+                if path == assurance_diff_prefix + "/query-schema":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_query_schema())
+                    return
+                if path == assurance_diff_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.capabilities())
+                    return
+                if path == assurance_diff_prefix:
+                    baseline_directory = self._query_value(query, "baseline")
+                    candidate_directory = self._query_value(query, "candidate")
+                    if not baseline_directory or not candidate_directory:
+                        raise ValueError("baseline and candidate are required")
+                    baseline = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.load_assurance_gate(baseline_directory)
+                    candidate = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.load_assurance_gate(candidate_directory)
+                    value = assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.build_diff(baseline, candidate, diff_id=self._query_value(query, "diff_id") or assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.DEFAULT_DIFF_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        payload = value.summary()
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                         return
                     else:
                         payload = value.to_dict()
