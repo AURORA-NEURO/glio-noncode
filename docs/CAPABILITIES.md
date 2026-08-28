@@ -5702,3 +5702,64 @@ filters. JSON, CSV, and Markdown outputs are available through the long-form
 CLI command family and the `/release-registry/federation/gate` HTTP routes.
 The gate command consumes an already persisted federation and can persist a
 portable gate package for CI review or downstream release decisions.
+
+## Operational federation gate review
+
+The review layer turns a persisted release-registry federation gate into an
+operator-facing queue without replacing the source gate. Every assurance
+finding and every release-gate check becomes one stable, source-addressed
+review item. Passing records are clear; failed optional records are high
+priority review items; failed required records are critical blockers. The
+queue retains record type, source identifier, plane, severity, requiredness,
+evidence address, and the recomputed item address so a reviewer can explain
+exactly which source assertion caused the route.
+
+Review verification is independent of queue construction. It recomputes item
+counts, finding/check coverage, source linkage, item addresses, initial
+state/priority rules, public-boundary closure, source-gate authority, and
+queue-address integrity. Verification readiness describes whether the review
+projection is internally healthy; it does not promote a source gate that is
+held or blocked. A held source therefore remains held while its review
+package can still be structurally verified and routed.
+
+The exact portable queue package is `manifest.json`, `queue.json`,
+`items.json`, and `verification.json`. The manifest records exact canonical
+UTF-8 byte receipts and the queue, gate, assurance, federation, and runtime
+addresses. Atomic writes reject non-empty destinations without explicit
+overwrite. Reload verification rejects missing or extra files, directories,
+symlinks, non-canonical JSON, changed bytes, split-document drift, invalid
+addresses, and public-boundary violations.
+
+The append-only decision ledger freezes the queue item identities and records
+acknowledge, remediate, waive, escalate, and reopen actions. Each entry has a
+stable decision ID, item address, evidence address, rationale, predecessor
+head, and content address. Remediation and waiver require a non-empty
+evidence address. Required blockers cannot be waived. Every append supplies
+the expected current head, so concurrent reviewers cannot silently fork a
+decision chain. Replay derives item states from the queue and entries and
+keeps source acceptance and source release readiness authoritative.
+
+The exact ledger package is `manifest.json`, `ledger.json`, `entries.json`,
+and `replay.json`. The decision diff is an analysis-only two-file package,
+`manifest.json` plus `diff.json`, and classifies every stable item as added,
+removed, unchanged, or changed with improved, regressed, or no direction.
+Queue, decision, replay, and diff queries are bounded, deterministic, and
+available as JSON, CSV, or Markdown. The long-form CLI and HTTP routes expose
+build, verify, query, schema, capability, append, and diff operations. The
+HTTP append route is POST-only and accepts a persisted ledger directory plus
+an expected head; it optionally writes a new exact package to a destination.
+
+## Review-state interpretation
+
+| Source condition | Queue state | Review action | Ledger release-ready |
+| --- | --- | --- | --- |
+| all source findings and checks pass | `clear` | no action required | `true` |
+| optional source failures exist | `review` | acknowledge, remediate, escalate, or evidence-backed waiver | remains source-controlled |
+| required source failures exist | `blocked` | acknowledge, remediate, or escalate; waiver is rejected | `false` |
+
+Ledger actions are operational records, not scientific edits. A remediation
+entry can mark a review item resolved in the replay while the source gate
+continues to report its original release decision. This preserves the audit
+distinction between “an operator recorded handling” and “the source evidence
+changed.” A new source gate and a new queue snapshot are required to change
+the authoritative release result.

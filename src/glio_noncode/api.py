@@ -324,6 +324,7 @@ from .assurance_history_series_release_registry import (
 )
 from . import assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model
 from . import assurance_history_series_release_registry_federation_gate as assurance_history_series_release_registry_federation_gate_model
+from . import assurance_history_series_release_registry_federation_gate_review as assurance_history_series_release_registry_federation_gate_review_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -2522,6 +2523,157 @@ class ApiHandler(BaseHTTPRequestHandler):
                         payload = value.summary() if output_format == "summary" else value.to_dict()
                         status = HTTPStatus.OK if value.gate.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
                     self._write(status, payload)
+                    return
+                federation_gate_review_prefix = federation_gate_prefix + "/review"
+                review_schema_routes = {
+                    "/schema": assurance_history_series_release_registry_federation_gate_review_model.review_schema,
+                    "/queue-schema": assurance_history_series_release_registry_federation_gate_review_model.queue_schema,
+                    "/item-schema": assurance_history_series_release_registry_federation_gate_review_model.item_schema,
+                    "/verification-schema": assurance_history_series_release_registry_federation_gate_review_model.verification_schema,
+                    "/verification-finding-schema": assurance_history_series_release_registry_federation_gate_review_model.verification_finding_schema,
+                    "/query-schema": assurance_history_series_release_registry_federation_gate_review_model.query_schema,
+                    "/manifest-schema": assurance_history_series_release_registry_federation_gate_review_model.manifest_schema,
+                }
+                for suffix, schema_builder in review_schema_routes.items():
+                    if path == federation_gate_review_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == federation_gate_review_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.review_capabilities())
+                    return
+                if path == federation_gate_review_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_model.verify_review_directory(directory)
+                    self._write(HTTPStatus.OK if value.queue.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary())
+                    return
+                if path == federation_gate_review_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_model.load_review(directory)
+                    result = assurance_history_series_release_registry_federation_gate_review_model.query_review(value, resource=self._query_value(query, "resource") or "summary", record_type=self._query_value(query, "record_type"), plane=self._query_value(query, "plane"), severity=self._query_value(query, "severity"), state=self._query_value(query, "state"), priority=self._query_value(query, "priority"), passed=self._query_bool(query, "passed") if "passed" in query else None, required=self._query_bool(query, "required") if "required" in query else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == federation_gate_review_prefix or path == federation_gate_review_prefix + "/queue":
+                    directory = self._query_value(query, "gate") or self._query_value(query, "gate_directory") or self._query_value(query, "input") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_directory", None)
+                    if not directory:
+                        raise ValueError("gate or gate_directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_model.build_review_from_gate_directory(directory, queue_id=self._query_value(query, "queue_id") or assurance_history_series_release_registry_federation_gate_review_model.DEFAULT_QUEUE_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if path.endswith("/queue"):
+                        payload = value.queue.to_dict()
+                        status = HTTPStatus.OK if value.queue.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
+                    elif output_format == "summary":
+                        payload = value.summary()
+                        status = HTTPStatus.OK if value.queue.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.review_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.render_review_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                        status = HTTPStatus.OK if value.queue.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
+                    self._write(status, payload)
+                    return
+                ledger_prefix = federation_gate_review_prefix + "/decision-ledger"
+                ledger_schema_routes = {
+                    "/schema": assurance_history_series_release_registry_federation_gate_review_model.ledger_schema,
+                    "/decision-schema": assurance_history_series_release_registry_federation_gate_review_model.decision_schema,
+                    "/replay-schema": assurance_history_series_release_registry_federation_gate_review_model.replay_schema,
+                    "/query-schema": assurance_history_series_release_registry_federation_gate_review_model.decision_query_schema,
+                }
+                for suffix, schema_builder in ledger_schema_routes.items():
+                    if path == ledger_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == ledger_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.diff_capabilities())
+                    return
+                if path == ledger_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_model.verify_decision_ledger_directory(directory)
+                    self._write(HTTPStatus.OK if value.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary())
+                    return
+                if path == ledger_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_ledger_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(directory)
+                    result = assurance_history_series_release_registry_federation_gate_review_model.query_decision_ledger(value, resource=self._query_value(query, "resource") or "summary", item_id=self._query_value(query, "item_id"), action=self._query_value(query, "action"), state=self._query_value(query, "state"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.decision_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.render_decision_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == ledger_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "review_directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_directory", None)
+                    if not directory:
+                        raise ValueError("input or review_directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_model.build_decision_ledger_from_directory(directory, ledger_id=self._query_value(query, "ledger_id") or assurance_history_series_release_registry_federation_gate_review_model.DEFAULT_LEDGER_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        payload = value.summary()
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.render_decision_ledger_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                    self._write(HTTPStatus.OK if value.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+                    return
+                diff_prefix = ledger_prefix + "/diff"
+                if path == diff_prefix + "/schema":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.decision_diff_schema())
+                    return
+                if path == diff_prefix + "/item-schema":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.decision_diff_item_schema())
+                    return
+                if path == diff_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.diff_capabilities())
+                    return
+                if path == diff_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_review_decision_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_review_model.verify_decision_diff_directory(directory)
+                    self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == diff_prefix:
+                    baseline_directory = self._query_value(query, "baseline")
+                    candidate_directory = self._query_value(query, "candidate")
+                    if not baseline_directory or not candidate_directory:
+                        raise ValueError("baseline and candidate are required")
+                    baseline = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(baseline_directory)
+                    candidate = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(candidate_directory)
+                    value = assurance_history_series_release_registry_federation_gate_review_model.build_decision_diff(baseline, candidate, diff_id=self._query_value(query, "diff_id") or assurance_history_series_release_registry_federation_gate_review_model.DEFAULT_DIFF_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        payload = value.summary()
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_review_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                    self._write(HTTPStatus.OK, payload)
                     return
                 if path == assurance_history_series_release_registry_federation_prefix + "/query" or path == assurance_history_series_release_registry_federation_prefix:
                     directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_directory", None)
@@ -10438,6 +10590,46 @@ class ApiHandler(BaseHTTPRequestHandler):
                 self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
             except (ValueError, json.JSONDecodeError) as exc:
                 self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_json", "message": str(exc)})
+            except Exception as exc:  # pragma: no cover - last-resort process boundary
+                self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
+            return
+        if path.endswith("/assurance-history-series/release-registry/federation/gate/review/decision-ledger/append"):
+            try:
+                payload = self._read_json()
+                directory = payload.get("directory") or payload.get("input")
+                if not directory:
+                    raise ValueError("directory or input is required")
+                action = payload.get("action")
+                rationale = payload.get("rationale")
+                expected_head = payload.get("expected_head") or payload.get("expected_head_address")
+                if not action or not rationale or not expected_head:
+                    raise ValueError("action, rationale, and expected_head are required")
+                ledger = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(directory)
+                updated = assurance_history_series_release_registry_federation_gate_review_model.append_decision(
+                    ledger,
+                    item_id=None if payload.get("item_id") is None else str(payload["item_id"]),
+                    item_address=None if payload.get("item_address") is None else str(payload["item_address"]),
+                    action=str(action),
+                    rationale=str(rationale),
+                    evidence_address=str(payload.get("evidence_address", assurance_history_series_release_registry_federation_gate_review_model.NO_EVIDENCE)),
+                    decision_id=None if payload.get("decision_id") is None else str(payload["decision_id"]),
+                    expected_head_address=str(expected_head),
+                )
+                destination = payload.get("destination")
+                if destination:
+                    assurance_history_series_release_registry_federation_gate_review_model.write_decision_ledger(
+                        updated,
+                        destination,
+                        overwrite=bool(payload.get("overwrite", False)),
+                    )
+                self._write(
+                    HTTPStatus.OK if updated.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY,
+                    updated.to_dict(),
+                )
+            except GlioError as exc:
+                self._write(HTTPStatus.UNPROCESSABLE_ENTITY, {"error": exc.code, "message": str(exc)})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                self._write(HTTPStatus.BAD_REQUEST, {"error": "invalid_federation_gate_review_decision", "message": str(exc)})
             except Exception as exc:  # pragma: no cover - last-resort process boundary
                 self._write(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "internal_error", "message": str(exc)})
             return

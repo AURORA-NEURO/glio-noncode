@@ -2525,6 +2525,7 @@ from .assurance_history_series_release_registry import (
 )
 from . import assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model
 from . import assurance_history_series_release_registry_federation_gate as assurance_history_series_release_registry_federation_gate_model
+from . import assurance_history_series_release_registry_federation_gate_review as assurance_history_series_release_registry_federation_gate_review_model
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3570,6 +3571,9 @@ _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-registry"
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-federation"
 _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-gate"
+_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_COMMAND = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND + "-review"
+_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_COMMAND + "-decision-ledger"
+_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_DIFF_COMMAND = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND + "-diff"
 
 
 def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args):
@@ -7153,6 +7157,85 @@ def build_parser() -> argparse.ArgumentParser:
     federation_gate_query_parser.add_argument("--output", default=None)
     for suffix, help_text in (("schema", "print federation assurance gate bundle schema"), ("assurance-schema", "print federation assurance schema"), ("finding-schema", "print federation assurance finding schema"), ("gate-schema", "print federation release gate schema"), ("gate-check-schema", "print federation gate check schema"), ("query-schema", "print federation gate query schema"), ("manifest-schema", "print federation gate manifest schema"), ("capabilities", "print federation assurance gate capabilities")):
         subparsers.add_parser(federation_gate_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    review_command = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_COMMAND
+    review_parser = subparsers.add_parser(review_command, help="route release-registry federation gate items into a review queue")
+    review_parser.add_argument("--input", required=True, metavar="DIRECTORY")
+    review_parser.add_argument("--queue-id", default=assurance_history_series_release_registry_federation_gate_review_model.DEFAULT_QUEUE_ID)
+    review_parser.add_argument("--destination", default=None)
+    review_parser.add_argument("--allow-existing", action="store_true")
+    review_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    review_parser.add_argument("--output", default=None)
+    review_query_parser = subparsers.add_parser(review_command + "-query", help="query a release-registry federation gate review queue")
+    review_query_parser.add_argument("--input", required=True)
+    review_query_parser.add_argument("--resource", choices=assurance_history_series_release_registry_federation_gate_review_model.ReviewQuery.RESOURCES, default="summary")
+    review_query_parser.add_argument("--record-type", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.ReviewRecordType), default=None)
+    review_query_parser.add_argument("--plane", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.gate_model.GatePlane), default=None)
+    review_query_parser.add_argument("--severity", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.gate_model.FindingSeverity), default=None)
+    review_query_parser.add_argument("--state", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.ReviewItemState), default=None)
+    review_query_parser.add_argument("--priority", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.ReviewPriority), default=None)
+    review_query_parser.add_argument("--passed", action="store_true", default=None)
+    review_query_parser.add_argument("--required", action="store_true", default=None)
+    review_query_parser.add_argument("--text", default=None)
+    review_query_parser.add_argument("--offset", type=int, default=0)
+    review_query_parser.add_argument("--limit", type=int, default=50)
+    review_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    review_query_parser.add_argument("--output", default=None)
+    review_verify_parser = subparsers.add_parser(review_command + "-verify", help="verify a release-registry federation gate review queue")
+    review_verify_parser.add_argument("--input", required=True)
+    review_verify_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print federation gate review schema"), ("queue-schema", "print federation gate review queue schema"), ("item-schema", "print federation gate review item schema"), ("verification-schema", "print federation gate review verification schema"), ("verification-finding-schema", "print federation gate review verification finding schema"), ("query-schema", "print federation gate review query schema"), ("manifest-schema", "print federation gate review manifest schema"), ("capabilities", "print federation gate review capabilities")):
+        subparsers.add_parser(review_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    ledger_command = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND
+    ledger_parser = subparsers.add_parser(ledger_command, help="build an append-only review decision ledger")
+    ledger_parser.add_argument("--input", required=True)
+    ledger_parser.add_argument("--ledger-id", default=assurance_history_series_release_registry_federation_gate_review_model.DEFAULT_LEDGER_ID)
+    ledger_parser.add_argument("--destination", default=None)
+    ledger_parser.add_argument("--allow-existing", action="store_true")
+    ledger_parser.add_argument("--format", choices=("json", "summary"), default="json")
+    ledger_parser.add_argument("--output", default=None)
+    ledger_append_parser = subparsers.add_parser(ledger_command + "-append", help="append an evidence-bound review decision")
+    ledger_append_parser.add_argument("--input", required=True)
+    ledger_append_parser.add_argument("--item-id", default=None)
+    ledger_append_parser.add_argument("--item-address", default=None)
+    ledger_append_parser.add_argument("--action", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.ReviewAction), required=True)
+    ledger_append_parser.add_argument("--rationale", required=True)
+    ledger_append_parser.add_argument("--evidence-address", default=assurance_history_series_release_registry_federation_gate_review_model.NO_EVIDENCE)
+    ledger_append_parser.add_argument("--decision-id", default=None)
+    ledger_append_parser.add_argument("--expected-head", required=True)
+    ledger_append_parser.add_argument("--destination", default=None)
+    ledger_append_parser.add_argument("--allow-existing", action="store_true")
+    ledger_append_parser.add_argument("--format", choices=("json", "summary"), default="json")
+    ledger_append_parser.add_argument("--output", default=None)
+    ledger_query_parser = subparsers.add_parser(ledger_command + "-query", help="query a review decision ledger")
+    ledger_query_parser.add_argument("--input", required=True)
+    ledger_query_parser.add_argument("--resource", choices=assurance_history_series_release_registry_federation_gate_review_model.DecisionQuery.RESOURCES, default="summary")
+    ledger_query_parser.add_argument("--item-id", default=None)
+    ledger_query_parser.add_argument("--action", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.ReviewAction), default=None)
+    ledger_query_parser.add_argument("--state", choices=tuple(assurance_history_series_release_registry_federation_gate_review_model.ReviewItemState), default=None)
+    ledger_query_parser.add_argument("--text", default=None)
+    ledger_query_parser.add_argument("--offset", type=int, default=0)
+    ledger_query_parser.add_argument("--limit", type=int, default=50)
+    ledger_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    ledger_query_parser.add_argument("--output", default=None)
+    ledger_verify_parser = subparsers.add_parser(ledger_command + "-verify", help="verify a review decision ledger")
+    ledger_verify_parser.add_argument("--input", required=True)
+    ledger_verify_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print decision ledger schema"), ("decision-schema", "print review decision schema"), ("replay-schema", "print decision replay schema"), ("query-schema", "print decision query schema"), ("capabilities", "print decision ledger capabilities")):
+        subparsers.add_parser(ledger_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    diff_command = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_DIFF_COMMAND
+    diff_parser = subparsers.add_parser(diff_command, help="compare two review decision ledgers")
+    diff_parser.add_argument("--baseline", required=True)
+    diff_parser.add_argument("--candidate", required=True)
+    diff_parser.add_argument("--diff-id", default=assurance_history_series_release_registry_federation_gate_review_model.DEFAULT_DIFF_ID)
+    diff_parser.add_argument("--destination", default=None)
+    diff_parser.add_argument("--allow-existing", action="store_true")
+    diff_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    diff_parser.add_argument("--output", default=None)
+    diff_verify_parser = subparsers.add_parser(diff_command + "-verify", help="verify a review decision diff")
+    diff_verify_parser.add_argument("--input", required=True)
+    diff_verify_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print review decision diff schema"), ("item-schema", "print review decision diff item schema"), ("capabilities", "print review decision diff capabilities")):
+        subparsers.add_parser(diff_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -31178,6 +31261,119 @@ def main(argv: list[str] | None = None) -> int:
         federation_gate_schema_prefix = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND + "-"
         if args.command.startswith(federation_gate_schema_prefix) and args.command.removeprefix(federation_gate_schema_prefix) in federation_gate_schema_commands:
             _write_json(federation_gate_schema_commands[args.command.removeprefix(federation_gate_schema_prefix)](), args.output)
+            return 0
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_COMMAND:
+            value = assurance_history_series_release_registry_federation_gate_review_model.build_review_from_gate_directory(args.input, queue_id=args.queue_id)
+            if args.destination:
+                assurance_history_series_release_registry_federation_gate_review_model.write_review(value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.review_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.render_review_markdown(value), args.output)
+            elif args.format == "summary":
+                _write_json(value.summary(), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.review_json(value), args.output)
+            return 0 if value.queue.release_ready else 2
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_COMMAND + "-verify":
+            value = assurance_history_series_release_registry_federation_gate_review_model.verify_review_directory(args.input)
+            _write_json(value.summary(), args.output)
+            return 0 if value.queue.release_ready else 2
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_COMMAND + "-query":
+            value = assurance_history_series_release_registry_federation_gate_review_model.load_review(args.input)
+            result = assurance_history_series_release_registry_federation_gate_review_model.query_review(value, resource=args.resource, record_type=args.record_type, plane=args.plane, severity=args.severity, state=args.state, priority=args.priority, passed=args.passed, required=args.required, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.render_query_markdown(result), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.query_json(result), args.output)
+            return 0
+        review_schema_commands = {
+            "schema": assurance_history_series_release_registry_federation_gate_review_model.review_schema,
+            "queue-schema": assurance_history_series_release_registry_federation_gate_review_model.queue_schema,
+            "item-schema": assurance_history_series_release_registry_federation_gate_review_model.item_schema,
+            "verification-schema": assurance_history_series_release_registry_federation_gate_review_model.verification_schema,
+            "verification-finding-schema": assurance_history_series_release_registry_federation_gate_review_model.verification_finding_schema,
+            "query-schema": assurance_history_series_release_registry_federation_gate_review_model.query_schema,
+            "manifest-schema": assurance_history_series_release_registry_federation_gate_review_model.manifest_schema,
+            "capabilities": assurance_history_series_release_registry_federation_gate_review_model.review_capabilities,
+        }
+        review_schema_prefix = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_COMMAND + "-"
+        if args.command.startswith(review_schema_prefix) and args.command.removeprefix(review_schema_prefix) in review_schema_commands:
+            _write_json(review_schema_commands[args.command.removeprefix(review_schema_prefix)](), args.output)
+            return 0
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND:
+            value = assurance_history_series_release_registry_federation_gate_review_model.build_decision_ledger_from_directory(args.input, ledger_id=args.ledger_id)
+            if args.destination:
+                assurance_history_series_release_registry_federation_gate_review_model.write_decision_ledger(value, args.destination, overwrite=args.allow_existing)
+            if args.format == "summary":
+                _write_json(value.summary(), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.decision_ledger_json(value), args.output)
+            return 0 if value.release_ready else 2
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND + "-append":
+            value = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(args.input)
+            value = assurance_history_series_release_registry_federation_gate_review_model.append_decision(value, item_id=args.item_id, item_address=args.item_address, action=args.action, rationale=args.rationale, evidence_address=args.evidence_address, decision_id=args.decision_id, expected_head_address=args.expected_head)
+            if args.destination:
+                assurance_history_series_release_registry_federation_gate_review_model.write_decision_ledger(value, args.destination, overwrite=args.allow_existing)
+            if args.format == "summary":
+                _write_json(value.summary(), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.decision_ledger_json(value), args.output)
+            return 0 if value.release_ready else 2
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND + "-verify":
+            value = assurance_history_series_release_registry_federation_gate_review_model.verify_decision_ledger_directory(args.input)
+            _write_json(value.summary(), args.output)
+            return 0 if value.release_ready else 2
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND + "-query":
+            value = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(args.input)
+            result = assurance_history_series_release_registry_federation_gate_review_model.query_decision_ledger(value, resource=args.resource, item_id=args.item_id, action=args.action, state=args.state, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.decision_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.render_decision_query_markdown(result), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.decision_query_json(result), args.output)
+            return 0
+        ledger_schema_commands = {
+            "schema": assurance_history_series_release_registry_federation_gate_review_model.ledger_schema,
+            "decision-schema": assurance_history_series_release_registry_federation_gate_review_model.decision_schema,
+            "replay-schema": assurance_history_series_release_registry_federation_gate_review_model.replay_schema,
+            "query-schema": assurance_history_series_release_registry_federation_gate_review_model.decision_query_schema,
+            "capabilities": assurance_history_series_release_registry_federation_gate_review_model.diff_capabilities,
+        }
+        ledger_schema_prefix = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_COMMAND + "-"
+        if args.command.startswith(ledger_schema_prefix) and args.command.removeprefix(ledger_schema_prefix) in ledger_schema_commands:
+            _write_json(ledger_schema_commands[args.command.removeprefix(ledger_schema_prefix)](), args.output)
+            return 0
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_DIFF_COMMAND:
+            baseline = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(args.baseline)
+            candidate = assurance_history_series_release_registry_federation_gate_review_model.load_decision_ledger(args.candidate)
+            value = assurance_history_series_release_registry_federation_gate_review_model.build_decision_diff(baseline, candidate, diff_id=args.diff_id)
+            if args.destination:
+                assurance_history_series_release_registry_federation_gate_review_model.write_decision_diff(value, args.destination, overwrite=args.allow_existing)
+            if args.format == "summary":
+                _write_json(value.summary(), args.output)
+            elif args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.diff_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.render_diff_markdown(value), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_review_model.diff_json(value), args.output)
+            return 0
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_DIFF_COMMAND + "-verify":
+            value = assurance_history_series_release_registry_federation_gate_review_model.verify_decision_diff_directory(args.input)
+            _write_json(value.summary(), args.output)
+            return 0
+        diff_schema_commands = {
+            "schema": assurance_history_series_release_registry_federation_gate_review_model.decision_diff_schema,
+            "item-schema": assurance_history_series_release_registry_federation_gate_review_model.decision_diff_item_schema,
+            "capabilities": assurance_history_series_release_registry_federation_gate_review_model.diff_capabilities,
+        }
+        diff_schema_prefix = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_DIFF_COMMAND + "-"
+        if args.command.startswith(diff_schema_prefix) and args.command.removeprefix(diff_schema_prefix) in diff_schema_commands:
+            _write_json(diff_schema_commands[args.command.removeprefix(diff_schema_prefix)](), args.output)
             return 0
         federation_schema_commands = {
             "schema": assurance_history_series_release_registry_federation_model.federation_schema,
