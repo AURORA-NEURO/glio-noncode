@@ -1477,3 +1477,49 @@ canonical JSON, byte/file receipts, exact file membership, manifest linkage,
 record addresses, bounded queries, and JSON/CSV/Markdown exports are all
 verified. CLI and HTTP diff routes are read-only and never mutate either
 assurance gate.
+
+### Longitudinal decision-assurance history
+
+The assurance-history module provides an append-only sequence over persisted
+decision-assurance gates. It captures each verified snapshot's addresses,
+public quality counts, current gate state, release readiness, and source-queue
+readiness, then links the observation to the prior head. Adjacent observations
+are classified as initial, stable, improved, regressed, or changed, so a held
+or blocked run cannot be mistaken for a successful promotion.
+
+The exact handoff is `manifest.json`, `history.json`, and `entries.json`.
+Reload checks canonical bytes, per-file receipts, unique snapshot IDs,
+contiguous ancestry, conserved transition counts, and terminal projection.
+Independent replay produces seven addressed structural checks. Bounded query,
+JSON/CSV/Markdown, CLI, and HTTP surfaces are read-only over persisted gates;
+history append operations create a new snapshot and never mutate an input gate.
+
+### Multi-history decision-assurance series
+
+The series module aggregates independently verified decision-assurance histories
+without merging their source data. Histories are sorted by stable ID and
+retain addressed terminal projections, while the series conserves observation,
+transition, acceptance, and release-readiness totals. The current projection
+distinguishes ready, held, blocked, empty, and mixed populations.
+
+Series diffs classify histories as added, removed, unchanged, or changed and
+report improved or regressed terminal gate direction. The exact series
+handoff is `manifest.json`, `series.json`, and `entries.json`; reload checks
+canonical bytes, byte/file receipts, exact membership, and all nested
+addresses. Independent eight-check replay, bounded state/text queries, and
+JSON/CSV/Markdown exports are exposed by the series CLI and HTTP routes.
+
+### History-series policy evaluation
+
+Series policy evaluation applies explicit coverage and release controls to the
+aggregate: minimum histories and observations, held/blocked ceilings, current
+acceptance, current release readiness, and mixed-state allowance. Nine
+addressed checks are independently recomputed. Required failures produce a
+blocked result, optional failures produce a hold, and only warning-free
+accepted evaluations are release-ready.
+
+The exact policy handoff is `manifest.json`, `policy.json`, and
+`evaluation.json`. It is canonical, path-free, and reload-verifiable with
+nested policy and check receipts. The CLI and HTTP surfaces expose policy
+evaluation, verification, schemas, capabilities, and JSON/CSV/Markdown
+exports.

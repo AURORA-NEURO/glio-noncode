@@ -217,6 +217,56 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     verify_decision_assurance_gate,
     verify_decision_assurance_diff,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history import (
+    capabilities as decision_assurance_history_capabilities,
+    decision_assurance_history_csv,
+    decision_assurance_history_entry_schema,
+    decision_assurance_history_query_csv,
+    decision_assurance_history_query_schema,
+    decision_assurance_history_replay_schema,
+    decision_assurance_history_schema,
+    load_decision_assurance_history,
+    query_decision_assurance_history,
+    render_decision_assurance_history_markdown,
+    render_decision_assurance_history_query_markdown,
+    render_decision_assurance_history_replay_markdown,
+    replay_decision_assurance_history,
+    verify_decision_assurance_history,
+)
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series import (
+    capabilities as decision_assurance_history_series_capabilities,
+    decision_assurance_history_series_csv,
+    decision_assurance_history_series_diff_json,
+    decision_assurance_history_series_diff_item_schema,
+    decision_assurance_history_series_diff_schema,
+    decision_assurance_history_series_entry_schema,
+    decision_assurance_history_series_query_csv,
+    decision_assurance_history_series_query_schema,
+    decision_assurance_history_series_replay_json,
+    decision_assurance_history_series_replay_schema,
+    decision_assurance_history_series_schema,
+    diff_decision_assurance_history_series,
+    load_decision_assurance_history_series,
+    query_decision_assurance_history_series,
+    render_decision_assurance_history_series_markdown,
+    render_decision_assurance_history_series_diff_markdown,
+    render_decision_assurance_history_series_query_markdown,
+    render_decision_assurance_history_series_replay_markdown,
+    replay_decision_assurance_history_series,
+    verify_decision_assurance_history_series,
+)
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_policy import (
+    capabilities as decision_assurance_history_series_policy_capabilities,
+    decision_assurance_history_series_policy_check_schema,
+    decision_assurance_history_series_policy_evaluation_schema,
+    decision_assurance_history_series_policy_evaluation_csv,
+    decision_assurance_history_series_policy_schema,
+    default_decision_assurance_history_series_policy,
+    evaluate_decision_assurance_history_series_policy,
+    load_decision_assurance_history_series_policy_evaluation,
+    render_decision_assurance_history_series_policy_evaluation_markdown,
+    verify_decision_assurance_history_series_policy_evaluation,
+)
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -1991,6 +2041,181 @@ class ApiHandler(BaseHTTPRequestHandler):
                 federation_review_prefix = federation_assurance_gate_prefix + "/review"
                 decision_prefix = federation_review_prefix + "/decisions"
                 assurance_diff_prefix = decision_prefix + "/assurance-diff"
+                assurance_history_prefix = decision_prefix + "/assurance-history"
+                assurance_history_series_prefix = decision_prefix + "/assurance-history-series"
+                if path == assurance_history_series_prefix + "/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_schema())
+                    return
+                if path == assurance_history_series_prefix + "/entry-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_entry_schema())
+                    return
+                if path == assurance_history_series_prefix + "/diff/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_diff_schema())
+                    return
+                if path == assurance_history_series_prefix + "/diff/item-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_diff_item_schema())
+                    return
+                if path == assurance_history_series_prefix + "/replay/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_replay_schema())
+                    return
+                if path == assurance_history_series_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_query_schema())
+                    return
+                if path == assurance_history_series_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_capabilities())
+                    return
+                if path == assurance_history_series_prefix + "/replay-capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_capabilities()["replay"])
+                    return
+                if path == assurance_history_series_prefix + "/query-capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_capabilities()["queries"])
+                    return
+                assurance_history_series_policy_prefix = assurance_history_series_prefix + "/policy"
+                if path == assurance_history_series_policy_prefix + "/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_policy_schema())
+                    return
+                if path == assurance_history_series_policy_prefix + "/check-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_policy_check_schema())
+                    return
+                if path == assurance_history_series_policy_prefix + "/evaluation-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_policy_evaluation_schema())
+                    return
+                if path == assurance_history_series_policy_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_policy_capabilities())
+                    return
+                if path == assurance_history_series_policy_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_policy_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    verified = verify_decision_assurance_history_series_policy_evaluation(load_decision_assurance_history_series_policy_evaluation(directory))
+                    self._write(HTTPStatus.OK, verified.summary())
+                    return
+                if path == assurance_history_series_policy_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    evaluation = evaluate_decision_assurance_history_series_policy(load_decision_assurance_history_series(directory), default_decision_assurance_history_series_policy(policy_id=self._query_value(query, "policy_id") or "glio-noncode-observatory-registry-federation-review-decision-assurance-history-series-policy"))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_policy_evaluation_csv(evaluation).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_policy_evaluation_markdown(evaluation).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, evaluation.summary() if output_format == "summary" else evaluation.to_dict())
+                    return
+                if path == assurance_history_series_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    verified = verify_decision_assurance_history_series(load_decision_assurance_history_series(directory))
+                    self._write(HTTPStatus.OK, {"accepted": True, **verified.summary()})
+                    return
+                if path == assurance_history_series_prefix + "/replay":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    replay = replay_decision_assurance_history_series(load_decision_assurance_history_series(directory))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_replay_markdown(replay).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, replay.summary() if output_format == "summary" else replay.to_dict())
+                    return
+                if path == assurance_history_series_prefix + "/diff":
+                    baseline_directory = self._query_value(query, "baseline") or self._query_value(query, "baseline_directory")
+                    candidate_directory = self._query_value(query, "candidate") or self._query_value(query, "candidate_directory")
+                    if not baseline_directory or not candidate_directory:
+                        raise ValueError("baseline and candidate series directories are required")
+                    diff = diff_decision_assurance_history_series(load_decision_assurance_history_series(baseline_directory), load_decision_assurance_history_series(candidate_directory))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_diff_markdown(diff).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, diff.summary() if output_format == "summary" else diff.to_dict())
+                    return
+                if path == assurance_history_series_prefix or path == assurance_history_series_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = load_decision_assurance_history_series(directory)
+                    if path.endswith("/query"):
+                        result = query_decision_assurance_history_series(value, resource=self._query_value(query, "resource") or "summary", state=self._query_value(query, "state"), gate_state=self._query_value(query, "gate_state"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, value.summary() if output_format == "summary" else value.to_dict())
+                    return
+                if path == assurance_history_prefix + "/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_schema())
+                    return
+                if path == assurance_history_prefix + "/entry-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_entry_schema())
+                    return
+                if path == assurance_history_prefix + "/replay/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_replay_schema())
+                    return
+                if path == assurance_history_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_query_schema())
+                    return
+                if path == assurance_history_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_history_capabilities())
+                    return
+                if path == assurance_history_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    self._write(HTTPStatus.OK, verify_decision_assurance_history(load_decision_assurance_history(directory)).summary())
+                    return
+                if path == assurance_history_prefix + "/replay":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    replay = replay_decision_assurance_history(load_decision_assurance_history(directory))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_replay_markdown(replay).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, replay.summary() if output_format == "summary" else replay.to_dict())
+                    return
+                if path == assurance_history_prefix or path == assurance_history_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    history_value = load_decision_assurance_history(directory)
+                    if path.endswith("/query"):
+                        result = query_decision_assurance_history(history_value, resource=self._query_value(query, "resource") or "summary", transition=self._query_value(query, "transition"), snapshot_state=self._query_value(query, "snapshot_state"), gate_state=self._query_value(query, "gate_state"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, decision_assurance_history_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_csv(history_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_markdown(history_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, history_value.summary() if output_format == "summary" else history_value.to_dict())
+                    return
                 if path == assurance_diff_prefix + "/schema":
                     self._write(HTTPStatus.OK, decision_assurance_diff_schema())
                     return

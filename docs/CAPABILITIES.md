@@ -5530,3 +5530,59 @@ receipts, file membership, manifest linkage, and nested record addresses are
 verified on reload. The CLI family is rooted at
 `...-review-decisions-assurance-diff`, and the HTTP family is rooted at
 `.../review/decisions/assurance-diff`.
+
+## Longitudinal decision-assurance history
+
+The assurance-history layer records repeated verified decision-assurance gates
+as an append-only public projection. Each observation retains assurance, gate,
+ledger, and source-queue addresses; conserved quality counts; an optimistic
+previous-head link; and a transition classification of `initial`, `stable`,
+`improved`, `regressed`, or `changed`. Gate state is projected as `ready`,
+`held`, or `blocked`, preserving the difference between structural acceptance
+and release readiness.
+
+The history package contains exactly `manifest.json`, `history.json`, and
+`entries.json`. Canonical bytes, file receipts, entry ancestry, unique
+snapshot IDs, terminal state, counters, and public-boundary constraints are
+verified on reload. An independent seven-check replay receipt validates the
+chain without trusting stored aggregate fields. Bounded transition/state/text
+queries and JSON/CSV/Markdown exports are exposed through
+`...-review-decisions-assurance-history` and the HTTP
+`.../review/decisions/assurance-history` route family. Multiple observations
+can be built from persisted assurance gates, including real downloaded-data
+rebuilds, without copying source paths into public output.
+
+## Multi-history decision-assurance series
+
+The assurance-history-series layer aggregates independently verified histories
+into a deterministic, sorted public projection. It reports ready, held,
+blocked, empty, and mixed history membership; conserves observation,
+transition, acceptance, and release-readiness totals; and retains each
+history's address and terminal projection. A series diff classifies history
+membership as added, removed, unchanged, or changed and assigns improved or
+regressed direction when the terminal gate state moves.
+
+Series packages contain exactly `manifest.json`, `series.json`, and
+`entries.json`. Independent eight-check replay, canonical-byte receipts,
+manifest linkage, bounded history/state/text queries, and JSON/CSV/Markdown
+exports are available through
+`...-review-decisions-assurance-history-series` and its HTTP
+`.../review/decisions/assurance-history-series` route family. The projection
+is read-only over persisted histories and never exposes source paths or
+private runtime metadata.
+
+## History-series policy evaluation
+
+The series policy layer converts a history-series projection into a bounded
+operating decision. Policies can set minimum history and observation coverage,
+maximum held and blocked populations, current acceptance and release-readiness
+requirements, and whether mixed terminal states are allowed. Nine addressed
+checks classify failures as required blockers or optional warnings, producing
+passed, hold, or blocked outcomes with separate acceptance and release-ready
+flags.
+
+Policy evaluations contain exactly `manifest.json`, `policy.json`, and
+`evaluation.json`. Canonical bytes, per-file receipts, nested policy/check
+addresses, exact file membership, and manifest linkage are verified on reload.
+The policy CLI and HTTP routes expose JSON/CSV/Markdown projections and
+schemas/capabilities without exposing source paths or private runtime fields.
