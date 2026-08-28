@@ -5875,6 +5875,45 @@ both snapshot addresses and classify records as added, removed, unchanged, or
 changed. Outcome direction is independently reported as improved or regressed
 when the pass/severity score changes.
 
+## Longitudinal release-registry decision-assurance history
+
+The release-registry federation gate review decision-ledger assurance history
+module records a sequence of independently verified assurance gates as an
+append-only, content-addressed timeline. Each entry retains the public source
+gate, assurance, ledger, and snapshot addresses, the terminal state, the
+release decision, and a transition classification relative to the prior entry.
+The transition vocabulary is fixed: `initial`, `stable`, `improved`,
+`regressed`, and `changed`.
+
+The history builder accepts already persisted current-format assurance gates or
+the upstream current-format decision ledgers after independent assurance is
+recomputed. It rejects legacy directory shapes, duplicate snapshots, invalid
+expected heads, unknown mapping keys, non-public fields, and non-conserved
+counts. The history verifier replays the entry chain, recomputes the quality
+comparison, checks the terminal projection, and verifies every content address.
+
+History persistence is exactly `manifest.json`, `history.json`, and
+`entries.json`. Diff persistence is exactly `manifest.json` and `diff.json`.
+Writers use canonical UTF-8 JSON, atomic replacement, explicit overwrite
+authorization, and path-free public projections. Loaders reject extra files,
+symlinks, non-canonical bytes, manifest receipt drift, and legacy artifacts.
+
+History queries expose bounded `summary`, `entries`, `initial`, `stable`,
+`improved`, `regressed`, and `changed` resources with state, transition,
+acceptance, readiness, and text filters. Diff queries expose bounded summary,
+item, action, direction, gate-state, and text resources. All query results are
+addressed and available through JSON, fixed-column CSV, and Markdown renderers.
+
+The public API and CLI expose builders, verifiers, serializers, schemas, and
+capabilities. The focused suite covers deterministic reruns, chain ancestry,
+optimistic concurrency, every transition class, all diff actions and
+directions, pagination, typed-boundary rejection, exact package files,
+canonical-byte tampering, manifest tampering, extra-file rejection, legacy
+download rejection, and current-format downloaded-data execution.
+
+See [docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY.md](RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY.md)
+for the complete operator contract.
+
 ### Query and export behavior
 
 Assurance queries expose `summary`, `findings`, `blockers`, `warnings`,
