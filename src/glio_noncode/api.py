@@ -128,6 +128,43 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation,
     run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate import (
+    assurance_gate_csv,
+    build_federation_assurance_gate_from_directory,
+    federation_assurance_capabilities,
+    federation_assurance_gate_capabilities as assurance_gate_capabilities,
+    federation_assurance_gate_schema as assurance_gate_schema,
+    federation_assurance_schema,
+    federation_gate_capabilities,
+    federation_gate_schema,
+    federation_query_capabilities,
+    federation_query_schema,
+    load_federation_assurance_gate,
+    query_assurance_gate,
+    query_csv,
+    render_assurance_gate_markdown,
+    render_query_markdown,
+    verify_federation_assurance_gate,
+)
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review import (
+    build_review_diff,
+    build_review_queue_from_directory,
+    load_review_queue,
+    render_review_diff_markdown,
+    render_review_query_markdown,
+    render_review_queue_markdown,
+    review_capabilities,
+    review_diff_csv,
+    review_diff_schema,
+    review_queue_csv,
+    review_queue_schema,
+    review_query_csv,
+    review_query_schema,
+    verify_review_diff,
+    verify_review_queue,
+    query_review_diff,
+    query_review_queue,
+)
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -1827,6 +1864,178 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
 
                 packet_review_gate_history_observatory_packet_registry_federation_prefix = packet_review_gate_history_observatory_packet_registry_prefix + "/federation"
+                federation_assurance_gate_prefix = packet_review_gate_history_observatory_packet_registry_federation_prefix + "/assurance-gate"
+                if path == federation_assurance_gate_prefix + "/schema":
+                    self._write(HTTPStatus.OK, assurance_gate_schema())
+                    return
+                if path == federation_assurance_gate_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_gate_capabilities())
+                    return
+                if path == federation_assurance_gate_prefix + "/assurance/schema":
+                    self._write(HTTPStatus.OK, federation_assurance_schema())
+                    return
+                if path == federation_assurance_gate_prefix + "/assurance/capabilities":
+                    self._write(HTTPStatus.OK, federation_assurance_capabilities())
+                    return
+                if path == federation_assurance_gate_prefix + "/gate/schema":
+                    self._write(HTTPStatus.OK, federation_gate_schema())
+                    return
+                if path == federation_assurance_gate_prefix + "/gate/capabilities":
+                    self._write(HTTPStatus.OK, federation_gate_capabilities())
+                    return
+                if path == federation_assurance_gate_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, federation_query_schema())
+                    return
+                if path == federation_assurance_gate_prefix + "/query/capabilities":
+                    self._write(HTTPStatus.OK, federation_query_capabilities())
+                    return
+                if path == federation_assurance_gate_prefix + "/verify":
+                    package_directory = self._query_value(query, "input") or self._query_value(query, "assurance_gate_directory") or self._query_value(query, "directory")
+                    if not package_directory:
+                        raise ValueError("input or assurance_gate_directory is required")
+                    gate_value = load_federation_assurance_gate(package_directory)
+                    verified = verify_federation_assurance_gate(gate_value)
+                    self._write(HTTPStatus.OK if verified.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, {"assurance": verified.assurance.summary(), "gate": verified.summary()})
+                    return
+                if path == federation_assurance_gate_prefix + "/query":
+                    package_directory = self._query_value(query, "input") or self._query_value(query, "assurance_gate_directory") or self._query_value(query, "directory")
+                    if not package_directory:
+                        raise ValueError("input or assurance_gate_directory is required")
+                    gate_value = load_federation_assurance_gate(package_directory)
+                    result = query_assurance_gate(gate_value, resource=self._query_value(query, "resource") or "summary", severity=self._query_value(query, "severity"), passed=self._query_bool(query, "passed") if "passed" in query else None, required=self._query_bool(query, "required") if "required" in query else None, plane=self._query_value(query, "plane"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == federation_assurance_gate_prefix or path == federation_assurance_gate_prefix + "/assurance" or path == federation_assurance_gate_prefix + "/gate":
+                    federation_directory = self._query_value(query, "input") or self._query_value(query, "federation_directory") or self._query_value(query, "directory")
+                    if not federation_directory:
+                        raise ValueError("input or federation_directory is required")
+                    gate_value = build_federation_assurance_gate_from_directory(federation_directory, assurance_id=self._query_value(query, "assurance_id") or "glio-noncode-observatory-registry-federation-assurance", gate_id=self._query_value(query, "gate_id") or "glio-noncode-observatory-registry-federation-release-gate")
+                    if path.endswith("/assurance"):
+                        payload = gate_value.assurance.to_dict()
+                        status = HTTPStatus.OK if gate_value.assurance.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    elif path.endswith("/gate"):
+                        payload = gate_value.to_dict()
+                        status = HTTPStatus.OK if gate_value.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    else:
+                        output_format = self._query_value(query, "format") or "json"
+                        status = HTTPStatus.OK if gate_value.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
+                        if output_format == "csv":
+                            self._write_bytes(status, assurance_gate_csv(gate_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(status, render_assurance_gate_markdown(gate_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        payload = {"assurance": gate_value.assurance.summary(), "gate": gate_value.summary()}
+                    self._write(status, payload)
+                    return
+
+                federation_review_prefix = federation_assurance_gate_prefix + "/review"
+                if path == federation_review_prefix + "/schema":
+                    self._write(HTTPStatus.OK, review_queue_schema())
+                    return
+                if path == federation_review_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, review_capabilities())
+                    return
+                if path == federation_review_prefix + "/diff/schema":
+                    self._write(HTTPStatus.OK, review_diff_schema())
+                    return
+                if path == federation_review_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, review_query_schema())
+                    return
+                if path == federation_review_prefix + "/verify":
+                    review_directory = self._query_value(query, "input") or self._query_value(query, "review_directory") or self._query_value(query, "directory")
+                    if not review_directory:
+                        raise ValueError("input or review_directory is required")
+                    queue_value = load_review_queue(review_directory)
+                    verified = verify_review_queue(queue_value)
+                    self._write(HTTPStatus.OK if verified.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, verified.summary())
+                    return
+                if path == federation_review_prefix + "/diff" or path == federation_review_prefix + "/diff/query":
+                    baseline_directory = self._query_value(query, "baseline") or self._query_value(query, "baseline_directory")
+                    candidate_directory = self._query_value(query, "candidate") or self._query_value(query, "candidate_directory")
+                    if not baseline_directory or not candidate_directory:
+                        raise ValueError("baseline and candidate review directories are required")
+                    diff_value = build_review_diff(
+                        load_review_queue(baseline_directory),
+                        load_review_queue(candidate_directory),
+                        diff_id=self._query_value(query, "diff_id") or "glio-noncode-observatory-registry-federation-review-diff",
+                    )
+                    if path.endswith("/query"):
+                        result = query_review_diff(
+                            diff_value,
+                            resource=self._query_value(query, "resource") or "summary",
+                            state=self._query_value(query, "state"),
+                            priority=self._query_value(query, "priority"),
+                            action=self._query_value(query, "action"),
+                            passed=self._query_bool(query, "passed") if "passed" in query else None,
+                            record_type=self._query_value(query, "record_type"),
+                            plane=self._query_value(query, "plane"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, review_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_review_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, review_diff_csv(diff_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_review_diff_markdown(diff_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, diff_value.summary() if output_format == "summary" else diff_value.to_dict())
+                    return
+                if path == federation_review_prefix or path == federation_review_prefix + "/query":
+                    review_directory = self._query_value(query, "input") or self._query_value(query, "review_directory") or self._query_value(query, "directory")
+                    if not review_directory:
+                        raise ValueError("input or review_directory is required")
+                    queue_value = load_review_queue(review_directory)
+                    if path.endswith("/query"):
+                        result = query_review_queue(
+                            queue_value,
+                            resource=self._query_value(query, "resource") or "summary",
+                            state=self._query_value(query, "state"),
+                            priority=self._query_value(query, "priority"),
+                            action=self._query_value(query, "action"),
+                            passed=self._query_bool(query, "passed") if "passed" in query else None,
+                            record_type=self._query_value(query, "record_type"),
+                            plane=self._query_value(query, "plane"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, review_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_review_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, review_queue_csv(queue_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_review_queue_markdown(queue_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, queue_value.summary() if output_format == "summary" else queue_value.to_dict())
+                    return
                 if path == packet_review_gate_history_observatory_packet_registry_federation_prefix + "/schema":
                     self._write(HTTPStatus.OK, module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_schema())
                     return

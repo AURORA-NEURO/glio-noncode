@@ -5397,3 +5397,61 @@ Federation accepts repeatable `registry_directory` inputs or reloads an
 existing `input` directory. The runtime replays load, verify, policy, project,
 and complete stages, preserving accepted-but-held and blocked outcomes for
 review. Source paths remain input-only and never enter public projections.
+
+### Observatory packet registry federation assurance and release gate
+
+The federation assurance layer independently replays federation verification
+and runtime closure, then records 21 addressed findings across federation,
+registry, packet, verification, runtime, policy, public, and persistence
+planes. Findings distinguish passing evidence, readiness warnings, and
+release blockers. The release gate turns those findings and component states
+into an explicit `promote`, `hold`, or `block` decision without merging any
+member evidence.
+
+The portable gate package contains exactly:
+
+```text
+manifest.json
+assurance.json
+gate.json
+```
+
+The manifest binds canonical bytes, byte hashes, file addresses, federation
+linkage, and the gate address. Loads reject extra or missing files, symlinks,
+noncanonical JSON, stale manifest addresses, byte tampering, stale findings,
+and broken assurance/gate linkage. The query plane exposes `summary`,
+`findings`, `blockers`, `warnings`, `checks`, and `failed` resources with
+bounded severity, pass, required, plane, text, and paging filters. JSON, CSV,
+and Markdown exports are deterministic and path-free.
+
+The CLI family adds `...-federation-assurance-gate`, its query and verify
+commands, and component schema/capability commands. The API mirrors these
+resources below `/observatory/packet/registry/federation/assurance-gate`.
+Required failures block, optional readiness failures hold, and only a fully
+verified, warning-free federation can be promoted.
+
+### Operational federation review routing and snapshot diffs
+
+The review projection routes all 21 assurance findings and 15 release-gate
+checks into one addressed operational queue. Passing records are `clear`;
+optional failures become `review` with high priority; required failures become
+`blocked` with critical priority. Queue counts conserve every source record,
+and the queue remains accepted only when no blocker is present.
+
+Review queues persist as exactly two canonical files:
+
+```text
+manifest.json
+review.json
+```
+
+The manifest binds the queue address, canonical bytes, file address, and exact
+file set. Loaders reject missing or extra files, symlinks, noncanonical JSON,
+tampered bytes, stale manifest addresses, and stale item or queue addresses.
+Snapshot diffs compare stable `(record_type, plane, kind)` keys and classify
+`added`, `removed`, `unchanged`, or `changed` records, with explicit
+`resolved_count` and `unchanged`/`improved`/`regressed`/`changed` snapshot
+states. Queue and diff queries support bounded state, priority, action, pass,
+record-type, plane, text, and paging filters with deterministic JSON, CSV, and
+Markdown exports. The CLI and API expose build, verify, query, diff, schema,
+and capability surfaces below the federation assurance-gate review boundary.

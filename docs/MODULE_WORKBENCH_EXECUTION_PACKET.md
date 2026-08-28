@@ -1382,3 +1382,44 @@ adds the federation family below
 capability resources. Real downloaded packet registries can therefore be
 federated and reloaded offline without returning source paths or attribution
 metadata.
+
+## Federation assurance and release gate
+
+The federation release boundary is independently assured before promotion.
+Assurance replays the federation verifier and policy runtime, reconciles
+registry and packet totals, checks hydrated member addresses, verifies nested
+receipt addresses, and audits the public path-free boundary. It records 21
+findings with explicit pass, warning, or blocker severity and remediation
+text. The release gate then evaluates 15 conserved checks: required failures
+produce `block`, optional readiness failures produce `hold`, and a complete
+closure produces `promote`.
+
+The gate handoff is a strict three-file package:
+
+```text
+manifest.json
+assurance.json
+gate.json
+```
+
+Canonical bytes, byte addresses, file addresses, exact file sets, nested
+component links, and deterministic JSON/CSV/Markdown query projections are
+verified on reload. The assurance and gate API/CLI surfaces accept a
+persisted federation directory as input and write only path-free public
+projections. No member scientific claims are merged or ranked by this layer.
+
+## Federation operational review routing
+
+The assurance gate is also projected into an operational review queue. Every
+assurance finding and gate check is retained as an addressed queue item with
+its record type, plane, kind, severity, pass state, remediation, and source
+evidence address. The queue conserves all 36 records and distinguishes clear
+records from high-priority review warnings and critical blockers.
+
+Queue persistence is an exact two-file canonical handoff (`manifest.json` and
+`review.json`). A separate diff projection compares two queue snapshots by
+stable record keys and reports added, removed, unchanged, changed, and
+resolved items, plus improved or regressed aggregate state. Both projections
+are path-free, bounded, deterministic, and queryable as JSON, CSV, or
+Markdown. Source paths and identity-like metadata remain outside this public
+boundary.

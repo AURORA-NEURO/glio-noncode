@@ -2292,6 +2292,55 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime,
     write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate import (
+    AssuranceGateQuery,
+    assurance_csv,
+    assurance_gate_csv,
+    assurance_gate_json,
+    assurance_json,
+    build_federation_assurance_gate_from_directory,
+    federation_assurance_capabilities,
+    federation_assurance_gate_capabilities as assurance_gate_capabilities,
+    federation_assurance_gate_schema as assurance_gate_schema,
+    federation_assurance_schema,
+    federation_gate_capabilities,
+    federation_gate_schema,
+    federation_query_capabilities,
+    federation_query_schema,
+    gate_csv,
+    gate_json,
+    load_federation_assurance_gate,
+    query_assurance_gate,
+    query_csv,
+    query_json,
+    render_assurance_gate_markdown,
+    render_query_markdown,
+    verify_federation_assurance_gate,
+    write_federation_assurance_gate,
+)
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review import (
+    build_review_diff,
+    build_review_queue_from_directory,
+    load_review_queue,
+    render_review_diff_markdown,
+    render_review_query_markdown,
+    render_review_queue_markdown,
+    review_capabilities,
+    review_diff_csv,
+    review_diff_json,
+    review_diff_schema,
+    review_queue_csv,
+    review_queue_json,
+    review_queue_schema,
+    review_query_csv,
+    review_query_json,
+    review_query_schema,
+    verify_review_diff,
+    verify_review_queue,
+    write_review_queue,
+    query_review_diff,
+    query_review_queue,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3326,6 +3375,8 @@ def _review_store_catalog_packet_review_gate_history_observatory_packet_registry
 
 
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation"
+_OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-assurance-gate"
+_OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-review"
 
 
 def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args):
@@ -6464,6 +6515,87 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-verification-capabilities", help="print observatory packet registry federation verification capabilities").add_argument("--output", default=None)
     subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime-schema", help="print observatory packet registry federation runtime schema").add_argument("--output", default=None)
     subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime-capabilities", help="print observatory packet registry federation runtime capabilities").add_argument("--output", default=None)
+    assurance_gate_command = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-assurance-gate"
+    assurance_gate_parser = subparsers.add_parser(assurance_gate_command, help="assure and gate a persisted observatory packet registry federation")
+    assurance_gate_parser.add_argument("--input", required=True)
+    assurance_gate_parser.add_argument("--assurance-id", default="glio-noncode-observatory-registry-federation-assurance")
+    assurance_gate_parser.add_argument("--gate-id", default="glio-noncode-observatory-registry-federation-release-gate")
+    assurance_gate_parser.add_argument("--destination", default=None)
+    assurance_gate_parser.add_argument("--allow-existing", action="store_true")
+    assurance_gate_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    assurance_gate_parser.add_argument("--output", default=None)
+    assurance_gate_query_parser = subparsers.add_parser(assurance_gate_command + "-query", help="query a persisted observatory packet registry federation assurance gate")
+    assurance_gate_query_parser.add_argument("--input", required=True)
+    assurance_gate_query_parser.add_argument("--resource", choices=("summary", "findings", "blockers", "warnings", "checks", "failed"), default="summary")
+    assurance_gate_query_parser.add_argument("--severity", choices=("pass", "warning", "blocker"), default=None)
+    assurance_gate_query_parser.add_argument("--passed", action="store_true", default=None)
+    assurance_gate_query_parser.add_argument("--required", action="store_true", default=None)
+    assurance_gate_query_parser.add_argument("--plane", default=None)
+    assurance_gate_query_parser.add_argument("--text", default=None)
+    assurance_gate_query_parser.add_argument("--offset", type=int, default=0)
+    assurance_gate_query_parser.add_argument("--limit", type=int, default=50)
+    assurance_gate_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    assurance_gate_query_parser.add_argument("--output", default=None)
+    assurance_gate_verify_parser = subparsers.add_parser(assurance_gate_command + "-verify", help="verify a persisted observatory packet registry federation assurance gate")
+    assurance_gate_verify_parser.add_argument("--input", required=True)
+    assurance_gate_verify_parser.add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-schema", help="print observatory packet registry federation assurance gate schema").add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-capabilities", help="print observatory packet registry federation assurance gate capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-assurance-schema", help="print observatory packet registry federation assurance schema").add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-assurance-capabilities", help="print observatory packet registry federation assurance capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-gate-schema", help="print observatory packet registry federation release gate schema").add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-gate-capabilities", help="print observatory packet registry federation release gate capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-query-schema", help="print observatory packet registry federation assurance gate query schema").add_argument("--output", default=None)
+    subparsers.add_parser(assurance_gate_command + "-query-capabilities", help="print observatory packet registry federation assurance gate query capabilities").add_argument("--output", default=None)
+    review_command = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND
+    review_parser = subparsers.add_parser(review_command, help="route federation assurance and gate records into an operational review queue")
+    review_parser.add_argument("--input", required=True)
+    review_parser.add_argument("--queue-id", default="glio-noncode-observatory-registry-federation-review-queue")
+    review_parser.add_argument("--destination", default=None)
+    review_parser.add_argument("--allow-existing", action="store_true")
+    review_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    review_parser.add_argument("--output", default=None)
+    review_query_parser = subparsers.add_parser(review_command + "-query", help="query a persisted federation operational review queue")
+    review_query_parser.add_argument("--input", required=True)
+    review_query_parser.add_argument("--resource", choices=("summary", "items", "open", "blockers", "warnings", "clear"), default="summary")
+    review_query_parser.add_argument("--state", choices=("clear", "review", "blocked"), default=None)
+    review_query_parser.add_argument("--priority", choices=("none", "high", "critical"), default=None)
+    review_query_parser.add_argument("--passed", action="store_true", default=None)
+    review_query_parser.add_argument("--record-type", choices=("finding", "check"), default=None)
+    review_query_parser.add_argument("--plane", default=None)
+    review_query_parser.add_argument("--text", default=None)
+    review_query_parser.add_argument("--offset", type=int, default=0)
+    review_query_parser.add_argument("--limit", type=int, default=50)
+    review_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    review_query_parser.add_argument("--output", default=None)
+    review_verify_parser = subparsers.add_parser(review_command + "-verify", help="verify a persisted federation operational review queue")
+    review_verify_parser.add_argument("--input", required=True)
+    review_verify_parser.add_argument("--output", default=None)
+    review_diff_parser = subparsers.add_parser(review_command + "-diff", help="compare two persisted federation operational review queues")
+    review_diff_parser.add_argument("--baseline", required=True)
+    review_diff_parser.add_argument("--candidate", required=True)
+    review_diff_parser.add_argument("--diff-id", default="glio-noncode-observatory-registry-federation-review-diff")
+    review_diff_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    review_diff_parser.add_argument("--output", default=None)
+    review_diff_query_parser = subparsers.add_parser(review_command + "-diff-query", help="query a federation review diff built from two persisted queues")
+    review_diff_query_parser.add_argument("--baseline", required=True)
+    review_diff_query_parser.add_argument("--candidate", required=True)
+    review_diff_query_parser.add_argument("--resource", choices=("summary", "added", "removed", "changed", "unchanged", "resolved"), default="summary")
+    review_diff_query_parser.add_argument("--state", choices=("clear", "review", "blocked"), default=None)
+    review_diff_query_parser.add_argument("--priority", choices=("none", "high", "critical"), default=None)
+    review_diff_query_parser.add_argument("--action", choices=("added", "removed", "unchanged", "changed"), default=None)
+    review_diff_query_parser.add_argument("--passed", action="store_true", default=None)
+    review_diff_query_parser.add_argument("--record-type", choices=("finding", "check"), default=None)
+    review_diff_query_parser.add_argument("--plane", default=None)
+    review_diff_query_parser.add_argument("--text", default=None)
+    review_diff_query_parser.add_argument("--offset", type=int, default=0)
+    review_diff_query_parser.add_argument("--limit", type=int, default=50)
+    review_diff_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    review_diff_query_parser.add_argument("--output", default=None)
+    subparsers.add_parser(review_command + "-schema", help="print federation operational review queue schema").add_argument("--output", default=None)
+    subparsers.add_parser(review_command + "-capabilities", help="print federation operational review capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(review_command + "-diff-schema", help="print federation operational review diff schema").add_argument("--output", default=None)
+    subparsers.add_parser(review_command + "-query-schema", help="print federation operational review query schema").add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -29769,6 +29901,119 @@ def main(argv: list[str] | None = None) -> int:
             runtime_value = run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime(federation_value, policy=federation_value.policy, verification=federation_value.verification)
             _write_json(runtime_value.to_dict(), args.output)
             return 0 if runtime_value.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND:
+            gate_value = build_federation_assurance_gate_from_directory(args.input, assurance_id=args.assurance_id, gate_id=args.gate_id)
+            if args.destination:
+                write_federation_assurance_gate(gate_value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(assurance_gate_csv(gate_value), args.output)
+            elif args.format == "markdown":
+                _write_text(render_assurance_gate_markdown(gate_value), args.output)
+            elif args.format == "summary":
+                _write_json({"assurance": gate_value.assurance.summary(), "gate": gate_value.summary()}, args.output)
+            else:
+                _write_text(assurance_gate_json(gate_value), args.output)
+            return 0 if gate_value.release_ready else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-query":
+            gate_value = load_federation_assurance_gate(args.input)
+            result = query_assurance_gate(gate_value, resource=args.resource, severity=args.severity, passed=args.passed, required=args.required, plane=args.plane, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_query_markdown(result), args.output)
+            else:
+                _write_text(query_json(result), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-verify":
+            gate_value = load_federation_assurance_gate(args.input)
+            verified = verify_federation_assurance_gate(gate_value)
+            _write_json({"assurance": verified.assurance.summary(), "gate": verified.summary()}, args.output)
+            return 0 if verified.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-schema":
+            _write_json(assurance_gate_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-capabilities":
+            _write_json(assurance_gate_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-assurance-schema":
+            _write_json(federation_assurance_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-assurance-capabilities":
+            _write_json(federation_assurance_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-gate-schema":
+            _write_json(federation_gate_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-gate-capabilities":
+            _write_json(federation_gate_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-query-schema":
+            _write_json(federation_query_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_COMMAND + "-query-capabilities":
+            _write_json(federation_query_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND:
+            queue_value = build_review_queue_from_directory(args.input, queue_id=args.queue_id)
+            if args.destination:
+                write_review_queue(queue_value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(review_queue_csv(queue_value), args.output)
+            elif args.format == "markdown":
+                _write_text(render_review_queue_markdown(queue_value), args.output)
+            elif args.format == "summary":
+                _write_json(queue_value.summary(), args.output)
+            else:
+                _write_text(review_queue_json(queue_value), args.output)
+            return 0 if queue_value.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-query":
+            queue_value = load_review_queue(args.input)
+            result = query_review_queue(queue_value, resource=args.resource, state=args.state, priority=args.priority, passed=args.passed, record_type=args.record_type, plane=args.plane, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(review_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_review_query_markdown(result), args.output)
+            else:
+                _write_text(review_query_json(result), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-verify":
+            queue_value = load_review_queue(args.input)
+            verified = verify_review_queue(queue_value)
+            _write_json(verified.summary(), args.output)
+            return 0 if verified.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-diff":
+            diff_value = build_review_diff(load_review_queue(args.baseline), load_review_queue(args.candidate), diff_id=args.diff_id)
+            if args.format == "csv":
+                _write_text(review_diff_csv(diff_value), args.output)
+            elif args.format == "markdown":
+                _write_text(render_review_diff_markdown(diff_value), args.output)
+            elif args.format == "summary":
+                _write_json(diff_value.summary(), args.output)
+            else:
+                _write_text(review_diff_json(diff_value), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-diff-query":
+            diff_value = build_review_diff(load_review_queue(args.baseline), load_review_queue(args.candidate))
+            result = query_review_diff(diff_value, resource=args.resource, state=args.state, priority=args.priority, action=args.action, passed=args.passed, record_type=args.record_type, plane=args.plane, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(review_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_review_query_markdown(result), args.output)
+            else:
+                _write_text(review_query_json(result), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-schema":
+            _write_json(review_queue_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-capabilities":
+            _write_json(review_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-diff-schema":
+            _write_json(review_diff_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-query-schema":
+            _write_json(review_query_schema(), args.output)
+            return 0
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime":
             runtime_value = _review_store_catalog_packet_review_gate_history_observatory_runtime_from_args(args)
             if args.destination:
