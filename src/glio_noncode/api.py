@@ -322,6 +322,7 @@ from .assurance_history_series_release_registry import (
     verify_decision_assurance_history_series_release_registry,
     verify_decision_assurance_history_series_release_registry_diff,
 )
+from . import assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -2385,6 +2386,91 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_registry_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                         return
                     self._write(HTTPStatus.OK if value.accepted_count else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary() if output_format == "summary" else value.to_dict())
+                    return
+                assurance_history_series_release_registry_federation_prefix = assurance_history_series_release_registry_prefix + "/federation"
+                federation_schema_routes = {
+                    "/schema": assurance_history_series_release_registry_federation_model.federation_schema,
+                    "/member-schema": assurance_history_series_release_registry_federation_model.federation_member_schema,
+                    "/package-schema": assurance_history_series_release_registry_federation_model.federation_package_schema,
+                    "/policy-schema": assurance_history_series_release_registry_federation_model.federation_policy_schema,
+                    "/check-schema": assurance_history_series_release_registry_federation_model.federation_check_schema,
+                    "/verification-schema": assurance_history_series_release_registry_federation_model.federation_verification_schema,
+                    "/policy-check-schema": assurance_history_series_release_registry_federation_model.federation_policy_check_schema,
+                    "/policy-evaluation-schema": assurance_history_series_release_registry_federation_model.federation_policy_evaluation_schema,
+                    "/stage-schema": assurance_history_series_release_registry_federation_model.federation_stage_schema,
+                    "/runtime-schema": assurance_history_series_release_registry_federation_model.federation_runtime_schema,
+                    "/query-schema": assurance_history_series_release_registry_federation_model.federation_query_schema,
+                    "/diff/schema": assurance_history_series_release_registry_federation_model.federation_diff_schema,
+                    "/diff/item-schema": assurance_history_series_release_registry_federation_model.federation_diff_item_schema,
+                    "/diff/query-schema": assurance_history_series_release_registry_federation_model.federation_diff_query_schema,
+                }
+                for suffix, schema_builder in federation_schema_routes.items():
+                    if path == assurance_history_series_release_registry_federation_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == assurance_history_series_release_registry_federation_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.federation_capabilities())
+                    return
+                if path == assurance_history_series_release_registry_federation_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_model.verify_federation_directory(directory)
+                    self._write(HTTPStatus.OK if value.runtime.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary())
+                    return
+                if path == assurance_history_series_release_registry_federation_prefix + "/diff":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_model.load_federation_diff(directory)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.federation_diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.render_federation_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, value.summary() if output_format == "summary" else value.to_dict())
+                    return
+                if path == assurance_history_series_release_registry_federation_prefix + "/diff/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_model.load_federation_diff(directory)
+                    result = assurance_history_series_release_registry_federation_model.query_federation_diff(value, resource=self._query_value(query, "resource") or "summary", action=self._query_value(query, "action"), direction=self._query_value(query, "direction"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.federation_diff_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.render_federation_diff_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == assurance_history_series_release_registry_federation_prefix + "/query" or path == assurance_history_series_release_registry_federation_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_model.load_federation(directory)
+                    if path.endswith("/query"):
+                        result = assurance_history_series_release_registry_federation_model.query_federation(value, resource=self._query_value(query, "resource") or "summary", state=self._query_value(query, "state"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.federation_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.render_federation_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.federation_packages_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.render_federation_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK if value.runtime.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary() if output_format == "summary" else value.to_dict())
                     return
                 if path == assurance_history_prefix + "/schema":
                     self._write(HTTPStatus.OK, decision_assurance_history_schema())

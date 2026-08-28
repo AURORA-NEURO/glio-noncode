@@ -2523,6 +2523,7 @@ from .assurance_history_series_release_registry import (
     write_decision_assurance_history_series_release_registry,
     write_decision_assurance_history_series_release_registry_diff,
 )
+from . import assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3566,6 +3567,7 @@ _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_COMMAND + "-series"
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-decision-ledger-assurance-history-series-release"
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-registry"
+_OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-federation"
 
 
 def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args):
@@ -7071,6 +7073,60 @@ def build_parser() -> argparse.ArgumentParser:
     decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--limit", type=int, default=50)
     decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
     decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_federation_command = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND
+    decision_assurance_history_series_release_registry_federation_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command, help="federate verified decision assurance history series release registries")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--input", action="append", required=True, metavar="DIRECTORY")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--federation-id", default="glio-noncode-decision-assurance-history-series-release-registry-federation")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--policy-id", default="glio-noncode-decision-assurance-history-series-release-registry-federation-policy")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--minimum-member-count", type=int, default=1)
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--minimum-package-count", type=int, default=1)
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--maximum-blocked-members", type=int, default=0)
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--maximum-held-members", type=int, default=64)
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--allow-non-release-ready", action="store_true")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--allow-empty", action="store_true")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--destination", default=None)
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--allow-existing", action="store_true")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    decision_assurance_history_series_release_registry_federation_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_federation_discover_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-discover", help="inspect exact release registry packages below a data root")
+    decision_assurance_history_series_release_registry_federation_discover_parser.add_argument("--root", required=True)
+    decision_assurance_history_series_release_registry_federation_discover_parser.add_argument("--recursive", action="store_true")
+    decision_assurance_history_series_release_registry_federation_discover_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_federation_verify_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-verify", help="verify a persisted release registry federation")
+    decision_assurance_history_series_release_registry_federation_verify_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_federation_verify_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_federation_query_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-query", help="query a persisted release registry federation")
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--resource", choices=assurance_history_series_release_registry_federation_model.FederationQuery.RESOURCES, default="summary")
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--state", choices=("ready", "held", "blocked", "empty"), default=None)
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--text", default=None)
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--offset", type=int, default=0)
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--limit", type=int, default=50)
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    decision_assurance_history_series_release_registry_federation_query_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_federation_diff_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-diff", help="compare two persisted release registry federations")
+    decision_assurance_history_series_release_registry_federation_diff_parser.add_argument("--baseline", required=True)
+    decision_assurance_history_series_release_registry_federation_diff_parser.add_argument("--candidate", required=True)
+    decision_assurance_history_series_release_registry_federation_diff_parser.add_argument("--diff-id", default=None)
+    decision_assurance_history_series_release_registry_federation_diff_parser.add_argument("--destination", default=None)
+    decision_assurance_history_series_release_registry_federation_diff_parser.add_argument("--allow-existing", action="store_true")
+    decision_assurance_history_series_release_registry_federation_diff_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    decision_assurance_history_series_release_registry_federation_diff_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_federation_diff_verify_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-diff-verify", help="verify a persisted release registry federation diff")
+    decision_assurance_history_series_release_registry_federation_diff_verify_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_federation_diff_verify_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_federation_diff_query_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-diff-query", help="query a persisted release registry federation diff")
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--resource", choices=assurance_history_series_release_registry_federation_model.FederationDiffQuery.RESOURCES, default="summary")
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--action", choices=assurance_history_series_release_registry_federation_model.FederationDiffItem.ACTIONS, default=None)
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--direction", choices=assurance_history_series_release_registry_federation_model.FederationDiffItem.DIRECTIONS, default=None)
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--text", default=None)
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--offset", type=int, default=0)
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--limit", type=int, default=50)
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print release registry federation schema"), ("member-schema", "print release registry federation member schema"), ("package-schema", "print release registry federation package schema"), ("policy-schema", "print release registry federation policy schema"), ("check-schema", "print release registry federation check schema"), ("verification-schema", "print release registry federation verification schema"), ("policy-check-schema", "print release registry federation policy check schema"), ("policy-evaluation-schema", "print release registry federation policy evaluation schema"), ("stage-schema", "print release registry federation stage schema"), ("runtime-schema", "print release registry federation runtime schema"), ("query-schema", "print release registry federation query schema"), ("diff-schema", "print release registry federation diff schema"), ("diff-item-schema", "print release registry federation diff item schema"), ("diff-query-schema", "print release registry federation diff query schema"), ("capabilities", "print release registry federation capabilities")):
+        subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -30984,6 +31040,96 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-capabilities":
             _write_json(assurance_history_series_release_registry_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-discover":
+            preview = assurance_history_series_release_registry_federation_model.inspect_federation_registry_root(args.root, recursive=args.recursive)
+            _write_json(preview, args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND:
+            policy = assurance_history_series_release_registry_federation_model.default_federation_policy(
+                policy_id=args.policy_id,
+                minimum_member_count=args.minimum_member_count,
+                minimum_package_count=args.minimum_package_count,
+                maximum_blocked_members=args.maximum_blocked_members,
+                maximum_held_members=args.maximum_held_members,
+                require_all_release_ready=not args.allow_non_release_ready,
+                allow_empty=args.allow_empty,
+            )
+            value = assurance_history_series_release_registry_federation_model.build_federation_from_directories(args.input, federation_id=args.federation_id, policy=policy)
+            if args.destination:
+                assurance_history_series_release_registry_federation_model.write_federation(value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_model.federation_packages_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_model.render_federation_markdown(value), args.output)
+            elif args.format == "summary":
+                _write_json(value.summary(), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_model.federation_json(value), args.output)
+            return 0 if value.runtime.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-verify":
+            value = assurance_history_series_release_registry_federation_model.verify_federation_directory(args.input)
+            _write_json(value.summary(), args.output)
+            return 0 if value.runtime.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-query":
+            value = assurance_history_series_release_registry_federation_model.load_federation(args.input)
+            result = assurance_history_series_release_registry_federation_model.query_federation(value, resource=args.resource, state=args.state, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_model.federation_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_model.render_federation_query_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-diff":
+            baseline = assurance_history_series_release_registry_federation_model.load_federation(args.baseline)
+            candidate = assurance_history_series_release_registry_federation_model.load_federation(args.candidate)
+            value = assurance_history_series_release_registry_federation_model.build_federation_diff(baseline, candidate, **({"diff_id": args.diff_id} if args.diff_id else {}))
+            if args.destination:
+                assurance_history_series_release_registry_federation_model.write_federation_diff(value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_model.federation_diff_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_model.render_federation_diff_markdown(value), args.output)
+            elif args.format == "summary":
+                _write_json(value.summary(), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_model.federation_diff_json(value), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-diff-verify":
+            value = assurance_history_series_release_registry_federation_model.verify_federation_diff_directory(args.input)
+            _write_json(value.summary(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-diff-query":
+            value = assurance_history_series_release_registry_federation_model.load_federation_diff(args.input)
+            result = assurance_history_series_release_registry_federation_model.query_federation_diff(value, resource=args.resource, action=args.action, direction=args.direction, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_model.federation_diff_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_model.render_federation_diff_query_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0
+        federation_schema_commands = {
+            "schema": assurance_history_series_release_registry_federation_model.federation_schema,
+            "member-schema": assurance_history_series_release_registry_federation_model.federation_member_schema,
+            "package-schema": assurance_history_series_release_registry_federation_model.federation_package_schema,
+            "policy-schema": assurance_history_series_release_registry_federation_model.federation_policy_schema,
+            "check-schema": assurance_history_series_release_registry_federation_model.federation_check_schema,
+            "verification-schema": assurance_history_series_release_registry_federation_model.federation_verification_schema,
+            "policy-check-schema": assurance_history_series_release_registry_federation_model.federation_policy_check_schema,
+            "policy-evaluation-schema": assurance_history_series_release_registry_federation_model.federation_policy_evaluation_schema,
+            "stage-schema": assurance_history_series_release_registry_federation_model.federation_stage_schema,
+            "runtime-schema": assurance_history_series_release_registry_federation_model.federation_runtime_schema,
+            "query-schema": assurance_history_series_release_registry_federation_model.federation_query_schema,
+            "diff-schema": assurance_history_series_release_registry_federation_model.federation_diff_schema,
+            "diff-item-schema": assurance_history_series_release_registry_federation_model.federation_diff_item_schema,
+            "diff-query-schema": assurance_history_series_release_registry_federation_model.federation_diff_query_schema,
+            "capabilities": assurance_history_series_release_registry_federation_model.federation_capabilities,
+        }
+        federation_schema_prefix = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-"
+        if args.command.startswith(federation_schema_prefix) and args.command.removeprefix(federation_schema_prefix) in federation_schema_commands:
+            _write_json(federation_schema_commands[args.command.removeprefix(federation_schema_prefix)](), args.output)
             return 0
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime":
             runtime_value = _review_store_catalog_packet_review_gate_history_observatory_runtime_from_args(args)

@@ -1551,3 +1551,92 @@ The registry transport is exactly `manifest.json`, `entries.json`, and
 `registry.json`, with an independently verifiable two-file registry diff.
 State/readiness queries, JSON/CSV/Markdown exports, CLI commands, and the
 `.../release-registry` HTTP family are read-only over persisted registries.
+
+### Release-registry federation
+
+The federation boundary combines verified registry projections, not their
+underlying scientific payloads. Each input registry becomes an addressed
+member with its source registry address and public summary. Each package is
+projected with a source-scoped key, so package identifiers are unique within a
+registry while same-named packages from different registries remain
+traceable. Input order is normalized before addressing, making repeated
+builds deterministic across downloaded directory layouts.
+
+Admission is fail-closed at three levels. The input registry loader verifies
+the exact registry artifact set and nested package receipts. Federation
+construction rejects duplicate member identities, duplicate source-scoped
+package keys, private metadata, non-public projections, and bounded-count
+violations. The independent verification receipt then recomputes membership,
+package, state, acceptance, readiness, identity, and projection invariants
+without trusting federation aggregate fields.
+
+The policy layer has separate minimum coverage, blocked-budget, held-budget,
+blocked-state, empty-input, and release-readiness controls. The default policy
+requires at least one registry and one package, allows held members for review,
+allows no blocked members, and requires every admitted registry to be accepted
+and release-ready. Custom policies can relax optional readiness requirements,
+but a blocked source remains blocked and cannot be converted into a ready
+federation by a permissive count threshold.
+
+The runtime preserves a five-stage operational trace:
+
+1. `admit-members` confirms that every source registry is typed, persisted,
+   and independently verified;
+2. `verify-structure` recomputes identity and conservation checks;
+3. `evaluate-policy` evaluates the configured bounds and state rules;
+4. `aggregate-readiness` computes accepted and release-ready projections; and
+5. `complete` confirms the cross-linked bundle and final state.
+
+Every stage contains an input address, output address, state, acceptance
+projection, and content address. The runtime maps required failures to
+`blocked`, optional release-readiness failures to `held`, and a clean closure
+to `ready`. Empty input is a first-class `empty` federation and is permitted
+only when an explicit policy opts into it.
+
+The federation bundle is an exact eight-document transport:
+`manifest.json`, `federation.json`, `members.json`, `packages.json`,
+`policy.json`, `verification.json`, `policy-evaluation.json`, and
+`runtime.json`. The split member and package documents are checked against the
+federation document on reload. Atomic writes, canonical JSON, fixed file
+membership, regular-file checks, manifest byte receipts, nested address
+linkage, and public-boundary checks make the directory safe to move between
+machines or persist in a CI artifact. No local source path, user, model,
+language, agent, or private metadata is stored in the public projection.
+
+Federation queries are deterministic and bounded. `summary` reports the
+aggregate state; `members` and `packages` return source provenance; state
+resources split ready, held, and blocked records; acceptance and readiness
+resources expose explicit booleans; and verification, policy, and runtime
+resources expose the independent check and stage rows. Offset, limit, text,
+state, acceptance, and readiness filters are validated before projection.
+Query requests and results are addressed, and all projections are available
+as JSON, CSV, or Markdown through the CLI and HTTP route family.
+
+Federation diffs compare stable member and source-scoped package keys across
+two verified bundles. Unrelated additions do not create false changes because
+ordinal positions are excluded from record identity. Added, removed,
+unchanged, and changed actions conserve the complete union of records, while
+improved and regressed directions are derived from state, acceptance, and
+release-readiness scores. The separate two-file diff transport has the same
+canonical-byte and manifest guarantees as the federation package and is
+analysis-only over its inputs.
+
+For a downloaded-data run, first persist each independently verified release
+registry, then pass their directories to the federation command:
+
+```text
+python -m glio_noncode <long-federation-command> \
+  --input ./downloaded/registry-a \
+  --input ./downloaded/registry-b \
+  --destination ./out/federation \
+  --format summary
+python -m glio_noncode <long-federation-command>-verify \
+  --input ./out/federation
+python -m glio_noncode <long-federation-command>-query \
+  --input ./out/federation --resource release-ready
+```
+
+The long command is intentionally exposed by the existing module-workbench
+execution path so the new boundary remains discoverable beside the release
+registry. The same artifact can be inspected through the corresponding
+`.../release-registry/federation` HTTP routes or downloaded as a CI artifact.

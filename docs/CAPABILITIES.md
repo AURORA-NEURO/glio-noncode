@@ -5622,3 +5622,56 @@ with reload verification. Registry queries cover summary, membership, state,
 acceptance, and readiness; registry diffs preserve stable package keys and
 added/removed/unchanged/changed plus improved/regressed direction. CLI, HTTP,
 schema, capability, and public-surface audit projections are included.
+
+## Release-registry federation
+
+The federation layer aggregates independently verified release registries as
+addressed members. It preserves each registry's stable identity, package and
+release receipts, terminal state, acceptance, and release-readiness values;
+the underlying series, policy, evaluation, and release documents are never
+merged into one scientific payload. Package keys are scoped by source registry
+so identical package identifiers from different registries remain distinct,
+while duplicate registry identities and duplicate source-scoped package
+identities fail closed.
+
+Federation admission recomputes member and package counts, ready/held/blocked
+state totals, accepted totals, and release-ready totals. Seven independent
+structural checks cover bounded membership, unique identities, package and
+state conservation, readiness conservation, and public projection closure.
+Seven policy checks cover minimum coverage, blocked and held budgets, blocked
+state prevention, empty-federation policy, and release-readiness requirements.
+Required policy failures block the federation; optional readiness failures
+hold it. An empty federation is explicit and is accepted only when policy
+allows it.
+
+The runtime is a five-stage fail-closed closure: member admission, structural
+verification, policy evaluation, readiness aggregation, and completion. Each
+stage retains input/output addresses and a bounded state. The bundle cross-links
+the federation, policy, verification, policy evaluation, and runtime receipts,
+then exposes one accepted and one release-ready projection. A held federation
+is accepted for review but is not release-ready; blocked input registries
+remain blocked regardless of a permissive blocked-member budget.
+
+The exact federation transport contains eight canonical UTF-8 documents:
+`manifest.json`, `federation.json`, `members.json`, `packages.json`,
+`policy.json`, `verification.json`, `policy-evaluation.json`, and
+`runtime.json`. Writes are atomic and reject existing destinations unless
+overwrite is explicit. Reload verification rejects missing or extra files,
+directories and symlinks in the artifact set, non-canonical JSON, changed
+bytes, invalid content addresses, mismatched split projections, nested
+receipt drift, and public-boundary violations. The independent diff transport
+contains exactly `manifest.json` and `diff.json` and classifies member/package
+records as added, removed, unchanged, or changed with improved, regressed, or
+changed readiness direction.
+
+Bounded federation queries expose summary, members, packages, ready, held,
+blocked, accepted, release-ready, verification checks, policy checks, and
+runtime stages. Diff queries expose summary, actions, directions, and text
+matches. Every query has an addressed request/result receipt, deterministic
+ordering, offset/limit bounds, and JSON/CSV/Markdown renderings. The CLI
+command family is the long-form
+`module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-series-release-registry-federation`;
+the matching HTTP family is the existing release-registry path with a
+`/federation` suffix. Schema and capability commands describe the closed
+public contracts and fixed file set without exposing local paths, users,
+agents, models, languages, or nested private metadata.
