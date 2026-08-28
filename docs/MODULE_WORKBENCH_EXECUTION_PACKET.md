@@ -1266,3 +1266,85 @@ module-workbench-execution-packet-archive-store-replication-packet-diff-release-
 module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-query-schema
 module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-replay-query-capabilities
 ```
+
+## Portable observatory closure packet
+
+The observatory packet closes the longitudinal boundary into one transportable
+handoff. It packages the verified observatory, a freshly recomputed packet
+verification receipt, the release policy, and the five-stage runtime. The
+runtime is replayed during independent verification, so a caller cannot
+replace a policy result with a structurally plausible but inconsistent report.
+The packet retains accepted held and blocked evidence without projecting it as
+ready.
+
+The packet address deliberately excludes only the recursive verification link
+and artifact list. The verification receipt checks the packet address,
+artifact order and file names, nested observatory/policy/runtime links,
+observatory verification, runtime replay, state/readiness projection, and
+the public boundary. This produces a finite address graph while retaining
+explicit link checks.
+
+Persistence is exactly these five canonical files:
+
+```text
+manifest.json
+observatory.json
+verification.json
+policy.json
+runtime.json
+```
+
+The manifest records the packet metadata and four artifact receipts. Each
+artifact binds its file name, byte count, byte address, and content address.
+The writer stages a sibling directory and atomically publishes it. The loader
+rejects symlinks, extra or missing files, noncanonical bytes, stale manifest
+addresses, byte mismatches, stale nested addresses, and failed independent
+verification.
+
+The CLI packet command can build from a persisted observatory directory or
+repeatable history directories; it can write the exact handoff and emit
+summary, JSON, CSV, or Markdown. The query command exposes summary, artifact,
+verification, observation, transition, runtime-stage, and policy-check rows.
+The API mirrors these operations beneath the observatory `/packet` route.
+All packet projections are deterministic, path-free, timestamp-free, and
+free of attribution, agent, model, language, and identity fields.
+
+## Multi-packet observatory registry
+
+The registry provides the collection boundary above individual closure
+packets. It accepts fully verified packet directories, sorts them by packet ID
+and address, rejects duplicates, and emits one addressed entry per packet.
+The collection conserves state, acceptance, and release-readiness counts. A
+collection of only ready packets is ready; accepted non-ready packets produce
+held; blocked or rejected packet evidence produces blocked. This is a
+transport and review projection, not a scientific ranking.
+
+The exact registry directory contains:
+
+```text
+manifest.json
+registry.json
+packets.json
+verification.json
+```
+
+`registry.json` stores the public collection summary and entry index.
+`packets.json` stores the packet metadata projections used to re-check each
+packet address offline. `verification.json` contains independently recomputed
+registry findings. The manifest binds all three documents to canonical byte
+counts, byte addresses, content addresses, the registry address, and the
+verification address. Atomic writes and strict file-set checks make the
+registry safe to move between workspaces.
+
+Registry verification detects stale collection addresses, non-contiguous
+entries, duplicate IDs or packet addresses, mismatched packet metadata,
+count-conservation errors, invalid state projections, stale finding receipts,
+and forbidden public fields. Registry queries cover summaries, entry rows,
+packet rows, verification summaries, and verification checks with bounded
+filters and deterministic JSON, CSV, and Markdown exports.
+
+The CLI accepts repeatable `--packet-directory` inputs and can persist the
+registry. The API adds the registry family below
+`.../history/observatory/packet/registry`. A registry can therefore be built
+from the real downloaded-data packet handoffs produced by the preceding
+section, then inspected without reopening the original data source.

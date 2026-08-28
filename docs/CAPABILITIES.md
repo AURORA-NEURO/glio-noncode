@@ -5288,3 +5288,74 @@ The replay API is available below the history route at `/replay`, including
 the same six read-only resources and format negotiation. Both history planes
 are covered by focused regression tests, public-surface checks, continuous
 integration commands, and the persisted downloaded-packet fixture.
+
+### Portable observatory closure packets
+
+The observatory closure packet is a single path-free handoff for the verified
+longitudinal observatory, its independently recomputed packet verification,
+the explicit release policy, and the policy runtime. It preserves ready,
+held, and blocked outcomes as distinct public states. The packet address is
+acyclic because the verification link is checked by the independent receipt
+instead of being used to address that receipt; the runtime is replayed during
+verification to prove deterministic policy closure.
+
+The exact packet directory contains only `manifest.json`, `observatory.json`,
+`verification.json`, `policy.json`, and `runtime.json`. Every component has a
+canonical UTF-8 byte receipt, content address, and fixed file name. Writers
+are atomic. Loads reject symlinks, extra or missing files, noncanonical JSON,
+manifest drift, byte tampering, nested address mismatch, stale verification,
+and nondeterministic runtime replay. Directory paths are input-only and never
+appear in public output.
+
+The packet query plane provides bounded `summary`, `artifacts`,
+`verification`, `observations`, `transitions`, `stages`, and `policy-checks`
+resources with kind/state/pass/text filters and addressed JSON, CSV, and
+Markdown exports. The CLI family is:
+
+```text
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-query
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-verify
+```
+
+The loopback API adds `/observatory/packet`, `/observatory/packet/query`,
+`/observatory/packet/verify`, and packet schema/capability resources below
+the observatory route. These surfaces remain deterministic, bounded,
+timestamp-free, identity-free, and free of agent, model, language, and other
+attribution fields.
+
+### Multi-packet observatory registry
+
+The packet registry indexes multiple portable observatory closure packets in a
+canonical order. Each entry retains the packet ID, packet and verification
+addresses, state, acceptance, readiness, artifact count, and its own entry
+address. Registry state is derived from conserved ready/held/blocked counts:
+an all-ready collection is `ready`, a non-ready accepted collection is
+`held`, a collection containing blocked or rejected evidence is `blocked`,
+and an empty index is `empty`. Duplicate packet IDs and duplicate packet
+addresses are rejected.
+
+Registry transport uses exactly `manifest.json`, `registry.json`,
+`packets.json`, and `verification.json`. The packet metadata document is
+retained separately from the entry index so a registry can be rehydrated and
+checked without source directories. The independent receipt recomputes the
+registry address, entry order and addresses, packet linkage, state and
+readiness conservation, and the public boundary. Writers are atomic and
+loaders reject symlinks, unknown files, noncanonical JSON, byte tampering,
+manifest drift, and stale verification.
+
+The registry query plane supports `summary`, `entries`, `packets`,
+`verification`, and `checks` with bounded state, acceptance, readiness, text,
+offset, and limit filters. JSON, CSV, and Markdown results are addressed and
+deterministic. The CLI family is:
+
+```text
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-query
+module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verify
+```
+
+The API mirrors the registry at `/observatory/packet/registry` with build,
+query, verify, schema, capabilities, query-schema, query-capabilities,
+verification-schema, and verification-capabilities resources. Source paths
+are input-only and never appear in registry projections.

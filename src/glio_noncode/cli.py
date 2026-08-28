@@ -2227,6 +2227,45 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_runtime,
     write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_runtime,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet import (
+    build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_from_history_directories,
+    build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_from_observatory_directory,
+    load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_csv,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_json,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_csv,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_json,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_verification_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_verification_schema,
+    query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet,
+    render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_markdown,
+    render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_markdown,
+    verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet,
+    write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet,
+)
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry import (
+    build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_from_directories,
+    load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_csv,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_json,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_csv,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_json,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_verification_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_verification_schema,
+    query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
+    render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_markdown,
+    render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_markdown,
+    verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
+    write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3233,6 +3272,30 @@ def _review_store_catalog_packet_review_gate_history_observatory_runtime_from_ar
     return run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_runtime(
         observatory,
         runtime_id=args.runtime_id,
+    )
+
+
+def _review_store_catalog_packet_review_gate_history_observatory_packet_from_args(args):
+    if args.observatory_directory:
+        return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_from_observatory_directory(
+            args.observatory_directory,
+            runtime_directory=args.runtime_directory,
+            packet_id=args.packet_id,
+        )
+    if args.history_directory:
+        return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_from_history_directories(
+            args.history_directory,
+            observatory_id=args.observatory_id,
+            observation_ids=args.observation_id,
+            packet_id=args.packet_id,
+        )
+    raise ValueError("observatory_directory or history_directory is required")
+
+
+def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_from_args(args):
+    return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_from_directories(
+        args.packet_directory,
+        registry_id=args.registry_id,
     )
 
 
@@ -6265,6 +6328,52 @@ def build_parser() -> argparse.ArgumentParser:
     review_store_catalog_packet_review_gate_history_observatory_verify = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-verify", help="verify a persisted packet review gate history observatory")
     review_store_catalog_packet_review_gate_history_observatory_verify.add_argument("--input", required=True)
     review_store_catalog_packet_review_gate_history_observatory_verify.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet", help="package an observatory, verification, policy, and runtime into one handoff")
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--observatory-directory", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--runtime-directory", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--history-directory", action="append", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--observation-id", action="append", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--observatory-id", default="glio-noncode-review-store-catalog-packet-review-gate-history-observatory")
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--packet-id", default="glio-noncode-review-store-catalog-packet-review-gate-history-observatory-packet")
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--destination", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--allow-existing", action="store_true")
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    review_store_catalog_packet_review_gate_history_observatory_packet.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-query", help="query a persisted observatory handoff packet")
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--input", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--resource", choices=("summary", "artifacts", "verification", "observations", "transitions", "stages", "policy-checks"), default="summary")
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--kind", choices=("observatory", "verification", "policy", "runtime"), default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--state", choices=("ready", "held", "blocked"), default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--passed", action="store_true", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--text", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--offset", type=int, default=0)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--limit", type=int, default=50)
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    review_store_catalog_packet_review_gate_history_observatory_packet_query.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_verify = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-verify", help="verify a persisted observatory handoff packet")
+    review_store_catalog_packet_review_gate_history_observatory_packet_verify.add_argument("--input", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_verify.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry", help="index multiple observatory handoff packets")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry.add_argument("--packet-directory", action="append", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry.add_argument("--registry-id", default="glio-noncode-observatory-packet-registry")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry.add_argument("--destination", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry.add_argument("--allow-existing", action="store_true")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-query", help="query a persisted observatory packet registry")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--input", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--resource", choices=("summary", "entries", "packets", "verification", "checks"), default="summary")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--state", choices=("ready", "held", "blocked", "empty"), default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--accepted", action="store_true", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--release-ready", action="store_true", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--text", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--offset", type=int, default=0)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--limit", type=int, default=50)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_query.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_verify = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verify", help="verify a persisted observatory packet registry")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_verify.add_argument("--input", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_verify.add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -6315,6 +6424,18 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-query-capabilities", help="print packet review history observatory query capabilities").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-verification-schema", help="print packet review history observatory verification schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-verification-capabilities", help="print packet review history observatory verification capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-schema", help="print observatory handoff packet schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-capabilities", help="print observatory handoff packet capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-query-schema", help="print observatory handoff packet query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-query-capabilities", help="print observatory handoff packet query capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-verification-schema", help="print observatory handoff packet verification schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-verification-capabilities", help="print observatory handoff packet verification capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-schema", help="print observatory packet registry schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-capabilities", help="print observatory packet registry capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-query-schema", help="print observatory packet registry query schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-query-capabilities", help="print observatory packet registry query capabilities").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verification-schema", help="print observatory packet registry verification schema").add_argument("--output", default=None)
+    subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verification-capabilities", help="print observatory packet registry verification capabilities").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-schema", help="print packet review history observatory runtime schema").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-capabilities", help="print packet review history observatory runtime capabilities").add_argument("--output", default=None)
     subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-query-schema", help="print packet review history observatory runtime query schema").add_argument("--output", default=None)
@@ -29357,6 +29478,42 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-verification-capabilities":
             _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_verification_capabilities(), args.output)
             return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-verification-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_verification_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-verification-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_verification_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_capabilities(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verification-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_verification_schema(), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verification-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_verification_capabilities(), args.output)
+            return 0
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime-schema":
             _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_runtime_schema(), args.output)
             return 0
@@ -29401,6 +29558,62 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-verify":
             observatory_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory(args.input)
             verification = verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory(observatory_value)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet":
+            packet_value = _review_store_catalog_packet_review_gate_history_observatory_packet_from_args(args)
+            if args.destination:
+                write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet(packet_value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_csv(packet_value), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_markdown(packet_value), args.output)
+            elif args.format == "summary":
+                _write_json(packet_value.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_json(packet_value), args.output)
+            return 0 if packet_value.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-query":
+            packet_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet(args.input)
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet(packet_value, resource=args.resource, kind=args.kind, state=args.state, passed=args.passed, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_query_json(result), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-verify":
+            packet_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet(args.input)
+            verification = verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet(packet_value)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry":
+            registry_value = _review_store_catalog_packet_review_gate_history_observatory_packet_registry_from_args(args)
+            if args.destination:
+                write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry(registry_value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_csv(registry_value), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_markdown(registry_value), args.output)
+            elif args.format == "summary":
+                _write_json(registry_value.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_json(registry_value), args.output)
+            return 0 if registry_value.accepted else 2
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-query":
+            registry_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry(args.input)
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry(registry_value, resource=args.resource, state=args.state, accepted=args.accepted, release_ready=args.release_ready, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_query_json(result), args.output)
+            return 0
+        if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verify":
+            registry_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry(args.input)
+            verification = verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry(registry_value)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime":

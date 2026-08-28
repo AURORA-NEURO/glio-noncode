@@ -1066,6 +1066,24 @@ GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/capabilities
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/policy/schema
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/runtime/policy/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/verify
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/query/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/verification/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/verification/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/verify
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/query/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/verification/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/verification/capabilities
 ```
 
 Build and query requests accept repeatable `history_directory` values and
@@ -1074,6 +1092,14 @@ stage, policy-check, acceptance, readiness, text, and paging filters. The
 service only reads caller-supplied archives and never returns those paths.
 Ready/held/blocked semantics are retained in the response status and payload;
 policy failures are not silently promoted.
+
+The nested observatory packet route accepts either an existing packet
+`input`/`packet_directory` or an observatory directory/history-directory build
+source. Packet responses can be returned as summary, JSON, CSV, or Markdown;
+packet queries expose component, observation, transition, stage, and
+policy-check resources. `/verify` reloads the exact five-file packet and emits
+the independent verification receipt. Packet paths are caller inputs only and
+are never echoed.
 
 Longitudinal gate history and replay extend the packet-review service with
 durable, inspectable decision timelines. The history endpoint records
@@ -1096,6 +1122,12 @@ decision, state, acceptance, readiness, text, offset, and limit filters.
 History archives are exact `manifest.json` plus `history.json` directories;
 the service consumes caller-provided packet directories but does not echo
 those locations in responses.
+
+The nested packet registry builds from repeatable `packet_directory` values or
+loads an existing registry through `input`/`registry_directory`. Its query
+resources return collection summaries, entry rows, packet metadata,
+verification summaries, and checks. All registry routes are bounded,
+deterministic, path-free, timestamp-free, and identity-free.
 
 Replay reconstructs the history from `start` to its terminal state and emits
 independently addressed transition events, state-chain checks, gate/head
