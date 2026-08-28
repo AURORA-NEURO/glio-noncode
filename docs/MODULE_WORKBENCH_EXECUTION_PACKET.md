@@ -1423,3 +1423,57 @@ resolved items, plus improved or regressed aggregate state. Both projections
 are path-free, bounded, deterministic, and queryable as JSON, CSV, or
 Markdown. Source paths and identity-like metadata remain outside this public
 boundary.
+
+### Federation review decision handoff
+
+After a federation assurance gate produces its operational review queue, the
+decision-ledger layer records adjudication without mutating the queue or
+overriding the source release gate. The ledger carries all queue-item metadata,
+then appends addressed `acknowledge`, `remediate`, `waive`, `escalate`, and
+`reopen` entries with contiguous previous-head links. Remediation requires an
+evidence address; critical blocker items cannot be waived; reopening requires a
+prior decision; and an expected-head guard rejects stale writers.
+
+Ledger replay derives effective item state and conserved counts. A closed
+ledger means operational work is closed, while `release_ready` additionally
+requires the original queue to have been release-ready. This distinction keeps
+human review evidence separate from promotion authority.
+
+The exact three-file decision package is `manifest.json`, `ledger.json`, and
+`entries.json`. It rejects missing, extra, symlinked, non-canonical, tampered,
+or incorrectly addressed files. Decision-ledger snapshots also support
+deterministic added/removed/unchanged/changed diffs and resolved open-to-closed
+queries, all exposed through the CLI and HTTP API.
+
+### Independent review-decision assurance
+
+The decision ledger is checked by a separate assurance plane before it can be
+used as a release handoff. The assurance builder does not trust ledger
+aggregates alone: it recomputes the ledger address, queue linkage, item
+addresses, append-only entry chain, entry-to-item linkage, remediation
+evidence, waiver limits, terminal head, count conservation, source-queue
+readiness, public boundary, and effective accepted state. These become 12
+addressed findings with explicit pass, warning, or blocker severity.
+
+The release gate adds eight conserved checks. The original source queue remains
+authoritative, so an accepted-but-held queue can produce a held gate and a
+blocked queue produces a blocked gate even after every operational item has
+been adjudicated. The assurance handoff is exactly
+`manifest.json`, `assurance.json`, and `gate.json`; all bytes, file receipts,
+nested addresses, and canonical documents are checked on reload. Bounded
+queries and JSON/CSV/Markdown exports are available through the assurance CLI
+and decision-prefix HTTP routes.
+
+### Assurance snapshot diffs
+
+Two persisted decision-assurance gates can be compared as an analysis-only
+projection. The diff verifies both inputs, joins their findings and checks by
+stable plane/kind keys, retains baseline/candidate addresses, and classifies
+each row as added, removed, unchanged, or changed. Outcome scoring identifies
+improvements and regressions while preserving mixed changes as `changed`.
+
+The exact diff handoff is `manifest.json` plus `diff.json`. Atomic writes,
+canonical JSON, byte/file receipts, exact file membership, manifest linkage,
+record addresses, bounded queries, and JSON/CSV/Markdown exports are all
+verified. CLI and HTTP diff routes are read-only and never mutate either
+assurance gate.

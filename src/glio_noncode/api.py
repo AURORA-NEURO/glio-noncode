@@ -165,6 +165,58 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     query_review_diff,
     query_review_queue,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger import (
+    append_decision_by_address,
+    build_decision_diff,
+    build_decision_ledger,
+    decision_capabilities,
+    decision_diff_csv,
+    decision_diff_json,
+    decision_diff_schema,
+    decision_ledger_csv,
+    decision_ledger_json,
+    decision_ledger_schema,
+    decision_query_csv,
+    decision_query_json,
+    decision_query_schema,
+    load_decision_ledger,
+    query_decision_diff,
+    query_decision_ledger,
+    render_decision_diff_markdown,
+    render_decision_query_markdown,
+    render_decision_ledger_markdown,
+    verify_decision_diff,
+    verify_decision_ledger,
+)
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance import (
+    assurance_csv as decision_assurance_csv,
+    assurance_gate_json as decision_assurance_gate_json,
+    assurance_gate_schema as decision_assurance_gate_schema,
+    assurance_schema as decision_assurance_schema,
+    build_decision_assurance_diff,
+    build_decision_assurance_gate,
+    capabilities as decision_assurance_capabilities,
+    decision_assurance_diff_csv,
+    decision_assurance_diff_json,
+    decision_assurance_diff_query_csv,
+    decision_assurance_diff_query_json,
+    decision_assurance_diff_query_schema,
+    decision_assurance_diff_schema,
+    gate_schema as decision_gate_schema,
+    load_decision_assurance_gate,
+    load_decision_assurance_diff,
+    query_csv as decision_assurance_query_csv,
+    query_json as decision_assurance_query_json,
+    query_schema as decision_assurance_query_schema,
+    query_decision_assurance,
+    query_decision_assurance_diff,
+    render_assurance_gate_markdown as render_decision_assurance_gate_markdown,
+    render_decision_assurance_diff_markdown,
+    render_decision_assurance_diff_query_markdown,
+    render_query_markdown as render_decision_assurance_query_markdown,
+    verify_decision_assurance_gate,
+    verify_decision_assurance_diff,
+)
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -1937,6 +1989,254 @@ class ApiHandler(BaseHTTPRequestHandler):
                     return
 
                 federation_review_prefix = federation_assurance_gate_prefix + "/review"
+                decision_prefix = federation_review_prefix + "/decisions"
+                assurance_diff_prefix = decision_prefix + "/assurance-diff"
+                if path == assurance_diff_prefix + "/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_diff_schema())
+                    return
+                if path == assurance_diff_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_diff_query_schema())
+                    return
+                if path == assurance_diff_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_capabilities())
+                    return
+                if path == assurance_diff_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    verified = verify_decision_assurance_diff(load_decision_assurance_diff(directory))
+                    self._write(HTTPStatus.OK, verified.summary())
+                    return
+                if path == assurance_diff_prefix or path == assurance_diff_prefix + "/query":
+                    baseline_directory = self._query_value(query, "baseline") or self._query_value(query, "baseline_directory")
+                    candidate_directory = self._query_value(query, "candidate") or self._query_value(query, "candidate_directory")
+                    if not baseline_directory or not candidate_directory:
+                        raise ValueError("baseline and candidate assurance gates are required")
+                    diff_value = build_decision_assurance_diff(
+                        load_decision_assurance_gate(baseline_directory),
+                        load_decision_assurance_gate(candidate_directory),
+                        diff_id=self._query_value(query, "diff_id") or "glio-noncode-observatory-registry-federation-review-decision-assurance-diff",
+                    )
+                    if path.endswith("/query"):
+                        result = query_decision_assurance_diff(
+                            diff_value,
+                            resource=self._query_value(query, "resource") or "summary",
+                            action=self._query_value(query, "action"),
+                            plane=self._query_value(query, "plane"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, decision_assurance_diff_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_decision_assurance_diff_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_diff_csv(diff_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_diff_markdown(diff_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, diff_value.summary() if output_format == "summary" else diff_value.to_dict())
+                    return
+                if path == decision_prefix + "/assurance-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_schema())
+                    return
+                if path == decision_prefix + "/gate-schema":
+                    self._write(HTTPStatus.OK, decision_gate_schema())
+                    return
+                if path == decision_prefix + "/assurance-gate-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_gate_schema())
+                    return
+                if path == decision_prefix + "/assurance-query-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_query_schema())
+                    return
+                if path == decision_prefix + "/query-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_query_schema())
+                    return
+                if path == decision_prefix + "/assurance-capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_capabilities())
+                    return
+                if path == decision_prefix + "/schema":
+                    self._write(HTTPStatus.OK, decision_ledger_schema())
+                    return
+                if path == decision_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, decision_capabilities())
+                    return
+                if path == decision_prefix + "/diff/schema":
+                    self._write(HTTPStatus.OK, decision_diff_schema())
+                    return
+                if path == decision_prefix + "/query/schema":
+                    self._write(HTTPStatus.OK, decision_query_schema())
+                    return
+                if path == decision_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    try:
+                        assurance_gate_value = load_decision_assurance_gate(directory)
+                    except ValidationError:
+                        verified = verify_decision_ledger(load_decision_ledger(directory))
+                        self._write(HTTPStatus.OK if verified.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, verified.summary())
+                        return
+                    verified = verify_decision_assurance_gate(assurance_gate_value)
+                    self._write(
+                        HTTPStatus.OK if verified.assurance.accepted and verified.gate.accepted else HTTPStatus.UNPROCESSABLE_ENTITY,
+                        {"assurance": verified.assurance.summary(), "gate": verified.gate.summary()},
+                    )
+                    return
+                if path == decision_prefix + "/append":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory")
+                    item_address = self._query_value(query, "item_address")
+                    action = self._query_value(query, "action")
+                    rationale = self._query_value(query, "rationale")
+                    if not directory or not item_address or not action or not rationale:
+                        raise ValueError("input, item_address, action, and rationale are required")
+                    value = append_decision_by_address(
+                        load_decision_ledger(directory),
+                        item_address,
+                        action,
+                        rationale,
+                        evidence_address=self._query_value(query, "evidence_address"),
+                        expected_head_address=self._query_value(query, "expected_head_address"),
+                        decision_id=self._query_value(query, "decision_id"),
+                    )
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_ledger_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_ledger_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK if value.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary() if output_format == "summary" else value.to_dict())
+                    return
+                if path == decision_prefix + "/diff" or path == decision_prefix + "/diff/query":
+                    baseline_directory = self._query_value(query, "baseline") or self._query_value(query, "baseline_directory")
+                    candidate_directory = self._query_value(query, "candidate") or self._query_value(query, "candidate_directory")
+                    if not baseline_directory or not candidate_directory:
+                        raise ValueError("baseline and candidate decision ledgers are required")
+                    diff_value = build_decision_diff(
+                        load_decision_ledger(baseline_directory),
+                        load_decision_ledger(candidate_directory),
+                        diff_id=self._query_value(query, "diff_id") or "glio-noncode-observatory-registry-federation-review-decision-diff",
+                    )
+                    if path.endswith("/query"):
+                        result = query_decision_diff(
+                            diff_value,
+                            resource=self._query_value(query, "resource") or "summary",
+                            state=self._query_value(query, "state"),
+                            action=self._query_value(query, "action"),
+                            record_type=self._query_value(query, "record_type"),
+                            plane=self._query_value(query, "plane"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, decision_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_decision_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_diff_csv(diff_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_diff_markdown(diff_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, diff_value.summary() if output_format == "summary" else diff_value.to_dict())
+                    return
+                if path == decision_prefix or path == decision_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory")
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    if path.endswith("/query"):
+                        try:
+                            assurance_gate_value = load_decision_assurance_gate(directory)
+                        except ValidationError:
+                            assurance_gate_value = None
+                        if assurance_gate_value is not None:
+                            result = query_decision_assurance(
+                                assurance_gate_value,
+                                resource=self._query_value(query, "resource") or "summary",
+                                severity=self._query_value(query, "severity"),
+                                passed=self._query_bool(query, "passed") if "passed" in query else None,
+                                required=self._query_bool(query, "required") if "required" in query else None,
+                                plane=self._query_value(query, "plane"),
+                                text=self._query_value(query, "q") or self._query_value(query, "text"),
+                                offset=self._query_int(query, "offset", 0),
+                                limit=self._query_int(query, "limit", 50),
+                            )
+                            output_format = self._query_value(query, "format") or "json"
+                            if output_format == "csv":
+                                self._write_bytes(HTTPStatus.OK, decision_assurance_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                                return
+                            if output_format == "markdown":
+                                self._write_bytes(HTTPStatus.OK, render_decision_assurance_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                                return
+                            self._write(HTTPStatus.OK, result.to_dict())
+                            return
+                        value = load_decision_ledger(directory)
+                        result = query_decision_ledger(
+                            value,
+                            resource=self._query_value(query, "resource") or "summary",
+                            state=self._query_value(query, "state"),
+                            action=self._query_value(query, "action"),
+                            record_type=self._query_value(query, "record_type"),
+                            plane=self._query_value(query, "plane"),
+                            text=self._query_value(query, "q") or self._query_value(query, "text"),
+                            offset=self._query_int(query, "offset", 0),
+                            limit=self._query_int(query, "limit", 50),
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, decision_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_decision_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    try:
+                        source_ledger = load_decision_ledger(directory)
+                    except ValidationError:
+                        source_ledger = None
+                    if source_ledger is not None:
+                        value = build_decision_assurance_gate(
+                            source_ledger,
+                            assurance_id=self._query_value(query, "assurance_id") or "glio-noncode-observatory-registry-federation-review-decision-assurance",
+                            gate_id=self._query_value(query, "gate_id") or "glio-noncode-observatory-registry-federation-review-decision-gate",
+                        )
+                        output_format = self._query_value(query, "format") or "json"
+                        status = HTTPStatus.OK if value.gate.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                        if output_format == "csv":
+                            self._write_bytes(status, decision_assurance_csv(value.assurance).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(status, render_decision_assurance_gate_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(status, value.summary() if output_format == "summary" else value.to_dict())
+                        return
+                    value = build_decision_ledger(load_review_queue(directory), ledger_id=self._query_value(query, "ledger_id") or "glio-noncode-observatory-registry-federation-review-decision-ledger")
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_ledger_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_ledger_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, value.summary() if output_format == "summary" else value.to_dict())
+                    return
                 if path == federation_review_prefix + "/schema":
                     self._write(HTTPStatus.OK, review_queue_schema())
                     return

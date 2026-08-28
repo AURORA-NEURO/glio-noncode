@@ -5455,3 +5455,78 @@ states. Queue and diff queries support bounded state, priority, action, pass,
 record-type, plane, text, and paging filters with deterministic JSON, CSV, and
 Markdown exports. The CLI and API expose build, verify, query, diff, schema,
 and capability surfaces below the federation assurance-gate review boundary.
+## Federation review decision ledger
+
+The federation review decision ledger is the write-side operational layer for
+the review queue. It preserves the immutable queue-item snapshot and records
+bounded append-only adjudication entries. Each entry is addressed, chained to
+the preceding head, and limited to one of five explicit actions:
+`acknowledge`, `remediate`, `waive`, `escalate`, or `reopen`.
+
+`remediate` requires an evidence address, `waive` is limited to non-critical
+warning items, and `reopen` requires a prior closed decision. An optimistic
+`--expected-head-address` guard prevents stale writers from forking the chain.
+Decision replay exposes covered, open, closed, unreviewed, escalated, and
+blocked counts. Closing operational items never promotes the source queue: the
+original assurance gate remains authoritative and a non-ready source remains
+non-ready until a new verified queue is supplied.
+
+The portable package contains exactly `manifest.json`, `ledger.json`, and
+`entries.json`, with canonical bytes, per-file receipts, entry-chain checks,
+symlink rejection, and deterministic content addresses. Decision snapshots can
+be compared as added, removed, unchanged, or changed rows, including explicit
+open-to-closed resolutions.
+
+Example commands:
+
+```text
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decisions --input review-queue --destination decision-ledger --format summary
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decisions-append --input decision-ledger --item-address ITEM_ADDRESS --action remediate --rationale "condition remediated" --evidence-address EVIDENCE_ADDRESS --destination decision-ledger-next
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decisions-query --input decision-ledger --resource open --limit 50
+python -m glio_noncode module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decisions-diff --baseline decision-ledger --candidate decision-ledger-next --format markdown
+```
+
+The HTTP surface is nested under `/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/assurance-gate/review/decisions`, with read-only build, append projection, query, verify, diff, schema, and capabilities routes.
+
+## Independent decision assurance and release gating
+
+The decision-ledger assurance layer independently recomputes ledger linkage,
+queue-item addresses, entry ancestry, evidence requirements, waiver policy,
+count conservation, source readiness, and the public boundary. It emits 12
+addressed findings and an 8-check release gate. Required failures block;
+optional closure/readiness failures hold; only a warning-free, fully closed
+ledger whose source queue was release-ready can promote.
+
+Its exact handoff contains only:
+
+```text
+manifest.json
+assurance.json
+gate.json
+```
+
+The loader verifies canonical JSON, exact file membership, byte hashes, file
+addresses, nested assurance/gate addresses, and manifest linkage. Queries can
+select summary, findings, blockers, warnings, checks, or failed records with
+bounded severity, pass, required, plane, text, and paging filters. The CLI
+family is rooted at `...-review-decisions-assurance`; the HTTP surface reuses
+the review decision prefix and adds assurance component schema and capability
+routes. The layer is an independent release control and cannot promote a
+non-ready source queue merely because its operational decisions are closed.
+
+### Assurance snapshot diffs
+
+Independent decision assurance gates can be compared without reusing either
+snapshot's mutable state. The diff joins 12 assurance findings and 8 release
+checks by stable plane/kind keys, then reports `added`, `removed`, `unchanged`,
+and `changed` records together with `improved`, `regressed`, or mixed
+`changed` outcome state. It compares semantic pass, severity, and requirement
+fields while retaining both addressed snapshots for audit linkage.
+
+Diffs are bounded and path-free, support action/plane/text filters with
+deterministic paging, and export as JSON, CSV, or Markdown. Their portable
+handoff is exactly `manifest.json` and `diff.json`; canonical bytes, byte
+receipts, file membership, manifest linkage, and nested record addresses are
+verified on reload. The CLI family is rooted at
+`...-review-decisions-assurance-diff`, and the HTTP family is rooted at
+`.../review/decisions/assurance-diff`.
