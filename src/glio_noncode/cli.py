@@ -2524,6 +2524,7 @@ from .assurance_history_series_release_registry import (
     write_decision_assurance_history_series_release_registry_diff,
 )
 from . import assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model
+from . import assurance_history_series_release_registry_federation_gate as assurance_history_series_release_registry_federation_gate_model
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3568,6 +3569,7 @@ _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-decision-ledger-assurance-history-series-release"
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-registry"
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-federation"
+_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_COMMAND + "-gate"
 
 
 def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args):
@@ -7127,6 +7129,30 @@ def build_parser() -> argparse.ArgumentParser:
     decision_assurance_history_series_release_registry_federation_diff_query_parser.add_argument("--output", default=None)
     for suffix, help_text in (("schema", "print release registry federation schema"), ("member-schema", "print release registry federation member schema"), ("package-schema", "print release registry federation package schema"), ("policy-schema", "print release registry federation policy schema"), ("check-schema", "print release registry federation check schema"), ("verification-schema", "print release registry federation verification schema"), ("policy-check-schema", "print release registry federation policy check schema"), ("policy-evaluation-schema", "print release registry federation policy evaluation schema"), ("stage-schema", "print release registry federation stage schema"), ("runtime-schema", "print release registry federation runtime schema"), ("query-schema", "print release registry federation query schema"), ("diff-schema", "print release registry federation diff schema"), ("diff-item-schema", "print release registry federation diff item schema"), ("diff-query-schema", "print release registry federation diff query schema"), ("capabilities", "print release registry federation capabilities")):
         subparsers.add_parser(decision_assurance_history_series_release_registry_federation_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    federation_gate_command = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND
+    federation_gate_parser = subparsers.add_parser(federation_gate_command, help="independently assure and gate a persisted release registry federation")
+    federation_gate_parser.add_argument("--input", required=True, metavar="DIRECTORY")
+    federation_gate_parser.add_argument("--gate-id", default=assurance_history_series_release_registry_federation_gate_model.DEFAULT_GATE_ID)
+    federation_gate_parser.add_argument("--destination", default=None)
+    federation_gate_parser.add_argument("--allow-existing", action="store_true")
+    federation_gate_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    federation_gate_parser.add_argument("--output", default=None)
+    federation_gate_verify_parser = subparsers.add_parser(federation_gate_command + "-verify", help="verify a persisted federation assurance gate")
+    federation_gate_verify_parser.add_argument("--input", required=True)
+    federation_gate_verify_parser.add_argument("--output", default=None)
+    federation_gate_query_parser = subparsers.add_parser(federation_gate_command + "-query", help="query a persisted federation assurance gate")
+    federation_gate_query_parser.add_argument("--input", required=True)
+    federation_gate_query_parser.add_argument("--resource", choices=assurance_history_series_release_registry_federation_gate_model.FederationGateQuery.RESOURCES, default="summary")
+    federation_gate_query_parser.add_argument("--plane", choices=tuple(assurance_history_series_release_registry_federation_gate_model.GatePlane), default=None)
+    federation_gate_query_parser.add_argument("--severity", choices=tuple(assurance_history_series_release_registry_federation_gate_model.FindingSeverity), default=None)
+    federation_gate_query_parser.add_argument("--passed", action="store_true", default=None)
+    federation_gate_query_parser.add_argument("--text", default=None)
+    federation_gate_query_parser.add_argument("--offset", type=int, default=0)
+    federation_gate_query_parser.add_argument("--limit", type=int, default=50)
+    federation_gate_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    federation_gate_query_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print federation assurance gate bundle schema"), ("assurance-schema", "print federation assurance schema"), ("finding-schema", "print federation assurance finding schema"), ("gate-schema", "print federation release gate schema"), ("gate-check-schema", "print federation gate check schema"), ("query-schema", "print federation gate query schema"), ("manifest-schema", "print federation gate manifest schema"), ("capabilities", "print federation assurance gate capabilities")):
+        subparsers.add_parser(federation_gate_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -31109,6 +31135,49 @@ def main(argv: list[str] | None = None) -> int:
                 _write_text(assurance_history_series_release_registry_federation_model.render_federation_diff_query_markdown(result), args.output)
             else:
                 _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND:
+            federation_value = assurance_history_series_release_registry_federation_model.load_federation(args.input)
+            gate_value = assurance_history_series_release_registry_federation_gate_model.build_federation_assurance_gate(federation_value, gate_id=args.gate_id)
+            if args.destination:
+                assurance_history_series_release_registry_federation_gate_model.write_federation_assurance_gate(gate_value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_gate_model.assurance_gate_csv(gate_value), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_gate_model.render_assurance_gate_markdown(gate_value), args.output)
+            elif args.format == "summary":
+                _write_json(gate_value.summary(), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_model.assurance_gate_json(gate_value), args.output)
+            return 0 if gate_value.gate.release_ready else 2
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND + "-verify":
+            gate_value = assurance_history_series_release_registry_federation_gate_model.load_federation_assurance_gate(args.input)
+            verified = assurance_history_series_release_registry_federation_gate_model.verify_federation_assurance_gate(gate_value)
+            _write_json(verified.summary(), args.output)
+            return 0 if verified.gate.release_ready else 2
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND + "-query":
+            gate_value = assurance_history_series_release_registry_federation_gate_model.load_federation_assurance_gate(args.input)
+            result = assurance_history_series_release_registry_federation_gate_model.query_federation_assurance_gate(gate_value, resource=args.resource, plane=args.plane, severity=args.severity, passed=args.passed, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(assurance_history_series_release_registry_federation_gate_model.query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(assurance_history_series_release_registry_federation_gate_model.render_query_markdown(result), args.output)
+            else:
+                _write_text(assurance_history_series_release_registry_federation_gate_model.query_json(result), args.output)
+            return 0
+        federation_gate_schema_commands = {
+            "schema": assurance_history_series_release_registry_federation_gate_model.assurance_gate_schema,
+            "assurance-schema": assurance_history_series_release_registry_federation_gate_model.assurance_schema,
+            "finding-schema": assurance_history_series_release_registry_federation_gate_model.finding_schema,
+            "gate-schema": assurance_history_series_release_registry_federation_gate_model.gate_schema,
+            "gate-check-schema": assurance_history_series_release_registry_federation_gate_model.gate_check_schema,
+            "query-schema": assurance_history_series_release_registry_federation_gate_model.query_schema,
+            "manifest-schema": assurance_history_series_release_registry_federation_gate_model.manifest_schema,
+            "capabilities": assurance_history_series_release_registry_federation_gate_model.federation_assurance_gate_capabilities,
+        }
+        federation_gate_schema_prefix = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_COMMAND + "-"
+        if args.command.startswith(federation_gate_schema_prefix) and args.command.removeprefix(federation_gate_schema_prefix) in federation_gate_schema_commands:
+            _write_json(federation_gate_schema_commands[args.command.removeprefix(federation_gate_schema_prefix)](), args.output)
             return 0
         federation_schema_commands = {
             "schema": assurance_history_series_release_registry_federation_model.federation_schema,

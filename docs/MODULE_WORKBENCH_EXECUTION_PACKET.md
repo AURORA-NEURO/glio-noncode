@@ -1640,3 +1640,27 @@ The long command is intentionally exposed by the existing module-workbench
 execution path so the new boundary remains discoverable beside the release
 registry. The same artifact can be inspected through the corresponding
 `.../release-registry/federation` HTTP routes or downloaded as a CI artifact.
+
+### Independent federation assurance gate
+
+After a release-registry federation is persisted, the independent gate
+boundary can recompute and retain a review receipt:
+
+```text
+python -m glio_noncode <long-federation-command>-gate \
+  --input ./out/federation \
+  --destination ./out/federation-gate \
+  --format summary
+python -m glio_noncode <long-federation-command>-gate-verify \
+  --input ./out/federation-gate
+python -m glio_noncode <long-federation-command>-gate-query \
+  --input ./out/federation-gate --resource failed-findings
+```
+
+The gate has ten independent assurance findings and eight release checks.
+Blockers fail closed, warnings hold the release for review, and a clean
+federation promotes. The exact three-file gate package is portable across
+machines and CI jobs. Its manifest binds the source federation, runtime,
+assurance, and gate addresses and records exact byte receipts. The HTTP
+surface is rooted at `.../release-registry/federation/gate`, with separate
+schema, capabilities, verify, query, assurance, and release projections.

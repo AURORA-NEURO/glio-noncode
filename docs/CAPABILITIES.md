@@ -5675,3 +5675,30 @@ the matching HTTP family is the existing release-registry path with a
 `/federation` suffix. Schema and capability commands describe the closed
 public contracts and fixed file set without exposing local paths, users,
 agents, models, languages, or nested private metadata.
+
+## Independent federation assurance gate
+
+The release-registry federation gate is a second, independent review boundary
+over a persisted federation. It recomputes source federation integrity,
+verification, policy, runtime, count conservation, state coherence, and the
+path-free public boundary instead of trusting the source aggregate decision.
+Ten addressed findings classify failures as blockers or warnings. A blocker
+produces `block`; a warning produces `hold`; a clean assurance produces
+`promote`. The release gate then applies eight independent checks, preserving
+required-versus-optional failures and making acceptance and release readiness
+explicit.
+
+The portable gate package contains exactly three canonical UTF-8 documents:
+`manifest.json`, `assurance.json`, and `gate.json`. Atomic writes reject
+non-empty destinations unless overwrite is explicit. Reload checks exact file
+membership, canonical bytes, stable content addresses, source linkage, and a
+byte receipt for every data document. The public projection excludes local
+paths, users, agents, models, languages, and private metadata.
+
+Gate queries are bounded and deterministic. They expose summary, findings,
+blockers, warnings, failed findings, checks, failed checks, required failures,
+and optional failures, with plane, severity, passed, text, offset, and limit
+filters. JSON, CSV, and Markdown outputs are available through the long-form
+CLI command family and the `/release-registry/federation/gate` HTTP routes.
+The gate command consumes an already persisted federation and can persist a
+portable gate package for CI review or downstream release decisions.

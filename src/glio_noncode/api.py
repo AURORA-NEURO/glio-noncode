@@ -323,6 +323,7 @@ from .assurance_history_series_release_registry import (
     verify_decision_assurance_history_series_release_registry_diff,
 )
 from . import assurance_history_series_release_registry_federation as assurance_history_series_release_registry_federation_model
+from . import assurance_history_series_release_registry_federation_gate as assurance_history_series_release_registry_federation_gate_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -2446,6 +2447,81 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_model.render_federation_diff_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                         return
                     self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                federation_gate_prefix = assurance_history_series_release_registry_federation_prefix + "/gate"
+                federation_gate_schema_routes = {
+                    "/schema": assurance_history_series_release_registry_federation_gate_model.assurance_gate_schema,
+                    "/assurance-schema": assurance_history_series_release_registry_federation_gate_model.assurance_schema,
+                    "/finding-schema": assurance_history_series_release_registry_federation_gate_model.finding_schema,
+                    "/gate-schema": assurance_history_series_release_registry_federation_gate_model.gate_schema,
+                    "/gate-check-schema": assurance_history_series_release_registry_federation_gate_model.gate_check_schema,
+                    "/query-schema": assurance_history_series_release_registry_federation_gate_model.query_schema,
+                    "/manifest-schema": assurance_history_series_release_registry_federation_gate_model.manifest_schema,
+                }
+                for suffix, schema_builder in federation_gate_schema_routes.items():
+                    if path == federation_gate_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == federation_gate_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_model.federation_assurance_gate_capabilities())
+                    return
+                if path == federation_gate_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_model.load_federation_assurance_gate(directory)
+                    verified = assurance_history_series_release_registry_federation_gate_model.verify_federation_assurance_gate(value)
+                    self._write(HTTPStatus.OK if verified.gate.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, verified.summary())
+                    return
+                if path == federation_gate_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_gate_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_model.load_federation_assurance_gate(directory)
+                    result = assurance_history_series_release_registry_federation_gate_model.query_federation_assurance_gate(
+                        value,
+                        resource=self._query_value(query, "resource") or "summary",
+                        plane=self._query_value(query, "plane"),
+                        severity=self._query_value(query, "severity"),
+                        passed=self._query_bool(query, "passed") if "passed" in query else None,
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", 50),
+                    )
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == federation_gate_prefix or path == federation_gate_prefix + "/assurance" or path == federation_gate_prefix + "/release":
+                    directory = self._query_value(query, "input") or self._query_value(query, "federation_directory") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_directory", None)
+                    if not directory:
+                        raise ValueError("input or federation_directory is required")
+                    value = assurance_history_series_release_registry_federation_gate_model.build_federation_assurance_gate(
+                        assurance_history_series_release_registry_federation_model.load_federation(directory),
+                        gate_id=self._query_value(query, "gate_id") or assurance_history_series_release_registry_federation_gate_model.DEFAULT_GATE_ID,
+                    )
+                    output_format = self._query_value(query, "format") or "json"
+                    if path.endswith("/assurance"):
+                        payload = value.assurance.to_dict()
+                        status = HTTPStatus.OK if value.assurance.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    elif path.endswith("/release"):
+                        payload = value.gate.to_dict()
+                        status = HTTPStatus.OK if value.gate.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_model.assurance_gate_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, assurance_history_series_release_registry_federation_gate_model.render_assurance_gate_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.summary() if output_format == "summary" else value.to_dict()
+                        status = HTTPStatus.OK if value.gate.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
+                    self._write(status, payload)
                     return
                 if path == assurance_history_series_release_registry_federation_prefix + "/query" or path == assurance_history_series_release_registry_federation_prefix:
                     directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_directory", None)
