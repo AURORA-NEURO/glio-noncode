@@ -267,6 +267,61 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     render_decision_assurance_history_series_policy_evaluation_markdown,
     verify_decision_assurance_history_series_policy_evaluation,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_release import (
+    capabilities as decision_assurance_history_series_release_capabilities,
+    decision_assurance_history_series_release_diff_item_schema,
+    decision_assurance_history_series_release_diff_query_csv,
+    decision_assurance_history_series_release_diff_query_json,
+    decision_assurance_history_series_release_diff_query_schema,
+    decision_assurance_history_series_release_diff_schema,
+    decision_assurance_history_series_release_diff_csv,
+    decision_assurance_history_series_release_diff_json,
+    decision_assurance_history_series_release_package_csv,
+    decision_assurance_history_series_release_package_json,
+    decision_assurance_history_series_release_package_schema,
+    decision_assurance_history_series_release_query_csv,
+    decision_assurance_history_series_release_query_json,
+    decision_assurance_history_series_release_query_schema,
+    decision_assurance_history_series_release_schema,
+    decision_assurance_history_series_release_stage_schema,
+    load_decision_assurance_history_series_release_diff,
+    load_decision_assurance_history_series_release_package,
+    query_decision_assurance_history_series_release,
+    query_decision_assurance_history_series_release_diff,
+    render_decision_assurance_history_series_release_diff_markdown,
+    render_decision_assurance_history_series_release_diff_query_markdown,
+    render_decision_assurance_history_series_release_markdown,
+    render_decision_assurance_history_series_release_package_markdown,
+    render_decision_assurance_history_series_release_query_markdown,
+    verify_decision_assurance_history_series_release_diff,
+    verify_decision_assurance_history_series_release_package,
+)
+from .assurance_history_series_release_registry import (
+    capabilities as assurance_history_series_release_registry_capabilities,
+    decision_assurance_history_series_release_registry_csv,
+    decision_assurance_history_series_release_registry_diff_csv,
+    decision_assurance_history_series_release_registry_diff_item_schema,
+    decision_assurance_history_series_release_registry_diff_json,
+    decision_assurance_history_series_release_registry_diff_query_csv,
+    decision_assurance_history_series_release_registry_diff_query_schema,
+    decision_assurance_history_series_release_registry_diff_schema,
+    decision_assurance_history_series_release_registry_entry_schema,
+    decision_assurance_history_series_release_registry_json,
+    decision_assurance_history_series_release_registry_query_csv,
+    decision_assurance_history_series_release_registry_query_json,
+    decision_assurance_history_series_release_registry_query_schema,
+    decision_assurance_history_series_release_registry_schema,
+    load_decision_assurance_history_series_release_registry,
+    load_decision_assurance_history_series_release_registry_diff,
+    query_decision_assurance_history_series_release_registry,
+    query_decision_assurance_history_series_release_registry_diff,
+    render_decision_assurance_history_series_release_registry_diff_markdown,
+    render_decision_assurance_history_series_release_registry_diff_query_markdown,
+    render_decision_assurance_history_series_release_registry_markdown,
+    render_decision_assurance_history_series_release_registry_query_markdown,
+    verify_decision_assurance_history_series_release_registry,
+    verify_decision_assurance_history_series_release_registry_diff,
+)
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -2158,6 +2213,178 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                         return
                     self._write(HTTPStatus.OK, value.summary() if output_format == "summary" else value.to_dict())
+                    return
+                assurance_history_series_release_prefix = federation_assurance_gate_prefix + "/review/decision-ledger/assurance-history-series/release"
+                if path == assurance_history_series_release_prefix + "/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/stage-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_stage_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/package-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_package_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/query-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_query_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/diff-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_diff_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/diff-item-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_diff_item_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/diff-query-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_diff_query_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_capabilities())
+                    return
+                if path == assurance_history_series_release_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    verified = verify_decision_assurance_history_series_release_package(load_decision_assurance_history_series_release_package(directory))
+                    self._write(HTTPStatus.OK if verified.release.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, verified.summary())
+                    return
+                if path == assurance_history_series_release_prefix + "/diff/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_diff_schema())
+                    return
+                if path == assurance_history_series_release_prefix + "/diff/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    diff_value = load_decision_assurance_history_series_release_diff(directory)
+                    result = query_decision_assurance_history_series_release_diff(diff_value, resource=self._query_value(query, "resource") or "summary", text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_diff_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_diff_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == assurance_history_series_release_prefix + "/diff":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    diff_value = load_decision_assurance_history_series_release_diff(directory)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_diff_csv(diff_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_diff_markdown(diff_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, diff_value.summary() if output_format == "summary" else diff_value.to_dict())
+                    return
+                if path == assurance_history_series_release_prefix + "/query" or path == assurance_history_series_release_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    package = load_decision_assurance_history_series_release_package(directory)
+                    if path.endswith("/query"):
+                        result = query_decision_assurance_history_series_release(package.release, resource=self._query_value(query, "resource") or "summary", text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_package_csv(package).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_package_markdown(package).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK if package.release.accepted else HTTPStatus.UNPROCESSABLE_ENTITY, package.summary() if output_format == "summary" else package.to_dict())
+                    return
+                assurance_history_series_release_registry_prefix = federation_assurance_gate_prefix + "/review/decision-ledger/assurance-history-series/release-registry"
+                if path == assurance_history_series_release_registry_prefix + "/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_registry_schema())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/entry-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_registry_entry_schema())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/query-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_registry_query_schema())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/diff/schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_registry_diff_schema())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/diff/item-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_registry_diff_item_schema())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/diff/query-schema":
+                    self._write(HTTPStatus.OK, decision_assurance_history_series_release_registry_diff_query_schema())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, assurance_history_series_release_registry_capabilities())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = verify_decision_assurance_history_series_release_registry(load_decision_assurance_history_series_release_registry(directory))
+                    self._write(HTTPStatus.OK if value.accepted_count else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/diff":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = load_decision_assurance_history_series_release_registry_diff(directory)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_registry_diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_registry_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, value.summary() if output_format == "summary" else value.to_dict())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/diff/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = load_decision_assurance_history_series_release_registry_diff(directory)
+                    result = query_decision_assurance_history_series_release_registry_diff(value, resource=self._query_value(query, "resource") or "summary", text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_registry_diff_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_registry_diff_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == assurance_history_series_release_registry_prefix + "/query" or path == assurance_history_series_release_registry_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = load_decision_assurance_history_series_release_registry(directory)
+                    if path.endswith("/query"):
+                        result = query_decision_assurance_history_series_release_registry(value, resource=self._query_value(query, "resource") or "summary", text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                        output_format = self._query_value(query, "format") or "json"
+                        if output_format == "csv":
+                            self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_registry_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                            return
+                        if output_format == "markdown":
+                            self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_registry_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                            return
+                        self._write(HTTPStatus.OK, result.to_dict())
+                        return
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, decision_assurance_history_series_release_registry_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, render_decision_assurance_history_series_release_registry_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    self._write(HTTPStatus.OK if value.accepted_count else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary() if output_format == "summary" else value.to_dict())
                     return
                 if path == assurance_history_prefix + "/schema":
                     self._write(HTTPStatus.OK, decision_assurance_history_schema())

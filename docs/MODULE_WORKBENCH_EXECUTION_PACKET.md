@@ -1523,3 +1523,31 @@ The exact policy handoff is `manifest.json`, `policy.json`, and
 nested policy and check receipts. The CLI and HTTP surfaces expose policy
 evaluation, verification, schemas, capabilities, and JSON/CSV/Markdown
 exports.
+
+### Portable series release handoff
+
+The release handoff is a transport-safe closure over a persisted series,
+selected policy, and policy evaluation. Its eight addressed stages validate
+replay, policy and evaluation integrity, linkage, acceptance, readiness,
+public projection, and the fixed transport contract. Required failures yield a
+blocked release; an optional readiness failure yields a held but accepted
+release. Only a warning-free accepted handoff is release-ready.
+
+The exact package is five files: `manifest.json`, `series.json`, `policy.json`,
+`evaluation.json`, and `release.json`. The loader rejects extra/missing,
+non-canonical, symlinked, or tampered files. The diff handoff is exactly
+`manifest.json` plus `diff.json`, with nine stable comparison keys, bounded
+queries, direction-aware regression reporting, and CLI/API verification.
+
+### Release-package admission registry
+
+The registry admits verified release packages into a bounded, sorted
+publication index. Each entry retains the package address, release address,
+state, acceptance, and release-readiness projection. Admission is fail-closed:
+non-typed packages, duplicate identities, invalid counts, private metadata, or
+unverified nested receipts are rejected before an entry is created.
+
+The registry transport is exactly `manifest.json`, `entries.json`, and
+`registry.json`, with an independently verifiable two-file registry diff.
+State/readiness queries, JSON/CSV/Markdown exports, CLI commands, and the
+`.../release-registry` HTTP family are read-only over persisted registries.

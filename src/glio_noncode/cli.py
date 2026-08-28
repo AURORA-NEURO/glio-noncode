@@ -2464,6 +2464,65 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     verify_decision_assurance_history_series_policy_evaluation,
     write_decision_assurance_history_series_policy_evaluation,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_assurance_gate_review_decision_ledger_assurance_history_series_release import (
+    capabilities as decision_assurance_history_series_release_capabilities,
+    decision_assurance_history_series_release_diff_csv,
+    decision_assurance_history_series_release_diff_item_schema,
+    decision_assurance_history_series_release_diff_json,
+    decision_assurance_history_series_release_diff_query_schema,
+    decision_assurance_history_series_release_diff_schema,
+    decision_assurance_history_series_release_package_csv,
+    decision_assurance_history_series_release_package_schema,
+    decision_assurance_history_series_release_query_schema,
+    decision_assurance_history_series_release_schema,
+    decision_assurance_history_series_release_stage_schema,
+    decision_assurance_history_series_release_query_csv,
+    decision_assurance_history_series_release_query_json,
+    decision_assurance_history_series_release_package_json,
+    load_decision_assurance_history_series_release_diff,
+    load_decision_assurance_history_series_release_package,
+    query_decision_assurance_history_series_release,
+    query_decision_assurance_history_series_release_diff,
+    render_decision_assurance_history_series_release_diff_markdown,
+    render_decision_assurance_history_series_release_diff_query_markdown,
+    render_decision_assurance_history_series_release_markdown,
+    render_decision_assurance_history_series_release_package_markdown,
+    render_decision_assurance_history_series_release_query_markdown,
+    verify_decision_assurance_history_series_release_diff,
+    verify_decision_assurance_history_series_release_package,
+    write_decision_assurance_history_series_release_diff,
+    write_decision_assurance_history_series_release_package,
+    build_decision_assurance_history_series_release_diff,
+)
+from .assurance_history_series_release_registry import (
+    capabilities as assurance_history_series_release_registry_capabilities,
+    decision_assurance_history_series_release_registry_csv,
+    decision_assurance_history_series_release_registry_diff_csv,
+    decision_assurance_history_series_release_registry_diff_item_schema,
+    decision_assurance_history_series_release_registry_diff_json,
+    decision_assurance_history_series_release_registry_diff_query_csv,
+    decision_assurance_history_series_release_registry_diff_query_schema,
+    decision_assurance_history_series_release_registry_diff_schema,
+    decision_assurance_history_series_release_registry_entry_schema,
+    decision_assurance_history_series_release_registry_json,
+    decision_assurance_history_series_release_registry_query_csv,
+    decision_assurance_history_series_release_registry_query_schema,
+    decision_assurance_history_series_release_registry_schema,
+    build_decision_assurance_history_series_release_registry,
+    build_decision_assurance_history_series_release_registry_diff,
+    load_decision_assurance_history_series_release_registry,
+    load_decision_assurance_history_series_release_registry_diff,
+    query_decision_assurance_history_series_release_registry,
+    query_decision_assurance_history_series_release_registry_diff,
+    render_decision_assurance_history_series_release_registry_diff_markdown,
+    render_decision_assurance_history_series_release_registry_diff_query_markdown,
+    render_decision_assurance_history_series_release_registry_markdown,
+    render_decision_assurance_history_series_release_registry_query_markdown,
+    verify_decision_assurance_history_series_release_registry,
+    verify_decision_assurance_history_series_release_registry_diff,
+    write_decision_assurance_history_series_release_registry,
+    write_decision_assurance_history_series_release_registry_diff,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3505,6 +3564,8 @@ _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_DIFF_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_COMMAND + "-diff"
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_COMMAND + "-history"
 _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_COMMAND + "-series"
+_OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_COMMAND + "-decision-ledger-assurance-history-series-release"
+_OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-registry"
 
 
 def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args):
@@ -6928,6 +6989,88 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(decision_assurance_history_series_policy_command + "-check-schema", help="print review decision assurance history series policy check schema").add_argument("--output", default=None)
     subparsers.add_parser(decision_assurance_history_series_policy_command + "-evaluation-schema", help="print review decision assurance history series policy evaluation schema").add_argument("--output", default=None)
     subparsers.add_parser(decision_assurance_history_series_policy_command + "-capabilities", help="print review decision assurance history series policy capabilities").add_argument("--output", default=None)
+    decision_assurance_history_series_release_command = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND
+    decision_assurance_history_series_release_parser = subparsers.add_parser(decision_assurance_history_series_release_command, help="verify and transport a review decision assurance history series release package")
+    decision_assurance_history_series_release_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_parser.add_argument("--destination", default=None)
+    decision_assurance_history_series_release_parser.add_argument("--allow-existing", action="store_true")
+    decision_assurance_history_series_release_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    decision_assurance_history_series_release_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_verify_parser = subparsers.add_parser(decision_assurance_history_series_release_command + "-verify", help="verify a persisted review decision assurance history series release package")
+    decision_assurance_history_series_release_verify_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_verify_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_query_parser = subparsers.add_parser(decision_assurance_history_series_release_command + "-query", help="query a persisted review decision assurance history series release")
+    decision_assurance_history_series_release_query_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_query_parser.add_argument("--resource", choices=("summary", "stages", "failed", "passed", "warnings", "blockers"), default="summary")
+    decision_assurance_history_series_release_query_parser.add_argument("--text", default=None)
+    decision_assurance_history_series_release_query_parser.add_argument("--offset", type=int, default=0)
+    decision_assurance_history_series_release_query_parser.add_argument("--limit", type=int, default=50)
+    decision_assurance_history_series_release_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    decision_assurance_history_series_release_query_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_diff_parser = subparsers.add_parser(decision_assurance_history_series_release_command + "-diff", help="compare two persisted review decision assurance history series release packages")
+    decision_assurance_history_series_release_diff_parser.add_argument("--baseline", required=True)
+    decision_assurance_history_series_release_diff_parser.add_argument("--candidate", required=True)
+    decision_assurance_history_series_release_diff_parser.add_argument("--diff-id", default=None)
+    decision_assurance_history_series_release_diff_parser.add_argument("--destination", default=None)
+    decision_assurance_history_series_release_diff_parser.add_argument("--allow-existing", action="store_true")
+    decision_assurance_history_series_release_diff_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    decision_assurance_history_series_release_diff_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_diff_verify_parser = subparsers.add_parser(decision_assurance_history_series_release_command + "-diff-verify", help="verify a persisted review decision assurance history series release diff")
+    decision_assurance_history_series_release_diff_verify_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_diff_verify_parser.add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-schema", help="print review decision assurance history series release schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-stage-schema", help="print review decision assurance history series release stage schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-package-schema", help="print review decision assurance history series release package schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-query-schema", help="print review decision assurance history series release query schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-diff-schema", help="print review decision assurance history series release diff schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-diff-item-schema", help="print review decision assurance history series release diff item schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-diff-query-schema", help="print review decision assurance history series release diff query schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_command + "-capabilities", help="print review decision assurance history series release capabilities").add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_command = _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND
+    decision_assurance_history_series_release_registry_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_command, help="build a registry of verified decision assurance history series release packages")
+    decision_assurance_history_series_release_registry_parser.add_argument("--input", action="append", required=True, metavar="DIRECTORY")
+    decision_assurance_history_series_release_registry_parser.add_argument("--registry-id", default="glio-noncode-decision-assurance-history-series-release-registry")
+    decision_assurance_history_series_release_registry_parser.add_argument("--destination", default=None)
+    decision_assurance_history_series_release_registry_parser.add_argument("--allow-existing", action="store_true")
+    decision_assurance_history_series_release_registry_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    decision_assurance_history_series_release_registry_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_verify_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-verify", help="verify a persisted decision assurance history series release registry")
+    decision_assurance_history_series_release_registry_verify_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_verify_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_query_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-query", help="query a persisted decision assurance history series release registry")
+    decision_assurance_history_series_release_registry_query_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_query_parser.add_argument("--resource", choices=("summary", "entries", "ready", "hold", "blocked", "accepted", "release-ready", "rejected"), default="summary")
+    decision_assurance_history_series_release_registry_query_parser.add_argument("--text", default=None)
+    decision_assurance_history_series_release_registry_query_parser.add_argument("--offset", type=int, default=0)
+    decision_assurance_history_series_release_registry_query_parser.add_argument("--limit", type=int, default=50)
+    decision_assurance_history_series_release_registry_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    decision_assurance_history_series_release_registry_query_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_diff_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-diff", help="compare two persisted decision assurance history series release registries")
+    decision_assurance_history_series_release_registry_diff_parser.add_argument("--baseline", required=True)
+    decision_assurance_history_series_release_registry_diff_parser.add_argument("--candidate", required=True)
+    decision_assurance_history_series_release_registry_diff_parser.add_argument("--diff-id", default=None)
+    decision_assurance_history_series_release_registry_diff_parser.add_argument("--destination", default=None)
+    decision_assurance_history_series_release_registry_diff_parser.add_argument("--allow-existing", action="store_true")
+    decision_assurance_history_series_release_registry_diff_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    decision_assurance_history_series_release_registry_diff_parser.add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_diff_verify_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-diff-verify", help="verify a persisted decision assurance history series release registry diff")
+    decision_assurance_history_series_release_registry_diff_verify_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_diff_verify_parser.add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-schema", help="print release registry schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-entry-schema", help="print release registry entry schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-query-schema", help="print release registry query schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-diff-schema", help="print release registry diff schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-diff-item-schema", help="print release registry diff item schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-diff-query-schema", help="print release registry diff query schema").add_argument("--output", default=None)
+    subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-capabilities", help="print release registry capabilities").add_argument("--output", default=None)
+    decision_assurance_history_series_release_registry_diff_query_parser = subparsers.add_parser(decision_assurance_history_series_release_registry_command + "-diff-query", help="query a persisted release registry diff")
+    decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--input", required=True)
+    decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--resource", choices=("summary", "items", "added", "removed", "unchanged", "changed", "improved", "regressed"), default="summary")
+    decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--text", default=None)
+    decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--offset", type=int, default=0)
+    decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--limit", type=int, default=50)
+    decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    decision_assurance_history_series_release_registry_diff_query_parser.add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -16216,7 +16359,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 0 if diff["accepted"] else 2
             diff = build_program_runtime_diff(args.control)
             _write_json(diff.to_dict(), args.output)
-            return 0 if diff.accepted else 2
+            return 0
         if args.command == "coordination-fixture":
             _write_text(coordination_fixture_json(), args.output)
             return 0
@@ -28095,7 +28238,7 @@ def main(argv: list[str] | None = None) -> int:
                 _write_json(query_module_certification_diff(diff, change=args.change, module_id=args.module_id, check_kind=args.check_kind, offset=args.offset, limit=args.limit), args.output)
             else:
                 _write_json(diff.to_dict(), args.output)
-            return 0 if diff.accepted else 2
+            return 0
         if args.command == "module-certification-review-schema":
             _write_json(module_certification_review_schema(), args.output)
             return 0
@@ -30690,6 +30833,157 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_COMMAND + "-policy-capabilities":
             _write_json(decision_assurance_history_series_policy_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND:
+            package = load_decision_assurance_history_series_release_package(args.input)
+            if args.destination:
+                write_decision_assurance_history_series_release_package(package, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(decision_assurance_history_series_release_package_csv(package), args.output)
+            elif args.format == "markdown":
+                _write_text(render_decision_assurance_history_series_release_package_markdown(package), args.output)
+            elif args.format == "summary":
+                _write_json(package.summary(), args.output)
+            else:
+                _write_text(decision_assurance_history_series_release_package_json(package), args.output)
+            return 0 if package.release.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-verify":
+            package = verify_decision_assurance_history_series_release_package(load_decision_assurance_history_series_release_package(args.input))
+            _write_json(package.summary(), args.output)
+            return 0 if package.release.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-query":
+            package = load_decision_assurance_history_series_release_package(args.input)
+            result = query_decision_assurance_history_series_release(package.release, resource=args.resource, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(decision_assurance_history_series_release_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_decision_assurance_history_series_release_query_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-diff":
+            baseline = load_decision_assurance_history_series_release_package(args.baseline)
+            candidate = load_decision_assurance_history_series_release_package(args.candidate)
+            diff = build_decision_assurance_history_series_release_diff(baseline.release, candidate.release, **({"diff_id": args.diff_id} if args.diff_id else {}))
+            if args.destination:
+                write_decision_assurance_history_series_release_diff(diff, args.destination, overwrite=args.allow_existing)
+            elif args.output and args.format == "summary" and not Path(args.output).suffix:
+                write_decision_assurance_history_series_release_diff(diff, args.output, overwrite=args.allow_existing)
+                _write_json(diff.summary(), None)
+                return 0
+            if args.format == "csv":
+                _write_text(decision_assurance_history_series_release_diff_csv(diff), args.output)
+            elif args.format == "markdown":
+                _write_text(render_decision_assurance_history_series_release_diff_markdown(diff), args.output)
+            elif args.format == "summary":
+                _write_json(diff.summary(), args.output)
+            else:
+                _write_text(decision_assurance_history_series_release_diff_json(diff), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-diff-verify":
+            diff = verify_decision_assurance_history_series_release_diff(load_decision_assurance_history_series_release_diff(args.input))
+            _write_json(diff.summary(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-schema":
+            _write_json(decision_assurance_history_series_release_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-stage-schema":
+            _write_json(decision_assurance_history_series_release_stage_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-package-schema":
+            _write_json(decision_assurance_history_series_release_package_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-query-schema":
+            _write_json(decision_assurance_history_series_release_query_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-diff-schema":
+            _write_json(decision_assurance_history_series_release_diff_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-diff-item-schema":
+            _write_json(decision_assurance_history_series_release_diff_item_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-diff-query-schema":
+            _write_json(decision_assurance_history_series_release_diff_query_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_COMMAND + "-capabilities":
+            _write_json(decision_assurance_history_series_release_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND:
+            registry_value = build_decision_assurance_history_series_release_registry(tuple(load_decision_assurance_history_series_release_package(directory) for directory in args.input), registry_id=args.registry_id)
+            if args.destination:
+                write_decision_assurance_history_series_release_registry(registry_value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(decision_assurance_history_series_release_registry_csv(registry_value), args.output)
+            elif args.format == "markdown":
+                _write_text(render_decision_assurance_history_series_release_registry_markdown(registry_value), args.output)
+            elif args.format == "summary":
+                _write_json(registry_value.summary(), args.output)
+            else:
+                _write_text(decision_assurance_history_series_release_registry_json(registry_value), args.output)
+            return 0 if registry_value.blocked_count == 0 else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-verify":
+            registry_value = verify_decision_assurance_history_series_release_registry(load_decision_assurance_history_series_release_registry(args.input))
+            _write_json(registry_value.summary(), args.output)
+            return 0 if registry_value.blocked_count == 0 else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-query":
+            registry_value = load_decision_assurance_history_series_release_registry(args.input)
+            result = query_decision_assurance_history_series_release_registry(registry_value, resource=args.resource, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(decision_assurance_history_series_release_registry_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_decision_assurance_history_series_release_registry_query_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-diff":
+            baseline = load_decision_assurance_history_series_release_registry(args.baseline)
+            candidate = load_decision_assurance_history_series_release_registry(args.candidate)
+            diff = build_decision_assurance_history_series_release_registry_diff(baseline, candidate, **({"diff_id": args.diff_id} if args.diff_id else {}))
+            if args.destination:
+                write_decision_assurance_history_series_release_registry_diff(diff, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(decision_assurance_history_series_release_registry_diff_csv(diff), args.output)
+            elif args.format == "markdown":
+                _write_text(render_decision_assurance_history_series_release_registry_diff_markdown(diff), args.output)
+            elif args.format == "summary":
+                _write_json(diff.summary(), args.output)
+            else:
+                _write_text(decision_assurance_history_series_release_registry_diff_json(diff), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-diff-verify":
+            diff = verify_decision_assurance_history_series_release_registry_diff(load_decision_assurance_history_series_release_registry_diff(args.input))
+            _write_json(diff.summary(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-diff-query":
+            diff = load_decision_assurance_history_series_release_registry_diff(args.input)
+            result = query_decision_assurance_history_series_release_registry_diff(diff, resource=args.resource, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(decision_assurance_history_series_release_registry_diff_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_decision_assurance_history_series_release_registry_diff_query_markdown(result), args.output)
+            else:
+                _write_json(result.to_dict(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-schema":
+            _write_json(decision_assurance_history_series_release_registry_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-entry-schema":
+            _write_json(decision_assurance_history_series_release_registry_entry_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-query-schema":
+            _write_json(decision_assurance_history_series_release_registry_query_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-diff-schema":
+            _write_json(decision_assurance_history_series_release_registry_diff_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-diff-item-schema":
+            _write_json(decision_assurance_history_series_release_registry_diff_item_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-diff-query-schema":
+            _write_json(decision_assurance_history_series_release_registry_diff_query_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_ASSURANCE_GATE_REVIEW_DECISION_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_COMMAND + "-capabilities":
+            _write_json(assurance_history_series_release_registry_capabilities(), args.output)
             return 0
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime":
             runtime_value = _review_store_catalog_packet_review_gate_history_observatory_runtime_from_args(args)

@@ -5586,3 +5586,39 @@ Policy evaluations contain exactly `manifest.json`, `policy.json`, and
 addresses, exact file membership, and manifest linkage are verified on reload.
 The policy CLI and HTTP routes expose JSON/CSV/Markdown projections and
 schemas/capabilities without exposing source paths or private runtime fields.
+
+## Portable decision-assurance series release handoff
+
+The release layer closes the series-to-policy-to-evaluation chain with eight
+independently addressed stages: series replay, policy verification, evaluation
+verification, component linkage, acceptance, release readiness, public-boundary
+review, and transport-contract validation. Required failures block acceptance;
+an optional readiness failure holds the handoff. The resulting state is ready,
+hold, or blocked, with separate accepted and release-ready projections.
+
+The portable package contains exactly `manifest.json`, `series.json`,
+`policy.json`, `evaluation.json`, and `release.json`. Atomic writes, canonical
+bytes, exact file membership, nested addresses, and manifest linkage are
+verified on reload. A release diff compares the top-level receipt and every
+closure stage, retaining baseline/candidate values and classifying added,
+removed, unchanged, and changed records with improved or regressed direction.
+Bounded release and diff queries plus JSON/CSV/Markdown, CLI, HTTP, schema,
+capability, and public-surface audit projections are available without
+exposing local paths or private runtime metadata.
+
+## Release-package admission registry
+
+The registry layer admits only independently verified series-release packages.
+It sorts entries by stable package and release identifiers, rejects duplicate
+package/release identities, retains package and release content addresses, and
+conserves ready, hold, blocked, accepted, and release-ready populations. The
+registry is a publication index, not a data merge, so nested series, policy,
+and evaluation documents remain independently addressed.
+
+The exact registry handoff is `manifest.json`, `entries.json`, and
+`registry.json`; the exact registry diff handoff is `manifest.json` plus
+`diff.json`. Both are atomic, canonical-byte, exact-file, path-free transports
+with reload verification. Registry queries cover summary, membership, state,
+acceptance, and readiness; registry diffs preserve stable package keys and
+added/removed/unchanged/changed plus improved/regressed direction. CLI, HTTP,
+schema, capability, and public-surface audit projections are included.
