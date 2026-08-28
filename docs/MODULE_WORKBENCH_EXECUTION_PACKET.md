@@ -1348,3 +1348,37 @@ registry. The API adds the registry family below
 `.../history/observatory/packet/registry`. A registry can therefore be built
 from the real downloaded-data packet handoffs produced by the preceding
 section, then inspected without reopening the original data source.
+
+## Observatory packet registry federation
+
+Federation is the next collection boundary above packet registries. It loads
+portable registries that have already passed their own independent checks,
+orders them by stable registry identity and address, and preserves each
+registry's packet counts and readiness evidence. It does not combine or rank
+scientific findings. Duplicate registry IDs and addresses, rejected registry
+evidence, and policy-bound violations remain visible as blocked or held
+outcomes.
+
+Federation policy controls minimum and maximum registry counts, the maximum
+packet total, blocked and held registry budgets, whether every registry must
+be accepted, whether every registry must be release-ready, and whether an
+empty federation is permitted. The state projection is `ready` when all
+required evidence is ready, `held` when accepted evidence is not release
+ready, `blocked` when any required evidence is rejected or blocked, and
+`empty` only under an explicit empty policy.
+
+The exact federation handoff contains `manifest.json`, `federation.json`,
+`registries.json`, `policy.json`, `verification.json`, and `runtime.json`.
+Canonical bytes, byte counts, document hashes, nested addresses, collection
+conservation, policy checks, and five runtime stages are independently
+verified on reload. The federation query plane supports summaries, registry
+rows, packet rollups, verification checks, policy checks, and runtime stages
+with deterministic bounded JSON, CSV, and Markdown exports.
+
+The CLI accepts repeatable `--registry-directory` inputs or a persisted
+federation directory for query, verification, and runtime replay. The API
+adds the federation family below
+`.../history/observatory/packet/registry/federation`, including schema and
+capability resources. Real downloaded packet registries can therefore be
+federated and reloaded offline without returning source paths or attribution
+metadata.

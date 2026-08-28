@@ -2266,6 +2266,32 @@ from .module_workbench_execution_packet_archive_store_replication_packet_diff_re
     verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
     write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry,
 )
+from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation import (
+    build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_from_directories,
+    default_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy,
+    load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_csv,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_json,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_csv,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_json,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_schema,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_verification_capabilities,
+    module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_verification_schema,
+    query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation,
+    render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_markdown,
+    render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_markdown,
+    run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime,
+    verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation,
+    verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime,
+    write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation,
+)
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3296,6 +3322,29 @@ def _review_store_catalog_packet_review_gate_history_observatory_packet_registry
     return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_from_directories(
         args.packet_directory,
         registry_id=args.registry_id,
+    )
+
+
+_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND = "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation"
+
+
+def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args):
+    return default_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy(
+        policy_id=args.policy_id,
+        minimum_registries=args.minimum_registries,
+        maximum_registries=args.maximum_registries,
+        maximum_packets=args.maximum_packets,
+        maximum_blocked_registries=args.maximum_blocked_registries,
+        maximum_held_registries=args.maximum_held_registries,
+        allow_empty=args.allow_empty,
+    )
+
+
+def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_from_args(args):
+    return build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_from_directories(
+        args.registry_directory,
+        federation_id=args.federation_id,
+        policy=_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args),
     )
 
 
@@ -6374,6 +6423,47 @@ def build_parser() -> argparse.ArgumentParser:
     review_store_catalog_packet_review_gate_history_observatory_packet_registry_verify = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-verify", help="verify a persisted observatory packet registry")
     review_store_catalog_packet_review_gate_history_observatory_packet_registry_verify.add_argument("--input", required=True)
     review_store_catalog_packet_review_gate_history_observatory_packet_registry_verify.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation = subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND, help="federate multiple observatory packet registries")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--registry-directory", action="append", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--federation-id", default="glio-noncode-observatory-packet-registry-federation")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--policy-id", default="glio-noncode-observatory-registry-federation-policy")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--minimum-registries", type=int, default=1)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--maximum-registries", type=int, default=64)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--maximum-packets", type=int, default=4096)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--maximum-blocked-registries", type=int, default=0)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--maximum-held-registries", type=int, default=64)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--allow-empty", action="store_true")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--destination", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--allow-existing", action="store_true")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="json")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query = subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-query", help="query a persisted observatory packet registry federation")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--input", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--resource", choices=("summary", "registries", "packet-rollup", "verification", "policy-checks", "stages"), default="summary")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--state", choices=("ready", "held", "blocked", "empty"), default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--accepted", action="store_true", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--release-ready", action="store_true", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--text", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--offset", type=int, default=0)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--limit", type=int, default=50)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_verify = subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-verify", help="verify a persisted observatory packet registry federation")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_verify.add_argument("--input", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_verify.add_argument("--output", default=None)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime = subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime", help="replay an observatory packet registry federation runtime")
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime.add_argument("--input", required=True)
+    review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime.add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-schema", help="print observatory packet registry federation schema").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-capabilities", help="print observatory packet registry federation capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-policy-schema", help="print observatory packet registry federation policy schema").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-policy-capabilities", help="print observatory packet registry federation policy capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-query-schema", help="print observatory packet registry federation query schema").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-query-capabilities", help="print observatory packet registry federation query capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-verification-schema", help="print observatory packet registry federation verification schema").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-verification-capabilities", help="print observatory packet registry federation verification capabilities").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime-schema", help="print observatory packet registry federation runtime schema").add_argument("--output", default=None)
+    subparsers.add_parser(_OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime-capabilities", help="print observatory packet registry federation runtime capabilities").add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -29616,6 +29706,69 @@ def main(argv: list[str] | None = None) -> int:
             verification = verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry(registry_value)
             _write_json(verification.to_dict(), args.output)
             return 0 if verification.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-policy-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-policy-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-query-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-query-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-verification-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_verification_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-verification-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_verification_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime-schema":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime_schema(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime-capabilities":
+            _write_json(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime_capabilities(), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND:
+            federation_value = _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_from_args(args)
+            if args.destination:
+                write_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation(federation_value, args.destination, overwrite=args.allow_existing)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_csv(federation_value), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_markdown(federation_value), args.output)
+            elif args.format == "summary":
+                _write_json(federation_value.summary(), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_json(federation_value), args.output)
+            return 0 if federation_value.runtime and federation_value.runtime.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-query":
+            federation_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation(args.input)
+            result = query_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation(federation_value, resource=args.resource, state=args.state, accepted=args.accepted, release_ready=args.release_ready, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(render_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_markdown(result), args.output)
+            else:
+                _write_text(module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_query_json(result), args.output)
+            return 0
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-verify":
+            federation_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation(args.input)
+            verification = verify_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation(federation_value)
+            _write_json(verification.to_dict(), args.output)
+            return 0 if verification.accepted else 2
+        if args.command == _OBSERVATORY_PACKET_REGISTRY_FEDERATION_COMMAND + "-runtime":
+            federation_value = load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation(args.input)
+            runtime_value = run_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_runtime(federation_value, policy=federation_value.policy, verification=federation_value.verification)
+            _write_json(runtime_value.to_dict(), args.output)
+            return 0 if runtime_value.accepted else 2
         if args.command == "module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime":
             runtime_value = _review_store_catalog_packet_review_gate_history_observatory_runtime_from_args(args)
             if args.destination:

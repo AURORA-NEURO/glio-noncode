@@ -1084,6 +1084,18 @@ GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/query/capabilities
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/verification/schema
 GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/verification/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/query
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/verify
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/runtime
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/query/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/query/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/verification/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/verification/capabilities
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/runtime/schema
+GET /v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog/packet/review/gate/history/observatory/packet/registry/federation/runtime/capabilities
 ```
 
 Build and query requests accept repeatable `history_directory` values and
@@ -1128,6 +1140,14 @@ loads an existing registry through `input`/`registry_directory`. Its query
 resources return collection summaries, entry rows, packet metadata,
 verification summaries, and checks. All registry routes are bounded,
 deterministic, path-free, timestamp-free, and identity-free.
+
+The nested registry federation composes persisted registry directories through
+repeatable `registry_directory` query values or reloads a federation from
+`input`/`federation_directory`. It exposes summary, registry, packet-rollup,
+verification, policy-check, and runtime-stage queries with bounded filters.
+Federation responses preserve ready/held/blocked/empty state and policy
+outcomes; they never echo caller filesystem paths. The runtime endpoint
+replays the federation closure from load through completion.
 
 Replay reconstructs the history from `start` to its terminal state and emits
 independently addressed transition events, state-chain checks, gate/head

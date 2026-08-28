@@ -5359,3 +5359,41 @@ The API mirrors the registry at `/observatory/packet/registry` with build,
 query, verify, schema, capabilities, query-schema, query-capabilities,
 verification-schema, and verification-capabilities resources. Source paths
 are input-only and never appear in registry projections.
+
+### Observatory packet registry federation
+
+Federation composes independently verified packet registries into one
+addressed collection without merging or reinterpreting their scientific
+claims. Registries are sorted by registry ID and address; registry and packet
+counts are conserved; duplicate registry IDs or addresses are rejected; and
+policy bounds make minimum/maximum registry count, packet count, blocked and
+held budgets, acceptance, release readiness, and empty collections explicit.
+Federation state is `ready`, `held`, `blocked`, or `empty` and remains
+separate from the underlying registry evidence.
+
+The portable federation directory contains exactly:
+
+```text
+manifest.json
+federation.json
+registries.json
+policy.json
+verification.json
+runtime.json
+```
+
+Each document is canonical JSON with byte receipts. Loaders reject unknown or
+missing files, symlinks, noncanonical bytes, manifest drift, stale addresses,
+and stale verification/runtime receipts. The federation query plane exposes
+`summary`, `registries`, `packet-rollup`, `verification`, `policy-checks`, and
+`stages`, all with bounded state, acceptance, readiness, text, offset, and
+limit filters. JSON, CSV, and Markdown exports are deterministic and
+path-free.
+
+The CLI family adds federation build, query, verify, and runtime replay
+commands below the existing observatory packet registry command. The API
+nests the same resources below `/observatory/packet/registry/federation`.
+Federation accepts repeatable `registry_directory` inputs or reloads an
+existing `input` directory. The runtime replays load, verify, policy, project,
+and complete stages, preserving accepted-but-held and blocked outcomes for
+review. Source paths remain input-only and never enter public projections.
