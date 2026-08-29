@@ -1378,3 +1378,6 @@ severity, pagination, and raw-package-to-certificate inspection. See the
 The [downloaded-history release evidence pipeline contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_EVIDENCE_PIPELINE.md)
 composes history loading, release-gate evaluation, package materialization, independent package audit, and release certification into one path-free receipt. See the
 [runnable end-to-end pipeline demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py).
+The companion [release evidence pipeline query contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_EVIDENCE_PIPELINE.md)
+provides bounded stage, decision, and evidence resources over the consolidated receipt, with a
+[runnable query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_demo.py).

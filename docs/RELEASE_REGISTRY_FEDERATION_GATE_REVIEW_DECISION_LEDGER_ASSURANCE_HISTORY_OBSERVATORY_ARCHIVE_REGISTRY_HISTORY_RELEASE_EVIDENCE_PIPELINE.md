@@ -44,6 +44,23 @@ python -m glio_noncode.cli <command> --input path/to/downloaded-history --destin
 
 The `-schema` and `-capabilities` suffixes expose the machine-readable contract. The HTTP route uses the same boundary at `/.../history/release-gate/release-evidence-pipeline` with `/schema` and `/capabilities` companions.
 
+## Querying the receipt
+
+The companion query module exposes four bounded resources: `summary`, `stages`, `decisions`, and `evidence`. Stage records carry their acceptance state and content address; decision records separate the gate, certificate, and final release decisions; evidence records provide the complete address chain. Filters support accepted/rejected state, stage identity, state, case-insensitive text matching, and deterministic pagination.
+
+```python
+from glio_noncode import query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_directory
+
+result = query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_directory(
+    "path/to/downloaded-history",
+    resource="stages",
+    stage="release-certificate",
+)
+print(result.records)
+```
+
+The query demo is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_demo.py). Its CLI and HTTP surfaces offer JSON, CSV, and Markdown projections plus replayable content addresses.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.

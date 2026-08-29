@@ -349,6 +349,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -3783,6 +3784,48 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write(status, value.summary())
                     else:
                         self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_model.pipeline_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_query_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_prefix + "/query"
+                history_observatory_archive_registry_history_release_evidence_pipeline_query_schema_routes = {
+                    "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.query_schema,
+                    "/query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.query_result_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_evidence_pipeline_query_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_prefix + "/query-capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_query_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "history")
+                    if not directory:
+                        raise ValueError("history input is required")
+                    destination = self._query_value(query, "destination")
+                    pipeline_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_model.build_pipeline(
+                        directory,
+                        destination,
+                        overwrite=self._query_bool(query, "allow_existing") if "allow_existing" in query else False,
+                    )
+                    accepted = self._query_bool(query, "accepted") if "accepted" in query else None
+                    result = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.query_pipeline(
+                        pipeline_value,
+                        resource=self._query_value(query, "resource") or "summary",
+                        accepted=accepted,
+                        state=self._query_value(query, "state"),
+                        stage=self._query_value(query, "stage"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.DEFAULT_LIMIT),
+                    )
+                    output_format = self._query_value(query, "format") or "json"
+                    status = HTTPStatus.OK if pipeline_value.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    if output_format == "csv":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 if path == history_observatory_archive_registry_prefix:
                     source_value = self._query_value(query, "archives") or self._query_value(query, "input") or self._query_value(query, "archive")
