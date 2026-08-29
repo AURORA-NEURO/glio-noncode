@@ -449,6 +449,104 @@ schema and capability routes. Runnable examples are
 and
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_audit_query_demo.py`.
 
+### Catalog reports and promotion gates
+
+The catalog report turns a verified catalog into an addressed, path-free
+operational projection. It conserves entry, accepted, ready, rejected, and
+artifact totals; publishes acceptance and readiness in basis points; retains
+canonical state distributions; and exposes sorted accepted, ready, and
+rejected label partitions. Each row retains the bundle and entry addresses so
+an operator can move from an aggregate result to the exact public receipt
+without reopening a source directory. The report has JSON, CSV, Markdown,
+schema, row-schema, and capability surfaces.
+
+The report audit independently replays twelve checks: exact fields, public
+boundary, catalog address, row and denominator conservation, ratio and
+artifact conservation, state distributions, label partitions, row addresses,
+content address, and mapping round trip. It returns an `incomplete` addressed
+diagnostic for a malformed or tampered public mapping. Its bounded query
+surface supports `summary`, `checks`, `passed`, `failed`, and `evidence` with
+check filters, text search, pagination, replay addresses, and JSON, CSV, or
+Markdown output.
+
+The catalog promotion gate composes a catalog diff, the candidate report, and
+their independent audits under an explicit public policy. Prerequisite and
+integrity failures are `blocking`; transition, regression, and rejected-entry
+budget failures are `hold` findings. The resulting decision is derived as
+`ready`, `held`, or `blocked`, with separate `accepted` and `release_ready`
+flags. Policy budgets cover added, removed, and changed labels, accepted and
+ready regressions, rejected candidates, and allowed transition states. The
+gate exposes fifteen addressed checks and bounded queries for `summary`,
+`checks`, `passed`, `failed`, `blocking`, `holds`, and `evidence`.
+
+The gate audit independently replays twelve more invariants over the composed
+decision: exact fields, public boundary, policy and input addresses, check
+set, severity and decision conservation, bounded budget observations, counter
+conservation, nested check addresses, content address, and mapping round trip.
+Its audit query exposes the same failure-visible evidence pattern with
+deterministic pagination.
+
+The release packet composes the gate and its independent audit into one
+operator-facing promote/hold/block handoff. A ready packet records all twenty-
+seven gate and audit checks as passed with zero actions; held or blocked packets
+turn each failed check into an addressed action with its source, severity,
+detail, and evidence address. The packet query can filter gate versus audit
+actions, holds, blockers, and evidence without exposing source paths.
+
+The CLI commands are
+`...release-evidence-pipeline-observability-bundle-catalog-report`,
+`...catalog-report-audit`,
+`...catalog-report-query`,
+`...catalog-report-audit-query`,
+`...catalog-promotion-gate`,
+`...catalog-promotion-gate-query`,
+`...catalog-promotion-gate-audit`, and
+`...catalog-promotion-gate-audit-query`, plus
+`...catalog-promotion-gate-release-packet` and
+`...catalog-promotion-gate-release-packet-query`. Each command publishes its schema and
+capability companions. The corresponding HTTP routes are
+`/.../observability/bundle/catalog/report`,
+`/.../catalog/report/audit`,
+`/.../catalog/report/query`,
+`/.../catalog/report/audit/query`,
+`/.../catalog/promotion-gate`,
+`/.../catalog/promotion-gate/query`,
+`/.../catalog/promotion-gate/audit`, and
+`/.../catalog/promotion-gate/audit/query`,
+`/.../catalog/promotion-gate/release-packet`, and
+`/.../catalog/promotion-gate/release-packet/query`, each with the matching
+contract routes.
+
+## Real downloaded-data demonstration
+
+Run
+`examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_report_promotion_demo.py`
+with repeated `--baseline-label`/`--baseline-directory` and
+`--candidate-label`/`--candidate-directory` pairs. The example accepts a
+normal downloaded handoff directory, builds both catalogs, compares them,
+derives the candidate report, audits the report, evaluates the policy gate,
+audits the gate, composes the release packet, and runs bounded queries over the
+report, assurance documents, and packet actions. `--format summary` emits the
+compact operator view; `json`, `csv`, and `markdown` expose the addressed
+evidence documents.
+
+For a downloaded handoff at `$HANDOFF`, a same-handoff revision simulation is:
+
+```powershell
+python examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_report_promotion_demo.py `
+  --baseline-label baseline --baseline-directory $HANDOFF `
+  --candidate-label baseline --candidate-directory $HANDOFF `
+  --candidate-label candidate --candidate-directory $HANDOFF `
+  --format summary
+```
+
+This creates a one-entry baseline and a two-entry candidate, so the expected
+control-plane result is an `added` transition, two accepted and ready
+candidate entries, a complete twelve-check report audit, a ready promotion
+gate with fifteen passed checks, a complete twelve-check gate audit, and a
+promote release packet with twenty-seven passed checks and zero actions. The
+public output contains addresses and labels, never the local downloaded path.
+
 ### Persisted observability bundle comparisons
 
 Two independently verified handoff directories can be compared without
