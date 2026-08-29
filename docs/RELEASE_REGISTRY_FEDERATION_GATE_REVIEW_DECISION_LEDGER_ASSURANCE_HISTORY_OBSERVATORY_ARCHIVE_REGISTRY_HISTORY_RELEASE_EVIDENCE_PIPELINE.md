@@ -61,6 +61,22 @@ print(result.records)
 
 The query demo is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_demo.py). Its CLI and HTTP surfaces offer JSON, CSV, and Markdown projections plus replayable content addresses.
 
+## Durable bundle
+
+For a portable handoff, `build_bundle` and `write_bundle` persist five exact files: `manifest.json`, `pipeline.json`, `stages-query.json`, `decisions-query.json`, and `evidence-query.json`. The manifest records the pipeline address, all query-result addresses, byte sizes, and byte hashes. `load_bundle` rejects extra members, symlinks, non-canonical JSON, oversized artifacts, altered query views, or broken linkage, then reconstructs the same path-free bundle receipt.
+
+```python
+from glio_noncode import (
+    build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline,
+    write_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle,
+)
+
+pipeline = build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline("path/to/downloaded-history")
+write_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle(pipeline, "path/to/evidence-bundle")
+```
+
+The bundle is also available at the CLI `...release-evidence-pipeline-bundle` command and the HTTP `/.../release-evidence-pipeline/bundle` route, each with verify, manifest, schema, and capability companions.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.
