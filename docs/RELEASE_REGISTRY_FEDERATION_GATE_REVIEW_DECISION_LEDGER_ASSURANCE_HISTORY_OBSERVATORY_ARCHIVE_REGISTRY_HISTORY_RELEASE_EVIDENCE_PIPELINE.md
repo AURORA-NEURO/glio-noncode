@@ -77,6 +77,33 @@ write_assurance_history_observatory_archive_registry_history_release_evidence_pi
 
 The bundle is also available at the CLI `...release-evidence-pipeline-bundle` command and the HTTP `/.../release-evidence-pipeline/bundle` route, each with verify, manifest, schema, and capability companions.
 
+## Independent bundle audit
+
+The bundle audit reads the raw directory independently from `load_bundle`. It
+checks exact members, canonical bytes, manifest semantics, artifact receipts,
+pipeline and query linkage, all three query projections, the public boundary,
+content-address reproduction, and mapping round trips. A damaged bundle
+returns an `incomplete` report with one row for every check, allowing a review
+workflow to see which evidence failed while preserving the report's own
+content address. The report contains no source path or timestamps.
+
+```python
+from glio_noncode import (
+    audit_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_directory,
+    render_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_markdown,
+)
+
+audit = audit_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_directory("path/to/evidence-bundle")
+print(audit.summary())
+print(render_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_markdown(audit))
+```
+
+Use the `...release-evidence-pipeline-bundle-audit` CLI command or the HTTP
+`/.../release-evidence-pipeline/bundle/audit` route. Both support JSON,
+Markdown, and summary output, plus `schema`, `check-schema`, and
+`capabilities` companions. The runnable example is
+[`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_demo.py).
+
 ## Observability
 
 The observability projection turns the same receipt into six ordered events

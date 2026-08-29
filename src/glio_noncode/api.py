@@ -352,6 +352,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -3876,6 +3877,32 @@ class ApiHandler(BaseHTTPRequestHandler):
                     manifest_path = Path(directory) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.MANIFEST_NAME
                     release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.load_bundle(directory)
                     self._write(HTTPStatus.OK, json.loads(manifest_path.read_text(encoding="utf-8")))
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_bundle_prefix + "/audit"
+                history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model.audit_schema,
+                    "/check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model.check_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "bundle")
+                    if not directory:
+                        raise ValueError("release evidence bundle input is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model.audit_bundle_directory(directory)
+                    output_format = self._query_value(query, "format") or "json"
+                    status = HTTPStatus.OK if value.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    if output_format == "summary":
+                        self._write(status, value.summary())
+                    elif output_format == "markdown":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_prefix + "/observability"
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_schema_routes = {
