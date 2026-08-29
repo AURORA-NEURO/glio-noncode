@@ -30,6 +30,16 @@ from .deployment_profiles import (
     default_deployment_profile,
 )
 from .errors import GlioError, StoreError, ValidationError
+from . import registry_federation_audit as registry_federation_audit_model
+from . import registry_federation_diff as registry_federation_diff_model
+from . import registry_federation_diff_audit as registry_federation_diff_audit_model
+from . import registry_federation_query as registry_federation_query_model
+from . import registry_federation_runtime as registry_federation_runtime_model
+from . import registry_federation_gate as registry_federation_gate_model
+from . import registry_federation_history as registry_federation_history_model
+from . import registry_federation_observatory as registry_federation_observatory_model
+from . import registry_federation_matrix as registry_federation_matrix_model
+from . import registry_federation_matrix_audit as registry_federation_matrix_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -1491,6 +1501,200 @@ class ApiHandler(BaseHTTPRequestHandler):
         path = parsed.path
         if not self._authorize_request():
             return
+        federation_prefix = "/v1/registry/federation"
+        if path == federation_prefix or path.startswith(federation_prefix + "/"):
+            try:
+                query = parse_qs(parsed.query, keep_blank_values=False)
+                schema_routes = {
+                    "/schema": registry_federation_runtime_model.federation_model.federation_schema,
+                    "/query/schema": registry_federation_query_model.query_schema,
+                    "/query/row-schema": registry_federation_query_model.row_schema,
+                    "/query/result-schema": registry_federation_query_model.result_schema,
+                    "/query/capabilities": registry_federation_query_model.capabilities,
+                    "/audit/schema": registry_federation_audit_model.audit_schema,
+                    "/audit/check-schema": registry_federation_audit_model.check_schema,
+                    "/audit/capabilities": registry_federation_audit_model.capabilities,
+                    "/diff/schema": registry_federation_diff_model.diff_schema,
+                    "/diff/item-schema": registry_federation_diff_model.item_schema,
+                    "/diff/capabilities": registry_federation_diff_model.capabilities,
+                    "/diff/audit/schema": registry_federation_diff_audit_model.audit_schema,
+                    "/diff/audit/check-schema": registry_federation_diff_audit_model.check_schema,
+                    "/diff/audit/capabilities": registry_federation_diff_audit_model.capabilities,
+                    "/runtime/schema": registry_federation_runtime_model.runtime_schema,
+                    "/runtime/capabilities": registry_federation_runtime_model.capabilities,
+                    "/gate/schema": registry_federation_gate_model.gate_schema,
+                    "/gate/check-schema": registry_federation_gate_model.check_schema,
+                    "/gate/policy-schema": registry_federation_gate_model.policy_schema,
+                    "/gate/capabilities": registry_federation_gate_model.capabilities,
+                    "/history/schema": registry_federation_history_model.history_schema,
+                    "/history/entry-schema": registry_federation_history_model.entry_schema,
+                    "/history/capabilities": registry_federation_history_model.capabilities,
+                    "/observatory/schema": registry_federation_observatory_model.observatory_schema,
+                    "/observatory/observation-schema": registry_federation_observatory_model.observation_schema,
+                    "/observatory/capabilities": registry_federation_observatory_model.capabilities,
+                    "/matrix/schema": registry_federation_matrix_model.matrix_schema,
+                    "/matrix/observation-schema": registry_federation_matrix_model.observation_schema,
+                    "/matrix/capabilities": registry_federation_matrix_model.capabilities,
+                    "/matrix/audit/schema": registry_federation_matrix_audit_model.audit_schema,
+                    "/matrix/audit/check-schema": registry_federation_matrix_audit_model.check_schema,
+                    "/matrix/audit/capabilities": registry_federation_matrix_audit_model.capabilities,
+                    "/matrix/query/schema": registry_federation_matrix_model.query_schema,
+                    "/matrix/query/row-schema": registry_federation_matrix_model.query_row_schema,
+                    "/matrix/query/result-schema": registry_federation_matrix_model.query_result_schema,
+                }
+                if path.removeprefix(federation_prefix) in schema_routes:
+                    self._write(HTTPStatus.OK, schema_routes[path.removeprefix(federation_prefix)]())
+                    return
+                if path == federation_prefix:
+                    specifications = self._query_values(query, "peer")
+                    if not specifications:
+                        peer_ids = self._query_values(query, "peer_id")
+                        directories = self._query_values(query, "directory")
+                        if len(peer_ids) != len(directories):
+                            raise ValueError("peer_id and directory query values must be paired")
+                        specifications = tuple(f"{peer_id}={directory}" for peer_id, directory in zip(peer_ids, directories, strict=True))
+                    peers = []
+                    for specification in specifications:
+                        if "=" not in specification:
+                            raise ValueError("peer query values must use PEER_ID=REGISTRY_DIRECTORY")
+                        peers.append(tuple(specification.split("=", 1)))
+                    runtime_value = registry_federation_runtime_model.run_federation_runtime(peers, runtime_id=self._query_value(query, "runtime_id") or "federation-runtime", federation_id=self._query_value(query, "federation_id") or "catalog-federation", reconciliation_id=self._query_value(query, "reconciliation_id"), quorum=self._query_int(query, "quorum", 0) or None, destination=self._query_value(query, "destination"), overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False, resources=tuple(self._query_values(query, "resource") or registry_federation_query_model.DEFAULT_RESOURCES), peer_id=self._query_value(query, "peer_filter") or "", package_id=self._query_value(query, "package_id") or "", kind=self._query_value(query, "kind") or "", severity=self._query_value(query, "severity") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, runtime_value.summary())
+                    else:
+                        self._write(HTTPStatus.OK, runtime_value.to_dict())
+                    return
+                if path == federation_prefix + "/query":
+                    federation = registry_federation_runtime_model.federation_model.load_federation(self._query_value(query, "input") or "")
+                    result = registry_federation_query_model.query_federation(federation, resources=tuple(self._query_values(query, "resource") or registry_federation_query_model.DEFAULT_RESOURCES), peer_id=self._query_value(query, "peer_filter") or "", package_id=self._query_value(query, "package_id") or "", kind=self._query_value(query, "kind") or "", severity=self._query_value(query, "severity") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_query_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/audit":
+                    value = registry_federation_audit_model.audit_federation(registry_federation_runtime_model.federation_model.load_federation(self._query_value(query, "input") or ""))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/diff":
+                    left = registry_federation_runtime_model.federation_model.load_federation(self._query_value(query, "left") or "")
+                    right = registry_federation_runtime_model.federation_model.load_federation(self._query_value(query, "right") or "")
+                    value = registry_federation_diff_model.build_diff(left, right, diff_id=self._query_value(query, "diff_id") or registry_federation_diff_model.DEFAULT_DIFF_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_diff_model.diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_diff_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary() if output_format == "summary" else value.to_dict())
+                    return
+                if path == federation_prefix + "/diff/audit":
+                    value = registry_federation_diff_audit_model.audit_diff(registry_federation_diff_model.diff_from_mapping(json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_diff_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_diff_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/gate":
+                    value = registry_federation_gate_model.evaluate_gate(registry_federation_runtime_model.federation_model.load_federation(self._query_value(query, "input") or ""), gate_id=self._query_value(query, "gate_id") or registry_federation_gate_model.DEFAULT_GATE_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_gate_model.render_gate_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_gate_model.gate_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_gate_model.gate_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/history":
+                    inputs = self._query_values(query, "input")
+                    if not inputs:
+                        raise ValueError("history requires at least one input")
+                    value = registry_federation_history_model.build_history(tuple(registry_federation_runtime_model.federation_model.load_federation(directory) for directory in inputs), history_id=self._query_value(query, "history_id") or "federation-history")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        registry_federation_history_model.write_history(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    self._write(HTTPStatus.OK, value.summary() if (self._query_value(query, "format") or "json") == "summary" else value.to_dict())
+                    return
+                if path == federation_prefix + "/observatory":
+                    inputs = self._query_values(query, "input")
+                    if not inputs:
+                        raise ValueError("observatory requires at least one history input")
+                    value = registry_federation_observatory_model.build_observatory(tuple(registry_federation_history_model.load_history(directory) for directory in inputs), observatory_id=self._query_value(query, "observatory_id") or "federation-observatory")
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_observatory_model.observatory_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_observatory_model.observatory_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/matrix":
+                    specifications = self._query_values(query, "peer")
+                    if not specifications:
+                        peer_ids = self._query_values(query, "peer_id")
+                        directories = self._query_values(query, "directory")
+                        if len(peer_ids) != len(directories):
+                            raise ValueError("peer_id and directory query values must be paired")
+                        specifications = tuple(f"{peer_id}={directory}" for peer_id, directory in zip(peer_ids, directories, strict=True))
+                    peers = []
+                    for specification in specifications:
+                        if "=" not in specification:
+                            raise ValueError("peer query values must use PEER_ID=REGISTRY_DIRECTORY")
+                        peers.append(tuple(specification.split("=", 1)))
+                    federation = registry_federation_matrix_model.federation_model.build_federation_from_directories(peers, federation_id=self._query_value(query, "federation_id") or "catalog-federation")
+                    value = registry_federation_matrix_model.build_matrix(federation, matrix_id=self._query_value(query, "matrix_id") or "federation-matrix")
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_model.matrix_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_model.render_matrix_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_model.matrix_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/matrix/audit":
+                    input_path = self._query_value(query, "input") or ""
+                    matrix_value = registry_federation_matrix_model.matrix_from_mapping(json.loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = registry_federation_matrix_audit_model.audit_matrix(matrix_value)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/matrix/query":
+                    input_path = self._query_value(query, "input") or ""
+                    matrix_value = registry_federation_matrix_model.matrix_from_mapping(json.loads(Path(input_path).read_text(encoding="utf-8")))
+                    value = registry_federation_matrix_model.query_matrix(matrix_value, peer_id=self._query_value(query, "peer_id") or "", state=self._query_value(query, "state") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_model.query_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_model.render_query_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, registry_federation_matrix_model.query_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+            except (GlioError, OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+                self._write_error(HTTPStatus.BAD_REQUEST, str(exc))
+                return
         catalog_prefix = "/v1/module-workbench/execution/packet/archive/store/replication/packet/diff/release-window/review-store/catalog"
         if path == catalog_prefix or path.startswith(catalog_prefix + "/"):
             try:

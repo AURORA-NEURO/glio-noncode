@@ -32,6 +32,16 @@ from .batch_release import (
     write_batch_release_bundle,
 )
 from .serialization import jsonable
+from . import registry_federation_audit as registry_federation_audit_model
+from . import registry_federation_diff as registry_federation_diff_model
+from . import registry_federation_diff_audit as registry_federation_diff_audit_model
+from . import registry_federation_query as registry_federation_query_model
+from . import registry_federation_runtime as registry_federation_runtime_model
+from . import registry_federation_gate as registry_federation_gate_model
+from . import registry_federation_history as registry_federation_history_model
+from . import registry_federation_observatory as registry_federation_observatory_model
+from . import registry_federation_matrix as registry_federation_matrix_model
+from . import registry_federation_matrix_audit as registry_federation_matrix_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -17189,12 +17199,278 @@ def build_parser() -> argparse.ArgumentParser:
     effect.add_argument("--source-id", default=None)
     effect.add_argument("--adapter", choices=("foundation", "long-context"), default="foundation")
     effect.add_argument("--output", default=None)
+
+    federation_runtime = subparsers.add_parser("registry-federation", help="build, audit, query, and optionally persist a package-registry federation")
+    federation_runtime.add_argument("--peer", action="append", required=True, metavar="PEER_ID=REGISTRY_DIRECTORY")
+    federation_runtime.add_argument("--federation-id", default="catalog-federation")
+    federation_runtime.add_argument("--reconciliation-id", default=None)
+    federation_runtime.add_argument("--quorum", type=int, default=None)
+    federation_runtime.add_argument("--runtime-id", default="federation-runtime")
+    federation_runtime.add_argument("--destination", default=None)
+    federation_runtime.add_argument("--overwrite", action="store_true")
+    federation_runtime.add_argument("--resource", action="append", default=None)
+    federation_runtime.add_argument("--peer-filter", dest="peer_id", default="")
+    federation_runtime.add_argument("--package-id", default="")
+    federation_runtime.add_argument("--kind", default="")
+    federation_runtime.add_argument("--severity", default="")
+    federation_runtime.add_argument("--text", default="")
+    federation_runtime.add_argument("--offset", type=int, default=0)
+    federation_runtime.add_argument("--limit", type=int, default=100)
+    federation_runtime.add_argument("--format", choices=("json", "summary"), default="json")
+    federation_runtime.add_argument("--output", default=None)
+
+    federation_query = subparsers.add_parser("registry-federation-query", help="query a persisted package-registry federation")
+    federation_query.add_argument("input", type=str)
+    federation_query.add_argument("--resource", action="append", default=None)
+    federation_query.add_argument("--peer-filter", dest="peer_id", default="")
+    federation_query.add_argument("--package-id", default="")
+    federation_query.add_argument("--kind", default="")
+    federation_query.add_argument("--severity", default="")
+    federation_query.add_argument("--text", default="")
+    federation_query.add_argument("--offset", type=int, default=0)
+    federation_query.add_argument("--limit", type=int, default=100)
+    federation_query.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    federation_query.add_argument("--output", default=None)
+
+    federation_audit = subparsers.add_parser("registry-federation-audit", help="independently audit a persisted package-registry federation")
+    federation_audit.add_argument("input", type=str)
+    federation_audit.add_argument("--format", choices=("json", "markdown", "summary"), default="summary")
+    federation_audit.add_argument("--output", default=None)
+
+    federation_diff = subparsers.add_parser("registry-federation-diff", help="compare two persisted package-registry federations")
+    federation_diff.add_argument("left", type=str)
+    federation_diff.add_argument("right", type=str)
+    federation_diff.add_argument("--diff-id", default=registry_federation_diff_model.DEFAULT_DIFF_ID)
+    federation_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_diff.add_argument("--output", default=None)
+
+    federation_diff_audit = subparsers.add_parser("registry-federation-diff-audit", help="independently audit a federation diff JSON document")
+    federation_diff_audit.add_argument("input", type=str)
+    federation_diff_audit.add_argument("--format", choices=("json", "markdown", "summary"), default="summary")
+    federation_diff_audit.add_argument("--output", default=None)
+
+    for command, help_text in (("registry-federation-schema", "print federation schema"), ("registry-federation-query-schema", "print federation query schema"), ("registry-federation-query-row-schema", "print federation query row schema"), ("registry-federation-query-result-schema", "print federation query result schema"), ("registry-federation-query-capabilities", "print federation query capabilities"), ("registry-federation-audit-schema", "print federation audit schema"), ("registry-federation-audit-check-schema", "print federation audit check schema"), ("registry-federation-audit-capabilities", "print federation audit capabilities"), ("registry-federation-diff-schema", "print federation diff schema"), ("registry-federation-diff-item-schema", "print federation diff item schema"), ("registry-federation-diff-capabilities", "print federation diff capabilities"), ("registry-federation-diff-audit-schema", "print federation diff audit schema"), ("registry-federation-diff-audit-check-schema", "print federation diff audit check schema"), ("registry-federation-diff-audit-capabilities", "print federation diff audit capabilities"), ("registry-federation-runtime-schema", "print federation runtime schema"), ("registry-federation-runtime-capabilities", "print federation runtime capabilities")):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
+
+    federation_gate = subparsers.add_parser("registry-federation-gate", help="evaluate the default release policy for a persisted federation")
+    federation_gate.add_argument("input", type=str)
+    federation_gate.add_argument("--gate-id", default=registry_federation_gate_model.DEFAULT_GATE_ID)
+    federation_gate.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_gate.add_argument("--output", default=None)
+
+    federation_history = subparsers.add_parser("registry-federation-history", help="build a durable history from persisted federation receipts")
+    federation_history.add_argument("--input", action="append", required=True)
+    federation_history.add_argument("--history-id", default="federation-history")
+    federation_history.add_argument("--destination", default=None)
+    federation_history.add_argument("--overwrite", action="store_true")
+    federation_history.add_argument("--format", choices=("json", "summary"), default="json")
+    federation_history.add_argument("--output", default=None)
+
+    federation_observatory = subparsers.add_parser("registry-federation-observatory", help="aggregate persisted federation histories")
+    federation_observatory.add_argument("--input", action="append", required=True)
+    federation_observatory.add_argument("--observatory-id", default="federation-observatory")
+    federation_observatory.add_argument("--format", choices=("json", "csv", "summary"), default="summary")
+    federation_observatory.add_argument("--output", default=None)
+
+    for command, help_text in (("registry-federation-gate-schema", "print federation gate schema"), ("registry-federation-gate-check-schema", "print federation gate check schema"), ("registry-federation-gate-policy-schema", "print federation gate policy schema"), ("registry-federation-gate-capabilities", "print federation gate capabilities"), ("registry-federation-history-schema", "print federation history schema"), ("registry-federation-history-entry-schema", "print federation history entry schema"), ("registry-federation-history-capabilities", "print federation history capabilities"), ("registry-federation-observatory-schema", "print federation observatory schema"), ("registry-federation-observation-schema", "print federation observation schema"), ("registry-federation-observatory-capabilities", "print federation observatory capabilities")):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
+
+    federation_matrix = subparsers.add_parser("registry-federation-matrix", help="compare every peer pair in a federation")
+    federation_matrix.add_argument("--peer", action="append", required=True, help="peer ID and registry directory as ID=DIRECTORY")
+    federation_matrix.add_argument("--federation-id", default=registry_federation_matrix_model.federation_model.DEFAULT_FEDERATION_ID)
+    federation_matrix.add_argument("--matrix-id", default="federation-matrix")
+    federation_matrix.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_matrix.add_argument("--output", default=None)
+
+    federation_matrix_audit = subparsers.add_parser("registry-federation-matrix-audit", help="audit a serialized federation agreement matrix")
+    federation_matrix_audit.add_argument("--input", required=True)
+    federation_matrix_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_matrix_audit.add_argument("--output", default=None)
+
+    federation_matrix_query = subparsers.add_parser("registry-federation-matrix-query", help="query a serialized federation agreement matrix")
+    federation_matrix_query.add_argument("--input", required=True)
+    federation_matrix_query.add_argument("--peer-id", default="")
+    federation_matrix_query.add_argument("--state", default="")
+    federation_matrix_query.add_argument("--offset", default=0, type=int)
+    federation_matrix_query.add_argument("--limit", default=100, type=int)
+    federation_matrix_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_matrix_query.add_argument("--output", default=None)
+
+    for command, help_text in (("registry-federation-matrix-schema", "print federation matrix schema"), ("registry-federation-matrix-observation-schema", "print federation matrix observation schema"), ("registry-federation-matrix-capabilities", "print federation matrix capabilities"), ("registry-federation-matrix-audit-schema", "print federation matrix audit schema"), ("registry-federation-matrix-audit-check-schema", "print federation matrix audit check schema"), ("registry-federation-matrix-audit-capabilities", "print federation matrix audit capabilities"), ("registry-federation-matrix-query-schema", "print federation matrix query schema"), ("registry-federation-matrix-query-row-schema", "print federation matrix query row schema"), ("registry-federation-matrix-query-result-schema", "print federation matrix query result schema")):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "registry-federation":
+            peers = []
+            for specification in args.peer:
+                if "=" not in specification:
+                    raise ValueError("--peer must use PEER_ID=REGISTRY_DIRECTORY")
+                peer_id, directory = specification.split("=", 1)
+                peers.append((peer_id, directory))
+            value = registry_federation_runtime_model.run_federation_runtime(peers, runtime_id=args.runtime_id, federation_id=args.federation_id, reconciliation_id=args.reconciliation_id, quorum=args.quorum, destination=args.destination, overwrite=args.overwrite, resources=tuple(args.resource or registry_federation_query_model.DEFAULT_RESOURCES), peer_id=args.peer_id, package_id=args.package_id, kind=args.kind, severity=args.severity, text=args.text, offset=args.offset, limit=args.limit)
+            _write_json(value.summary() if args.format == "summary" else value.to_dict(), args.output)
+            return 0 if value.federation.accepted and value.audit.accepted else 2
+        if args.command == "registry-federation-query":
+            federation = registry_federation_runtime_model.federation_model.load_federation(args.input)
+            value = registry_federation_query_model.query_federation(federation, resources=tuple(args.resource or registry_federation_query_model.DEFAULT_RESOURCES), peer_id=args.peer_id, package_id=args.package_id, kind=args.kind, severity=args.severity, text=args.text, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(registry_federation_query_model.query_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_query_model.render_query_markdown(value), args.output)
+            else:
+                _write_text(registry_federation_query_model.query_json(value), args.output)
+            return 0
+        if args.command == "registry-federation-audit":
+            federation = registry_federation_runtime_model.federation_model.load_federation(args.input)
+            value = registry_federation_audit_model.audit_federation(federation)
+            if args.format == "markdown":
+                _write_text(registry_federation_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-diff":
+            left = registry_federation_runtime_model.federation_model.load_federation(args.left)
+            right = registry_federation_runtime_model.federation_model.load_federation(args.right)
+            value = registry_federation_diff_model.build_diff(left, right, diff_id=args.diff_id)
+            if args.format == "summary":
+                _write_json(value.summary(), args.output)
+            elif args.format == "csv":
+                _write_text(registry_federation_diff_model.diff_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_diff_model.render_diff_markdown(value), args.output)
+            else:
+                _write_text(registry_federation_diff_model.diff_json(value), args.output)
+            return 0
+        if args.command == "registry-federation-diff-audit":
+            value = registry_federation_diff_audit_model.audit_diff(registry_federation_diff_model.diff_from_mapping(_read_json(args.input)))
+            if args.format == "markdown":
+                _write_text(registry_federation_diff_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_diff_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-matrix":
+            peers = []
+            for specification in args.peer:
+                if "=" not in specification:
+                    raise ValueError("--peer must use PEER_ID=REGISTRY_DIRECTORY")
+                peer_id, directory = specification.split("=", 1)
+                peers.append((peer_id, directory))
+            federation = registry_federation_matrix_model.federation_model.build_federation_from_directories(peers, federation_id=args.federation_id)
+            value = registry_federation_matrix_model.build_matrix(federation, matrix_id=args.matrix_id)
+            if args.format == "csv":
+                _write_text(registry_federation_matrix_model.matrix_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_matrix_model.render_matrix_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_matrix_model.matrix_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.state == "consistent" else 2
+        if args.command == "registry-federation-matrix-audit":
+            value = registry_federation_matrix_audit_model.audit_matrix(registry_federation_matrix_model.matrix_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_matrix_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_matrix_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_matrix_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-matrix-query":
+            matrix = registry_federation_matrix_model.matrix_from_mapping(_read_json(args.input))
+            value = registry_federation_matrix_model.query_matrix(matrix, peer_id=args.peer_id, state=args.state, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(registry_federation_matrix_model.query_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_matrix_model.render_query_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_matrix_model.query_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        schema_commands = {
+            "registry-federation-schema": registry_federation_runtime_model.federation_model.federation_schema,
+            "registry-federation-query-schema": registry_federation_query_model.query_schema,
+            "registry-federation-query-row-schema": registry_federation_query_model.row_schema,
+            "registry-federation-query-result-schema": registry_federation_query_model.result_schema,
+            "registry-federation-query-capabilities": registry_federation_query_model.capabilities,
+            "registry-federation-audit-schema": registry_federation_audit_model.audit_schema,
+            "registry-federation-audit-check-schema": registry_federation_audit_model.check_schema,
+            "registry-federation-audit-capabilities": registry_federation_audit_model.capabilities,
+            "registry-federation-diff-schema": registry_federation_diff_model.diff_schema,
+            "registry-federation-diff-item-schema": registry_federation_diff_model.item_schema,
+            "registry-federation-diff-capabilities": registry_federation_diff_model.capabilities,
+            "registry-federation-diff-audit-schema": registry_federation_diff_audit_model.audit_schema,
+            "registry-federation-diff-audit-check-schema": registry_federation_diff_audit_model.check_schema,
+            "registry-federation-diff-audit-capabilities": registry_federation_diff_audit_model.capabilities,
+            "registry-federation-runtime-schema": registry_federation_runtime_model.runtime_schema,
+            "registry-federation-runtime-capabilities": registry_federation_runtime_model.capabilities,
+            "registry-federation-matrix-schema": registry_federation_matrix_model.matrix_schema,
+            "registry-federation-matrix-observation-schema": registry_federation_matrix_model.observation_schema,
+            "registry-federation-matrix-capabilities": registry_federation_matrix_model.capabilities,
+            "registry-federation-matrix-audit-schema": registry_federation_matrix_audit_model.audit_schema,
+            "registry-federation-matrix-audit-check-schema": registry_federation_matrix_audit_model.check_schema,
+            "registry-federation-matrix-audit-capabilities": registry_federation_matrix_audit_model.capabilities,
+            "registry-federation-matrix-query-schema": registry_federation_matrix_model.query_schema,
+            "registry-federation-matrix-query-row-schema": registry_federation_matrix_model.query_row_schema,
+            "registry-federation-matrix-query-result-schema": registry_federation_matrix_model.query_result_schema,
+        }
+        if args.command in schema_commands:
+            _write_json(schema_commands[args.command](), args.output)
+            return 0
+        if args.command == "registry-federation-gate":
+            federation = registry_federation_runtime_model.federation_model.load_federation(args.input)
+            value = registry_federation_gate_model.evaluate_gate(federation, gate_id=args.gate_id)
+            if args.format == "csv":
+                _write_text(registry_federation_gate_model.gate_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_gate_model.render_gate_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_gate_model.gate_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-history":
+            federations = tuple(registry_federation_runtime_model.federation_model.load_federation(directory) for directory in args.input)
+            value = registry_federation_history_model.build_history(federations, history_id=args.history_id)
+            if args.destination:
+                registry_federation_history_model.write_history(value, args.destination, overwrite=args.overwrite)
+            _write_json(value.summary() if args.format == "summary" else value.to_dict(), args.output)
+            return 0
+        if args.command == "registry-federation-observatory":
+            histories = tuple(registry_federation_history_model.load_history(directory) for directory in args.input)
+            value = registry_federation_observatory_model.build_observatory(histories, observatory_id=args.observatory_id)
+            if args.format == "csv":
+                _write_text(registry_federation_observatory_model.observatory_csv(value), args.output)
+            elif args.format == "summary":
+                _write_json(value.summary(), args.output)
+            else:
+                _write_text(registry_federation_observatory_model.observatory_json(value), args.output)
+            return 0
+        history_schema_commands = {
+            "registry-federation-gate-schema": registry_federation_gate_model.gate_schema,
+            "registry-federation-gate-check-schema": registry_federation_gate_model.check_schema,
+            "registry-federation-gate-policy-schema": registry_federation_gate_model.policy_schema,
+            "registry-federation-gate-capabilities": registry_federation_gate_model.capabilities,
+            "registry-federation-history-schema": registry_federation_history_model.history_schema,
+            "registry-federation-history-entry-schema": registry_federation_history_model.entry_schema,
+            "registry-federation-history-capabilities": registry_federation_history_model.capabilities,
+            "registry-federation-observatory-schema": registry_federation_observatory_model.observatory_schema,
+            "registry-federation-observation-schema": registry_federation_observatory_model.observation_schema,
+            "registry-federation-observatory-capabilities": registry_federation_observatory_model.capabilities,
+        }
+        if args.command in history_schema_commands:
+            _write_json(history_schema_commands[args.command](), args.output)
+            return 0
         if args.command == "schema":
             _write_json(schema_document(), args.output)
             return 0

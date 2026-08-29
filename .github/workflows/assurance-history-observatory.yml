@@ -79,6 +79,16 @@ jobs:
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff.py
+          src/glio_noncode/registry_federation_query.py
+          src/glio_noncode/registry_federation_audit.py
+          src/glio_noncode/registry_federation_diff.py
+          src/glio_noncode/registry_federation_diff_audit.py
+          src/glio_noncode/registry_federation_runtime.py
+          src/glio_noncode/registry_federation_gate.py
+          src/glio_noncode/registry_federation_history.py
+          src/glio_noncode/registry_federation_observatory.py
+          src/glio_noncode/registry_federation_matrix.py
+          src/glio_noncode/registry_federation_matrix_audit.py
           src/glio_noncode/api.py
           src/glio_noncode/cli.py
       - name: Run observatory contract tests
@@ -132,6 +142,8 @@ jobs:
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_registry
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff
+          tests.test_registry_federation
+          tests.test_registry_federation_matrix
       - name: Run upstream history and public-boundary tests
         run: >-
           python -m unittest

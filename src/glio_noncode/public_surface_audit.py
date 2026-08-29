@@ -343,7 +343,7 @@ from .assurance_history_series_release_registry_federation_gate import assurance
 from .assurance_history_series_release_registry_federation_gate_review import decision_diff_item_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_item_schema, decision_diff_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_schema, decision_query_schema as assurance_history_series_release_registry_federation_gate_review_decision_query_schema, decision_schema as assurance_history_series_release_registry_federation_gate_review_decision_schema, diff_capabilities as assurance_history_series_release_registry_federation_gate_review_diff_capabilities, item_schema as assurance_history_series_release_registry_federation_gate_review_item_schema, ledger_schema as assurance_history_series_release_registry_federation_gate_review_ledger_schema, manifest_schema as assurance_history_series_release_registry_federation_gate_review_manifest_schema, queue_schema as assurance_history_series_release_registry_federation_gate_review_queue_schema, query_schema as assurance_history_series_release_registry_federation_gate_review_query_schema, replay_schema as assurance_history_series_release_registry_federation_gate_review_replay_schema, review_capabilities as assurance_history_series_release_registry_federation_gate_review_capabilities, review_schema as assurance_history_series_release_registry_federation_gate_review_schema, verification_finding_schema as assurance_history_series_release_registry_federation_gate_review_verification_finding_schema, verification_schema as assurance_history_series_release_registry_federation_gate_review_verification_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 755
+PUBLIC_SURFACE_EXPECTED_COUNT = 796
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -538,6 +538,17 @@ def default_public_surface_inventory(
     from .storage_catalog import storage_catalog_capabilities, storage_catalog_schema
     from .storage_catalog_observability import storage_catalog_observability_capabilities, storage_catalog_observability_schema
     from .storage_catalog_packet import storage_catalog_packet_capabilities, storage_catalog_packet_schema
+    from . import registry_federation_audit as registry_federation_audit_surface
+    from . import registry_federation_diff as registry_federation_diff_surface
+    from . import registry_federation_diff_audit as registry_federation_diff_audit_surface
+    from . import registry_federation_query as registry_federation_query_surface
+    from . import registry_federation_runtime as registry_federation_runtime_surface
+    from . import registry_federation_gate as registry_federation_gate_surface
+    from . import registry_federation_history as registry_federation_history_surface
+    from . import registry_federation_observatory as registry_federation_observatory_surface
+    from . import registry_federation_matrix as registry_federation_matrix_surface
+    from . import registry_federation_matrix_audit as registry_federation_matrix_audit_surface
+    from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_federation as registry_federation_surface
 
     selected = snapshot or build_service_surface_snapshot()
     capability_value = capability_bundle or build_capability_certification_bundle()
@@ -559,6 +570,47 @@ def default_public_surface_inventory(
     )
     reference_manifest_value = build_default_reference_manifest()
     return {
+        "registry-federation-manifest-schema": registry_federation_surface.manifest_schema(),
+        "registry-federation-peer-schema": registry_federation_surface.peer_schema(),
+        "registry-federation-conflict-schema": registry_federation_surface.conflict_schema(),
+        "registry-federation-action-schema": registry_federation_surface.action_schema(),
+        "registry-federation-reconciliation-schema": registry_federation_surface.reconciliation_schema(),
+        "registry-federation-schema": registry_federation_surface.federation_schema(),
+        "registry-federation-capabilities": registry_federation_surface.capabilities(),
+        "registry-federation-query-schema": registry_federation_query_surface.query_schema(),
+        "registry-federation-query-row-schema": registry_federation_query_surface.row_schema(),
+        "registry-federation-query-result-schema": registry_federation_query_surface.result_schema(),
+        "registry-federation-query-capabilities": registry_federation_query_surface.capabilities(),
+        "registry-federation-audit-schema": registry_federation_audit_surface.audit_schema(),
+        "registry-federation-audit-check-schema": registry_federation_audit_surface.check_schema(),
+        "registry-federation-audit-capabilities": registry_federation_audit_surface.capabilities(),
+        "registry-federation-diff-item-schema": registry_federation_diff_surface.item_schema(),
+        "registry-federation-diff-schema": registry_federation_diff_surface.diff_schema(),
+        "registry-federation-diff-capabilities": registry_federation_diff_surface.capabilities(),
+        "registry-federation-diff-audit-check-schema": registry_federation_diff_audit_surface.check_schema(),
+        "registry-federation-diff-audit-schema": registry_federation_diff_audit_surface.audit_schema(),
+        "registry-federation-diff-audit-capabilities": registry_federation_diff_audit_surface.capabilities(),
+        "registry-federation-runtime-schema": registry_federation_runtime_surface.runtime_schema(),
+        "registry-federation-runtime-capabilities": registry_federation_runtime_surface.capabilities(),
+        "registry-federation-gate-policy-schema": registry_federation_gate_surface.policy_schema(),
+        "registry-federation-gate-check-schema": registry_federation_gate_surface.check_schema(),
+        "registry-federation-gate-schema": registry_federation_gate_surface.gate_schema(),
+        "registry-federation-gate-capabilities": registry_federation_gate_surface.capabilities(),
+        "registry-federation-history-entry-schema": registry_federation_history_surface.entry_schema(),
+        "registry-federation-history-schema": registry_federation_history_surface.history_schema(),
+        "registry-federation-history-capabilities": registry_federation_history_surface.capabilities(),
+        "registry-federation-observation-schema": registry_federation_observatory_surface.observation_schema(),
+        "registry-federation-observatory-schema": registry_federation_observatory_surface.observatory_schema(),
+        "registry-federation-observatory-capabilities": registry_federation_observatory_surface.capabilities(),
+        "registry-federation-matrix-observation-schema": registry_federation_matrix_surface.observation_schema(),
+        "registry-federation-matrix-schema": registry_federation_matrix_surface.matrix_schema(),
+        "registry-federation-matrix-capabilities": registry_federation_matrix_surface.capabilities(),
+        "registry-federation-matrix-audit-check-schema": registry_federation_matrix_audit_surface.check_schema(),
+        "registry-federation-matrix-audit-schema": registry_federation_matrix_audit_surface.audit_schema(),
+        "registry-federation-matrix-audit-capabilities": registry_federation_matrix_audit_surface.capabilities(),
+        "registry-federation-matrix-query-schema": registry_federation_matrix_surface.query_schema(),
+        "registry-federation-matrix-query-row-schema": registry_federation_matrix_surface.query_row_schema(),
+        "registry-federation-matrix-query-result-schema": registry_federation_matrix_surface.query_result_schema(),
         "capability-certification-bundle-manifest": capability_value.to_dict(include_payloads=False),
         "capability-certification-bundle-schema": capability_certification_bundle_schema(),
         "module-fabric-bundle-manifest": module_value.to_dict(include_payloads=False),
