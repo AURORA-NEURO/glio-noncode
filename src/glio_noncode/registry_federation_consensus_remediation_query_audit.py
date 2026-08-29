@@ -1,0 +1,218 @@
+"""Independent audit for bounded remediation query results."""
+
+# ruff: noqa: E501, I001
+
+from __future__ import annotations
+
+import csv
+import io
+from collections.abc import Mapping, Sequence
+from typing import Any
+
+from . import registry_federation_consensus as consensus_model
+from . import registry_federation_consensus_remediation_query as query_model
+from . import registry_federation_consensus_remediation as remediation_model
+from .errors import ValidationError
+from .serialization import canonical_json, content_hash
+
+
+VERSION = query_model.VERSION + "-audit-v1"
+BOUNDARY = query_model.BOUNDARY + "_audit"
+AUDIT_PREFIX = consensus_model.CONSENSUS_PREFIX + "-remediation-query-audit"
+CHECK_PREFIX = consensus_model.CONSENSUS_PREFIX + "-remediation-query-audit-check"
+CHECK_IDS = ("exact-fields", "public-boundary", "query-link", "resource-conservation", "filter-conservation", "row-conservation", "pagination-conservation", "address-conservation", "content-address", "mapping-round-trip", "path-free")
+
+
+def _text(value: Any, field: str, maximum: int = 32768, *, required: bool = False) -> str:
+    if not isinstance(value, str) or len(value) > maximum or (required and not value) or any(ord(char) < 32 and char not in "\n\t" for char in value):
+        raise ValidationError(f"{field} must be bounded public text")
+    return value
+
+
+def _label(value: Any, field: str) -> str:
+    value = _text(value, field, 192, required=True)
+    if value.strip() != value or any(char.isspace() for char in value) or "/" in value or "\\" in value or '"' in value:
+        raise ValidationError(f"{field} must be a compact label")
+    return value
+
+
+def _address(value: Any, field: str, prefix: str) -> str:
+    value = _text(value, field, 512, required=True)
+    if "/" in value or "\\" in value or '"' in value or not value.startswith(prefix + ":"):
+        raise ValidationError(f"{field} has an unsupported address")
+    return value
+
+
+def _count(value: Any, field: str, maximum: int, *, positive: bool = False) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < (1 if positive else 0) or value > maximum:
+        raise ValidationError(f"{field} is outside its bound")
+    return value
+
+
+def _bool(value: Any, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise ValidationError(f"{field} must be boolean")
+    return value
+
+
+def _mapping(value: Any, field: str) -> Mapping[str, Any]:
+    if not isinstance(value, Mapping):
+        raise ValidationError(f"{field} must be an object")
+    return value
+
+
+def _strict(value: Mapping[str, Any], allowed: set[str], field: str) -> None:
+    if set(value) != allowed:
+        raise ValidationError(f"{field} contains unknown or missing fields")
+
+
+def _public(value: Any) -> bool:
+    if isinstance(value, Mapping):
+        return all(isinstance(key, str) and _public(item) for key, item in value.items())
+    if isinstance(value, (list, tuple)):
+        return all(_public(item) for item in value)
+    if isinstance(value, str):
+        return "agent" not in value.lower() and "/" not in value and "\\" not in value and '"' not in value
+    return value is None or isinstance(value, (bool, int, float))
+
+
+class RegistryFederationConsensusRemediationQueryAuditFinding:
+    FIELDS = ("ordinal", "check_id", "passed", "observed", "expected", "detail", "content_address")
+
+    def __init__(self, ordinal: int, check_id: str, passed: bool, observed: str, expected: str, detail: str, content_address: str) -> None:
+        self.ordinal = _count(ordinal, "query audit finding ordinal", len(CHECK_IDS), positive=True)
+        self.check_id = _label(check_id, "query audit check ID")
+        if self.check_id not in CHECK_IDS:
+            raise ValidationError("query audit check ID is unsupported")
+        self.passed = _bool(passed, "query audit finding result")
+        self.observed = _text(observed, "query audit observed value")
+        self.expected = _text(expected, "query audit expected value")
+        self.detail = _text(detail, "query audit detail")
+        self.content_address = _address(content_address, "query audit finding address", CHECK_PREFIX)
+        if not self.content_address.endswith(":pending") and address_finding(self) != self.content_address:
+            raise ValidationError("query audit finding address does not replay")
+        if not _public(self.to_dict()):
+            raise ValidationError("query audit finding crosses the public boundary")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"ordinal": self.ordinal, "check_id": self.check_id, "passed": self.passed, "observed": self.observed, "expected": self.expected, "detail": self.detail, "content_address": self.content_address}
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> RegistryFederationConsensusRemediationQueryAuditFinding:
+        value = _mapping(value, "query audit finding")
+        _strict(value, set(cls.FIELDS), "query audit finding")
+        return cls(value["ordinal"], value["check_id"], value["passed"], value["observed"], value["expected"], value["detail"], value["content_address"])
+
+
+def address_finding(value: RegistryFederationConsensusRemediationQueryAuditFinding) -> str:
+    if not isinstance(value, RegistryFederationConsensusRemediationQueryAuditFinding):
+        raise ValidationError("query audit finding address requires a typed finding")
+    return content_hash(value.to_dict() | {"content_address": None}, prefix=CHECK_PREFIX)
+
+
+class RegistryFederationConsensusRemediationQueryAudit:
+    FIELDS = ("result_address", "query_address", "checks", "check_count", "passed_count", "failed_count", "accepted", "content_address")
+
+    def __init__(self, result_address: str, query_address: str, checks: Sequence[RegistryFederationConsensusRemediationQueryAuditFinding], check_count: int, passed_count: int, failed_count: int, accepted: bool, content_address: str) -> None:
+        self.result_address = _address(result_address, "audited query result address", query_model.RESULT_PREFIX)
+        self.query_address = _address(query_address, "audited query address", query_model.QUERY_PREFIX)
+        self.checks = tuple(checks)
+        self.check_count = _count(check_count, "query audit check count", len(CHECK_IDS), positive=True)
+        self.passed_count = _count(passed_count, "query audit passed count", self.check_count)
+        self.failed_count = _count(failed_count, "query audit failed count", self.check_count)
+        self.accepted = _bool(accepted, "query audit acceptance")
+        if len(self.checks) != self.check_count or tuple(item.ordinal for item in self.checks) != tuple(range(1, self.check_count + 1)) or self.passed_count != sum(item.passed for item in self.checks) or self.failed_count != self.check_count - self.passed_count or self.accepted != (self.failed_count == 0):
+            raise ValidationError("query audit counters are not conserved")
+        self.content_address = _address(content_address, "query audit content address", AUDIT_PREFIX)
+        if not self.content_address.endswith(":pending") and address_audit(self) != self.content_address:
+            raise ValidationError("query audit content address does not replay")
+        if not _public(self.to_dict()):
+            raise ValidationError("query audit crosses the public boundary")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"result_address": self.result_address, "query_address": self.query_address, "checks": tuple(item.to_dict() for item in self.checks), "check_count": self.check_count, "passed_count": self.passed_count, "failed_count": self.failed_count, "accepted": self.accepted, "content_address": self.content_address}
+
+    def summary(self) -> dict[str, Any]:
+        return {key: value for key, value in self.to_dict().items() if key != "checks"}
+
+    @classmethod
+    def from_mapping(cls, value: Mapping[str, Any]) -> RegistryFederationConsensusRemediationQueryAudit:
+        value = _mapping(value, "query audit")
+        _strict(value, set(cls.FIELDS), "query audit")
+        return cls(value["result_address"], value["query_address"], tuple(RegistryFederationConsensusRemediationQueryAuditFinding.from_mapping(item) for item in value["checks"]), value["check_count"], value["passed_count"], value["failed_count"], value["accepted"], value["content_address"])
+
+
+def address_audit(value: RegistryFederationConsensusRemediationQueryAudit) -> str:
+    if not isinstance(value, RegistryFederationConsensusRemediationQueryAudit):
+        raise ValidationError("query audit address requires a typed audit")
+    return content_hash(value.to_dict() | {"content_address": None}, prefix=AUDIT_PREFIX)
+
+
+def _finding(ordinal: int, check_id: str, passed: bool, observed: Any, expected: Any, detail: str) -> RegistryFederationConsensusRemediationQueryAuditFinding:
+    provisional = RegistryFederationConsensusRemediationQueryAuditFinding(ordinal, check_id, passed, str(observed), str(expected), detail, CHECK_PREFIX + ":pending")
+    return RegistryFederationConsensusRemediationQueryAuditFinding(provisional.ordinal, provisional.check_id, provisional.passed, provisional.observed, provisional.expected, provisional.detail, address_finding(provisional))
+
+
+def audit_query(value: query_model.RegistryFederationConsensusRemediationQueryResult) -> RegistryFederationConsensusRemediationQueryAudit:
+    value = query_model.verify_query_result(value)
+    query = value.query
+    checks: list[RegistryFederationConsensusRemediationQueryAuditFinding] = []
+    checks.append(_finding(1, "exact-fields", set(value.to_dict()) == set(query_model.RegistryFederationConsensusRemediationQueryResult.FIELDS), tuple(sorted(value.to_dict())), query_model.RegistryFederationConsensusRemediationQueryResult.FIELDS, "query result fields are exact"))
+    checks.append(_finding(2, "public-boundary", _public(value.to_dict()), True, True, "query result is public and path-free"))
+    checks.append(_finding(3, "query-link", value.query.remediation_address.startswith(remediation_model.REMEDIATION_PREFIX + ":"), value.query.remediation_address, "remediation address", "result points to its remediation query"))
+    checks.append(_finding(4, "resource-conservation", all(row.resource in query.resources for row in value.rows), tuple(row.resource for row in value.rows), query.resources, "returned rows belong to requested resources"))
+    checks.append(_finding(5, "filter-conservation", all((not query.package_id or row.package_id == query.package_id) and (not query.status or row.status == query.status) and (not query.kind or row.kind == query.kind) and (not query.severity or row.severity == query.severity) for row in value.rows), "returned row filters", query.to_dict(), "every returned row satisfies the query filters"))
+    checks.append(_finding(6, "row-conservation", value.returned_count == len(value.rows) and tuple(row.ordinal for row in value.rows) == tuple(range(1, len(value.rows) + 1)), (value.returned_count, len(value.rows)), "ordered returned rows", "row count and ordinals replay"))
+    checks.append(_finding(7, "pagination-conservation", value.next_offset == (query.offset + value.returned_count if value.truncated else 0) and value.truncated == (value.next_offset > 0), (value.next_offset, value.truncated), "next offset iff truncated", "pagination state is consistent"))
+    checks.append(_finding(8, "address-conservation", query_model.address_query(query) == query.content_address and all(query_model.address_row(row) == row.content_address for row in value.rows) and query_model.address_result(value) == value.content_address, "replayed query, row, and result addresses", "stored addresses", "all nested query addresses replay"))
+    checks.append(_finding(9, "content-address", query_model.address_result(value) == value.content_address, value.content_address, query_model.address_result(value), "result content address replays"))
+    checks.append(_finding(10, "mapping-round-trip", query_model.query_from_mapping(value.to_dict()).to_dict() == value.to_dict(), "mapping replay", "original result", "mapping conversion is lossless"))
+    checks.append(_finding(11, "path-free", _public(value.to_dict()), True, True, "query output contains no local paths"))
+    provisional = RegistryFederationConsensusRemediationQueryAudit(value.content_address, query.content_address, tuple(checks), len(checks), sum(item.passed for item in checks), sum(not item.passed for item in checks), all(item.passed for item in checks), AUDIT_PREFIX + ":pending")
+    return RegistryFederationConsensusRemediationQueryAudit(provisional.result_address, provisional.query_address, provisional.checks, provisional.check_count, provisional.passed_count, provisional.failed_count, provisional.accepted, address_audit(provisional))
+
+
+def audit_from_mapping(value: Mapping[str, Any]) -> RegistryFederationConsensusRemediationQueryAudit:
+    return verify_audit(RegistryFederationConsensusRemediationQueryAudit.from_mapping(value))
+
+
+def verify_audit(value: RegistryFederationConsensusRemediationQueryAudit) -> RegistryFederationConsensusRemediationQueryAudit:
+    if not isinstance(value, RegistryFederationConsensusRemediationQueryAudit) or (not value.content_address.endswith(":pending") and address_audit(value) != value.content_address):
+        raise ValidationError("remediation query audit is not valid")
+    return value
+
+
+def audit_json(value: RegistryFederationConsensusRemediationQueryAudit) -> str:
+    return canonical_json(verify_audit(value).to_dict())
+
+
+def audit_csv(value: RegistryFederationConsensusRemediationQueryAudit) -> str:
+    value = verify_audit(value)
+    stream = io.StringIO()
+    writer = csv.DictWriter(stream, fieldnames=RegistryFederationConsensusRemediationQueryAuditFinding.FIELDS, lineterminator="\n")
+    writer.writeheader()
+    for finding in value.checks:
+        writer.writerow(finding.to_dict())
+    return stream.getvalue()
+
+
+def render_audit_markdown(value: RegistryFederationConsensusRemediationQueryAudit) -> str:
+    value = verify_audit(value)
+    lines = ["# Remediation Query Audit", "", f"- Result: `{value.result_address}`", f"- Accepted: `{value.accepted}`", f"- Checks: `{value.passed_count}/{value.check_count}`", "", "| check | passed | detail |", "| --- | --- | --- |"]
+    lines.extend(f"| `{item.check_id}` | `{item.passed}` | {item.detail} |" for item in value.checks)
+    return "\n".join(lines) + "\n"
+
+
+def check_schema() -> dict[str, Any]:
+    return {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "additionalProperties": False, "required": list(RegistryFederationConsensusRemediationQueryAuditFinding.FIELDS), "properties": {"ordinal": {"type": "integer"}, "check_id": {"type": "string"}, "passed": {"type": "boolean"}, "observed": {"type": "string"}, "expected": {"type": "string"}, "detail": {"type": "string"}, "content_address": {"type": "string"}}}
+
+
+def audit_schema() -> dict[str, Any]:
+    return {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "additionalProperties": False, "required": list(RegistryFederationConsensusRemediationQueryAudit.FIELDS), "properties": {"result_address": {"type": "string"}, "query_address": {"type": "string"}, "checks": {"type": "array", "items": check_schema()}, "check_count": {"type": "integer"}, "passed_count": {"type": "integer"}, "failed_count": {"type": "integer"}, "accepted": {"type": "boolean"}, "content_address": {"type": "string"}}}
+
+
+def capabilities() -> dict[str, Any]:
+    return {"version": VERSION, "boundary": BOUNDARY, "audit_prefix": AUDIT_PREFIX, "check_prefix": CHECK_PREFIX, "check_ids": CHECK_IDS, "features": ("independent query result checks", "resource and filter conservation", "pagination verification", "nested address replay", "mapping round-trip verification"), "schemas": ("check", "audit")}
+
+
+__all__ = ["AUDIT_PREFIX", "BOUNDARY", "CHECK_IDS", "CHECK_PREFIX", "RegistryFederationConsensusRemediationQueryAudit", "RegistryFederationConsensusRemediationQueryAuditFinding", "VERSION", "address_audit", "address_finding", "audit_csv", "audit_from_mapping", "audit_json", "audit_query", "audit_schema", "capabilities", "check_schema", "render_audit_markdown", "verify_audit"]

@@ -8,8 +8,9 @@ Example:
 
 The two registry directories must be canonical outputs of the package-registry
 module. The example reports the public receipt, independent audits, release
-gate, pairwise agreement matrix, bounded query, and optional disk replay
-without exposing local paths in the generated JSON objects.
+gate, pairwise agreement matrix, bounded query, consensus execution, strict-
+quorum transition diff, history, observatory, and disk replay without exposing
+local paths in the generated JSON objects.
 """
 
 from __future__ import annotations
@@ -26,6 +27,14 @@ from glio_noncode import registry_federation_matrix
 from glio_noncode import registry_federation_matrix_audit
 from glio_noncode import registry_federation_query
 from glio_noncode import registry_federation_runtime
+from glio_noncode import registry_federation_consensus
+from glio_noncode import registry_federation_consensus_audit
+from glio_noncode import registry_federation_consensus_query
+from glio_noncode import registry_federation_consensus_runtime
+from glio_noncode import registry_federation_consensus_diff
+from glio_noncode import registry_federation_consensus_diff_audit
+from glio_noncode import registry_federation_consensus_history
+from glio_noncode import registry_federation_consensus_observatory
 
 
 def parse_args() -> argparse.Namespace:
@@ -45,20 +54,34 @@ def run(primary: Path, replica: Path, *, federation_id: str, destination: Path |
     gate = registry_federation_gate.evaluate_gate(federation, audit, gate_id="downloaded-data-release-gate")
     matrix = registry_federation_matrix.build_matrix(federation, matrix_id="downloaded-data-agreement-matrix")
     matrix_audit = registry_federation_matrix_audit.audit_matrix(matrix)
+    consensus = registry_federation_consensus.build_consensus(federation, consensus_id="downloaded-data-consensus")
+    consensus_audit = registry_federation_consensus_audit.audit_consensus(consensus)
+    consensus_query = registry_federation_consensus_query.query_consensus(consensus, resources=("packages", "candidates", "actions"), limit=limit)
+    consensus_runtime = registry_federation_consensus_runtime.run_consensus_runtime((("primary", primary), ("replica", replica)), runtime_id="downloaded-data-consensus-runtime", federation_id=federation_id, consensus_id="downloaded-data-runtime-consensus", resources=("summary", "packages", "candidates", "actions"), limit=limit)
+    strict_quorum = max(1, federation.peer_count)
+    strict_consensus = registry_federation_consensus.build_consensus(federation, consensus_id="downloaded-data-consensus-strict", quorum=strict_quorum)
+    strict_audit = registry_federation_consensus_audit.audit_consensus(strict_consensus)
+    consensus_diff = registry_federation_consensus_diff.build_diff(consensus, strict_consensus, diff_id="downloaded-data-consensus-transition")
+    consensus_diff_audit = registry_federation_consensus_diff_audit.audit_diff(consensus_diff)
+    consensus_history = registry_federation_consensus_history.build_history(((consensus, consensus_audit), (strict_consensus, strict_audit)), history_id="downloaded-data-consensus-history")
+    consensus_observatory = registry_federation_consensus_observatory.build_observatory((consensus_history,), observatory_id="downloaded-data-consensus-observatory")
     query = registry_federation_query.query_federation(federation, resources=("summary", "peers", "packages", "conflicts", "actions"), limit=limit)
     with tempfile.TemporaryDirectory(prefix="federation-demo-verify-") as scratch:
         replay_target = Path(scratch) / "federation"
         federation_model.write_federation(federation, replay_target)
         reloaded = federation_model.load_federation(replay_target)
         disk_replay = reloaded.content_address == federation.content_address
-    return {"federation": federation.summary(), "audit": audit.summary(), "gate": gate.summary(), "matrix": matrix.summary(), "matrix_audit": matrix_audit.summary(), "query": query.summary(), "query_rows": [row.to_dict() for row in query.rows], "disk_replay": disk_replay}
+        consensus_target = Path(scratch) / "consensus"
+        registry_federation_consensus.write_consensus(consensus, consensus_target)
+        consensus_disk_replay = registry_federation_consensus.load_consensus(consensus_target).content_address == consensus.content_address
+    return {"federation": federation.summary(), "audit": audit.summary(), "gate": gate.summary(), "matrix": matrix.summary(), "matrix_audit": matrix_audit.summary(), "consensus": consensus.summary(), "consensus_audit": consensus_audit.summary(), "consensus_query": consensus_query.summary(), "consensus_query_rows": [row.to_dict() for row in consensus_query.rows], "consensus_runtime": consensus_runtime.summary(), "consensus_diff": consensus_diff.summary(), "consensus_diff_audit": consensus_diff_audit.summary(), "consensus_history": consensus_history.summary(), "consensus_observatory": consensus_observatory.summary(), "query": query.summary(), "query_rows": [row.to_dict() for row in query.rows], "disk_replay": disk_replay, "consensus_disk_replay": consensus_disk_replay}
 
 
 def main() -> int:
     args = parse_args()
     report = run(args.primary_registry, args.replica_registry, federation_id=args.federation_id, destination=args.destination, limit=args.limit)
     print(json.dumps(report, indent=2, sort_keys=True, default=list))
-    return 0 if report["federation"]["accepted"] and report["gate"]["accepted"] else 2
+    return 0 if report["federation"]["accepted"] and report["gate"]["accepted"] and report["consensus"]["accepted"] and report["consensus_runtime"]["accepted"] and report["consensus_diff_audit"]["accepted"] else 2
 
 
 if __name__ == "__main__":

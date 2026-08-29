@@ -42,6 +42,9 @@ The family is intentionally split into narrow modules:
 | federation observatory | Cross-history timeline and bounded state/decision filters |
 | federation matrix | Pairwise peer agreement, missing observations, and address divergence |
 | matrix audit | Sixteen independent pair, ratio, state, evidence, and address checks |
+| federation consensus | Quorum-safe package address candidates, explicit selection, and remediation actions |
+| consensus audit | Independent selection, quorum, action, and replay checks |
+| consensus query | Bounded package, candidate, action, and evidence projections |
 
 The core is the only module that computes package-registry federation facts.
 Queries and reports are projections. Audits recompute relationships from the
@@ -79,6 +82,99 @@ python -m glio_noncode.cli registry-federation-matrix-query \
 The HTTP equivalent is `GET /v1/registry/federation/matrix` with repeated `peer=ID=DIRECTORY` query values. Matrix schemas and capability responses are available below the same API surface. Matrix exports contain addresses and package IDs, not filesystem paths.
 
 With the downloaded demonstration registries, two equivalent registries produce one consistent pair with ratio `1.0`; the ready-versus-held registries produce one conflicted pair with ratio `0.0`, while the independent audit still passes all `16/16` integrity checks.
+
+## Quorum-safe consensus and remediation
+
+The consensus boundary consumes a verified federation receipt and groups each package's observed content addresses into candidates. A candidate is selected only when it has at least the requested quorum and strictly more support than every other candidate. A tie, a below-quorum candidate, or an absent package remains unresolved. The source federation is never modified and dissenting addresses remain in the receipt.
+
+The output carries one package row per union package, candidate rows with supporting peer IDs and support counts, and explicit actions. Divergent candidates create `inspect-divergence`; missing peer observations create `replicate-missing`; unresolved packages create `hold-package`. Blocking actions are retained even when the receipt is rejected, making the result useful as an operator work list rather than only as a boolean gate.
+
+The consensus state is `consistent` only when every package has a selection. An accepted consensus additionally requires the source federation to be accepted and to have no remediation actions. A three-peer majority can therefore expose a selected address while still returning `review` when the source federation contains dissent. This preserves the distinction between a mechanically reproducible selection and a release approval.
+
+Build and persist a consensus receipt:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus \
+  --peer primary=C:\data\primary-registry \
+  --peer replica=C:\data\replica-registry \
+  --federation-id downloaded-federation \
+  --consensus-id downloaded-consensus \
+  --destination C:\data\consensus \
+  --format markdown
+```
+
+Audit and query the persisted JSON receipt:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-audit \
+  --input C:\data\consensus.json
+python -m glio_noncode.cli registry-federation-consensus-query \
+  --input C:\data\consensus.json \
+  --resource actions \
+  --severity blocking \
+  --format markdown
+```
+
+The API mirrors this at `/v1/registry/federation/consensus`, `/consensus/audit`, and `/consensus/query`. The consensus persistence package contains exactly `manifest.json`, `consensus.json`, `packages.json`, and `actions.json`; all four are canonicalized and checked on reload.
+
+## Consensus execution, transitions, and history
+
+`registry_federation_consensus_runtime.py` is the end-to-end composition boundary. It loads the downloaded registries, builds the federation and quorum receipt, runs the independent audit, creates a bounded query result, and optionally persists the derived consensus package. Its runtime receipt links every child address and exposes one replayable content address:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-runtime \
+  --peer primary=C:\data\primary-registry \
+  --peer replica=C:\data\replica-registry \
+  --destination C:\data\consensus \
+  --format summary
+```
+
+`registry_federation_consensus_diff.py` compares two consensus receipts by package, candidate, remediation action, and receipt disposition. It keeps added, removed, and changed counts plus changed-field attribution and evidence addresses. `registry_federation_consensus_diff_audit.py` recomputes those counts and item addresses independently:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-diff \
+  --left C:\data\consensus-before \
+  --right C:\data\consensus-after \
+  --format markdown
+python -m glio_noncode.cli registry-federation-consensus-diff-audit \
+  --input C:\data\consensus-diff.json
+```
+
+`registry_federation_consensus_history.py` records ordered consensus/audit pairs as a three-file atomic package. Repeated evaluations of the same logical consensus ID are allowed; each addressed receipt remains a separate history entry. `registry_federation_consensus_observatory.py` aggregates one or more histories and provides bounded state, decision, and acceptance filters:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-history \
+  --input C:\data\consensus-before \
+  --input C:\data\consensus-after \
+  --destination C:\data\consensus-history
+python -m glio_noncode.cli registry-federation-consensus-observatory \
+  --input C:\data\consensus-history \
+  --decision reject \
+  --format markdown
+```
+
+The HTTP equivalents are `/consensus/runtime`, `/consensus/diff`, `/consensus/diff/audit`, `/consensus/history`, and `/consensus/observatory`; schema and capability resources are published beside each route. The real downloaded-data example exercises the complete chain, including a clean acceptance, a divergent rejection, a strict-quorum transition, audit replay, history counters, and observatory filtering.
+
+## Remediation plan and operator query
+
+`registry_federation_consensus_remediation.py` converts every consensus action into a required or recommended non-mutating step. Each step retains its action ID, package, peer scope, instruction, and evidence addresses. `ready` is true only when there are no blocking steps; it does not authorize an edit. The independent remediation audit recomputes step identity, severity counters, readiness, and nested addresses. The query projection provides `summary`, `steps`, `required`, `recommended`, and `evidence` resources with bounded package, kind, severity, status, and pagination filters:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-remediation \
+  --input C:\data\consensus.json \
+  --format markdown
+python -m glio_noncode.cli registry-federation-consensus-remediation-query \
+  --input C:\data\remediation.json \
+  --resource required \
+  --status required \
+  --format markdown
+```
+
+The runtime receipt embeds the remediation plan, its independent audit, and its query result so a caller can consume one addressed execution value. HTTP routes are `/consensus/remediation`, `/consensus/remediation/audit`, and `/consensus/remediation/query`, with schemas and capabilities beside them. Divergent downloaded registries therefore produce visible `inspect-divergence` and `hold-package` steps rather than an implicit repair.
+
+`registry_federation_consensus_remediation_package.py` provides the durable handoff. It writes exactly `manifest.json`, `package.json`, `remediation.json`, and `audit.json` using sibling staging and canonical reload verification. The package includes the independently recomputed audit and rejects any manifest, step projection, audit, or member-set tampering. Use `registry-federation-consensus-remediation-package` or `GET /consensus/remediation/package` when the plan must be transported as a verified artifact.
+
+`registry_federation_consensus_remediation_query_audit.py` independently checks the filtered view after projection. It verifies that returned rows belong to requested resources, satisfy every filter, preserve page ordinals and next offsets, and replay their query/row/result addresses. Its report is available through `registry-federation-consensus-remediation-query-audit` and `/consensus/remediation/query-audit`.
 
 ## State model
 
