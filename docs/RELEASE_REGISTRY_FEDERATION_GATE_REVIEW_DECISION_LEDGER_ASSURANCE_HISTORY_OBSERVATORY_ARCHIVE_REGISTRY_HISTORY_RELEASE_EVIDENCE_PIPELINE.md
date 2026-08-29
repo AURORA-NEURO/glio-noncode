@@ -311,6 +311,42 @@ Markdown output; `query-schema`, `query-result-schema`, and
 example is
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query_demo.py`.
 
+## Durable observability handoff bundle
+
+The observability bundle provides an offline handoff for operators who need
+the operational projection and its independent assurance evidence together.
+It writes exactly nine canonical JSON members: the pipeline receipt,
+observability projection, events, metrics, accepted and rejected event query
+views, the thirteen-check audit, the audit-check query view, and a manifest
+with byte receipts. Reloading verifies every projection, query address,
+content address, and artifact byte before returning the path-free receipt.
+
+```python
+from glio_noncode import (
+    build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline,
+    write_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle,
+    verify_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle,
+)
+
+pipeline = build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline("path/to/downloaded-history")
+write_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle(
+    pipeline,
+    "path/to/observability-handoff",
+)
+handoff = verify_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle(
+    "path/to/observability-handoff"
+)
+print(handoff.summary())
+```
+
+The CLI command is `...release-evidence-pipeline-observability-bundle`; its
+`-verify`, `-manifest`, `-schema`, `-manifest-schema`, and `-capabilities`
+companions expose the same contract. The HTTP surface is
+`/.../release-evidence-pipeline/observability/bundle`, with matching
+`/verify`, `/manifest`, `/schema`, `/manifest-schema`, and `/capabilities`
+routes. The runnable example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_demo.py`.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.

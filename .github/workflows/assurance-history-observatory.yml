@@ -92,6 +92,7 @@ jobs:
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query
+          tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle
       - name: Run upstream history and public-boundary tests
         run: >-
           python -m unittest
@@ -193,3 +194,6 @@ jobs:
       - name: Verify archive registry history release evidence pipeline observability audit query capability contract
         run: >-
           python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-history-release-gate-release-evidence-pipeline-observability-audit-query-query-capabilities']))"
+      - name: Verify archive registry history release evidence pipeline observability bundle capability contract
+        run: >-
+          python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-history-release-gate-release-evidence-pipeline-observability-bundle-capabilities']))"

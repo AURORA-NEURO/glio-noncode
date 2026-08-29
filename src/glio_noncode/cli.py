@@ -2555,6 +2555,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model
@@ -7912,6 +7913,21 @@ def build_parser() -> argparse.ArgumentParser:
     history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query_parser.add_argument("--output", default=None)
     for suffix, help_text in (("query-schema", "print release evidence observability audit query schema"), ("query-result-schema", "print release evidence observability audit query result schema"), ("query-capabilities", "print release evidence observability audit query capabilities")):
         subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_command = history_observatory_archive_registry_history_release_evidence_pipeline_observability_command + "-bundle"
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_command, help="write a durable release evidence observability handoff bundle")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_parser.add_argument("--input", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_parser.add_argument("--destination", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_parser.add_argument("--allow-existing", action="store_true")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_parser.add_argument("--format", choices=("json", "summary"), default="summary")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_parser.add_argument("--output", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_verify_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_command + "-verify", help="verify a durable release evidence observability handoff bundle")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_verify_parser.add_argument("--input", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_verify_parser.add_argument("--output", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_manifest_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_command + "-manifest", help="inspect a durable release evidence observability bundle manifest")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_manifest_parser.add_argument("--input", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_manifest_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print release evidence observability bundle schema"), ("manifest-schema", "print release evidence observability bundle manifest schema"), ("capabilities", "print release evidence observability bundle capabilities")):
+        subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -33083,6 +33099,34 @@ def main(argv: list[str] | None = None) -> int:
         history_release_evidence_pipeline_observability_audit_schema_prefix = history_release_evidence_pipeline_observability_audit_command + "-"
         if args.command.startswith(history_release_evidence_pipeline_observability_audit_schema_prefix) and args.command.removeprefix(history_release_evidence_pipeline_observability_audit_schema_prefix) in history_release_evidence_pipeline_observability_audit_schema_commands:
             _write_json(history_release_evidence_pipeline_observability_audit_schema_commands[args.command.removeprefix(history_release_evidence_pipeline_observability_audit_schema_prefix)](), args.output)
+            return 0
+        history_release_evidence_pipeline_observability_bundle_command = history_release_evidence_pipeline_observability_command + "-bundle"
+        if args.command == history_release_evidence_pipeline_observability_bundle_command:
+            pipeline_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_model.build_pipeline(args.input)
+            release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.write_bundle(pipeline_value, args.destination, overwrite=args.allow_existing)
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.load_bundle(args.destination)
+            if args.format == "json":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.bundle_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.pipeline_accepted and value.audit_accepted else 2
+        if args.command == history_release_evidence_pipeline_observability_bundle_command + "-verify":
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.load_bundle(args.input)
+            _write_json(value.summary(), args.output)
+            return 0 if value.pipeline_accepted and value.audit_accepted else 2
+        if args.command == history_release_evidence_pipeline_observability_bundle_command + "-manifest":
+            manifest_path = Path(args.input) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.MANIFEST_NAME
+            release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.load_bundle(args.input)
+            _write_json(json.loads(manifest_path.read_text(encoding="utf-8")), args.output)
+            return 0
+        history_release_evidence_pipeline_observability_bundle_schema_commands = {
+            "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.bundle_schema,
+            "manifest-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.manifest_schema,
+            "capabilities": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_model.capabilities,
+        }
+        history_release_evidence_pipeline_observability_bundle_schema_prefix = history_release_evidence_pipeline_observability_bundle_command + "-"
+        if args.command.startswith(history_release_evidence_pipeline_observability_bundle_schema_prefix) and args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_schema_prefix) in history_release_evidence_pipeline_observability_bundle_schema_commands:
+            _write_json(history_release_evidence_pipeline_observability_bundle_schema_commands[args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_schema_prefix)](), args.output)
             return 0
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT_COMMAND:
             value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.audit_registry_directory(args.input)
