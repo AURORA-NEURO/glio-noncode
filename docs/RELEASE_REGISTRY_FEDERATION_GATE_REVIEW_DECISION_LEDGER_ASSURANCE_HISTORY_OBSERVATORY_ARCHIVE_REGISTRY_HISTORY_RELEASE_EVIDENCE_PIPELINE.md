@@ -77,6 +77,32 @@ write_assurance_history_observatory_archive_registry_history_release_evidence_pi
 
 The bundle is also available at the CLI `...release-evidence-pipeline-bundle` command and the HTTP `/.../release-evidence-pipeline/bundle` route, each with verify, manifest, schema, and capability companions.
 
+## Observability
+
+The observability projection turns the same receipt into six ordered events
+and twelve denominator metrics. Five events cover the evaluated stages and a
+sixth records the final release decision. Each event links an input address to
+an output address; metrics cover snapshot and stage counts, accepted and
+rejected stage/decision counts, package files, query views, readiness, and the
+public-boundary count. No timestamps, local paths, user metadata, or mutable
+process identifiers enter this projection.
+
+```python
+from glio_noncode import (
+    build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline,
+    build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability,
+)
+
+pipeline = build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline("path/to/downloaded-history")
+observability = build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability(pipeline)
+print(observability.summary())
+```
+
+The CLI and HTTP observability surfaces support JSON, CSV, and Markdown plus
+event, metric, and aggregate schemas. A valid held or blocked pipeline still
+produces an accepted observability projection; `pipeline_accepted` preserves
+the release decision separately from observability-contract validity.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.

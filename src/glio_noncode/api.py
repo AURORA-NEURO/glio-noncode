@@ -351,6 +351,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -3875,6 +3876,33 @@ class ApiHandler(BaseHTTPRequestHandler):
                     manifest_path = Path(directory) / release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.MANIFEST_NAME
                     release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_model.load_bundle(directory)
                     self._write(HTTPStatus.OK, json.loads(manifest_path.read_text(encoding="utf-8")))
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_observability_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_prefix + "/observability"
+                history_observatory_archive_registry_history_release_evidence_pipeline_observability_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.observability_schema,
+                    "/event-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.event_schema,
+                    "/metric-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.metric_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_evidence_pipeline_observability_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "history")
+                    if not directory:
+                        raise ValueError("history input is required")
+                    pipeline_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_model.build_pipeline(directory)
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.build_observability(pipeline_value)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.observability_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.render_observability_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_model.observability_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 if path == history_observatory_archive_registry_prefix:
                     source_value = self._query_value(query, "archives") or self._query_value(query, "input") or self._query_value(query, "archive")
