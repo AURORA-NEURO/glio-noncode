@@ -418,6 +418,37 @@ matching schema and capability routes. The runnable examples are
 and
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_demo.py`.
 
+### Observability bundle catalog diffs
+
+Two independently verified catalogs can be compared by path-free label without
+rebuilding either downloaded history. The comparison classifies every label as
+`added`, `removed`, `changed`, or `unchanged`, preserves left/right catalog and
+nested bundle addresses, reports accepted/ready/artifact deltas, and derives a
+deterministic aggregate state. Stable sorting and content addresses make the
+result suitable for replay, review, and automation even when source directories
+move between machines.
+
+The catalog-diff audit independently replays twelve conservation and boundary
+checks, including label-union coverage, entry-field conservation, denominator
+and artifact deltas, nested addresses, aggregate-state agreement, content
+address replay, and mapping round trips. Audit failures are returned as
+addressed evidence rather than hidden behind an exception. Its bounded query
+companion exposes `summary`, `checks`, `passed`, `failed`, and `evidence`, with
+check-id/text filters, deterministic pagination, and JSON, CSV, or Markdown
+exports.
+
+The CLI commands are
+`...release-evidence-pipeline-observability-bundle-catalog-diff`,
+`...release-evidence-pipeline-observability-bundle-catalog-diff-audit`, and
+`...release-evidence-pipeline-observability-bundle-catalog-diff-audit-query`.
+Each has schema and capability companions. The HTTP surfaces are
+`/.../release-evidence-pipeline/observability/bundle/catalog/diff`,
+`/.../catalog/diff/audit`, and `.../catalog/diff/audit/query`, with matching
+schema and capability routes. Runnable examples are
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_demo.py`
+and
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_audit_query_demo.py`.
+
 ### Persisted observability bundle comparisons
 
 Two independently verified handoff directories can be compared without
