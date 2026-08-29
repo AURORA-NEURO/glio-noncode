@@ -274,6 +274,43 @@ provide query schema, query-result schema, capabilities, JSON, CSV, and
 Markdown output. The runnable example is
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_demo.py`.
 
+## Independent observability audit
+
+The observability audit replays the public projection with thirteen fixed
+checks. It verifies exact fields and namespace safety, the complete event
+sequence, stage and event-type projection, input/output transition linkage,
+event and metric content addresses, denominator conservation, final decision
+conservation, mapping replay, and the projection address. Damaged mappings
+produce an incomplete report with failed checks instead of an exception, so a
+reviewer can see which invariant failed without losing the rest of the
+diagnostic evidence.
+
+```python
+from glio_noncode import audit_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_directory
+
+audit = audit_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_directory(
+    "path/to/downloaded-history"
+)
+print(audit.summary())
+```
+
+The CLI command is `...release-evidence-pipeline-observability-audit`; the
+HTTP route is `/v1/.../release-evidence-pipeline/observability/audit`. Both
+support summary, JSON, and Markdown output plus `schema`, `check-schema`, and
+`capabilities` companions. The runnable example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_demo.py`.
+
+The audit-query companion exposes `summary`, `checks`, `passed`, `failed`,
+and `evidence` resources over the thirteen checks. It supports check identity,
+pass/fail, and public text filters with deterministic pagination, and it keeps
+the audit address and query address in every result. Use
+`...release-evidence-pipeline-observability-audit-query` or
+`/.../release-evidence-pipeline/observability/audit/query` for JSON, CSV, or
+Markdown output; `query-schema`, `query-result-schema`, and
+`query-capabilities` are available beside the command and route. The runnable
+example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_audit_query_demo.py`.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.
