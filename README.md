@@ -1363,3 +1363,7 @@ checks raw package membership, canonical bytes, manifest receipts, gate and
 policy linkage, nested check identities, decision projection, and content
 addresses while preserving a public diagnostic for damaged handoffs. See the
 [runnable package-audit demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_demo.py).
+The [release-gate package-audit query contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_GATE_PACKAGE_AUDIT_QUERY.md)
+adds bounded summary, check, pass/fail, evidence, filtering, pagination, and
+content-addressed inspection over package audit reports, including damaged
+package diagnostics. See the [runnable query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_query_demo.py).
