@@ -364,6 +364,33 @@ companions. The HTTP route is
 schema and capability routes. The runnable example is
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_query_demo.py`.
 
+### Persisted observability bundle comparisons
+
+Two independently verified handoff directories can be compared without
+rebuilding the downloaded history. The comparison covers all nine canonical
+members, exact byte sizes and hashes, semantic receipt fields, nested query
+addresses, artifact counts, and a deterministic aggregate transition of
+`unchanged`, `improved`, `regressed`, or `mixed`. Changed and unchanged files
+remain individually addressed so a release operator can see both the semantic
+and byte-level reason for a handoff revision.
+
+The CLI command is
+`...release-evidence-pipeline-observability-bundle-diff`, with `-schema`,
+`-item-schema`, and `-capabilities` companions. The HTTP route is
+`/.../release-evidence-pipeline/observability/bundle/diff`, with matching
+`/schema`, `/item-schema`, and `/capabilities` routes. The runnable example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_demo.py`.
+
+The diff has an independent twelve-check audit covering public-boundary
+namespace safety, semantic and byte-action conservation, artifact/query count
+conservation, nested addresses, aggregate-state agreement, content-address
+replay, and mapping round trips. Its `/audit` surface returns addressed checks
+and a release-safe status; `/audit/query` exposes bounded `summary`, `checks`,
+`passed`, `failed`, and `evidence` resources with check-id/text filters,
+pagination, replay addresses, and JSON/CSV/Markdown output. The audit-query
+example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query_demo.py`.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.
