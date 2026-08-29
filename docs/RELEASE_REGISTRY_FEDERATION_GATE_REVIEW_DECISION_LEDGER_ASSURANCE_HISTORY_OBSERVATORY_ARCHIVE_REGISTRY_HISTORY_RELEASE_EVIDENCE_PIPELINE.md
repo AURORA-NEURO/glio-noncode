@@ -577,3 +577,118 @@ example is
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.
+
+## Durable catalog promotion package runtime
+
+The catalog promotion package runtime is the executable boundary for downloaded
+observability handoffs. It accepts path-bearing source arguments privately,
+verifies each nine-file handoff, builds the left and right catalogs, computes the
+catalog revision, derives the candidate report, evaluates the policy gate,
+audits the gate, composes the release packet, and then runs an independent
+package audit and bounded package query. The returned runtime document is
+path-free and contains the request labels, package receipt, assurance result,
+query page, persistence status, exact file inventory, reload status, and a
+content address.
+
+When a destination is supplied, the package layer writes exactly these five
+canonical members atomically: `manifest.json`, `gate.json`, `gate-audit.json`,
+`packet.json`, and `actions.json`. Every member is canonical JSON with a byte
+address in the manifest. Reloading rejects missing, extra, reordered, modified,
+or non-canonical members. A ready packet carries twenty-seven passed checks and
+zero actions; held and blocked packets preserve each failed check as an
+addressed action with source, severity, detail, and evidence address.
+
+The package surface has twelve independent audit checks and bounded resources
+for `summary`, `manifest`, `gate`, `audit`, `packet`, `actions`, `evidence`, and
+`files`. The CLI command is
+`...catalog-promotion-gate-release-packet-package-runtime`; its companions
+publish request/schema/capability contracts. The HTTP surface is
+`/.../catalog/promotion-gate/release-packet/package/runtime`, with matching
+schema and capability routes. JSON, CSV, Markdown, and compact summary output
+are available.
+
+## Package registry and revision control
+
+The package registry indexes one or more persisted packages by package ID. It
+replays every package before indexing it, sorts entries deterministically, and
+maintains accepted, ready, held, blocked, artifact, file, check, and action
+denominators. The registry persists exactly `manifest.json` and `registry.json`
+through the same staged atomic write and strict reload contract. Its independent
+nine-check audit covers member conservation, manifest receipts, entry identity,
+package linkage, denominator conservation, ordering, addresses, mapping replay,
+and public-boundary safety.
+
+Registry queries expose summary, entries, accepted, ready, held, blocked, and
+address resources with state/decision/text filters and bounded pagination. A
+registry diff compares package IDs across two registries, classifies added,
+removed, changed, or unchanged receipts, reports semantic field deltas, and
+has an independent eleven-check audit. The CLI commands are
+`...catalog-promotion-gate-release-packet-package-registry` and
+`...catalog-promotion-gate-release-packet-package-registry-diff`; the HTTP
+routes are `/.../catalog/promotion-gate/release-packet/package/registry` and
+`/.../catalog/promotion-gate/release-packet/package/registry/diff`.
+
+## Downloaded-data runtime demonstration
+
+Use the runnable example
+`examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_registry_demo.py`:
+
+```powershell
+python examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_registry_demo.py `
+  --left-label baseline --left-directory $HANDOFF `
+  --right-label candidate --right-directory $HANDOFF `
+  --package-destination $PACKAGE `
+  --registry-destination $REGISTRY `
+  --format summary
+```
+
+The summary shows the live decision, package audit ratio, query counts, exact
+five-file reload result, registry denominators, registry audit ratio, and
+content addresses. The same downloaded directory may be used for both sides to
+exercise the control plane without changing the data; labels remain the only
+public identity.
+
+### Operator flow and failure visibility
+
+The runtime keeps the control-plane stages explicit so an operator can stop at
+the first useful boundary or inspect the complete receipt:
+
+1. Download verification loads the handoff and checks its manifest, member set,
+   canonical bytes, and nested pipeline addresses.
+2. Catalog construction assigns public labels and deterministic ordinals while
+   retaining only content addresses and operational denominators.
+3. Catalog comparison records added, removed, changed, and unchanged labels.
+4. Report and promotion evaluation separate data acceptance from release
+   readiness and apply explicit transition budgets.
+5. Gate assurance independently replays the composed decision and its checks.
+6. Packet materialization turns every failed gate or audit check into a bounded
+   action with evidence linkage.
+7. Package assurance replays the five-file handoff, then the query boundary
+   exposes the exact evidence requested by the operator.
+8. Registry indexing records the package as a release-set entry, and registry
+   diff compares that entry against the prior release set.
+
+The observable outcomes are intentionally distinct:
+
+| outcome | meaning | persisted evidence |
+| --- | --- | --- |
+| `ready` / `promote` | all gate and audit checks pass and release policy is satisfied | five package files, zero actions |
+| `held` / `hold` | integrity is accepted but a policy or transition budget requires review | five package files plus addressed hold actions |
+| `blocked` / `block` | an integrity prerequisite or required audit failed | five package files plus blocking actions |
+| registry `complete` | every indexed package reloaded and every registry invariant passed | two registry files and nine audit checks |
+| registry diff `changed` | one or more package receipt fields changed between release sets | addressed item and eleven diff checks |
+
+For example, this command intentionally exercises a policy hold against a
+different public label while using the same downloaded bytes:
+
+```powershell
+python examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_registry_demo.py `
+  --left-label baseline --left-directory $HANDOFF `
+  --right-label candidate --right-directory $HANDOFF `
+  --max-added 0 --format summary
+```
+
+The non-zero process status is deliberate for a held or blocked release. The
+JSON result still carries the complete diagnostic packet, action count, query
+totals, and content addresses, allowing automation to route review without
+parsing logs or recovering private filesystem paths.

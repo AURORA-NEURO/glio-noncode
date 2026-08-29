@@ -378,6 +378,15 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_audit_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_audit_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model
@@ -4951,6 +4960,299 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                     else:
                         self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_prefix + "/package"
+                package_model = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_model
+                package_query_model = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_query_model
+                package_audit_model = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_audit_model
+                package_diff_model = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_model
+                package_diff_query_model = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_query_model
+                package_diff_audit_model = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_diff_audit_model
+                package_schema_routes = {
+                    "/manifest-schema": package_model.manifest_schema,
+                    "/actions-schema": package_model.actions_schema,
+                    "/schema": package_model.package_schema,
+                }
+                for suffix, schema_builder in package_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, package_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix:
+                    left_labels = self._query_values(query, "left_label")
+                    left_directories = self._query_values(query, "left_directory")
+                    right_labels = self._query_values(query, "right_label")
+                    right_directories = self._query_values(query, "right_directory")
+                    if not left_labels or len(left_labels) != len(left_directories) or not right_labels or len(right_labels) != len(right_directories):
+                        raise ValueError("left and right catalog labels and directories must be paired")
+                    catalog_model = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model
+                    left_catalog = catalog_model.build_catalog_from_directories(tuple(zip(left_labels, left_directories, strict=True)), catalog_id=self._query_value(query, "left_catalog_id") or catalog_model.DEFAULT_CATALOG_ID)
+                    right_catalog = catalog_model.build_catalog_from_directories(tuple(zip(right_labels, right_directories, strict=True)), catalog_id=self._query_value(query, "right_catalog_id") or catalog_model.DEFAULT_CATALOG_ID)
+                    catalog_diff_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_model.build_diff(left_catalog, right_catalog, diff_id=self._query_value(query, "diff_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_model.DEFAULT_DIFF_ID)
+                    report_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_report_model.build_report(right_catalog, report_id=self._query_value(query, "report_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_report_model.DEFAULT_REPORT_ID)
+                    gate_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_model.build_promotion_gate(catalog_diff_value, report_value, gate_id=self._query_value(query, "gate_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_model.DEFAULT_GATE_ID)
+                    gate_audit_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_audit_model.audit_gate(gate_value)
+                    packet_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_model.build_release_packet(gate_value, gate_audit_value, packet_id=self._query_value(query, "packet_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_model.DEFAULT_PACKET_ID)
+                    value = package_model.build_package(gate_value, gate_audit_value, packet_value, package_id=self._query_value(query, "package_id") or package_model.DEFAULT_PACKAGE_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        package_model.write_package(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, package_model.render_package_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, package_model.package_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                package_query_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix + "/query"
+                package_query_schema_routes = {"/query-schema": package_query_model.query_schema, "/query-result-schema": package_query_model.query_result_schema}
+                for suffix, schema_builder in package_query_schema_routes.items():
+                    if path == package_query_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == package_query_prefix + "/query-capabilities":
+                    self._write(HTTPStatus.OK, package_query_model.capabilities())
+                    return
+                if path == package_query_prefix:
+                    source = self._query_value(query, "input") or self._query_value(query, "package")
+                    if not source:
+                        raise ValueError("input or package is required")
+                    result = package_query_model.query_package(package_model.load_package(source), resource=self._query_value(query, "resource") or "summary", source=self._query_value(query, "source"), severity=self._query_value(query, "severity"), check_id=self._query_value(query, "check_id") or self._query_value(query, "check-id"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", package_query_model.DEFAULT_LIMIT))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, package_query_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, package_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, package_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_audit_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix + "/audit"
+                package_audit_schema_routes = {"/schema": package_audit_model.audit_schema, "/check-schema": package_audit_model.check_schema}
+                for suffix, schema_builder in package_audit_schema_routes.items():
+                    if path == package_audit_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == package_audit_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, package_audit_model.capabilities())
+                    return
+                if path == package_audit_prefix:
+                    source = self._query_value(query, "input") or self._query_value(query, "package")
+                    if not source:
+                        raise ValueError("input or package is required")
+                    value = package_audit_model.audit_package(package_model.load_package(source))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, package_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    else:
+                        self._write_bytes(HTTPStatus.OK, package_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_diff_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix + "/diff"
+                package_diff_schema_routes = {"/item-schema": package_diff_model.item_schema, "/schema": package_diff_model.diff_schema}
+                for suffix, schema_builder in package_diff_schema_routes.items():
+                    if path == package_diff_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == package_diff_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, package_diff_model.capabilities())
+                    return
+                if path == package_diff_prefix:
+                    left = self._query_value(query, "left") or self._query_value(query, "left_package")
+                    right = self._query_value(query, "right") or self._query_value(query, "right_package")
+                    if not left or not right:
+                        raise ValueError("left and right packages are required")
+                    value = package_diff_model.build_diff(package_model.load_package(left), package_model.load_package(right), diff_id=self._query_value(query, "diff_id") or package_diff_model.DEFAULT_DIFF_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, package_diff_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, package_diff_model.diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, package_diff_model.diff_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_diff_query_prefix = package_diff_prefix + "/query"
+                package_diff_query_schema_routes = {"/query-schema": package_diff_query_model.query_schema, "/query-result-schema": package_diff_query_model.query_result_schema}
+                for suffix, schema_builder in package_diff_query_schema_routes.items():
+                    if path == package_diff_query_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == package_diff_query_prefix + "/query-capabilities":
+                    self._write(HTTPStatus.OK, package_diff_query_model.capabilities())
+                    return
+                if path == package_diff_query_prefix:
+                    value = package_diff_model.diff_from_mapping(json.loads(Path(self._query_value(query, "input")).read_text(encoding="utf-8")))
+                    result = package_diff_query_model.query_diff(value, resource=self._query_value(query, "resource") or "summary", action_id=self._query_value(query, "action_id"), field=self._query_value(query, "field"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", package_diff_query_model.DEFAULT_LIMIT))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, package_diff_query_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, package_diff_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, package_diff_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_diff_audit_prefix = package_diff_prefix + "/audit"
+                package_diff_audit_schema_routes = {"/schema": package_diff_audit_model.audit_schema, "/check-schema": package_diff_audit_model.check_schema}
+                for suffix, schema_builder in package_diff_audit_schema_routes.items():
+                    if path == package_diff_audit_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == package_diff_audit_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, package_diff_audit_model.capabilities())
+                    return
+                if path == package_diff_audit_prefix:
+                    value = package_diff_model.diff_from_mapping(json.loads(Path(self._query_value(query, "input")).read_text(encoding="utf-8")))
+                    audit_value = package_diff_audit_model.audit_diff(value)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, audit_value.summary())
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, package_diff_audit_model.render_audit_markdown(audit_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, package_diff_audit_model.audit_json(audit_value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_runtime_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix + "/runtime"
+                package_runtime_schema_routes = {"/request-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.request_schema, "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.runtime_schema}
+                for suffix, schema_builder in package_runtime_schema_routes.items():
+                    if path == package_runtime_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == package_runtime_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.capabilities())
+                    return
+                if path == package_runtime_prefix:
+                    left_labels = self._query_values(query, "left_label")
+                    left_directories = self._query_values(query, "left_directory")
+                    right_labels = self._query_values(query, "right_label")
+                    right_directories = self._query_values(query, "right_directory")
+                    if not left_labels or len(left_labels) != len(left_directories) or not right_labels or len(right_labels) != len(right_directories):
+                        raise ValueError("left and right catalog labels and directories must be paired")
+                    runtime_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.run_package_runtime(tuple(zip(left_labels, left_directories, strict=True)), tuple(zip(right_labels, right_directories, strict=True)), runtime_id=self._query_value(query, "runtime_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.DEFAULT_RUNTIME_ID, package_id=self._query_value(query, "package_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.DEFAULT_PACKAGE_ID, catalog_id=self._query_value(query, "catalog_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.DEFAULT_CATALOG_ID, diff_id=self._query_value(query, "diff_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_model.DEFAULT_DIFF_ID, report_id=self._query_value(query, "report_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_report_model.DEFAULT_REPORT_ID, gate_id=self._query_value(query, "gate_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_model.DEFAULT_GATE_ID, packet_id=self._query_value(query, "packet_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_model.DEFAULT_PACKET_ID, resource=self._query_value(query, "resource") or "summary", source=self._query_value(query, "source"), severity=self._query_value(query, "severity"), check_id=self._query_value(query, "check_id") or self._query_value(query, "check-id"), text=self._query_value(query, "q") or self._query_value(query, "text"), limit=self._query_int(query, "limit", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.DEFAULT_LIMIT), max_added=self._query_int(query, "max_added", 0) if "max_added" in query else None, destination=self._query_value(query, "destination"), overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.render_runtime_markdown(runtime_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.runtime_csv(runtime_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_runtime_model.runtime_json(runtime_value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, runtime_value.summary())
+                    return
+                package_registry_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_prefix + "/registry"
+                package_registry_schema_routes = {"/manifest-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.manifest_schema, "/entry-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.entry_schema, "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.registry_schema, "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.query_schema, "/query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.query_result_schema}
+                for suffix, schema_builder in package_registry_schema_routes.items():
+                    if path == package_registry_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == package_registry_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.capabilities())
+                    return
+                if path == package_registry_prefix:
+                    directories = self._query_values(query, "package_directory") or self._query_values(query, "directory") or self._query_values(query, "package")
+                    if not directories:
+                        raise ValueError("package_directory is required at least once")
+                    registry_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.build_registry_from_directories(directories, registry_id=self._query_value(query, "registry_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.DEFAULT_REGISTRY_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.write_registry(registry_value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.render_registry_markdown(registry_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.registry_csv(registry_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.registry_json(registry_value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, registry_value.summary())
+                    return
+                package_registry_query_prefix = package_registry_prefix + "/query"
+                if path == package_registry_query_prefix:
+                    source = self._query_value(query, "input") or self._query_value(query, "registry")
+                    if not source:
+                        raise ValueError("input or registry is required")
+                    registry_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.load_registry(source)
+                    result = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.query_registry(registry_value, resource=self._query_value(query, "resource") or "summary", state=self._query_value(query, "state"), decision=self._query_value(query, "decision"), accepted=self._query_bool(query, "accepted") if "accepted" in query else None, release_ready=self._query_bool(query, "release_ready") if "release_ready" in query else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.DEFAULT_LIMIT))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_registry_audit_prefix = package_registry_prefix + "/audit"
+                if path == package_registry_audit_prefix + "/schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.audit_schema())
+                    return
+                if path == package_registry_audit_prefix + "/check-schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.audit_check_schema())
+                    return
+                if path == package_registry_audit_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.capabilities())
+                    return
+                if path == package_registry_audit_prefix:
+                    source = self._query_value(query, "input") or self._query_value(query, "registry")
+                    if not source:
+                        raise ValueError("input or registry is required")
+                    assurance = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.audit_registry(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.load_registry(source))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, assurance.summary())
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.render_audit_markdown(assurance).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.audit_json(assurance).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_registry_diff_prefix = package_registry_prefix + "/diff"
+                if path == package_registry_diff_prefix + "/item-schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.item_schema())
+                    return
+                if path == package_registry_diff_prefix + "/schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.diff_schema())
+                    return
+                if path == package_registry_diff_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.capabilities())
+                    return
+                if path == package_registry_diff_prefix:
+                    left = self._query_value(query, "left") or self._query_value(query, "left_registry")
+                    right = self._query_value(query, "right") or self._query_value(query, "right_registry")
+                    if not left or not right:
+                        raise ValueError("left and right registries are required")
+                    diff_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.build_diff(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.load_registry(left), release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_model.load_registry(right), diff_id=self._query_value(query, "diff_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.DEFAULT_DIFF_ID)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, diff_value.summary())
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.render_diff_markdown(diff_value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.diff_csv(diff_value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.diff_json(diff_value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                package_registry_diff_audit_prefix = package_registry_diff_prefix + "/audit"
+                if path == package_registry_diff_audit_prefix + "/schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.audit_schema())
+                    return
+                if path == package_registry_diff_audit_prefix + "/check-schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.audit_check_schema())
+                    return
+                if path == package_registry_diff_audit_prefix:
+                    source = self._query_value(query, "input")
+                    if not source:
+                        raise ValueError("input is required")
+                    assurance = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.audit_diff(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.diff_from_mapping(json.loads(Path(source).read_text(encoding="utf-8"))))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(HTTPStatus.OK, assurance.summary())
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.render_audit_markdown(assurance).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_promotion_gate_release_packet_package_registry_diff_model.audit_json(assurance).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_prefix + "/query"
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_schema_routes = {
