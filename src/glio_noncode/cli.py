@@ -2555,6 +2555,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
@@ -7819,6 +7820,15 @@ def build_parser() -> argparse.ArgumentParser:
     history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_parser.add_argument("--output", default=None)
     for suffix, help_text in (("schema", "print release evidence bundle diff schema"), ("item-schema", "print release evidence bundle diff item schema"), ("capabilities", "print release evidence bundle diff capabilities")):
         subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_command = history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_command + "-audit"
+    history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_command, help="audit a release evidence bundle diff")
+    history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_parser.add_argument("--baseline", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_parser.add_argument("--candidate", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_parser.add_argument("--diff-id", default=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model.DEFAULT_DIFF_ID)
+    history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_parser.add_argument("--format", choices=("json", "markdown", "summary"), default="summary")
+    history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print release evidence bundle diff audit schema"), ("check-schema", "print release evidence bundle diff audit check schema"), ("capabilities", "print release evidence bundle diff audit capabilities")):
+        subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_command = history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_command + "-query"
     history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_command, help="query semantic and artifact transitions in two release evidence bundles")
     history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_parser.add_argument("--baseline", required=True)
@@ -32835,6 +32845,26 @@ def main(argv: list[str] | None = None) -> int:
         history_release_evidence_pipeline_bundle_diff_schema_prefix = history_release_evidence_pipeline_bundle_diff_command + "-"
         if args.command.startswith(history_release_evidence_pipeline_bundle_diff_schema_prefix) and args.command.removeprefix(history_release_evidence_pipeline_bundle_diff_schema_prefix) in history_release_evidence_pipeline_bundle_diff_schema_commands:
             _write_json(history_release_evidence_pipeline_bundle_diff_schema_commands[args.command.removeprefix(history_release_evidence_pipeline_bundle_diff_schema_prefix)](), args.output)
+            return 0
+        history_release_evidence_pipeline_bundle_diff_audit_command = history_release_evidence_pipeline_bundle_diff_command + "-audit"
+        if args.command == history_release_evidence_pipeline_bundle_diff_audit_command:
+            diff_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model.build_diff(args.baseline, args.candidate, diff_id=args.diff_id)
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.audit_diff(diff_value)
+            if args.format == "markdown":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        history_release_evidence_pipeline_bundle_diff_audit_schema_commands = {
+            "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.audit_schema,
+            "check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.check_schema,
+            "capabilities": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.capabilities,
+        }
+        history_release_evidence_pipeline_bundle_diff_audit_schema_prefix = history_release_evidence_pipeline_bundle_diff_audit_command + "-"
+        if args.command.startswith(history_release_evidence_pipeline_bundle_diff_audit_schema_prefix) and args.command.removeprefix(history_release_evidence_pipeline_bundle_diff_audit_schema_prefix) in history_release_evidence_pipeline_bundle_diff_audit_schema_commands:
+            _write_json(history_release_evidence_pipeline_bundle_diff_audit_schema_commands[args.command.removeprefix(history_release_evidence_pipeline_bundle_diff_audit_schema_prefix)](), args.output)
             return 0
         history_release_evidence_pipeline_bundle_diff_query_command = history_release_evidence_pipeline_bundle_diff_command + "-query"
         if args.command == history_release_evidence_pipeline_bundle_diff_query_command:

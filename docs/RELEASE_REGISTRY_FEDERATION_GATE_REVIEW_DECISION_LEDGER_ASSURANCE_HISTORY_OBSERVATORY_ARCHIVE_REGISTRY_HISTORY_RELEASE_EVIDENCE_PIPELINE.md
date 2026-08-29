@@ -180,6 +180,35 @@ Markdown output plus `query-schema`, `query-result-schema`, and
 `query-capabilities` companions. The runnable example is
 [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_demo.py).
 
+## Auditing bundle revisions
+
+The diff-audit companion independently replays a public diff mapping through a
+fixed twelve-check contract. It checks exact fields, public-boundary safety,
+all bundle/manifest/pipeline/query namespaces, file identities and actions,
+semantic field derivation, changed/unchanged count conservation, artifact and
+query counts, aggregate state, nested item addresses, the diff content address,
+and typed mapping round-trip. A malformed mapping becomes an `incomplete`
+report with addressed failed checks instead of an unstructured exception.
+
+```python
+from glio_noncode import (
+    audit_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff,
+    build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff,
+)
+
+diff = build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff(
+    "path/to/baseline-bundle",
+    "path/to/candidate-bundle",
+)
+report = audit_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff(diff)
+print(report.summary())
+```
+
+The audit is available at `...release-evidence-pipeline-bundle-diff-audit`
+and `/.../release-evidence-pipeline/bundle/diff/audit`, with `schema`,
+`check-schema`, and `capabilities` companions. The runnable example is
+[`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_demo.py).
+
 ## Observability
 
 The observability projection turns the same receipt into six ordered events
