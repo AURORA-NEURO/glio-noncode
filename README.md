@@ -1334,3 +1334,7 @@ snapshots and adjacent transitions. It preserves endpoint linkage, ordinal
 ordering, state-count conservation, canonical artifact receipts, exact
 four-file persistence, and JSON/CSV/Markdown exports. See the [runnable history
 demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_demo.py).
+The independent [registry-history-audit contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_AUDIT.md)
+adds fixed sequence, adjacency, endpoint, conservation, nested-address, and
+content-address checks while preserving an incomplete diagnostic report for
+malformed public mappings. See the [runnable history-audit demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_audit_demo.py).
