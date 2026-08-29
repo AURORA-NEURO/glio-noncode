@@ -364,6 +364,32 @@ companions. The HTTP route is
 schema and capability routes. The runnable example is
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_query_demo.py`.
 
+### Observability bundle promotion gate
+
+The comparison and audit can be evaluated under an explicit promotion policy.
+The promotion gate requires the selected acceptance, audit-completeness, and
+candidate-readiness invariants, constrains allowed diff states and changed
+artifact/semantic-field budgets, and emits a path-free `ready`, `held`, or
+`blocked` decision. Acceptance is true for a held policy decision but
+`release_ready` is true only when every check passes; integrity and address
+failures are blocking while policy-budget failures are holds.
+
+The CLI command is
+`...release-evidence-pipeline-observability-bundle-promotion-gate`, with
+`-policy-schema`, `-check-schema`, `-schema`, and `-capabilities` companions.
+The HTTP route is
+`/.../release-evidence-pipeline/observability/bundle/promotion-gate`, with the
+same schema routes. The runnable example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_demo.py`.
+
+Gate checks are queryable through bounded `summary`, `checks`, `passed`,
+`failed`, `blocking`, `holds`, and `evidence` resources with severity/check/text
+filters, deterministic pagination, replay addresses, and JSON/CSV/Markdown
+exports. The query route is
+`/.../release-evidence-pipeline/observability/bundle/promotion-gate/query` and
+the runnable query example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_demo.py`.
+
 ### Persisted observability bundle comparisons
 
 Two independently verified handoff directories can be compared without

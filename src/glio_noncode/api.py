@@ -360,6 +360,8 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model
@@ -4351,6 +4353,83 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                     else:
                         self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_prefix + "/promotion-gate"
+                history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_schema_routes = {
+                    "/policy-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.policy_schema,
+                    "/check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.check_schema,
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.gate_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_prefix:
+                    baseline = self._query_value(query, "baseline")
+                    candidate = self._query_value(query, "candidate")
+                    if not baseline or not candidate:
+                        raise ValueError("baseline and candidate observability bundle inputs are required")
+                    policy = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.RegistryHistoryReleaseEvidencePipelineObservabilityBundlePromotionPolicy(
+                        policy_id=self._query_value(query, "policy_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.DEFAULT_POLICY_ID,
+                        allowed_diff_states=self._query_values(query, "allowed_diff_state") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.DEFAULT_ALLOWED_DIFF_STATES,
+                        max_changed_items=self._query_int(query, "max_changed_items", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.DEFAULT_MAX_CHANGED_ITEMS),
+                        max_changed_fields=self._query_int(query, "max_changed_fields", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.DEFAULT_MAX_CHANGED_FIELDS),
+                    )
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.build_promotion_gate_from_directories(
+                        baseline,
+                        candidate,
+                        policy=policy,
+                        gate_id=self._query_value(query, "gate_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.DEFAULT_GATE_ID,
+                    )
+                    status = HTTPStatus.OK if value.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        self._write(status, value.summary())
+                    elif output_format == "csv":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.gate_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.render_gate_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.gate_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_prefix + "/query"
+                history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_routes = {
+                    "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.query_schema,
+                    "/query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.query_result_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_prefix + "/query-capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_prefix:
+                    baseline = self._query_value(query, "baseline")
+                    candidate = self._query_value(query, "candidate")
+                    if not baseline or not candidate:
+                        raise ValueError("baseline and candidate observability bundle inputs are required")
+                    gate_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model.build_promotion_gate_from_directories(baseline, candidate)
+                    result = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.query_gate(
+                        gate_value,
+                        resource=self._query_value(query, "resource") or "summary",
+                        passed=self._query_bool(query, "passed") if "passed" in query else None,
+                        severity=self._query_value(query, "severity"),
+                        check_id=self._query_value(query, "check_id") or self._query_value(query, "check-id"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.DEFAULT_LIMIT),
+                    )
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_observability_prefix + "/query"
                 history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_schema_routes = {
