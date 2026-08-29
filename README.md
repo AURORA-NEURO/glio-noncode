@@ -1328,3 +1328,9 @@ mappings. See the [runnable diff-audit demo](examples/release_registry_federatio
 The [diff-audit query contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_QUERY.md)
 adds bounded summary, check, pass/fail, and evidence inspection with stable
 pagination, filtering, and query-address replay. See the [runnable query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff_audit_query_demo.py).
+The [ordered registry history contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY.md)
+turns repeated verified registry downloads into a deterministic timeline of
+snapshots and adjacent transitions. It preserves endpoint linkage, ordinal
+ordering, state-count conservation, canonical artifact receipts, exact
+four-file persistence, and JSON/CSV/Markdown exports. See the [runnable history
+demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_demo.py).
