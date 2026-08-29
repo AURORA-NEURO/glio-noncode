@@ -153,6 +153,33 @@ summary projections plus `schema`, `item-schema`, and `capabilities`
 companions. The runnable example is
 [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_demo.py).
 
+## Querying bundle revisions
+
+The diff-query companion provides bounded projections over the verified diff.
+The `fields` resource exposes semantic baseline/candidate transitions, while
+`files`, `changed`, and `unchanged` expose the five artifact rows. The
+`evidence` resource adds hashes, byte sizes, changed fields, and item content
+addresses. Every resource supports action, file-name, changed-field, and
+case-insensitive text filters with deterministic offset/limit pagination.
+
+```python
+from glio_noncode import query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_directories
+
+changed_files = query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_directories(
+    "path/to/baseline-bundle",
+    "path/to/candidate-bundle",
+    resource="changed",
+    limit=10,
+)
+print(changed_files.records)
+```
+
+The query is available at `...release-evidence-pipeline-bundle-diff-query`
+and `/.../release-evidence-pipeline/bundle/diff/query`, with JSON, CSV, and
+Markdown output plus `query-schema`, `query-result-schema`, and
+`query-capabilities` companions. The runnable example is
+[`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_demo.py).
+
 ## Observability
 
 The observability projection turns the same receipt into six ordered events

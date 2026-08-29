@@ -355,6 +355,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -3953,6 +3954,41 @@ class ApiHandler(BaseHTTPRequestHandler):
                         return
                 if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_prefix + "/capabilities":
                     self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model.capabilities())
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_schema_routes = {
+                    "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.query_schema,
+                    "/query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.query_result_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_prefix + "/query-capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_prefix + "/query":
+                    baseline = self._query_value(query, "baseline")
+                    candidate = self._query_value(query, "candidate")
+                    if not baseline or not candidate:
+                        raise ValueError("baseline and candidate bundle inputs are required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.query_bundle_directories(
+                        baseline,
+                        candidate,
+                        resource=self._query_value(query, "resource") or "summary",
+                        action=self._query_value(query, "action"),
+                        name=self._query_value(query, "name"),
+                        changed_field=self._query_value(query, "changed_field") or self._query_value(query, "changed-field"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.DEFAULT_LIMIT),
+                    )
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.query_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.render_query_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.query_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_prefix:
                     baseline = self._query_value(query, "baseline")
