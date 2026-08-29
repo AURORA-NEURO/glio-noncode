@@ -2533,6 +2533,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer as release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer_audit as release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry as release_registry_decision_ledger_assurance_history_observatory_archive_registry_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -3590,6 +3591,7 @@ _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGE
 _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_COMMAND = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_COMMAND + "-archive"
 _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER_COMMAND = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_COMMAND + "-transfer"
 _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_COMMAND = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_COMMAND + "-registry"
+_ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT_COMMAND = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_COMMAND + "-audit"
 
 
 def _review_store_catalog_packet_review_gate_history_observatory_packet_registry_federation_policy_from_args(args):
@@ -7507,6 +7509,13 @@ def build_parser() -> argparse.ArgumentParser:
     history_observatory_archive_registry_query_parser.add_argument("--output", default=None)
     for suffix, help_text in (("schema", "print observatory archive registry schema"), ("entry-schema", "print observatory archive registry entry schema"), ("metrics-schema", "print observatory archive registry metrics schema"), ("verification-schema", "print observatory archive registry verification schema"), ("verification-check-schema", "print observatory archive registry verification check schema"), ("query-schema", "print observatory archive registry query schema"), ("query-result-schema", "print observatory archive registry query result schema"), ("capabilities", "print observatory archive registry capabilities")):
         subparsers.add_parser(history_observatory_archive_registry_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    history_observatory_archive_registry_audit_command = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT_COMMAND
+    history_observatory_archive_registry_audit_parser = subparsers.add_parser(history_observatory_archive_registry_audit_command, help="audit an observatory archive registry package")
+    history_observatory_archive_registry_audit_parser.add_argument("--input", required=True)
+    history_observatory_archive_registry_audit_parser.add_argument("--format", choices=("json", "markdown", "summary"), default="summary")
+    history_observatory_archive_registry_audit_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print observatory archive registry audit schema"), ("check-schema", "print observatory archive registry audit check schema"), ("capabilities", "print observatory archive registry audit capabilities")):
+        subparsers.add_parser(history_observatory_archive_registry_audit_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -32039,6 +32048,24 @@ def main(argv: list[str] | None = None) -> int:
         registry_schema_prefix = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_COMMAND + "-"
         if args.command.startswith(registry_schema_prefix) and args.command.removeprefix(registry_schema_prefix) in registry_schema_commands:
             _write_json(registry_schema_commands[args.command.removeprefix(registry_schema_prefix)](), args.output)
+            return 0
+        if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT_COMMAND:
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.audit_registry_directory(args.input)
+            if args.format == "markdown":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        registry_audit_schema_commands = {
+            "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.audit_schema,
+            "check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.check_schema,
+            "capabilities": release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.capabilities,
+        }
+        registry_audit_schema_prefix = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT_COMMAND + "-"
+        if args.command.startswith(registry_audit_schema_prefix) and args.command.removeprefix(registry_audit_schema_prefix) in registry_audit_schema_commands:
+            _write_json(registry_audit_schema_commands[args.command.removeprefix(registry_audit_schema_prefix)](), args.output)
             return 0
         federation_schema_commands = {
             "schema": assurance_history_series_release_registry_federation_model.federation_schema,
