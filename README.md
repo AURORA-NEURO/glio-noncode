@@ -1371,3 +1371,7 @@ The [package-audit release certificate contract](docs/RELEASE_REGISTRY_FEDERATIO
 adds an explicit policy-governed `ready`, `held`, or `blocked` decision over
 independent package audits, with addressed checks, namespace validation, and
 content-address replay. See the [runnable certificate demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_demo.py).
+The [package-audit release certificate query contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_GATE_PACKAGE_AUDIT_RELEASE_CERTIFICATE_QUERY.md)
+adds bounded certificate summary, check, pass/fail, hold, blocking, evidence,
+severity, pagination, and raw-package-to-certificate inspection. See the
+[runnable certificate-query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_query_demo.py).
