@@ -2562,6 +2562,8 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model
@@ -8018,6 +8020,36 @@ def build_parser() -> argparse.ArgumentParser:
     history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_parser.add_argument("--output", default=None)
     for suffix, help_text in (("query-schema", "print observability bundle promotion gate query schema"), ("query-result-schema", "print observability bundle promotion gate query result schema"), ("query-capabilities", "print observability bundle promotion gate query capabilities")):
         subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_command = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_command + "-catalog"
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_command, help="catalog verified release evidence observability handoff bundles")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_parser.add_argument("--label", action="append", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_parser.add_argument("--directory", action="append", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_parser.add_argument("--catalog-id", default=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.DEFAULT_CATALOG_ID)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_parser.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print observability bundle catalog schema"), ("entry-schema", "print observability bundle catalog entry schema"), ("capabilities", "print observability bundle catalog capabilities")):
+        subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_command = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_command + "-query"
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_command, help="query verified observability bundle catalog entries")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--label", action="append", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--directory", action="append", required=True)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--catalog-id", default=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.DEFAULT_CATALOG_ID)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--resource", choices=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.RESOURCES, default="summary")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_acceptance = history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_mutually_exclusive_group()
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_acceptance.add_argument("--accepted", action="store_true", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_acceptance.add_argument("--rejected", action="store_false", dest="accepted", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--state", choices=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.STATES, default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--pipeline-state", choices=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.bundle_model.pipeline_model.STATES, default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--observability-state", choices=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.bundle_model.pipeline_model.STATES, default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--audit-state", choices=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.bundle_model.audit_model.STATES, default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--entry-label", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--text", default=None)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--offset", type=int, default=0)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--limit", type=int, default=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.DEFAULT_LIMIT)
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--format", choices=("json", "csv", "markdown"), default="json")
+    history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("query-schema", "print observability bundle catalog query schema"), ("query-result-schema", "print observability bundle catalog query result schema"), ("query-capabilities", "print observability bundle catalog query capabilities")):
+        subparsers.add_parser(history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -33376,6 +33408,69 @@ def main(argv: list[str] | None = None) -> int:
         history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_prefix = history_release_evidence_pipeline_observability_bundle_promotion_gate_query_command + "-"
         if args.command.startswith(history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_prefix) and args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_prefix) in history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_commands:
             _write_json(history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_commands[args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_promotion_gate_query_schema_prefix)](), args.output)
+            return 0
+        history_release_evidence_pipeline_observability_bundle_catalog_command = history_release_evidence_pipeline_observability_bundle_command + "-catalog"
+        if args.command == history_release_evidence_pipeline_observability_bundle_catalog_command:
+            if len(args.label) != len(args.directory):
+                raise ValueError("catalog labels and directories must be paired")
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.build_catalog_from_directories(
+                tuple(zip(args.label, args.directory, strict=True)),
+                catalog_id=args.catalog_id,
+            )
+            if args.format == "summary":
+                _write_json(value.summary(), args.output)
+            elif args.format == "csv":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.catalog_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.render_catalog_markdown(value), args.output)
+            else:
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.catalog_json(value), args.output)
+            return 0
+        history_release_evidence_pipeline_observability_bundle_catalog_schema_commands = {
+            "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.catalog_schema,
+            "entry-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.entry_schema,
+            "capabilities": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.capabilities,
+        }
+        history_release_evidence_pipeline_observability_bundle_catalog_schema_prefix = history_release_evidence_pipeline_observability_bundle_catalog_command + "-"
+        if args.command.startswith(history_release_evidence_pipeline_observability_bundle_catalog_schema_prefix) and args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_catalog_schema_prefix) in history_release_evidence_pipeline_observability_bundle_catalog_schema_commands:
+            _write_json(history_release_evidence_pipeline_observability_bundle_catalog_schema_commands[args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_catalog_schema_prefix)](), args.output)
+            return 0
+        history_release_evidence_pipeline_observability_bundle_catalog_query_command = history_release_evidence_pipeline_observability_bundle_catalog_command + "-query"
+        if args.command == history_release_evidence_pipeline_observability_bundle_catalog_query_command:
+            if len(args.label) != len(args.directory):
+                raise ValueError("catalog query labels and directories must be paired")
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_model.build_catalog_from_directories(
+                tuple(zip(args.label, args.directory, strict=True)),
+                catalog_id=args.catalog_id,
+            )
+            result = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.query_catalog(
+                value,
+                resource=args.resource,
+                accepted=args.accepted,
+                state=args.state,
+                pipeline_state=args.pipeline_state,
+                observability_state=args.observability_state,
+                audit_state=args.audit_state,
+                label=args.entry_label,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.query_csv(result), args.output)
+            elif args.format == "markdown":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.render_query_markdown(result), args.output)
+            else:
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.query_json(result), args.output)
+            return 0
+        history_release_evidence_pipeline_observability_bundle_catalog_query_schema_commands = {
+            "query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.query_schema,
+            "query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.query_result_schema,
+            "query-capabilities": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_model.capabilities,
+        }
+        history_release_evidence_pipeline_observability_bundle_catalog_query_schema_prefix = history_release_evidence_pipeline_observability_bundle_catalog_query_command + "-"
+        if args.command.startswith(history_release_evidence_pipeline_observability_bundle_catalog_query_schema_prefix) and args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_catalog_query_schema_prefix) in history_release_evidence_pipeline_observability_bundle_catalog_query_schema_commands:
+            _write_json(history_release_evidence_pipeline_observability_bundle_catalog_query_schema_commands[args.command.removeprefix(history_release_evidence_pipeline_observability_bundle_catalog_query_schema_prefix)](), args.output)
             return 0
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT_COMMAND:
             value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.audit_registry_directory(args.input)

@@ -390,6 +390,34 @@ exports. The query route is
 the runnable query example is
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_demo.py`.
 
+### Observability bundle catalog
+
+A catalog groups up to thirty-two independently verified nine-file handoffs
+under caller-supplied, path-free labels. Each entry preserves the bundle,
+manifest, pipeline, observability, audit, and nested query addresses together
+with acceptance and state receipts. Labels are sorted canonically, ordinals are
+reassigned deterministically, duplicate labels are rejected, and the catalog
+keeps accepted, ready, and rejected denominators that can be replayed from its
+content address.
+
+The catalog is built from directories only after strict bundle verification;
+local source paths are never emitted in catalog JSON, CSV, Markdown, schemas,
+or query results. Its bounded query companion exposes `summary`, `entries`,
+`accepted`, `rejected`, `ready`, `held`, `blocked`, and `evidence` resources,
+with label, acceptance, state, stage-state, public-text, offset, and limit
+filters. Query pages retain the catalog address and their own replay address.
+
+The CLI commands are
+`...release-evidence-pipeline-observability-bundle-catalog` and
+`...release-evidence-pipeline-observability-bundle-catalog-query`; the schema
+and capability companions are available on both commands. The HTTP surfaces
+are `/.../release-evidence-pipeline/observability/bundle/catalog` and
+`/.../release-evidence-pipeline/observability/bundle/catalog/query`, with
+matching schema and capability routes. The runnable examples are
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_demo.py`
+and
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_demo.py`.
+
 ### Persisted observability bundle comparisons
 
 Two independently verified handoff directories can be compared without
