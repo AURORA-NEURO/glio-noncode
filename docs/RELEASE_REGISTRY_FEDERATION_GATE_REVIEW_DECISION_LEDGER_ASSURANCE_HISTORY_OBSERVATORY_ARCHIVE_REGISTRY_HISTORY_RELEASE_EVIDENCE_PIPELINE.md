@@ -125,6 +125,34 @@ and `/.../release-evidence-pipeline/bundle/audit/query`, with
 The runnable example is
 [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_demo.py).
 
+## Comparing bundle revisions
+
+The bundle diff compares two directories only after each has passed the strict
+five-file loader. It reports pipeline state and acceptance transitions,
+manifest and query-address transitions, aggregate changed fields, and a
+fixed row for every bundle file with byte sizes, hashes, and changed-field
+details. The aggregate state is deterministically `unchanged`, `improved`,
+`regressed`, or `mixed`; source paths never enter the diff.
+
+```python
+from glio_noncode import (
+    build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff,
+    render_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_markdown,
+)
+
+diff = build_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff(
+    "path/to/baseline-bundle",
+    "path/to/candidate-bundle",
+)
+print(render_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_markdown(diff))
+```
+
+The diff is available at `...release-evidence-pipeline-bundle-diff` and
+`/.../release-evidence-pipeline/bundle/diff`, with JSON, CSV, Markdown, and
+summary projections plus `schema`, `item-schema`, and `capabilities`
+companions. The runnable example is
+[`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_demo.py).
+
 ## Observability
 
 The observability projection turns the same receipt into six ordered events

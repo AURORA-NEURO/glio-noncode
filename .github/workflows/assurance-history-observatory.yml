@@ -46,6 +46,7 @@ jobs:
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query.py
+          src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability.py
           src/glio_noncode/api.py
           src/glio_noncode/cli.py
@@ -77,6 +78,7 @@ jobs:
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query
+          tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability
       - name: Run upstream history and public-boundary tests
         run: >-
@@ -155,6 +157,9 @@ jobs:
       - name: Verify archive registry history release evidence pipeline bundle audit query capability contract
         run: >-
           python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-history-release-gate-release-evidence-pipeline-bundle-audit-query-query-capabilities']))"
+      - name: Verify archive registry history release evidence pipeline bundle diff capability contract
+        run: >-
+          python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-history-release-gate-release-evidence-pipeline-bundle-diff-capabilities']))"
       - name: Verify archive registry history release evidence pipeline observability capability contract
         run: >-
           python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-history-release-gate-release-evidence-pipeline-observability-capabilities']))"
