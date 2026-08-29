@@ -243,6 +243,37 @@ event, metric, and aggregate schemas. A valid held or blocked pipeline still
 produces an accepted observability projection; `pipeline_accepted` preserves
 the release decision separately from observability-contract validity.
 
+## Querying observability
+
+The observability query boundary turns the six events and twelve metrics into
+bounded resources: `summary`, `events`, `metrics`, `accepted`, and `rejected`.
+Queries can filter stage, state, event type, metric name, metric plane, or
+case-insensitive public text, then apply deterministic offset/limit pagination.
+The result stores the exact query and a content address, so a dashboard page
+can be replayed from its JSON without reopening the downloaded directory.
+
+```python
+from glio_noncode import (
+    query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_directory,
+    assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_json,
+)
+
+result = query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_directory(
+    "path/to/downloaded-history",
+    resource="events",
+    event_type="stage_evaluated",
+    accepted=True,
+    limit=3,
+)
+print(assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_json(result))
+```
+
+The CLI command is `...release-evidence-pipeline-observability-query`; the
+HTTP route is `/v1/.../release-evidence-pipeline/observability/query`. Both
+provide query schema, query-result schema, capabilities, JSON, CSV, and
+Markdown output. The runnable example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_query_demo.py`.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.
