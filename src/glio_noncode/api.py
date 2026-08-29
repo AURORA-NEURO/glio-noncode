@@ -327,6 +327,7 @@ from . import assurance_history_series_release_registry_federation_gate as assur
 from . import assurance_history_series_release_registry_federation_gate_review as assurance_history_series_release_registry_federation_gate_review_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance as assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history as release_registry_decision_ledger_assurance_history_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory as release_registry_decision_ledger_assurance_history_observatory_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -2897,6 +2898,142 @@ class ApiHandler(BaseHTTPRequestHandler):
                         return
                     elif output_format == "markdown":
                         self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                    self._write(HTTPStatus.OK, payload)
+                    return
+                history_observatory_prefix = history_prefix + "/observatory"
+                history_observatory_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_model.observatory_schema,
+                    "/member-schema": release_registry_decision_ledger_assurance_history_observatory_model.member_schema,
+                    "/check-schema": release_registry_decision_ledger_assurance_history_observatory_model.check_schema,
+                    "/verification-schema": release_registry_decision_ledger_assurance_history_observatory_model.verification_schema,
+                    "/metrics-schema": release_registry_decision_ledger_assurance_history_observatory_model.metrics_schema,
+                    "/package-schema": release_registry_decision_ledger_assurance_history_observatory_model.package_schema,
+                    "/query-schema": release_registry_decision_ledger_assurance_history_observatory_model.query_schema,
+                    "/verification-query-schema": release_registry_decision_ledger_assurance_history_observatory_model.verification_query_schema,
+                    "/diff-schema": release_registry_decision_ledger_assurance_history_observatory_model.diff_schema,
+                    "/diff-item-schema": release_registry_decision_ledger_assurance_history_observatory_model.diff_item_schema,
+                    "/diff-query-schema": release_registry_decision_ledger_assurance_history_observatory_model.diff_query_schema,
+                }
+                for suffix, schema_builder in history_observatory_schema_routes.items():
+                    if path == history_observatory_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.capabilities())
+                    return
+                if path == history_observatory_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_model.verify_observatory_directory(directory)
+                    self._write(HTTPStatus.OK if value.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, value.summary())
+                    return
+                if path == history_observatory_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_model.load_observatory(directory)
+                    result = release_registry_decision_ledger_assurance_history_observatory_model.query_observatory(value, resource=self._query_value(query, "resource") or "summary", state=self._query_value(query, "state"), latest_transition=self._query_value(query, "latest_transition"), accepted=self._query_bool(query, "accepted") if "accepted" in query else None, release_ready=self._query_bool(query, "release_ready") if "release_ready" in query else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == history_observatory_prefix + "/verification/query-schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.verification_query_schema())
+                    return
+                if path == history_observatory_prefix + "/verification/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_model.load_verification(directory)
+                    result = release_registry_decision_ledger_assurance_history_observatory_model.query_verification(value, resource=self._query_value(query, "resource") or "summary", severity=self._query_value(query, "severity"), passed=self._query_bool(query, "passed") if "passed" in query else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.verification_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.render_verification_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == history_observatory_prefix:
+                    directories = self._query_values(query, "history_directory") or self._query_values(query, "history") or self._query_values(query, "input")
+                    if not directories:
+                        raise ValueError("history_directory is required at least once")
+                    value = release_registry_decision_ledger_assurance_history_observatory_model.build_observatory_from_directories(directories, observatory_id=self._query_value(query, "observatory_id") or release_registry_decision_ledger_assurance_history_observatory_model.DEFAULT_OBSERVATORY_ID, member_ids=self._query_values(query, "member_id"))
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        release_registry_decision_ledger_assurance_history_observatory_model.write_observatory(value, destination, overwrite=self._query_bool(query, "allow_existing") if "allow_existing" in query else False)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        payload = value.summary()
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.observatory_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.render_observatory_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                    self._write(HTTPStatus.OK if value.release_ready else HTTPStatus.UNPROCESSABLE_ENTITY, payload)
+                    return
+                history_observatory_diff_prefix = history_observatory_prefix + "/diff"
+                if path == history_observatory_diff_prefix + "/verify":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_model.load_diff(directory)
+                    self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == history_observatory_diff_prefix + "/query":
+                    directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_diff_directory", None)
+                    if not directory:
+                        raise ValueError("input or directory is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_model.load_diff(directory)
+                    result = release_registry_decision_ledger_assurance_history_observatory_model.query_diff(value, resource=self._query_value(query, "resource") or "summary", action=self._query_value(query, "action"), direction=self._query_value(query, "direction"), state=self._query_value(query, "state"), text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.diff_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.render_diff_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == history_observatory_diff_prefix + "/schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.diff_schema())
+                    return
+                if path == history_observatory_diff_prefix + "/item-schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.diff_item_schema())
+                    return
+                if path == history_observatory_diff_prefix + "/query-schema":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.diff_query_schema())
+                    return
+                if path == history_observatory_diff_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.capabilities())
+                    return
+                if path == history_observatory_diff_prefix:
+                    baseline_directory = self._query_value(query, "baseline")
+                    candidate_directory = self._query_value(query, "candidate")
+                    if not baseline_directory or not candidate_directory:
+                        raise ValueError("baseline and candidate are required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_model.build_diff(release_registry_decision_ledger_assurance_history_observatory_model.load_observatory(baseline_directory), release_registry_decision_ledger_assurance_history_observatory_model.load_observatory(candidate_directory), diff_id=self._query_value(query, "diff_id") or release_registry_decision_ledger_assurance_history_observatory_model.DEFAULT_DIFF_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        release_registry_decision_ledger_assurance_history_observatory_model.write_diff(value, destination, overwrite=self._query_bool(query, "allow_existing") if "allow_existing" in query else False)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "summary":
+                        payload = value.summary()
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                         return
                     else:
                         payload = value.to_dict()

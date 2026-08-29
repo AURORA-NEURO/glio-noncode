@@ -5954,3 +5954,34 @@ The existing preserved downloaded artifact from the prior observatory boundary
 continues to demonstrate strict incompatibility. The current loader rejects it
 as the wrong package shape rather than silently converting old fields. That
 behavior is part of the public compatibility contract.
+
+## Cross-run assurance-history observatory
+
+The release-registry federation gate review decision-ledger assurance-history
+observatory aggregates several current-format assurance histories while
+retaining every history as a source-scoped member. It computes conserved entry,
+transition, gate, finding, and check totals, folds member terminal posture into
+an explicit `empty`, `ready`, `held`, `blocked`, or `mixed` state, and requires
+conjunctive acceptance and readiness before promotion.
+
+The package contains exactly `manifest.json`, `observatory.json`,
+`members.json`, `verification.json`, and `metrics.json`. The loader verifies
+canonical bytes, artifact receipts, exact file names, regular-file boundaries,
+manifest linkage, independently recomputed eight-check verification, and
+derived metrics. Diffs contain exactly `manifest.json` and `diff.json` and
+compare stable member IDs with added, removed, unchanged, changed, improved,
+regressed, and mixed classifications.
+
+Bounded JSON, CSV, and Markdown projections are available through the Python
+module, the long-form CLI, and the HTTP route appended to
+`.../decision-ledger/assurance-history/observatory`. The downloaded-data demo
+loads current persisted history packages, reloads its own output, and emits
+path-free reports. The focused suite covers empty, ready, held, blocked, mixed,
+deterministic, tamper, legacy-shape, exact-file, CLI, HTTP, and real downloaded
+history behavior. Verification-query resources expose addressed summary,
+checks, failed, required, and optional windows with severity, pass-state, text,
+offset, and limit filters. See
+[the observatory contract](RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY.md)
+for the operator contract and
+[the test catalog](RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_TEST_CATALOG.md)
+for the full coverage map.
