@@ -1354,3 +1354,7 @@ The [registry-history release-gate query contract](docs/RELEASE_REGISTRY_FEDERAT
 adds bounded summary, check, pass/fail, hold, and blocking inspection with
 stable filters, pagination, query-address replay, exports, and a [runnable
 query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_query_demo.py).
+The [registry-history release-gate package contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_GATE_PACKAGE.md)
+adds exact three-file persistence, canonical artifact receipts, atomic writes,
+safe reload, manifest inspection, CLI/HTTP verification, and a [runnable
+package demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_demo.py).

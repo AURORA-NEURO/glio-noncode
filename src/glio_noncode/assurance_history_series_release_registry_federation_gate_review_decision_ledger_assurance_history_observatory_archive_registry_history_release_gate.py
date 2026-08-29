@@ -104,6 +104,14 @@ def _public(value: Any) -> bool:
     return history_model._public(value)
 
 
+def _json_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {str(key): _json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_value(item) for item in value]
+    return value
+
+
 def _states(value: Any) -> tuple[str, ...]:
     values = _sequence(value, "registry history release policy transition states", MAX_ALLOWED_TRANSITION_STATES)
     if not values:
@@ -187,7 +195,7 @@ class RegistryHistoryReleaseGateCheck:
         if self.severity not in SEVERITIES:
             raise ValidationError("registry history release gate check severity is invalid")
         self.detail = _text(detail, "registry history release gate check detail", 1024)
-        self.observed = dict(_mapping(observed, "registry history release gate observed values"))
+        self.observed = _json_value(dict(_mapping(observed, "registry history release gate observed values")))
         if not _public(self.observed):
             raise ValidationError("registry history release gate observed values cross the public boundary")
         self.evidence_address = _text(evidence_address, "registry history release gate evidence address", 2048)
