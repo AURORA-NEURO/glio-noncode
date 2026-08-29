@@ -1358,3 +1358,8 @@ The [registry-history release-gate package contract](docs/RELEASE_REGISTRY_FEDER
 adds exact three-file persistence, canonical artifact receipts, atomic writes,
 safe reload, manifest inspection, CLI/HTTP verification, and a [runnable
 package demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_demo.py).
+The independent [release-gate package audit contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_GATE_PACKAGE_AUDIT.md)
+checks raw package membership, canonical bytes, manifest receipts, gate and
+policy linkage, nested check identities, decision projection, and content
+addresses while preserving a public diagnostic for damaged handoffs. See the
+[runnable package-audit demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_demo.py).
