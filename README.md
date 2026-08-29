@@ -1342,3 +1342,7 @@ The [registry-history query contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVI
 adds bounded snapshot, transition, state-change, acceptance, release-readiness,
 ordinal, text, and pagination inspection with deterministic query addresses.
 See the [runnable history-query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_query_demo.py).
+The [registry-history-audit query contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_AUDIT_QUERY.md)
+adds bounded audit summary, check, pass/fail, evidence, filtering, pagination,
+and query-address replay over the thirteen history checks. See the [runnable
+audit-query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_audit_query_demo.py).
