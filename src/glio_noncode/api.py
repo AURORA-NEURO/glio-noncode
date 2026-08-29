@@ -341,6 +341,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_audit_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -3495,6 +3496,48 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_audit_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                     else:
                         self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_audit_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                history_observatory_archive_registry_history_release_gate_prefix = history_observatory_archive_registry_history_prefix + "/release-gate"
+                history_observatory_archive_registry_history_release_gate_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.gate_schema,
+                    "/policy-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.policy_schema,
+                    "/check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.check_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_gate_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_gate_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_gate_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_gate_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "history")
+                    if not directory:
+                        raise ValueError("history input is required")
+                    allowed_states = self._query_values(query, "allowed_transition_state") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.DEFAULT_ALLOWED_TRANSITION_STATES
+                    policy = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.RegistryHistoryReleasePolicy(
+                        policy_id=self._query_value(query, "policy_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.DEFAULT_POLICY_ID,
+                        minimum_snapshots=self._query_int(query, "minimum_snapshots", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.DEFAULT_MINIMUM_SNAPSHOTS),
+                        require_audit_complete=self._query_bool(query, "require_audit_complete") if "require_audit_complete" in query else True,
+                        require_all_snapshots_accepted=self._query_bool(query, "require_all_snapshots_accepted") if "require_all_snapshots_accepted" in query else True,
+                        require_final_release_ready=self._query_bool(query, "require_final_release_ready") if "require_final_release_ready" in query else True,
+                        allowed_transition_states=allowed_states,
+                        max_removed_items_per_transition=self._query_int(query, "max_removed_items_per_transition", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.DEFAULT_MAX_REMOVED_ITEMS),
+                        max_changed_items_per_transition=self._query_int(query, "max_changed_items_per_transition", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.DEFAULT_MAX_CHANGED_ITEMS),
+                        max_regressed_transitions=self._query_int(query, "max_regressed_transitions", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.DEFAULT_MAX_REGRESSED_TRANSITIONS),
+                        max_mixed_transitions=self._query_int(query, "max_mixed_transitions", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.DEFAULT_MAX_MIXED_TRANSITIONS),
+                    )
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.evaluate_history_from_directory(directory, policy)
+                    output_format = self._query_value(query, "format") or "json"
+                    status = HTTPStatus.OK if value.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    if output_format == "csv":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.gate_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.render_gate_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_model.gate_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(status, value.summary())
                     return
                 if path == history_observatory_archive_registry_prefix:
                     source_value = self._query_value(query, "archives") or self._query_value(query, "input") or self._query_value(query, "archive")

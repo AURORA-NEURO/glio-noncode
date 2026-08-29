@@ -1346,3 +1346,7 @@ The [registry-history-audit query contract](docs/RELEASE_REGISTRY_FEDERATION_GAT
 adds bounded audit summary, check, pass/fail, evidence, filtering, pagination,
 and query-address replay over the thirteen history checks. See the [runnable
 audit-query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_audit_query_demo.py).
+The [registry-history release gate contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_GATE.md)
+adds an explicit public policy boundary with deterministic `ready`, `held`, and
+`blocked` decisions, independent audit dependency, transition budgets, check
+addresses, CLI/HTTP routes, schemas, and a [runnable release-gate demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_demo.py).
