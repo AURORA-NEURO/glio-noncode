@@ -104,6 +104,27 @@ Markdown, and summary output, plus `schema`, `check-schema`, and
 `capabilities` companions. The runnable example is
 [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_demo.py).
 
+The audit-query companion provides `summary`, `checks`, `passed`, `failed`,
+and `evidence` resources with pass/fail and check-ID filters, bounded text
+search, pagination, and JSON, CSV, or Markdown output. It can query a damaged
+bundle and expose the failed rows without weakening the audit boundary:
+
+```python
+from glio_noncode import query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_directory
+
+failed = query_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_directory(
+    "path/to/evidence-bundle",
+    resource="failed",
+)
+print(failed.records)
+```
+
+The query is available at `...release-evidence-pipeline-bundle-audit-query`
+and `/.../release-evidence-pipeline/bundle/audit/query`, with
+`query-schema`, `query-result-schema`, and `query-capabilities` companions.
+The runnable example is
+[`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_demo.py).
+
 ## Observability
 
 The observability projection turns the same receipt into six ordered events
