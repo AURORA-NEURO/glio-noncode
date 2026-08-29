@@ -209,6 +209,14 @@ and `/.../release-evidence-pipeline/bundle/diff/audit`, with `schema`,
 `check-schema`, and `capabilities` companions. The runnable example is
 [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_demo.py).
 
+The diff-audit query companion provides `summary`, `checks`, `passed`,
+`failed`, and `evidence` resources over that twelve-check report. It supports
+check-ID and pass/fail filters, bounded case-insensitive text search,
+pagination, and JSON, CSV, or Markdown output. The query is available at
+`...release-evidence-pipeline-bundle-diff-audit-query` and
+`/.../release-evidence-pipeline/bundle/diff/audit/query`, with
+`query-schema`, `query-result-schema`, and `query-capabilities` companions.
+
 ## Observability
 
 The observability projection turns the same receipt into six ordered events

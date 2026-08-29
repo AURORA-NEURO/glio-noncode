@@ -356,6 +356,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
@@ -3987,6 +3988,45 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                     else:
                         self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_prefix = history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_prefix + "/query"
+                history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_schema_routes = {
+                    "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.query_schema,
+                    "/query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.query_result_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_prefix + "/query-capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_prefix:
+                    baseline = self._query_value(query, "baseline")
+                    candidate = self._query_value(query, "candidate")
+                    if not baseline or not candidate:
+                        raise ValueError("baseline and candidate bundle inputs are required")
+                    diff_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model.build_diff(
+                        baseline,
+                        candidate,
+                        diff_id=self._query_value(query, "diff_id") or release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_model.DEFAULT_DIFF_ID,
+                    )
+                    result = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.query_diff(
+                        diff_value,
+                        resource=self._query_value(query, "resource") or "summary",
+                        passed=self._query_bool(query, "passed") if "passed" in query else None,
+                        check_id=self._query_value(query, "check_id"),
+                        text=self._query_value(query, "q") or self._query_value(query, "text"),
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.DEFAULT_LIMIT),
+                    )
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_audit_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_schema_routes = {
                     "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_bundle_diff_query_model.query_schema,
