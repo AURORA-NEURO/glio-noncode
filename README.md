@@ -1316,3 +1316,8 @@ queries, CLI/HTTP routes, and a [runnable registry demo](examples/release_regist
 The independent [registry-audit contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT.md)
 adds twelve raw-package checks and structured incomplete reports for damaged
 or tampered registry directories.
+The [registry-diff contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF.md)
+compares two verified registry snapshots with deterministic added, removed,
+changed, unchanged, state-transition, readiness-transition, and aggregate
+registry-change records. It includes bounded queries, CLI/HTTP routes, schemas,
+capabilities, and a [runnable diff demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff_demo.py).

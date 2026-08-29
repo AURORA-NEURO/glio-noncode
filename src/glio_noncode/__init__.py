@@ -21513,3 +21513,45 @@ from .assurance_history_series_release_registry_federation_gate_review_decision_
 )
 
 __all__ += [name for name in globals() if name.startswith("ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT") or name.startswith("AssuranceHistoryObservatoryArchiveRegistryAudit") or name.startswith("assurance_history_observatory_archive_registry_audit") or name.startswith("audit_assurance_history_observatory_archive_registry") or name.startswith("render_assurance_history_observatory_archive_registry_audit") or name.startswith("verify_assurance_history_observatory_archive_registry_audit")]
+
+from .assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff import (
+    BOUNDARY as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_BOUNDARY,
+    DEFAULT_DIFF_ID as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_DEFAULT_ID,
+    DIFF_ITEM_PREFIX as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_ITEM_PREFIX,
+    DIFF_PREFIX as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_PREFIX,
+    DIFF_QUERY_PREFIX as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_QUERY_PREFIX,
+    ENTRY_FIELDS as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_ENTRY_FIELDS,
+    MAX_DIFF_ITEMS as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_MAX_ITEMS,
+    MAX_QUERY_ITEMS as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_MAX_QUERY_ITEMS,
+    REGISTRY_FIELDS as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_REGISTRY_FIELDS,
+    VERSION as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_VERSION,
+    RegistryDiff as AssuranceHistoryObservatoryArchiveRegistryDiff,
+    RegistryDiffAction as AssuranceHistoryObservatoryArchiveRegistryDiffAction,
+    RegistryDiffItem as AssuranceHistoryObservatoryArchiveRegistryDiffItem,
+    RegistryDiffQuery as AssuranceHistoryObservatoryArchiveRegistryDiffQuery,
+    RegistryDiffQueryResult as AssuranceHistoryObservatoryArchiveRegistryDiffQueryResult,
+    RegistryDiffState as AssuranceHistoryObservatoryArchiveRegistryDiffState,
+    address_diff as assurance_history_observatory_archive_registry_diff_address,
+    address_diff_item as assurance_history_observatory_archive_registry_diff_item_address,
+    address_query as assurance_history_observatory_archive_registry_diff_query_address,
+    build_diff as build_assurance_history_observatory_archive_registry_diff,
+    build_diff_from_directories as build_assurance_history_observatory_archive_registry_diff_from_directories,
+    capabilities as assurance_history_observatory_archive_registry_diff_capabilities,
+    diff_csv as assurance_history_observatory_archive_registry_diff_csv,
+    diff_from_mapping as assurance_history_observatory_archive_registry_diff_from_mapping,
+    diff_item_schema as assurance_history_observatory_archive_registry_diff_item_schema,
+    diff_json as assurance_history_observatory_archive_registry_diff_json,
+    diff_query_csv as assurance_history_observatory_archive_registry_diff_query_csv,
+    diff_query_json as assurance_history_observatory_archive_registry_diff_query_json,
+    diff_schema as assurance_history_observatory_archive_registry_diff_schema,
+    query_diff as query_assurance_history_observatory_archive_registry_diff,
+    query_result_from_mapping as assurance_history_observatory_archive_registry_diff_query_result_from_mapping,
+    query_result_schema as assurance_history_observatory_archive_registry_diff_query_result_schema,
+    query_schema as assurance_history_observatory_archive_registry_diff_query_schema,
+    render_markdown as render_assurance_history_observatory_archive_registry_diff_markdown,
+    render_query_markdown as render_assurance_history_observatory_archive_registry_diff_query_markdown,
+    verify_diff as verify_assurance_history_observatory_archive_registry_diff,
+    verify_query as verify_assurance_history_observatory_archive_registry_diff_query,
+)
+
+__all__ += [name for name in globals() if name.startswith("ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF") or name.startswith("AssuranceHistoryObservatoryArchiveRegistryDiff") or name.startswith("assurance_history_observatory_archive_registry_diff") or name.startswith("build_assurance_history_observatory_archive_registry_diff") or name.startswith("query_assurance_history_observatory_archive_registry_diff") or name.startswith("render_assurance_history_observatory_archive_registry_diff") or name.startswith("verify_assurance_history_observatory_archive_registry_diff")]
