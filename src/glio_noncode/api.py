@@ -53,6 +53,18 @@ from . import registry_federation_consensus_remediation_audit as registry_federa
 from . import registry_federation_consensus_remediation_query as registry_federation_consensus_remediation_query_model
 from . import registry_federation_consensus_remediation_package as registry_federation_consensus_remediation_package_model
 from . import registry_federation_consensus_remediation_query_audit as registry_federation_consensus_remediation_query_audit_model
+from . import registry_federation_consensus_gate as registry_federation_consensus_gate_model
+from . import registry_federation_consensus_gate_audit as registry_federation_consensus_gate_audit_model
+from . import registry_federation_consensus_gate_query as registry_federation_consensus_gate_query_model
+from . import registry_federation_consensus_gate_package as registry_federation_consensus_gate_package_model
+from . import registry_federation_consensus_gate_runtime as registry_federation_consensus_gate_runtime_model
+from . import registry_federation_consensus_gate_diff as registry_federation_consensus_gate_diff_model
+from . import registry_federation_consensus_gate_diff_audit as registry_federation_consensus_gate_diff_audit_model
+from . import registry_federation_consensus_gate_history as registry_federation_consensus_gate_history_model
+from . import registry_federation_consensus_gate_history_audit as registry_federation_consensus_gate_history_audit_model
+from . import registry_federation_consensus_gate_observatory as registry_federation_consensus_gate_observatory_model
+from . import registry_federation_consensus_gate_observatory_audit as registry_federation_consensus_gate_observatory_audit_model
+from . import registry_federation_consensus_gate_package_audit as registry_federation_consensus_gate_package_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -1475,6 +1487,11 @@ class ApiHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _write_error(self, status: int, message: str) -> None:
+        """Return a bounded JSON error for read-route validation failures."""
+
+        self._write(status, {"error": "bad_request", "message": str(message)[:2048]})
+
     def _read_json(self) -> dict[str, Any]:
         raw_length = self.headers.get("Content-Length", "0")
         try:
@@ -1582,6 +1599,47 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/consensus/observatory/observation-schema": registry_federation_consensus_observatory_model.observation_schema,
                     "/consensus/observatory/schema": registry_federation_consensus_observatory_model.observatory_schema,
                     "/consensus/observatory/capabilities": registry_federation_consensus_observatory_model.capabilities,
+                    "/consensus/gate/policy-schema": registry_federation_consensus_gate_model.policy_schema,
+                    "/consensus/gate/check-schema": registry_federation_consensus_gate_model.check_schema,
+                    "/consensus/gate/schema": registry_federation_consensus_gate_model.gate_schema,
+                    "/consensus/gate/capabilities": registry_federation_consensus_gate_model.capabilities,
+                    "/consensus/gate/audit/check-schema": registry_federation_consensus_gate_audit_model.check_schema,
+                    "/consensus/gate/audit/schema": registry_federation_consensus_gate_audit_model.audit_schema,
+                    "/consensus/gate/audit/capabilities": registry_federation_consensus_gate_audit_model.capabilities,
+                    "/consensus/gate/query/schema": registry_federation_consensus_gate_query_model.query_schema,
+                    "/consensus/gate/query/row-schema": registry_federation_consensus_gate_query_model.row_schema,
+                    "/consensus/gate/query/result-schema": registry_federation_consensus_gate_query_model.result_schema,
+                    "/consensus/gate/query/capabilities": registry_federation_consensus_gate_query_model.capabilities,
+                    "/consensus/gate/package/manifest-schema": registry_federation_consensus_gate_package_model.manifest_schema,
+                    "/consensus/gate/package/schema": registry_federation_consensus_gate_package_model.package_schema,
+                    "/consensus/gate/package/capabilities": registry_federation_consensus_gate_package_model.capabilities,
+                    "/consensus/gate/package/audit/check-schema": registry_federation_consensus_gate_package_audit_model.check_schema,
+                    "/consensus/gate/package/audit/schema": registry_federation_consensus_gate_package_audit_model.audit_schema,
+                    "/consensus/gate/package/audit/capabilities": registry_federation_consensus_gate_package_audit_model.capabilities,
+                    "/consensus/gate/runtime/schema": registry_federation_consensus_gate_runtime_model.runtime_schema,
+                    "/consensus/gate/runtime/capabilities": registry_federation_consensus_gate_runtime_model.capabilities,
+                    "/consensus/gate/diff/item-schema": registry_federation_consensus_gate_diff_model.item_schema,
+                    "/consensus/gate/diff/schema": registry_federation_consensus_gate_diff_model.diff_schema,
+                    "/consensus/gate/diff/capabilities": registry_federation_consensus_gate_diff_model.capabilities,
+                    "/consensus/gate/diff/audit/check-schema": registry_federation_consensus_gate_diff_audit_model.check_schema,
+                    "/consensus/gate/diff/audit/schema": registry_federation_consensus_gate_diff_audit_model.audit_schema,
+                    "/consensus/gate/diff/audit/capabilities": registry_federation_consensus_gate_diff_audit_model.capabilities,
+                    "/consensus/gate/history/manifest-schema": registry_federation_consensus_gate_history_model.manifest_schema,
+                    "/consensus/gate/history/entry-schema": registry_federation_consensus_gate_history_model.entry_schema,
+                    "/consensus/gate/history/schema": registry_federation_consensus_gate_history_model.history_schema,
+                    "/consensus/gate/history/capabilities": registry_federation_consensus_gate_history_model.capabilities,
+                    "/consensus/gate/history/audit/check-schema": registry_federation_consensus_gate_history_audit_model.check_schema,
+                    "/consensus/gate/history/audit/schema": registry_federation_consensus_gate_history_audit_model.audit_schema,
+                    "/consensus/gate/history/audit/capabilities": registry_federation_consensus_gate_history_audit_model.capabilities,
+                    "/consensus/gate/observatory/observation-schema": registry_federation_consensus_gate_observatory_model.observation_schema,
+                    "/consensus/gate/observatory/schema": registry_federation_consensus_gate_observatory_model.observatory_schema,
+                    "/consensus/gate/observatory/query-schema": registry_federation_consensus_gate_observatory_model.query_schema,
+                    "/consensus/gate/observatory/query-row-schema": registry_federation_consensus_gate_observatory_model.row_schema,
+                    "/consensus/gate/observatory/query-result-schema": registry_federation_consensus_gate_observatory_model.result_schema,
+                    "/consensus/gate/observatory/capabilities": registry_federation_consensus_gate_observatory_model.capabilities,
+                    "/consensus/gate/observatory/audit/check-schema": registry_federation_consensus_gate_observatory_audit_model.check_schema,
+                    "/consensus/gate/observatory/audit/schema": registry_federation_consensus_gate_observatory_audit_model.audit_schema,
+                    "/consensus/gate/observatory/audit/capabilities": registry_federation_consensus_gate_observatory_audit_model.capabilities,
                     "/consensus/remediation/step-schema": registry_federation_consensus_remediation_model.step_schema,
                     "/consensus/remediation/schema": registry_federation_consensus_remediation_model.remediation_schema,
                     "/consensus/remediation/capabilities": registry_federation_consensus_remediation_model.capabilities,
@@ -1894,6 +1952,191 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_observatory_model.observatory_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
                     else:
                         self._write(HTTPStatus.OK, value.summary() | {"returned_count": len(selected)})
+                    return
+                if path == federation_prefix + "/consensus/gate":
+                    input_path = self._query_value(query, "input") or ""
+                    source = Path(input_path)
+                    raw = json.loads(source.read_text(encoding="utf-8"))
+                    consensus_runtime = registry_federation_consensus_gate_runtime_model.runtime_from_mapping(raw).consensus_runtime if "consensus_runtime" in raw else registry_federation_consensus_runtime_model.runtime_from_mapping(raw)
+                    value = registry_federation_consensus_gate_model.evaluate_gate(consensus_runtime, gate_id=self._query_value(query, "gate_id") or "consensus-release-gate")
+                    output_format = self._query_value(query, "format") or "json"
+                    status = HTTPStatus.OK if value.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    if output_format == "summary":
+                        self._write(status, value.summary())
+                    elif output_format == "csv":
+                        self._write_bytes(status, registry_federation_consensus_gate_model.gate_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(status, registry_federation_consensus_gate_model.render_gate_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write_bytes(status, registry_federation_consensus_gate_model.gate_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                if path == federation_prefix + "/consensus/gate/runtime":
+                    specifications = self._query_values(query, "peer")
+                    if not specifications:
+                        peer_ids = self._query_values(query, "peer_id")
+                        directories = self._query_values(query, "directory")
+                        if len(peer_ids) != len(directories):
+                            raise ValueError("peer_id and directory query values must be paired")
+                        specifications = tuple(f"{peer_id}={directory}" for peer_id, directory in zip(peer_ids, directories, strict=True))
+                    peers = []
+                    for specification in specifications:
+                        if "=" not in specification:
+                            raise ValueError("peer query values must use PEER_ID=REGISTRY_DIRECTORY")
+                        peers.append(tuple(specification.split("=", 1)))
+                    value = registry_federation_consensus_gate_runtime_model.run_gate_runtime(peers, runtime_id=self._query_value(query, "runtime_id") or "consensus-gate-runtime", federation_id=self._query_value(query, "federation_id") or "catalog-federation", consensus_id=self._query_value(query, "consensus_id") or "federation-consensus", quorum=self._query_int(query, "quorum", 0) or None, gate_id=self._query_value(query, "gate_id") or "consensus-release-gate", package_id=self._query_value(query, "package_id") or "consensus-gate-package", destination=self._query_value(query, "destination"), overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False, resources=tuple(self._query_values(query, "resource") or registry_federation_consensus_gate_query_model.DEFAULT_RESOURCES), check_id=self._query_value(query, "check_id") or "", passed=None if "passed" not in query else self._query_bool(query, "passed"), state=self._query_value(query, "state") or "", decision=self._query_value(query, "decision") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
+                    output_format = self._query_value(query, "format") or "summary"
+                    status = HTTPStatus.OK if value.gate.accepted and value.audit.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    if output_format == "json":
+                        self._write_bytes(status, registry_federation_consensus_gate_runtime_model.runtime_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(status, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_audit_model.audit_gate(registry_federation_consensus_gate_model.gate_from_mapping(raw))
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/query":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    gate = registry_federation_consensus_gate_model.gate_from_mapping(raw)
+                    value = registry_federation_consensus_gate_query_model.query_gate(gate, query_id=self._query_value(query, "query_id") or "consensus-gate-query", resources=tuple(self._query_values(query, "resource") or registry_federation_consensus_gate_query_model.DEFAULT_RESOURCES), check_id=self._query_value(query, "check_id") or "", passed=None if "passed" not in query else self._query_bool(query, "passed"), state=self._query_value(query, "state") or "", decision=self._query_value(query, "decision") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_query_model.query_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_query_model.render_query_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_query_model.query_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/package":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    runtime_value = registry_federation_consensus_gate_runtime_model.runtime_from_mapping(raw)
+                    value = registry_federation_consensus_gate_package_model.build_package(runtime_value.consensus_runtime, runtime_value.gate, audit=runtime_value.audit, query=runtime_value.query, package_id=self._query_value(query, "package_id") or "consensus-gate-package")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        registry_federation_consensus_gate_package_model.write_package(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_package_model.package_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/package/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    package = registry_federation_consensus_gate_package_model.package_from_mapping(raw)
+                    value = registry_federation_consensus_gate_package_audit_model.audit_package(package)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_package_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_package_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_package_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/diff":
+                    left_raw = json.loads(Path(self._query_value(query, "left") or "").read_text(encoding="utf-8"))
+                    right_raw = json.loads(Path(self._query_value(query, "right") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_diff_model.build_diff(registry_federation_consensus_gate_model.gate_from_mapping(left_raw), registry_federation_consensus_gate_model.gate_from_mapping(right_raw), diff_id=self._query_value(query, "diff_id") or registry_federation_consensus_gate_diff_model.DEFAULT_DIFF_ID)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_diff_model.diff_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_diff_model.render_diff_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_diff_model.diff_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/diff/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_diff_audit_model.audit_diff(registry_federation_consensus_gate_diff_model.diff_from_mapping(raw))
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_diff_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_diff_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_diff_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/history":
+                    inputs = self._query_values(query, "input")
+                    if not inputs:
+                        raise ValueError("consensus gate history requires at least one package input")
+                    pairs = []
+                    for directory in inputs:
+                        package = registry_federation_consensus_gate_package_model.load_package(directory)
+                        pairs.append((package.gate, package.audit))
+                    value = registry_federation_consensus_gate_history_model.build_history(tuple(pairs), history_id=self._query_value(query, "history_id") or "consensus-gate-history")
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        registry_federation_consensus_gate_history_model.write_history(value, destination, overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_history_model.history_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_history_model.render_history_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_history_model.history_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/history/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_history_audit_model.audit_history(registry_federation_consensus_gate_history_model.history_from_mapping(raw))
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_history_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_history_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_history_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/observatory":
+                    inputs = self._query_values(query, "input")
+                    if not inputs:
+                        raise ValueError("consensus gate observatory requires at least one history input")
+                    value = registry_federation_consensus_gate_observatory_model.build_observatory(tuple(registry_federation_consensus_gate_history_model.load_history(directory) for directory in inputs), observatory_id=self._query_value(query, "observatory_id") or "consensus-gate-observatory")
+                    accepted_text = self._query_value(query, "accepted")
+                    accepted = None if not accepted_text else accepted_text == "true"
+                    selected = registry_federation_consensus_gate_observatory_model.query_observatory(value, state=self._query_value(query, "state") or "", decision=self._query_value(query, "decision") or "", accepted=accepted, offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 100))
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_observatory_model.observatory_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_observatory_model.render_observatory_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_observatory_model.observatory_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary() | {"returned_count": len(selected.rows)})
+                    return
+                if path == federation_prefix + "/consensus/gate/observatory/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_observatory_audit_model.audit_observatory(registry_federation_consensus_gate_observatory_model.observatory_from_mapping(raw))
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_observatory_audit_model.audit_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_observatory_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "json":
+                        self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_observatory_audit_model.audit_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, value.summary())
                     return
                 if path == federation_prefix + "/consensus/remediation":
                     input_path = self._query_value(query, "input") or ""

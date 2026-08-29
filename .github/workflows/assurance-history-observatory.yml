@@ -102,6 +102,18 @@ jobs:
           src/glio_noncode/registry_federation_consensus_remediation_query.py
           src/glio_noncode/registry_federation_consensus_remediation_package.py
           src/glio_noncode/registry_federation_consensus_remediation_query_audit.py
+          src/glio_noncode/registry_federation_consensus_gate.py
+          src/glio_noncode/registry_federation_consensus_gate_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_query.py
+          src/glio_noncode/registry_federation_consensus_gate_package.py
+          src/glio_noncode/registry_federation_consensus_gate_package_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_runtime.py
+          src/glio_noncode/registry_federation_consensus_gate_diff.py
+          src/glio_noncode/registry_federation_consensus_gate_diff_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_history.py
+          src/glio_noncode/registry_federation_consensus_gate_history_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_observatory.py
+          src/glio_noncode/registry_federation_consensus_gate_observatory_audit.py
           src/glio_noncode/api.py
           src/glio_noncode/cli.py
       - name: Run observatory contract tests
@@ -162,6 +174,10 @@ jobs:
           tests.test_registry_federation_consensus_remediation
           tests.test_registry_federation_consensus_remediation_package
           tests.test_registry_federation_consensus_remediation_query_audit
+          tests.test_registry_federation_consensus_gate
+          tests.test_registry_federation_consensus_gate_extended
+          tests.test_registry_federation_consensus_gate_validation
+          tests.test_registry_federation_consensus_gate_contract
       - name: Run upstream history and public-boundary tests
         run: >-
           python -m unittest

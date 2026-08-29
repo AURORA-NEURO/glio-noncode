@@ -155,6 +155,112 @@ python -m glio_noncode.cli registry-federation-consensus-observatory \
 
 The HTTP equivalents are `/consensus/runtime`, `/consensus/diff`, `/consensus/diff/audit`, `/consensus/history`, and `/consensus/observatory`; schema and capability resources are published beside each route. The real downloaded-data example exercises the complete chain, including a clean acceptance, a divergent rejection, a strict-quorum transition, audit replay, history counters, and observatory filtering.
 
+## Consensus release-control plane
+
+The consensus receipt answers whether package addresses can be selected under a
+quorum. The release-control plane answers the follow-on operational question:
+whether that verified execution is eligible for promotion under an explicit,
+content-addressed policy. It is deliberately a separate boundary so a useful
+consensus result never becomes an implicit approval.
+
+`registry_federation_consensus_gate.py` evaluates a verified consensus runtime
+against a policy with twenty ordered checks. The default policy requires a
+consistent/accepted consensus, at least one peer and quorum, at least one
+selected package, no unresolved packages, no blocking remediation, and all
+three child audits. Query completeness is configurable. The output is one of
+`eligible/promote`, `review/review`, or `blocked/hold`; only the first pair is
+accepted. Every check retains supporting content addresses, and the policy,
+check list, counters, disposition, and final address replay independently.
+
+Build the gate directly from downloaded registries, with optional package
+persistence:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-runtime \
+  --peer primary=C:\data\primary-registry \
+  --peer replica=C:\data\replica-registry \
+  --federation-id downloaded-federation \
+  --consensus-id downloaded-consensus \
+  --quorum 2 \
+  --destination C:\data\consensus-gate-package \
+  --format json \
+  --output C:\data\consensus-gate-runtime.json
+```
+
+The runtime envelope contains the nested consensus runtime, gate, independent
+gate audit, bounded gate query, persistence state, and one runtime address.
+The standalone commands accept those JSON projections for re-evaluation:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate \
+  --input C:\data\consensus-gate-runtime.json \
+  --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-audit \
+  --input C:\data\consensus-gate.json \
+  --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-query \
+  --input C:\data\consensus-gate.json \
+  --resource failures \
+  --passed false \
+  --limit 50 \
+  --format markdown
+```
+
+The bounded query exposes `summary`, `checks`, `failures`, and `evidence`
+resources. It conserves filters, row ordinals, next offsets, and content
+addresses, so a caller can inspect exactly why a release was held without
+loading or rebuilding the source registries.
+
+`registry_federation_consensus_gate_package.py` is the durable transport
+boundary. It writes exactly six canonical JSON members:
+
+| member | purpose |
+| --- | --- |
+| `manifest.json` | package identity, exact member list, and child addresses |
+| `package.json` | package envelope and content address |
+| `runtime.json` | complete consensus runtime used by the gate |
+| `gate.json` | policy, checks, disposition, and acceptance |
+| `audit.json` | independently recomputed gate audit |
+| `query.json` | bounded operator projection |
+
+Reload requires exact member vocabulary, canonical JSON bytes, manifest replay,
+all child links, and package-address replay. The independent package audit
+recomputes those conditions from the typed package. No local directory path is
+included in the public package, and the public-boundary checks reject agent or
+path metadata.
+
+`registry_federation_consensus_gate_diff.py` compares two gate receipts by
+policy, check, disposition, and receipt resources. Values are represented by
+content fingerprints rather than raw duplicated payloads, while changed-field
+attribution and evidence addresses explain the transition. Its independent
+diff audit recomputes item addresses, counters, endpoints, and disposition
+conservation. This is useful for showing a clean downloaded replica becoming a
+review or hold result after a quorum policy change or registry divergence.
+
+`registry_federation_consensus_gate_history.py` records ordered gate/audit pairs
+as an exact three-file atomic package. `append_history` preserves every prior
+entry and assigns the next ordinal; accepted, review, and blocked counters are
+recomputed at construction and reload. The history audit checks ordering,
+counter conservation, gate/audit links, evidence, mapping replay, and the
+history address.
+
+`registry_federation_consensus_gate_observatory.py` aggregates one or more
+histories into a bounded timeline. It reports accepted, review, and blocked
+counts and supports state, decision, acceptance, offset, and limit filters.
+The independent observatory audit verifies history membership, observation
+identity, aggregate counts, row/query replay, and the public boundary.
+
+The HTTP equivalents are `/consensus/gate`, `/consensus/gate/runtime`,
+`/consensus/gate/audit`, `/consensus/gate/query`, `/consensus/gate/package`,
+`/consensus/gate/package/audit`, `/consensus/gate/diff`,
+`/consensus/gate/diff/audit`, `/consensus/gate/history`,
+`/consensus/gate/history/audit`, `/consensus/gate/observatory`, and
+`/consensus/gate/observatory/audit`. Each route has adjacent schema and
+capability resources. The downloaded-data demo runs this entire control plane,
+then compares the normal gate with a stricter quorum policy, persists and
+reloads the six-file package, audits the transition, and aggregates the
+eligible/review observations.
+
 ## Remediation plan and operator query
 
 `registry_federation_consensus_remediation.py` converts every consensus action into a required or recommended non-mutating step. Each step retains its action ID, package, peer scope, instruction, and evidence addresses. `ready` is true only when there are no blocking steps; it does not authorize an edit. The independent remediation audit recomputes step identity, severity counters, readiness, and nested addresses. The query projection provides `summary`, `steps`, `required`, `recommended`, and `evidence` resources with bounded package, kind, severity, status, and pagination filters:

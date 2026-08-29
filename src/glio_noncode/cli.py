@@ -55,6 +55,18 @@ from . import registry_federation_consensus_remediation_audit as registry_federa
 from . import registry_federation_consensus_remediation_query as registry_federation_consensus_remediation_query_model
 from . import registry_federation_consensus_remediation_package as registry_federation_consensus_remediation_package_model
 from . import registry_federation_consensus_remediation_query_audit as registry_federation_consensus_remediation_query_audit_model
+from . import registry_federation_consensus_gate as registry_federation_consensus_gate_model
+from . import registry_federation_consensus_gate_audit as registry_federation_consensus_gate_audit_model
+from . import registry_federation_consensus_gate_query as registry_federation_consensus_gate_query_model
+from . import registry_federation_consensus_gate_package as registry_federation_consensus_gate_package_model
+from . import registry_federation_consensus_gate_runtime as registry_federation_consensus_gate_runtime_model
+from . import registry_federation_consensus_gate_diff as registry_federation_consensus_gate_diff_model
+from . import registry_federation_consensus_gate_diff_audit as registry_federation_consensus_gate_diff_audit_model
+from . import registry_federation_consensus_gate_history as registry_federation_consensus_gate_history_model
+from . import registry_federation_consensus_gate_history_audit as registry_federation_consensus_gate_history_audit_model
+from . import registry_federation_consensus_gate_observatory as registry_federation_consensus_gate_observatory_model
+from . import registry_federation_consensus_gate_observatory_audit as registry_federation_consensus_gate_observatory_audit_model
+from . import registry_federation_consensus_gate_package_audit as registry_federation_consensus_gate_package_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -17385,6 +17397,103 @@ def build_parser() -> argparse.ArgumentParser:
     federation_consensus_observatory.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     federation_consensus_observatory.add_argument("--output", default=None)
 
+    federation_consensus_gate = subparsers.add_parser("registry-federation-consensus-gate", help="evaluate a consensus runtime against release policy")
+    federation_consensus_gate.add_argument("--input", required=True)
+    federation_consensus_gate.add_argument("--gate-id", default="consensus-release-gate")
+    federation_consensus_gate.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate.add_argument("--output", default=None)
+
+    federation_consensus_gate_runtime = subparsers.add_parser("registry-federation-consensus-gate-runtime", help="build, audit, query, and optionally persist a release gate")
+    federation_consensus_gate_runtime.add_argument("--peer", action="append", required=True, help="peer ID and registry directory as ID=DIRECTORY")
+    federation_consensus_gate_runtime.add_argument("--federation-id", default="catalog-federation")
+    federation_consensus_gate_runtime.add_argument("--consensus-id", default="federation-consensus")
+    federation_consensus_gate_runtime.add_argument("--runtime-id", default="consensus-gate-runtime")
+    federation_consensus_gate_runtime.add_argument("--gate-id", default="consensus-release-gate")
+    federation_consensus_gate_runtime.add_argument("--quorum", default=None, type=int)
+    federation_consensus_gate_runtime.add_argument("--destination", default=None)
+    federation_consensus_gate_runtime.add_argument("--overwrite", action="store_true")
+    federation_consensus_gate_runtime.add_argument("--resource", action="append")
+    federation_consensus_gate_runtime.add_argument("--package-id", default="consensus-gate-package")
+    federation_consensus_gate_runtime.add_argument("--check-id", default="")
+    federation_consensus_gate_runtime.add_argument("--passed", default=None, choices=("true", "false"))
+    federation_consensus_gate_runtime.add_argument("--state", default="")
+    federation_consensus_gate_runtime.add_argument("--decision", default="")
+    federation_consensus_gate_runtime.add_argument("--offset", default=0, type=int)
+    federation_consensus_gate_runtime.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_runtime.add_argument("--format", choices=("json", "summary"), default="summary")
+    federation_consensus_gate_runtime.add_argument("--output", default=None)
+
+    federation_consensus_gate_audit = subparsers.add_parser("registry-federation-consensus-gate-audit", help="audit a serialized release gate")
+    federation_consensus_gate_audit.add_argument("--input", required=True)
+    federation_consensus_gate_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_query = subparsers.add_parser("registry-federation-consensus-gate-query", help="query a serialized release gate")
+    federation_consensus_gate_query.add_argument("--input", required=True)
+    federation_consensus_gate_query.add_argument("--resource", action="append")
+    federation_consensus_gate_query.add_argument("--check-id", default="")
+    federation_consensus_gate_query.add_argument("--passed", default=None, choices=("true", "false"))
+    federation_consensus_gate_query.add_argument("--state", default="")
+    federation_consensus_gate_query.add_argument("--decision", default="")
+    federation_consensus_gate_query.add_argument("--offset", default=0, type=int)
+    federation_consensus_gate_query.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_query.add_argument("--output", default=None)
+
+    federation_consensus_gate_package = subparsers.add_parser("registry-federation-consensus-gate-package", help="persist a release-control handoff package")
+    federation_consensus_gate_package.add_argument("--input", required=True)
+    federation_consensus_gate_package.add_argument("--package-id", default="consensus-gate-package")
+    federation_consensus_gate_package.add_argument("--destination", required=True)
+    federation_consensus_gate_package.add_argument("--overwrite", action="store_true")
+    federation_consensus_gate_package.add_argument("--format", choices=("json", "summary"), default="summary")
+    federation_consensus_gate_package.add_argument("--output", default=None)
+
+    federation_consensus_gate_package_audit = subparsers.add_parser("registry-federation-consensus-gate-package-audit", help="audit a release-control handoff package")
+    federation_consensus_gate_package_audit.add_argument("--input", required=True)
+    federation_consensus_gate_package_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_package_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_diff = subparsers.add_parser("registry-federation-consensus-gate-diff", help="compare two release gates")
+    federation_consensus_gate_diff.add_argument("--left", required=True)
+    federation_consensus_gate_diff.add_argument("--right", required=True)
+    federation_consensus_gate_diff.add_argument("--diff-id", default="consensus-gate-diff")
+    federation_consensus_gate_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_diff.add_argument("--output", default=None)
+
+    federation_consensus_gate_diff_audit = subparsers.add_parser("registry-federation-consensus-gate-diff-audit", help="audit a release-gate transition diff")
+    federation_consensus_gate_diff_audit.add_argument("--input", required=True)
+    federation_consensus_gate_diff_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_diff_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_history = subparsers.add_parser("registry-federation-consensus-gate-history", help="build an append-only release-gate history")
+    federation_consensus_gate_history.add_argument("--input", action="append", required=True, help="serialized release-control package directory")
+    federation_consensus_gate_history.add_argument("--history-id", default="consensus-gate-history")
+    federation_consensus_gate_history.add_argument("--destination", default=None)
+    federation_consensus_gate_history.add_argument("--overwrite", action="store_true")
+    federation_consensus_gate_history.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_history.add_argument("--output", default=None)
+
+    federation_consensus_gate_history_audit = subparsers.add_parser("registry-federation-consensus-gate-history-audit", help="audit a release-gate history")
+    federation_consensus_gate_history_audit.add_argument("--input", required=True)
+    federation_consensus_gate_history_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_history_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_observatory = subparsers.add_parser("registry-federation-consensus-gate-observatory", help="observe release-gate histories")
+    federation_consensus_gate_observatory.add_argument("--input", action="append", required=True, help="serialized release-gate history directory")
+    federation_consensus_gate_observatory.add_argument("--observatory-id", default="consensus-gate-observatory")
+    federation_consensus_gate_observatory.add_argument("--state", default="")
+    federation_consensus_gate_observatory.add_argument("--decision", default="")
+    federation_consensus_gate_observatory.add_argument("--accepted", default=None, choices=("true", "false"))
+    federation_consensus_gate_observatory.add_argument("--offset", default=0, type=int)
+    federation_consensus_gate_observatory.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_observatory.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_observatory.add_argument("--output", default=None)
+
+    federation_consensus_gate_observatory_audit = subparsers.add_parser("registry-federation-consensus-gate-observatory-audit", help="audit a release-gate observatory")
+    federation_consensus_gate_observatory_audit.add_argument("--input", required=True)
+    federation_consensus_gate_observatory_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_observatory_audit.add_argument("--output", default=None)
+
     federation_consensus_remediation = subparsers.add_parser("registry-federation-consensus-remediation", help="derive a non-mutating remediation plan from a consensus receipt")
     federation_consensus_remediation.add_argument("--input", required=True)
     federation_consensus_remediation.add_argument("--remediation-id", default=registry_federation_consensus_remediation_model.DEFAULT_REMEDIATION_ID)
@@ -17428,6 +17537,9 @@ def build_parser() -> argparse.ArgumentParser:
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
 
     for command, help_text in (("registry-federation-consensus-runtime-schema", "print consensus runtime schema"), ("registry-federation-consensus-runtime-capabilities", "print consensus runtime capabilities"), ("registry-federation-consensus-diff-schema", "print consensus diff schema"), ("registry-federation-consensus-diff-item-schema", "print consensus diff item schema"), ("registry-federation-consensus-diff-capabilities", "print consensus diff capabilities"), ("registry-federation-consensus-diff-audit-schema", "print consensus diff audit schema"), ("registry-federation-consensus-diff-audit-check-schema", "print consensus diff audit check schema"), ("registry-federation-consensus-diff-audit-capabilities", "print consensus diff audit capabilities"), ("registry-federation-consensus-history-manifest-schema", "print consensus history manifest schema"), ("registry-federation-consensus-history-entry-schema", "print consensus history entry schema"), ("registry-federation-consensus-history-schema", "print consensus history schema"), ("registry-federation-consensus-history-capabilities", "print consensus history capabilities"), ("registry-federation-consensus-observation-schema", "print consensus observation schema"), ("registry-federation-consensus-observatory-schema", "print consensus observatory schema"), ("registry-federation-consensus-observatory-capabilities", "print consensus observatory capabilities")):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
+
+    for command, help_text in (("registry-federation-consensus-gate-policy-schema", "print consensus gate policy schema"), ("registry-federation-consensus-gate-check-schema", "print consensus gate check schema"), ("registry-federation-consensus-gate-schema", "print consensus gate schema"), ("registry-federation-consensus-gate-capabilities", "print consensus gate capabilities"), ("registry-federation-consensus-gate-audit-schema", "print consensus gate audit schema"), ("registry-federation-consensus-gate-audit-check-schema", "print consensus gate audit check schema"), ("registry-federation-consensus-gate-audit-capabilities", "print consensus gate audit capabilities"), ("registry-federation-consensus-gate-query-schema", "print consensus gate query schema"), ("registry-federation-consensus-gate-query-row-schema", "print consensus gate query row schema"), ("registry-federation-consensus-gate-query-result-schema", "print consensus gate query result schema"), ("registry-federation-consensus-gate-query-capabilities", "print consensus gate query capabilities"), ("registry-federation-consensus-gate-package-manifest-schema", "print consensus gate package manifest schema"), ("registry-federation-consensus-gate-package-schema", "print consensus gate package schema"), ("registry-federation-consensus-gate-package-capabilities", "print consensus gate package capabilities"), ("registry-federation-consensus-gate-package-audit-schema", "print consensus gate package audit schema"), ("registry-federation-consensus-gate-package-audit-check-schema", "print consensus gate package audit check schema"), ("registry-federation-consensus-gate-package-audit-capabilities", "print consensus gate package audit capabilities"), ("registry-federation-consensus-gate-runtime-schema", "print consensus gate runtime schema"), ("registry-federation-consensus-gate-runtime-capabilities", "print consensus gate runtime capabilities"), ("registry-federation-consensus-gate-diff-schema", "print consensus gate diff schema"), ("registry-federation-consensus-gate-diff-item-schema", "print consensus gate diff item schema"), ("registry-federation-consensus-gate-diff-capabilities", "print consensus gate diff capabilities"), ("registry-federation-consensus-gate-diff-audit-schema", "print consensus gate diff audit schema"), ("registry-federation-consensus-gate-diff-audit-check-schema", "print consensus gate diff audit check schema"), ("registry-federation-consensus-gate-diff-audit-capabilities", "print consensus gate diff audit capabilities"), ("registry-federation-consensus-gate-history-manifest-schema", "print consensus gate history manifest schema"), ("registry-federation-consensus-gate-history-entry-schema", "print consensus gate history entry schema"), ("registry-federation-consensus-gate-history-schema", "print consensus gate history schema"), ("registry-federation-consensus-gate-history-capabilities", "print consensus gate history capabilities"), ("registry-federation-consensus-gate-history-audit-schema", "print consensus gate history audit schema"), ("registry-federation-consensus-gate-history-audit-check-schema", "print consensus gate history audit check schema"), ("registry-federation-consensus-gate-history-audit-capabilities", "print consensus gate history audit capabilities"), ("registry-federation-consensus-gate-observatory-observation-schema", "print consensus gate observatory observation schema"), ("registry-federation-consensus-gate-observatory-schema", "print consensus gate observatory schema"), ("registry-federation-consensus-gate-observatory-query-schema", "print consensus gate observatory query schema"), ("registry-federation-consensus-gate-observatory-query-row-schema", "print consensus gate observatory query row schema"), ("registry-federation-consensus-gate-observatory-query-result-schema", "print consensus gate observatory query result schema"), ("registry-federation-consensus-gate-observatory-capabilities", "print consensus gate observatory capabilities"), ("registry-federation-consensus-gate-observatory-audit-schema", "print consensus gate observatory audit schema"), ("registry-federation-consensus-gate-observatory-audit-check-schema", "print consensus gate observatory audit check schema"), ("registry-federation-consensus-gate-observatory-audit-capabilities", "print consensus gate observatory audit capabilities")):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
 
     for command, help_text in (("registry-federation-consensus-remediation-step-schema", "print remediation step schema"), ("registry-federation-consensus-remediation-schema", "print remediation schema"), ("registry-federation-consensus-remediation-capabilities", "print remediation capabilities"), ("registry-federation-consensus-remediation-audit-schema", "print remediation audit schema"), ("registry-federation-consensus-remediation-audit-check-schema", "print remediation audit check schema"), ("registry-federation-consensus-remediation-audit-capabilities", "print remediation audit capabilities"), ("registry-federation-consensus-remediation-query-schema", "print remediation query schema"), ("registry-federation-consensus-remediation-query-row-schema", "print remediation query row schema"), ("registry-federation-consensus-remediation-query-result-schema", "print remediation query result schema"), ("registry-federation-consensus-remediation-query-capabilities", "print remediation query capabilities")):
@@ -17646,6 +17758,148 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_text(registry_federation_consensus_observatory_model.observatory_json(value), args.output)
             return 0
+        if args.command == "registry-federation-consensus-gate":
+            raw = _read_json(args.input)
+            runtime = registry_federation_consensus_gate_runtime_model.runtime_from_mapping(raw).consensus_runtime if "consensus_runtime" in raw else registry_federation_consensus_runtime_model.runtime_from_mapping(raw)
+            value = registry_federation_consensus_gate_model.evaluate_gate(runtime, gate_id=args.gate_id)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_model.gate_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_model.render_gate_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_model.gate_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-runtime":
+            peers = []
+            for specification in args.peer:
+                if "=" not in specification:
+                    raise ValueError("--peer must use PEER_ID=REGISTRY_DIRECTORY")
+                peer_id, directory = specification.split("=", 1)
+                peers.append((peer_id, directory))
+            passed = None if args.passed is None else args.passed == "true"
+            value = registry_federation_consensus_gate_runtime_model.run_gate_runtime(peers, runtime_id=args.runtime_id, federation_id=args.federation_id, consensus_id=args.consensus_id, quorum=args.quorum, gate_id=args.gate_id, package_id=args.package_id, destination=args.destination, overwrite=args.overwrite, resources=tuple(args.resource or registry_federation_consensus_gate_query_model.DEFAULT_RESOURCES), check_id=args.check_id, passed=passed, state=args.state, decision=args.decision, offset=args.offset, limit=args.limit)
+            _write_json(value.summary() if args.format == "summary" else value.to_dict(), args.output)
+            return 0 if value.gate.accepted and value.audit.accepted else 2
+        if args.command == "registry-federation-consensus-gate-audit":
+            value = registry_federation_consensus_gate_audit_model.audit_gate(registry_federation_consensus_gate_model.gate_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-query":
+            gate = registry_federation_consensus_gate_model.gate_from_mapping(_read_json(args.input))
+            passed = None if args.passed is None else args.passed == "true"
+            value = registry_federation_consensus_gate_query_model.query_gate(gate, resources=tuple(args.resource or registry_federation_consensus_gate_query_model.DEFAULT_RESOURCES), check_id=args.check_id, passed=passed, state=args.state, decision=args.decision, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_query_model.query_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_query_model.render_query_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_query_model.query_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-package":
+            runtime = registry_federation_consensus_gate_runtime_model.runtime_from_mapping(_read_json(args.input))
+            value = registry_federation_consensus_gate_package_model.build_package(runtime.consensus_runtime, runtime.gate, audit=runtime.audit, query=runtime.query, package_id=args.package_id)
+            registry_federation_consensus_gate_package_model.write_package(value, args.destination, overwrite=args.overwrite)
+            _write_json(value.summary() if args.format == "summary" else value.to_dict(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-package-audit":
+            value = registry_federation_consensus_gate_package_audit_model.audit_package(registry_federation_consensus_gate_package_model.load_package(args.input) if Path(args.input).is_dir() else registry_federation_consensus_gate_package_model.package_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_package_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_package_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_package_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-diff":
+            left = registry_federation_consensus_gate_model.gate_from_mapping(_read_json(args.left))
+            right = registry_federation_consensus_gate_model.gate_from_mapping(_read_json(args.right))
+            value = registry_federation_consensus_gate_diff_model.build_diff(left, right, diff_id=args.diff_id)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_diff_model.diff_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_diff_model.render_diff_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_diff_model.diff_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-diff-audit":
+            value = registry_federation_consensus_gate_diff_audit_model.audit_diff(registry_federation_consensus_gate_diff_model.diff_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_diff_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_diff_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_diff_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-history":
+            pairs = []
+            for directory in args.input:
+                package = registry_federation_consensus_gate_package_model.load_package(directory)
+                pairs.append((package.gate, package.audit))
+            value = registry_federation_consensus_gate_history_model.build_history(tuple(pairs), history_id=args.history_id)
+            if args.destination:
+                registry_federation_consensus_gate_history_model.write_history(value, args.destination, overwrite=args.overwrite)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_history_model.history_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_history_model.render_history_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_history_model.history_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-history-audit":
+            value = registry_federation_consensus_gate_history_audit_model.audit_history(registry_federation_consensus_gate_history_model.load_history(args.input) if Path(args.input).is_dir() else registry_federation_consensus_gate_history_model.history_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_history_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_history_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_history_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-observatory":
+            histories = tuple(registry_federation_consensus_gate_history_model.load_history(directory) for directory in args.input)
+            value = registry_federation_consensus_gate_observatory_model.build_observatory(histories, observatory_id=args.observatory_id)
+            accepted = None if args.accepted is None else args.accepted == "true"
+            selected = registry_federation_consensus_gate_observatory_model.query_observatory(value, state=args.state, decision=args.decision, accepted=accepted, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_observatory_model.observatory_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_observatory_model.render_observatory_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_observatory_model.observatory_json(value), args.output)
+            else:
+                _write_json(value.summary() | {"returned_count": len(selected.rows)}, args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-observatory-audit":
+            value = registry_federation_consensus_gate_observatory_audit_model.audit_observatory(registry_federation_consensus_gate_observatory_model.observatory_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_observatory_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_observatory_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_observatory_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
         if args.command == "registry-federation-consensus-remediation":
             consensus = registry_federation_consensus_model.consensus_from_mapping(_read_json(args.input))
             value = registry_federation_consensus_remediation_model.build_remediation(consensus, remediation_id=args.remediation_id)
@@ -17752,6 +18006,47 @@ def main(argv: list[str] | None = None) -> int:
             "registry-federation-consensus-observation-schema": registry_federation_consensus_observatory_model.observation_schema,
             "registry-federation-consensus-observatory-schema": registry_federation_consensus_observatory_model.observatory_schema,
             "registry-federation-consensus-observatory-capabilities": registry_federation_consensus_observatory_model.capabilities,
+            "registry-federation-consensus-gate-policy-schema": registry_federation_consensus_gate_model.policy_schema,
+            "registry-federation-consensus-gate-check-schema": registry_federation_consensus_gate_model.check_schema,
+            "registry-federation-consensus-gate-schema": registry_federation_consensus_gate_model.gate_schema,
+            "registry-federation-consensus-gate-capabilities": registry_federation_consensus_gate_model.capabilities,
+            "registry-federation-consensus-gate-audit-check-schema": registry_federation_consensus_gate_audit_model.check_schema,
+            "registry-federation-consensus-gate-audit-schema": registry_federation_consensus_gate_audit_model.audit_schema,
+            "registry-federation-consensus-gate-audit-capabilities": registry_federation_consensus_gate_audit_model.capabilities,
+            "registry-federation-consensus-gate-query-schema": registry_federation_consensus_gate_query_model.query_schema,
+            "registry-federation-consensus-gate-query-row-schema": registry_federation_consensus_gate_query_model.row_schema,
+            "registry-federation-consensus-gate-query-result-schema": registry_federation_consensus_gate_query_model.result_schema,
+            "registry-federation-consensus-gate-query-capabilities": registry_federation_consensus_gate_query_model.capabilities,
+            "registry-federation-consensus-gate-package-manifest-schema": registry_federation_consensus_gate_package_model.manifest_schema,
+            "registry-federation-consensus-gate-package-schema": registry_federation_consensus_gate_package_model.package_schema,
+            "registry-federation-consensus-gate-package-capabilities": registry_federation_consensus_gate_package_model.capabilities,
+            "registry-federation-consensus-gate-package-audit-check-schema": registry_federation_consensus_gate_package_audit_model.check_schema,
+            "registry-federation-consensus-gate-package-audit-schema": registry_federation_consensus_gate_package_audit_model.audit_schema,
+            "registry-federation-consensus-gate-package-audit-capabilities": registry_federation_consensus_gate_package_audit_model.capabilities,
+            "registry-federation-consensus-gate-runtime-schema": registry_federation_consensus_gate_runtime_model.runtime_schema,
+            "registry-federation-consensus-gate-runtime-capabilities": registry_federation_consensus_gate_runtime_model.capabilities,
+            "registry-federation-consensus-gate-diff-schema": registry_federation_consensus_gate_diff_model.diff_schema,
+            "registry-federation-consensus-gate-diff-item-schema": registry_federation_consensus_gate_diff_model.item_schema,
+            "registry-federation-consensus-gate-diff-capabilities": registry_federation_consensus_gate_diff_model.capabilities,
+            "registry-federation-consensus-gate-diff-audit-schema": registry_federation_consensus_gate_diff_audit_model.audit_schema,
+            "registry-federation-consensus-gate-diff-audit-check-schema": registry_federation_consensus_gate_diff_audit_model.check_schema,
+            "registry-federation-consensus-gate-diff-audit-capabilities": registry_federation_consensus_gate_diff_audit_model.capabilities,
+            "registry-federation-consensus-gate-history-manifest-schema": registry_federation_consensus_gate_history_model.manifest_schema,
+            "registry-federation-consensus-gate-history-entry-schema": registry_federation_consensus_gate_history_model.entry_schema,
+            "registry-federation-consensus-gate-history-schema": registry_federation_consensus_gate_history_model.history_schema,
+            "registry-federation-consensus-gate-history-capabilities": registry_federation_consensus_gate_history_model.capabilities,
+            "registry-federation-consensus-gate-history-audit-schema": registry_federation_consensus_gate_history_audit_model.audit_schema,
+            "registry-federation-consensus-gate-history-audit-check-schema": registry_federation_consensus_gate_history_audit_model.check_schema,
+            "registry-federation-consensus-gate-history-audit-capabilities": registry_federation_consensus_gate_history_audit_model.capabilities,
+            "registry-federation-consensus-gate-observatory-observation-schema": registry_federation_consensus_gate_observatory_model.observation_schema,
+            "registry-federation-consensus-gate-observatory-schema": registry_federation_consensus_gate_observatory_model.observatory_schema,
+            "registry-federation-consensus-gate-observatory-query-schema": registry_federation_consensus_gate_observatory_model.query_schema,
+            "registry-federation-consensus-gate-observatory-query-row-schema": registry_federation_consensus_gate_observatory_model.row_schema,
+            "registry-federation-consensus-gate-observatory-query-result-schema": registry_federation_consensus_gate_observatory_model.result_schema,
+            "registry-federation-consensus-gate-observatory-capabilities": registry_federation_consensus_gate_observatory_model.capabilities,
+            "registry-federation-consensus-gate-observatory-audit-schema": registry_federation_consensus_gate_observatory_audit_model.audit_schema,
+            "registry-federation-consensus-gate-observatory-audit-check-schema": registry_federation_consensus_gate_observatory_audit_model.check_schema,
+            "registry-federation-consensus-gate-observatory-audit-capabilities": registry_federation_consensus_gate_observatory_audit_model.capabilities,
             "registry-federation-consensus-remediation-step-schema": registry_federation_consensus_remediation_model.step_schema,
             "registry-federation-consensus-remediation-schema": registry_federation_consensus_remediation_model.remediation_schema,
             "registry-federation-consensus-remediation-capabilities": registry_federation_consensus_remediation_model.capabilities,
