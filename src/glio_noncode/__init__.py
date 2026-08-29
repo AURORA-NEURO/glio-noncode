@@ -21555,3 +21555,26 @@ from .assurance_history_series_release_registry_federation_gate_review_decision_
 )
 
 __all__ += [name for name in globals() if name.startswith("ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF") or name.startswith("AssuranceHistoryObservatoryArchiveRegistryDiff") or name.startswith("assurance_history_observatory_archive_registry_diff") or name.startswith("build_assurance_history_observatory_archive_registry_diff") or name.startswith("query_assurance_history_observatory_archive_registry_diff") or name.startswith("render_assurance_history_observatory_archive_registry_diff") or name.startswith("verify_assurance_history_observatory_archive_registry_diff")]
+
+from .assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff_audit import (
+    AUDIT_CHECK_PREFIX as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_CHECK_PREFIX,
+    AUDIT_PREFIX as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_PREFIX,
+    BOUNDARY as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_BOUNDARY,
+    CHECK_IDS as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_CHECK_IDS,
+    MAX_CHECKS as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_MAX_CHECKS,
+    STATES as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_STATES,
+    VERSION as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT_VERSION,
+    RegistryDiffAudit as AssuranceHistoryObservatoryArchiveRegistryDiffAudit,
+    RegistryDiffAuditCheck as AssuranceHistoryObservatoryArchiveRegistryDiffAuditCheck,
+    address_audit as assurance_history_observatory_archive_registry_diff_audit_address,
+    audit_diff as audit_assurance_history_observatory_archive_registry_diff,
+    audit_from_mapping as assurance_history_observatory_archive_registry_diff_audit_from_mapping,
+    audit_json as assurance_history_observatory_archive_registry_diff_audit_json,
+    audit_schema as assurance_history_observatory_archive_registry_diff_audit_schema,
+    capabilities as assurance_history_observatory_archive_registry_diff_audit_capabilities,
+    check_schema as assurance_history_observatory_archive_registry_diff_audit_check_schema,
+    render_audit_markdown as render_assurance_history_observatory_archive_registry_diff_audit_markdown,
+    verify_audit as verify_assurance_history_observatory_archive_registry_diff_audit,
+)
+
+__all__ += [name for name in globals() if name.startswith("ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_DIFF_AUDIT") or name.startswith("AssuranceHistoryObservatoryArchiveRegistryDiffAudit") or name.startswith("assurance_history_observatory_archive_registry_diff_audit") or name.startswith("audit_assurance_history_observatory_archive_registry_diff") or name.startswith("render_assurance_history_observatory_archive_registry_diff_audit") or name.startswith("verify_assurance_history_observatory_archive_registry_diff_audit")]

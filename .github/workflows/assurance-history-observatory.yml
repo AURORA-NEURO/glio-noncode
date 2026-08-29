@@ -28,6 +28,7 @@ jobs:
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_audit.py
           src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff.py
+          src/glio_noncode/assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff_audit.py
           src/glio_noncode/api.py
           src/glio_noncode/cli.py
       - name: Run observatory contract tests
@@ -40,6 +41,7 @@ jobs:
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_audit
           tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff
+          tests.test_assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_diff_audit
       - name: Run upstream history and public-boundary tests
         run: >-
           python -m unittest
@@ -63,3 +65,6 @@ jobs:
       - name: Verify archive registry diff capability contract
         run: >-
           python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-diff-capabilities']))"
+      - name: Verify archive registry diff audit capability contract
+        run: >-
+          python -c "from glio_noncode.cli import main; raise SystemExit(main(['module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-packet-registry-federation-assurance-gate-review-decision-ledger-assurance-history-observatory-archive-registry-diff-audit-capabilities']))"
