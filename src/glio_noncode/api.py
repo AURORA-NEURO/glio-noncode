@@ -346,6 +346,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -3686,6 +3687,34 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_query_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
                     else:
                         self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_query_model.query_json(result).encode("utf-8"), content_type="application/json; charset=utf-8")
+                    return
+                history_observatory_archive_registry_history_release_gate_package_audit_certificate_prefix = history_observatory_archive_registry_history_release_gate_package_audit_prefix + "/certificate"
+                history_observatory_archive_registry_history_release_gate_package_audit_certificate_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.certificate_schema,
+                    "/policy-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.policy_schema,
+                    "/check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.check_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_registry_history_release_gate_package_audit_certificate_schema_routes.items():
+                    if path == history_observatory_archive_registry_history_release_gate_package_audit_certificate_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_registry_history_release_gate_package_audit_certificate_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.capabilities())
+                    return
+                if path == history_observatory_archive_registry_history_release_gate_package_audit_certificate_prefix:
+                    directory = self._query_value(query, "input") or self._query_value(query, "package")
+                    if not directory:
+                        raise ValueError("release gate package input is required")
+                    audit_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_model.audit_package_directory(directory)
+                    certificate = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.evaluate_audit(audit_value)
+                    output_format = self._query_value(query, "format") or "json"
+                    status = HTTPStatus.OK if certificate.accepted else HTTPStatus.UNPROCESSABLE_ENTITY
+                    if output_format == "markdown":
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.render_certificate_markdown(certificate).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "summary":
+                        self._write(status, certificate.summary())
+                    else:
+                        self._write_bytes(status, release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.certificate_json(certificate).encode("utf-8"), content_type="application/json; charset=utf-8")
                     return
                 if path == history_observatory_archive_registry_prefix:
                     source_value = self._query_value(query, "archives") or self._query_value(query, "input") or self._query_value(query, "archive")

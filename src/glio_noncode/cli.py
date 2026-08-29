@@ -2546,6 +2546,7 @@ from . import assurance_history_series_release_registry_federation_gate_review_d
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_query as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_query_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate as release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model
 from .run_workspace import (
     RUN_WORKSPACE_DEFAULT_LIMIT,
     build_persisted_run_workspace,
@@ -7707,6 +7708,21 @@ def build_parser() -> argparse.ArgumentParser:
     history_observatory_archive_registry_history_release_gate_package_audit_query_parser.add_argument("--output", default=None)
     for suffix, help_text in (("query-schema", "print observatory archive registry history release gate package audit query schema"), ("query-result-schema", "print observatory archive registry history release gate package audit query result schema"), ("query-capabilities", "print observatory archive registry history release gate package audit query capabilities")):
         subparsers.add_parser(history_observatory_archive_registry_history_release_gate_package_audit_query_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_command = history_observatory_archive_registry_history_release_gate_package_audit_command + "-certificate"
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser = subparsers.add_parser(history_observatory_archive_registry_history_release_gate_package_audit_certificate_command, help="certify an observatory archive registry history release gate package audit")
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--input", required=True)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--certificate-id", default=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.DEFAULT_CERTIFICATE_ID)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--minimum-checks", type=int, default=release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.DEFAULT_MINIMUM_CHECKS)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--require-complete", action=argparse.BooleanOptionalAction, default=True)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--require-accepted", action=argparse.BooleanOptionalAction, default=True)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--require-all-checks-passed", action=argparse.BooleanOptionalAction, default=True)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--require-manifest-address", action=argparse.BooleanOptionalAction, default=True)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--require-gate-address", action=argparse.BooleanOptionalAction, default=True)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--require-policy-address", action=argparse.BooleanOptionalAction, default=True)
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--format", choices=("json", "markdown", "summary"), default="summary")
+    history_observatory_archive_registry_history_release_gate_package_audit_certificate_parser.add_argument("--output", default=None)
+    for suffix, help_text in (("schema", "print observatory archive registry history release gate package audit certificate schema"), ("policy-schema", "print observatory archive registry history release gate package audit certificate policy schema"), ("check-schema", "print observatory archive registry history release gate package audit certificate check schema"), ("capabilities", "print observatory archive registry history release gate package audit certificate capabilities")):
+        subparsers.add_parser(history_observatory_archive_registry_history_release_gate_package_audit_certificate_command + "-" + suffix, help=help_text).add_argument("--output", default=None)
     review_store_catalog_packet_review_gate_history_observatory_runtime = subparsers.add_parser("module-workbench-execution-packet-archive-store-replication-packet-diff-release-window-review-store-catalog-packet-review-gate-history-observatory-runtime", help="run the policy-governed packet review history observatory")
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--history-directory", action="append", required=True)
     review_store_catalog_packet_review_gate_history_observatory_runtime.add_argument("--observation-id", action="append", default=None)
@@ -32524,6 +32540,28 @@ def main(argv: list[str] | None = None) -> int:
         history_release_gate_package_audit_query_schema_prefix = history_release_gate_package_audit_query_command + "-"
         if args.command.startswith(history_release_gate_package_audit_query_schema_prefix) and args.command.removeprefix(history_release_gate_package_audit_query_schema_prefix) in history_release_gate_package_audit_query_schema_commands:
             _write_json(history_release_gate_package_audit_query_schema_commands[args.command.removeprefix(history_release_gate_package_audit_query_schema_prefix)](), args.output)
+            return 0
+        history_release_gate_package_audit_certificate_command = _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_GATE_PACKAGE_COMMAND + "-audit-certificate"
+        if args.command == history_release_gate_package_audit_certificate_command:
+            audit_value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_model.audit_package_directory(args.input)
+            policy = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.RegistryHistoryReleaseGatePackageAuditCertificatePolicy(certificate_id=args.certificate_id, minimum_checks=args.minimum_checks, require_complete=args.require_complete, require_accepted=args.require_accepted, require_all_checks_passed=args.require_all_checks_passed, require_manifest_address=args.require_manifest_address, require_gate_address=args.require_gate_address, require_policy_address=args.require_policy_address)
+            value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.evaluate_audit(audit_value, policy)
+            if args.format == "markdown":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.render_certificate_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.certificate_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        history_release_gate_package_audit_certificate_schema_commands = {
+            "schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.certificate_schema,
+            "policy-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.policy_schema,
+            "check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.check_schema,
+            "capabilities": release_registry_decision_ledger_assurance_history_observatory_archive_registry_history_release_gate_package_audit_release_certificate_model.capabilities,
+        }
+        history_release_gate_package_audit_certificate_schema_prefix = history_release_gate_package_audit_certificate_command + "-"
+        if args.command.startswith(history_release_gate_package_audit_certificate_schema_prefix) and args.command.removeprefix(history_release_gate_package_audit_certificate_schema_prefix) in history_release_gate_package_audit_certificate_schema_commands:
+            _write_json(history_release_gate_package_audit_certificate_schema_commands[args.command.removeprefix(history_release_gate_package_audit_certificate_schema_prefix)](), args.output)
             return 0
         if args.command == _ASSURANCE_HISTORY_SERIES_RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_AUDIT_COMMAND:
             value = release_registry_decision_ledger_assurance_history_observatory_archive_registry_audit_model.audit_registry_directory(args.input)

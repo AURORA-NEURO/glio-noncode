@@ -87,6 +87,10 @@ def _strict(value: Mapping[str, Any], allowed: set[str], field: str) -> None:
         raise ValidationError(f"{field} contains unsupported fields: {sorted(unknown)}")
 
 
+def _public(value: Any) -> bool:
+    return gate_model._public(value)
+
+
 def _safe_address(value: Any, prefix: str, fallback: str) -> str:
     try:
         return _address(value, "package audit evidence address", prefix)
