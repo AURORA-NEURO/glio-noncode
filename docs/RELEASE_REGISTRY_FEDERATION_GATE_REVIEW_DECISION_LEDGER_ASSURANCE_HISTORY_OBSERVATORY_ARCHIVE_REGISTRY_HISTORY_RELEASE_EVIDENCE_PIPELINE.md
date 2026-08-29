@@ -347,6 +347,23 @@ companions expose the same contract. The HTTP surface is
 routes. The runnable example is
 `release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_demo.py`.
 
+### Persisted observability bundle queries
+
+Once a handoff directory exists, the persisted-bundle query boundary reads
+only its verified canonical members. It exposes `summary`, `observability`,
+`events`, `metrics`, `accepted`, `rejected`, `checks`, `passed`, `failed`, and
+`evidence` resources, with stage/state/event/metric/plane/check filters,
+case-insensitive text search, bounded pagination, replay addresses, and JSON,
+CSV, or Markdown output. This lets an operator inspect a copied handoff
+without rebuilding the downloaded history or trusting an unverified file.
+
+The CLI command is `...release-evidence-pipeline-observability-bundle-query`
+with `-query-schema`, `-query-result-schema`, and `-query-capabilities`
+companions. The HTTP route is
+`/.../release-evidence-pipeline/observability/bundle/query`, with the same
+schema and capability routes. The runnable example is
+`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_query_demo.py`.
+
 ## Real downloaded-data demonstration
 
 The runnable example is [`release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py`](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_demo.py). It accepts the downloaded history directory used by the local assurance demos and can optionally persist the package. A successful run exposes the history address, release-gate address, package manifest address, package-audit address, certificate address, snapshot count, three-file package count, and final `ready` decision in one result.
