@@ -1338,3 +1338,7 @@ The independent [registry-history-audit contract](docs/RELEASE_REGISTRY_FEDERATI
 adds fixed sequence, adjacency, endpoint, conservation, nested-address, and
 content-address checks while preserving an incomplete diagnostic report for
 malformed public mappings. See the [runnable history-audit demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_audit_demo.py).
+The [registry-history query contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY.md)
+adds bounded snapshot, transition, state-change, acceptance, release-readiness,
+ordinal, text, and pagination inspection with deterministic query addresses.
+See the [runnable history-query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_query_demo.py).

@@ -21665,3 +21665,28 @@ from .assurance_history_series_release_registry_federation_gate_review_decision_
 )
 
 __all__ += [name for name in globals() if name.startswith("ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_AUDIT") or name.startswith("AssuranceHistoryObservatoryArchiveRegistryHistoryAudit") or name.startswith("assurance_history_observatory_archive_registry_history_audit") or name.startswith("audit_assurance_history_observatory_archive_registry_history") or name.startswith("render_assurance_history_observatory_archive_registry_history_audit") or name.startswith("verify_assurance_history_observatory_archive_registry_history_audit")]
+
+from .assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_query import (
+    BOUNDARY as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_BOUNDARY,
+    DEFAULT_LIMIT as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_DEFAULT_LIMIT,
+    MAX_LIMIT as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_MAX_LIMIT,
+    MAX_QUERY_ITEMS as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_MAX_ITEMS,
+    QUERY_PREFIX as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_PREFIX,
+    RESOURCES as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_RESOURCES,
+    STATE_VALUES as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_STATE_VALUES,
+    VERSION as ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY_VERSION,
+    RegistryHistoryQuery as AssuranceHistoryObservatoryArchiveRegistryHistoryQuery,
+    RegistryHistoryQueryResult as AssuranceHistoryObservatoryArchiveRegistryHistoryQueryResult,
+    address_query as assurance_history_observatory_archive_registry_history_query_address,
+    capabilities as assurance_history_observatory_archive_registry_history_query_capabilities,
+    query_csv as assurance_history_observatory_archive_registry_history_query_csv,
+    query_history as query_assurance_history_observatory_archive_registry_history,
+    query_json as assurance_history_observatory_archive_registry_history_query_json,
+    query_result_from_mapping as assurance_history_observatory_archive_registry_history_query_result_from_mapping,
+    query_result_schema as assurance_history_observatory_archive_registry_history_query_result_schema,
+    query_schema as assurance_history_observatory_archive_registry_history_query_schema,
+    render_query_markdown as render_assurance_history_observatory_archive_registry_history_query_markdown,
+    verify_query as verify_assurance_history_observatory_archive_registry_history_query,
+)
+
+__all__ += [name for name in globals() if name.startswith("ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_QUERY") or name.startswith("AssuranceHistoryObservatoryArchiveRegistryHistoryQuery") or name.startswith("assurance_history_observatory_archive_registry_history_query") or name.startswith("query_assurance_history_observatory_archive_registry_history") or name.startswith("render_assurance_history_observatory_archive_registry_history_query") or name.startswith("verify_assurance_history_observatory_archive_registry_history_query")]
