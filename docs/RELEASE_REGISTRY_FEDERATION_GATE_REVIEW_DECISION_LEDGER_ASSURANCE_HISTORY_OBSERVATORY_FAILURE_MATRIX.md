@@ -41,6 +41,34 @@ into an empty or promoted package.
 | public | A forbidden key such as `agent`, `language`, or `model` is introduced. | `ValidationError` or public-boundary check failure. | Published objects must not expose attribution metadata. |
 | public | A Windows or user-home path appears in a report. | Public-boundary rejection or test failure. | Input paths stay at the process edge. |
 
+## Archive and transfer controls
+
+| Boundary | Fault | Expected result | Why it matters |
+| --- | --- | --- | --- |
+| archive | ZIP has an extra, missing, duplicate, encrypted, directory, symlink, or traversal-like member. | `ValidationError`. | The single-file envelope has an exact trusted shape. |
+| archive | Archive manifest is non-canonical or has an unknown field. | `ValidationError`. | Equivalent JSON spellings must not create ambiguous bytes. |
+| archive | Payload bytes differ from an artifact receipt. | `ValidationError`. | The archive must preserve the exact verified package. |
+| archive | Archive is loaded from a byte string. | Same verification as file loading. | Upload and in-memory adapters cannot bypass the boundary. |
+| archive | Extraction target exists without overwrite permission. | `ValidationError`. | Reversible review artifacts are not silently replaced. |
+| transfer | Chunk size is below 256 bytes, above 4 MiB, a string, or a boolean. | `ValidationError`. | Resource policy is explicit and typed. |
+| transfer | Chunk count, offsets, sizes, or total bytes do not conserve. | `ValidationError`. | Range math cannot hide missing or overlapping bytes. |
+| transfer | A chunk is changed after its receipt is written. | `ValidationError`. | Transport copies are independently addressed. |
+| transfer | Manifest-only transfer is assembled without every chunk. | `ValidationError`. | Inventory is not confused with complete evidence. |
+| transfer | Reassembled ZIP has a different archive address. | `ValidationError`. | A transfer cannot launder another archive. |
+| transfer | Transfer directory has an extra file or symlink. | `ValidationError`. | Receiver shape is exact and filesystem-safe. |
+| transfer | Transfer manifest address or transfer address is edited. | `ValidationError`. | Both the envelope and its manifest are linked. |
+| transfer | Existing transfer destination is overwritten without explicit permission. | `ValidationError`. | Destructive replacement remains opt-in. |
+
+## Transfer audit controls
+
+| Boundary | Fault | Expected result | Why it matters |
+| --- | --- | --- | --- |
+| audit | A complete transfer is supplied as a plain mapping. | `ValidationError` at the byte-backed directory boundary. | An audit must begin from a typed transfer or verified receiver. |
+| audit | A partial transfer has valid manifest and received chunks. | Valid `incomplete` report with deferred nested checks. | Progress is observable without pretending gaps are safe. |
+| audit | A complete report has a failed assembly check. | Report construction rejects the state/check disagreement. | Completion cannot be asserted independently of its evidence. |
+| audit | Check order, check address, or count is edited. | `ValidationError`. | Audit receipts are independently reproducible. |
+| audit | A partial transfer includes an extra or symlinked member. | `ValidationError` before audit output. | Diagnostics inherit the exact filesystem boundary. |
+
 ## Verification-query controls
 
 | Boundary | Fault | Expected result | Why it matters |

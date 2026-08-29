@@ -5985,3 +5985,68 @@ offset, and limit filters. See
 for the operator contract and
 [the test catalog](RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_TEST_CATALOG.md)
 for the full coverage map.
+
+### Observatory archive and resumable transfer
+
+The observatory also has a deterministic single-file archive boundary. It
+stores the exact five-file observatory package beneath `observatory/`, fixes ZIP
+ordering, timestamps, compression, and permissions, and records canonical
+artifact byte receipts. Archive loading accepts file paths or bytes and
+re-hydrates only after exact-member, manifest, payload, and nested observatory
+verification succeeds. Archive queries expose bounded summary, file, member,
+and verification resources.
+
+The archive can be split into an independently verifiable transfer directory:
+
+```text
+manifest.json
+chunks/chunk-00000000.bin
+chunks/chunk-00000001.bin
+...
+```
+
+The transfer manifest addresses the nested archive, fixed chunk policy,
+contiguous byte ranges, and every chunk hash. The loader rejects missing,
+extra, non-regular, symlinked, non-canonical, or tampered members. Reassembly
+checks every range and chunk receipt and then re-runs the nested archive
+verifier, preserving the original archive address. A manifest-only mapping can
+be inspected for missing-chunk inventory and progress but cannot be assembled
+without all bytes. An incremental assembler accepts chunks in any arrival
+order, treats identical duplicates as idempotent, rejects conflicting
+duplicates, emits addressed progress receipts, and refuses finalization while
+gaps remain.
+
+The archive command is nested below the observatory command:
+
+```text
+python -m glio_noncode <observatory-command>-archive --input review-output/observatory --destination review-output/observatory.zip --format summary
+python -m glio_noncode <observatory-command>-archive-verify --input review-output/observatory.zip
+python -m glio_noncode <observatory-command>-archive-query --input review-output/observatory.zip --resource checks --limit 50
+```
+
+The transfer command adds deterministic byte transport and resumable receipt
+inspection:
+
+```text
+python -m glio_noncode <observatory-command>-archive-transfer --input review-output/observatory.zip --destination review-output/transfer --chunk-size 65536 --format summary
+python -m glio_noncode <observatory-command>-archive-transfer-verify --input review-output/transfer
+python -m glio_noncode <observatory-command>-archive-transfer-manifest --input review-output/transfer
+python -m glio_noncode <observatory-command>-archive-transfer-query --input review-output/transfer --resource progress --limit 1
+```
+
+The corresponding HTTP routes are nested under
+`/observatory/archive` and `/observatory/archive/transfer`, with build,
+verify, manifest, query, schema, and capability resources. The runnable demos
+are [the archive demo](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_demo.py)
+and [the transfer demo](../examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer_demo.py).
+The full byte, privacy, filesystem, and failure contract is in
+[the archive-transfer runbook](RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md).
+
+Transfer audits are available for complete or persisted partial directories.
+They return eight independently addressed checks, keep missing chunks explicit,
+and require nested archive reassembly before reporting complete status:
+
+```text
+python -m glio_noncode <observatory-command>-archive-transfer-audit --input review-output/transfer --format markdown
+python -m glio_noncode <observatory-command>-archive-transfer-audit --input review-output/partial-transfer --partial --format json
+```

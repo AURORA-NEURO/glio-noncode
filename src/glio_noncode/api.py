@@ -6,6 +6,7 @@ import json
 from collections.abc import Callable, Mapping
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Any, Iterator
 from urllib.parse import parse_qs, unquote, urlsplit
 
@@ -328,6 +329,9 @@ from . import assurance_history_series_release_registry_federation_gate_review a
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance as assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history as release_registry_decision_ledger_assurance_history_model
 from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory as release_registry_decision_ledger_assurance_history_observatory_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive as release_registry_decision_ledger_assurance_history_observatory_archive_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer as release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model
+from . import assurance_history_series_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer_audit as release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model
 from .models import CaseManifest, ReviewDecision
 from .program_runtime_diff import PROGRAM_RUNTIME_DIFF_CONTROLS
 from .run_comparison import build_run_history, compare_persisted_runs
@@ -3038,6 +3042,163 @@ class ApiHandler(BaseHTTPRequestHandler):
                     else:
                         payload = value.to_dict()
                     self._write(HTTPStatus.OK, payload)
+                    return
+                history_observatory_archive_prefix = history_observatory_prefix + "/archive"
+                history_observatory_archive_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_model.archive_schema,
+                    "/artifact-schema": release_registry_decision_ledger_assurance_history_observatory_archive_model.artifact_schema,
+                    "/manifest-schema": release_registry_decision_ledger_assurance_history_observatory_archive_model.manifest_schema,
+                    "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_model.query_schema,
+                    "/query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_model.query_result_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_schema_routes.items():
+                    if path == history_observatory_archive_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_model.capabilities())
+                    return
+                if path == history_observatory_archive_prefix + "/verify":
+                    archive_path = self._query_value(query, "input") or self._query_value(query, "archive") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_archive", None)
+                    if not archive_path:
+                        raise ValueError("input or archive is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_model.verify_archive_file(archive_path)
+                    self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == history_observatory_archive_prefix + "/manifest":
+                    archive_path = self._query_value(query, "input") or self._query_value(query, "archive") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_archive", None)
+                    if not archive_path:
+                        raise ValueError("input or archive is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_model.load_archive(archive_path)
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_model.manifest_document(value))
+                    return
+                if path == history_observatory_archive_prefix + "/extract":
+                    archive_path = self._query_value(query, "input") or self._query_value(query, "archive")
+                    destination = self._query_value(query, "destination")
+                    if not archive_path or not destination:
+                        raise ValueError("input and destination are required")
+                    release_registry_decision_ledger_assurance_history_observatory_archive_model.extract_archive(archive_path, destination, overwrite=self._query_bool(query, "allow_existing") if "allow_existing" in query else False)
+                    self._write(HTTPStatus.OK, {"extracted": True})
+                    return
+                if path == history_observatory_archive_prefix + "/query":
+                    archive_path = self._query_value(query, "input") or self._query_value(query, "archive") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_archive", None)
+                    if not archive_path:
+                        raise ValueError("input or archive is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_model.load_archive(archive_path)
+                    result = release_registry_decision_ledger_assurance_history_observatory_archive_model.query_archive(value, resource=self._query_value(query, "resource") or "summary", severity=self._query_value(query, "severity"), passed=self._query_bool(query, "passed") if "passed" in query else None, text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_model.query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_model.render_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == history_observatory_archive_prefix:
+                    input_directory = self._query_value(query, "input") or self._query_value(query, "directory") or self._query_value(query, "observatory")
+                    if not input_directory:
+                        raise ValueError("input or observatory directory is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_model.build_archive_from_directory(input_directory, archive_id=self._query_value(query, "archive_id") or release_registry_decision_ledger_assurance_history_observatory_archive_model.DEFAULT_ARCHIVE_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        release_registry_decision_ledger_assurance_history_observatory_archive_model.write_archive(value, destination, overwrite=self._query_bool(query, "allow_existing") if "allow_existing" in query else False)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "summary":
+                        payload = value.summary()
+                    elif output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_model.archive_csv(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                        return
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_model.render_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    else:
+                        payload = value.to_dict()
+                    self._write(HTTPStatus.OK, payload)
+                    return
+                history_observatory_archive_transfer_prefix = history_observatory_archive_prefix + "/transfer"
+                history_observatory_archive_transfer_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.transfer_schema,
+                    "/chunk-schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.chunk_schema,
+                    "/manifest-schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.manifest_schema,
+                    "/progress-schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.progress_schema,
+                    "/query-schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.query_schema,
+                    "/query-result-schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.query_result_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_transfer_schema_routes.items():
+                    if path == history_observatory_archive_transfer_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_transfer_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.capabilities())
+                    return
+                if path == history_observatory_archive_transfer_prefix + "/verify":
+                    transfer_directory = self._query_value(query, "input") or self._query_value(query, "transfer") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_archive_transfer", None)
+                    if not transfer_directory:
+                        raise ValueError("input or transfer is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.verify_transfer_directory(transfer_directory)
+                    self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == history_observatory_archive_transfer_prefix + "/manifest":
+                    transfer_directory = self._query_value(query, "input") or self._query_value(query, "transfer") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_archive_transfer", None)
+                    if not transfer_directory:
+                        raise ValueError("input or transfer is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.load_transfer(transfer_directory)
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.manifest_document(value))
+                    return
+                if path == history_observatory_archive_transfer_prefix + "/query":
+                    transfer_directory = self._query_value(query, "input") or self._query_value(query, "transfer") or getattr(self.server, "glio_release_registry_decision_ledger_assurance_history_observatory_archive_transfer", None)
+                    if not transfer_directory:
+                        raise ValueError("input or transfer is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.load_transfer(transfer_directory)
+                    result = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.query_transfer(value, resource=self._query_value(query, "resource") or "summary", text=self._query_value(query, "q") or self._query_value(query, "text"), offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "csv":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.transfer_query_csv(result).encode("utf-8"), content_type="text/csv; charset=utf-8")
+                    elif output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.render_transfer_query_markdown(result).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    else:
+                        self._write(HTTPStatus.OK, result.to_dict())
+                    return
+                if path == history_observatory_archive_transfer_prefix:
+                    archive_path = self._query_value(query, "input") or self._query_value(query, "archive") or getattr(self.server, "glio_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive", None)
+                    destination = self._query_value(query, "destination")
+                    if not archive_path or not destination:
+                        raise ValueError("input and destination are required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.build_transfer_from_bytes(Path(archive_path).read_bytes(), transfer_id=self._query_value(query, "transfer_id") or release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.DEFAULT_TRANSFER_ID, chunk_size=self._query_int(query, "chunk_size", release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.DEFAULT_CHUNK_SIZE))
+                    release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.write_transfer(value, destination, overwrite=self._query_bool(query, "allow_existing") if "allow_existing" in query else False)
+                    output_format = self._query_value(query, "format") or "summary"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_transfer_model.render_transfer_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                        return
+                    if output_format == "json":
+                        self._write(HTTPStatus.OK, value.to_dict())
+                        return
+                    self._write(HTTPStatus.OK, value.summary())
+                    return
+                history_observatory_archive_transfer_audit_prefix = history_observatory_archive_transfer_prefix + "/audit"
+                history_observatory_archive_transfer_audit_schema_routes = {
+                    "/schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model.audit_schema,
+                    "/check-schema": release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model.check_schema,
+                }
+                for suffix, schema_builder in history_observatory_archive_transfer_audit_schema_routes.items():
+                    if path == history_observatory_archive_transfer_audit_prefix + suffix:
+                        self._write(HTTPStatus.OK, schema_builder())
+                        return
+                if path == history_observatory_archive_transfer_audit_prefix + "/capabilities":
+                    self._write(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model.capabilities())
+                    return
+                if path == history_observatory_archive_transfer_audit_prefix:
+                    transfer_directory = self._query_value(query, "input") or self._query_value(query, "transfer") or getattr(self.server, "glio_release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer", None)
+                    if not transfer_directory:
+                        raise ValueError("input or transfer is required")
+                    value = release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model.audit_partial_transfer_directory(transfer_directory) if self._query_bool(query, "partial") else release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model.audit_transfer_directory(transfer_directory)
+                    output_format = self._query_value(query, "format") or "json"
+                    if output_format == "markdown":
+                        self._write_bytes(HTTPStatus.OK, release_registry_decision_ledger_assurance_history_observatory_archive_transfer_audit_model.render_audit_markdown(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+                    elif output_format == "summary":
+                        self._write(HTTPStatus.OK, value.summary())
+                    else:
+                        self._write(HTTPStatus.OK, value.to_dict())
                     return
                 if path == assurance_history_series_release_registry_federation_prefix + "/query" or path == assurance_history_series_release_registry_federation_prefix:
                     directory = self._query_value(query, "input") or self._query_value(query, "directory") or getattr(self.server, "glio_assurance_history_series_release_registry_federation_directory", None)

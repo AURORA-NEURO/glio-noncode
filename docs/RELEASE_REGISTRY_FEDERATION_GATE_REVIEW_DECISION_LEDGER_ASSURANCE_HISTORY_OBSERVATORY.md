@@ -488,3 +488,23 @@ Before accepting an observatory package, a reviewer should confirm:
 This checklist is intentionally separate from the code's typed verification:
 it gives a human reviewer a compact handoff procedure while the implementation
 enforces machine-checkable invariants.
+
+## Archive and chunk transport
+
+The exact five-file directory can be written as a deterministic ZIP archive and
+then transported as bounded content-addressed chunks. The archive manifest
+records the five `observatory/` payload files and their byte receipts. The
+archive-transfer manifest records the archive address, fixed chunk policy,
+contiguous ranges, and one hash per chunk. Reassembly verifies both layers and
+must reproduce the original archive address.
+
+```powershell
+python -m glio_noncode <observatory-command>-archive --input review-output/observatory --destination review-output/observatory.zip --format summary
+python -m glio_noncode <observatory-command>-archive-transfer --input review-output/observatory.zip --destination review-output/transfer --chunk-size 65536 --format summary
+python -m glio_noncode <observatory-command>-archive-transfer-verify --input review-output/transfer
+python -m glio_noncode <observatory-command>-archive-transfer-query --input review-output/transfer --resource chunks --limit 50
+```
+
+The transfer surface is path-free in its public projections, rejects missing,
+extra, symlinked, non-canonical, and tampered members, and supports manifest
+inspection before byte reassembly. See [the archive-transfer contract](RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md).

@@ -263,3 +263,37 @@ Attach the following to a review handoff:
 
 Do not attach local working paths as public evidence. The addresses in the
 package are sufficient to join the artifacts inside the declared boundary.
+
+## 13. Transport a verified observatory
+
+For a receiver that accepts one file, create the deterministic archive first:
+
+```text
+python -m glio_noncode <observatory-command>-archive \
+  --input review-output/observatory \
+  --destination review-output/observatory.zip \
+  --format summary
+python -m glio_noncode <observatory-command>-archive-verify \
+  --input review-output/observatory.zip
+```
+
+For a receiver that accepts independent byte objects, create an exact transfer
+directory. Choose a chunk size that matches the receiving service and record
+the emitted archive and transfer addresses:
+
+```text
+python -m glio_noncode <observatory-command>-archive-transfer \
+  --input review-output/observatory.zip \
+  --destination review-output/observatory-transfer \
+  --chunk-size 65536 \
+  --format summary
+python -m glio_noncode <observatory-command>-archive-transfer-verify \
+  --input review-output/observatory-transfer
+```
+
+Copy `manifest.json` and every file under `chunks/` without renaming them. A
+receiver must load the exact directory, compare `archive_address`, and only
+then reassemble the ZIP. Use the transfer `manifest` and `query` commands to
+inspect ranges and receipts. Missing or changed bytes are transport failures;
+do not edit the manifest to accommodate them. The full byte bounds, API routes,
+and negative controls are in the [archive-transfer contract](RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md).

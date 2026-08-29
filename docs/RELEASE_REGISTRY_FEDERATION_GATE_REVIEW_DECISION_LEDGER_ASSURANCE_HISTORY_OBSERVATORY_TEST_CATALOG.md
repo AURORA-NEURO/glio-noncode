@@ -131,6 +131,36 @@ remain deterministic and path-independent in its asserted public output.
 | O-132 | Actions workflow. | Compile, focused tests, upstream tests, and capability command are registered. |
 | O-133 | HTTP verification query. | Verification check resources and filters return addressed windows. |
 
+## Archive and transfer coverage
+
+| ID | Scenario | Expected assertion |
+| --- | --- | --- |
+| O-140 | Build an archive from a verified directory. | Exact six-member ZIP preserves all five observatory payload files. |
+| O-141 | Build archive in memory and from disk. | Public projections and deterministic bytes match. |
+| O-142 | Load archive bytes. | Byte loader returns the same verified address as file loading. |
+| O-143 | Inspect archive manifest. | Canonical manifest links archive and manifest addresses. |
+| O-144 | Tamper archive member bytes. | Archive loader rejects receipt drift. |
+| O-145 | Add an archive member or comment. | Exact ZIP shape rejects the envelope. |
+| O-146 | Extract archive. | Exact observatory package is rehydrated and independently verified. |
+| O-147 | Build an archive transfer. | Contiguous bounded chunk receipts conserve archive bytes. |
+| O-148 | Change chunk policy. | Transfer address changes while archive address remains stable. |
+| O-149 | Assemble explicit chunk parts. | Nested archive verifier returns the original archive address. |
+| O-150 | Remove or alter a transfer chunk. | Transfer loader rejects missing or changed bytes. |
+| O-151 | Load a manifest-only transfer mapping. | Public inventory works; complete assembly is unavailable. |
+| O-152 | Query summary, chunks, and missing. | Bounded addressed windows preserve deterministic records. |
+| O-153 | Write and reload exact transfer directory. | Manifest, chunk names, hashes, and archive bytes round-trip. |
+| O-154 | CLI archive and transfer operations. | Build, verify, manifest, query, schema, and capability commands work. |
+| O-155 | HTTP archive and transfer routes. | Build, verification, manifest, query, and schema routes return expected outputs. |
+| O-156 | Downloaded-data transfer demo. | A current-format downloaded archive is chunked, reloaded, and queried. |
+| O-157 | Incremental out-of-order chunk assembly. | Idempotent receipt ingestion exposes missing indices and conserved bytes. |
+| O-158 | Conflicting duplicate chunk. | Assembler rejects a different byte sequence for an already received index. |
+| O-159 | Incomplete finalization. | Assembler refuses to produce archive bytes while any chunk is missing. |
+| O-160 | Progress query and schema. | Complete and manifest-only transfers expose addressed progress projections. |
+| O-161 | Audit complete transfer. | Eight independent checks pass and the report is complete. |
+| O-162 | Audit partial transfer. | Valid incomplete state exposes deferred nested verification and missing progress. |
+| O-163 | Tamper audit check. | Changed check address, count, state, or completion linkage is rejected. |
+| O-164 | Persisted partial recovery. | A partial directory reloads, resumes, and finalizes to the original archive bytes. |
+
 ## Completion rule
 
 The observatory boundary is not considered complete until the focused suite,

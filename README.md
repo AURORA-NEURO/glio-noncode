@@ -1289,3 +1289,21 @@ gate remains separate from the packet and returns inspectable failed checks.
 See [docs/MODULE_WORKBENCH_EXECUTION_PACKET.md](docs/MODULE_WORKBENCH_EXECUTION_PACKET.md)
 for the artifact contract, offline query resources, replay and diff behavior,
 inspection findings, API routes, and failure matrix.
+
+For the current downloaded-data assurance-history observatory, the repository
+also supports deterministic ZIP archiving and content-addressed chunk
+transport. Build, verify, inspect, and query the handoff with the generated
+long-form commands below:
+
+```powershell
+python -m glio_noncode <observatory-command>-archive --input review-output/observatory --destination review-output/observatory.zip --format summary
+python -m glio_noncode <observatory-command>-archive-verify --input review-output/observatory.zip
+python -m glio_noncode <observatory-command>-archive-transfer --input review-output/observatory.zip --destination review-output/transfer --chunk-size 65536 --format summary
+python -m glio_noncode <observatory-command>-archive-transfer-verify --input review-output/transfer
+python -m glio_noncode <observatory-command>-archive-transfer-query --input review-output/transfer --resource chunks --limit 50
+```
+
+The archive and transfer boundaries preserve public content addresses, reject
+path and attribution metadata, and re-verify nested bytes before reassembly.
+See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
+and [the runnable transfer demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_transfer_demo.py).
