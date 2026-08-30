@@ -557,6 +557,31 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/audit?input=<zip-file>
 ```
 
+The archive also has a manifest-only query boundary. It exposes bounded
+summary, manifest, artifact, file, nested-observatory, member, and transition
+rows without extraction. Exact name, receipt, observatory, history, state,
+decision, acceptance, readiness, transition, trend, and text filters are
+retained in the addressed query; pagination is deterministic. The independent
+query audit verifies the namespace, filter, count, ordering, row-address,
+receipt-shape, nested-resource, public-boundary, and mapping invariants.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-query `
+  policy-package-registry-observatory.zip --resource files `
+  --name observatory/observatory.json --format json `
+  --output policy-package-registry-observatory-archive-query.json
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-query-audit `
+  policy-package-registry-observatory-archive-query.json --format summary
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/query?input=<zip-file>&resource=files&name=observatory/observatory.json
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/query-audit?input=<archive-query>
+```
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:

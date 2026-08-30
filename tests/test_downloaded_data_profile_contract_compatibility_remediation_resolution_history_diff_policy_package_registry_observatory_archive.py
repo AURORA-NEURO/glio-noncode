@@ -19,6 +19,8 @@ from glio_noncode import downloaded_data_profile_contract_compatibility_remediat
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory as observatory_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive as archive_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_audit as archive_audit_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_query as archive_query_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_query_audit as archive_query_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
@@ -96,9 +98,60 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 thread.join(timeout=5)
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1445)
-        for schema in (archive_model.artifact_schema(), archive_model.manifest_schema(), archive_model.archive_schema(), archive_audit_model.check_schema(), archive_audit_model.audit_schema()):
+        self.assertEqual(len(inventory.checks), 1451)
+        for schema in (archive_model.artifact_schema(), archive_model.manifest_schema(), archive_model.archive_schema(), archive_audit_model.check_schema(), archive_audit_model.audit_schema(), archive_query_model.row_schema(), archive_query_model.query_schema(), archive_query_audit_model.check_schema(), archive_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
+
+    def test_bounded_archive_queries_round_trip_and_audit(self):
+        value = archive_model.build_archive(self.observatory, archive_id="archive-query-fixture")
+        query = archive_query_model.query_archive(value, resources=archive_query_model.RESOURCES, limit=archive_query_model.MAX_LIMIT)
+        self.assertGreater(query.total_count, query.returned_count - 1)
+        self.assertEqual(query.returned_count, query.matched_count)
+        self.assertEqual(archive_query_model.address_query(query), query.content_address)
+        audit = archive_query_audit_model.audit_query(query)
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (13, 13, True))
+        self.assertEqual(archive_query_model.query_from_mapping(json.loads(archive_query_model.query_json(query))).content_address, query.content_address)
+        self.assertIn("resource", archive_query_model.query_csv(query).splitlines()[0])
+        self.assertIn("Policy Package Registry Observatory Archive Query", archive_query_model.render_query_markdown(query))
+        filtered = archive_query_model.query_archive(value, resources=("files",), name="observatory/observatory.json", limit=8)
+        self.assertEqual((filtered.total_count, filtered.matched_count, filtered.returned_count), (6, 1, 1))
+        self.assertTrue(archive_query_audit_model.audit_query(filtered).accepted)
+
+    def test_cli_http_query_surfaces_and_fail_closed_boundaries(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            observatory = root / "observatory"
+            archive = root / "observatory.zip"
+            query_json = root / "query.json"
+            observatory_model.persist_observatory(self.observatory, observatory)
+            archive_model.write_archive(archive_model.build_archive_from_directory(observatory, archive_id="query-cli-archive"), archive)
+            command = "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-query"
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(main([command, str(archive), "--resource", "files", "--name", "observatory/observatory.json", "--format", "json", "--output", str(query_json)]), 0)
+                self.assertEqual(main([command + "-audit", str(query_json), "--format", "summary"]), 0)
+            payload = json.loads(query_json.read_text(encoding="utf-8"))
+            self.assertEqual(payload["returned_count"], 1)
+            server = create_server("127.0.0.1", 0, root)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                endpoint = f"http://127.0.0.1:{server.server_port}/v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/query"
+                params = urlencode({"input": str(archive), "resource": "files", "name": "observatory/observatory.json", "format": "json"})
+                with urlopen(f"{endpoint}?{params}", timeout=30) as response:
+                    self.assertEqual(json.loads(response.read())["returned_count"], 1)
+                params = urlencode({"input": str(query_json), "format": "json"})
+                with urlopen(f"{endpoint}-audit?{params}", timeout=30) as response:
+                    self.assertTrue(json.loads(response.read())["accepted"])
+                for suffix in ("/row-schema", "/schema", "/capabilities"):
+                    with urlopen(f"{endpoint}{suffix}", timeout=30) as response:
+                        payload = json.loads(response.read())
+                        self.assertEqual(payload["$schema"] if suffix != "/capabilities" else payload["version"], "https://json-schema.org/draft/2020-12/schema" if suffix != "/capabilities" else archive_query_model.VERSION)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=5)
+        with self.assertRaises(ValidationError):
+            archive_query_model.query_archive(archive_model.build_archive(self.observatory, archive_id="query-boundary"), resources=("unknown",))
 
     def test_archive_boundaries_fail_closed(self):
         value = archive_model.build_archive(self.observatory, archive_id="archive-failure")
