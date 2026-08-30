@@ -67,6 +67,17 @@ from . import registry_federation_consensus_gate_history_audit as registry_feder
 from . import registry_federation_consensus_gate_observatory as registry_federation_consensus_gate_observatory_model
 from . import registry_federation_consensus_gate_observatory_audit as registry_federation_consensus_gate_observatory_audit_model
 from . import registry_federation_consensus_gate_package_audit as registry_federation_consensus_gate_package_audit_model
+from . import registry_federation_consensus_gate_certificate as registry_federation_consensus_gate_certificate_model
+from . import registry_federation_consensus_gate_certificate_audit as registry_federation_consensus_gate_certificate_audit_model
+from . import registry_federation_consensus_gate_certificate_query as registry_federation_consensus_gate_certificate_query_model
+from . import registry_federation_consensus_gate_certificate_package as registry_federation_consensus_gate_certificate_package_model
+from . import registry_federation_consensus_gate_certificate_package_audit as registry_federation_consensus_gate_certificate_package_audit_model
+from . import registry_federation_consensus_gate_certificate_runtime as registry_federation_consensus_gate_certificate_runtime_model
+from . import registry_federation_consensus_gate_certificate_diff as registry_federation_consensus_gate_certificate_diff_model
+from . import registry_federation_consensus_gate_certificate_diff_audit as registry_federation_consensus_gate_certificate_diff_audit_model
+from . import registry_federation_consensus_gate_certificate_query_audit as registry_federation_consensus_gate_certificate_query_audit_model
+from . import registry_federation_consensus_gate_certificate_history as registry_federation_consensus_gate_certificate_history_model
+from . import registry_federation_consensus_gate_certificate_history_audit as registry_federation_consensus_gate_certificate_history_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3259,6 +3270,33 @@ def _write_text(text: str, output: str | None) -> None:
         Path(output).write_text(text, encoding="utf-8")
     else:
         sys.stdout.write(text)
+
+
+def _certificate_from_document(raw: Mapping[str, Any]):
+    """Resolve a certificate from a certificate runtime, gate runtime, package, or certificate document."""
+
+    if "gate_runtime" in raw and "certificate" in raw:
+        return registry_federation_consensus_gate_certificate_runtime_model.runtime_from_mapping(raw).certificate
+    if "consensus_runtime" in raw and "gate" in raw and "audit" in raw and "query" in raw:
+        return registry_federation_consensus_gate_certificate_model.evaluate_certificate(
+            registry_federation_consensus_gate_runtime_model.runtime_from_mapping(raw)
+        )
+    if "runtime" in raw and "gate" in raw and "gate_audit" in raw and "certificate" in raw:
+        return registry_federation_consensus_gate_certificate_package_model.package_from_mapping(raw).certificate
+    return registry_federation_consensus_gate_certificate_model.certificate_from_mapping(raw)
+
+
+def _certificate_and_audit_from_document(raw: Mapping[str, Any]):
+    """Resolve the certificate and its independent audit from any public handoff document."""
+
+    if "gate_runtime" in raw and "certificate" in raw:
+        runtime = registry_federation_consensus_gate_certificate_runtime_model.runtime_from_mapping(raw)
+        return runtime.certificate, runtime.certificate_audit
+    if "runtime" in raw and "gate" in raw and "gate_audit" in raw and "certificate" in raw:
+        package = registry_federation_consensus_gate_certificate_package_model.package_from_mapping(raw)
+        return package.certificate, package.certificate_audit
+    certificate = _certificate_from_document(raw)
+    return certificate, registry_federation_consensus_gate_certificate_audit_model.audit_certificate(certificate)
 
 
 def _packet_diff_batch_pairs(values: list[str]) -> tuple[tuple[str, str, str], ...]:
@@ -17494,6 +17532,102 @@ def build_parser() -> argparse.ArgumentParser:
     federation_consensus_gate_observatory_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     federation_consensus_gate_observatory_audit.add_argument("--output", default=None)
 
+    federation_consensus_gate_certificate = subparsers.add_parser("registry-federation-consensus-gate-certificate", help="issue or withhold a release certificate from a gate runtime")
+    federation_consensus_gate_certificate.add_argument("--input", required=True)
+    federation_consensus_gate_certificate.add_argument("--certificate-id", default="consensus-release-certificate")
+    federation_consensus_gate_certificate.add_argument("--require-package", action="store_true")
+    federation_consensus_gate_certificate.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_runtime = subparsers.add_parser("registry-federation-consensus-gate-certificate-runtime", help="build, audit, query, and persist a release certificate")
+    federation_consensus_gate_certificate_runtime.add_argument("--peer", action="append", required=True, help="peer ID and registry directory as ID=DIRECTORY")
+    federation_consensus_gate_certificate_runtime.add_argument("--federation-id", default="catalog-federation")
+    federation_consensus_gate_certificate_runtime.add_argument("--consensus-id", default="federation-consensus")
+    federation_consensus_gate_certificate_runtime.add_argument("--runtime-id", default="consensus-certificate-runtime")
+    federation_consensus_gate_certificate_runtime.add_argument("--gate-id", default="consensus-release-gate")
+    federation_consensus_gate_certificate_runtime.add_argument("--certificate-id", default="consensus-release-certificate")
+    federation_consensus_gate_certificate_runtime.add_argument("--certificate-policy-id", default="consensus-release-certificate-policy")
+    federation_consensus_gate_certificate_runtime.add_argument("--require-package", action="store_true")
+    federation_consensus_gate_certificate_runtime.add_argument("--quorum", default=None, type=int)
+    federation_consensus_gate_certificate_runtime.add_argument("--destination", default=None)
+    federation_consensus_gate_certificate_runtime.add_argument("--overwrite", action="store_true")
+    federation_consensus_gate_certificate_runtime.add_argument("--resource", action="append")
+    federation_consensus_gate_certificate_runtime.add_argument("--package-id", default="consensus-release-certificate-package")
+    federation_consensus_gate_certificate_runtime.add_argument("--check-id", default="")
+    federation_consensus_gate_certificate_runtime.add_argument("--passed", default=None, choices=("true", "false"))
+    federation_consensus_gate_certificate_runtime.add_argument("--state", default="")
+    federation_consensus_gate_certificate_runtime.add_argument("--decision", default="")
+    federation_consensus_gate_certificate_runtime.add_argument("--offset", default=0, type=int)
+    federation_consensus_gate_certificate_runtime.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_certificate_runtime.add_argument("--format", choices=("json", "summary"), default="summary")
+    federation_consensus_gate_certificate_runtime.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-audit", help="audit a release certificate")
+    federation_consensus_gate_certificate_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_query = subparsers.add_parser("registry-federation-consensus-gate-certificate-query", help="query a release certificate")
+    federation_consensus_gate_certificate_query.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_query.add_argument("--resource", action="append")
+    federation_consensus_gate_certificate_query.add_argument("--check-id", default="")
+    federation_consensus_gate_certificate_query.add_argument("--passed", default=None, choices=("true", "false"))
+    federation_consensus_gate_certificate_query.add_argument("--state", default="")
+    federation_consensus_gate_certificate_query.add_argument("--decision", default="")
+    federation_consensus_gate_certificate_query.add_argument("--offset", default=0, type=int)
+    federation_consensus_gate_certificate_query.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_certificate_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_query.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_query_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-query-audit", help="audit a bounded certificate query result")
+    federation_consensus_gate_certificate_query_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_query_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_package = subparsers.add_parser("registry-federation-consensus-gate-certificate-package", help="persist a release certificate handoff package")
+    federation_consensus_gate_certificate_package.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_package.add_argument("--package-id", default="consensus-release-certificate-package")
+    federation_consensus_gate_certificate_package.add_argument("--destination", required=True)
+    federation_consensus_gate_certificate_package.add_argument("--overwrite", action="store_true")
+    federation_consensus_gate_certificate_package.add_argument("--format", choices=("json", "summary"), default="summary")
+    federation_consensus_gate_certificate_package.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_package_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-package-audit", help="audit a release certificate package")
+    federation_consensus_gate_certificate_package_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_package_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_package_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_diff = subparsers.add_parser("registry-federation-consensus-gate-certificate-diff", help="compare two release certificates")
+    federation_consensus_gate_certificate_diff.add_argument("--left", required=True)
+    federation_consensus_gate_certificate_diff.add_argument("--right", required=True)
+    federation_consensus_gate_certificate_diff.add_argument("--diff-id", default=registry_federation_consensus_gate_certificate_diff_model.DEFAULT_DIFF_ID)
+    federation_consensus_gate_certificate_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_diff.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_diff_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-diff-audit", help="audit a release certificate transition diff")
+    federation_consensus_gate_certificate_diff_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_diff_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_diff_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_history = subparsers.add_parser("registry-federation-consensus-gate-certificate-history", help="build an append-only release certificate history")
+    federation_consensus_gate_certificate_history.add_argument("--input", action="append", required=True, help="certificate runtime, package, or certificate JSON document")
+    federation_consensus_gate_certificate_history.add_argument("--history-id", default="consensus-certificate-history")
+    federation_consensus_gate_certificate_history.add_argument("--destination", default=None)
+    federation_consensus_gate_certificate_history.add_argument("--overwrite", action="store_true")
+    federation_consensus_gate_certificate_history.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_history.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_history_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-history-audit", help="audit a release certificate history")
+    federation_consensus_gate_certificate_history_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_history_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_history_audit.add_argument("--output", default=None)
+
+    for command, help_text in (("registry-federation-consensus-gate-certificate-policy-schema", "print certificate policy schema"), ("registry-federation-consensus-gate-certificate-check-schema", "print certificate check schema"), ("registry-federation-consensus-gate-certificate-schema", "print certificate schema"), ("registry-federation-consensus-gate-certificate-capabilities", "print certificate capabilities"), ("registry-federation-consensus-gate-certificate-audit-check-schema", "print certificate audit check schema"), ("registry-federation-consensus-gate-certificate-audit-schema", "print certificate audit schema"), ("registry-federation-consensus-gate-certificate-audit-capabilities", "print certificate audit capabilities"), ("registry-federation-consensus-gate-certificate-query-schema", "print certificate query schema"), ("registry-federation-consensus-gate-certificate-query-row-schema", "print certificate query row schema"), ("registry-federation-consensus-gate-certificate-query-result-schema", "print certificate query result schema"), ("registry-federation-consensus-gate-certificate-query-capabilities", "print certificate query capabilities"), ("registry-federation-consensus-gate-certificate-query-audit-check-schema", "print certificate query audit check schema"), ("registry-federation-consensus-gate-certificate-query-audit-schema", "print certificate query audit schema"), ("registry-federation-consensus-gate-certificate-query-audit-capabilities", "print certificate query audit capabilities"), ("registry-federation-consensus-gate-certificate-package-manifest-schema", "print certificate package manifest schema"), ("registry-federation-consensus-gate-certificate-package-schema", "print certificate package schema"), ("registry-federation-consensus-gate-certificate-package-capabilities", "print certificate package capabilities"), ("registry-federation-consensus-gate-certificate-package-audit-check-schema", "print certificate package audit check schema"), ("registry-federation-consensus-gate-certificate-package-audit-schema", "print certificate package audit schema"), ("registry-federation-consensus-gate-certificate-package-audit-capabilities", "print certificate package audit capabilities"), ("registry-federation-consensus-gate-certificate-runtime-schema", "print certificate runtime schema"), ("registry-federation-consensus-gate-certificate-runtime-capabilities", "print certificate runtime capabilities"), ("registry-federation-consensus-gate-certificate-diff-item-schema", "print certificate diff item schema"), ("registry-federation-consensus-gate-certificate-diff-schema", "print certificate diff schema"), ("registry-federation-consensus-gate-certificate-diff-capabilities", "print certificate diff capabilities"), ("registry-federation-consensus-gate-certificate-diff-audit-check-schema", "print certificate diff audit check schema"), ("registry-federation-consensus-gate-certificate-diff-audit-schema", "print certificate diff audit schema"), ("registry-federation-consensus-gate-certificate-diff-audit-capabilities", "print certificate diff audit capabilities")):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
+
+    for command, help_text in (("registry-federation-consensus-gate-certificate-history-manifest-schema", "print certificate history manifest schema"), ("registry-federation-consensus-gate-certificate-history-entry-schema", "print certificate history entry schema"), ("registry-federation-consensus-gate-certificate-history-schema", "print certificate history schema"), ("registry-federation-consensus-gate-certificate-history-capabilities", "print certificate history capabilities"), ("registry-federation-consensus-gate-certificate-history-audit-check-schema", "print certificate history audit check schema"), ("registry-federation-consensus-gate-certificate-history-audit-schema", "print certificate history audit schema"), ("registry-federation-consensus-gate-certificate-history-audit-capabilities", "print certificate history audit capabilities")):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
+
     federation_consensus_remediation = subparsers.add_parser("registry-federation-consensus-remediation", help="derive a non-mutating remediation plan from a consensus receipt")
     federation_consensus_remediation.add_argument("--input", required=True)
     federation_consensus_remediation.add_argument("--remediation-id", default=registry_federation_consensus_remediation_model.DEFAULT_REMEDIATION_ID)
@@ -17900,6 +18034,225 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(value.summary(), args.output)
             return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate":
+            raw = _read_json(args.input)
+            if "gate_runtime" in raw and "certificate" in raw:
+                value = registry_federation_consensus_gate_certificate_runtime_model.runtime_from_mapping(raw).certificate
+            elif "consensus_runtime" in raw and "gate" in raw and "audit" in raw and "query" in raw:
+                value = registry_federation_consensus_gate_certificate_model.evaluate_certificate(
+                    registry_federation_consensus_gate_runtime_model.runtime_from_mapping(raw),
+                    policy=registry_federation_consensus_gate_certificate_model.default_policy(require_package=args.require_package),
+                    certificate_id=args.certificate_id,
+                )
+            else:
+                value = _certificate_from_document(raw)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_model.certificate_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_model.render_certificate_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_model.certificate_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-runtime":
+            peers = []
+            for specification in args.peer:
+                if "=" not in specification:
+                    raise ValueError("--peer must use PEER_ID=REGISTRY_DIRECTORY")
+                peer_id, directory = specification.split("=", 1)
+                peers.append((peer_id, directory))
+            passed = None if args.passed is None else args.passed == "true"
+            policy = registry_federation_consensus_gate_certificate_model.default_policy(policy_id=args.certificate_policy_id, require_package=args.require_package)
+            value = registry_federation_consensus_gate_certificate_runtime_model.run_certificate_runtime(
+                peers,
+                runtime_id=args.runtime_id,
+                federation_id=args.federation_id,
+                consensus_id=args.consensus_id,
+                quorum=args.quorum,
+                gate_id=args.gate_id,
+                certificate_id=args.certificate_id,
+                certificate_policy=policy,
+                package_id=args.package_id,
+                destination=args.destination,
+                overwrite=args.overwrite,
+                certificate_resources=tuple(args.resource or registry_federation_consensus_gate_certificate_query_model.DEFAULT_RESOURCES),
+                certificate_check_id=args.check_id,
+                certificate_passed=passed,
+                certificate_state=args.state,
+                certificate_decision=args.decision,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _write_json(value.summary() if args.format == "summary" else value.to_dict(), args.output)
+            return 0 if value.certificate.accepted and value.certificate_audit.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-audit":
+            value = registry_federation_consensus_gate_certificate_audit_model.audit_certificate(_certificate_from_document(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-query":
+            value = registry_federation_consensus_gate_certificate_query_model.query_certificate(
+                _certificate_from_document(_read_json(args.input)),
+                resources=tuple(args.resource or registry_federation_consensus_gate_certificate_query_model.DEFAULT_RESOURCES),
+                check_id=args.check_id,
+                passed=None if args.passed is None else args.passed == "true",
+                state=args.state,
+                decision=args.decision,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_query_model.query_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_query_model.render_query_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_query_model.query_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-query-audit":
+            value = registry_federation_consensus_gate_certificate_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_query_model.query_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_query_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_query_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_query_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-package":
+            runtime = registry_federation_consensus_gate_certificate_runtime_model.runtime_from_mapping(_read_json(args.input))
+            value = registry_federation_consensus_gate_certificate_package_model.build_package(
+                runtime.gate_runtime,
+                runtime.certificate,
+                package_id=args.package_id,
+                gate_audit=runtime.gate_runtime.audit,
+                gate_query=runtime.gate_runtime.query,
+                certificate_audit=runtime.certificate_audit,
+                certificate_query=runtime.certificate_query,
+            )
+            registry_federation_consensus_gate_certificate_package_model.write_package(value, args.destination, overwrite=args.overwrite)
+            _write_json(value.summary() if args.format == "summary" else value.to_dict(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-package-audit":
+            source = Path(args.input)
+            package = registry_federation_consensus_gate_certificate_package_model.load_package(source) if source.is_dir() else registry_federation_consensus_gate_certificate_package_model.package_from_mapping(_read_json(args.input))
+            value = registry_federation_consensus_gate_certificate_package_audit_model.audit_package(package)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_package_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_package_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_package_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-diff":
+            left = _certificate_from_document(_read_json(args.left))
+            right = _certificate_from_document(_read_json(args.right))
+            value = registry_federation_consensus_gate_certificate_diff_model.build_diff(left, right, diff_id=args.diff_id)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_diff_model.diff_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_diff_model.render_diff_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_diff_model.diff_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-diff-audit":
+            value = registry_federation_consensus_gate_certificate_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_diff_model.diff_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_diff_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_diff_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_diff_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-history":
+            values = []
+            for input_path in args.input:
+                source = Path(input_path)
+                if source.is_dir():
+                    package = registry_federation_consensus_gate_certificate_package_model.load_package(source)
+                    values.append((package.certificate, package.certificate_audit))
+                else:
+                    values.append(_certificate_and_audit_from_document(_read_json(input_path)))
+            value = registry_federation_consensus_gate_certificate_history_model.build_history(tuple(values), history_id=args.history_id)
+            if args.destination:
+                registry_federation_consensus_gate_certificate_history_model.write_history(value, args.destination, overwrite=args.overwrite)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_history_model.history_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_history_model.render_history_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_history_model.history_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-history-audit":
+            source = Path(args.input)
+            history = registry_federation_consensus_gate_certificate_history_model.load_history(source) if source.is_dir() else registry_federation_consensus_gate_certificate_history_model.history_from_mapping(_read_json(args.input))
+            value = registry_federation_consensus_gate_certificate_history_audit_model.audit_history(history)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_history_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_history_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_history_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        certificate_schema_commands = {
+            "registry-federation-consensus-gate-certificate-policy-schema": registry_federation_consensus_gate_certificate_model.policy_schema,
+            "registry-federation-consensus-gate-certificate-check-schema": registry_federation_consensus_gate_certificate_model.check_schema,
+            "registry-federation-consensus-gate-certificate-schema": registry_federation_consensus_gate_certificate_model.certificate_schema,
+            "registry-federation-consensus-gate-certificate-capabilities": registry_federation_consensus_gate_certificate_model.capabilities,
+            "registry-federation-consensus-gate-certificate-audit-check-schema": registry_federation_consensus_gate_certificate_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-audit-schema": registry_federation_consensus_gate_certificate_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-audit-capabilities": registry_federation_consensus_gate_certificate_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-query-schema": registry_federation_consensus_gate_certificate_query_model.query_schema,
+            "registry-federation-consensus-gate-certificate-query-row-schema": registry_federation_consensus_gate_certificate_query_model.row_schema,
+            "registry-federation-consensus-gate-certificate-query-result-schema": registry_federation_consensus_gate_certificate_query_model.result_schema,
+            "registry-federation-consensus-gate-certificate-query-capabilities": registry_federation_consensus_gate_certificate_query_model.capabilities,
+            "registry-federation-consensus-gate-certificate-query-audit-check-schema": registry_federation_consensus_gate_certificate_query_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-query-audit-schema": registry_federation_consensus_gate_certificate_query_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-query-audit-capabilities": registry_federation_consensus_gate_certificate_query_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-package-manifest-schema": registry_federation_consensus_gate_certificate_package_model.manifest_schema,
+            "registry-federation-consensus-gate-certificate-package-schema": registry_federation_consensus_gate_certificate_package_model.package_schema,
+            "registry-federation-consensus-gate-certificate-package-capabilities": registry_federation_consensus_gate_certificate_package_model.capabilities,
+            "registry-federation-consensus-gate-certificate-package-audit-check-schema": registry_federation_consensus_gate_certificate_package_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-package-audit-schema": registry_federation_consensus_gate_certificate_package_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-package-audit-capabilities": registry_federation_consensus_gate_certificate_package_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-runtime-schema": registry_federation_consensus_gate_certificate_runtime_model.runtime_schema,
+            "registry-federation-consensus-gate-certificate-runtime-capabilities": registry_federation_consensus_gate_certificate_runtime_model.capabilities,
+            "registry-federation-consensus-gate-certificate-diff-item-schema": registry_federation_consensus_gate_certificate_diff_model.item_schema,
+            "registry-federation-consensus-gate-certificate-diff-schema": registry_federation_consensus_gate_certificate_diff_model.diff_schema,
+            "registry-federation-consensus-gate-certificate-diff-capabilities": registry_federation_consensus_gate_certificate_diff_model.capabilities,
+            "registry-federation-consensus-gate-certificate-diff-audit-check-schema": registry_federation_consensus_gate_certificate_diff_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-diff-audit-schema": registry_federation_consensus_gate_certificate_diff_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-diff-audit-capabilities": registry_federation_consensus_gate_certificate_diff_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-history-manifest-schema": registry_federation_consensus_gate_certificate_history_model.manifest_schema,
+            "registry-federation-consensus-gate-certificate-history-entry-schema": registry_federation_consensus_gate_certificate_history_model.entry_schema,
+            "registry-federation-consensus-gate-certificate-history-schema": registry_federation_consensus_gate_certificate_history_model.history_schema,
+            "registry-federation-consensus-gate-certificate-history-capabilities": registry_federation_consensus_gate_certificate_history_model.capabilities,
+            "registry-federation-consensus-gate-certificate-history-audit-check-schema": registry_federation_consensus_gate_certificate_history_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-history-audit-schema": registry_federation_consensus_gate_certificate_history_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-history-audit-capabilities": registry_federation_consensus_gate_certificate_history_audit_model.capabilities,
+        }
+        if args.command in certificate_schema_commands:
+            _write_json(certificate_schema_commands[args.command](), args.output)
+            return 0
         if args.command == "registry-federation-consensus-remediation":
             consensus = registry_federation_consensus_model.consensus_from_mapping(_read_json(args.input))
             value = registry_federation_consensus_remediation_model.build_remediation(consensus, remediation_id=args.remediation_id)

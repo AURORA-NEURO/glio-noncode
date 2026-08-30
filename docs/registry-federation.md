@@ -226,8 +226,8 @@ boundary. It writes exactly six canonical JSON members:
 Reload requires exact member vocabulary, canonical JSON bytes, manifest replay,
 all child links, and package-address replay. The independent package audit
 recomputes those conditions from the typed package. No local directory path is
-included in the public package, and the public-boundary checks reject agent or
-path metadata.
+included in the public package, and the public-boundary checks reject private
+path or attribution metadata.
 
 `registry_federation_consensus_gate_diff.py` compares two gate receipts by
 policy, check, disposition, and receipt resources. Values are represented by
@@ -260,6 +260,228 @@ capability resources. The downloaded-data demo runs this entire control plane,
 then compares the normal gate with a stricter quorum policy, persists and
 reloads the six-file package, audits the transition, and aggregates the
 eligible/review observations.
+
+## Consensus release certificate and handoff plane
+
+The gate is the policy decision boundary. A certificate is the portable
+handoff receipt produced from one verified gate runtime. It records whether the
+gate was issued as `promote` or withheld as `hold`, retains the runtime, gate,
+audit, query, policy, and evidence addresses, and preserves the failed check
+IDs when promotion is withheld. A certificate never mutates the source
+registry and never treats a passing audit as permission to promote.
+
+`registry_federation_consensus_gate_certificate.py` defines a content-addressed
+policy, a fixed 19-check issuance vocabulary, and the `issued/promote` or
+`withheld/hold` state machine. The default policy requires an eligible gate,
+the promote decision, gate acceptance, an accepted gate audit, a complete gate
+query, and at least one gate check and passed check. `require_package=True`
+adds a durable gate-package requirement. The policy address is included in
+the certificate evidence set, so a policy change produces a new certificate
+address and can be reviewed as a transition.
+
+The certificate checks are ordered and fail closed:
+
+| check group | purpose |
+| --- | --- |
+| `exact-fields`, `public-boundary` | keep the public certificate vocabulary fixed and path-free |
+| `runtime-link`, `gate-link`, `audit-link`, `query-link`, `package-link` | connect the certificate to the exact execution evidence |
+| `policy-link`, `state-allowed`, `decision-allowed` | replay policy bytes and compare gate disposition to policy |
+| `gate-accepted`, `audit-accepted`, `query-complete` | require the child release-control values needed for handoff |
+| `check-floor`, `counter-conservation`, `acceptance-conservation` | conserve counts and enforce fail-closed acceptance |
+| `certificate-address`, `mapping-round-trip`, `path-free` | finalize deterministic identity and the boundary contract |
+
+Build a certificate directly from a gate runtime JSON document:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate \
+  --input C:\data\consensus-gate-runtime.json \
+  --certificate-id downloaded-release-certificate \
+  --format markdown
+```
+
+For an end-to-end directory-to-certificate runtime with a durable package:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-runtime \
+  --peer primary=C:\data\primary-registry \
+  --peer replica=C:\data\replica-registry \
+  --federation-id downloaded-federation \
+  --consensus-id downloaded-consensus \
+  --quorum 2 \
+  --certificate-policy-id downloaded-certificate-policy \
+  --require-package \
+  --destination C:\data\consensus-certificate-package \
+  --format json \
+  --output C:\data\consensus-certificate-runtime.json
+```
+
+The runtime wrapper retains the complete gate runtime, certificate, independent
+certificate audit, bounded certificate query, optional package address,
+persistence flag, and one runtime address. It is the recommended input to a
+handoff service because a receiver can verify the complete nested chain from a
+single document.
+
+`registry_federation_consensus_gate_certificate_audit.py` independently
+recomputes 20 certificate invariants. It checks the fixed field vocabulary,
+policy address, every nested link, check ordering, counters, disposition,
+evidence, mapping replay, and content-address replay. A withheld certificate
+can therefore have an accepted audit: the audit means the rejection is
+internally consistent, not that the release should proceed.
+
+`registry_federation_consensus_gate_certificate_query.py` exposes five bounded
+resources: `summary`, `checks`, `failures`, `evidence`, and `policy`. It
+supports check ID, pass flag, state, decision, offset, and limit filters. Rows
+carry resource identity, a stable row ID, the relevant check and evidence
+addresses, and their own content addresses. The query result preserves total,
+matched, returned, next-offset, and truncation counters. Use the failures
+resource to explain a hold and the evidence resource to hand the addresses to
+another verifier:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-query \
+  --input C:\data\consensus-certificate.json \
+  --resource failures \
+  --passed false \
+  --limit 50 \
+  --format markdown
+```
+
+When a query is truncated, continue at `next_offset`. A page is a bounded
+view, not a different certificate; the query address changes with resources,
+filters, offset, and limit so the view itself is replayable.
+
+`registry_federation_consensus_gate_certificate_query_audit.py` audits that
+filtered view independently. It verifies the requested resources and filters,
+page ordinals, next offset, nested row/query/result addresses, mapping replay,
+and public boundary. Use `registry-federation-consensus-gate-certificate-query-audit`
+or `/consensus/gate/certificate/query-audit` when a paginated result is being
+handed to another review process.
+
+`registry_federation_consensus_gate_certificate_package.py` is the durable
+certificate transport boundary. It writes exactly nine canonical JSON members:
+
+| member | purpose |
+| --- | --- |
+| `manifest.json` | version, exact member vocabulary, and every child address |
+| `package.json` | package envelope and package content address |
+| `certificate.json` | issued or withheld certificate |
+| `runtime.json` | nested gate runtime used by certificate evaluation |
+| `gate.json` | gate policy, checks, disposition, and acceptance |
+| `gate-audit.json` | independent gate audit |
+| `gate-query.json` | bounded gate projection |
+| `certificate-audit.json` | independent certificate audit |
+| `certificate-query.json` | bounded certificate projection |
+
+The package writer stages members in a sibling directory and replaces the
+destination only after every canonical member is ready. The loader rejects
+missing or extra members, non-canonical JSON, broken manifest hashes, broken
+nested links, and package-address drift. `package-audit` independently checks
+18 invariants including both audit/query closures:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-package-audit \
+  --input C:\data\consensus-certificate-package \
+  --format markdown
+```
+
+`registry_federation_consensus_gate_certificate_diff.py` compares two
+certificates field by field across policy, source links, disposition, checks,
+counters, blockers, evidence, and acceptance. Values are rendered as bounded
+fingerprints rather than duplicated payloads. The direction is `unchanged`,
+`improved`, `regressed`, or `mixed`; it is derived from the left/right
+acceptance values and does not declare which source is correct. The independent
+diff audit recomputes 14 checks for item vocabulary, counters, item addresses,
+endpoint conservation, direction, and mapping replay:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-diff \
+  --left C:\data\certificate-before.json \
+  --right C:\data\certificate-after.json \
+  --format markdown \
+  --output C:\data\certificate-transition.md
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-diff-audit \
+  --input C:\data\certificate-transition.json \
+  --format summary
+```
+
+The HTTP equivalents are `/consensus/gate/certificate`,
+`/consensus/gate/certificate/runtime`, `/consensus/gate/certificate/audit`,
+`/consensus/gate/certificate/query`,
+`/consensus/gate/certificate/package`,
+`/consensus/gate/certificate/package/audit`,
+`/consensus/gate/certificate/diff`, and
+`/consensus/gate/certificate/diff/audit`. Schema and capability resources are
+published under the same prefix. A valid withheld certificate uses HTTP 422
+for evaluation routes while its audit and query routes remain readable; this
+keeps transport errors separate from an intentional release hold.
+
+## Certificate history and append-only handoff
+
+`registry_federation_consensus_gate_certificate_history.py` records certificate
+decisions as an ordered, append-only value. Each entry captures the certificate
+ID and runtime ID, the certificate and independent-audit addresses, the issued
+or withheld state, the promote or hold decision, acceptance, check counters,
+and a bounded set of evidence addresses. Entries are numbered from one and the
+history stores separate issued and withheld counters. The constructor rejects
+an entry whose acceptance is inconsistent with its disposition or whose audit
+does not refer to the certificate.
+
+The history is intentionally a new addressed value when a decision is appended.
+`append_history` verifies the existing history, verifies the incoming
+certificate/audit pair, assigns the next ordinal, and recomputes the history
+address. The previous history and its entries remain valid and unchanged. The
+bounded 256-entry limit makes retention and replay costs explicit while still
+supporting a long release stream through external rotation.
+
+History persistence is a three-member exact package:
+
+| member | purpose |
+| --- | --- |
+| `manifest.json` | version, file vocabulary, history address, and entry count |
+| `history.json` | complete addressed history envelope |
+| `entries.json` | canonical ordered entry projection |
+
+The writer uses sibling staging and destination replacement. The loader checks
+the exact member set, rejects symlinks and non-canonical JSON, replays the
+history and entry addresses, and compares both projections to the envelope.
+`verify_history_directory` is the strict read boundary for a received history.
+
+The independent history audit recomputes 14 checks: exact fields, public
+boundary, entry and ordinal conservation, issued/withheld counters, certificate
+and audit address vocabularies, disposition and acceptance rules, entry
+addresses, mapping round-trip, history address, content address, and path-free
+output. It is separate from the history constructor so a receiver can audit a
+loaded value without trusting the producer's summary.
+
+Build a history from certificate runtime or package directories. Multiple
+`--input` values preserve their command-line order:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-history \
+  --input C:\data\certificate-package-issued \
+  --input C:\data\certificate-package-withheld \
+  --history-id downloaded-certificate-history \
+  --destination C:\data\certificate-history \
+  --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-history-audit \
+  --input C:\data\certificate-history \
+  --format markdown
+```
+
+The API equivalents are `/consensus/gate/certificate/history` and
+`/consensus/gate/certificate/history/audit`. The build route accepts repeated
+`input` parameters and can persist an exact history package with `destination`
+and `overwrite`. The audit route accepts either a history directory or a
+canonical history JSON document. Both routes keep local source paths outside
+the returned public object.
+
+For operational use, retain the certificate package address, history address,
+history audit address, and the entry ordinal together. A withheld certificate
+is not erased or converted into an error: it remains a first-class historical
+decision with failed checks available through the certificate query. A later
+issued certificate is appended as a new entry, allowing reviewers to explain
+the complete transition from hold to promotion without mutating the original
+record.
 
 ## Remediation plan and operator query
 

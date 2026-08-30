@@ -193,8 +193,8 @@ class RegistryFederationConsensusGateContractTests(DurableCatalogPromotionPackag
     def test_public_surface_inventory_contains_gate_schemas_and_capabilities(self):
         value = build_default_public_surface_audit()
         self.assertTrue(value.accepted)
-        self.assertEqual(value.surface_count, 881)
-        self.assertEqual(value.passed_surface_count, 881)
+        self.assertEqual(value.surface_count, 916)
+        self.assertEqual(value.passed_surface_count, 916)
         self.assertEqual(value.failed_surface_count, 0)
         names = {item.surface_id for item in value.checks}
         self.assertIn("registry-federation-consensus-gate-schema", names)
