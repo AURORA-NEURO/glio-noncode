@@ -414,6 +414,67 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime/schema
 ```
 
+### Policy package registry history and diffs
+
+Registry histories retain append-only, addressed snapshots of one logical
+package registry. Each observation stores only package counts, readiness,
+decisions, state, ancestry, and a deterministic `initial`, `improved`,
+`regressed`, `unchanged`, or `changed` transition. The history is persisted as
+an exact four-file value-free package:
+
+```text
+policy-package-registry-history/
+  manifest.json
+  history.json
+  entries.json
+  summary.json
+```
+
+Two histories can be compared by ordinal snapshot identity. The diff reports
+`added`, `removed`, `changed`, and `unchanged` snapshots, signed transition
+deltas, state transition, and an `improved`, `regressed`, `mixed`, or `unchanged`
+direction. It is also an exact four-file package:
+
+```text
+policy-package-registry-history-diff/
+  manifest.json
+  diff.json
+  items.json
+  summary.json
+```
+
+Build and inspect the history and diff with bounded queries and independent
+audits:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-history `
+  policy-package-registry policy-package-registry-next `
+  --history-id policy-package-registry-history --destination policy-package-registry-history --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-history-query `
+  policy-package-registry-history --resource transitions --transition improved --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-history-diff `
+  policy-package-registry-history-baseline policy-package-registry-history `
+  --diff-id policy-package-registry-history-diff --destination policy-package-registry-history-diff --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-history-diff-query `
+  policy-package-registry-history-diff --resource added --change added --format summary
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history?input=<registry>&input=<next-registry>&destination=<directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/audit?input=<history>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/query?input=<history>&resource=transitions&transition=improved
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/query-audit?input=<history-query>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/diff?left=<baseline-history>&right=<candidate-history>&destination=<directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/diff/audit?input=<history-diff>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/diff/query?input=<history-diff>&resource=added&change=added
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/diff/query-audit?input=<history-diff-query>
+```
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:
