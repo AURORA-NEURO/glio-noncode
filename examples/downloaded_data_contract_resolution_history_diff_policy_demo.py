@@ -92,6 +92,18 @@ from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_history_diff_query_audit as policy_package_registry_history_diff_query_audit_model,
 )
 from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory as policy_package_registry_observatory_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_audit as policy_package_registry_observatory_audit_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_query as policy_package_registry_observatory_query_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_query_audit as policy_package_registry_observatory_query_audit_model,
+)
+from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime as policy_runtime_model,
 )
 from glio_noncode import (
@@ -149,6 +161,12 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
     registry_history_diff_audit = policy_package_registry_history_diff_audit_model.audit_diff(registry_history_diff)
     registry_history_diff_query = policy_package_registry_history_diff_query_model.query_diff(registry_history_diff, resources=("summary", "items", "added", "removed", "changed", "unchanged"), change="added", limit=25)
     registry_history_diff_query_audit = policy_package_registry_history_diff_query_audit_model.audit_query(registry_history_diff_query)
+    observatory_history_baseline = policy_package_registry_history_model.run_history((baseline_package_registry,), history_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-observatory-baseline")
+    observatory_history_candidate = policy_package_registry_history_model.run_history((baseline_package_registry, candidate_package_registry), history_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-observatory-candidate")
+    policy_package_registry_observatory = policy_package_registry_observatory_model.run_observatory((observatory_history_baseline, observatory_history_candidate), observatory_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-registry-observatory")
+    policy_package_registry_observatory_audit = policy_package_registry_observatory_audit_model.audit_observatory(policy_package_registry_observatory)
+    policy_package_registry_observatory_query = policy_package_registry_observatory_query_model.query_observatory(policy_package_registry_observatory, resources=("summary", "members", "transitions", "improved", "stable"), limit=25)
+    policy_package_registry_observatory_query_audit = policy_package_registry_observatory_query_audit_model.audit_query(policy_package_registry_observatory_query)
     action_counts = Counter(item.action for item in plan.actions)
     summary = {
         "source_name": Path(source).name,
@@ -225,6 +243,20 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "policy_package_registry_history_diff_query_returned_count": registry_history_diff_query.returned_count,
         "policy_package_registry_history_diff_query_audit_checks": registry_history_diff_query_audit.check_count,
         "policy_package_registry_history_diff_query_audit_accepted": registry_history_diff_query_audit.accepted,
+        "policy_package_registry_observatory_member_count": policy_package_registry_observatory.member_count,
+        "policy_package_registry_observatory_transition_count": policy_package_registry_observatory.transition_count,
+        "policy_package_registry_observatory_state": policy_package_registry_observatory.state,
+        "policy_package_registry_observatory_decision": policy_package_registry_observatory.decision,
+        "policy_package_registry_observatory_accepted": policy_package_registry_observatory.accepted,
+        "policy_package_registry_observatory_release_ready": policy_package_registry_observatory.release_ready,
+        "policy_package_registry_observatory_trend_counts": {"stable": policy_package_registry_observatory.unchanged_count, "improved": policy_package_registry_observatory.improved_count, "regressed": policy_package_registry_observatory.regressed_count, "changed": policy_package_registry_observatory.changed_count},
+        "policy_package_registry_observatory_audit_checks": policy_package_registry_observatory_audit.check_count,
+        "policy_package_registry_observatory_audit_accepted": policy_package_registry_observatory_audit.accepted,
+        "policy_package_registry_observatory_query_total_count": policy_package_registry_observatory_query.total_count,
+        "policy_package_registry_observatory_query_matched_count": policy_package_registry_observatory_query.matched_count,
+        "policy_package_registry_observatory_query_returned_count": policy_package_registry_observatory_query.returned_count,
+        "policy_package_registry_observatory_query_audit_checks": policy_package_registry_observatory_query_audit.check_count,
+        "policy_package_registry_observatory_query_audit_accepted": policy_package_registry_observatory_query_audit.accepted,
         "release_ready": runtime.release_ready,
         "runtime_state": runtime.state,
         "diff_address": history_diff.content_address,
@@ -243,6 +275,10 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "policy_package_registry_history_diff_address": registry_history_diff.content_address,
         "policy_package_registry_history_diff_audit_address": registry_history_diff_audit.content_address,
         "policy_package_registry_history_diff_query_address": registry_history_diff_query.content_address,
+        "policy_package_registry_observatory_address": policy_package_registry_observatory.content_address,
+        "policy_package_registry_observatory_audit_address": policy_package_registry_observatory_audit.content_address,
+        "policy_package_registry_observatory_query_address": policy_package_registry_observatory_query.content_address,
+        "policy_package_registry_observatory_query_audit_address": policy_package_registry_observatory_query_audit.content_address,
     }
     if destination is not None:
         root = Path(destination)
@@ -257,6 +293,8 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         policy_package_registry_history_model.persist_history(registry_history_candidate, registry_history_root, overwrite=True)
         registry_history_diff_root = root / "policy-package-registry-history-diff"
         policy_package_registry_history_diff_model.persist_diff(registry_history_diff, registry_history_diff_root, overwrite=True)
+        observatory_root = root / "policy-package-registry-observatory"
+        policy_package_registry_observatory_model.persist_observatory(policy_package_registry_observatory, observatory_root, overwrite=True)
         (root / "policy-audit.json").write_text(policy_audit_model.audit_json(policy_audit), encoding="utf-8")
         (root / "policy-audit.md").write_text(policy_audit_model.render_audit_markdown(policy_audit), encoding="utf-8")
         (root / "runtime-audit.json").write_text(policy_runtime_audit_model.audit_json(runtime_audit), encoding="utf-8")
@@ -277,6 +315,11 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "policy-package-registry-history-diff-audit.md").write_text(policy_package_registry_history_diff_audit_model.render_audit_markdown(registry_history_diff_audit), encoding="utf-8")
         (root / "policy-package-registry-history-diff-query-audit.json").write_text(policy_package_registry_history_diff_query_audit_model.audit_json(registry_history_diff_query_audit), encoding="utf-8")
         (root / "policy-package-registry-history-diff-query-audit.md").write_text(policy_package_registry_history_diff_query_audit_model.render_audit_markdown(registry_history_diff_query_audit), encoding="utf-8")
+        (root / "policy-package-registry-observatory-audit.json").write_text(policy_package_registry_observatory_audit_model.audit_json(policy_package_registry_observatory_audit), encoding="utf-8")
+        (root / "policy-package-registry-observatory-audit.md").write_text(policy_package_registry_observatory_audit_model.render_audit_markdown(policy_package_registry_observatory_audit), encoding="utf-8")
+        (root / "policy-package-registry-observatory-query.json").write_text(policy_package_registry_observatory_query_model.query_json(policy_package_registry_observatory_query), encoding="utf-8")
+        (root / "policy-package-registry-observatory-query-audit.json").write_text(policy_package_registry_observatory_query_audit_model.audit_json(policy_package_registry_observatory_query_audit), encoding="utf-8")
+        (root / "policy-package-registry-observatory-query-audit.md").write_text(policy_package_registry_observatory_query_audit_model.render_audit_markdown(policy_package_registry_observatory_query_audit), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["policy_runtime_directory"] = str(runtime_root.resolve())
         summary["policy_runtime_files"] = list(policy_runtime_model.FILES)
@@ -286,6 +329,8 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         summary["policy_package_registry_history_files"] = list(policy_package_registry_history_model.FILES)
         summary["policy_package_registry_history_diff_directory"] = str(registry_history_diff_root.resolve())
         summary["policy_package_registry_history_diff_files"] = list(policy_package_registry_history_diff_model.FILES)
+        summary["policy_package_registry_observatory_directory"] = str(observatory_root.resolve())
+        summary["policy_package_registry_observatory_files"] = list(policy_package_registry_observatory_model.FILES)
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -297,7 +342,7 @@ def main() -> int:
     args = parser.parse_args()
     summary = build_demo(args.source, args.destination)
     print(json.dumps(summary, indent=2, sort_keys=True))
-    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] and summary["policy_package_accepted"] and summary["policy_package_audit_accepted"] and summary["policy_package_query_audit_accepted"] and summary["policy_package_registry_accepted"] and summary["policy_package_registry_audit_accepted"] and summary["policy_package_registry_query_audit_accepted"] and summary["policy_package_registry_history_audit_accepted"] and summary["policy_package_registry_history_query_audit_accepted"] and summary["policy_package_registry_history_diff_audit_accepted"] and summary["policy_package_registry_history_diff_query_audit_accepted"] else 2
+    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] and summary["policy_package_accepted"] and summary["policy_package_audit_accepted"] and summary["policy_package_query_audit_accepted"] and summary["policy_package_registry_accepted"] and summary["policy_package_registry_audit_accepted"] and summary["policy_package_registry_query_audit_accepted"] and summary["policy_package_registry_history_audit_accepted"] and summary["policy_package_registry_history_query_audit_accepted"] and summary["policy_package_registry_history_diff_audit_accepted"] and summary["policy_package_registry_history_diff_query_audit_accepted"] and summary["policy_package_registry_observatory_accepted"] and summary["policy_package_registry_observatory_audit_accepted"] and summary["policy_package_registry_observatory_query_audit_accepted"] else 2
 
 
 if __name__ == "__main__":

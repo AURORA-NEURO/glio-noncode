@@ -475,6 +475,55 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/history/diff/query-audit?input=<history-diff-query>
 ```
 
+### Policy package registry observatory
+
+The observatory folds multiple independently persisted policy package registry
+histories into one value-free cross-history view. Each history becomes a
+member with its latest state, decision, acceptance, readiness, and trend;
+every historical snapshot is retained as a flattened addressed transition.
+The aggregate exposes deterministic state and decision folds, transition
+counters, per-member reconciliation, and bounded resource views for summary,
+members, readiness partitions, transitions, and trends.
+
+The observatory is persisted as an exact five-file package:
+
+```text
+policy-package-registry-observatory/
+  manifest.json
+  observatory.json
+  members.json
+  transitions.json
+  summary.json
+```
+
+Build, audit, and query the observatory from persisted history directories:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory `
+  policy-package-registry-history-baseline policy-package-registry-history `
+  --observatory-id policy-package-registry-observatory `
+  --destination policy-package-registry-observatory --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-audit `
+  policy-package-registry-observatory --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-query `
+  policy-package-registry-observatory --resource transitions --transition improved --format json `
+  --output policy-package-registry-observatory-query.json
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-query-audit `
+  policy-package-registry-observatory-query.json --format summary
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory?input=<history>&input=<next-history>&destination=<directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/audit?input=<observatory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/query?input=<observatory>&resource=transitions&transition=improved
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/query-audit?input=<observatory-query>
+```
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:
