@@ -606,6 +606,31 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/audit?input=<runtime-directory>
 ```
 
+The persisted runtime has its own bounded query boundary. It can be queried
+after reload without reopening the source archive: summary and stage rows show
+the state machine, link and component rows expose the four receipt addresses,
+and artifact rows expose the exact seven runtime document receipts. Filters are
+exact for resource, stage, state, acceptance, component, address, and document
+name, with deterministic pagination. A separate query audit replays the row
+addresses, namespaces, resource semantics, component order, artifact order,
+and public boundary.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query `
+  policy-package-registry-observatory-archive-runtime `
+  --resource components --component query --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-runtime-query-audit `
+  policy-package-registry-observatory-archive-runtime-query.json --format summary
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query?input=<runtime-directory>&resource=components&component=query
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/runtime/query-audit?input=<runtime-query>
+```
+
 The runtime is intentionally scoped to an observatory archive handoff. A raw
 downloaded ZIP is first transformed by the documented ingestion-to-observatory
 demo; the runtime then verifies that generated archive without retaining the

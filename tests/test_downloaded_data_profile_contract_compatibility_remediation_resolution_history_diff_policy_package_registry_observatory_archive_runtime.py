@@ -15,6 +15,8 @@ from urllib.request import urlopen
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive as archive_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime as runtime_model
 from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_audit as runtime_audit_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query as runtime_query_model
+from glio_noncode import downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_observatory_archive_runtime_query_audit as runtime_query_audit_model
 from glio_noncode.api import create_server
 from glio_noncode.cli import main
 from glio_noncode.errors import ValidationError
@@ -70,13 +72,27 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 params = urlencode({"input": str(runtime_path), "format": "json"})
                 with urlopen(f"{endpoint}/audit?{params}", timeout=30) as response:
                     self.assertTrue(json.loads(response.read())["accepted"])
-                for suffix in ("/stage-schema", "/manifest-schema", "/schema", "/capabilities", "/audit/check-schema", "/audit/schema", "/audit/capabilities"):
+                query_endpoint = endpoint + "/query"
+                params = urlencode({"input": str(runtime_path), "resource": "components", "component": "query", "format": "json"})
+                with urlopen(f"{query_endpoint}?{params}", timeout=30) as response:
+                    query_payload = json.loads(response.read())
+                    self.assertEqual((query_payload["returned_count"], query_payload["rows"][0]["component"]), (1, "query"))
+                query_path = root / "runtime-query.json"
+                query_path.write_text(json.dumps(query_payload), encoding="utf-8")
+                params = urlencode({"input": str(query_path), "format": "json"})
+                with urlopen(f"{endpoint}/query-audit?{params}", timeout=30) as response:
+                    self.assertTrue(json.loads(response.read())["accepted"])
+                for suffix in ("/stage-schema", "/manifest-schema", "/schema", "/capabilities", "/audit/check-schema", "/audit/schema", "/audit/capabilities", "/query/row-schema", "/query/schema", "/query/capabilities", "/query-audit/check-schema", "/query-audit/schema", "/query-audit/capabilities"):
                     with urlopen(f"{endpoint}{suffix}", timeout=30) as response:
                         payload = json.loads(response.read())
                         if suffix == "/capabilities":
                             self.assertEqual(payload["version"], runtime_model.VERSION)
                         elif suffix == "/audit/capabilities":
                             self.assertEqual(payload["version"], runtime_audit_model.VERSION)
+                        elif suffix == "/query/capabilities":
+                            self.assertEqual(payload["version"], runtime_query_model.VERSION)
+                        elif suffix == "/query-audit/capabilities":
+                            self.assertEqual(payload["version"], runtime_query_audit_model.VERSION)
                         else:
                             self.assertEqual(payload["$schema"], "https://json-schema.org/draft/2020-12/schema")
             finally:
@@ -90,7 +106,7 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
 
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1458)
+        self.assertEqual(len(inventory.checks), 1464)
         for schema in (runtime_model.stage_schema(), runtime_model.manifest_schema(), runtime_model.runtime_schema(), runtime_audit_model.check_schema(), runtime_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 
@@ -103,6 +119,24 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
             runtime_model.runtime_from_mapping(value.to_dict() | {"stages": tuple(value.stages[:-1])})
         with self.assertRaises(ValidationError):
             runtime_audit_model.audit_from_mapping(runtime_audit_model.audit_runtime(value).to_dict() | {"accepted": False})
+
+    def test_runtime_query_projects_persisted_receipts_and_audits_them(self):
+        archive = archive_model.build_archive(self.observatory, archive_id="runtime-query-fixture")
+        value = runtime_model.build_runtime(archive, runtime_id="runtime-query-fixture")
+        query = runtime_query_model.query_runtime(value)
+        audit = runtime_query_audit_model.audit_query(query)
+        self.assertEqual((query.total_count, query.matched_count, query.returned_count), (21, 21, 21))
+        self.assertEqual((audit.check_count, audit.passed_count, audit.accepted), (15, 15, True))
+        self.assertEqual(tuple(item.stage for item in runtime_query_model.query_runtime(value, resources=("stages",), limit=6).rows), runtime_model.STAGES)
+        component_query = runtime_query_model.query_runtime(value, resources=("components",), component="query")
+        self.assertEqual((component_query.returned_count, component_query.rows[0].component), (1, "query"))
+        artifact_query = runtime_query_model.query_runtime(value, resources=("artifacts",), name="runtime.json")
+        self.assertEqual((artifact_query.returned_count, artifact_query.rows[0].name), (1, "runtime.json"))
+        self.assertEqual(runtime_query_model.query_from_mapping(json.loads(runtime_query_model.query_json(query))).content_address, query.content_address)
+        self.assertIn("resource", runtime_query_model.query_csv(query).splitlines()[0])
+        self.assertIn("Archive Runtime Query", runtime_query_model.render_query_markdown(query))
+        with self.assertRaises(ValidationError):
+            runtime_query_model.query_from_mapping(query.to_dict() | {"matched_count": query.matched_count + 1})
 
 
 if __name__ == "__main__":

@@ -1351,6 +1351,12 @@ seven-file reloadable directory with canonical byte receipts. The supplied
 downloaded-data demo exercises this runtime on the generated observatory ZIP;
 reload rejects missing, extra, non-canonical, tampered, or cross-linked files.
 
+The runtime can then be inspected directly with a bounded query over its
+persisted receipts. Query resources cover the six stages, four component links,
+component counters, and seven materialized runtime documents. Exact filters,
+deterministic pagination, row addresses, and an independent 15-check query
+audit make the handoff reviewable without reopening the downloaded source.
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
