@@ -39,6 +39,10 @@ For a real value-free schema-evolution comparison over two member selections,
 run `python examples/downloaded_data_contract_diff_demo.py` against the same
 archive; it reports structural additions, removals, changes, queries, and
 audited exact-file runtime output.
+For policy-governed compatibility decisions over that diff, run
+`python examples/downloaded_data_contract_compatibility_demo.py` against the
+same archive; it reports safe/review/breaking counts, independent audits, and
+an exact seven-file value-free runtime handoff.
 
 The same runtime can be served locally:
 

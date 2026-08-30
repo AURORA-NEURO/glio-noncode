@@ -377,6 +377,49 @@ unchanged items do not duplicate values. Diff and diff-query contracts have
 their own audits and content addresses, so comparison output is not an
 unverified convenience view.
 
+## Compatibility and release gating
+
+To turn a structural contract diff into an explicit release decision, run the
+compatibility plane. It evaluates field, member, and type changes using only
+the value-free snapshots already present in the diff:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility `
+  downloaded-data-contract-diff.json --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-runtime `
+  downloaded-data-contract-diff.json --resource summary --resource findings `
+  --limit 25 --destination compatibility-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-runtime-audit `
+  compatibility-runtime --format summary
+```
+
+The default policy permits safe and review outcomes, permits any number of
+review findings, and permits no breaking findings. Optional fields added to a
+contract are safe; required fields added, required fields removed, type
+changes, member removals, and member shape changes are breaking. Optional
+field removals, coverage changes, member additions, and type-distribution
+changes remain review items. The gate therefore reports `eligible/promote`,
+`review/hold`, or `blocked/block` without ever looking at source values.
+
+The compatibility runtime is an exact seven-file handoff:
+`manifest.json`, `diff.json`, `gate.json`, `audit.json`, `query.json`,
+`query-audit.json`, and `runtime.json`. Each nested artifact is independently
+replayed and addressed; tampering, extra files, missing files, and mismatched
+addresses fail closed. The runnable
+[`downloaded_data_contract_compatibility_demo.py`](../examples/downloaded_data_contract_compatibility_demo.py)
+applies the policy to the supplied GLIO-NONCODE ZIP as data only. Its current
+selection intentionally produces a blocked decision while the independent
+compatibility, query, and runtime audits remain inspectable and accepted.
+
+The local API mirrors this plane at
+`/v1/downloaded-data/profile/contract/compatibility`, `/audit`, `/query`,
+`/query-audit`, `/runtime`, and `/runtime/audit`, with schemas and capabilities
+under the corresponding `/profile/contract/compatibility/...` paths. All
+query views are bounded and support outcome, resource, identity, reason, text,
+offset, and limit filters.
+
 ## Boundary and safety behavior
 
 The ingestion boundary is deliberately strict:

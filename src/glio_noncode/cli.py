@@ -181,6 +181,12 @@ from . import downloaded_data_profile_contract_query as downloaded_data_profile_
 from . import downloaded_data_profile_contract_query_audit as downloaded_data_profile_contract_query_audit_model
 from . import downloaded_data_profile_contract_runtime as downloaded_data_profile_contract_runtime_model
 from . import downloaded_data_profile_contract_runtime_audit as downloaded_data_profile_contract_runtime_audit_model
+from . import downloaded_data_profile_contract_compatibility as downloaded_data_profile_contract_compatibility_model
+from . import downloaded_data_profile_contract_compatibility_audit as downloaded_data_profile_contract_compatibility_audit_model
+from . import downloaded_data_profile_contract_compatibility_query as downloaded_data_profile_contract_compatibility_query_model
+from . import downloaded_data_profile_contract_compatibility_query_audit as downloaded_data_profile_contract_compatibility_query_audit_model
+from . import downloaded_data_profile_contract_compatibility_runtime as downloaded_data_profile_contract_compatibility_runtime_model
+from . import downloaded_data_profile_contract_compatibility_runtime_audit as downloaded_data_profile_contract_compatibility_runtime_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3487,6 +3493,38 @@ def _downloaded_contract_diff_query_from_input(input_path: str):
     if isinstance(nested, Mapping):
         raw = nested
     return downloaded_data_profile_contract_diff_query_model.query_from_mapping(raw)
+
+
+def _downloaded_contract_compatibility_policy_from_input(input_path: str):
+    raw = _read_json(input_path)
+    nested = raw.get("policy")
+    return downloaded_data_profile_contract_compatibility_model.DownloadedDataProfileContractCompatibilityPolicy.from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_contract_compatibility_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_runtime_model.load_runtime(source).gate
+    raw = _read_json(input_path)
+    nested = raw.get("gate")
+    return downloaded_data_profile_contract_compatibility_model.compatibility_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_contract_compatibility_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_runtime_model.load_runtime(source).query
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_profile_contract_compatibility_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_contract_compatibility_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    return downloaded_data_profile_contract_compatibility_runtime_model.runtime_from_mapping(raw)
 
 
 def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
@@ -18616,6 +18654,53 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_contract_diff_runtime_audit.add_argument("input", type=str)
     downloaded_data_profile_contract_diff_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_contract_diff_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility = subparsers.add_parser("downloaded-data-profile-contract-compatibility", help="evaluate value-free contract compatibility")
+    downloaded_data_profile_contract_compatibility.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility.add_argument("--policy", default=None)
+    downloaded_data_profile_contract_compatibility.add_argument("--gate-id", default=downloaded_data_profile_contract_compatibility_model.DEFAULT_GATE_ID)
+    downloaded_data_profile_contract_compatibility.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-audit", help="audit a contract compatibility gate")
+    downloaded_data_profile_contract_compatibility_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_query = subparsers.add_parser("downloaded-data-profile-contract-compatibility-query", help="query value-free compatibility findings")
+    downloaded_data_profile_contract_compatibility_query.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_compatibility_query_model.RESOURCES)
+    downloaded_data_profile_contract_compatibility_query.add_argument("--outcome", choices=downloaded_data_profile_contract_compatibility_model.OUTCOMES, default="")
+    downloaded_data_profile_contract_compatibility_query.add_argument("--finding-resource", dest="finding_resource", choices=downloaded_data_profile_contract_diff_model.RESOURCES, default="")
+    downloaded_data_profile_contract_compatibility_query.add_argument("--identity", default="")
+    downloaded_data_profile_contract_compatibility_query.add_argument("--reason", default="")
+    downloaded_data_profile_contract_compatibility_query.add_argument("--text", default="")
+    downloaded_data_profile_contract_compatibility_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_compatibility_query.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_contract_compatibility_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_query.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_query_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-query-audit", help="audit a compatibility query")
+    downloaded_data_profile_contract_compatibility_query_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_query_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_runtime = subparsers.add_parser("downloaded-data-profile-contract-compatibility-runtime", help="build and optionally persist a contract compatibility runtime")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--policy", default=None)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--runtime-id", default=downloaded_data_profile_contract_compatibility_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--gate-id", default=downloaded_data_profile_contract_compatibility_model.DEFAULT_GATE_ID)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_compatibility_query_model.RESOURCES)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--outcome", choices=downloaded_data_profile_contract_compatibility_model.OUTCOMES, default="")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--finding-resource", dest="finding_resource", choices=downloaded_data_profile_contract_diff_model.RESOURCES, default="")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--identity", default="")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--reason", default="")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--text", default="")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--destination", default=None)
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_runtime.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_runtime_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-runtime-audit", help="audit a contract compatibility runtime")
+    downloaded_data_profile_contract_compatibility_runtime_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_runtime_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract_query = subparsers.add_parser("downloaded-data-profile-contract-query", help="query value-free downloaded-data schema contract facts")
     downloaded_data_profile_contract_query.add_argument("input", type=str)
     downloaded_data_profile_contract_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_query_model.RESOURCES)
@@ -18744,6 +18829,25 @@ def build_parser() -> argparse.ArgumentParser:
         ("downloaded-data-profile-contract-diff-runtime-audit-check-schema", "print downloaded-data profile contract diff runtime audit check schema"),
         ("downloaded-data-profile-contract-diff-runtime-audit-schema", "print downloaded-data profile contract diff runtime audit schema"),
         ("downloaded-data-profile-contract-diff-runtime-audit-capabilities", "print downloaded-data profile contract diff runtime audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-policy-schema", "print downloaded-data profile contract compatibility policy schema"),
+        ("downloaded-data-profile-contract-compatibility-finding-schema", "print downloaded-data profile contract compatibility finding schema"),
+        ("downloaded-data-profile-contract-compatibility-schema", "print downloaded-data profile contract compatibility schema"),
+        ("downloaded-data-profile-contract-compatibility-capabilities", "print downloaded-data profile contract compatibility capabilities"),
+        ("downloaded-data-profile-contract-compatibility-audit-check-schema", "print downloaded-data profile contract compatibility audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-audit-schema", "print downloaded-data profile contract compatibility audit schema"),
+        ("downloaded-data-profile-contract-compatibility-audit-capabilities", "print downloaded-data profile contract compatibility audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-query-row-schema", "print downloaded-data profile contract compatibility query row schema"),
+        ("downloaded-data-profile-contract-compatibility-query-schema", "print downloaded-data profile contract compatibility query schema"),
+        ("downloaded-data-profile-contract-compatibility-query-capabilities", "print downloaded-data profile contract compatibility query capabilities"),
+        ("downloaded-data-profile-contract-compatibility-query-audit-check-schema", "print downloaded-data profile contract compatibility query audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-query-audit-schema", "print downloaded-data profile contract compatibility query audit schema"),
+        ("downloaded-data-profile-contract-compatibility-query-audit-capabilities", "print downloaded-data profile contract compatibility query audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-runtime-manifest-schema", "print downloaded-data profile contract compatibility runtime manifest schema"),
+        ("downloaded-data-profile-contract-compatibility-runtime-schema", "print downloaded-data profile contract compatibility runtime schema"),
+        ("downloaded-data-profile-contract-compatibility-runtime-capabilities", "print downloaded-data profile contract compatibility runtime capabilities"),
+        ("downloaded-data-profile-contract-compatibility-runtime-audit-check-schema", "print downloaded-data profile contract compatibility runtime audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-runtime-audit-schema", "print downloaded-data profile contract compatibility runtime audit schema"),
+        ("downloaded-data-profile-contract-compatibility-runtime-audit-capabilities", "print downloaded-data profile contract compatibility runtime audit capabilities"),
         ("downloaded-data-profile-contract-query-row-schema", "print downloaded-data profile contract query row schema"),
         ("downloaded-data-profile-contract-query-schema", "print downloaded-data profile contract query schema"),
         ("downloaded-data-profile-contract-query-capabilities", "print downloaded-data profile contract query capabilities"),
@@ -20094,6 +20198,59 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_contract_diff_runtime_audit_model.audit_runtime(_downloaded_contract_diff_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_contract_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility":
+            value = downloaded_data_profile_contract_compatibility_model.evaluate(
+                _downloaded_contract_diff_from_input(args.input),
+                policy=_downloaded_contract_compatibility_policy_from_input(args.policy) if args.policy else None,
+                gate_id=args.gate_id,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_model, json_name="compatibility_json", csv_name="compatibility_csv", markdown_name="render_compatibility_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-audit":
+            value = downloaded_data_profile_contract_compatibility_audit_model.audit_gate(_downloaded_contract_compatibility_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-query":
+            value = downloaded_data_profile_contract_compatibility_query_model.query_gate(
+                _downloaded_contract_compatibility_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_profile_contract_compatibility_query_model.RESOURCES),
+                outcome=args.outcome,
+                resource=args.finding_resource,
+                identity=args.identity,
+                reason=args.reason,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-compatibility-query-audit":
+            value = downloaded_data_profile_contract_compatibility_query_audit_model.audit_query(_downloaded_contract_compatibility_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-runtime":
+            value = downloaded_data_profile_contract_compatibility_runtime_model.run_runtime(
+                _downloaded_contract_diff_from_input(args.input),
+                runtime_id=args.runtime_id,
+                gate_id=args.gate_id,
+                policy=_downloaded_contract_compatibility_policy_from_input(args.policy) if args.policy else None,
+                resources=tuple(args.resource or downloaded_data_profile_contract_compatibility_query_model.RESOURCES),
+                outcome=args.outcome,
+                resource=args.finding_resource,
+                identity=args.identity,
+                reason=args.reason,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-runtime-audit":
+            value = downloaded_data_profile_contract_compatibility_runtime_audit_model.audit_runtime(_downloaded_contract_compatibility_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract-query":
             value = downloaded_data_profile_contract_query_model.query_contract(
                 _downloaded_contract_from_input(args.input),
@@ -20571,6 +20728,25 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-profile-contract-diff-runtime-audit-check-schema": downloaded_data_profile_contract_diff_runtime_audit_model.check_schema,
             "downloaded-data-profile-contract-diff-runtime-audit-schema": downloaded_data_profile_contract_diff_runtime_audit_model.audit_schema,
             "downloaded-data-profile-contract-diff-runtime-audit-capabilities": downloaded_data_profile_contract_diff_runtime_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-policy-schema": downloaded_data_profile_contract_compatibility_model.policy_schema,
+            "downloaded-data-profile-contract-compatibility-finding-schema": downloaded_data_profile_contract_compatibility_model.finding_schema,
+            "downloaded-data-profile-contract-compatibility-schema": downloaded_data_profile_contract_compatibility_model.compatibility_schema,
+            "downloaded-data-profile-contract-compatibility-capabilities": downloaded_data_profile_contract_compatibility_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-audit-check-schema": downloaded_data_profile_contract_compatibility_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-audit-schema": downloaded_data_profile_contract_compatibility_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-audit-capabilities": downloaded_data_profile_contract_compatibility_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-query-row-schema": downloaded_data_profile_contract_compatibility_query_model.row_schema,
+            "downloaded-data-profile-contract-compatibility-query-schema": downloaded_data_profile_contract_compatibility_query_model.query_schema,
+            "downloaded-data-profile-contract-compatibility-query-capabilities": downloaded_data_profile_contract_compatibility_query_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-query-audit-check-schema": downloaded_data_profile_contract_compatibility_query_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-query-audit-schema": downloaded_data_profile_contract_compatibility_query_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-query-audit-capabilities": downloaded_data_profile_contract_compatibility_query_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-runtime-manifest-schema": downloaded_data_profile_contract_compatibility_runtime_model.manifest_schema,
+            "downloaded-data-profile-contract-compatibility-runtime-schema": downloaded_data_profile_contract_compatibility_runtime_model.runtime_schema,
+            "downloaded-data-profile-contract-compatibility-runtime-capabilities": downloaded_data_profile_contract_compatibility_runtime_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-runtime-audit-check-schema": downloaded_data_profile_contract_compatibility_runtime_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-runtime-audit-schema": downloaded_data_profile_contract_compatibility_runtime_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-runtime-audit-capabilities": downloaded_data_profile_contract_compatibility_runtime_audit_model.capabilities,
             "downloaded-data-profile-contract-query-row-schema": downloaded_data_profile_contract_query_model.row_schema,
             "downloaded-data-profile-contract-query-schema": downloaded_data_profile_contract_query_model.query_schema,
             "downloaded-data-profile-contract-query-capabilities": downloaded_data_profile_contract_query_model.capabilities,
