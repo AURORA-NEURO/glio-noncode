@@ -1468,6 +1468,36 @@ The operational projection can also be materialized as an exact nine-file [obser
 The persisted handoff is then queryable without rebuilding history through ten verified resources—summary, projection, event/metric and decision views, audit checks, and evidence—with bounded filters, pagination, replay addresses, and JSON/CSV/Markdown exports. See the [observability bundle query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_query_demo.py).
 Two persisted observability handoffs can also be compared across all nine files, semantic receipt fields, byte hashes, and nested query addresses, then independently audited through twelve conservation and replay checks with bounded audit queries. See the [observability bundle diff demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_demo.py) and [diff audit-query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_diff_audit_query_demo.py).
 The verified comparison can now be evaluated by a policy-driven [promotion gate](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_EVIDENCE_PIPELINE.md) that emits ready, held, or blocked decisions, separates integrity blockers from policy holds, enforces change budgets, and exposes bounded check queries. See the [promotion-gate demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_demo.py) and [promotion-gate query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_promotion_gate_query_demo.py).
+
+Federated archive registries now have an evidence-preserving resolution and
+reconciliation layer. The resolution module applies an explicit quorum to each
+entry and retains `resolved`, `review`, or `blocked` outcomes with candidate,
+supporting, missing, dissenting, and rationale evidence. The reconciliation
+plan expands that result into a deterministic peer-by-entry matrix of no-op,
+missing-request, consensus-replacement, or manual-review operations. It is
+analysis-only: it never mutates a source registry. The exact nine-file runtime
+persists the federation, consensus, resolution, plan, four independent audit
+projections, and manifest for byte-level replay. Use downloaded registry
+directories or public registry JSON with:
+
+```powershell
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime `
+  --input C:\data\primary-registry --input C:\data\replica-registry `
+  --peer-id primary --peer-id replica --quorum 2 `
+  --destination C:\data\reconciliation-runtime --format summary
+```
+
+The [resolution and reconciliation contract](docs/ARCHIVE_REGISTRY_FEDERATION_RESOLUTION.md)
+documents the state machine, exact persistence, query filters, audit checks,
+CLI/HTTP routes, failure semantics, and verification matrix. The standalone
+[reconciliation demo](examples/registry_federation_certificate_observatory_archive_registry_federation_reconciliation_demo.py)
+prints path-free resolution items and per-peer operations from the supplied
+downloads, so missing and divergent replicas remain visible instead of being
+silently flattened.
+The companion [reconciliation operator runbook](docs/ARCHIVE_REGISTRY_FEDERATION_RECONCILIATION_RUNBOOK.md)
+walks through source validation, ready/review/blocked interpretation, exact
+nine-file replay, query handoffs, retry handling, and the downstream executor
+boundary.
 Multiple verified handoffs can now be indexed under deterministic path-free labels in a bounded [observability bundle catalog](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_EVIDENCE_PIPELINE.md), with accepted/ready/rejected denominators, evidence-address queries, pagination, replay addresses, and JSON/CSV/Markdown exports. See the [catalog demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_demo.py) and [catalog query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_query_demo.py).
 Catalog revisions can now be compared by label with added/removed/changed/unchanged classifications, accepted/ready/artifact deltas, a twelve-check independent audit, and bounded audit queries. See the [catalog diff demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_demo.py) and [catalog diff audit-query demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_diff_audit_query_demo.py).
 Catalog report and promotion controls now add deterministic acceptance/readiness ratios, label partitions, policy budgets, ready/held/blocked decisions, a second independent gate audit, a composed promote/hold/block release packet with action evidence, and bounded report/gate/packet queries. The [catalog report and promotion demo](examples/release_registry_federation_gate_review_decision_ledger_assurance_history_observatory_archive_registry_history_release_evidence_pipeline_observability_bundle_catalog_report_promotion_demo.py) runs that full flow on ordinary downloaded handoffs; see the [release-evidence pipeline reference](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_REGISTRY_HISTORY_RELEASE_EVIDENCE_PIPELINE.md) for CLI and HTTP contracts.

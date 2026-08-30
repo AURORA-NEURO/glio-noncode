@@ -406,6 +406,7 @@ jobs:
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_report.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit.py
           examples/registry_federation_certificate_observatory_archive_registry_federation_demo.py
+          examples/registry_federation_certificate_observatory_archive_registry_federation_reconciliation_demo.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_audit.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query.py
@@ -420,15 +421,31 @@ jobs:
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_report_audit.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_runtime_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_resolution_query_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit.py
       - name: Verify certificate observatory archive registry public schemas
         run: >-
-          python -c "from glio_noncode.public_surface_audit import build_default_public_surface_audit; value = build_default_public_surface_audit(); assert value.accepted and len(value.checks) == 1093"
+          python -c "from glio_noncode.public_surface_audit import build_default_public_surface_audit; value = build_default_public_surface_audit(); assert value.accepted and len(value.checks) == 1125"
       - name: Verify certificate observatory archive registry focused contracts
         run: >-
           python -m unittest tests.test_registry_federation_consensus_gate_certificate_observatory_archive_registry -q
       - name: Verify archive registry federation focused contracts
         run: >-
           python -m unittest tests.test_registry_federation_consensus_gate_certificate_observatory_archive_registry_federation -q
+      - name: Verify archive registry federation reconciliation focused contracts
+        run: >-
+          python -m unittest tests.test_registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation -q
+      - name: Verify archive registry federation reconciliation capability contracts
+        run: >-
+          python -c "from glio_noncode.cli import main; commands = ['registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-resolution-capabilities', 'registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-plan-capabilities', 'registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime-capabilities']; [main([command]) for command in commands]"
       - name: Verify archive registry federation capability contract
         run: >-
           python -c "from glio_noncode.cli import main; raise SystemExit(main(['registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-capabilities']))"
