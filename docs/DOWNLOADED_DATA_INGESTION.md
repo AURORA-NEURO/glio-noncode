@@ -496,6 +496,43 @@ behavior at `/v1/downloaded-data/profile/contract/compatibility/remediation/reso
 and its `/audit`, `/query`, `/query-audit`, `/runtime`, and `/runtime/audit`
 children.
 
+### Longitudinal resolution history
+
+When a plan is revisited after review, the history plane appends a new
+value-free resolution snapshot instead of replacing the prior disposition. It
+retains only resolution and plan addresses, bounded counts, state, decision,
+release readiness, and a transition of `initial`, `improved`, `regressed`, or
+`unchanged`. A lower required-open count is improved; a higher count is
+regressed; equal counts use the clear/review/blocked state order.
+
+The history can be built from a JSON document containing a `resolutions` array,
+or from one existing resolution/runtime document:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history `
+  resolutions.json --history-id glio-noncode-resolution-history --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-query `
+  history.json --resource entries --transition improved --limit 25
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-runtime `
+  history.json --destination history-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-runtime-audit `
+  history-runtime --format summary
+```
+
+The history runtime is an exact six-file handoff: `manifest.json`,
+`history.json`, `audit.json`, `query.json`, `query-audit.json`, and
+`runtime.json`. It is independently audited, rejects extra or missing files,
+and preserves the latest folded state: `clear/promote` only when the latest
+snapshot is closed and every audit accepts. The runnable
+[`downloaded_data_contract_resolution_history_demo.py`](../examples/downloaded_data_contract_resolution_history_demo.py)
+demonstrates a pending-to-closed improvement on the supplied ZIP without
+retaining source record values or operator metadata. The API exposes the same
+surfaces below
+`/v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history`.
+
 ## Boundary and safety behavior
 
 The ingestion boundary is deliberately strict:

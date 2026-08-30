@@ -53,6 +53,10 @@ For value-free resolution and closure tracking after review, run
 same archive; it reports pending/resolved/waived/rejected dispositions,
 required open actions, release state, independent audits, and the exact
 seven-file resolution runtime.
+For longitudinal value-free resolution history over real downloaded data, run
+`python examples/downloaded_data_contract_resolution_history_demo.py` against
+the same archive; it records addressed initial/improved/regressed/unchanged
+snapshots and emits an exact six-file history runtime.
 
 The same runtime can be served locally:
 
