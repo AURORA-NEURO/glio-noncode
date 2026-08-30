@@ -524,6 +524,39 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/query-audit?input=<observatory-query>
 ```
 
+### Policy package registry observatory ZIP archive
+
+An observatory directory can be exported as a deterministic ZIP handoff. The
+archive contains one envelope manifest plus the exact five canonical
+observatory documents under `observatory/`: `manifest.json`, `observatory.json`,
+`members.json`, `transitions.json`, and `summary.json`. Each payload member has
+a byte size and content receipt; the envelope records the observatory address,
+archive size, and a separate manifest address. ZIP timestamps, ordering,
+permissions, compression, and comments are fixed for reproducible bytes.
+
+Archive loading rejects unexpected members, duplicate names, traversal-like
+paths, symlinks, encrypted members, non-canonical JSON, projection drift, and
+size or receipt mismatches. The independent archive audit adds sixteen checks
+for envelope identity, nested projection replay, canonical ZIP generation,
+and the nested observatory audit.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive `
+  policy-package-registry-observatory `
+  --archive-id policy-package-registry-observatory-archive `
+  --destination policy-package-registry-observatory.zip --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-observatory-archive-audit `
+  policy-package-registry-observatory.zip --format summary
+```
+
+The HTTP equivalents are:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive?input=<observatory>&destination=<zip-file>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/observatory/archive/audit?input=<zip-file>
+```
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:
