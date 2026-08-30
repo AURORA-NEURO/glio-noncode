@@ -202,6 +202,90 @@ GET /v1/downloaded-data/profile/contract/query/schema
 GET /v1/downloaded-data/profile/contract/runtime/schema
 ```
 
+## Value-free schema evolution diff
+
+The contract diff plane compares two inferred contracts without reading or
+publishing source record values. It emits one deterministic transition for
+each field, member, and canonical JSON type. A transition is `added`,
+`removed`, `changed`, or `unchanged`; changed rows list only the structural
+attributes that differ, such as coverage counts, type counts, member
+coverage, or field-state metadata. The diff audit independently checks
+transition conservation, nested addresses, public-boundary safety, and
+mapping replay. The diff query adds bounded `summary`, `fields`, `members`,
+and `types` resources with change, identity, attribute, text, offset, and
+limit filters.
+
+Run the real comparison against the supplied archive:
+
+```powershell
+python examples/downloaded_data_contract_diff_demo.py `
+  C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip `
+  artifacts/downloaded-data-contract-diff-demo
+```
+
+The demo compares all 17 selected structured members with a second selection
+that omits two members. The current archive produces 4,030 versus 3,965
+records, 136 versus 123 fields, 17 versus 15 members, and 160 value-free
+transition items. The transition breakdown is 13 removed and 123 changed
+fields, 2 removed members, and 4 changed plus 3 unchanged canonical type
+rows. The query returns its first 25 rows with truncation enabled. The diff,
+query, and runtime audits all pass, and the six-file diff runtime is release
+ready.
+
+The exact-file output is:
+
+```text
+artifacts/downloaded-data-contract-diff-demo/
+  summary.json
+  left-contract.json
+  right-contract.json
+  runtime-audit.json
+  runtime-audit.md
+  diff-runtime/
+    manifest.json
+    diff.json
+    audit.json
+    query.json
+    query-audit.json
+    runtime.json
+```
+
+Inspect, filter, and audit the persisted comparison:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-diff `
+  artifacts/downloaded-data-contract-diff-demo/left-contract.json `
+  artifacts/downloaded-data-contract-diff-demo/right-contract.json `
+  --format markdown --output diff.md
+
+glio-noncode downloaded-data-profile-contract-diff-query `
+  artifacts/downloaded-data-contract-diff-demo/diff-runtime `
+  --resource fields --change removed --limit 25 `
+  --format csv --output removed-fields.csv
+
+glio-noncode downloaded-data-profile-contract-diff-audit `
+  artifacts/downloaded-data-contract-diff-demo/diff-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-diff-runtime-audit `
+  artifacts/downloaded-data-contract-diff-demo/diff-runtime --format summary
+```
+
+The HTTP surface mirrors the CLI. A diff accepts `left_input` and
+`right_input`; all other diff operations accept `input` as a JSON document or
+the exact runtime directory:
+
+```text
+GET /v1/downloaded-data/profile/contract/diff?left_input=<left-contract>&right_input=<right-contract>
+GET /v1/downloaded-data/profile/contract/diff/audit?input=<diff-or-runtime>
+GET /v1/downloaded-data/profile/contract/diff/query?input=<diff-or-runtime>&resource=fields&change=removed
+GET /v1/downloaded-data/profile/contract/diff/query-audit?input=<query-or-runtime>
+GET /v1/downloaded-data/profile/contract/diff/runtime?left_input=<left-contract>&right_input=<right-contract>
+GET /v1/downloaded-data/profile/contract/diff/runtime/audit?input=<diff-runtime>
+GET /v1/downloaded-data/profile/contract/diff/schema
+GET /v1/downloaded-data/profile/contract/diff/query/schema
+GET /v1/downloaded-data/profile/contract/diff/runtime/schema
+```
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:

@@ -173,6 +173,12 @@ from . import downloaded_data_profile_contract_query as downloaded_data_profile_
 from . import downloaded_data_profile_contract_query_audit as downloaded_data_profile_contract_query_audit_model
 from . import downloaded_data_profile_contract_runtime as downloaded_data_profile_contract_runtime_model
 from . import downloaded_data_profile_contract_runtime_audit as downloaded_data_profile_contract_runtime_audit_model
+from . import downloaded_data_profile_contract_diff as downloaded_data_profile_contract_diff_model
+from . import downloaded_data_profile_contract_diff_audit as downloaded_data_profile_contract_diff_audit_model
+from . import downloaded_data_profile_contract_diff_query as downloaded_data_profile_contract_diff_query_model
+from . import downloaded_data_profile_contract_diff_query_audit as downloaded_data_profile_contract_diff_query_audit_model
+from . import downloaded_data_profile_contract_diff_runtime as downloaded_data_profile_contract_diff_runtime_model
+from . import downloaded_data_profile_contract_diff_runtime_audit as downloaded_data_profile_contract_diff_runtime_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -1839,6 +1845,8 @@ class ApiHandler(BaseHTTPRequestHandler):
         nested = raw.get("contract")
         if isinstance(nested, dict):
             return downloaded_data_profile_contract_model.contract_from_mapping(nested)
+        if set(raw) == set(downloaded_data_profile_contract_model.CONTRACT_FIELDS):
+            return downloaded_data_profile_contract_model.contract_from_mapping(raw)
         nested = raw.get("profile")
         profile = downloaded_data_profile_model.profile_from_mapping(nested if isinstance(nested, dict) else raw)
         return downloaded_data_profile_contract_model.build_contract(profile)
@@ -1853,6 +1861,38 @@ class ApiHandler(BaseHTTPRequestHandler):
             raise ValueError("downloaded-data contract query input must be an object")
         nested = raw.get("query")
         return downloaded_data_profile_contract_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_contract_diff_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source)
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data contract diff runtime input must be an object")
+        return downloaded_data_profile_contract_diff_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
+    def _downloaded_contract_diff_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source).diff
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data contract diff input must be an object")
+        nested = raw.get("diff")
+        return downloaded_data_profile_contract_diff_model.diff_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
+    def _downloaded_contract_diff_query_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source).query
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data contract diff query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_profile_contract_diff_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
 
     @staticmethod
     def _downloaded_ingest_diff_from_input(input_path: str):
@@ -2141,6 +2181,56 @@ class ApiHandler(BaseHTTPRequestHandler):
                     value = downloaded_data_profile_contract_runtime_audit_model.audit_runtime(self._downloaded_contract_runtime_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
+                if path == contract_prefix + "/diff":
+                    value = downloaded_data_profile_contract_diff_model.build_diff(
+                        self._downloaded_contract_from_input(self._query_value(query, "left_input") or self._query_value(query, "input") or ""),
+                        self._downloaded_contract_from_input(self._query_value(query, "right_input") or ""),
+                        diff_id=self._query_value(query, "diff_id") or downloaded_data_profile_contract_diff_model.DEFAULT_DIFF_ID,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+                    return
+                if path == contract_prefix + "/diff/audit":
+                    value = downloaded_data_profile_contract_diff_audit_model.audit_diff(self._downloaded_contract_diff_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/diff/query":
+                    value = downloaded_data_profile_contract_diff_query_model.query_diff(
+                        self._downloaded_contract_diff_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_diff_query_model.RESOURCES,
+                        change=self._query_value(query, "change") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        attribute=self._query_value(query, "attribute") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_diff_runtime_model.DEFAULT_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == contract_prefix + "/diff/query-audit":
+                    value = downloaded_data_profile_contract_diff_query_audit_model.audit_query(self._downloaded_contract_diff_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/diff/runtime":
+                    value = downloaded_data_profile_contract_diff_runtime_model.run_runtime(
+                        self._downloaded_contract_from_input(self._query_value(query, "left_input") or self._query_value(query, "input") or ""),
+                        self._downloaded_contract_from_input(self._query_value(query, "right_input") or ""),
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_profile_contract_diff_runtime_model.DEFAULT_RUNTIME_ID,
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_diff_query_model.RESOURCES,
+                        change=self._query_value(query, "change") or "",
+                        identity=self._query_value(query, "identity") or "",
+                        attribute=self._query_value(query, "attribute") or "",
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_diff_runtime_model.DEFAULT_LIMIT),
+                        destination=self._query_value(query, "destination"),
+                        overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_diff_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == contract_prefix + "/diff/runtime/audit":
+                    value = downloaded_data_profile_contract_diff_runtime_audit_model.audit_runtime(self._downloaded_contract_diff_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
                 schema_routes = {
                     "/catalog/member-schema": downloaded_data_catalog_model.member_schema,
                     "/catalog/schema": downloaded_data_catalog_model.catalog_schema,
@@ -2221,6 +2311,24 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/profile/contract/runtime/audit/check-schema": downloaded_data_profile_contract_runtime_audit_model.check_schema,
                     "/profile/contract/runtime/audit/schema": downloaded_data_profile_contract_runtime_audit_model.audit_schema,
                     "/profile/contract/runtime/audit/capabilities": downloaded_data_profile_contract_runtime_audit_model.capabilities,
+                    "/profile/contract/diff/item-schema": downloaded_data_profile_contract_diff_model.item_schema,
+                    "/profile/contract/diff/schema": downloaded_data_profile_contract_diff_model.diff_schema,
+                    "/profile/contract/diff/capabilities": downloaded_data_profile_contract_diff_model.capabilities,
+                    "/profile/contract/diff/audit/check-schema": downloaded_data_profile_contract_diff_audit_model.check_schema,
+                    "/profile/contract/diff/audit/schema": downloaded_data_profile_contract_diff_audit_model.audit_schema,
+                    "/profile/contract/diff/audit/capabilities": downloaded_data_profile_contract_diff_audit_model.capabilities,
+                    "/profile/contract/diff/query/row-schema": downloaded_data_profile_contract_diff_query_model.row_schema,
+                    "/profile/contract/diff/query/schema": downloaded_data_profile_contract_diff_query_model.query_schema,
+                    "/profile/contract/diff/query/capabilities": downloaded_data_profile_contract_diff_query_model.capabilities,
+                    "/profile/contract/diff/query-audit/check-schema": downloaded_data_profile_contract_diff_query_audit_model.check_schema,
+                    "/profile/contract/diff/query-audit/schema": downloaded_data_profile_contract_diff_query_audit_model.audit_schema,
+                    "/profile/contract/diff/query-audit/capabilities": downloaded_data_profile_contract_diff_query_audit_model.capabilities,
+                    "/profile/contract/diff/runtime/manifest-schema": downloaded_data_profile_contract_diff_runtime_model.manifest_schema,
+                    "/profile/contract/diff/runtime/schema": downloaded_data_profile_contract_diff_runtime_model.runtime_schema,
+                    "/profile/contract/diff/runtime/capabilities": downloaded_data_profile_contract_diff_runtime_model.capabilities,
+                    "/profile/contract/diff/runtime/audit/check-schema": downloaded_data_profile_contract_diff_runtime_audit_model.check_schema,
+                    "/profile/contract/diff/runtime/audit/schema": downloaded_data_profile_contract_diff_runtime_audit_model.audit_schema,
+                    "/profile/contract/diff/runtime/audit/capabilities": downloaded_data_profile_contract_diff_runtime_audit_model.capabilities,
                 }
                 schema = schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:

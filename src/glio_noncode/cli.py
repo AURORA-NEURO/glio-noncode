@@ -171,6 +171,12 @@ from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime
 from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_model
 from . import downloaded_data_profile_contract as downloaded_data_profile_contract_model
 from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_model
+from . import downloaded_data_profile_contract_diff as downloaded_data_profile_contract_diff_model
+from . import downloaded_data_profile_contract_diff_audit as downloaded_data_profile_contract_diff_audit_model
+from . import downloaded_data_profile_contract_diff_query as downloaded_data_profile_contract_diff_query_model
+from . import downloaded_data_profile_contract_diff_query_audit as downloaded_data_profile_contract_diff_query_audit_model
+from . import downloaded_data_profile_contract_diff_runtime as downloaded_data_profile_contract_diff_runtime_model
+from . import downloaded_data_profile_contract_diff_runtime_audit as downloaded_data_profile_contract_diff_runtime_audit_model
 from . import downloaded_data_profile_contract_query as downloaded_data_profile_contract_query_model
 from . import downloaded_data_profile_contract_query_audit as downloaded_data_profile_contract_query_audit_model
 from . import downloaded_data_profile_contract_runtime as downloaded_data_profile_contract_runtime_model
@@ -3449,6 +3455,38 @@ def _downloaded_contract_query_from_input(input_path: str):
     if "query" in raw and isinstance(raw["query"], Mapping):
         raw = raw["query"]
     return downloaded_data_profile_contract_query_model.query_from_mapping(raw)
+
+
+def _downloaded_contract_diff_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    if "runtime_id" not in raw or "diff" not in raw:
+        raise ValueError("downloaded-data contract diff runtime input must be a runtime document")
+    return downloaded_data_profile_contract_diff_runtime_model.runtime_from_mapping(raw)
+
+
+def _downloaded_contract_diff_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source).diff
+    raw = _read_json(input_path)
+    nested = raw.get("diff")
+    if isinstance(nested, Mapping):
+        raw = nested
+    return downloaded_data_profile_contract_diff_model.diff_from_mapping(raw)
+
+
+def _downloaded_contract_diff_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_diff_runtime_model.load_runtime(source).query
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    if isinstance(nested, Mapping):
+        raw = nested
+    return downloaded_data_profile_contract_diff_query_model.query_from_mapping(raw)
 
 
 def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
@@ -18534,6 +18572,50 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_contract_audit.add_argument("input", type=str)
     downloaded_data_profile_contract_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_contract_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_diff = subparsers.add_parser("downloaded-data-profile-contract-diff", help="compare two value-free downloaded-data schema contracts")
+    downloaded_data_profile_contract_diff.add_argument("left", type=str)
+    downloaded_data_profile_contract_diff.add_argument("right", type=str)
+    downloaded_data_profile_contract_diff.add_argument("--diff-id", default="glio-noncode-downloaded-data-profile-contract-diff")
+    downloaded_data_profile_contract_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_diff.add_argument("--output", default=None)
+    downloaded_data_profile_contract_diff_audit = subparsers.add_parser("downloaded-data-profile-contract-diff-audit", help="audit a downloaded-data contract diff")
+    downloaded_data_profile_contract_diff_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_diff_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_diff_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_diff_query = subparsers.add_parser("downloaded-data-profile-contract-diff-query", help="query value-free downloaded-data schema contract changes")
+    downloaded_data_profile_contract_diff_query.add_argument("input", type=str)
+    downloaded_data_profile_contract_diff_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_diff_query_model.RESOURCES)
+    downloaded_data_profile_contract_diff_query.add_argument("--change", choices=downloaded_data_profile_contract_diff_model.CHANGES, default="")
+    downloaded_data_profile_contract_diff_query.add_argument("--identity", default="")
+    downloaded_data_profile_contract_diff_query.add_argument("--attribute", default="")
+    downloaded_data_profile_contract_diff_query.add_argument("--text", default="")
+    downloaded_data_profile_contract_diff_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_diff_query.add_argument("--limit", type=int, default=downloaded_data_profile_contract_diff_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_contract_diff_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_diff_query.add_argument("--output", default=None)
+    downloaded_data_profile_contract_diff_query_audit = subparsers.add_parser("downloaded-data-profile-contract-diff-query-audit", help="audit a downloaded-data contract diff query")
+    downloaded_data_profile_contract_diff_query_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_diff_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_diff_query_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_diff_runtime = subparsers.add_parser("downloaded-data-profile-contract-diff-runtime", help="build and optionally persist a downloaded-data contract diff runtime")
+    downloaded_data_profile_contract_diff_runtime.add_argument("left", type=str)
+    downloaded_data_profile_contract_diff_runtime.add_argument("right", type=str)
+    downloaded_data_profile_contract_diff_runtime.add_argument("--runtime-id", default=downloaded_data_profile_contract_diff_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_profile_contract_diff_runtime.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_diff_query_model.RESOURCES)
+    downloaded_data_profile_contract_diff_runtime.add_argument("--change", choices=downloaded_data_profile_contract_diff_model.CHANGES, default="")
+    downloaded_data_profile_contract_diff_runtime.add_argument("--identity", default="")
+    downloaded_data_profile_contract_diff_runtime.add_argument("--attribute", default="")
+    downloaded_data_profile_contract_diff_runtime.add_argument("--text", default="")
+    downloaded_data_profile_contract_diff_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_diff_runtime.add_argument("--limit", type=int, default=downloaded_data_profile_contract_diff_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_contract_diff_runtime.add_argument("--destination", default=None)
+    downloaded_data_profile_contract_diff_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_profile_contract_diff_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_diff_runtime.add_argument("--output", default=None)
+    downloaded_data_profile_contract_diff_runtime_audit = subparsers.add_parser("downloaded-data-profile-contract-diff-runtime-audit", help="audit a downloaded-data contract diff runtime closure")
+    downloaded_data_profile_contract_diff_runtime_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_diff_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_diff_runtime_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract_query = subparsers.add_parser("downloaded-data-profile-contract-query", help="query value-free downloaded-data schema contract facts")
     downloaded_data_profile_contract_query.add_argument("input", type=str)
     downloaded_data_profile_contract_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_query_model.RESOURCES)
@@ -18644,6 +18726,24 @@ def build_parser() -> argparse.ArgumentParser:
         ("downloaded-data-profile-contract-audit-check-schema", "print downloaded-data profile contract audit check schema"),
         ("downloaded-data-profile-contract-audit-schema", "print downloaded-data profile contract audit schema"),
         ("downloaded-data-profile-contract-audit-capabilities", "print downloaded-data profile contract audit capabilities"),
+        ("downloaded-data-profile-contract-diff-item-schema", "print downloaded-data profile contract diff item schema"),
+        ("downloaded-data-profile-contract-diff-schema", "print downloaded-data profile contract diff schema"),
+        ("downloaded-data-profile-contract-diff-capabilities", "print downloaded-data profile contract diff capabilities"),
+        ("downloaded-data-profile-contract-diff-audit-check-schema", "print downloaded-data profile contract diff audit check schema"),
+        ("downloaded-data-profile-contract-diff-audit-schema", "print downloaded-data profile contract diff audit schema"),
+        ("downloaded-data-profile-contract-diff-audit-capabilities", "print downloaded-data profile contract diff audit capabilities"),
+        ("downloaded-data-profile-contract-diff-query-row-schema", "print downloaded-data profile contract diff query row schema"),
+        ("downloaded-data-profile-contract-diff-query-schema", "print downloaded-data profile contract diff query schema"),
+        ("downloaded-data-profile-contract-diff-query-capabilities", "print downloaded-data profile contract diff query capabilities"),
+        ("downloaded-data-profile-contract-diff-query-audit-check-schema", "print downloaded-data profile contract diff query audit check schema"),
+        ("downloaded-data-profile-contract-diff-query-audit-schema", "print downloaded-data profile contract diff query audit schema"),
+        ("downloaded-data-profile-contract-diff-query-audit-capabilities", "print downloaded-data profile contract diff query audit capabilities"),
+        ("downloaded-data-profile-contract-diff-runtime-manifest-schema", "print downloaded-data profile contract diff runtime manifest schema"),
+        ("downloaded-data-profile-contract-diff-runtime-schema", "print downloaded-data profile contract diff runtime schema"),
+        ("downloaded-data-profile-contract-diff-runtime-capabilities", "print downloaded-data profile contract diff runtime capabilities"),
+        ("downloaded-data-profile-contract-diff-runtime-audit-check-schema", "print downloaded-data profile contract diff runtime audit check schema"),
+        ("downloaded-data-profile-contract-diff-runtime-audit-schema", "print downloaded-data profile contract diff runtime audit schema"),
+        ("downloaded-data-profile-contract-diff-runtime-audit-capabilities", "print downloaded-data profile contract diff runtime audit capabilities"),
         ("downloaded-data-profile-contract-query-row-schema", "print downloaded-data profile contract query row schema"),
         ("downloaded-data-profile-contract-query-schema", "print downloaded-data profile contract query schema"),
         ("downloaded-data-profile-contract-query-capabilities", "print downloaded-data profile contract query capabilities"),
@@ -19946,6 +20046,54 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_contract_audit_model.audit_contract(_downloaded_contract_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_contract_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-diff":
+            left = _downloaded_contract_from_input(args.left)
+            right = _downloaded_contract_from_input(args.right)
+            value = downloaded_data_profile_contract_diff_model.build_diff(left, right, diff_id=args.diff_id)
+            _emit_contract(value, args, downloaded_data_profile_contract_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-diff-audit":
+            value = downloaded_data_profile_contract_diff_audit_model.audit_diff(_downloaded_contract_diff_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-diff-query":
+            value = downloaded_data_profile_contract_diff_query_model.query_diff(
+                _downloaded_contract_diff_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_profile_contract_diff_query_model.RESOURCES),
+                change=args.change,
+                identity=args.identity,
+                attribute=args.attribute,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-diff-query-audit":
+            value = downloaded_data_profile_contract_diff_query_audit_model.audit_query(_downloaded_contract_diff_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-diff-runtime":
+            value = downloaded_data_profile_contract_diff_runtime_model.run_runtime(
+                _downloaded_contract_from_input(args.left),
+                _downloaded_contract_from_input(args.right),
+                runtime_id=args.runtime_id,
+                resources=tuple(args.resource or downloaded_data_profile_contract_diff_query_model.RESOURCES),
+                change=args.change,
+                identity=args.identity,
+                attribute=args.attribute,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_diff_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-diff-runtime-audit":
+            value = downloaded_data_profile_contract_diff_runtime_audit_model.audit_runtime(_downloaded_contract_diff_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_diff_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract-query":
             value = downloaded_data_profile_contract_query_model.query_contract(
                 _downloaded_contract_from_input(args.input),
@@ -20405,6 +20553,24 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-profile-contract-audit-check-schema": downloaded_data_profile_contract_audit_model.check_schema,
             "downloaded-data-profile-contract-audit-schema": downloaded_data_profile_contract_audit_model.audit_schema,
             "downloaded-data-profile-contract-audit-capabilities": downloaded_data_profile_contract_audit_model.capabilities,
+            "downloaded-data-profile-contract-diff-item-schema": downloaded_data_profile_contract_diff_model.item_schema,
+            "downloaded-data-profile-contract-diff-schema": downloaded_data_profile_contract_diff_model.diff_schema,
+            "downloaded-data-profile-contract-diff-capabilities": downloaded_data_profile_contract_diff_model.capabilities,
+            "downloaded-data-profile-contract-diff-audit-check-schema": downloaded_data_profile_contract_diff_audit_model.check_schema,
+            "downloaded-data-profile-contract-diff-audit-schema": downloaded_data_profile_contract_diff_audit_model.audit_schema,
+            "downloaded-data-profile-contract-diff-audit-capabilities": downloaded_data_profile_contract_diff_audit_model.capabilities,
+            "downloaded-data-profile-contract-diff-query-row-schema": downloaded_data_profile_contract_diff_query_model.row_schema,
+            "downloaded-data-profile-contract-diff-query-schema": downloaded_data_profile_contract_diff_query_model.query_schema,
+            "downloaded-data-profile-contract-diff-query-capabilities": downloaded_data_profile_contract_diff_query_model.capabilities,
+            "downloaded-data-profile-contract-diff-query-audit-check-schema": downloaded_data_profile_contract_diff_query_audit_model.check_schema,
+            "downloaded-data-profile-contract-diff-query-audit-schema": downloaded_data_profile_contract_diff_query_audit_model.audit_schema,
+            "downloaded-data-profile-contract-diff-query-audit-capabilities": downloaded_data_profile_contract_diff_query_audit_model.capabilities,
+            "downloaded-data-profile-contract-diff-runtime-manifest-schema": downloaded_data_profile_contract_diff_runtime_model.manifest_schema,
+            "downloaded-data-profile-contract-diff-runtime-schema": downloaded_data_profile_contract_diff_runtime_model.runtime_schema,
+            "downloaded-data-profile-contract-diff-runtime-capabilities": downloaded_data_profile_contract_diff_runtime_model.capabilities,
+            "downloaded-data-profile-contract-diff-runtime-audit-check-schema": downloaded_data_profile_contract_diff_runtime_audit_model.check_schema,
+            "downloaded-data-profile-contract-diff-runtime-audit-schema": downloaded_data_profile_contract_diff_runtime_audit_model.audit_schema,
+            "downloaded-data-profile-contract-diff-runtime-audit-capabilities": downloaded_data_profile_contract_diff_runtime_audit_model.capabilities,
             "downloaded-data-profile-contract-query-row-schema": downloaded_data_profile_contract_query_model.row_schema,
             "downloaded-data-profile-contract-query-schema": downloaded_data_profile_contract_query_model.query_schema,
             "downloaded-data-profile-contract-query-capabilities": downloaded_data_profile_contract_query_model.capabilities,

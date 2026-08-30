@@ -35,6 +35,10 @@ archive. The complete workflow and HTTP surface are documented in
 [docs/DOWNLOADED_DATA_INGESTION.md](docs/DOWNLOADED_DATA_INGESTION.md).
 For the value-free schema-contract demo, run
 `python examples/downloaded_data_contract_demo.py` against the same archive.
+For a real value-free schema-evolution comparison over two member selections,
+run `python examples/downloaded_data_contract_diff_demo.py` against the same
+archive; it reports structural additions, removals, changes, queries, and
+audited exact-file runtime output.
 
 The same runtime can be served locally:
 
