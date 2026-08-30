@@ -1385,6 +1385,13 @@ separate 15-check audit recomputes the linkage, state, summary, manifest, byte
 receipts, and public boundary. See
 [docs/DOWNLOADED_DATA_DIFF_QUERY_SNAPSHOTS.md](docs/DOWNLOADED_DATA_DIFF_QUERY_SNAPSHOTS.md).
 
+Two persisted diff-query snapshots can then be compared longitudinally. The
+comparison requires the same query shape, pairs public rows by
+`(resource, identity, field)`, classifies added/removed/changed/unchanged rows,
+retains both endpoint receipts, and emits an exact four-file handoff with a
+separate 15-check audit. See
+[docs/DOWNLOADED_DATA_QUERY_SNAPSHOT_COMPARISONS.md](docs/DOWNLOADED_DATA_QUERY_SNAPSHOT_COMPARISONS.md).
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
