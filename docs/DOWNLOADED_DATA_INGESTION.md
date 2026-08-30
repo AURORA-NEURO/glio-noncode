@@ -286,6 +286,81 @@ GET /v1/downloaded-data/profile/contract/diff/query/schema
 GET /v1/downloaded-data/profile/contract/diff/runtime/schema
 ```
 
+## Policy-governed history-diff release review
+
+The policy plane turns a value-free history diff into an explicit release
+decision. A policy records the allowed directions, candidate-readiness
+requirement, added/removed/changed limits, transition-delta limits, and state
+progression requirement. The evaluator emits ten addressed rules and maps
+them to `eligible`/`promote`, `review`/`hold`, or `blocked`/`block`.
+
+Run the policy review against the same downloaded archive:
+
+```powershell
+python examples/downloaded_data_contract_resolution_history_diff_policy_demo.py `
+  C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo
+```
+
+The current archive's improved history diff passes all ten policy rules. The
+independent policy audit passes 12 checks, the bounded policy query audit
+passes 10 checks, and the runtime audit passes 16 checks. The runtime is
+release-ready only when the policy evaluation, source diff audit, query audit,
+and public-boundary checks all pass. Review thresholds can deliberately turn a
+diff into a held or blocked decision without exposing source record values.
+
+The exact policy runtime contains eight files:
+
+```text
+artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/
+  summary.json
+  policy-audit.json
+  policy-audit.md
+  runtime-audit.json
+  runtime-audit.md
+  policy-runtime/
+    manifest.json
+    diff.json
+    policy.json
+    evaluation.json
+    audit.json
+    query.json
+    query-audit.json
+    runtime.json
+```
+
+Inspect the persisted decision and its independent receipts:
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-runtime `
+  --format markdown --output policy-evaluation.md
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-query `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-runtime `
+  --resource rules --rule-id removed-limit --format csv --output policy-rule.csv
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-audit `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-runtime --format summary
+```
+
+The policy HTTP routes mirror the CLI:
+
+```text
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy?input=<diff-or-runtime>&allow_direction=improved&allow_direction=unchanged
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/audit?input=<evaluation-or-runtime>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/query?input=<evaluation-or-runtime>&resource=rules&rule_id=removed-limit
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/query-audit?input=<query-or-runtime>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime?input=<diff-or-runtime>&destination=<directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime/audit?input=<policy-runtime>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/schema
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/evaluation-schema
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime/schema
+```
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:
