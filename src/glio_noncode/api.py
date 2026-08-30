@@ -101,6 +101,20 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery as registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit as registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query as registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry as registry_federation_consensus_gate_certificate_observatory_archive_registry_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_query as registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_diff as registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query as registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime as registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_history as registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_history_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_history_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_report as registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -1566,6 +1580,42 @@ class ApiHandler(BaseHTTPRequestHandler):
             package = registry_federation_consensus_gate_certificate_observatory_package_model.build_package(ApiHandler._certificate_observatory_from_document(raw), package_id="consensus-certificate-observatory-package")
         return registry_federation_consensus_gate_certificate_observatory_archive_model.build_archive(package, archive_id=archive_id)
 
+    @staticmethod
+    def _certificate_observatory_archive_registry_from_input(input_path: str):
+        """Resolve a persisted archive registry directory or public JSON document."""
+
+        source = Path(input_path)
+        if source.is_dir():
+            return registry_federation_consensus_gate_certificate_observatory_archive_registry_model.load_registry(source)
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("certificate observatory archive registry input must be an object")
+        return registry_federation_consensus_gate_certificate_observatory_archive_registry_model.registry_from_mapping(raw)
+
+    @staticmethod
+    def _certificate_observatory_archive_registry_history_from_input(input_path: str):
+        """Resolve a persisted archive registry history directory or public JSON document."""
+
+        source = Path(input_path)
+        if source.is_dir():
+            return registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.load_history(source)
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("certificate observatory archive registry history input must be an object")
+        return registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.history_from_mapping(raw)
+
+    def _write_contract(self, value: Any, output_format: str, model: Any, *, json_name: str, csv_name: str | None = None, markdown_name: str | None = None) -> None:
+        """Serialize a typed response through the public API content negotiation format."""
+
+        if output_format == "summary":
+            self._write(HTTPStatus.OK, value.summary())
+        elif output_format == "csv" and csv_name:
+            self._write_bytes(HTTPStatus.OK, getattr(model, csv_name)(value).encode("utf-8"), content_type="text/csv; charset=utf-8")
+        elif output_format == "markdown" and markdown_name:
+            self._write_bytes(HTTPStatus.OK, getattr(model, markdown_name)(value).encode("utf-8"), content_type="text/markdown; charset=utf-8")
+        else:
+            self._write_bytes(HTTPStatus.OK, getattr(model, json_name)(value).encode("utf-8"), content_type="application/json; charset=utf-8")
+
     def _write(
         self,
         status: int,
@@ -1871,6 +1921,54 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/consensus/gate/certificate/observatory/archive/transfer/recovery/query/schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_model.query_schema,
                     "/consensus/gate/certificate/observatory/archive/transfer/recovery/query/result-schema": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_model.result_schema,
                     "/consensus/gate/certificate/observatory/archive/transfer/recovery/query/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/entry-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_model.entry_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/metrics-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_model.metrics_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/group-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_model.group_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/index-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_model.index_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/manifest-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_model.manifest_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_model.registry_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/audit/check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_audit_model.check_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/audit/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_audit_model.audit_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/audit/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_audit_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/query/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.query_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/query/row-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.row_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/query/result-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.result_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/query/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/query-audit/check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model.check_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/query-audit/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model.audit_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/query-audit/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/item-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.item_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.diff_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/audit/check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model.check_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/audit/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model.audit_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/audit/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/query/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.query_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/query/row-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.row_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/query/result-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.result_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/query/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/query-audit/check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model.check_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/query-audit/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model.audit_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/diff/query-audit/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/runtime/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model.runtime_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/runtime/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/runtime/audit/check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model.check_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/runtime/audit/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model.audit_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/runtime/audit/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/history/entry-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.entry_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/history/manifest-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.manifest_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/history/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.history_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/history/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/history/audit/check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_history_audit_model.check_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/history/audit/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_history_audit_model.audit_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/history/audit/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_history_audit_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/report/alert-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model.alert_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/report/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model.report_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/report/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model.capabilities,
+                    "/consensus/gate/certificate/observatory/archive/registry/report/audit/check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model.check_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/report/audit/schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model.audit_schema,
+                    "/consensus/gate/certificate/observatory/archive/registry/report/audit/capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model.capabilities,
                     "/consensus/remediation/step-schema": registry_federation_consensus_remediation_model.step_schema,
                     "/consensus/remediation/schema": registry_federation_consensus_remediation_model.remediation_schema,
                     "/consensus/remediation/capabilities": registry_federation_consensus_remediation_model.capabilities,
@@ -2922,6 +3020,95 @@ class ApiHandler(BaseHTTPRequestHandler):
                         self._write_bytes(HTTPStatus.OK, registry_federation_consensus_gate_certificate_observatory_archive_transfer_recovery_query_model.query_json(value).encode("utf-8"), content_type="application/json; charset=utf-8")
                     else:
                         self._write(HTTPStatus.OK, value.summary())
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry":
+                    sources = tuple(item.strip() for value in query.get("input", []) for item in value.split(",") if item.strip())
+                    archive_ids = tuple(item.strip() for value in query.get("archive_id", []) for item in value.split(",") if item.strip())
+                    entry_ids = tuple(item.strip() for value in query.get("entry_id", []) for item in value.split(",") if item.strip())
+                    if not sources:
+                        raise ValueError("archive registry requires at least one input")
+                    if archive_ids and len(archive_ids) != len(sources):
+                        raise ValueError("archive_id count must match input count")
+                    archives = tuple(registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model.load_archive_input(source, archive_id=None if not archive_ids else archive_ids[index]) for index, source in enumerate(sources))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_model.build_registry_from_archives(archives, entry_ids=entry_ids or None, registry_id=self._query_value(query, "registry_id") or registry_federation_consensus_gate_certificate_observatory_archive_registry_model.DEFAULT_REGISTRY_ID)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        registry_federation_consensus_gate_certificate_observatory_archive_registry_model.write_registry(value, destination, overwrite=self._query_bool(query, "overwrite"))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_model, json_name="registry_json", csv_name="registry_csv", markdown_name="render_registry_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/audit":
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_audit_model.audit_registry(self._certificate_observatory_archive_registry_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/query":
+                    registry = self._certificate_observatory_archive_registry_from_input(self._query_value(query, "input") or "")
+                    accepted_value = self._query_value(query, "accepted")
+                    accepted_filter = None if accepted_value is None else accepted_value.lower() in {"1", "true", "yes"}
+                    if accepted_value is not None and accepted_value.lower() not in {"0", "1", "true", "false", "yes", "no"}:
+                        raise ValueError("query parameter accepted must be true or false")
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.query_registry(registry, resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.DEFAULT_RESOURCES, package_id=self._query_value(query, "package_id") or "", archive_id=self._query_value(query, "archive_id") or "", accepted=accepted_filter, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/query-audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_query_model.query_from_mapping(raw))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/diff":
+                    left = self._certificate_observatory_archive_registry_from_input(self._query_value(query, "left") or "")
+                    right = self._certificate_observatory_archive_registry_from_input(self._query_value(query, "right") or "")
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.build_diff(left, right, diff_id=self._query_value(query, "diff_id") or "consensus-certificate-observatory-archive-registry-diff")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/diff/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.diff_from_mapping(raw))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/diff/query":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.query_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_model.diff_from_mapping(raw), resources=self._query_values(query, "resource") or registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.DEFAULT_RESOURCES, change_type=self._query_value(query, "change_type") or "", text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/diff/query-audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_model.query_from_mapping(raw))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/runtime":
+                    accepted_value = self._query_value(query, "accepted")
+                    accepted_filter = None if accepted_value is None else accepted_value.lower() in {"1", "true", "yes"}
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model.run_runtime(self._query_values(query, "input"), runtime_id=self._query_value(query, "runtime_id") or registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model.DEFAULT_RUNTIME_ID, registry_id=self._query_value(query, "registry_id") or registry_federation_consensus_gate_certificate_observatory_archive_registry_model.DEFAULT_REGISTRY_ID, entry_ids=self._query_values(query, "entry_id") or None, archive_ids=self._query_values(query, "archive_id") or None, package_filter=self._query_value(query, "package_filter") or "", archive_filter=self._query_value(query, "archive_filter") or "", accepted=accepted_filter, text=self._query_value(query, "text") or "", offset=self._query_int(query, "offset", 0), limit=self._query_int(query, "limit", 50), destination=self._query_value(query, "destination"), overwrite=self._query_bool(query, "overwrite"))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/runtime/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_model.runtime_from_mapping(raw))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/history":
+                    sources = self._query_values(query, "input")
+                    if not sources:
+                        raise ValueError("archive registry history requires at least one input")
+                    registries = tuple(self._certificate_observatory_archive_registry_from_input(source) for source in sources)
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.build_history(registries, history_id=self._query_value(query, "history_id") or registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.DEFAULT_HISTORY_ID, snapshot_ids=self._query_values(query, "snapshot_id") or None)
+                    destination = self._query_value(query, "destination")
+                    if destination:
+                        registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model.write_history(value, destination, overwrite=self._query_bool(query, "overwrite"))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_history_model, json_name="history_json", csv_name="history_csv", markdown_name="render_history_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/history/audit":
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_history_audit_model.audit_history(self._certificate_observatory_archive_registry_history_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_history_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/report":
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model.build_report(self._certificate_observatory_archive_registry_from_input(self._query_value(query, "input") or ""), report_id=self._query_value(query, "report_id") or registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model.DEFAULT_REPORT_ID)
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model, json_name="report_json", csv_name="report_csv", markdown_name="render_report_markdown")
+                    return
+                if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/registry/report/audit":
+                    raw = json.loads(Path(self._query_value(query, "input") or "").read_text(encoding="utf-8"))
+                    value = registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model.audit_report(registry_federation_consensus_gate_certificate_observatory_archive_registry_report_model.report_from_mapping(raw))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", registry_federation_consensus_gate_certificate_observatory_archive_registry_report_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
                 if path == federation_prefix + "/consensus/gate/certificate/observatory/archive/runtime":
                     value = registry_federation_consensus_gate_certificate_observatory_archive_runtime_model.run_runtime(self._query_values(query, "input"), runtime_id=self._query_value(query, "runtime_id") or "consensus-certificate-observatory-archive-runtime", archive_id=self._query_value(query, "archive_id") or "consensus-certificate-observatory-archive", transfer_id=self._query_value(query, "transfer_id") or "consensus-certificate-observatory-archive-transfer", chunk_size=self._query_int(query, "chunk_size", registry_federation_consensus_gate_certificate_observatory_archive_transfer_model.DEFAULT_CHUNK_SIZE), limit=self._query_int(query, "limit", 50), destination=self._query_value(query, "destination"), transfer_destination=self._query_value(query, "transfer_destination"))

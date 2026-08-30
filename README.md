@@ -1325,6 +1325,55 @@ the archive boundary contract tests, including exact ZIP replay, tamper
 rejection, pagination, partial receiving, CLI, HTTP, and closed-schema checks.
 See [the registry federation contract](docs/registry-federation.md#certificate-observatory-zip-archive-and-resumable-transfer).
 
+The multi-snapshot certificate-observatory archive registry is now available as
+the next operational layer. It ingests one or more verified observatory package
+directories, ZIPs, or public JSON documents; derives content-addressed entries,
+package groups, conserved counters, and a deterministic index; and can persist
+an exact five-file registry. It also supplies sixteen registry-audit checks,
+bounded summary/entry/accepted/held/package queries, fourteen query-audit
+checks, added/removed/changed/unchanged diffs with changed-field disclosure,
+diff-query auditing, a package-loading runtime, and a four-file append-only
+registry history with predecessor links. Build and inspect real downloaded
+handoffs with:
+
+```powershell
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-registry `
+  --input C:\data\primary-observatory-package `
+  --input C:\data\replica-observatory-package `
+  --entry-id primary-entry --entry-id replica-entry `
+  --archive-id primary-archive --archive-id replica-archive `
+  --destination C:\data\observatory-archive-registry --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-registry-query `
+  --input C:\data\observatory-archive-registry --resource entries --resource packages --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-registry-audit `
+  --input C:\data\observatory-archive-registry --format summary
+```
+
+The standalone [archive-registry demo](examples/registry_federation_certificate_observatory_archive_registry_demo.py)
+accepts downloaded package directories, archive ZIPs, or public JSON inputs
+and prints the complete path-free registry/report/diff/history result. The
+[archive-registry contract](docs/CERTIFICATE_OBSERVATORY_ARCHIVE_REGISTRY.md)
+documents the object graph, persistence and replay rules, API namespace,
+limits, failure model, and verification matrix. The real downloaded-data demo
+now runs two archive snapshots through the registry, diff, history, and runtime
+planes, derives a deterministic health report with held/failed/source-alert
+signals, and reports every independent audit and disk replay result without
+publishing local paths or attribution metadata.
+
+The health report can also be built and audited directly:
+
+```powershell
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-registry-report `
+  --input C:\data\observatory-archive-registry --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-archive-registry-report-audit `
+  --input C:\data\archive-registry-report.json --format summary
+```
+
+It exposes explicit `ready`, `review`, and `blocked` states with
+content-addressed alerts and a twenty-check independent report audit. The
+report preserves a blocked decision when source evidence fails while proving
+that the public health projection itself is internally coherent.
+
 Interrupted chunk receivers can resume from the addressed ZIP with the
 recovery boundary. It reports missing ranges first, verifies the source archive
 and transfer manifest match, fills only validated chunks, and emits a twelve-
