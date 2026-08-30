@@ -65,7 +65,9 @@ For a policy-governed release decision over that diff, run
 `python examples/downloaded_data_contract_resolution_history_diff_policy_demo.py`;
 it reports explicit promote/hold/block rules, independent policy and runtime
 audits, bounded rule queries, an exact eight-file review runtime, and a
-portable five-file policy-review package with independent package audits.
+portable five-file policy-review package with independent package audits. Two
+or more package handoffs can then be admitted to a four-file registry for
+readiness and decision queries.
 
 The same runtime can be served locally:
 

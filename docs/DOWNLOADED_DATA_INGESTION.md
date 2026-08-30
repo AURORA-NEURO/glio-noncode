@@ -346,6 +346,20 @@ policy-package/
   summary.json
 ```
 
+Multiple package handoffs can be admitted to a deterministic registry. The
+registry keeps package identities, policy/runtime receipt links, decisions,
+acceptance, and release readiness while remaining free of source values. Its
+state folds to `empty`, `ready`, `review`, or `blocked`; the real archive demo
+admits two addressed promote packages and produces a 15-check registry audit.
+
+```text
+policy-package-registry/
+  manifest.json
+  registry.json
+  entries.json
+  summary.json
+```
+
 Inspect the persisted decision and its independent receipts:
 
 ```powershell
@@ -369,6 +383,13 @@ glio-noncode downloaded-data-profile-contract-compatibility-remediation-resoluti
 glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query `
   artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-package `
   --resource policy-rules --text removed-limit --format markdown
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-audit `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-package-registry --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-query `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-package-registry `
+  --resource entries --decision promote --format markdown
 ```
 
 The policy HTTP routes mirror the CLI:
@@ -384,6 +405,10 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/audit?input=<policy-package>
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/query?input=<policy-package>&resource=policy-rules&text=removed-limit
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/query-audit?input=<policy-package-query>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry?input=<policy-package>&input=<second-policy-package>&destination=<directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/audit?input=<policy-package-registry>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/query?input=<policy-package-registry>&resource=entries&decision=promote
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/registry/query-audit?input=<policy-package-registry-query>
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/schema
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/evaluation-schema
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime/schema

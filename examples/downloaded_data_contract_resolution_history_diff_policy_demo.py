@@ -56,6 +56,18 @@ from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit as policy_package_query_audit_model,
 )
 from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry as policy_package_registry_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_audit as policy_package_registry_audit_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query as policy_package_registry_query_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_audit as policy_package_registry_query_audit_model,
+)
+from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime as policy_runtime_model,
 )
 from glio_noncode import (
@@ -95,6 +107,13 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
     package_audit = policy_package_audit_model.audit_package(package)
     package_query = policy_package_query_model.query_package(package, resources=("summary", "policy-rules"), limit=25)
     package_query_audit = policy_package_query_audit_model.audit_query(package_query)
+    secondary_policy = policy_model.default_policy(policy_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-secondary-policy")
+    secondary_runtime = policy_runtime_model.run_runtime(history_diff, policy=secondary_policy, runtime_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-secondary-runtime", evaluation_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-secondary-evaluation", resources=("summary", "rules"), limit=25)
+    secondary_package = policy_package_model.run_package(secondary_runtime, package_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-secondary-package")
+    package_registry = policy_package_registry_model.run_registry((package, secondary_package), registry_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-registry")
+    package_registry_audit = policy_package_registry_audit_model.audit_registry(package_registry)
+    package_registry_query = policy_package_registry_query_model.query_registry(package_registry, resources=("summary", "entries", "ready", "decisions"), decision="promote", limit=25)
+    package_registry_query_audit = policy_package_registry_query_audit_model.audit_query(package_registry_query)
     action_counts = Counter(item.action for item in plan.actions)
     summary = {
         "source_name": Path(source).name,
@@ -139,6 +158,18 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "policy_package_query_audit_accepted": package_query_audit.accepted,
         "policy_package_accepted": package.accepted,
         "policy_package_release_ready": package.release_ready,
+        "policy_package_registry_entry_count": package_registry.entry_count,
+        "policy_package_registry_accepted_count": package_registry.accepted_count,
+        "policy_package_registry_release_ready_count": package_registry.release_ready_count,
+        "policy_package_registry_state": package_registry.state,
+        "policy_package_registry_accepted": package_registry.accepted,
+        "policy_package_registry_release_ready": package_registry.release_ready,
+        "policy_package_registry_audit_checks": package_registry_audit.check_count,
+        "policy_package_registry_audit_accepted": package_registry_audit.accepted,
+        "policy_package_registry_query_total_count": package_registry_query.total_count,
+        "policy_package_registry_query_returned_count": package_registry_query.returned_count,
+        "policy_package_registry_query_audit_checks": package_registry_query_audit.check_count,
+        "policy_package_registry_query_audit_accepted": package_registry_query_audit.accepted,
         "release_ready": runtime.release_ready,
         "runtime_state": runtime.state,
         "diff_address": history_diff.content_address,
@@ -148,6 +179,9 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "policy_package_address": package.content_address,
         "policy_package_audit_address": package_audit.content_address,
         "policy_package_query_address": package_query.content_address,
+        "policy_package_registry_address": package_registry.content_address,
+        "policy_package_registry_audit_address": package_registry_audit.content_address,
+        "policy_package_registry_query_address": package_registry_query.content_address,
     }
     if destination is not None:
         root = Path(destination)
@@ -156,6 +190,8 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         policy_runtime_model.persist_runtime(runtime, runtime_root, overwrite=True)
         package_root = root / "policy-package"
         policy_package_model.persist_package(package, package_root, overwrite=True)
+        registry_root = root / "policy-package-registry"
+        policy_package_registry_model.persist_registry(package_registry, registry_root, overwrite=True)
         (root / "policy-audit.json").write_text(policy_audit_model.audit_json(policy_audit), encoding="utf-8")
         (root / "policy-audit.md").write_text(policy_audit_model.render_audit_markdown(policy_audit), encoding="utf-8")
         (root / "runtime-audit.json").write_text(policy_runtime_audit_model.audit_json(runtime_audit), encoding="utf-8")
@@ -164,10 +200,15 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         (root / "policy-package-audit.md").write_text(policy_package_audit_model.render_audit_markdown(package_audit), encoding="utf-8")
         (root / "policy-package-query-audit.json").write_text(policy_package_query_audit_model.audit_json(package_query_audit), encoding="utf-8")
         (root / "policy-package-query-audit.md").write_text(policy_package_query_audit_model.render_audit_markdown(package_query_audit), encoding="utf-8")
+        (root / "policy-package-registry-audit.json").write_text(policy_package_registry_audit_model.audit_json(package_registry_audit), encoding="utf-8")
+        (root / "policy-package-registry-audit.md").write_text(policy_package_registry_audit_model.render_audit_markdown(package_registry_audit), encoding="utf-8")
+        (root / "policy-package-registry-query-audit.json").write_text(policy_package_registry_query_audit_model.audit_json(package_registry_query_audit), encoding="utf-8")
+        (root / "policy-package-registry-query-audit.md").write_text(policy_package_registry_query_audit_model.render_audit_markdown(package_registry_query_audit), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["policy_runtime_directory"] = str(runtime_root.resolve())
         summary["policy_runtime_files"] = list(policy_runtime_model.FILES)
         summary["policy_package_directory"] = str(package_root.resolve())
+        summary["policy_package_registry_directory"] = str(registry_root.resolve())
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -179,7 +220,7 @@ def main() -> int:
     args = parser.parse_args()
     summary = build_demo(args.source, args.destination)
     print(json.dumps(summary, indent=2, sort_keys=True))
-    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] and summary["policy_package_accepted"] and summary["policy_package_audit_accepted"] and summary["policy_package_query_audit_accepted"] else 2
+    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] and summary["policy_package_accepted"] and summary["policy_package_audit_accepted"] and summary["policy_package_query_audit_accepted"] and summary["policy_package_registry_accepted"] and summary["policy_package_registry_audit_accepted"] and summary["policy_package_registry_query_audit_accepted"] else 2
 
 
 if __name__ == "__main__":

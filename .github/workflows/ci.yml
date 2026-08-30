@@ -1770,6 +1770,8 @@ jobs:
         run: python -m glio_noncode release-assurance --plane checkpoint --output /tmp/glio-release-assurance-checkpoint.json && python -m glio_noncode release-assurance --plane review --output /tmp/glio-release-assurance-review.json
       - name: Downloaded-data policy package focused tests
         run: python -m unittest tests.test_downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package -v
+      - name: Downloaded-data policy package registry focused tests
+        run: python -m unittest tests.test_downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry -v
       - name: Whole-product release assurance history
         run: python -m glio_noncode release-assurance --plane history --format csv --output /tmp/glio-release-assurance-history.csv
       - name: Whole-product release assurance thresholds

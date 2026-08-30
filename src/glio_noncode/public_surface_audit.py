@@ -1544,7 +1544,7 @@ from .workbench_release_frontier_offline_bundle import build_workbench_release_o
 from .workbench_release_frontier_offline_schema import workbench_release_offline_bundle_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 1377
+PUBLIC_SURFACE_EXPECTED_COUNT = 1391
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -1817,6 +1817,18 @@ def default_public_surface_inventory(
     )
     from . import (
         downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_surface,
+    )
+    from . import (
+        downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_surface,
+    )
+    from . import (
+        downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_audit_surface,
+    )
+    from . import (
+        downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_surface,
+    )
+    from . import (
+        downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_audit_surface,
     )
     from . import (
         downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_surface,
@@ -2688,6 +2700,20 @@ def default_public_surface_inventory(
         "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_surface.check_schema(),
         "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_surface.audit_schema(),
         "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_surface.capabilities(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-manifest-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_surface.manifest_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-entry-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_surface.entry_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-summary-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_surface.summary_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_surface.registry_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_surface.capabilities(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_audit_surface.check_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_audit_surface.audit_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_audit_surface.capabilities(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-query-row-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_surface.row_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-query-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_surface.query_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-query-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_surface.capabilities(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-query-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_audit_surface.check_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-query-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_audit_surface.audit_schema(),
+        "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-registry-query-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_registry_query_audit_surface.capabilities(),
         "registry-federation-gate-policy-schema": registry_federation_gate_surface.policy_schema(),
         "registry-federation-gate-check-schema": registry_federation_gate_surface.check_schema(),
         "registry-federation-gate-schema": registry_federation_gate_surface.gate_schema(),

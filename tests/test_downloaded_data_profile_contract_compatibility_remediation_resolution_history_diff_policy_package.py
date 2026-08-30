@@ -84,7 +84,7 @@ class DownloadedDataProfileContractCompatibilityRemediationResolutionHistoryDiff
                 thread.join(timeout=5)
         inventory = build_default_public_surface_audit()
         self.assertTrue(inventory.accepted)
-        self.assertEqual(len(inventory.checks), 1377)
+        self.assertEqual(len(inventory.checks), 1391)
         for schema in (package_model.manifest_schema(), package_model.summary_schema(), package_model.package_schema(), package_audit_model.check_schema(), package_audit_model.audit_schema(), package_query_model.row_schema(), package_query_model.query_schema(), package_query_audit_model.check_schema(), package_query_audit_model.audit_schema()):
             self.assertEqual(schema["$schema"], "https://json-schema.org/draft/2020-12/schema")
 
