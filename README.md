@@ -1397,6 +1397,13 @@ stable keys, identities, directions, transitions, addresses, or bounded text,
 with an independent twelve-check query audit. The same result is available as
 JSON, CSV, Markdown, a CLI command, and a loopback HTTP route.
 
+Filtered comparison-query pages can also be sealed into exact five-file,
+value-free handoffs. They retain the comparison identity, complete query shape,
+query rows, independent query audit, summary, canonical manifest, and per-file
+byte receipts. Reloading is atomic and fail-closed, with an independent
+15-check snapshot audit. See
+[docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOTS.md](docs/DOWNLOADED_DATA_COMPARISON_QUERY_SNAPSHOTS.md).
+
 The archive and transfer boundaries preserve public content addresses, reject
 path and attribution metadata, and re-verify nested bytes before reassembly.
 See [the archive-transfer contract](docs/RELEASE_REGISTRY_FEDERATION_GATE_REVIEW_DECISION_LEDGER_ASSURANCE_HISTORY_OBSERVATORY_ARCHIVE_TRANSFER.md)
