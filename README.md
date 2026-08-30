@@ -43,6 +43,11 @@ For policy-governed compatibility decisions over that diff, run
 `python examples/downloaded_data_contract_compatibility_demo.py` against the
 same archive; it reports safe/review/breaking counts, independent audits, and
 an exact seven-file value-free runtime handoff.
+For deterministic remediation actions over those compatibility findings, run
+`python examples/downloaded_data_contract_remediation_demo.py` against the
+same archive; it reports required none/review/repair/migrate/restore/investigate
+actions, bounded queries, independent audits, and the exact seven-file plan
+runtime.
 
 The same runtime can be served locally:
 

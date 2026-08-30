@@ -420,6 +420,48 @@ under the corresponding `/profile/contract/compatibility/...` paths. All
 query views are bounded and support outcome, resource, identity, reason, text,
 offset, and limit filters.
 
+### Compatibility remediation planning
+
+The remediation plane converts every compatibility finding into a deterministic,
+value-free action. Safe findings become low-priority `none` actions; removed
+members become critical `restore` actions; requiredness changes become
+`migrate`; type or shape changes become `repair`; resource or distribution
+uncertainty becomes `investigate`; and other non-safe findings become `review`.
+Every non-safe action is required, and any breaking finding blocks the plan.
+
+```powershell
+glio-noncode downloaded-data-profile-contract-compatibility-remediation `
+  compatibility-gate.json --format markdown --output remediation.md
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-audit `
+  remediation.json --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-query `
+  remediation.json --resource actions --action restore --required --limit 25 --format json
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-runtime `
+  compatibility-gate.json --resource summary --resource actions --limit 25 `
+  --destination remediation-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-runtime-audit `
+  remediation-runtime --format summary
+```
+
+The remediation runtime is an exact seven-file handoff:
+`manifest.json`, `gate.json`, `plan.json`, `audit.json`, `query.json`,
+`query-audit.json`, and `runtime.json`. The gate retains the structural diff
+address, while the plan retains one addressed action and evidence set for
+every finding. Independent plan, query, and runtime audits replay counts,
+ordering, linkage, public-boundary rules, and canonical addresses. The runnable
+[`downloaded_data_contract_remediation_demo.py`](../examples/downloaded_data_contract_remediation_demo.py)
+performs the full flow on the supplied GLIO-NONCODE ZIP as data only.
+
+The local API mirrors this plane at
+`/v1/downloaded-data/profile/contract/compatibility/remediation`, `/audit`,
+`/query`, `/query-audit`, `/runtime`, and `/runtime/audit`, with action, plan,
+query-row, runtime, audit, and capability schemas under the matching
+`/profile/contract/compatibility/remediation/...` paths.
+
 ## Boundary and safety behavior
 
 The ingestion boundary is deliberately strict:

@@ -187,6 +187,12 @@ from . import downloaded_data_profile_contract_compatibility_query as downloaded
 from . import downloaded_data_profile_contract_compatibility_query_audit as downloaded_data_profile_contract_compatibility_query_audit_model
 from . import downloaded_data_profile_contract_compatibility_runtime as downloaded_data_profile_contract_compatibility_runtime_model
 from . import downloaded_data_profile_contract_compatibility_runtime_audit as downloaded_data_profile_contract_compatibility_runtime_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation as downloaded_data_profile_contract_compatibility_remediation_model
+from . import downloaded_data_profile_contract_compatibility_remediation_audit as downloaded_data_profile_contract_compatibility_remediation_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_query as downloaded_data_profile_contract_compatibility_remediation_query_model
+from . import downloaded_data_profile_contract_compatibility_remediation_query_audit as downloaded_data_profile_contract_compatibility_remediation_query_audit_model
+from . import downloaded_data_profile_contract_compatibility_remediation_runtime as downloaded_data_profile_contract_compatibility_remediation_runtime_model
+from . import downloaded_data_profile_contract_compatibility_remediation_runtime_audit as downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3525,6 +3531,36 @@ def _downloaded_contract_compatibility_runtime_from_input(input_path: str):
         return downloaded_data_profile_contract_compatibility_runtime_model.load_runtime(source)
     raw = _read_json(input_path)
     return downloaded_data_profile_contract_compatibility_runtime_model.runtime_from_mapping(raw)
+
+
+def _downloaded_contract_compatibility_remediation_plan_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_remediation_runtime_model.load_runtime(source).plan
+    raw = _read_json(input_path)
+    nested = raw.get("plan")
+    if isinstance(nested, Mapping):
+        return downloaded_data_profile_contract_compatibility_remediation_model.plan_from_mapping(nested)
+    if "plan_id" in raw and "actions" in raw and "content_address" in raw:
+        return downloaded_data_profile_contract_compatibility_remediation_model.plan_from_mapping(raw)
+    return downloaded_data_profile_contract_compatibility_remediation_model.build_plan(_downloaded_contract_compatibility_from_input(input_path))
+
+
+def _downloaded_contract_compatibility_remediation_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_remediation_runtime_model.load_runtime(source).query
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    return downloaded_data_profile_contract_compatibility_remediation_query_model.query_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_contract_compatibility_remediation_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_remediation_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    return downloaded_data_profile_contract_compatibility_remediation_runtime_model.runtime_from_mapping(raw)
 
 
 def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
@@ -18701,6 +18737,57 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_contract_compatibility_runtime_audit.add_argument("input", type=str)
     downloaded_data_profile_contract_compatibility_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_contract_compatibility_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation", help="plan value-free compatibility remediation actions")
+    downloaded_data_profile_contract_compatibility_remediation.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation.add_argument("--plan-id", default=downloaded_data_profile_contract_compatibility_remediation_model.DEFAULT_PLAN_ID)
+    downloaded_data_profile_contract_compatibility_remediation.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-audit", help="audit a compatibility remediation plan")
+    downloaded_data_profile_contract_compatibility_remediation_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_query = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-query", help="query planned compatibility remediation actions")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_compatibility_remediation_query_model.RESOURCES)
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--outcome", choices=downloaded_data_profile_contract_compatibility_model.OUTCOMES, default="")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--action-resource", dest="action_resource", choices=downloaded_data_profile_contract_diff_model.RESOURCES, default="")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--priority", choices=downloaded_data_profile_contract_compatibility_remediation_model.PRIORITIES, default="")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--action", choices=downloaded_data_profile_contract_compatibility_remediation_model.ACTION_KINDS, default="")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--required", action="store_true")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--identity", default="")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--reason", default="")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--text", default="")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_remediation_query_model.MAX_LIMIT)
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_query.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_query_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-query-audit", help="audit a compatibility remediation query")
+    downloaded_data_profile_contract_compatibility_remediation_query_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_query_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_runtime = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-runtime", help="build and optionally persist a compatibility remediation runtime")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--runtime-id", default=downloaded_data_profile_contract_compatibility_remediation_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--plan-id", default=downloaded_data_profile_contract_compatibility_remediation_model.DEFAULT_PLAN_ID)
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_compatibility_remediation_query_model.RESOURCES)
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--outcome", choices=downloaded_data_profile_contract_compatibility_model.OUTCOMES, default="")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--action-resource", dest="action_resource", choices=downloaded_data_profile_contract_diff_model.RESOURCES, default="")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--priority", choices=downloaded_data_profile_contract_compatibility_remediation_model.PRIORITIES, default="")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--action", choices=downloaded_data_profile_contract_compatibility_remediation_model.ACTION_KINDS, default="")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--required", action="store_true")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--identity", default="")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--reason", default="")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--text", default="")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_remediation_query_model.MAX_LIMIT)
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--destination", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_runtime.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_runtime_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-runtime-audit", help="audit a compatibility remediation runtime")
+    downloaded_data_profile_contract_compatibility_remediation_runtime_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_runtime_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract_query = subparsers.add_parser("downloaded-data-profile-contract-query", help="query value-free downloaded-data schema contract facts")
     downloaded_data_profile_contract_query.add_argument("input", type=str)
     downloaded_data_profile_contract_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_query_model.RESOURCES)
@@ -18848,6 +18935,24 @@ def build_parser() -> argparse.ArgumentParser:
         ("downloaded-data-profile-contract-compatibility-runtime-audit-check-schema", "print downloaded-data profile contract compatibility runtime audit check schema"),
         ("downloaded-data-profile-contract-compatibility-runtime-audit-schema", "print downloaded-data profile contract compatibility runtime audit schema"),
         ("downloaded-data-profile-contract-compatibility-runtime-audit-capabilities", "print downloaded-data profile contract compatibility runtime audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-action-schema", "print compatibility remediation action schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-plan-schema", "print compatibility remediation plan schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-capabilities", "print compatibility remediation capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-audit-check-schema", "print compatibility remediation audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-audit-schema", "print compatibility remediation audit schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-audit-capabilities", "print compatibility remediation audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-query-row-schema", "print compatibility remediation query row schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-query-schema", "print compatibility remediation query schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-query-capabilities", "print compatibility remediation query capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-query-audit-check-schema", "print compatibility remediation query audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-query-audit-schema", "print compatibility remediation query audit schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-query-audit-capabilities", "print compatibility remediation query audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-runtime-manifest-schema", "print compatibility remediation runtime manifest schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-runtime-schema", "print compatibility remediation runtime schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-runtime-capabilities", "print compatibility remediation runtime capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-runtime-audit-check-schema", "print compatibility remediation runtime audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-runtime-audit-schema", "print compatibility remediation runtime audit schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-runtime-audit-capabilities", "print compatibility remediation runtime audit capabilities"),
         ("downloaded-data-profile-contract-query-row-schema", "print downloaded-data profile contract query row schema"),
         ("downloaded-data-profile-contract-query-schema", "print downloaded-data profile contract query schema"),
         ("downloaded-data-profile-contract-query-capabilities", "print downloaded-data profile contract query capabilities"),
@@ -20251,6 +20356,62 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_contract_compatibility_runtime_audit_model.audit_runtime(_downloaded_contract_compatibility_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_contract_compatibility_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation":
+            value = downloaded_data_profile_contract_compatibility_remediation_model.build_plan(
+                _downloaded_contract_compatibility_from_input(args.input), plan_id=args.plan_id
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_model, json_name="remediation_json", csv_name="remediation_csv", markdown_name="render_remediation_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-audit":
+            value = downloaded_data_profile_contract_compatibility_remediation_audit_model.audit_plan(_downloaded_contract_compatibility_remediation_plan_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-query":
+            value = downloaded_data_profile_contract_compatibility_remediation_query_model.query_plan(
+                _downloaded_contract_compatibility_remediation_plan_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_profile_contract_compatibility_remediation_query_model.RESOURCES),
+                outcome=args.outcome,
+                resource=args.action_resource,
+                priority=args.priority,
+                action=args.action,
+                required=args.required,
+                identity=args.identity,
+                reason=args.reason,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-query-audit":
+            value = downloaded_data_profile_contract_compatibility_remediation_query_audit_model.audit_query(_downloaded_contract_compatibility_remediation_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-runtime":
+            value = downloaded_data_profile_contract_compatibility_remediation_runtime_model.run_runtime(
+                _downloaded_contract_compatibility_from_input(args.input),
+                runtime_id=args.runtime_id,
+                plan_id=args.plan_id,
+                resources=tuple(args.resource or downloaded_data_profile_contract_compatibility_remediation_query_model.RESOURCES),
+                outcome=args.outcome,
+                resource=args.action_resource,
+                priority=args.priority,
+                action=args.action,
+                required=args.required,
+                identity=args.identity,
+                reason=args.reason,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-runtime-audit":
+            value = downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.audit_runtime(_downloaded_contract_compatibility_remediation_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract-query":
             value = downloaded_data_profile_contract_query_model.query_contract(
                 _downloaded_contract_from_input(args.input),
@@ -20747,6 +20908,24 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-profile-contract-compatibility-runtime-audit-check-schema": downloaded_data_profile_contract_compatibility_runtime_audit_model.check_schema,
             "downloaded-data-profile-contract-compatibility-runtime-audit-schema": downloaded_data_profile_contract_compatibility_runtime_audit_model.audit_schema,
             "downloaded-data-profile-contract-compatibility-runtime-audit-capabilities": downloaded_data_profile_contract_compatibility_runtime_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-action-schema": downloaded_data_profile_contract_compatibility_remediation_model.action_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-plan-schema": downloaded_data_profile_contract_compatibility_remediation_model.plan_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-capabilities": downloaded_data_profile_contract_compatibility_remediation_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-audit-schema": downloaded_data_profile_contract_compatibility_remediation_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-query-row-schema": downloaded_data_profile_contract_compatibility_remediation_query_model.row_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-query-schema": downloaded_data_profile_contract_compatibility_remediation_query_model.query_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-query-capabilities": downloaded_data_profile_contract_compatibility_remediation_query_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-query-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_query_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-query-audit-schema": downloaded_data_profile_contract_compatibility_remediation_query_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-query-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_query_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-runtime-manifest-schema": downloaded_data_profile_contract_compatibility_remediation_runtime_model.manifest_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-runtime-schema": downloaded_data_profile_contract_compatibility_remediation_runtime_model.runtime_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-runtime-capabilities": downloaded_data_profile_contract_compatibility_remediation_runtime_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-runtime-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-runtime-audit-schema": downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-runtime-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_runtime_audit_model.capabilities,
             "downloaded-data-profile-contract-query-row-schema": downloaded_data_profile_contract_query_model.row_schema,
             "downloaded-data-profile-contract-query-schema": downloaded_data_profile_contract_query_model.query_schema,
             "downloaded-data-profile-contract-query-capabilities": downloaded_data_profile_contract_query_model.capabilities,
