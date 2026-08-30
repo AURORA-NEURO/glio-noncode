@@ -64,7 +64,8 @@ independent audits, bounded queries, and an exact six-file diff runtime.
 For a policy-governed release decision over that diff, run
 `python examples/downloaded_data_contract_resolution_history_diff_policy_demo.py`;
 it reports explicit promote/hold/block rules, independent policy and runtime
-audits, bounded rule queries, and an exact eight-file review runtime.
+audits, bounded rule queries, an exact eight-file review runtime, and a
+portable five-file policy-review package with independent package audits.
 
 The same runtime can be served locally:
 

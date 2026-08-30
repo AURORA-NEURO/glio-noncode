@@ -329,6 +329,23 @@ artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/
     runtime.json
 ```
 
+For a smaller handoff boundary, package the verified runtime into an exact
+five-file policy-review package. It retains the runtime, independent policy
+audit, independent runtime audit, derived summary, and a manifest of their
+addresses. Package reloads verify canonical bytes, nested links, file names,
+and the public value-free boundary before accepting the handoff. The current
+downloaded archive produces a complete package, a 14-check package audit, and
+a 10-check package-query audit.
+
+```text
+policy-package/
+  manifest.json
+  runtime.json
+  policy-audit.json
+  runtime-audit.json
+  summary.json
+```
+
 Inspect the persisted decision and its independent receipts:
 
 ```powershell
@@ -345,6 +362,13 @@ glio-noncode downloaded-data-profile-contract-compatibility-remediation-resoluti
 
 glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit `
   artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-package --format summary
+
+glio-noncode downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query `
+  artifacts/downloaded-data-contract-resolution-history-diff-policy-demo/policy-package `
+  --resource policy-rules --text removed-limit --format markdown
 ```
 
 The policy HTTP routes mirror the CLI:
@@ -356,6 +380,10 @@ GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/hi
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/query-audit?input=<query-or-runtime>
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime?input=<diff-or-runtime>&destination=<directory>
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime/audit?input=<policy-runtime>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package?input=<policy-runtime>&destination=<directory>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/audit?input=<policy-package>
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/query?input=<policy-package>&resource=policy-rules&text=removed-limit
+GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/package/query-audit?input=<policy-package-query>
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/schema
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/evaluation-schema
 GET /v1/downloaded-data/profile/contract/compatibility/remediation/resolution/history/diff/policy/runtime/schema

@@ -300,6 +300,18 @@ from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit_model,
 )
 from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model,
+)
+from . import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_model,
+)
+from . import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query as downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_query_model,
 )
 from . import (
@@ -5139,6 +5151,34 @@ def _downloaded_contract_compatibility_remediation_resolution_history_diff_polic
     return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_model.runtime_from_mapping(nested if isinstance(nested, Mapping) else raw)
 
 
+def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.load_package(source)
+    raw = _read_json(input_path)
+    nested = raw.get("package")
+    return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.package_from_mapping(nested if isinstance(nested, Mapping) else raw)
+
+
+def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        package = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.load_package(source)
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.query_package(package)
+    raw = _read_json(input_path)
+    nested = raw.get("query")
+    if isinstance(nested, Mapping):
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.query_from_mapping(nested)
+    if "package_address" in raw:
+        return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.query_from_mapping(raw)
+    package = raw.get("package")
+    if isinstance(package, Mapping):
+        raw = package
+    return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.query_package(
+        downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.package_from_mapping(raw)
+    )
+
+
 def _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_from_args(args: Any):
     baseline = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.default_policy()
     return downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_model.default_policy(
@@ -5278,7 +5318,8 @@ def _emit_contract(value: Any, args: Any, model: Any, *, json_name: str, csv_nam
     """Emit one typed public contract using the command's requested representation."""
 
     if args.format == "summary":
-        _write_json(value.summary(), args.output)
+        summary = value.summary
+        _write_json(summary() if callable(summary) else summary.to_dict(), args.output)
     elif args.format == "csv" and csv_name:
         _write_text(getattr(model, csv_name)(value), args.output)
     elif args.format == "markdown" and markdown_name:
@@ -20588,6 +20629,30 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit.add_argument("input", type=str)
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package", help="build and optionally persist a portable policy-review package")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package.add_argument("--package-id", default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.DEFAULT_PACKAGE_ID)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package.add_argument("--destination", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package.add_argument("--overwrite", action="store_true")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit", help="audit a portable policy-review package")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query", help="query a portable policy-review package")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.RESOURCES)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("--passed", choices=("true", "false"), default=None)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("--text", default="")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("--limit", type=int, default=downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.MAX_LIMIT)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query.add_argument("--output", default=None)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit = subparsers.add_parser("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit", help="audit a portable policy-review package query")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit.add_argument("--output", default=None)
     downloaded_data_profile_contract_query = subparsers.add_parser("downloaded-data-profile-contract-query", help="query value-free downloaded-data schema contract facts")
     downloaded_data_profile_contract_query.add_argument("input", type=str)
     downloaded_data_profile_contract_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_query_model.RESOURCES)
@@ -20808,6 +20873,19 @@ def build_parser() -> argparse.ArgumentParser:
         ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit-check-schema", "print remediation resolution history diff policy runtime audit check schema"),
         ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit-schema", "print remediation resolution history diff policy runtime audit schema"),
         ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit-capabilities", "print remediation resolution history diff policy runtime audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-manifest-schema", "print portable policy-review package manifest schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-summary-schema", "print portable policy-review package summary schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-schema", "print portable policy-review package schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-capabilities", "print portable policy-review package capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit-check-schema", "print portable policy-review package audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit-schema", "print portable policy-review package audit schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit-capabilities", "print portable policy-review package audit capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-row-schema", "print portable policy-review package query row schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-schema", "print portable policy-review package query schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-capabilities", "print portable policy-review package query capabilities"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-check-schema", "print portable policy-review package query audit check schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-schema", "print portable policy-review package query audit schema"),
+        ("downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-capabilities", "print portable policy-review package query audit capabilities"),
         ("downloaded-data-profile-contract-query-row-schema", "print downloaded-data profile contract query row schema"),
         ("downloaded-data-profile-contract-query-schema", "print downloaded-data profile contract query schema"),
         ("downloaded-data-profile-contract-query-capabilities", "print downloaded-data profile contract query capabilities"),
@@ -22472,6 +22550,34 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit_model.audit_runtime(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package":
+            value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.run_package(
+                _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_runtime_from_input(args.input),
+                package_id=args.package_id,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model, json_name="package_json", csv_name="package_csv", markdown_name="render_package_markdown")
+            return 0 if value.release_ready else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit":
+            value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit_model.audit_package(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query":
+            value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.query_package(
+                _downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.RESOURCES),
+                passed=None if args.passed is None else args.passed == "true",
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit":
+            value = downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_model.audit_query(_downloaded_contract_compatibility_remediation_resolution_history_diff_policy_package_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "downloaded-data-profile-contract-query":
             value = downloaded_data_profile_contract_query_model.query_contract(
                 _downloaded_contract_from_input(args.input),
@@ -23059,6 +23165,19 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit_model.check_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit_model.audit_schema,
             "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-runtime-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-manifest-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.manifest_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-summary-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.summary_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.package_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-row-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.row_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.query_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_model.capabilities,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-check-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_model.check_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-schema": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_model.audit_schema,
+            "downloaded-data-profile-contract-compatibility-remediation-resolution-history-diff-policy-package-query-audit-capabilities": downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit_model.capabilities,
             "downloaded-data-profile-contract-query-row-schema": downloaded_data_profile_contract_query_model.row_schema,
             "downloaded-data-profile-contract-query-schema": downloaded_data_profile_contract_query_model.query_schema,
             "downloaded-data-profile-contract-query-capabilities": downloaded_data_profile_contract_query_model.capabilities,

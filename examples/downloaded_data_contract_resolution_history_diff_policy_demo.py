@@ -44,6 +44,18 @@ from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_audit as policy_audit_model,
 )
 from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package as policy_package_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_audit as policy_package_audit_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query as policy_package_query_model,
+)
+from glio_noncode import (
+    downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_package_query_audit as policy_package_query_audit_model,
+)
+from glio_noncode import (
     downloaded_data_profile_contract_compatibility_remediation_resolution_history_diff_policy_runtime as policy_runtime_model,
 )
 from glio_noncode import (
@@ -79,6 +91,10 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
     policy_audit = policy_audit_model.audit_evaluation(evaluation)
     runtime = policy_runtime_model.run_runtime(history_diff, policy=policy, runtime_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-runtime", evaluation_id=evaluation.evaluation_id, resources=("summary", "rules"), limit=25)
     runtime_audit = policy_runtime_audit_model.audit_runtime(runtime)
+    package = policy_package_model.run_package(runtime, package_id="glio-noncode-downloaded-contract-resolution-history-diff-policy-demo-package")
+    package_audit = policy_package_audit_model.audit_package(package)
+    package_query = policy_package_query_model.query_package(package, resources=("summary", "policy-rules"), limit=25)
+    package_query_audit = policy_package_query_audit_model.audit_query(package_query)
     action_counts = Counter(item.action for item in plan.actions)
     summary = {
         "source_name": Path(source).name,
@@ -114,25 +130,44 @@ def build_demo(source: str | Path, destination: str | Path | None = None) -> dic
         "query_audit_accepted": runtime.query_audit.accepted,
         "runtime_audit_checks": runtime_audit.check_count,
         "runtime_audit_accepted": runtime_audit.accepted,
+        "policy_package_files": list(policy_package_model.FILES),
+        "policy_package_audit_checks": package_audit.check_count,
+        "policy_package_audit_accepted": package_audit.accepted,
+        "policy_package_query_total_count": package_query.total_count,
+        "policy_package_query_returned_count": package_query.returned_count,
+        "policy_package_query_audit_checks": package_query_audit.check_count,
+        "policy_package_query_audit_accepted": package_query_audit.accepted,
+        "policy_package_accepted": package.accepted,
+        "policy_package_release_ready": package.release_ready,
         "release_ready": runtime.release_ready,
         "runtime_state": runtime.state,
         "diff_address": history_diff.content_address,
         "evaluation_address": evaluation.content_address,
         "runtime_address": runtime.content_address,
         "runtime_audit_address": runtime_audit.content_address,
+        "policy_package_address": package.content_address,
+        "policy_package_audit_address": package_audit.content_address,
+        "policy_package_query_address": package_query.content_address,
     }
     if destination is not None:
         root = Path(destination)
         root.mkdir(parents=True, exist_ok=True)
         runtime_root = root / "policy-runtime"
         policy_runtime_model.persist_runtime(runtime, runtime_root, overwrite=True)
+        package_root = root / "policy-package"
+        policy_package_model.persist_package(package, package_root, overwrite=True)
         (root / "policy-audit.json").write_text(policy_audit_model.audit_json(policy_audit), encoding="utf-8")
         (root / "policy-audit.md").write_text(policy_audit_model.render_audit_markdown(policy_audit), encoding="utf-8")
         (root / "runtime-audit.json").write_text(policy_runtime_audit_model.audit_json(runtime_audit), encoding="utf-8")
         (root / "runtime-audit.md").write_text(policy_runtime_audit_model.render_audit_markdown(runtime_audit), encoding="utf-8")
+        (root / "policy-package-audit.json").write_text(policy_package_audit_model.audit_json(package_audit), encoding="utf-8")
+        (root / "policy-package-audit.md").write_text(policy_package_audit_model.render_audit_markdown(package_audit), encoding="utf-8")
+        (root / "policy-package-query-audit.json").write_text(policy_package_query_audit_model.audit_json(package_query_audit), encoding="utf-8")
+        (root / "policy-package-query-audit.md").write_text(policy_package_query_audit_model.render_audit_markdown(package_query_audit), encoding="utf-8")
         summary["output_directory"] = str(root.resolve())
         summary["policy_runtime_directory"] = str(runtime_root.resolve())
         summary["policy_runtime_files"] = list(policy_runtime_model.FILES)
+        summary["policy_package_directory"] = str(package_root.resolve())
         (root / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
@@ -144,7 +179,7 @@ def main() -> int:
     args = parser.parse_args()
     summary = build_demo(args.source, args.destination)
     print(json.dumps(summary, indent=2, sort_keys=True))
-    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] else 2
+    return 0 if summary["release_ready"] and summary["policy_audit_accepted"] and summary["runtime_audit_accepted"] and summary["policy_package_accepted"] and summary["policy_package_audit_accepted"] and summary["policy_package_query_audit_accepted"] else 2
 
 
 if __name__ == "__main__":
