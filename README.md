@@ -33,6 +33,8 @@ lineage, replay, audits, queries, and snapshot diffs, run
 `python examples/downloaded_data_ingestion_demo.py` against the downloaded
 archive. The complete workflow and HTTP surface are documented in
 [docs/DOWNLOADED_DATA_INGESTION.md](docs/DOWNLOADED_DATA_INGESTION.md).
+For the value-free schema-contract demo, run
+`python examples/downloaded_data_contract_demo.py` against the same archive.
 
 The same runtime can be served locally:
 

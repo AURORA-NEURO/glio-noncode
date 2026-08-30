@@ -114,6 +114,94 @@ and limit. A zero-count type row is retained as a canonical fact, so the
 seven-type inventory remains stable even when a type is absent from the
 download.
 
+## Value-free schema contract
+
+The contract plane turns profile observations into a stable data dictionary.
+It adds required and optional fields, member-local field inventories, member
+coverage, dominant types, type consistency, and explicit field states:
+`empty`, `sparse`, `uniform`, `mixed`, and `complete`. A `sparse` field is
+observed in only part of the record domain. A `mixed` field has more than one
+observed JSON value type. The contract never carries a source value; it only
+publishes bounded structural facts and content addresses.
+
+The contract is independently auditable. The audit recomputes field/type
+conservation, member coverage, member-local required/optional/mixed counts,
+nested addresses, exact public fields, and mapping round-trip behavior. The
+contract query exposes `summary`, `types`, `members`, `fields`, and `issues`
+resources. The `issues` resource turns sparse and mixed fields into a bounded
+review queue without re-reading source data.
+
+Run the end-to-end contract demo against the supplied downloaded ZIP:
+
+```powershell
+python examples/downloaded_data_contract_demo.py `
+  C:/Users/murar/Downloads/GLIO_NONCODE_vNext_Product_Rebuild_2026-08-20.zip `
+  artifacts/downloaded-data-contract-demo
+```
+
+The current archive produces a value-free contract over 4,030 records, 17
+selected members, and 136 fields. The member-level selection excludes schema
+and OpenAPI declaration files as data, while those files remain valid catalog
+input. The contract reports 136 sparse fields across the multi-member record
+domain, 0 globally required fields, 0 globally mixed fields, and 98 fields
+whose dominant observed type is string. Member-local inventories still report
+the fields required within each individual member. All 12 contract checks, all
+10 query checks, and all 13 runtime-closure checks pass in the demo.
+
+The contract runtime is an exact six-file replay bundle:
+
+```text
+artifacts/downloaded-data-contract-demo/
+  summary.json
+  runtime-audit.json
+  runtime-audit.md
+  contract-runtime/
+    manifest.json
+    contract.json
+    audit.json
+    query.json
+    query-audit.json
+    runtime.json
+```
+
+Inspect and query the persisted contract:
+
+```powershell
+glio-noncode downloaded-data-profile-contract `
+  artifacts/downloaded-data-contract-demo/contract-runtime `
+  --format markdown --output contract.md
+
+glio-noncode downloaded-data-profile-contract-query `
+  artifacts/downloaded-data-contract-demo/contract-runtime `
+  --resource issues --state sparse --limit 25 `
+  --format csv --output schema-issues.csv
+
+glio-noncode downloaded-data-profile-contract-audit `
+  artifacts/downloaded-data-contract-demo/contract-runtime --format summary
+
+glio-noncode downloaded-data-profile-contract-runtime-audit `
+  artifacts/downloaded-data-contract-demo/contract-runtime --format summary
+```
+
+The contract query supports member name, data kind, field name, dominant
+value type, state, required, type-consistent, text, offset, and limit filters.
+All query pages are content-addressed and retain stable resource ordering.
+Unknown fields, altered nested addresses, and extra runtime files fail closed.
+
+The contract HTTP routes mirror the CLI:
+
+```text
+GET /v1/downloaded-data/profile/contract?input=<profile-json-or-runtime-directory>
+GET /v1/downloaded-data/profile/contract/audit?input=<contract-json-or-runtime-directory>
+GET /v1/downloaded-data/profile/contract/query?input=<contract-json-or-runtime-directory>&resource=issues
+GET /v1/downloaded-data/profile/contract/query-audit?input=<query-json-or-contract-runtime-directory>
+GET /v1/downloaded-data/profile/contract/runtime?input=<ingestion-json-or-runtime-directory>
+GET /v1/downloaded-data/profile/contract/runtime/audit?input=<contract-runtime-directory>
+GET /v1/downloaded-data/profile/contract/schema
+GET /v1/downloaded-data/profile/contract/query/schema
+GET /v1/downloaded-data/profile/contract/runtime/schema
+```
+
 ## CLI workflow
 
 Catalog the ZIP first when you want to inspect available members:

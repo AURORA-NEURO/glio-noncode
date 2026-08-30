@@ -343,7 +343,7 @@ from .assurance_history_series_release_registry_federation_gate import assurance
 from .assurance_history_series_release_registry_federation_gate_review import decision_diff_item_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_item_schema, decision_diff_schema as assurance_history_series_release_registry_federation_gate_review_decision_diff_schema, decision_query_schema as assurance_history_series_release_registry_federation_gate_review_decision_query_schema, decision_schema as assurance_history_series_release_registry_federation_gate_review_decision_schema, diff_capabilities as assurance_history_series_release_registry_federation_gate_review_diff_capabilities, item_schema as assurance_history_series_release_registry_federation_gate_review_item_schema, ledger_schema as assurance_history_series_release_registry_federation_gate_review_ledger_schema, manifest_schema as assurance_history_series_release_registry_federation_gate_review_manifest_schema, queue_schema as assurance_history_series_release_registry_federation_gate_review_queue_schema, query_schema as assurance_history_series_release_registry_federation_gate_review_query_schema, replay_schema as assurance_history_series_release_registry_federation_gate_review_replay_schema, review_capabilities as assurance_history_series_release_registry_federation_gate_review_capabilities, review_schema as assurance_history_series_release_registry_federation_gate_review_schema, verification_finding_schema as assurance_history_series_release_registry_federation_gate_review_verification_finding_schema, verification_schema as assurance_history_series_release_registry_federation_gate_review_verification_schema
 
 PUBLIC_SURFACE_AUDIT_VERSION = "public-surface-audit-v1"
-PUBLIC_SURFACE_EXPECTED_COUNT = 1216
+PUBLIC_SURFACE_EXPECTED_COUNT = 1236
 
 _FORBIDDEN_PUBLIC_KEYS = frozenset(
     {
@@ -641,6 +641,12 @@ def default_public_surface_inventory(
     from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_surface
     from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_surface
     from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_surface
+    from . import downloaded_data_profile_contract as downloaded_data_profile_contract_surface
+    from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_surface
+    from . import downloaded_data_profile_contract_query as downloaded_data_profile_contract_query_surface
+    from . import downloaded_data_profile_contract_query_audit as downloaded_data_profile_contract_query_audit_surface
+    from . import downloaded_data_profile_contract_runtime as downloaded_data_profile_contract_runtime_surface
+    from . import downloaded_data_profile_contract_runtime_audit as downloaded_data_profile_contract_runtime_audit_surface
     from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_surface
     from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_audit_surface
     from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_query_surface
@@ -888,6 +894,26 @@ def default_public_surface_inventory(
         "downloaded-data-profile-runtime-audit-check-schema": downloaded_data_profile_runtime_audit_surface.check_schema(),
         "downloaded-data-profile-runtime-audit-schema": downloaded_data_profile_runtime_audit_surface.audit_schema(),
         "downloaded-data-profile-runtime-audit-capabilities": downloaded_data_profile_runtime_audit_surface.capabilities(),
+        "downloaded-data-profile-contract-type-schema": downloaded_data_profile_contract_surface.type_schema(),
+        "downloaded-data-profile-contract-field-schema": downloaded_data_profile_contract_surface.field_schema(),
+        "downloaded-data-profile-contract-member-schema": downloaded_data_profile_contract_surface.member_schema(),
+        "downloaded-data-profile-contract-schema": downloaded_data_profile_contract_surface.contract_schema(),
+        "downloaded-data-profile-contract-capabilities": downloaded_data_profile_contract_surface.capabilities(),
+        "downloaded-data-profile-contract-audit-check-schema": downloaded_data_profile_contract_audit_surface.check_schema(),
+        "downloaded-data-profile-contract-audit-schema": downloaded_data_profile_contract_audit_surface.audit_schema(),
+        "downloaded-data-profile-contract-audit-capabilities": downloaded_data_profile_contract_audit_surface.capabilities(),
+        "downloaded-data-profile-contract-query-row-schema": downloaded_data_profile_contract_query_surface.row_schema(),
+        "downloaded-data-profile-contract-query-schema": downloaded_data_profile_contract_query_surface.query_schema(),
+        "downloaded-data-profile-contract-query-capabilities": downloaded_data_profile_contract_query_surface.capabilities(),
+        "downloaded-data-profile-contract-query-audit-check-schema": downloaded_data_profile_contract_query_audit_surface.check_schema(),
+        "downloaded-data-profile-contract-query-audit-schema": downloaded_data_profile_contract_query_audit_surface.audit_schema(),
+        "downloaded-data-profile-contract-query-audit-capabilities": downloaded_data_profile_contract_query_audit_surface.capabilities(),
+        "downloaded-data-profile-contract-runtime-manifest-schema": downloaded_data_profile_contract_runtime_surface.manifest_schema(),
+        "downloaded-data-profile-contract-runtime-schema": downloaded_data_profile_contract_runtime_surface.runtime_schema(),
+        "downloaded-data-profile-contract-runtime-capabilities": downloaded_data_profile_contract_runtime_surface.capabilities(),
+        "downloaded-data-profile-contract-runtime-audit-check-schema": downloaded_data_profile_contract_runtime_audit_surface.check_schema(),
+        "downloaded-data-profile-contract-runtime-audit-schema": downloaded_data_profile_contract_runtime_audit_surface.audit_schema(),
+        "downloaded-data-profile-contract-runtime-audit-capabilities": downloaded_data_profile_contract_runtime_audit_surface.capabilities(),
         "registry-federation-gate-policy-schema": registry_federation_gate_surface.policy_schema(),
         "registry-federation-gate-check-schema": registry_federation_gate_surface.check_schema(),
         "registry-federation-gate-schema": registry_federation_gate_surface.gate_schema(),

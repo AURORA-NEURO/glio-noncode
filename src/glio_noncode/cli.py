@@ -169,6 +169,12 @@ from . import downloaded_data_profile_query as downloaded_data_profile_query_mod
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
 from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_model
+from . import downloaded_data_profile_contract as downloaded_data_profile_contract_model
+from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_model
+from . import downloaded_data_profile_contract_query as downloaded_data_profile_contract_query_model
+from . import downloaded_data_profile_contract_query_audit as downloaded_data_profile_contract_query_audit_model
+from . import downloaded_data_profile_contract_runtime as downloaded_data_profile_contract_runtime_model
+from . import downloaded_data_profile_contract_runtime_audit as downloaded_data_profile_contract_runtime_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3405,6 +3411,44 @@ def _downloaded_profile_query_from_input(input_path: str):
     if "query" in raw and isinstance(raw["query"], Mapping):
         raw = raw["query"]
     return downloaded_data_profile_query_model.query_from_mapping(raw)
+
+
+def _downloaded_contract_runtime_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_runtime_model.load_runtime(source)
+    raw = _read_json(input_path)
+    if "runtime_id" not in raw or "contract" not in raw:
+        raise ValueError("downloaded-data contract runtime input must be a runtime document")
+    return downloaded_data_profile_contract_runtime_model.runtime_from_mapping(raw)
+
+
+def _downloaded_contract_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        if tuple(sorted(path.name for path in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_runtime_model.FILES)):
+            return downloaded_data_profile_contract_runtime_model.load_runtime(source).contract
+        if tuple(sorted(path.name for path in source.iterdir())) == tuple(sorted(downloaded_data_profile_runtime_model.FILES)):
+            return downloaded_data_profile_contract_model.build_contract(downloaded_data_profile_runtime_model.load_runtime(source).profile)
+        return downloaded_data_profile_contract_model.build_contract(downloaded_data_profile_model.build_profile(downloaded_data_ingestion_runtime_model.load_runtime(source).batch, profile_id="glio-noncode-downloaded-data-profile"))
+    raw = _read_json(input_path)
+    if "contract" in raw and isinstance(raw["contract"], Mapping):
+        raw = raw["contract"]
+    if set(raw) == set(downloaded_data_profile_contract_model.CONTRACT_FIELDS):
+        return downloaded_data_profile_contract_model.contract_from_mapping(raw)
+    if "profile" in raw and isinstance(raw["profile"], Mapping):
+        raw = raw["profile"]
+    return downloaded_data_profile_contract_model.build_contract(downloaded_data_profile_model.profile_from_mapping(raw))
+
+
+def _downloaded_contract_query_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return downloaded_data_profile_contract_runtime_model.load_runtime(source).query
+    raw = _read_json(input_path)
+    if "query" in raw and isinstance(raw["query"], Mapping):
+        raw = raw["query"]
+    return downloaded_data_profile_contract_query_model.query_from_mapping(raw)
 
 
 def _downloaded_ingest_diff_from_document(raw: Mapping[str, Any]):
@@ -18482,6 +18526,56 @@ def build_parser() -> argparse.ArgumentParser:
     downloaded_data_profile_runtime_audit.add_argument("input", type=str)
     downloaded_data_profile_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     downloaded_data_profile_runtime_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract = subparsers.add_parser("downloaded-data-profile-contract", help="infer a value-free downloaded-data schema contract")
+    downloaded_data_profile_contract.add_argument("input", type=str)
+    downloaded_data_profile_contract.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract.add_argument("--output", default=None)
+    downloaded_data_profile_contract_audit = subparsers.add_parser("downloaded-data-profile-contract-audit", help="audit a downloaded-data schema contract")
+    downloaded_data_profile_contract_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_query = subparsers.add_parser("downloaded-data-profile-contract-query", help="query value-free downloaded-data schema contract facts")
+    downloaded_data_profile_contract_query.add_argument("input", type=str)
+    downloaded_data_profile_contract_query.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_query_model.RESOURCES)
+    downloaded_data_profile_contract_query.add_argument("--member-name", default="")
+    downloaded_data_profile_contract_query.add_argument("--data-kind", default="")
+    downloaded_data_profile_contract_query.add_argument("--field-name", default="")
+    downloaded_data_profile_contract_query.add_argument("--value-type", default="")
+    downloaded_data_profile_contract_query.add_argument("--state", choices=downloaded_data_profile_contract_model.STATES, default="")
+    downloaded_data_profile_contract_query.add_argument("--required", action="store_true")
+    downloaded_data_profile_contract_query.add_argument("--type-consistent", action="store_true")
+    downloaded_data_profile_contract_query.add_argument("--text", default="")
+    downloaded_data_profile_contract_query.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_query.add_argument("--limit", type=int, default=downloaded_data_profile_contract_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_contract_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_query.add_argument("--output", default=None)
+    downloaded_data_profile_contract_query_audit = subparsers.add_parser("downloaded-data-profile-contract-query-audit", help="audit a downloaded-data contract query")
+    downloaded_data_profile_contract_query_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_query_audit.add_argument("--output", default=None)
+    downloaded_data_profile_contract_runtime = subparsers.add_parser("downloaded-data-profile-contract-runtime", help="build and optionally persist a downloaded-data schema contract runtime")
+    downloaded_data_profile_contract_runtime.add_argument("input", type=str)
+    downloaded_data_profile_contract_runtime.add_argument("--profile-id", default="glio-noncode-downloaded-data-profile")
+    downloaded_data_profile_contract_runtime.add_argument("--runtime-id", default=downloaded_data_profile_contract_runtime_model.DEFAULT_RUNTIME_ID)
+    downloaded_data_profile_contract_runtime.add_argument("--resource", action="append", choices=downloaded_data_profile_contract_query_model.RESOURCES)
+    downloaded_data_profile_contract_runtime.add_argument("--member-name", default="")
+    downloaded_data_profile_contract_runtime.add_argument("--data-kind", default="")
+    downloaded_data_profile_contract_runtime.add_argument("--field-name", default="")
+    downloaded_data_profile_contract_runtime.add_argument("--value-type", default="")
+    downloaded_data_profile_contract_runtime.add_argument("--state", choices=downloaded_data_profile_contract_model.STATES, default="")
+    downloaded_data_profile_contract_runtime.add_argument("--required", action="store_true")
+    downloaded_data_profile_contract_runtime.add_argument("--type-consistent", action="store_true")
+    downloaded_data_profile_contract_runtime.add_argument("--text", default="")
+    downloaded_data_profile_contract_runtime.add_argument("--offset", type=int, default=0)
+    downloaded_data_profile_contract_runtime.add_argument("--limit", type=int, default=downloaded_data_profile_contract_runtime_model.DEFAULT_LIMIT)
+    downloaded_data_profile_contract_runtime.add_argument("--destination", default=None)
+    downloaded_data_profile_contract_runtime.add_argument("--overwrite", action="store_true")
+    downloaded_data_profile_contract_runtime.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_runtime.add_argument("--output", default=None)
+    downloaded_data_profile_contract_runtime_audit = subparsers.add_parser("downloaded-data-profile-contract-runtime-audit", help="audit a downloaded-data contract runtime closure")
+    downloaded_data_profile_contract_runtime_audit.add_argument("input", type=str)
+    downloaded_data_profile_contract_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_profile_contract_runtime_audit.add_argument("--output", default=None)
     for command, help_text in (
         ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
         ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
@@ -18542,6 +18636,26 @@ def build_parser() -> argparse.ArgumentParser:
         ("downloaded-data-profile-runtime-audit-check-schema", "print downloaded-data profile runtime audit check schema"),
         ("downloaded-data-profile-runtime-audit-schema", "print downloaded-data profile runtime audit schema"),
         ("downloaded-data-profile-runtime-audit-capabilities", "print downloaded-data profile runtime audit capabilities"),
+        ("downloaded-data-profile-contract-type-schema", "print downloaded-data profile contract type schema"),
+        ("downloaded-data-profile-contract-field-schema", "print downloaded-data profile contract field schema"),
+        ("downloaded-data-profile-contract-member-schema", "print downloaded-data profile contract member schema"),
+        ("downloaded-data-profile-contract-schema", "print downloaded-data profile contract schema"),
+        ("downloaded-data-profile-contract-capabilities", "print downloaded-data profile contract capabilities"),
+        ("downloaded-data-profile-contract-audit-check-schema", "print downloaded-data profile contract audit check schema"),
+        ("downloaded-data-profile-contract-audit-schema", "print downloaded-data profile contract audit schema"),
+        ("downloaded-data-profile-contract-audit-capabilities", "print downloaded-data profile contract audit capabilities"),
+        ("downloaded-data-profile-contract-query-row-schema", "print downloaded-data profile contract query row schema"),
+        ("downloaded-data-profile-contract-query-schema", "print downloaded-data profile contract query schema"),
+        ("downloaded-data-profile-contract-query-capabilities", "print downloaded-data profile contract query capabilities"),
+        ("downloaded-data-profile-contract-query-audit-check-schema", "print downloaded-data profile contract query audit check schema"),
+        ("downloaded-data-profile-contract-query-audit-schema", "print downloaded-data profile contract query audit schema"),
+        ("downloaded-data-profile-contract-query-audit-capabilities", "print downloaded-data profile contract query audit capabilities"),
+        ("downloaded-data-profile-contract-runtime-manifest-schema", "print downloaded-data profile contract runtime manifest schema"),
+        ("downloaded-data-profile-contract-runtime-schema", "print downloaded-data profile contract runtime schema"),
+        ("downloaded-data-profile-contract-runtime-capabilities", "print downloaded-data profile contract runtime capabilities"),
+        ("downloaded-data-profile-contract-runtime-audit-check-schema", "print downloaded-data profile contract runtime audit check schema"),
+        ("downloaded-data-profile-contract-runtime-audit-schema", "print downloaded-data profile contract runtime audit schema"),
+        ("downloaded-data-profile-contract-runtime-audit-capabilities", "print downloaded-data profile contract runtime audit capabilities"),
     ):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     for command, help_text in (
@@ -19824,6 +19938,60 @@ def main(argv: list[str] | None = None) -> int:
             value = downloaded_data_profile_runtime_audit_model.audit_runtime(_downloaded_profile_runtime_from_input(args.input))
             _emit_contract(value, args, downloaded_data_profile_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract":
+            value = _downloaded_contract_from_input(args.input)
+            _emit_contract(value, args, downloaded_data_profile_contract_model, json_name="contract_json", csv_name="contract_csv", markdown_name="render_contract_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-audit":
+            value = downloaded_data_profile_contract_audit_model.audit_contract(_downloaded_contract_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-query":
+            value = downloaded_data_profile_contract_query_model.query_contract(
+                _downloaded_contract_from_input(args.input),
+                resources=tuple(args.resource or downloaded_data_profile_contract_query_model.RESOURCES),
+                member_name=args.member_name,
+                data_kind=args.data_kind,
+                field_name=args.field_name,
+                value_type=args.value_type,
+                state=args.state,
+                required=args.required,
+                type_consistent=args.type_consistent,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "downloaded-data-profile-contract-query-audit":
+            value = downloaded_data_profile_contract_query_audit_model.audit_query(_downloaded_contract_query_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-runtime":
+            value = downloaded_data_profile_contract_runtime_model.run_runtime(
+                _downloaded_ingest_batch_from_input(args.input),
+                runtime_id=args.runtime_id,
+                profile_id=args.profile_id,
+                resources=tuple(args.resource or downloaded_data_profile_contract_query_model.RESOURCES),
+                member_name=args.member_name,
+                data_kind=args.data_kind,
+                field_name=args.field_name,
+                value_type=args.value_type,
+                state=args.state,
+                required=args.required,
+                type_consistent=args.type_consistent,
+                text=args.text,
+                offset=args.offset,
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, downloaded_data_profile_contract_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-profile-contract-runtime-audit":
+            value = downloaded_data_profile_contract_runtime_audit_model.audit_runtime(_downloaded_contract_runtime_from_input(args.input))
+            _emit_contract(value, args, downloaded_data_profile_contract_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):
                 raise ValueError("--archive-id count must match --input count")
@@ -20229,6 +20397,26 @@ def main(argv: list[str] | None = None) -> int:
             "downloaded-data-profile-runtime-audit-check-schema": downloaded_data_profile_runtime_audit_model.check_schema,
             "downloaded-data-profile-runtime-audit-schema": downloaded_data_profile_runtime_audit_model.audit_schema,
             "downloaded-data-profile-runtime-audit-capabilities": downloaded_data_profile_runtime_audit_model.capabilities,
+            "downloaded-data-profile-contract-type-schema": downloaded_data_profile_contract_model.type_schema,
+            "downloaded-data-profile-contract-field-schema": downloaded_data_profile_contract_model.field_schema,
+            "downloaded-data-profile-contract-member-schema": downloaded_data_profile_contract_model.member_schema,
+            "downloaded-data-profile-contract-schema": downloaded_data_profile_contract_model.contract_schema,
+            "downloaded-data-profile-contract-capabilities": downloaded_data_profile_contract_model.capabilities,
+            "downloaded-data-profile-contract-audit-check-schema": downloaded_data_profile_contract_audit_model.check_schema,
+            "downloaded-data-profile-contract-audit-schema": downloaded_data_profile_contract_audit_model.audit_schema,
+            "downloaded-data-profile-contract-audit-capabilities": downloaded_data_profile_contract_audit_model.capabilities,
+            "downloaded-data-profile-contract-query-row-schema": downloaded_data_profile_contract_query_model.row_schema,
+            "downloaded-data-profile-contract-query-schema": downloaded_data_profile_contract_query_model.query_schema,
+            "downloaded-data-profile-contract-query-capabilities": downloaded_data_profile_contract_query_model.capabilities,
+            "downloaded-data-profile-contract-query-audit-check-schema": downloaded_data_profile_contract_query_audit_model.check_schema,
+            "downloaded-data-profile-contract-query-audit-schema": downloaded_data_profile_contract_query_audit_model.audit_schema,
+            "downloaded-data-profile-contract-query-audit-capabilities": downloaded_data_profile_contract_query_audit_model.capabilities,
+            "downloaded-data-profile-contract-runtime-manifest-schema": downloaded_data_profile_contract_runtime_model.manifest_schema,
+            "downloaded-data-profile-contract-runtime-schema": downloaded_data_profile_contract_runtime_model.runtime_schema,
+            "downloaded-data-profile-contract-runtime-capabilities": downloaded_data_profile_contract_runtime_model.capabilities,
+            "downloaded-data-profile-contract-runtime-audit-check-schema": downloaded_data_profile_contract_runtime_audit_model.check_schema,
+            "downloaded-data-profile-contract-runtime-audit-schema": downloaded_data_profile_contract_runtime_audit_model.audit_schema,
+            "downloaded-data-profile-contract-runtime-audit-capabilities": downloaded_data_profile_contract_runtime_audit_model.capabilities,
         }
         if args.command in certificate_schema_commands:
             _write_json(certificate_schema_commands[args.command](), args.output)

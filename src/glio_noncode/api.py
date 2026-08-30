@@ -167,6 +167,12 @@ from . import downloaded_data_profile_query as downloaded_data_profile_query_mod
 from . import downloaded_data_profile_query_audit as downloaded_data_profile_query_audit_model
 from . import downloaded_data_profile_runtime as downloaded_data_profile_runtime_model
 from . import downloaded_data_profile_runtime_audit as downloaded_data_profile_runtime_audit_model
+from . import downloaded_data_profile_contract as downloaded_data_profile_contract_model
+from . import downloaded_data_profile_contract_audit as downloaded_data_profile_contract_audit_model
+from . import downloaded_data_profile_contract_query as downloaded_data_profile_contract_query_model
+from . import downloaded_data_profile_contract_query_audit as downloaded_data_profile_contract_query_audit_model
+from . import downloaded_data_profile_contract_runtime as downloaded_data_profile_contract_runtime_model
+from . import downloaded_data_profile_contract_runtime_audit as downloaded_data_profile_contract_runtime_audit_model
 from .module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory import (
     build_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory_from_directories,
     load_module_workbench_execution_packet_archive_store_replication_packet_diff_release_window_review_store_catalog_packet_review_gate_history_observatory,
@@ -1809,6 +1815,46 @@ class ApiHandler(BaseHTTPRequestHandler):
         return downloaded_data_profile_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
 
     @staticmethod
+    def _downloaded_contract_runtime_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_runtime_model.load_runtime(source)
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data contract runtime input must be an object")
+        return downloaded_data_profile_contract_runtime_model.runtime_from_mapping(raw)
+
+    @staticmethod
+    def _downloaded_contract_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            if tuple(sorted(path.name for path in source.iterdir())) == tuple(sorted(downloaded_data_profile_contract_runtime_model.FILES)):
+                return downloaded_data_profile_contract_runtime_model.load_runtime(source).contract
+            if tuple(sorted(path.name for path in source.iterdir())) == tuple(sorted(downloaded_data_profile_runtime_model.FILES)):
+                return downloaded_data_profile_contract_model.build_contract(downloaded_data_profile_runtime_model.load_runtime(source).profile)
+            return downloaded_data_profile_contract_model.build_contract(downloaded_data_profile_model.build_profile(downloaded_data_ingestion_runtime_model.load_runtime(source).batch, profile_id="glio-noncode-downloaded-data-profile"))
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data contract input must be an object")
+        nested = raw.get("contract")
+        if isinstance(nested, dict):
+            return downloaded_data_profile_contract_model.contract_from_mapping(nested)
+        nested = raw.get("profile")
+        profile = downloaded_data_profile_model.profile_from_mapping(nested if isinstance(nested, dict) else raw)
+        return downloaded_data_profile_contract_model.build_contract(profile)
+
+    @staticmethod
+    def _downloaded_contract_query_from_input(input_path: str):
+        source = Path(input_path)
+        if source.is_dir():
+            return downloaded_data_profile_contract_runtime_model.load_runtime(source).query
+        raw = json.loads(source.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ValueError("downloaded-data contract query input must be an object")
+        nested = raw.get("query")
+        return downloaded_data_profile_contract_query_model.query_from_mapping(nested if isinstance(nested, dict) else raw)
+
+    @staticmethod
     def _downloaded_ingest_diff_from_input(input_path: str):
         raw = json.loads(Path(input_path).read_text(encoding="utf-8"))
         if not isinstance(raw, dict):
@@ -2040,6 +2086,61 @@ class ApiHandler(BaseHTTPRequestHandler):
                     value = downloaded_data_profile_runtime_audit_model.audit_runtime(self._downloaded_profile_runtime_from_input(self._query_value(query, "input") or ""))
                     self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
                     return
+                contract_prefix = profile_prefix + "/contract"
+                if path == contract_prefix:
+                    value = self._downloaded_contract_from_input(self._query_value(query, "input") or "")
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_model, json_name="contract_json", csv_name="contract_csv", markdown_name="render_contract_markdown")
+                    return
+                if path == contract_prefix + "/audit":
+                    value = downloaded_data_profile_contract_audit_model.audit_contract(self._downloaded_contract_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/query":
+                    value = downloaded_data_profile_contract_query_model.query_contract(
+                        self._downloaded_contract_from_input(self._query_value(query, "input") or ""),
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_query_model.RESOURCES,
+                        member_name=self._query_value(query, "member_name") or "",
+                        data_kind=self._query_value(query, "data_kind") or "",
+                        field_name=self._query_value(query, "field_name") or "",
+                        value_type=self._query_value(query, "value_type") or "",
+                        state=self._query_value(query, "state") or "",
+                        required=self._query_bool(query, "required") if "required" in query else False,
+                        type_consistent=self._query_bool(query, "type_consistent") if "type_consistent" in query else False,
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_runtime_model.DEFAULT_LIMIT),
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+                    return
+                if path == contract_prefix + "/query-audit":
+                    value = downloaded_data_profile_contract_query_audit_model.audit_query(self._downloaded_contract_query_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
+                if path == contract_prefix + "/runtime":
+                    value = downloaded_data_profile_contract_runtime_model.run_runtime(
+                        self._downloaded_ingest_batch_from_input(self._query_value(query, "input") or ""),
+                        runtime_id=self._query_value(query, "runtime_id") or downloaded_data_profile_contract_runtime_model.DEFAULT_RUNTIME_ID,
+                        profile_id=self._query_value(query, "profile_id") or "glio-noncode-downloaded-data-profile",
+                        resources=self._query_values(query, "resource") or downloaded_data_profile_contract_query_model.RESOURCES,
+                        member_name=self._query_value(query, "member_name") or "",
+                        data_kind=self._query_value(query, "data_kind") or "",
+                        field_name=self._query_value(query, "field_name") or "",
+                        value_type=self._query_value(query, "value_type") or "",
+                        state=self._query_value(query, "state") or "",
+                        required=self._query_bool(query, "required") if "required" in query else False,
+                        type_consistent=self._query_bool(query, "type_consistent") if "type_consistent" in query else False,
+                        text=self._query_value(query, "text") or "",
+                        offset=self._query_int(query, "offset", 0),
+                        limit=self._query_int(query, "limit", downloaded_data_profile_contract_runtime_model.DEFAULT_LIMIT),
+                        destination=self._query_value(query, "destination"),
+                        overwrite=self._query_bool(query, "overwrite") if "overwrite" in query else False,
+                    )
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+                    return
+                if path == contract_prefix + "/runtime/audit":
+                    value = downloaded_data_profile_contract_runtime_audit_model.audit_runtime(self._downloaded_contract_runtime_from_input(self._query_value(query, "input") or ""))
+                    self._write_contract(value, self._query_value(query, "format") or "summary", downloaded_data_profile_contract_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+                    return
                 schema_routes = {
                     "/catalog/member-schema": downloaded_data_catalog_model.member_schema,
                     "/catalog/schema": downloaded_data_catalog_model.catalog_schema,
@@ -2100,6 +2201,26 @@ class ApiHandler(BaseHTTPRequestHandler):
                     "/profile/runtime/audit/check-schema": downloaded_data_profile_runtime_audit_model.check_schema,
                     "/profile/runtime/audit/schema": downloaded_data_profile_runtime_audit_model.audit_schema,
                     "/profile/runtime/audit/capabilities": downloaded_data_profile_runtime_audit_model.capabilities,
+                    "/profile/contract/type-schema": downloaded_data_profile_contract_model.type_schema,
+                    "/profile/contract/field-schema": downloaded_data_profile_contract_model.field_schema,
+                    "/profile/contract/member-schema": downloaded_data_profile_contract_model.member_schema,
+                    "/profile/contract/schema": downloaded_data_profile_contract_model.contract_schema,
+                    "/profile/contract/capabilities": downloaded_data_profile_contract_model.capabilities,
+                    "/profile/contract/audit/check-schema": downloaded_data_profile_contract_audit_model.check_schema,
+                    "/profile/contract/audit/schema": downloaded_data_profile_contract_audit_model.audit_schema,
+                    "/profile/contract/audit/capabilities": downloaded_data_profile_contract_audit_model.capabilities,
+                    "/profile/contract/query/row-schema": downloaded_data_profile_contract_query_model.row_schema,
+                    "/profile/contract/query/schema": downloaded_data_profile_contract_query_model.query_schema,
+                    "/profile/contract/query/capabilities": downloaded_data_profile_contract_query_model.capabilities,
+                    "/profile/contract/query-audit/check-schema": downloaded_data_profile_contract_query_audit_model.check_schema,
+                    "/profile/contract/query-audit/schema": downloaded_data_profile_contract_query_audit_model.audit_schema,
+                    "/profile/contract/query-audit/capabilities": downloaded_data_profile_contract_query_audit_model.capabilities,
+                    "/profile/contract/runtime/manifest-schema": downloaded_data_profile_contract_runtime_model.manifest_schema,
+                    "/profile/contract/runtime/schema": downloaded_data_profile_contract_runtime_model.runtime_schema,
+                    "/profile/contract/runtime/capabilities": downloaded_data_profile_contract_runtime_model.capabilities,
+                    "/profile/contract/runtime/audit/check-schema": downloaded_data_profile_contract_runtime_audit_model.check_schema,
+                    "/profile/contract/runtime/audit/schema": downloaded_data_profile_contract_runtime_audit_model.audit_schema,
+                    "/profile/contract/runtime/audit/capabilities": downloaded_data_profile_contract_runtime_audit_model.capabilities,
                 }
                 schema = schema_routes.get(path.removeprefix(downloaded_data_prefix))
                 if schema is not None:
