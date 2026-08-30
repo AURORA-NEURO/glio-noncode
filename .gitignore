@@ -12,4 +12,5 @@ build/
 .glio/
 .glio-*/
 work/
+artifacts/
 .DS_Store

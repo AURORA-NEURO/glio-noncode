@@ -141,6 +141,18 @@ from . import registry_federation_consensus_gate_certificate_observatory_archive
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_plan_query_audit_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_model
 from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model
+from . import registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit as registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit_model
+from . import downloaded_data_catalog as downloaded_data_catalog_model
+from . import downloaded_data_catalog_audit as downloaded_data_catalog_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3316,6 +3328,18 @@ def _read_json_document(path: str) -> Any:
     """Read an object or list document for batch-oriented commands."""
 
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _decision_mapping(values: list[str]) -> dict[str, str]:
+    """Parse repeatable ``OPERATION_ADDRESS=DISPOSITION`` ledger decisions."""
+
+    decisions: dict[str, str] = {}
+    for value in values:
+        operation_address, separator, disposition = value.partition("=")
+        if not separator or not operation_address or not disposition or operation_address in decisions:
+            raise ValidationError("decision entries must use unique OPERATION_ADDRESS=DISPOSITION values")
+        decisions[operation_address] = disposition
+    return decisions
 
 
 def _write_json(payload: Any, output: str | None) -> None:
@@ -18204,6 +18228,85 @@ def build_parser() -> argparse.ArgumentParser:
     archive_registry_federation_reconciliation_runtime_audit.add_argument("--input", required=True)
     archive_registry_federation_reconciliation_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     archive_registry_federation_reconciliation_runtime_audit.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger", help="materialize an explicit archive registry reconciliation decision ledger")
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--input", required=True)
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--decision", action="append", default=[], metavar="OPERATION_ADDRESS=DISPOSITION")
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--runtime-id", default=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.DEFAULT_RUNTIME_ID)
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--ledger-id", default=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.DEFAULT_LEDGER_ID)
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--resource", action="append", choices=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.RESOURCES)
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--limit", type=int, default=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.DEFAULT_LIMIT)
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--destination", default=None)
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--overwrite", action="store_true")
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit", help="audit an archive registry reconciliation decision ledger")
+    archive_registry_federation_reconciliation_decision_ledger_audit.add_argument("--input", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger_audit.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger_query = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query", help="query archive registry reconciliation decisions")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--input", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--resource", action="append", choices=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.RESOURCES)
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--operation-address", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--peer-id", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--entry-id", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--plan-status", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--action", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--priority", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--disposition", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--status", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--text", default="")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--offset", type=int, default=0)
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--limit", type=int, default=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.DEFAULT_LIMIT)
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger_query.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger_query_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit", help="audit an archive registry decision-ledger query")
+    archive_registry_federation_reconciliation_decision_ledger_query_audit.add_argument("--input", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger_query_audit.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger_diff = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff", help="diff two archive registry reconciliation decision ledgers")
+    archive_registry_federation_reconciliation_decision_ledger_diff.add_argument("--left", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_diff.add_argument("--right", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_diff.add_argument("--diff-id", default=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.DEFAULT_DIFF_ID)
+    archive_registry_federation_reconciliation_decision_ledger_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger_diff.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger_diff_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit", help="audit a decision-ledger transition diff")
+    archive_registry_federation_reconciliation_decision_ledger_diff_audit.add_argument("--input", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_diff_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger_diff_audit.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger_diff_query = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query", help="query a decision-ledger transition diff")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--input", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--resource", action="append", choices=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.RESOURCES)
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--operation-address", default="")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--peer-id", default="")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--entry-id", default="")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--change", default="")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--text", default="")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--offset", type=int, default=0)
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--limit", type=int, default=registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.DEFAULT_LIMIT)
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query.add_argument("--output", default=None)
+    archive_registry_federation_reconciliation_decision_ledger_diff_query_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit", help="audit a decision-ledger diff query")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query_audit.add_argument("--input", required=True)
+    archive_registry_federation_reconciliation_decision_ledger_diff_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    archive_registry_federation_reconciliation_decision_ledger_diff_query_audit.add_argument("--output", default=None)
+    downloaded_data_catalog = subparsers.add_parser("downloaded-data-catalog", help="catalog structured data members in a downloaded ZIP")
+    downloaded_data_catalog.add_argument("input", type=str)
+    downloaded_data_catalog.add_argument("--catalog-id", default="glio-noncode-downloaded-data")
+    downloaded_data_catalog.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_catalog.add_argument("--output", default=None)
+    downloaded_data_catalog_audit = subparsers.add_parser("downloaded-data-catalog-audit", help="audit a downloaded structured-data catalog")
+    downloaded_data_catalog_audit.add_argument("input", type=str)
+    downloaded_data_catalog_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    downloaded_data_catalog_audit.add_argument("--output", default=None)
+    for command, help_text in (
+        ("downloaded-data-catalog-member-schema", "print downloaded data member schema"),
+        ("downloaded-data-catalog-schema", "print downloaded data catalog schema"),
+        ("downloaded-data-catalog-capabilities", "print downloaded data catalog capabilities"),
+        ("downloaded-data-catalog-audit-check-schema", "print downloaded data catalog audit check schema"),
+        ("downloaded-data-catalog-audit-schema", "print downloaded data catalog audit schema"),
+        ("downloaded-data-catalog-audit-capabilities", "print downloaded data catalog audit capabilities"),
+    ):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
     for command, help_text in (
         ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-peer-schema", "print archive registry federation peer schema"),
         ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-observation-schema", "print archive registry federation observation schema"),
@@ -18283,6 +18386,38 @@ def build_parser() -> argparse.ArgumentParser:
         ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime-audit-check-schema", "print archive registry federation reconciliation runtime audit check schema"),
         ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime-audit-schema", "print archive registry federation reconciliation runtime audit schema"),
         ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime-audit-capabilities", "print archive registry federation reconciliation runtime audit capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-decision-schema", "print archive registry reconciliation decision schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-schema", "print archive registry reconciliation decision ledger schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-capabilities", "print archive registry reconciliation decision ledger capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit-check-schema", "print archive registry decision ledger audit check schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit-schema", "print archive registry decision ledger audit schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit-capabilities", "print archive registry decision ledger audit capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-schema", "print archive registry decision ledger query schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-row-schema", "print archive registry decision ledger query row schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-result-schema", "print archive registry decision ledger query result schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-capabilities", "print archive registry decision ledger query capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit-check-schema", "print archive registry decision ledger query audit check schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit-schema", "print archive registry decision ledger query audit schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit-capabilities", "print archive registry decision ledger query audit capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-item-schema", "print archive registry decision ledger diff item schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-schema", "print archive registry decision ledger diff schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-capabilities", "print archive registry decision ledger diff capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit-check-schema", "print archive registry decision ledger diff audit check schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit-schema", "print archive registry decision ledger diff audit schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit-capabilities", "print archive registry decision ledger diff audit capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-schema", "print archive registry decision ledger diff query schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-row-schema", "print archive registry decision ledger diff query row schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-result-schema", "print archive registry decision ledger diff query result schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-capabilities", "print archive registry decision ledger diff query capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit-check-schema", "print archive registry decision ledger diff query audit check schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit-schema", "print archive registry decision ledger diff query audit schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit-capabilities", "print archive registry decision ledger diff query audit capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-manifest-schema", "print archive registry decision ledger runtime manifest schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-schema", "print archive registry decision ledger runtime schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-capabilities", "print archive registry decision ledger runtime capabilities"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-audit-check-schema", "print archive registry decision ledger runtime audit check schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-audit-schema", "print archive registry decision ledger runtime audit schema"),
+        ("registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-audit-capabilities", "print archive registry decision ledger runtime audit capabilities"),
     ):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
 
@@ -19293,6 +19428,63 @@ def main(argv: list[str] | None = None) -> int:
             value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_model.runtime_from_mapping(_read_json(args.input)))
             _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
             return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger":
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.run_runtime(
+                args.input,
+                decisions=_decision_mapping(args.decision) or None,
+                runtime_id=args.runtime_id if hasattr(args, "runtime_id") else registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.DEFAULT_RUNTIME_ID,
+                ledger_id=args.ledger_id,
+                resources=tuple(args.resource or ("summary", "decisions")),
+                limit=args.limit,
+                destination=args.destination,
+                overwrite=args.overwrite,
+            )
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model, json_name="runtime_json", csv_name="runtime_csv", markdown_name="render_runtime_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit":
+            raw = _read_json(args.input)
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_audit_model.audit_ledger(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.ledger_from_mapping(raw.get("ledger", raw)))
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query":
+            raw = _read_json(args.input)
+            ledger = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.ledger_from_mapping(raw.get("ledger", raw))
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.query_ledger(ledger, resources=tuple(args.resource or registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.RESOURCES), operation_address=args.operation_address, peer_id=args.peer_id, entry_id=args.entry_id, plan_status=args.plan_status, action=args.action, priority=args.priority, disposition=args.disposition, status=args.status, text=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.query_from_mapping(_read_json(args.input)))
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff":
+            left_raw = _read_json(args.left)
+            right_raw = _read_json(args.right)
+            left = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.ledger_from_mapping(left_raw.get("ledger", left_raw))
+            right = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.ledger_from_mapping(right_raw.get("ledger", right_raw))
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.build_diff(left, right, diff_id=args.diff_id)
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model, json_name="diff_json", csv_name="diff_csv", markdown_name="render_diff_markdown")
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.diff_from_mapping(_read_json(args.input)))
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query":
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.query_diff(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.diff_from_mapping(_read_json(args.input)), resources=tuple(args.resource or registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.RESOURCES), operation_address=args.operation_address, peer_id=args.peer_id, entry_id=args.entry_id, change=args.change, text=args.text, offset=args.offset, limit=args.limit)
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model, json_name="query_json", csv_name="query_csv", markdown_name="render_query_markdown")
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.query_from_mapping(_read_json(args.input)))
+            _emit_contract(value, args, registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
+        if args.command == "downloaded-data-catalog":
+            value = downloaded_data_catalog_model.build_catalog(args.input, catalog_id=args.catalog_id)
+            _emit_contract(value, args, downloaded_data_catalog_model, json_name="catalog_json", csv_name="catalog_csv", markdown_name="render_catalog_markdown")
+            return 0
+        if args.command == "downloaded-data-catalog-audit":
+            raw = _read_json(args.input)
+            value = downloaded_data_catalog_audit_model.audit_catalog(downloaded_data_catalog_model.catalog_from_mapping(raw.get("catalog", raw)))
+            _emit_contract(value, args, downloaded_data_catalog_audit_model, json_name="audit_json", csv_name="audit_csv", markdown_name="render_audit_markdown")
+            return 0 if value.accepted else 2
         if args.command == "registry-federation-consensus-gate-certificate-observatory-archive-registry":
             if args.archive_id is not None and len(args.archive_id) != len(args.input):
                 raise ValueError("--archive-id count must match --input count")
@@ -19607,6 +19799,44 @@ def main(argv: list[str] | None = None) -> int:
             "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit_model.check_schema,
             "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit_model.audit_schema,
             "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-runtime-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_runtime_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-decision-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.decision_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.ledger_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.query_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-row-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.row_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-result-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.result_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-query-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_query_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-item-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.item_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.diff_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.query_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-row-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.row_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-result-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.result_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-diff-query-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_diff_query_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-manifest-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.manifest_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.runtime_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-audit-schema": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-archive-registry-federation-reconciliation-decision-ledger-runtime-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_archive_registry_federation_reconciliation_decision_ledger_runtime_audit_model.capabilities,
+            "downloaded-data-catalog-member-schema": downloaded_data_catalog_model.member_schema,
+            "downloaded-data-catalog-schema": downloaded_data_catalog_model.catalog_schema,
+            "downloaded-data-catalog-capabilities": downloaded_data_catalog_model.capabilities,
+            "downloaded-data-catalog-audit-check-schema": downloaded_data_catalog_audit_model.check_schema,
+            "downloaded-data-catalog-audit-schema": downloaded_data_catalog_audit_model.audit_schema,
+            "downloaded-data-catalog-audit-capabilities": downloaded_data_catalog_audit_model.capabilities,
         }
         if args.command in certificate_schema_commands:
             _write_json(certificate_schema_commands[args.command](), args.output)
