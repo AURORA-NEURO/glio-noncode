@@ -125,6 +125,20 @@ jobs:
           src/glio_noncode/registry_federation_consensus_gate_certificate_diff_audit.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_history.py
           src/glio_noncode/registry_federation_consensus_gate_certificate_history_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_query_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_report.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_report_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_package.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_package_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_diff.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_diff_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_diff_query_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_runtime.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_runtime_audit.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_replay.py
+          src/glio_noncode/registry_federation_consensus_gate_certificate_observatory_replay_audit.py
           src/glio_noncode/api.py
           src/glio_noncode/cli.py
       - name: Run observatory contract tests
@@ -194,6 +208,7 @@ jobs:
           tests.test_registry_federation_consensus_gate_certificate_validation
           tests.test_registry_federation_consensus_gate_certificate_contract
           tests.test_registry_federation_consensus_gate_certificate_history
+          tests.test_registry_federation_consensus_gate_certificate_observatory
       - name: Run upstream history and public-boundary tests
         run: >-
           python -m unittest

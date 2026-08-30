@@ -338,6 +338,14 @@ remediation layers, then the certificate layer:
 | `consensus_gate_certificate_history` | append-only issued/withheld stream |
 | `consensus_gate_certificate_history_audit` | independent 14-check history audit |
 | `consensus_gate_certificate_history_disk_replay` | three-file write/load address equality |
+| `consensus_gate_certificate_observatory` | cross-history certificate observations and counters |
+| `consensus_gate_certificate_observatory_audit` | independent 16-check aggregate audit |
+| `consensus_gate_certificate_observatory_query` | resource-filtered and paginated monitoring view |
+| `consensus_gate_certificate_observatory_query_audit` | independent 13-check result audit |
+| `consensus_gate_certificate_observatory_report` | deterministic health, trend, and alert report |
+| `consensus_gate_certificate_observatory_report_audit` | independent 15-check report audit |
+| `consensus_gate_certificate_observatory_package` | exact eight-file observatory handoff |
+| `consensus_gate_certificate_observatory_package_audit` | independent 15-check package audit |
 | `consensus_gate_certificate_package` | exact nine-file package |
 | `consensus_gate_certificate_package_audit` | package invariant audit |
 | `consensus_gate_certificate_package_disk_replay` | write/load address equality |
@@ -347,6 +355,68 @@ query for visibility. This shows that correctness and presentation bounds can
 be controlled independently. It also appends the normal issued decision and a
 strict-policy withheld decision into one history, persists the three-file
 history package, reloads it, and audits the reloaded value.
+
+## Certificate observatory operations
+
+After histories have been retained, aggregate them into a monitoring value and
+review the derived health report:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory --input C:\data\history-issued --input C:\data\history-withheld --output C:\data\certificate-observatory.json --format json
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-audit --input C:\data\certificate-observatory.json --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-query --input C:\data\certificate-observatory.json --resource withheld --resource evidence --limit 25 --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-query-audit --input C:\data\certificate-query.json --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-report --input C:\data\certificate-observatory.json --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-report-audit --input C:\data\certificate-report.json --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-package --input C:\data\certificate-observatory.json --destination C:\data\certificate-observatory-package --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-package-audit --input C:\data\certificate-observatory-package --format summary
+```
+
+Use the withheld and held resources for incident review, the evidence resource
+for trace-back, and the report's latest disposition and streak counters for a
+release dashboard. Continue from `next_offset` when a query reports
+`truncated`. Store the observatory, query, report, and audit addresses with the
+review record. The eight-file package is the preferred transport when another
+process must replay the reviewed state.
+
+The equivalent HTTP suffixes are `/observatory`, `/observatory/audit`,
+`/observatory/query`, `/observatory/query-audit`, `/observatory/report`,
+`/observatory/report/audit`, `/observatory/package`, and
+`/observatory/package/audit` below the certificate route. Schema and capability
+resources are published beside each family. The workflow compiles every
+observatory module, runs its contract suite, and checks the public inventory
+alongside the existing certificate controls.
+
+For before/after release review, compare snapshots by logical history-entry
+key and inspect only changed or failure-bearing rows:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-diff --left C:\data\observatory-before.json --right C:\data\observatory-after.json --output C:\data\observatory-diff.json --format json
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-diff-audit --input C:\data\observatory-diff.json --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-diff-query --input C:\data\observatory-diff.json --resource changed --resource failures --limit 25 --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-diff-query-audit --input C:\data\observatory-diff-query.json --format summary
+```
+
+The diff direction is derived from acceptance and failed-check deltas. Keep
+the diff audit address with the transition record; a `regressed` direction is
+an explicit review signal, not a transport failure. When a job should perform
+the complete load-to-package lifecycle in one operation, use the runtime:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-runtime --input C:\data\history-issued --input C:\data\history-withheld --destination C:\data\observatory-package --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-runtime-audit --input C:\data\observatory-runtime.json --format markdown
+```
+
+The runtime retains the addresses of the aggregate, query, health report,
+three independent audits, and optional package. It is the recommended CI
+entry point when downstream systems need one replayable receipt.
+
+Replay should be treated as a gate in deployment automation: stop on a
+non-canonical member, address mismatch, byte mismatch, projection mismatch, or
+failed nested audit. These outcomes identify a handoff-integrity problem and
+should not be collapsed into an ordinary withheld release decision.
+The replay address is stable across repeated reads of the same package.
+Retain it alongside the package address for later reconciliation.
 
 ## CI expectations
 
@@ -366,6 +436,10 @@ when:
 - history append preserves old entry addresses and assigns contiguous ordinals;
 - history persistence contains exactly three canonical members;
 - independent history audits pass after disk reload;
+- certificate observatories conserve histories, observations, dispositions, and counters;
+- observatory queries conserve resources, filters, row ordering, and pagination;
+- health reports and their alert/trend counters pass an independent audit;
+- observatory packages contain exactly eight canonical members and replay their address;
 - the public surface inventory remains at its declared count;
 - CLI and HTTP certificate routes remain callable.
 

@@ -78,6 +78,20 @@ from . import registry_federation_consensus_gate_certificate_diff_audit as regis
 from . import registry_federation_consensus_gate_certificate_query_audit as registry_federation_consensus_gate_certificate_query_audit_model
 from . import registry_federation_consensus_gate_certificate_history as registry_federation_consensus_gate_certificate_history_model
 from . import registry_federation_consensus_gate_certificate_history_audit as registry_federation_consensus_gate_certificate_history_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory as registry_federation_consensus_gate_certificate_observatory_model
+from . import registry_federation_consensus_gate_certificate_observatory_audit as registry_federation_consensus_gate_certificate_observatory_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_query_audit as registry_federation_consensus_gate_certificate_observatory_query_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_report as registry_federation_consensus_gate_certificate_observatory_report_model
+from . import registry_federation_consensus_gate_certificate_observatory_report_audit as registry_federation_consensus_gate_certificate_observatory_report_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_package as registry_federation_consensus_gate_certificate_observatory_package_model
+from . import registry_federation_consensus_gate_certificate_observatory_package_audit as registry_federation_consensus_gate_certificate_observatory_package_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_diff as registry_federation_consensus_gate_certificate_observatory_diff_model
+from . import registry_federation_consensus_gate_certificate_observatory_diff_audit as registry_federation_consensus_gate_certificate_observatory_diff_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_diff_query_audit as registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_runtime as registry_federation_consensus_gate_certificate_observatory_runtime_model
+from . import registry_federation_consensus_gate_certificate_observatory_runtime_audit as registry_federation_consensus_gate_certificate_observatory_runtime_audit_model
+from . import registry_federation_consensus_gate_certificate_observatory_replay as registry_federation_consensus_gate_certificate_observatory_replay_model
+from . import registry_federation_consensus_gate_certificate_observatory_replay_audit as registry_federation_consensus_gate_certificate_observatory_replay_audit_model
 from .service_surface import build_service_surface_closure, build_service_surface_snapshot, service_surface_status
 from .service_release_bundle import build_service_release_snapshot
 from .service_release_certification import certify_service_release
@@ -3297,6 +3311,30 @@ def _certificate_and_audit_from_document(raw: Mapping[str, Any]):
         return package.certificate, package.certificate_audit
     certificate = _certificate_from_document(raw)
     return certificate, registry_federation_consensus_gate_certificate_audit_model.audit_certificate(certificate)
+
+
+def _certificate_history_from_input(input_path: str):
+    """Load one canonical certificate history directory or JSON document."""
+
+    source = Path(input_path)
+    if source.is_dir():
+        return registry_federation_consensus_gate_certificate_history_model.load_history(source)
+    return registry_federation_consensus_gate_certificate_history_model.history_from_mapping(_read_json(input_path))
+
+
+def _certificate_observatory_from_document(raw: Mapping[str, Any]):
+    """Resolve an observatory from an observatory package or bare document."""
+
+    if "observatory" in raw and "package_id" in raw:
+        return registry_federation_consensus_gate_certificate_observatory_package_model.package_from_mapping(raw).observatory
+    return registry_federation_consensus_gate_certificate_observatory_model.observatory_from_mapping(raw)
+
+
+def _certificate_observatory_from_input(input_path: str):
+    source = Path(input_path)
+    if source.is_dir():
+        return registry_federation_consensus_gate_certificate_observatory_package_model.load_package(source).observatory
+    return _certificate_observatory_from_document(_read_json(input_path))
 
 
 def _packet_diff_batch_pairs(values: list[str]) -> tuple[tuple[str, str, str], ...]:
@@ -17622,10 +17660,120 @@ def build_parser() -> argparse.ArgumentParser:
     federation_consensus_gate_certificate_history_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
     federation_consensus_gate_certificate_history_audit.add_argument("--output", default=None)
 
+    federation_consensus_gate_certificate_observatory = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory", help="aggregate certificate histories into an observatory")
+    federation_consensus_gate_certificate_observatory.add_argument("--input", action="append", required=True, help="certificate history directory or JSON document")
+    federation_consensus_gate_certificate_observatory.add_argument("--observatory-id", default="consensus-certificate-observatory")
+    federation_consensus_gate_certificate_observatory.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-audit", help="audit a certificate observatory")
+    federation_consensus_gate_certificate_observatory_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_query = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-query", help="query a certificate observatory")
+    federation_consensus_gate_certificate_observatory_query.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_query.add_argument("--resource", action="append")
+    federation_consensus_gate_certificate_observatory_query.add_argument("--history-id", default="")
+    federation_consensus_gate_certificate_observatory_query.add_argument("--certificate-id", default="")
+    federation_consensus_gate_certificate_observatory_query.add_argument("--state", default="")
+    federation_consensus_gate_certificate_observatory_query.add_argument("--decision", default="")
+    federation_consensus_gate_certificate_observatory_query.add_argument("--accepted", default=None, choices=("true", "false"))
+    federation_consensus_gate_certificate_observatory_query.add_argument("--offset", default=0, type=int)
+    federation_consensus_gate_certificate_observatory_query.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_certificate_observatory_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_query.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_query_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-query-audit", help="audit a certificate observatory query result")
+    federation_consensus_gate_certificate_observatory_query_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_query_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_report = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-report", help="report certificate observatory health and transitions")
+    federation_consensus_gate_certificate_observatory_report.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_report.add_argument("--report-id", default="consensus-certificate-observatory-report")
+    federation_consensus_gate_certificate_observatory_report.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_report.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_report_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-report-audit", help="audit a certificate observatory report")
+    federation_consensus_gate_certificate_observatory_report_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_report_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_report_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_package = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-package", help="persist a certificate observatory snapshot")
+    federation_consensus_gate_certificate_observatory_package.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_package.add_argument("--package-id", default="consensus-certificate-observatory-package")
+    federation_consensus_gate_certificate_observatory_package.add_argument("--destination", required=True)
+    federation_consensus_gate_certificate_observatory_package.add_argument("--overwrite", action="store_true")
+    federation_consensus_gate_certificate_observatory_package.add_argument("--format", choices=("json", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_package.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_package_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-package-audit", help="audit a certificate observatory snapshot")
+    federation_consensus_gate_certificate_observatory_package_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_package_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_package_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_diff = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-diff", help="compare two certificate observatories")
+    federation_consensus_gate_certificate_observatory_diff.add_argument("--left", required=True)
+    federation_consensus_gate_certificate_observatory_diff.add_argument("--right", required=True)
+    federation_consensus_gate_certificate_observatory_diff.add_argument("--diff-id", default="consensus-certificate-observatory-diff")
+    federation_consensus_gate_certificate_observatory_diff.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_diff.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_diff_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-diff-audit", help="audit a certificate observatory diff")
+    federation_consensus_gate_certificate_observatory_diff_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_diff_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_diff_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_diff_query = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-diff-query", help="query a certificate observatory diff")
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--resource", action="append")
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--observation-key", default="")
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--action", default="")
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--accepted-change", default=None, type=int)
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--offset", default=0, type=int)
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_diff_query.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_diff_query_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-diff-query-audit", help="audit a certificate observatory diff query result")
+    federation_consensus_gate_certificate_observatory_diff_query_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_diff_query_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_diff_query_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_runtime = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-runtime", help="run the certificate observatory pipeline")
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--input", action="append", required=True)
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--runtime-id", default="consensus-certificate-observatory-runtime")
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--observatory-id", default="consensus-certificate-observatory")
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--report-id", default="consensus-certificate-observatory-report")
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--package-id", default="consensus-certificate-observatory-package")
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--destination", default=None)
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--limit", default=100, type=int)
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--format", choices=("json", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_runtime.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_runtime_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-runtime-audit", help="audit the certificate observatory pipeline runtime")
+    federation_consensus_gate_certificate_observatory_runtime_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_runtime_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_runtime_audit.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_replay = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-replay", help="verify exact certificate observatory package replay")
+    federation_consensus_gate_certificate_observatory_replay.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_replay.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_replay.add_argument("--output", default=None)
+
+    federation_consensus_gate_certificate_observatory_replay_audit = subparsers.add_parser("registry-federation-consensus-gate-certificate-observatory-replay-audit", help="audit an exact certificate observatory replay receipt")
+    federation_consensus_gate_certificate_observatory_replay_audit.add_argument("--input", required=True)
+    federation_consensus_gate_certificate_observatory_replay_audit.add_argument("--format", choices=("json", "csv", "markdown", "summary"), default="summary")
+    federation_consensus_gate_certificate_observatory_replay_audit.add_argument("--output", default=None)
+
     for command, help_text in (("registry-federation-consensus-gate-certificate-policy-schema", "print certificate policy schema"), ("registry-federation-consensus-gate-certificate-check-schema", "print certificate check schema"), ("registry-federation-consensus-gate-certificate-schema", "print certificate schema"), ("registry-federation-consensus-gate-certificate-capabilities", "print certificate capabilities"), ("registry-federation-consensus-gate-certificate-audit-check-schema", "print certificate audit check schema"), ("registry-federation-consensus-gate-certificate-audit-schema", "print certificate audit schema"), ("registry-federation-consensus-gate-certificate-audit-capabilities", "print certificate audit capabilities"), ("registry-federation-consensus-gate-certificate-query-schema", "print certificate query schema"), ("registry-federation-consensus-gate-certificate-query-row-schema", "print certificate query row schema"), ("registry-federation-consensus-gate-certificate-query-result-schema", "print certificate query result schema"), ("registry-federation-consensus-gate-certificate-query-capabilities", "print certificate query capabilities"), ("registry-federation-consensus-gate-certificate-query-audit-check-schema", "print certificate query audit check schema"), ("registry-federation-consensus-gate-certificate-query-audit-schema", "print certificate query audit schema"), ("registry-federation-consensus-gate-certificate-query-audit-capabilities", "print certificate query audit capabilities"), ("registry-federation-consensus-gate-certificate-package-manifest-schema", "print certificate package manifest schema"), ("registry-federation-consensus-gate-certificate-package-schema", "print certificate package schema"), ("registry-federation-consensus-gate-certificate-package-capabilities", "print certificate package capabilities"), ("registry-federation-consensus-gate-certificate-package-audit-check-schema", "print certificate package audit check schema"), ("registry-federation-consensus-gate-certificate-package-audit-schema", "print certificate package audit schema"), ("registry-federation-consensus-gate-certificate-package-audit-capabilities", "print certificate package audit capabilities"), ("registry-federation-consensus-gate-certificate-runtime-schema", "print certificate runtime schema"), ("registry-federation-consensus-gate-certificate-runtime-capabilities", "print certificate runtime capabilities"), ("registry-federation-consensus-gate-certificate-diff-item-schema", "print certificate diff item schema"), ("registry-federation-consensus-gate-certificate-diff-schema", "print certificate diff schema"), ("registry-federation-consensus-gate-certificate-diff-capabilities", "print certificate diff capabilities"), ("registry-federation-consensus-gate-certificate-diff-audit-check-schema", "print certificate diff audit check schema"), ("registry-federation-consensus-gate-certificate-diff-audit-schema", "print certificate diff audit schema"), ("registry-federation-consensus-gate-certificate-diff-audit-capabilities", "print certificate diff audit capabilities")):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
 
     for command, help_text in (("registry-federation-consensus-gate-certificate-history-manifest-schema", "print certificate history manifest schema"), ("registry-federation-consensus-gate-certificate-history-entry-schema", "print certificate history entry schema"), ("registry-federation-consensus-gate-certificate-history-schema", "print certificate history schema"), ("registry-federation-consensus-gate-certificate-history-capabilities", "print certificate history capabilities"), ("registry-federation-consensus-gate-certificate-history-audit-check-schema", "print certificate history audit check schema"), ("registry-federation-consensus-gate-certificate-history-audit-schema", "print certificate history audit schema"), ("registry-federation-consensus-gate-certificate-history-audit-capabilities", "print certificate history audit capabilities")):
+        subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
+
+    for command, help_text in (("registry-federation-consensus-gate-certificate-observatory-schema", "print certificate observatory schema"), ("registry-federation-consensus-gate-certificate-observatory-query-schema", "print certificate observatory query schema"), ("registry-federation-consensus-gate-certificate-observatory-query-row-schema", "print certificate observatory query row schema"), ("registry-federation-consensus-gate-certificate-observatory-query-result-schema", "print certificate observatory query result schema"), ("registry-federation-consensus-gate-certificate-observatory-capabilities", "print certificate observatory capabilities"), ("registry-federation-consensus-gate-certificate-observatory-audit-check-schema", "print certificate observatory audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-audit-schema", "print certificate observatory audit schema"), ("registry-federation-consensus-gate-certificate-observatory-audit-capabilities", "print certificate observatory audit capabilities"), ("registry-federation-consensus-gate-certificate-observatory-query-audit-check-schema", "print certificate observatory query audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-query-audit-schema", "print certificate observatory query audit schema"), ("registry-federation-consensus-gate-certificate-observatory-query-audit-capabilities", "print certificate observatory query audit capabilities"), ("registry-federation-consensus-gate-certificate-observatory-report-alert-schema", "print certificate observatory report alert schema"), ("registry-federation-consensus-gate-certificate-observatory-report-schema", "print certificate observatory report schema"), ("registry-federation-consensus-gate-certificate-observatory-report-capabilities", "print certificate observatory report capabilities"), ("registry-federation-consensus-gate-certificate-observatory-report-audit-check-schema", "print certificate observatory report audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-report-audit-schema", "print certificate observatory report audit schema"), ("registry-federation-consensus-gate-certificate-observatory-report-audit-capabilities", "print certificate observatory report audit capabilities"), ("registry-federation-consensus-gate-certificate-observatory-package-manifest-schema", "print certificate observatory package manifest schema"), ("registry-federation-consensus-gate-certificate-observatory-package-schema", "print certificate observatory package schema"), ("registry-federation-consensus-gate-certificate-observatory-package-capabilities", "print certificate observatory package capabilities"), ("registry-federation-consensus-gate-certificate-observatory-package-audit-check-schema", "print certificate observatory package audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-package-audit-schema", "print certificate observatory package audit schema"), ("registry-federation-consensus-gate-certificate-observatory-package-audit-capabilities", "print certificate observatory package audit capabilities"), ("registry-federation-consensus-gate-certificate-observatory-diff-item-schema", "print certificate observatory diff item schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-schema", "print certificate observatory diff schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-capabilities", "print certificate observatory diff capabilities"), ("registry-federation-consensus-gate-certificate-observatory-diff-audit-check-schema", "print certificate observatory diff audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-audit-schema", "print certificate observatory diff audit schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-audit-capabilities", "print certificate observatory diff audit capabilities"), ("registry-federation-consensus-gate-certificate-observatory-diff-query-schema", "print certificate observatory diff query schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-query-row-schema", "print certificate observatory diff query row schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-query-result-schema", "print certificate observatory diff query result schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-query-capabilities", "print certificate observatory diff query capabilities"), ("registry-federation-consensus-gate-certificate-observatory-diff-query-audit-check-schema", "print certificate observatory diff query audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-query-audit-schema", "print certificate observatory diff query audit schema"), ("registry-federation-consensus-gate-certificate-observatory-diff-query-audit-capabilities", "print certificate observatory diff query audit capabilities"), ("registry-federation-consensus-gate-certificate-observatory-runtime-schema", "print certificate observatory runtime schema"), ("registry-federation-consensus-gate-certificate-observatory-runtime-capabilities", "print certificate observatory runtime capabilities"), ("registry-federation-consensus-gate-certificate-observatory-runtime-audit-check-schema", "print certificate observatory runtime audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-runtime-audit-schema", "print certificate observatory runtime audit schema"), ("registry-federation-consensus-gate-certificate-observatory-runtime-audit-capabilities", "print certificate observatory runtime audit capabilities"), ("registry-federation-consensus-gate-certificate-observatory-replay-schema", "print certificate observatory replay schema"), ("registry-federation-consensus-gate-certificate-observatory-replay-audit-check-schema", "print certificate observatory replay audit check schema"), ("registry-federation-consensus-gate-certificate-observatory-replay-audit-schema", "print certificate observatory replay audit schema"), ("registry-federation-consensus-gate-certificate-observatory-replay-capabilities", "print certificate observatory replay capabilities"), ("registry-federation-consensus-gate-certificate-observatory-replay-audit-capabilities", "print certificate observatory replay audit capabilities")):
         subparsers.add_parser(command, help=help_text).add_argument("--output", default=None)
 
     federation_consensus_remediation = subparsers.add_parser("registry-federation-consensus-remediation", help="derive a non-mutating remediation plan from a consensus receipt")
@@ -18213,6 +18361,173 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 _write_json(value.summary(), args.output)
             return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory":
+            histories = tuple(_certificate_history_from_input(input_path) for input_path in args.input)
+            value = registry_federation_consensus_gate_certificate_observatory_model.build_observatory(histories, observatory_id=args.observatory_id)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_model.observatory_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_model.render_observatory_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_model.observatory_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_audit_model.audit_observatory(_certificate_observatory_from_document(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-query":
+            accepted = None if args.accepted is None else args.accepted == "true"
+            value = registry_federation_consensus_gate_certificate_observatory_model.query_observatory(_certificate_observatory_from_document(_read_json(args.input)), resources=tuple(args.resource or registry_federation_consensus_gate_certificate_observatory_model.DEFAULT_RESOURCES), history_id=args.history_id, certificate_id=args.certificate_id, state=args.state, decision=args.decision, accepted=accepted, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_model.query_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_model.render_query_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_model.query_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-query-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_model.query_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_query_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_query_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_query_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-report":
+            value = registry_federation_consensus_gate_certificate_observatory_report_model.build_report(_certificate_observatory_from_document(_read_json(args.input)), report_id=args.report_id)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_report_model.report_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_report_model.render_report_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_report_model.report_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-report-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_report_audit_model.audit_report(registry_federation_consensus_gate_certificate_observatory_report_model.report_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_report_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_report_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_report_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-package":
+            value = registry_federation_consensus_gate_certificate_observatory_package_model.build_package(_certificate_observatory_from_document(_read_json(args.input)), package_id=args.package_id)
+            registry_federation_consensus_gate_certificate_observatory_package_model.write_package(value, args.destination, overwrite=args.overwrite)
+            _write_json(value.summary() if args.format == "summary" else value.to_dict(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-package-audit":
+            source = Path(args.input)
+            package = registry_federation_consensus_gate_certificate_observatory_package_model.load_package(source) if source.is_dir() else registry_federation_consensus_gate_certificate_observatory_package_model.package_from_mapping(_read_json(args.input))
+            value = registry_federation_consensus_gate_certificate_observatory_package_audit_model.audit_package(package)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_package_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_package_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_package_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-diff":
+            value = registry_federation_consensus_gate_certificate_observatory_diff_model.build_diff(_certificate_observatory_from_input(args.left), _certificate_observatory_from_input(args.right), diff_id=args.diff_id)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_model.render_diff_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-diff-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_diff_audit_model.audit_diff(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-diff-query":
+            value = registry_federation_consensus_gate_certificate_observatory_diff_model.query_diff(registry_federation_consensus_gate_certificate_observatory_diff_model.diff_from_mapping(_read_json(args.input)), resources=tuple(args.resource or registry_federation_consensus_gate_certificate_observatory_diff_model.DEFAULT_RESOURCES), observation_key=args.observation_key, action=args.action, accepted_change=args.accepted_change, offset=args.offset, limit=args.limit)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_model.query_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_model.render_query_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_model.query_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-diff-query-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.audit_query(registry_federation_consensus_gate_certificate_observatory_diff_model.query_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-runtime":
+            value = registry_federation_consensus_gate_certificate_observatory_runtime_model.run_runtime(args.input, runtime_id=args.runtime_id, observatory_id=args.observatory_id, report_id=args.report_id, package_id=args.package_id, destination=args.destination, limit=args.limit)
+            _write_json(value.to_dict() if args.format == "json" else value.summary(), args.output)
+            return 0
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-runtime-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.audit_runtime(registry_federation_consensus_gate_certificate_observatory_runtime_model.runtime_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-replay":
+            value = registry_federation_consensus_gate_certificate_observatory_replay_model.replay_package(args.input)
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_replay_model.replay_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_replay_model.render_replay_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_replay_model.replay_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.byte_equal and value.projection_equal and value.audit_accepted else 2
+        if args.command == "registry-federation-consensus-gate-certificate-observatory-replay-audit":
+            value = registry_federation_consensus_gate_certificate_observatory_replay_audit_model.audit_replay(registry_federation_consensus_gate_certificate_observatory_replay_model.replay_from_mapping(_read_json(args.input)))
+            if args.format == "csv":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_replay_audit_model.audit_csv(value), args.output)
+            elif args.format == "markdown":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_replay_audit_model.render_audit_markdown(value), args.output)
+            elif args.format == "json":
+                _write_text(registry_federation_consensus_gate_certificate_observatory_replay_audit_model.audit_json(value), args.output)
+            else:
+                _write_json(value.summary(), args.output)
+            return 0 if value.accepted else 2
         certificate_schema_commands = {
             "registry-federation-consensus-gate-certificate-policy-schema": registry_federation_consensus_gate_certificate_model.policy_schema,
             "registry-federation-consensus-gate-certificate-check-schema": registry_federation_consensus_gate_certificate_model.check_schema,
@@ -18249,6 +18564,52 @@ def main(argv: list[str] | None = None) -> int:
             "registry-federation-consensus-gate-certificate-history-audit-check-schema": registry_federation_consensus_gate_certificate_history_audit_model.check_schema,
             "registry-federation-consensus-gate-certificate-history-audit-schema": registry_federation_consensus_gate_certificate_history_audit_model.audit_schema,
             "registry-federation-consensus-gate-certificate-history-audit-capabilities": registry_federation_consensus_gate_certificate_history_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-schema": registry_federation_consensus_gate_certificate_observatory_model.observatory_schema,
+            "registry-federation-consensus-gate-certificate-observatory-query-schema": registry_federation_consensus_gate_certificate_observatory_model.query_schema,
+            "registry-federation-consensus-gate-certificate-observatory-query-row-schema": registry_federation_consensus_gate_certificate_observatory_model.row_schema,
+            "registry-federation-consensus-gate-certificate-observatory-query-result-schema": registry_federation_consensus_gate_certificate_observatory_model.result_schema,
+            "registry-federation-consensus-gate-certificate-observatory-capabilities": registry_federation_consensus_gate_certificate_observatory_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-audit-schema": registry_federation_consensus_gate_certificate_observatory_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-query-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_query_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-query-audit-schema": registry_federation_consensus_gate_certificate_observatory_query_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-query-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_query_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-report-alert-schema": registry_federation_consensus_gate_certificate_observatory_report_model.alert_schema,
+            "registry-federation-consensus-gate-certificate-observatory-report-schema": registry_federation_consensus_gate_certificate_observatory_report_model.report_schema,
+            "registry-federation-consensus-gate-certificate-observatory-report-capabilities": registry_federation_consensus_gate_certificate_observatory_report_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-report-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_report_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-report-audit-schema": registry_federation_consensus_gate_certificate_observatory_report_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-report-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_report_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-package-manifest-schema": registry_federation_consensus_gate_certificate_observatory_package_model.manifest_schema,
+            "registry-federation-consensus-gate-certificate-observatory-package-schema": registry_federation_consensus_gate_certificate_observatory_package_model.package_schema,
+            "registry-federation-consensus-gate-certificate-observatory-package-capabilities": registry_federation_consensus_gate_certificate_observatory_package_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-package-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_package_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-package-audit-schema": registry_federation_consensus_gate_certificate_observatory_package_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-package-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_package_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-diff-item-schema": registry_federation_consensus_gate_certificate_observatory_diff_model.item_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-schema": registry_federation_consensus_gate_certificate_observatory_diff_model.diff_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-capabilities": registry_federation_consensus_gate_certificate_observatory_diff_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-diff-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_diff_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-audit-schema": registry_federation_consensus_gate_certificate_observatory_diff_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_diff_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-diff-query-schema": registry_federation_consensus_gate_certificate_observatory_diff_model.query_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-query-row-schema": registry_federation_consensus_gate_certificate_observatory_diff_model.row_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-query-result-schema": registry_federation_consensus_gate_certificate_observatory_diff_model.result_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-query-capabilities": registry_federation_consensus_gate_certificate_observatory_diff_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-diff-query-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-query-audit-schema": registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-diff-query-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_diff_query_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-runtime-schema": registry_federation_consensus_gate_certificate_observatory_runtime_model.runtime_schema,
+            "registry-federation-consensus-gate-certificate-observatory-runtime-capabilities": registry_federation_consensus_gate_certificate_observatory_runtime_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-runtime-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-runtime-audit-schema": registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-runtime-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_runtime_audit_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-replay-schema": registry_federation_consensus_gate_certificate_observatory_replay_model.replay_schema,
+            "registry-federation-consensus-gate-certificate-observatory-replay-capabilities": registry_federation_consensus_gate_certificate_observatory_replay_model.capabilities,
+            "registry-federation-consensus-gate-certificate-observatory-replay-audit-check-schema": registry_federation_consensus_gate_certificate_observatory_replay_audit_model.check_schema,
+            "registry-federation-consensus-gate-certificate-observatory-replay-audit-schema": registry_federation_consensus_gate_certificate_observatory_replay_audit_model.audit_schema,
+            "registry-federation-consensus-gate-certificate-observatory-replay-audit-capabilities": registry_federation_consensus_gate_certificate_observatory_replay_audit_model.capabilities,
         }
         if args.command in certificate_schema_commands:
             _write_json(certificate_schema_commands[args.command](), args.output)

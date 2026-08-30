@@ -483,6 +483,207 @@ issued certificate is appended as a new entry, allowing reviewers to explain
 the complete transition from hold to promotion without mutating the original
 record.
 
+## Certificate history observatory and health report
+
+`registry_federation_consensus_gate_certificate_observatory.py` projects one
+or more verified certificate histories into a single bounded monitoring value.
+The projection keeps every source history address, assigns a deterministic
+global observation ordinal, and carries the entry, certificate, runtime, and
+independent-audit addresses needed to trace a decision back to its source. It
+also conserves issued, withheld, accepted, held, total-check, and failed-check
+counters. The source histories are never modified by aggregation, so an
+observatory can be rebuilt whenever a review needs a different set of streams.
+
+The observatory query is a stable resource projection with seven resources:
+
+| resource | rows |
+| --- | --- |
+| `summary` | one aggregate row linked to the observatory address |
+| `observations` | every history entry in global ordinal order |
+| `issued` | observations whose certificate state is `issued` |
+| `withheld` | observations whose certificate state is `withheld` |
+| `accepted` | observations accepted by the certificate policy |
+| `held` | observations not accepted by the certificate policy |
+| `evidence` | trace rows carrying certificate and audit evidence links |
+
+Resources can be combined and filtered by `history_id`, `certificate_id`,
+certificate `state`, certificate `decision`, and `accepted`. Filters are applied
+before the bounded `offset`/`limit` page, and each page records total, matched,
+returned, next-offset, truncation, query, row, and result addresses. The query
+serializer has JSON, CSV, and Markdown forms; all public rows contain labels,
+counts, decisions, and content addresses, never source filesystem paths.
+
+`registry_federation_consensus_gate_certificate_observatory_audit.py` performs
+an independent 16-check audit of the aggregate. It rechecks exact fields,
+public-boundary safety, source-history and observation conservation, ordinals,
+all disposition counters, source and nested address vocabularies, acceptance
+semantics, mapping replay, content-address replay, and path-free output.
+`registry_federation_consensus_gate_certificate_observatory_query_audit.py`
+performs a separate 13-check audit after filtering and pagination. That second
+audit proves that the view actually delivered to a reviewer still matches its
+requested resources, filters, offsets, row addresses, and source links.
+
+The deterministic health report in
+`registry_federation_consensus_gate_certificate_observatory_report.py` turns
+the same stream into operational metrics. It reports acceptance ratio, latest
+disposition, consecutive withheld count, transitions, recoveries, total check
+and failure density, and a `steady`, `mixed`, or `held` stream state. Alerts
+identify withheld decisions, an active withheld streak, failed checks, and a
+stream with no accepted observations. Alerts remain bounded and carry only
+stable evidence addresses. The independent report audit recomputes 15 checks,
+including the ratio, trend counters, alert identity, nested observatory link,
+mapping replay, and report address.
+
+For durable review handoff,
+`registry_federation_consensus_gate_certificate_observatory_package.py` writes
+an exact eight-file package:
+
+| ordinal | member | purpose |
+| ---: | --- | --- |
+| 1 | `manifest.json` | version, fixed vocabulary, and child addresses |
+| 2 | `package.json` | addressed package envelope |
+| 3 | `observatory.json` | complete aggregate and observations |
+| 4 | `query.json` | complete bounded resource projection |
+| 5 | `report.json` | health metrics and alert projection |
+| 6 | `observatory-audit.json` | independent aggregate audit |
+| 7 | `query-audit.json` | independent result audit |
+| 8 | `report-audit.json` | independent health-report audit |
+
+The writer stages a canonical directory and refuses accidental replacement
+unless `overwrite` is explicit. The loader rejects extra members, symlinks,
+non-canonical JSON, address mismatches, and projection drift. The independent
+package audit checks 15 invariants across the exact member vocabulary, all
+nested links, manifest replay, package addressing, byte projections, mapping
+round trips, and the public boundary.
+
+Build the observatory from persisted history directories:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory \
+  --input C:\data\certificate-history-issued \
+  --input C:\data\certificate-history-withheld \
+  --observatory-id release-certificate-observatory \
+  --output C:\data\certificate-observatory.json \
+  --format json
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-query \
+  --input C:\data\certificate-observatory.json \
+  --resource withheld --resource evidence --limit 25 \
+  --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-report \
+  --input C:\data\certificate-observatory.json --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-package \
+  --input C:\data\certificate-observatory.json \
+  --destination C:\data\certificate-observatory-package \
+  --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-package-audit \
+  --input C:\data\certificate-observatory-package --format summary
+```
+
+The HTTP routes mirror these operations below the certificate prefix:
+`/consensus/gate/certificate/observatory`, `/audit`, `/query`,
+`/query-audit`, `/report`, `/report/audit`, `/package`, and `/package/audit`.
+Their schema and capability resources are also published. A receiving system
+can therefore validate the aggregate, inspect the exact filtered page, read
+the health report, and replay the eight-file handoff without access to the
+source registry directories.
+
+## Observatory transition diff and runtime
+
+`registry_federation_consensus_gate_certificate_observatory_diff.py` compares
+two addressed observatories by the stable logical key
+`history_id:entry_ordinal`. It distinguishes `added`, `removed`, `changed`,
+and `unchanged` observations even when global observation ordinals move because
+histories were reordered. Every item retains both observation addresses,
+certificate disposition, acceptance change, failed-check delta, and trace
+evidence. The diff summary conserves item action counts, left/right population
+counts, acceptance and withheld deltas, and failure totals. Its direction is
+`unchanged`, `improved`, `regressed`, or `mixed` and is derived from those
+conserved changes.
+
+Diff queries expose `summary`, `items`, `added`, `removed`, `changed`,
+`unchanged`, `accepted-gain`, `accepted-loss`, and `failures`. They accept a
+logical observation-key filter, action filter, acceptance-change filter, and
+bounded pagination. `registry_federation_consensus_gate_certificate_observatory_diff_audit.py`
+recomputes 16 independent diff invariants. A separate
+`registry_federation_consensus_gate_certificate_observatory_diff_query_audit.py`
+recomputes 13 result invariants, including requested resources, filters,
+pagination, row addresses, and mapping replay.
+
+The diff makes a release transition explicit without requiring source registry
+access:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-diff \
+  --left C:\data\certificate-observatory-before.json \
+  --right C:\data\certificate-observatory-after.json \
+  --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-diff-audit \
+  --input C:\data\certificate-observatory-diff.json --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-diff-query \
+  --input C:\data\certificate-observatory-diff.json \
+  --resource changed --resource failures --limit 25 --format markdown
+```
+
+`registry_federation_consensus_gate_certificate_observatory_runtime.py`
+orchestrates the complete lifecycle from history directories or public history
+JSON: load, aggregate, independently audit, query, independently audit the
+query, report health, independently audit the report, and optionally persist
+the exact eight-file package. Its addressed runtime envelope makes each nested
+stage and the optional package address explicit. The runtime audit recomputes
+13 checks for stage links, acceptance, persistence state, mapping replay,
+content addressing, and the public boundary.
+
+Use the runtime when a CI job should produce one self-describing result:
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-runtime \
+  --input C:\data\certificate-history-issued \
+  --input C:\data\certificate-history-withheld \
+  --destination C:\data\certificate-observatory-package \
+  --format summary
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-runtime-audit \
+  --input C:\data\certificate-observatory-runtime.json --format markdown
+```
+
+The runtime is path-free after loading. Input paths affect only the local
+read, while its output contains labels, counters, decisions, alert values, and
+content addresses. All diff, query, and runtime schema/capability resources are
+available through both the CLI and the local HTTP API.
+
+`registry_federation_consensus_gate_certificate_observatory_replay.py` closes
+the transport loop for a written snapshot. It reloads the package, reads the
+exact eight expected members, compares every canonical byte projection,
+rechecks the nested package audit, and emits a path-free replay receipt with
+the observatory, query, report, and audit addresses. The independent replay
+audit recomputes 13 checks for member vocabulary, byte equality, projection
+equality, nested audit acceptance, mapping replay, and the replay address.
+
+```text
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-replay \
+  --input C:\data\certificate-observatory-package --format markdown
+python -m glio_noncode.cli registry-federation-consensus-gate-certificate-observatory-replay-audit \
+  --input C:\data\certificate-observatory-replay.json --format summary
+```
+
+The replay operation is also available at `/consensus/gate/certificate/observatory/replay`
+and `/consensus/gate/certificate/observatory/replay/audit`, with schema and
+capability routes beside them. A successful receipt proves that the package
+received by the downstream process is the same addressed artifact that was
+written by the producing process.
+
+Replay acceptance checklist:
+
+1. Confirm the package contains exactly the eight declared members.
+2. Confirm every member is a regular file and parses as canonical JSON.
+3. Confirm the envelope and manifest agree on the package address.
+4. Confirm the observatory, query, report, and audit addresses are nested
+   consistently across all projections.
+5. Confirm the package audit is accepted before using the report operationally.
+6. Confirm the replay receipt reports byte equality and projection equality.
+7. Confirm the replay audit is accepted and retain its address with the handoff.
+8. Compare the receipt address when the same package crosses another process
+   boundary; a changed address means the receipt itself changed.
+
 ## Remediation plan and operator query
 
 `registry_federation_consensus_remediation.py` converts every consensus action into a required or recommended non-mutating step. Each step retains its action ID, package, peer scope, instruction, and evidence addresses. `ready` is true only when there are no blocking steps; it does not authorize an edit. The independent remediation audit recomputes step identity, severity counters, readiness, and nested addresses. The query projection provides `summary`, `steps`, `required`, `recommended`, and `evidence` resources with bounded package, kind, severity, status, and pagination filters:

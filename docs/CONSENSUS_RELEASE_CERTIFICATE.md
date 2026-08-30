@@ -475,3 +475,38 @@ projection before returning a typed value. A separate history audit recomputes
 capability projections. The CLI and HTTP routes accept package directories and
 public JSON documents, so a downstream operator can build, persist, reload,
 and audit a history without access to the original registry inputs.
+
+The observatory and replay layers extend this same handoff discipline across
+history collections, derived reports, and transport bytes.
+The same address can be checked repeatedly without changing the source.
+
+## Cross-history observatory and health report
+
+The certificate observatory aggregates one or more verified histories into a
+bounded monitoring projection. It retains source history, entry, certificate,
+runtime, and audit addresses while assigning deterministic global observation
+ordinals. Issued, withheld, accepted, held, total-check, and failed-check
+counters are recomputed from observations and rejected when they drift.
+
+Its query surface provides `summary`, `observations`, `issued`, `withheld`,
+`accepted`, `held`, and `evidence` resources. History, certificate, state,
+decision, and acceptance filters are applied before offset/limit pagination.
+Every page records its query address, row addresses, total and matched counts,
+next offset, and truncation state. The query can be rendered as JSON, CSV, or
+Markdown for a review queue.
+
+The aggregate has an independent 16-check audit, and the filtered result has a
+separate 13-check audit. Together they verify public field closure, source and
+counter conservation, address vocabularies, requested resources, active
+filters, row ordering, pagination, mapping replay, and content-address replay.
+The report layer derives acceptance ratio, latest disposition, withheld streak,
+transition and recovery counts, failure density, stream state, and bounded
+alerts. A 15-check report audit independently validates those derived values.
+
+The durable observatory handoff has exactly eight members: `manifest.json`,
+`package.json`, `observatory.json`, `query.json`, `report.json`,
+`observatory-audit.json`, `query-audit.json`, and `report-audit.json`. The
+loader checks exact membership, canonical bytes, nested addresses, and every
+projection. Its independent package audit has 15 checks. This lets a receiver
+inspect certificate health and replay the reviewed page without the source
+history directories.
